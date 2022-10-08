@@ -681,7 +681,7 @@ class HVAC
     control_zone.setSequentialHeatingFractionSchedule(ideal_air, get_sequential_load_schedule(model, sequential_heat_load_fracs, Constants.ObjectNameHeatingSequentialFraction))
   end
 
-  def self.apply_dehumidifiers(model, dehumidifiers, living_space)
+  def self.apply_dehumidifiers(model, dehumidifiers, living_space, schedules_file)
     dehumidifier_id = dehumidifiers[0].id # Syncs with the ReportSimulationOutput measure, which only looks at first dehumidifier ID
 
     if dehumidifiers.map { |d| d.rh_setpoint }.uniq.size > 1
@@ -728,9 +728,15 @@ class HVAC
     control_zone.setZoneControlHumidistat(humidistat)
 
     # Dehumidifier
+    if not schedules_file.nil?
+      avail_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnDehumidifier)
+    else
+      avail_sch = model.alwaysOnDiscreteSchedule
+    end
+
     zone_hvac = OpenStudio::Model::ZoneHVACDehumidifierDX.new(model, capacity_curve, energy_factor_curve, part_load_frac_curve)
     zone_hvac.setName(obj_name)
-    zone_hvac.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
+    zone_hvac.setAvailabilitySchedule(avail_sch)
     zone_hvac.setRatedWaterRemoval(UnitConversions.convert(total_capacity, 'pint', 'L'))
     zone_hvac.setRatedEnergyFactor(avg_energy_factor / total_fraction_served)
     zone_hvac.setRatedAirFlowRate(UnitConversions.convert(air_flow_rate, 'cfm', 'm^3/s'))

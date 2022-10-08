@@ -138,7 +138,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     hpxml = _create_hpxml('base.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
-    @args_hash['schedules_outage_period'] = 'Nov 30 12am - Jan 31 12am'
+    @args_hash['schedules_outage_period'] = 'Dec 1 12am - Jan 31 12am'
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'smooth-outage.csv'))
     model, hpxml, result = _test_measure()
 
@@ -150,7 +150,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
     assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
-    assert(info_msgs.any? { |info_msg| info_msg.include?('OutagePeriod=Nov 30 12am - Jan 31 12am') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('OutagePeriod=Dec 1 12am - Jan 31 12am') })
 
     sf = SchedulesFile.new(model: model, schedules_paths: hpxml.header.schedules_filepaths)
     sf.validate_schedules(year: 2007)
@@ -308,7 +308,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
     @args_hash['schedules_type'] = 'stochastic'
-    @args_hash['schedules_outage_period'] = 'Nov 30 12am - Jan 31 12am'
+    @args_hash['schedules_outage_period'] = 'Dec 1 12am - Jan 31 12am'
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-stochastic-outage.csv'))
     model, hpxml, result = _test_measure()
 
@@ -320,7 +320,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
     assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
-    assert(info_msgs.any? { |info_msg| info_msg.include?('OutagePeriod=Nov 30 12am - Jan 31 12am') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('OutagePeriod=Dec 1 12am - Jan 31 12am') })
 
     sf = SchedulesFile.new(model: model, schedules_paths: hpxml.header.schedules_filepaths)
     sf.validate_schedules(year: 2007)
@@ -632,7 +632,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     hpxml = _create_hpxml('base.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
-    @args_hash['schedules_outage_period'] = 'Nov 30 12am - Jan 31 12am'
+    @args_hash['schedules_outage_period'] = 'Dec 1 12am - Jan 31 12am'
     @args_hash['schedules_outage_window_natvent_availability'] = true
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'outage.csv'))
     model, hpxml, result = _test_measure()
@@ -645,7 +645,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
     assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
-    assert(info_msgs.any? { |info_msg| info_msg.include?('OutagePeriod=Nov 30 12am - Jan 31 12am') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('OutagePeriod=Dec 1 12am - Jan 31 12am') })
 
     sf = SchedulesFile.new(model: model, schedules_paths: hpxml.header.schedules_filepaths)
     sf.validate_schedules(year: 2007)
@@ -690,7 +690,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     hpxml = _create_hpxml('base.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
-    @args_hash['schedules_outage_period'] = 'Nov 30 12am - Jan 31 12am'
+    @args_hash['schedules_outage_period'] = 'Dec 1 12am - Jan 31 12am'
     @args_hash['schedules_outage_window_natvent_availability'] = false
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'outage.csv'))
     model, hpxml, result = _test_measure()
@@ -703,7 +703,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
     assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
-    assert(info_msgs.any? { |info_msg| info_msg.include?('OutagePeriod=Nov 30 12am - Jan 31 12am') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('OutagePeriod=Dec 1 12am - Jan 31 12am') })
 
     sf = SchedulesFile.new(model: model, schedules_paths: hpxml.header.schedules_filepaths)
     sf.validate_schedules(year: 2007)
@@ -748,7 +748,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     hpxml = _create_hpxml('base-simcontrol-timestep-10-mins.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
-    @args_hash['schedules_outage_period'] = 'Nov 30 12am - Jan 31 12am'
+    @args_hash['schedules_outage_period'] = 'Dec 1 12am - Jan 31 12am'
     @args_hash['schedules_outage_window_natvent_availability'] = true
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'outage.csv'))
     model, hpxml, result = _test_measure()
@@ -761,7 +761,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
     assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
-    assert(info_msgs.any? { |info_msg| info_msg.include?('OutagePeriod=Nov 30 12am - Jan 31 12am') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('OutagePeriod=Dec 1 12am - Jan 31 12am') })
 
     sf = SchedulesFile.new(model: model, schedules_paths: hpxml.header.schedules_filepaths)
     sf.validate_schedules(year: 2007)

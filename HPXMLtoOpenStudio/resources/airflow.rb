@@ -1203,22 +1203,32 @@ class Airflow
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
   end
 
-  def self.apply_local_ventilation(model, vent_object, obj_type_name, index)
-    daily_sch = [0.0] * 24
+  def self.apply_local_ventilation(model, vent_object, obj_type_name, schedules_file, index)
     obj_name = "#{obj_type_name} #{index}"
-    remaining_hrs = vent_object.hours_in_operation
-    for hr in 1..(vent_object.hours_in_operation.ceil)
-      if remaining_hrs >= 1
-        daily_sch[(vent_object.start_hour + hr - 1) % 24] = 1.0
-      else
-        daily_sch[(vent_object.start_hour + hr - 1) % 24] = remaining_hrs
+
+    # Create schedule
+    obj_sch = nil
+    if not schedules_file.nil?
+      if vent_object.fan_location == HPXML::LocationKitchen
+        col_name = SchedulesFile::ColumnKitchenFan
+        obj_sch_name = col_name
+      elsif vent_object.fan_location == HPXML::LocationBath
+        col_name = SchedulesFile::ColumnBathFan
+        obj_sch_name = col_name
       end
-      remaining_hrs -= 1
+      obj_sch = schedules_file.create_schedule_file(col_name: col_name)
     end
-    obj_sch = HourlyByMonthSchedule.new(model, "#{obj_name} schedule", [daily_sch] * 12, [daily_sch] * 12, Constants.ScheduleTypeLimitsFraction, false)
+    if obj_sch.nil?
+      daily_sch = Schedule.create_daily_sch(vent_object.hours_in_operation, vent_object.start_hour)
+      obj_sch = HourlyByMonthSchedule.new(model, "#{obj_name} schedule", [daily_sch] * 12, [daily_sch] * 12, Constants.ScheduleTypeLimitsFraction, false)
+      obj_sch = obj_sch.schedule
+      obj_sch_name = obj_sch.name.to_s
+    else
+      runner.registerWarning("Both '#{col_name} schedule file and #{obj_type_name} hours in operation and start hour provided; the latter will be ignored.") if !vent_object.hours_in_operation.nil? && !vent_object.start_hour.nil?
+    end
     obj_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     obj_sch_sensor.setName("#{obj_name} sch s")
-    obj_sch_sensor.setKeyName(obj_sch.schedule.name.to_s)
+    obj_sch_sensor.setKeyName(obj_sch_name)
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     equip_def.setName(obj_name)
@@ -1229,7 +1239,7 @@ class Airflow
     equip_def.setFractionRadiant(0)
     equip_def.setFractionLatent(0)
     equip_def.setFractionLost(1)
-    equip.setSchedule(obj_sch.schedule)
+    equip.setSchedule(obj_sch)
     equip.setEndUseSubcategory(Constants.ObjectNameMechanicalVentilation)
 
     return obj_sch_sensor
@@ -1461,7 +1471,7 @@ class Airflow
     infil_program.addLine('Set Qrange = 0')
     vent_fans_kitchen.each_with_index do |vent_kitchen, index|
       # Electricity impact
-      obj_sch_sensor = apply_local_ventilation(model, vent_kitchen, Constants.ObjectNameMechanicalVentilationRangeFan, index)
+      obj_sch_sensor = apply_local_ventilation(model, vent_kitchen, Constants.ObjectNameMechanicalVentilationRangeFan, schedules_file, index)
       next unless @cooking_range_in_cond_space
 
       # Infiltration impact
@@ -1471,7 +1481,7 @@ class Airflow
     infil_program.addLine('Set Qbath = 0')
     vent_fans_bath.each_with_index do |vent_bath, index|
       # Electricity impact
-      obj_sch_sensor = apply_local_ventilation(model, vent_bath, Constants.ObjectNameMechanicalVentilationBathFan, index)
+      obj_sch_sensor = apply_local_ventilation(model, vent_bath, Constants.ObjectNameMechanicalVentilationBathFan, schedules_file, index)
       # Infiltration impact
       infil_program.addLine("Set Qbath = Qbath + #{UnitConversions.convert(vent_bath.flow_rate * vent_bath.quantity, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end

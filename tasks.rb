@@ -46,6 +46,7 @@ def create_hpxmls
     'base-appliances-dehumidifier-ief-portable.xml' => 'base-appliances-dehumidifier.xml',
     'base-appliances-dehumidifier-ief-whole-home.xml' => 'base-appliances-dehumidifier-ief-portable.xml',
     'base-appliances-dehumidifier-multiple.xml' => 'base-appliances-dehumidifier.xml',
+    'base-appliances-dehumidifier-detailed-availability.xml' => 'base-appliances-dehumidifier.xml',
     'base-appliances-gas.xml' => 'base.xml',
     'base-appliances-modified.xml' => 'base.xml',
     'base-appliances-none.xml' => 'base.xml',
@@ -333,7 +334,7 @@ def create_hpxmls
     'base-hvac-mini-split-heat-pump-ductless.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-mini-split-heat-pump-ductless-backup-stove.xml' => 'base-hvac-mini-split-heat-pump-ductless.xml',
     'base-hvac-multiple.xml' => 'base.xml',
-    'base-hvac-none.xml' => 'base.xml',
+    'base-hvac-none.xml' => 'base-location-honolulu-hi.xml',
     'base-hvac-portable-heater-gas-only.xml' => 'base.xml',
     'base-hvac-ptac.xml' => 'base.xml',
     'base-hvac-ptac-with-heating.xml' => 'base-hvac-ptac.xml',
@@ -367,6 +368,7 @@ def create_hpxmls
     'base-location-portland-or.xml' => 'base-foundation-vented-crawlspace.xml',
     'base-mechvent-balanced.xml' => 'base.xml',
     'base-mechvent-bath-kitchen-fans.xml' => 'base.xml',
+    'base-mechvent-bath-kitchen-fans-detailed-availability.xml' => 'base-mechvent-bath-kitchen-fans.xml',
     'base-mechvent-cfis.xml' => 'base.xml',
     'base-mechvent-cfis-airflow-fraction-zero.xml' => 'base-mechvent-cfis.xml',
     'base-mechvent-cfis-dse.xml' => 'base-hvac-dse.xml',
@@ -405,7 +407,7 @@ def create_hpxmls
     'base-schedules-detailed-occupancy-smooth.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic-vacancy.xml' => 'base.xml',
-    'base-schedules-detailed-occupancy-stochastic-outage.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-stochastic-outage-full-year.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic-outage-summer.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic-outage-winter.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic-10-mins.xml' => 'base.xml',
@@ -2431,7 +2433,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     sch_args['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-vacancy.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
-  elsif ['base-schedules-detailed-occupancy-stochastic-outage.xml'].include? hpxml_file
+  elsif ['base-schedules-detailed-occupancy-stochastic-outage-full-year.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
     sch_args['schedules_outage_period'] = 'Jan 1 12am - Dec 31 12am'
@@ -2507,6 +2509,16 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   # Natural Ventilation Schedules
   if ['base-enclosure-windows-natural-ventilation-detailed-availability.xml'].include? hpxml_file
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/natural-ventilation.csv'
+  end
+
+  # Dehumidifier Schedules
+  if ['base-appliances-dehumidifier-detailed-availability.xml'].include? hpxml_file
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/dehumidifier.csv'
+  end
+
+  # Local Ventilation Schedules
+  if ['base-mechvent-bath-kitchen-fans-detailed-availability.xml'].include? hpxml_file
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/local-ventilation.csv'
   end
 
   # Water Heater Schedules

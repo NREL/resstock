@@ -211,6 +211,38 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:geometry_num_occupants] = Float(Integer(args[:geometry_num_occupants]))
     end
 
+    # Local Ventilation
+    vent_fans_kitchen = []
+    vent_fans_bath = []
+    hpxml.ventilation_fans.each do |vent_fan|
+      next unless vent_fan.hours_in_operation.nil? || vent_fan.hours_in_operation > 0
+
+      if vent_fan.used_for_local_ventilation
+        if vent_fan.fan_location == HPXML::LocationKitchen
+          vent_fans_kitchen << vent_fan
+        elsif vent_fan.fan_location == HPXML::LocationBath
+          vent_fans_bath << vent_fan
+        end
+      end
+    end
+
+    args[:has_kitchen_fan] = false
+    if !vent_fans_kitchen.empty?
+      # FIXME: what if 2+?
+      args[:has_kitchen_fan] = true
+      args[:kitchen_fan_hours_in_operation] = vent_fans_kitchen[0].hours_in_operation
+      args[:kitchen_fan_start_hour] = vent_fans_kitchen[0].start_hour
+    end
+
+    args[:has_bath_fan] = false
+    if !vent_fans_bath.empty?
+      # FIXME: what if 2+?
+      args[:has_bath_fan] = true
+      args[:bath_fan_hours_in_operation] = vent_fans_bath[0].hours_in_operation
+      args[:bath_fan_start_hour] = vent_fans_bath[0].start_hour
+    end
+
+    # Vacancy
     if args[:schedules_vacancy_period].is_initialized
       begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:schedules_vacancy_period].get)
       args[:schedules_vacancy_begin_month] = begin_month
@@ -219,6 +251,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:schedules_vacancy_end_day] = end_day
     end
 
+    # Outage
     if args[:schedules_outage_period].is_initialized
       begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Schedule.parse_date_time_range(args[:schedules_outage_period].get)
       args[:schedules_outage_begin_month] = begin_month
@@ -251,6 +284,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:window_natvent_availability] = hpxml.header.natvent_days_per_week if !hpxml.header.natvent_days_per_week.nil?
     end
 
+    # Debug
     debug = false
     if args[:schedules_type] == 'stochastic' && args[:debug].is_initialized
       debug = args[:debug].get
