@@ -376,6 +376,7 @@ def create_hpxmls
     'base-mechvent-erv.xml' => 'base.xml',
     'base-mechvent-erv-atre-asre.xml' => 'base.xml',
     'base-mechvent-exhaust.xml' => 'base.xml',
+    'base-mechvent-exhaust-detailed-availability.xml' => 'base-mechvent-exhaust.xml',
     'base-mechvent-exhaust-rated-flow-rate.xml' => 'base.xml',
     'base-mechvent-hrv.xml' => 'base.xml',
     'base-mechvent-hrv-asre.xml' => 'base.xml',
@@ -2518,7 +2519,16 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
 
   # Local Ventilation Schedules
   if ['base-mechvent-bath-kitchen-fans-detailed-availability.xml'].include? hpxml_file
+    args.delete('kitchen_fans_hours_in_operation')
+    args.delete('kitchen_fans_start_hour')
+    args.delete('bathroom_fans_hours_in_operation')
+    args.delete('bathroom_fans_start_hour')
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/local-ventilation.csv'
+  end
+
+  # House Ventilation Schedules
+  if ['base-mechvent-exhaust-detailed-availability.xml'].include? hpxml_file
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/house-fan.csv'
   end
 
   # Water Heater Schedules

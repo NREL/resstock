@@ -1011,6 +1011,18 @@ class Schedule
     return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
   end
 
+  def self.HouseFanWeekdayFractions
+    return '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042'
+  end
+
+  def self.HouseFanWeekendFractions
+    return '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042'
+  end
+
+  def self.HouseFanMonthlyMultipliers
+    return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+  end
+
   def self.get_day_num_from_month_day(year, month, day)
     # Returns a value between 1 and 365 (or 366 for a leap year)
     # Returns e.g. 32 for month=2 and day=1 (Feb 1)
@@ -1215,6 +1227,7 @@ class SchedulesFile
   ColumnDehumidifier = 'dehumidifier'
   ColumnKitchenFan = 'kitchen_fan'
   ColumnBathFan = 'bath_fan'
+  ColumnHouseFan = 'house_fan'
   ColumnVacancy = 'vacancy'
   ColumnOutage = 'outage'
   ColumnHeatingSetpoint = 'heating_setpoint'
@@ -1561,7 +1574,8 @@ class SchedulesFile
       ColumnHotWaterFixtures,
       ColumnDehumidifier,
       ColumnKitchenFan,
-      ColumnBathFan
+      ColumnBathFan,
+      ColumnHouseFan
     ]
   end
 
@@ -1606,6 +1620,7 @@ class SchedulesFile
                     ColumnHotTubPump,
                     ColumnHotTubHeater,
                     ColumnDehumidifier,
+                    ColumnHouseFan,
                     ColumnSleeping] + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames).include? column_name
 
       affected_by_vacancy[column_name] = false

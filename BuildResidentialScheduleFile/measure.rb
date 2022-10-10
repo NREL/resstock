@@ -230,16 +230,20 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     if !vent_fans_kitchen.empty?
       # FIXME: what if 2+?
       args[:has_kitchen_fan] = true
-      args[:kitchen_fan_hours_in_operation] = vent_fans_kitchen[0].hours_in_operation
-      args[:kitchen_fan_start_hour] = vent_fans_kitchen[0].start_hour
+      args[:kitchen_fan_hours_in_operation] = 1.0
+      args[:kitchen_fan_start_hour] = 18
+      args[:kitchen_fan_hours_in_operation] = vent_fans_kitchen[0].hours_in_operation if !vent_fans_kitchen[0].hours_in_operation.nil?
+      args[:kitchen_fan_start_hour] = vent_fans_kitchen[0].start_hour if !vent_fans_kitchen[0].start_hour.nil?
     end
 
     args[:has_bath_fan] = false
     if !vent_fans_bath.empty?
       # FIXME: what if 2+?
       args[:has_bath_fan] = true
-      args[:bath_fan_hours_in_operation] = vent_fans_bath[0].hours_in_operation
-      args[:bath_fan_start_hour] = vent_fans_bath[0].start_hour
+      args[:bath_fan_hours_in_operation] = 1.0
+      args[:bath_fan_start_hour] = 7
+      args[:bath_fan_hours_in_operation] = vent_fans_bath[0].hours_in_operation if !vent_fans_bath[0].hours_in_operation.nil?
+      args[:bath_fan_start_hour] = vent_fans_bath[0].start_hour if !vent_fans_bath[0].start_hour.nil?
     end
 
     # Vacancy

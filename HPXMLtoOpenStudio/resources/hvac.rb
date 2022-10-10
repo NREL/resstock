@@ -728,9 +728,11 @@ class HVAC
     control_zone.setZoneControlHumidistat(humidistat)
 
     # Dehumidifier
+    avail_sch = nil
     if not schedules_file.nil?
       avail_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnDehumidifier)
-    else
+    end
+    if avail_sch.nil?
       avail_sch = model.alwaysOnDiscreteSchedule
     end
 
