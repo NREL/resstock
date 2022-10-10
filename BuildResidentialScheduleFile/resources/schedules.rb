@@ -68,10 +68,7 @@ class ScheduleGenerator
       return false if not success
     end
 
-    success = set_kitchen_fan(args: args)
-    return false if not success
-
-    success = set_bath_fan(args: args)
+    success = set_local_ventilation(args: args)
     return false if not success
 
     success = set_vacancy(args: args)
@@ -803,21 +800,15 @@ class ScheduleGenerator
     return true
   end
 
-  def set_kitchen_fan(args:)
-    return true if !args[:has_kitchen_fan]
-
+  def set_local_ventilation(args:)
     daily_sch = Schedule.create_daily_sch(args[:kitchen_fan_hours_in_operation], args[:kitchen_fan_start_hour])
     kitchen_fan = daily_sch.map { |v| [v] * args[:steps_in_hour] }.flatten * @total_days_in_year
     @schedules[SchedulesFile::ColumnKitchenFan] = kitchen_fan
-    return true
-  end
-
-  def set_bath_fan(args:)
-    return true if !args[:has_bath_fan]
 
     daily_sch = Schedule.create_daily_sch(args[:bath_fan_hours_in_operation], args[:bath_fan_start_hour])
     bath_fan = daily_sch.map { |v| [v] * args[:steps_in_hour] }.flatten * @total_days_in_year
     @schedules[SchedulesFile::ColumnBathFan] = bath_fan
+
     return true
   end
 
@@ -852,7 +843,7 @@ class ScheduleGenerator
         end
       end
     end
-    @schedules[SchedulesFile::ColumnNaturalVentilation] = natural_ventilation
+    return natural_ventilation
   end
 
   def set_outage(args:)
@@ -863,12 +854,14 @@ class ScheduleGenerator
       heating_season = Schedule.get_season(@sim_year, @steps_in_day, args[:seasons_heating_begin_month], args[:seasons_heating_begin_day], args[:seasons_heating_end_month], args[:seasons_heating_end_day])
       cooling_season = Schedule.get_season(@sim_year, @steps_in_day, args[:seasons_cooling_begin_month], args[:seasons_cooling_begin_day], args[:seasons_cooling_end_month], args[:seasons_cooling_end_day])
 
-      # natural ventilation during outage period
+      # natural ventilation
       natural_ventilation = nil
       if args[:schedules_outage_window_natvent_availability].is_initialized
-        set_natural_ventilation(args: args)
-        natural_ventilation = @schedules[SchedulesFile::ColumnNaturalVentilation]
+        natural_ventilation = set_natural_ventilation(args: args)
       end
+
+      # water heating
+      water_heater_setpoint = Array.new(@schedules[SchedulesFile::ColumnOccupants].length, args[:water_heater_setpoint])
 
       start_day_num = Schedule.get_day_num_from_month_day(@sim_year, args[:schedules_outage_begin_month], args[:schedules_outage_begin_day])
 
@@ -883,6 +876,7 @@ class ScheduleGenerator
 
         heating_season.fill(0.0, ix, length) # Fill between start/end days
         cooling_season.fill(0.0, ix, length) # Fill between start/end days
+        water_heater_setpoint.fill(0.0, ix, length) # Fill between start/end days
 
         if not natural_ventilation.nil?
           fill = 0.0 # windows closed
@@ -899,6 +893,7 @@ class ScheduleGenerator
 
         heating_season.fill(0.0, ix, length) # Fill between start day and end of year
         cooling_season.fill(0.0, ix, length) # Fill between start day and end of year
+        water_heater_setpoint.fill(0.0, ix, length) # Fill between start day and end of year
 
         if not natural_ventilation.nil?
           fill = 0.0 # windows closed
@@ -915,6 +910,7 @@ class ScheduleGenerator
 
         heating_season.fill(0.0, ix, length) # Fill between start of year and end day
         cooling_season.fill(0.0, ix, length) # Fill between start of year and end day
+        water_heater_setpoint.fill(0.0, ix, length) # Fill between start of year and end day
 
         if not natural_ventilation.nil?
           fill = 0.0 # windows closed
@@ -926,6 +922,7 @@ class ScheduleGenerator
       @schedules[SchedulesFile::ColumnHeatingSeason] = heating_season
       @schedules[SchedulesFile::ColumnCoolingSeason] = cooling_season
       @schedules[SchedulesFile::ColumnNaturalVentilation] = natural_ventilation if not natural_ventilation.nil?
+      @schedules[SchedulesFile::ColumnWaterHeaterSetpoint] = water_heater_setpoint
     end
     return true
   end

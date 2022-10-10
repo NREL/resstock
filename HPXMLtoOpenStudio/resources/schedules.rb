@@ -1573,9 +1573,9 @@ class SchedulesFile
       ColumnHotWaterClothesWasher,
       ColumnHotWaterFixtures,
       ColumnDehumidifier,
+      ColumnHouseFan,
       ColumnKitchenFan,
-      ColumnBathFan,
-      ColumnHouseFan
+      ColumnBathFan
     ]
   end
 

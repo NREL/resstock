@@ -226,22 +226,18 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    args[:has_kitchen_fan] = false
+    args[:kitchen_fan_hours_in_operation] = 1.0
+    args[:kitchen_fan_start_hour] = 18
     if !vent_fans_kitchen.empty?
       # FIXME: what if 2+?
-      args[:has_kitchen_fan] = true
-      args[:kitchen_fan_hours_in_operation] = 1.0
-      args[:kitchen_fan_start_hour] = 18
       args[:kitchen_fan_hours_in_operation] = vent_fans_kitchen[0].hours_in_operation if !vent_fans_kitchen[0].hours_in_operation.nil?
       args[:kitchen_fan_start_hour] = vent_fans_kitchen[0].start_hour if !vent_fans_kitchen[0].start_hour.nil?
     end
 
-    args[:has_bath_fan] = false
+    args[:bath_fan_hours_in_operation] = 1.0
+    args[:bath_fan_start_hour] = 7
     if !vent_fans_bath.empty?
       # FIXME: what if 2+?
-      args[:has_bath_fan] = true
-      args[:bath_fan_hours_in_operation] = 1.0
-      args[:bath_fan_start_hour] = 7
       args[:bath_fan_hours_in_operation] = vent_fans_bath[0].hours_in_operation if !vent_fans_bath[0].hours_in_operation.nil?
       args[:bath_fan_start_hour] = vent_fans_bath[0].start_hour if !vent_fans_bath[0].start_hour.nil?
     end
@@ -265,6 +261,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:schedules_outage_end_day] = end_day
       args[:schedules_outage_end_hour] = end_hour
 
+      # Heating/Cooling Seasons
       args[:seasons_heating_begin_month] = 1
       args[:seasons_heating_begin_day] = 1
       args[:seasons_heating_end_month] = 12
@@ -284,8 +281,16 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
         args[:seasons_cooling_end_day] = hvac_control.seasons_cooling_end_day if !hvac_control.seasons_cooling_end_day.nil?
       end
 
+      # Natural Ventilation
       args[:window_natvent_availability] = 3
       args[:window_natvent_availability] = hpxml.header.natvent_days_per_week if !hpxml.header.natvent_days_per_week.nil?
+
+      # Water Heating
+      args[:water_heater_setpoint] = 125.0
+      if !hpxml.water_heating_systems.empty?
+        # FIXME: what if 2+?
+        args[:water_heater_setpoint] = hpxml.water_heating_systems[0].temperature if !hpxml.water_heating_systems[0].temperature.nil?
+      end
     end
 
     # Debug
