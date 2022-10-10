@@ -1847,6 +1847,20 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="StandbyLossUnits_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="F/hr"/>
+			<xs:enumeration value="%/hr"/>
+			<xs:enumeration value="Btu/hr"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="StandbyLossUnits">
+		<xs:simpleContent>
+			<xs:extension base="StandbyLossUnits_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="DistrictSteamType_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="1-pipe"/>

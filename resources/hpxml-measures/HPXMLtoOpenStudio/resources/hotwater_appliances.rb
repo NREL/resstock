@@ -309,7 +309,9 @@ class HotWaterAndAppliances
       # Clothes washer
       if not clothes_washer.nil?
         gpd_frac = nil
-        if clothes_washer.is_shared_appliance && clothes_washer.water_heating_system.id == water_heating_system.id
+        if clothes_washer.is_shared_appliance && (not clothes_washer.hot_water_distribution.nil?)
+          gpd_frac = 1.0 / hpxml.water_heating_systems.size # Apportion load to each water heater on distribution system
+        elsif clothes_washer.is_shared_appliance && clothes_washer.water_heating_system.id == water_heating_system.id
           gpd_frac = 1.0 # Shared water heater sees full appliance load
         elsif not clothes_washer.is_shared_appliance
           gpd_frac = water_heating_system.fraction_dhw_load_served
@@ -333,7 +335,9 @@ class HotWaterAndAppliances
       next unless not dishwasher.nil?
 
       gpd_frac = nil
-      if dishwasher.is_shared_appliance && dishwasher.water_heating_system.id == water_heating_system.id
+      if dishwasher.is_shared_appliance && (not dishwasher.hot_water_distribution.nil?)
+        gpd_frac = 1.0 / hpxml.water_heating_systems.size # Apportion load to each water heater on distribution system
+      elsif dishwasher.is_shared_appliance && dishwasher.water_heating_system.id == water_heating_system.id
         gpd_frac = 1.0 # Shared water heater sees full appliance load
       elsif not dishwasher.is_shared_appliance
         gpd_frac = water_heating_system.fraction_dhw_load_served

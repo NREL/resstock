@@ -409,6 +409,9 @@
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:WaterHeating/h:WaterHeatingSystem/h:WaterHeaterInsulation/h:Jacket'>
       <sch:assert role='ERROR' test='number(h:JacketRValue) &gt;= 0 or not(h:JacketRValue)'>Expected JacketRValue to be greater than or equal to 0</sch:assert>
     </sch:rule>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:WaterHeating/h:WaterHeatingSystem/h:StandbyLoss'>
+      <sch:assert role='ERROR' test='h:Units[text()="F/hr" or text()="%/hr" or text()="Btu/hr"] or not(h:Units)'>Expected Units to be 'F/hr' or '%/hr' or 'Btu/hr'</sch:assert>
+    </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:WaterHeating/h:HotWaterDistribution/h:SystemType/h:Standard'>
       <sch:assert role='ERROR' test='number(h:PipingLength) &gt;= 0 or not(h:PipingLength)'>Expected PipingLength to be greater than or equal to 0</sch:assert>
     </sch:rule>

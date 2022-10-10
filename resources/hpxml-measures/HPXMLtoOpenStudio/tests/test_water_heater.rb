@@ -5,8 +5,6 @@ require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
 require_relative '../measure.rb'
-require_relative '../resources/util.rb'
-require_relative '../resources/waterheater.rb'
 
 class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def sample_files_dir

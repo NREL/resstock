@@ -6,15 +6,14 @@
 require 'openstudio'
 require 'pathname'
 require 'oga'
-require_relative 'resources/schedules'
-require_relative '../HPXMLtoOpenStudio/resources/constants'
-require_relative '../HPXMLtoOpenStudio/resources/geometry'
-require_relative '../HPXMLtoOpenStudio/resources/hpxml'
-require_relative '../HPXMLtoOpenStudio/resources/lighting'
-require_relative '../HPXMLtoOpenStudio/resources/location'
-require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
-require_relative '../HPXMLtoOpenStudio/resources/schedules'
-require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
+Dir["#{File.dirname(__FILE__)}/resources/*.rb"].each do |resource_file|
+  require resource_file
+end
+Dir["#{File.dirname(__FILE__)}/../HPXMLtoOpenStudio/resources/*.rb"].each do |resource_file|
+  next if resource_file.include? 'minitest_helper.rb'
+
+  require resource_file
+end
 
 # start the measure
 class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure

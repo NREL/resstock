@@ -204,7 +204,7 @@ class HVAC
 
   def self.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
                                          sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                         control_zone)
+                                         control_zone, ground_conductivity)
 
     obj_name = Constants.ObjectNameGroundSourceHeatPump
 
@@ -252,8 +252,8 @@ class HVAC
     ground_heat_exch_vert = OpenStudio::Model::GroundHeatExchangerVertical.new(model)
     ground_heat_exch_vert.setName(obj_name + ' exchanger')
     ground_heat_exch_vert.setBoreHoleRadius(UnitConversions.convert(hp_ap.bore_diameter / 2.0, 'in', 'm'))
-    ground_heat_exch_vert.setGroundThermalConductivity(UnitConversions.convert(hp_ap.ground_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
-    ground_heat_exch_vert.setGroundThermalHeatCapacity(UnitConversions.convert(hp_ap.ground_conductivity / hp_ap.ground_diffusivity, 'Btu/(ft^3*F)', 'J/(m^3*K)'))
+    ground_heat_exch_vert.setGroundThermalConductivity(UnitConversions.convert(ground_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
+    ground_heat_exch_vert.setGroundThermalHeatCapacity(UnitConversions.convert(ground_conductivity / hp_ap.ground_diffusivity, 'Btu/(ft^3*F)', 'J/(m^3*K)'))
     ground_heat_exch_vert.setGroundTemperature(UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'C'))
     ground_heat_exch_vert.setGroutThermalConductivity(UnitConversions.convert(hp_ap.grout_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
     ground_heat_exch_vert.setPipeThermalConductivity(UnitConversions.convert(hp_ap.pipe_cond, 'Btu/(hr*ft*R)', 'W/(m*K)'))
@@ -3356,7 +3356,6 @@ class HVAC
     else
       hp_ap.design_hw = [35.0, weather.design.HeatingDrybulb + 35.0, weather.data.AnnualAvgDrybulb - 10.0].min # Temperature of fluid entering indoor coil, use 35F as upper bound
     end
-    hp_ap.ground_conductivity = 0.6 # Btu/h-ft-R
     hp_ap.ground_diffusivity = 0.0208
     hp_ap.grout_conductivity = 0.4 # Btu/h-ft-R
     hp_ap.bore_diameter = 5.0 # in

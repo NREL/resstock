@@ -6,34 +6,11 @@
 require 'pathname'
 require 'csv'
 require 'oga'
-require_relative 'resources/airflow'
-require_relative 'resources/battery'
-require_relative 'resources/utility_bills'
-require_relative 'resources/constants'
-require_relative 'resources/constructions'
-require_relative 'resources/energyplus'
-require_relative 'resources/generator'
-require_relative 'resources/geometry'
-require_relative 'resources/hotwater_appliances'
-require_relative 'resources/hpxml'
-require_relative 'resources/hpxml_defaults'
-require_relative 'resources/hvac'
-require_relative 'resources/hvac_sizing'
-require_relative 'resources/lighting'
-require_relative 'resources/location'
-require_relative 'resources/materials'
-require_relative 'resources/misc_loads'
-require_relative 'resources/psychrometrics'
-require_relative 'resources/pv'
-require_relative 'resources/schedules'
-require_relative 'resources/simcontrols'
-require_relative 'resources/unit_conversions'
-require_relative 'resources/util'
-require_relative 'resources/validator'
-require_relative 'resources/version'
-require_relative 'resources/waterheater'
-require_relative 'resources/weather'
-require_relative 'resources/xmlhelper'
+Dir["#{File.dirname(__FILE__)}/resources/*.rb"].each do |resource_file|
+  next if resource_file.include? 'minitest_helper.rb'
+
+  require resource_file
+end
 
 # start the measure
 class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
@@ -233,7 +210,7 @@ class OSModel
     add_walls(runner, model, spaces)
     add_rim_joists(runner, model, spaces)
     add_floors(runner, model, spaces)
-    add_foundation_walls_slabs(runner, model, spaces)
+    add_foundation_walls_slabs(runner, model, weather, spaces)
     add_shading_schedule(model, weather)
     add_windows(model, spaces)
     add_doors(model, spaces)
@@ -741,7 +718,7 @@ class OSModel
     end
   end
 
-  def self.add_foundation_walls_slabs(runner, model, spaces)
+  def self.add_foundation_walls_slabs(runner, model, weather, spaces)
     foundation_types = @hpxml.slabs.map { |s| s.interior_adjacent_to }.uniq
 
     foundation_types.each do |foundation_type|
@@ -820,7 +797,7 @@ class OSModel
         else
           z_origin = -1 * slab.depth_below_grade
         end
-        add_foundation_slab(model, spaces, slab, slab_exp_perim,
+        add_foundation_slab(model, weather, spaces, slab, slab_exp_perim,
                             slab_area, z_origin, kiva_foundation)
       end
 
@@ -830,7 +807,7 @@ class OSModel
 
         z_origin = 0
         slab_area = total_slab_area * no_wall_slab_exp_perim[slab] / total_slab_exp_perim
-        add_foundation_slab(model, spaces, slab, no_wall_slab_exp_perim[slab],
+        add_foundation_slab(model, weather, spaces, slab, no_wall_slab_exp_perim[slab],
                             slab_area, z_origin, nil)
       end
 
@@ -963,9 +940,12 @@ class OSModel
       int_rigid_r = foundation_wall.insulation_interior_r_value
     end
 
+    soil_k_in = UnitConversions.convert(@hpxml.site.ground_conductivity, 'ft', 'in')
+
     Constructions.apply_foundation_wall(model, [surface], "#{foundation_wall.id} construction",
                                         ext_rigid_offset, int_rigid_offset, ext_rigid_height, int_rigid_height,
-                                        ext_rigid_r, int_rigid_r, mat_int_finish, mat_wall, height_ag)
+                                        ext_rigid_r, int_rigid_r, mat_int_finish, mat_wall, height_ag,
+                                        soil_k_in)
 
     if not assembly_r.nil?
       Constructions.check_surface_assembly_rvalue(runner, [surface], inside_film, nil, assembly_r, match)
@@ -974,7 +954,7 @@ class OSModel
     return surface.adjacentFoundation.get
   end
 
-  def self.add_foundation_slab(model, spaces, slab, slab_exp_perim,
+  def self.add_foundation_slab(model, weather, spaces, slab, slab_exp_perim,
                                slab_area, z_origin, kiva_foundation)
 
     slab_tot_perim = slab_exp_perim
@@ -1028,13 +1008,43 @@ class OSModel
       mat_carpet = Material.CoveringBare(slab.carpet_fraction,
                                          slab.carpet_r_value)
     end
+    soil_k_in = UnitConversions.convert(@hpxml.site.ground_conductivity, 'ft', 'in')
 
     Constructions.apply_foundation_slab(model, surface, "#{slab.id} construction",
                                         slab_under_r, slab_under_width, slab_gap_r, slab_perim_r,
                                         slab_perim_depth, slab_whole_r, slab.thickness,
-                                        slab_exp_perim, mat_carpet, kiva_foundation)
+                                        slab_exp_perim, mat_carpet, soil_k_in, kiva_foundation)
 
-    return surface.adjacentFoundation.get
+    kiva_foundation = surface.adjacentFoundation.get
+
+    foundation_walls_insulated = false
+    foundation_ceiling_insulated = false
+    @hpxml.foundation_walls.each do |fnd_wall|
+      next unless fnd_wall.interior_adjacent_to == slab.interior_adjacent_to
+      next unless fnd_wall.exterior_adjacent_to == HPXML::LocationGround
+
+      if fnd_wall.insulation_assembly_r_value.to_f > 5
+        foundation_walls_insulated = true
+      elsif fnd_wall.insulation_exterior_r_value.to_f + fnd_wall.insulation_interior_r_value.to_f > 0
+        foundation_walls_insulated = true
+      end
+    end
+    @hpxml.floors.each do |floor|
+      next unless floor.interior_adjacent_to == HPXML::LocationLivingSpace
+      next unless floor.exterior_adjacent_to == slab.interior_adjacent_to
+
+      if floor.insulation_assembly_r_value > 5
+        foundation_ceiling_insulated = true
+      end
+    end
+
+    Constructions.apply_kiva_initial_temp(kiva_foundation, slab, weather,
+                                          spaces[HPXML::LocationLivingSpace].thermalZone.get,
+                                          @hpxml.header.sim_begin_month, @hpxml.header.sim_begin_day,
+                                          @hpxml.header.sim_calendar_year,
+                                          foundation_walls_insulated, foundation_ceiling_insulated)
+
+    return kiva_foundation
   end
 
   def self.add_conditioned_floor_area(model, spaces)
@@ -1557,7 +1567,7 @@ class OSModel
 
         airloop_map[sys_id] = HVAC.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
                                                                  sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                                                 living_zone)
+                                                                 living_zone, @hpxml.site.ground_conductivity)
 
       end
 
@@ -2442,9 +2452,11 @@ class OSModel
            HPXML::LocationOtherNonFreezingSpace, HPXML::LocationOtherHousingUnit].include? exterior_adjacent_to
       set_surface_otherside_coefficients(surface, exterior_adjacent_to, model, spaces)
     elsif HPXML::conditioned_below_grade_locations.include? exterior_adjacent_to
-      surface.createAdjacentSurface(create_or_get_space(model, spaces, HPXML::LocationLivingSpace))
+      adjacent_surface = surface.createAdjacentSurface(create_or_get_space(model, spaces, HPXML::LocationLivingSpace)).get
+      adjacent_surface.additionalProperties.setFeature('SurfaceType', surface.additionalProperties.getFeatureAsString('SurfaceType').get)
     else
-      surface.createAdjacentSurface(create_or_get_space(model, spaces, exterior_adjacent_to))
+      adjacent_surface = surface.createAdjacentSurface(create_or_get_space(model, spaces, exterior_adjacent_to)).get
+      adjacent_surface.additionalProperties.setFeature('SurfaceType', surface.additionalProperties.getFeatureAsString('SurfaceType').get)
     end
   end
 
