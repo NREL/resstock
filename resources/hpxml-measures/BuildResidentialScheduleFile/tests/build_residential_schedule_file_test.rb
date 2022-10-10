@@ -71,10 +71,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(2994, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4158, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4204, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnOutage))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnNaturalVentilation))
+    assert(!sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_smooth_vacancy
@@ -128,10 +133,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(2994 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4158 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4204 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert_in_epsilon(vacancy_hrs, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnVacancy, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnOutage))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnNaturalVentilation))
+    assert(!sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_smooth_outage
@@ -185,10 +195,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(2994 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4158 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4204 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
     assert_in_epsilon(outage_hrs, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOutage, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnNaturalVentilation))
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_stochastic
@@ -239,10 +254,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(298, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(325, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(887, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnOutage))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnNaturalVentilation))
+    assert(!sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_stochastic_vacancy
@@ -297,10 +317,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(298 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(325 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(887 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert_in_epsilon(vacancy_hrs, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnVacancy, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnOutage))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnNaturalVentilation))
+    assert(!sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_stochastic_outage
@@ -355,10 +380,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(298 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(325 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(887 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
     assert_in_epsilon(outage_hrs, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOutage, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnNaturalVentilation))
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_stochastic_debug
@@ -410,10 +440,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(298, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(325, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(887, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(3067, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnSleeping, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnOutage))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnNaturalVentilation))
+    assert(!sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_random_seed
@@ -465,10 +500,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(298, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(325, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(898, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnOutage))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnNaturalVentilation))
+    assert(!sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
 
     @args_hash['schedules_random_seed'] = 2
     model, hpxml, result = _test_measure()
@@ -513,10 +553,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(226, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(244, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(1077, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnOutage))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnNaturalVentilation))
+    assert(!sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_AMY_2012_vacancy
@@ -569,10 +614,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert_in_epsilon(vacancy_hrs, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnVacancy, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnOutage))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnNaturalVentilation))
+    assert(!sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_10_min_timestep
@@ -622,10 +672,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(2994, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4158, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4204, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnOutage))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnNaturalVentilation))
+    assert(!sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_outage_natvent_available
@@ -680,10 +735,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(2994 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4158 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4204 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
     assert_in_epsilon(outage_hrs, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOutage, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon((3.0 / 7.0) * 8760.0 + (4.0 / 7.0) * outage_hrs, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnNaturalVentilation, schedules: sf.tmp_schedules), 0.1)
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_outage_natvent_unavailable
@@ -738,10 +798,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(2994 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4158 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4204 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
     assert_in_epsilon(outage_hrs, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOutage, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon((3.0 / 7.0) * 8760.0 - (3.0 / 7.0) * outage_hrs, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnNaturalVentilation, schedules: sf.tmp_schedules), 0.1)
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_10_min_timestep_outage_natvent_available
@@ -796,10 +861,15 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(2994 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4158 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(4204 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHotWaterFixtures, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDehumidifier, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnHouseFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnKitchenFan, schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(365 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnBathFan, schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnSleeping))
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
     assert_in_epsilon(outage_hrs, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOutage, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon((3.0 / 7.0) * 8760.0 + (4.0 / 7.0) * outage_hrs, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnNaturalVentilation, schedules: sf.tmp_schedules), 0.1)
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnWaterHeaterSetpoint))
   end
 
   def test_non_integer_number_of_occupants
