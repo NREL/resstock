@@ -602,13 +602,11 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
   def test_partition_wall_mass
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-thermal-mass.xml'))
 
     # Thermal masses
     partition_wall_mass_layer_names = ['gypsum board', 'wall stud and cavity', 'gypsum board']
 
-    hpxml = _create_hpxml('base-enclosure-thermal-mass.xml')
-    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     model, hpxml = _test_measure(args_hash)
 
     # Check properties
@@ -618,13 +616,11 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
   def test_furniture_mass
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-thermal-mass.xml'))
 
     # Thermal masses
     furniture_mass_layer_names = ['furniture material living space']
 
-    hpxml = _create_hpxml('base-enclosure-thermal-mass.xml')
-    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     model, hpxml = _test_measure(args_hash)
 
     # Check properties
@@ -665,6 +661,26 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
     a_ext_ratio = exterior_area / total_area
     assert_in_delta(0.247, a_ext_ratio, 0.001)
+  end
+
+  def test_kiva_initial_temperatures
+    initial_temps = { 'base.xml' => 68.0, # foundation adjacent to conditioned space, IECC zone 5
+                      'base-foundation-conditioned-crawlspace.xml' => 68.0, # foundation adjacent to conditioned space, IECC zone 5
+                      'base-foundation-slab.xml' => 68.0, # foundation adjacent to conditioned space, IECC zone 5
+                      'base-foundation-unconditioned-basement.xml' => 41.4, # foundation adjacent to unconditioned basement w/ ceiling insulation
+                      'base-foundation-unconditioned-basement-wall-insulation.xml' => 56.0, # foundation adjacent to unconditioned basement w/ wall insulation
+                      'base-foundation-unvented-crawlspace.xml' => 38.6, # foundation adjacent to unvented crawlspace w/ ceiling insulation
+                      'base-foundation-vented-crawlspace.xml' => 36.9, # foundation adjacent to vented crawlspace w/ ceiling insulation
+                      'base-location-miami-fl.xml' => 78.0 } # foundation adjacent to conditioned space, IECC zone 1
+
+    initial_temps.each do |hpxml_name, expected_temp|
+      args_hash = {}
+      args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, hpxml_name))
+      model, _hpxml = _test_measure(args_hash)
+
+      actual_temp = UnitConversions.convert(model.getFoundationKivas[0].initialIndoorAirTemperature.get, 'C', 'F')
+      assert_in_delta(expected_temp, actual_temp, 0.1)
+    end
   end
 
   def test_aspect_ratios

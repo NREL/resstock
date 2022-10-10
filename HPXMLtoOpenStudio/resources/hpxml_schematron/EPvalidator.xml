@@ -258,6 +258,8 @@
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:BuildingSummary/h:Site'>
       <sch:assert role='ERROR' test='count(h:SiteType) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SiteType</sch:assert>
       <sch:assert role='ERROR' test='count(h:ShieldingofHome) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ShieldingofHome</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:GroundConductivity) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/GroundConductivity</sch:assert>
+      <sch:assert role='ERROR' test='number(h:extension/h:GroundConductivity) &gt; 0 or not(h:extension/h:GroundConductivity)'>Expected extension/GroundConductivity to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:Neighbors) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/Neighbors</sch:assert> <!-- See [Neighbors] -->
     </sch:rule>
   </sch:pattern>
@@ -1569,7 +1571,7 @@
       <sch:assert role='ERROR' test='count(h:RelatedHVACSystem) = 1'>Expected 1 element(s) for xpath: RelatedHVACSystem</sch:assert> <!-- HeatingSystem (boiler) -->
       <sch:assert role='ERROR' test='count(h:TankVolume) = 1'>Expected 1 element(s) for xpath: TankVolume</sch:assert>
       <sch:assert role='ERROR' test='count(h:WaterHeaterInsulation/h:Jacket/h:JacketRValue) &lt;= 1'>Expected 0 or 1 element(s) for xpath: WaterHeaterInsulation/Jacket/JacketRValue</sch:assert>
-      <sch:assert role='ERROR' test='count(h:StandbyLoss) &lt;= 1'>Expected 0 or 1 element(s) for xpath: StandbyLoss</sch:assert>
+      <sch:assert role='ERROR' test='count(h:StandbyLoss[h:Units="F/hr"]/h:Value) &lt;= 1'>Expected 0 or 1 element(s) for xpath: StandbyLoss[Units="F/hr"]/Value</sch:assert>
     </sch:rule>
   </sch:pattern>
 
@@ -1786,7 +1788,7 @@
     <sch:title>[ClothesWasherType=Shared]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Appliances/h:ClothesWasher[h:IsSharedAppliance="true"]'>
       <sch:assert role='ERROR' test='count(../../h:BuildingSummary/h:BuildingConstruction[h:ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]) = 1'>Expected 1 element(s) for xpath: ../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]</sch:assert>
-      <sch:assert role='ERROR' test='count(h:AttachedToWaterHeatingSystem) = 1'>Expected 1 element(s) for xpath: AttachedToWaterHeatingSystem</sch:assert>
+      <sch:assert role='ERROR' test='count(h:AttachedToWaterHeatingSystem) + count(h:AttachedToHotWaterDistribution) = 1'>Expected 1 element(s) for xpath: AttachedToWaterHeatingSystem | AttachedToHotWaterDistribution</sch:assert>
     </sch:rule>
   </sch:pattern>
 
@@ -1851,7 +1853,7 @@
     <sch:title>[DishwasherType=Shared]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Appliances/h:Dishwasher[h:IsSharedAppliance="true"]'>
       <sch:assert role='ERROR' test='count(../../h:BuildingSummary/h:BuildingConstruction[h:ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]) = 1'>Expected 1 element(s) for xpath: ../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]</sch:assert>
-      <sch:assert role='ERROR' test='count(h:AttachedToWaterHeatingSystem) = 1'>Expected 1 element(s) for xpath: AttachedToWaterHeatingSystem</sch:assert>
+      <sch:assert role='ERROR' test='count(h:AttachedToWaterHeatingSystem) + count(h:AttachedToHotWaterDistribution) = 1'>Expected 1 element(s) for xpath: AttachedToWaterHeatingSystem | AttachedToHotWaterDistribution</sch:assert>
     </sch:rule>
   </sch:pattern>
 
