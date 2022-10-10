@@ -1419,7 +1419,15 @@ class Airflow
     end
   end
 
-  def self.add_ee_for_vent_fan_power(model, obj_name, frac_lost, is_cfis, pow = 0.0)
+  def self.add_ee_for_vent_fan_power(model, obj_name, frac_lost, is_cfis, schedules_file, pow = 0.0)
+    avail_sch = nil
+    if not schedules_file.nil?
+      avail_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnHouseFan)
+    end
+    if avail_sch.nil?
+      avail_sch = model.alwaysOnDiscreteSchedule
+    end
+
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     equip_def.setName(obj_name)
     equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
@@ -1427,7 +1435,7 @@ class Airflow
     equip.setSpace(@living_space)
     equip_def.setFractionRadiant(0)
     equip_def.setFractionLatent(0)
-    equip.setSchedule(model.alwaysOnDiscreteSchedule)
+    equip.setSchedule(avail_sch)
     equip.setEndUseSubcategory(Constants.ObjectNameMechanicalVentilation)
     equip_def.setFractionLost(frac_lost)
     vent_mech_fan_actuator = nil
@@ -1660,10 +1668,10 @@ class Airflow
     else
       fan_heat_lost_fraction = 1.0
     end
-    add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFan, fan_heat_lost_fraction, false, total_sup_exh_bal_w)
+    add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFan, fan_heat_lost_fraction, false, schedules_file, total_sup_exh_bal_w)
 
     # CFIS fan power
-    cfis_fan_actuator = add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFanCFIS, 0.0, true)
+    cfis_fan_actuator = add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFanCFIS, 0.0, true, schedules_file)
 
     # Average in-unit cfms (include recirculation from in unit cfms for shared systems)
     sup_cfm_tot = vent_mech_sup_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
