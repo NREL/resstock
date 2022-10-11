@@ -242,6 +242,9 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:bath_fan_start_hour] = vent_fans_bath[0].start_hour if !vent_fans_bath[0].start_hour.nil?
     end
 
+    # Whole House Fan
+    args[:whole_house_fan_availability] = 7
+
     # Vacancy
     if args[:schedules_vacancy_period].is_initialized
       begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:schedules_vacancy_period].get)

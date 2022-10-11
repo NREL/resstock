@@ -370,6 +370,7 @@ def create_hpxmls
     'base-mechvent-bath-kitchen-fans.xml' => 'base.xml',
     'base-mechvent-bath-kitchen-fans-detailed-availability.xml' => 'base-mechvent-bath-kitchen-fans.xml',
     'base-mechvent-cfis.xml' => 'base.xml',
+    'base-mechvent-cfis-detailed-availability.xml' => 'base-mechvent-cfis.xml',
     'base-mechvent-cfis-airflow-fraction-zero.xml' => 'base-mechvent-cfis.xml',
     'base-mechvent-cfis-dse.xml' => 'base-hvac-dse.xml',
     'base-mechvent-cfis-evap-cooler-only-ducted.xml' => 'base-hvac-evap-cooler-only-ducted.xml',
@@ -383,6 +384,7 @@ def create_hpxmls
     'base-mechvent-multiple.xml' => 'base-mechvent-bath-kitchen-fans.xml',
     'base-mechvent-supply.xml' => 'base.xml',
     'base-mechvent-whole-house-fan.xml' => 'base.xml',
+    'base-mechvent-whole-house-fan-detailed-availability.xml' => 'base-mechvent-whole-house-fan.xml',
     'base-misc-additional-properties.xml' => 'base.xml',
     'base-misc-bills.xml' => 'base.xml',
     'base-misc-bills-none.xml' => 'base.xml',
@@ -2435,12 +2437,14 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-vacancy.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   elsif ['base-schedules-detailed-occupancy-stochastic-outage-full-year.xml'].include? hpxml_file
+    args.delete('water_heater_setpoint_temperature')
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
     sch_args['schedules_outage_period'] = 'Jan 1 12am - Dec 31 12am'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-outage.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   elsif ['base-schedules-detailed-occupancy-stochastic-outage-summer.xml'].include? hpxml_file
+    args.delete('water_heater_setpoint_temperature')
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
     sch_args['schedules_outage_period'] = 'Jul 1 12am - Jul 7 12am'
@@ -2448,6 +2452,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-outage-summer.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   elsif ['base-schedules-detailed-occupancy-stochastic-outage-winter.xml'].include? hpxml_file
+    args.delete('water_heater_setpoint_temperature')
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
     sch_args['schedules_outage_period'] = 'Jan 1 12am - Jan 7 12am'
@@ -2527,8 +2532,14 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   end
 
   # House Ventilation Schedules
-  if ['base-mechvent-exhaust-detailed-availability.xml'].include? hpxml_file
+  if ['base-mechvent-exhaust-detailed-availability.xml',
+      'base-mechvent-cfis-detailed-availability.xml'].include? hpxml_file
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/house-fan.csv'
+  end
+
+  # Whole House Fan Schedules
+  if ['base-mechvent-whole-house-fan-detailed-availability.xml'].include? hpxml_file
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/whole-house-fan.csv'
   end
 
   # Water Heater Schedules

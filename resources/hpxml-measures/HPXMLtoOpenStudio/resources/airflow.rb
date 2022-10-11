@@ -277,7 +277,7 @@ class Airflow
     end
 
     # NV Availability Schedule
-    nv_avail_sch = create_nv_and_whf_avail_sch(runner, model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week, schedules_file)
+    nv_avail_sch = create_nv_and_whf_avail_sch(runner, model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week, schedules_file, SchedulesFile::ColumnNaturalVentilation)
 
     nv_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     nv_avail_sensor.setName("#{Constants.ObjectNameNaturalVentilation} avail s")
@@ -289,7 +289,7 @@ class Airflow
     vent_fans_whf.each_with_index do |vent_whf, index|
       whf_num_days_per_week = 7 # FUTURE: Expose via HPXML?
       obj_name = "#{Constants.ObjectNameWholeHouseFan} #{index}"
-      whf_avail_sch = create_nv_and_whf_avail_sch(runner, model, obj_name, whf_num_days_per_week)
+      whf_avail_sch = create_nv_and_whf_avail_sch(runner, model, obj_name, whf_num_days_per_week, schedules_file, SchedulesFile::ColumnWholeHouseFan)
 
       whf_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
       whf_avail_sensor.setName("#{obj_name} avail s")
@@ -420,9 +420,9 @@ class Airflow
     manager.addProgram(vent_program)
   end
 
-  def self.create_nv_and_whf_avail_sch(runner, model, obj_name, num_days_per_week, schedules_file = nil)
+  def self.create_nv_and_whf_avail_sch(runner, model, obj_name, num_days_per_week, schedules_file, col_name)
     if not schedules_file.nil?
-      avail_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnNaturalVentilation)
+      avail_sch = schedules_file.create_schedule_file(col_name: col_name)
     end
     if avail_sch.nil?
       avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
@@ -441,7 +441,7 @@ class Airflow
       on_rule.setStartDate(OpenStudio::Date::fromDayOfYear(1))
       on_rule.setEndDate(OpenStudio::Date::fromDayOfYear(365))
     else
-      runner.registerWarning("Both '#{SchedulesFile::ColumnNaturalVentilation}' schedule file and natural ventilation days per week provided; the latter will be ignored.") if !num_days_per_week.nil?
+      runner.registerWarning("Both '#{col_name}' schedule file and days per week provided; the latter will be ignored.") if !num_days_per_week.nil?
     end
     Schedule.set_schedule_type_limits(model, avail_sch, Constants.ScheduleTypeLimitsOnOff)
     return avail_sch
@@ -1419,10 +1419,10 @@ class Airflow
     end
   end
 
-  def self.add_ee_for_vent_fan_power(model, obj_name, frac_lost, is_cfis, schedules_file, pow = 0.0)
+  def self.add_ee_for_vent_fan_power(model, obj_name, frac_lost, is_cfis, schedules_file, col_name, pow = 0.0)
     avail_sch = nil
     if not schedules_file.nil?
-      avail_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnHouseFan)
+      avail_sch = schedules_file.create_schedule_file(col_name: col_name)
     end
     if avail_sch.nil?
       avail_sch = model.alwaysOnDiscreteSchedule
@@ -1668,10 +1668,10 @@ class Airflow
     else
       fan_heat_lost_fraction = 1.0
     end
-    add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFan, fan_heat_lost_fraction, false, schedules_file, total_sup_exh_bal_w)
+    add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFan, fan_heat_lost_fraction, false, schedules_file, SchedulesFile::ColumnHouseFan, total_sup_exh_bal_w)
 
     # CFIS fan power
-    cfis_fan_actuator = add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFanCFIS, 0.0, true, schedules_file)
+    cfis_fan_actuator = add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFanCFIS, 0.0, true, schedules_file, SchedulesFile::ColumnHouseFan)
 
     # Average in-unit cfms (include recirculation from in unit cfms for shared systems)
     sup_cfm_tot = vent_mech_sup_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)

@@ -71,6 +71,9 @@ class ScheduleGenerator
     success = set_local_ventilation(args: args)
     return false if not success
 
+    success = set_whole_house_fan(args: args)
+    return false if not success
+
     success = set_vacancy(args: args)
     return false if not success
 
@@ -812,6 +815,24 @@ class ScheduleGenerator
     return true
   end
 
+  def set_whole_house_fan(args:)
+    method_array = [1, 3, 5, 6, 2, 4, 0] # monday, wednesday, friday, saturday, tuesday, thursday, sunday
+    whole_house_fan = []
+    @total_days_in_year.times do |day|
+      today = @sim_start_day + day
+      availability = method_array[0...args[:whole_house_fan_availability]]
+      @steps_in_day.times do |_step|
+        if availability.include? today.wday
+          whole_house_fan << 1
+        else
+          whole_house_fan << 0
+        end
+      end
+    end
+    @schedules[SchedulesFile::ColumnWholeHouseFan] = whole_house_fan
+    return true
+  end
+
   def set_vacancy(args:)
     if (not args[:schedules_vacancy_begin_month].nil?) && (not args[:schedules_vacancy_begin_day].nil?) && (not args[:schedules_vacancy_end_month].nil?) && (not args[:schedules_vacancy_end_day].nil?)
       start_day_num = Schedule.get_day_num_from_month_day(@sim_year, args[:schedules_vacancy_begin_month], args[:schedules_vacancy_begin_day])
@@ -862,6 +883,7 @@ class ScheduleGenerator
 
       # water heating
       water_heater_setpoint = Array.new(@schedules[SchedulesFile::ColumnOccupants].length, args[:water_heater_setpoint])
+      water_heater_off = UnitConversions.convert(2, 'C', 'F') # E+ threshold to avoid warning
 
       start_day_num = Schedule.get_day_num_from_month_day(@sim_year, args[:schedules_outage_begin_month], args[:schedules_outage_begin_day])
 
@@ -876,7 +898,7 @@ class ScheduleGenerator
 
         heating_season.fill(0.0, ix, length) # Fill between start/end days
         cooling_season.fill(0.0, ix, length) # Fill between start/end days
-        water_heater_setpoint.fill(0.0, ix, length) # Fill between start/end days
+        water_heater_setpoint.fill(water_heater_off, ix, length) # Fill between start/end days
 
         if not natural_ventilation.nil?
           fill = 0.0 # windows closed
@@ -893,7 +915,7 @@ class ScheduleGenerator
 
         heating_season.fill(0.0, ix, length) # Fill between start day and end of year
         cooling_season.fill(0.0, ix, length) # Fill between start day and end of year
-        water_heater_setpoint.fill(0.0, ix, length) # Fill between start day and end of year
+        water_heater_setpoint.fill(water_heater_off, ix, length) # Fill between start day and end of year
 
         if not natural_ventilation.nil?
           fill = 0.0 # windows closed
@@ -910,7 +932,7 @@ class ScheduleGenerator
 
         heating_season.fill(0.0, ix, length) # Fill between start of year and end day
         cooling_season.fill(0.0, ix, length) # Fill between start of year and end day
-        water_heater_setpoint.fill(0.0, ix, length) # Fill between start of year and end day
+        water_heater_setpoint.fill(water_heater_off, ix, length) # Fill between start of year and end day
 
         if not natural_ventilation.nil?
           fill = 0.0 # windows closed

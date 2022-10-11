@@ -185,6 +185,7 @@ The column names available in the schedule CSV files are:
   ``kitchen_fan``                  0/1    Range ventilation fan availability schedule.                                       Yes                  Yes
   ``bath_fan``                     0/1    Bath ventilation fan availability schedule.                                        Yes                  Yes
   ``house_fan``                    0/1    Whole ventilation fan availability schedule.                                       No                   Yes
+  ``whole_house_fan``              0/1    Whole house fan availability schedule.                                             Yes                  Yes
   ``heating_setpoint``             F      Thermostat heating setpoint schedule.                                              No                   No
   ``cooling_setpoint``             F      Thermostat cooling setpoint schedule.                                              No                   No
   ``heating_season``               0/1    Heating season schedule.                                                           No                   Yes
@@ -886,7 +887,7 @@ Each space type that borders the ground (i.e., basements, crawlspaces, garages, 
   ``DepthBelowGrade``                                      double    ft            >= 0         See [#]_             Depth from the top of the slab surface to grade
   ``PerimeterInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
   ``PerimeterInsulation/Layer/NominalRValue``              double    F-ft2-hr/Btu  >= 0         Yes                  R-value of vertical insulation
-  ``PerimeterInsulation/Layer/InsulationDepth``            double    ft            >= 0         Yes                  Depth from grade to bottom of vertical insulation
+  ``PerimeterInsulation/Layer/InsulationDepth``            double    ft            >= 0         Yes                  Depth from top of slab to bottom of vertical insulation
   ``UnderSlabInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
   ``UnderSlabInsulation/Layer/NominalRValue``              double    F-ft2-hr/Btu  >= 0         Yes                  R-value of horizontal insulation
   ``UnderSlabInsulation/Layer/InsulationWidth``            double    ft            >= 0         See [#]_             Width from slab edge inward of horizontal insulation
@@ -2329,7 +2330,7 @@ If the in-unit distribution system is specified as recirculation, additional inf
   =================================  =======  =====  ===========  ========  ========  =====================================
   ``ControlType``                    string          See [#]_     Yes                 Recirculation control type
   ``RecirculationPipingLoopLength``  double   ft     > 0          No        See [#]_  Recirculation piping loop length [#]_
-  ``BranchPipingLoopLength``         double   ft     > 0          No        10        Branch piping loop length [#]_
+  ``BranchPipingLength``             double   ft     > 0          No        10        Branch piping length [#]_
   ``PumpPower``                      double   W      >= 0         No        50 [#]_   Recirculation pump power
   =================================  =======  =====  ===========  ========  ========  =====================================
 
@@ -2341,7 +2342,7 @@ If the in-unit distribution system is specified as recirculation, additional inf
          | NCfl = number of conditioned floor levels number of conditioned floor levels in the residence including conditioned basements,
          | Bsmnt = presence (1.0) or absence (0.0) of an unconditioned basement in the residence.
   .. [#] RecirculationPipingLoopLength is the recirculation loop length including both supply and return sides, measured longitudinally from plans, assuming the hot water piping does not run diagonally, plus 20 feet of piping for each floor level greater than one plus 10 feet of piping for unconditioned basements.
-  .. [#] BranchPipingLoopLength is the length of the branch hot water piping from the recirculation loop to the farthest hot water fixture from the recirculation loop, measured longitudinally from plans, assuming the branch hot water piping does not run diagonally.
+  .. [#] BranchPipingLength is the length of the branch hot water piping from the recirculation loop to the farthest hot water fixture from the recirculation loop, measured longitudinally from plans, assuming the branch hot water piping does not run diagonally.
   .. [#] PumpPower default based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 
 Shared Recirculation
