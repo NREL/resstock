@@ -188,7 +188,7 @@ class Waterheater
     obj_name_combi = Constants.ObjectNameWaterHeater
 
     if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeCombiStorage
-      if water_heating_system.standby_loss <= 0
+      if water_heating_system.standby_loss_value <= 0
         fail 'A negative indirect water heater standby loss was calculated, double check water heater inputs.'
       end
 
@@ -1303,6 +1303,13 @@ class Waterheater
   end
 
   def self.calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction)
+    standby_loss_units = water_heating_system.standby_loss_units
+    standby_loss_value = water_heating_system.standby_loss_value
+
+    if not [HPXML::UnitsDegFPerHour].include? standby_loss_units
+      fail "Unexpected standby loss units '#{standby_loss_units}' for indirect water heater. Should be '#{HPXML::UnitsDegFPerHour}'."
+    end
+
     # Test conditions
     cp = 0.999 # Btu/lb-F
     rho = 8.216 # lb/gal
@@ -1310,7 +1317,7 @@ class Waterheater
     t_tank_avg = 135.0 # F, Test begins at 137-138F stop at 133F
 
     # UA calculation
-    q = water_heating_system.standby_loss * cp * act_vol * rho # Btu/hr
+    q = standby_loss_value * cp * act_vol * rho # Btu/hr
     ua = q / (t_tank_avg - t_amb) # Btu/hr-F
 
     # jacket

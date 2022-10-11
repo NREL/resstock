@@ -142,21 +142,15 @@ class HPXMLDefaults
       hpxml.header.sim_end_day_isdefaulted = true
     end
 
-    if (not epw_file.nil?) && epw_file.startDateActualYear.is_initialized # AMY
-      if not hpxml.header.sim_calendar_year.nil?
-        if hpxml.header.sim_calendar_year != epw_file.startDateActualYear.get
-          hpxml.header.sim_calendar_year = epw_file.startDateActualYear.get
-          hpxml.header.sim_calendar_year_isdefaulted = true
-        end
-      else
-        hpxml.header.sim_calendar_year = epw_file.startDateActualYear.get
+    sim_calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
+    if not hpxml.header.sim_calendar_year.nil?
+      if hpxml.header.sim_calendar_year != sim_calendar_year
+        hpxml.header.sim_calendar_year = sim_calendar_year
         hpxml.header.sim_calendar_year_isdefaulted = true
       end
     else
-      if hpxml.header.sim_calendar_year.nil?
-        hpxml.header.sim_calendar_year = 2007 # For consistency with SAM utility bill calculations
-        hpxml.header.sim_calendar_year_isdefaulted = true
-      end
+      hpxml.header.sim_calendar_year = sim_calendar_year
+      hpxml.header.sim_calendar_year_isdefaulted = true
     end
 
     if hpxml.header.dst_enabled.nil?
@@ -208,6 +202,16 @@ class HPXMLDefaults
     if (not epw_file.nil?) && hpxml.header.time_zone_utc_offset.nil?
       hpxml.header.time_zone_utc_offset = epw_file.timeZone
       hpxml.header.time_zone_utc_offset_isdefaulted = true
+    end
+
+    if hpxml.header.temperature_capacitance_multiplier.nil?
+      hpxml.header.temperature_capacitance_multiplier = 1.0
+      hpxml.header.temperature_capacitance_multiplier_isdefaulted = true
+    end
+
+    if hpxml.header.natvent_days_per_week.nil?
+      hpxml.header.natvent_days_per_week = 3
+      hpxml.header.natvent_days_per_week_isdefaulted = true
     end
   end
 
@@ -399,6 +403,12 @@ class HPXMLDefaults
       hpxml.site.shielding_of_home = HPXML::ShieldingNormal
       hpxml.site.shielding_of_home_isdefaulted = true
     end
+
+    if hpxml.site.ground_conductivity.nil?
+      hpxml.site.ground_conductivity = 1.0 # Btu/hr-ft-F
+      hpxml.site.ground_conductivity_isdefaulted = true
+    end
+
     hpxml.site.additional_properties.aim2_shelter_coeff = Airflow.get_aim2_shelter_coefficient(hpxml.site.shielding_of_home)
   end
 
@@ -490,18 +500,13 @@ class HPXMLDefaults
   end
 
   def self.apply_climate_and_risk_zones(hpxml, epw_file)
-    if (not epw_file.nil?) && (hpxml.climate_and_risk_zones.iecc_zone.nil? || hpxml.climate_and_risk_zones.iecc_year.nil?)
-      if hpxml.climate_and_risk_zones.iecc_zone.nil?
-        climate_zone_iecc = Location.get_climate_zone_iecc(epw_file.wmoNumber)
-        if Constants.IECCZones.include? climate_zone_iecc
-          hpxml.climate_and_risk_zones.iecc_zone = climate_zone_iecc
-          hpxml.climate_and_risk_zones.iecc_zone_isdefaulted = true
-        end
-      end
-
-      if (not hpxml.climate_and_risk_zones.iecc_zone.nil?) && hpxml.climate_and_risk_zones.iecc_year.nil?
-        hpxml.climate_and_risk_zones.iecc_year = 2006
-        hpxml.climate_and_risk_zones.iecc_year_isdefaulted = true
+    if (not epw_file.nil?) && hpxml.climate_and_risk_zones.climate_zone_ieccs.empty?
+      zone = Location.get_climate_zone_iecc(epw_file.wmoNumber)
+      if not zone.nil?
+        hpxml.climate_and_risk_zones.climate_zone_ieccs.add(zone: zone,
+                                                            year: 2006,
+                                                            zone_isdefaulted: true,
+                                                            year_isdefaulted: true)
       end
     end
   end
@@ -1038,10 +1043,15 @@ class HPXMLDefaults
       cooling_system_fuel = HPXML::FuelTypeElectricity
 
       if cooling_system_type == HPXML::HVACTypeCentralAirConditioner
-        next unless cooling_system.cooling_efficiency_seer.nil?
-
-        cooling_system.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, cooling_system_type, cooling_system_fuel, HPXML::UnitsSEER)
-        cooling_system.cooling_efficiency_seer_isdefaulted = true
+        if cooling_system.cooling_efficiency_seer.nil?
+          if cooling_system.cooling_efficiency_seer2.nil?
+            cooling_system.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, cooling_system_type, cooling_system_fuel, HPXML::UnitsSEER)
+          else
+            cooling_system.cooling_efficiency_seer = HVAC.calc_seer_from_seer2(cooling_system.cooling_efficiency_seer2).round(2)
+            cooling_system.cooling_efficiency_seer2 = nil
+          end
+          cooling_system.cooling_efficiency_seer_isdefaulted = true
+        end
       elsif [HPXML::HVACTypeRoomAirConditioner].include? cooling_system_type
         next unless cooling_system.cooling_efficiency_eer.nil? && cooling_system.cooling_efficiency_ceer.nil?
 
@@ -1058,13 +1068,23 @@ class HPXMLDefaults
       next unless [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump_type
 
       if heat_pump.cooling_efficiency_seer.nil?
-        heat_pump.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heat_pump_type, heat_pump_fuel, HPXML::UnitsSEER)
+        if heat_pump.cooling_efficiency_seer2.nil?
+          heat_pump.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heat_pump_type, heat_pump_fuel, HPXML::UnitsSEER)
+        else
+          heat_pump.cooling_efficiency_seer = HVAC.calc_seer_from_seer2(heat_pump.cooling_efficiency_seer2).round(2)
+          heat_pump.cooling_efficiency_seer2 = nil
+        end
         heat_pump.cooling_efficiency_seer_isdefaulted = true
       end
-      if heat_pump.heating_efficiency_hspf.nil?
+      next unless heat_pump.heating_efficiency_hspf.nil?
+
+      if heat_pump.heating_efficiency_hspf2.nil?
         heat_pump.heating_efficiency_hspf = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heat_pump_type, heat_pump_fuel, HPXML::UnitsHSPF)
-        heat_pump.heating_efficiency_hspf_isdefaulted = true
+      else
+        heat_pump.heating_efficiency_hspf = HVAC.calc_hspf_from_hspf2(heat_pump.heating_efficiency_hspf2).round(2)
+        heat_pump.heating_efficiency_hspf2 = nil
       end
+      heat_pump.heating_efficiency_hspf_isdefaulted = true
     end
 
     # Default AC/HP compressor type
@@ -1447,7 +1467,7 @@ class HPXMLDefaults
 
   def self.apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
     hpxml.hvac_distributions.each do |hvac_distribution|
-      next unless [HPXML::HVACDistributionTypeAir].include? hvac_distribution.distribution_system_type
+      next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
       next if hvac_distribution.ducts.empty?
 
       # Default ducts
@@ -1520,6 +1540,13 @@ class HPXMLDefaults
           duct.duct_fraction_area_isdefaulted = true
         end
       end
+
+      hvac_distribution.ducts.each do |ducts|
+        next unless ducts.duct_surface_area_multiplier.nil?
+
+        ducts.duct_surface_area_multiplier = 1.0
+        ducts.duct_surface_area_multiplier_isdefaulted = true
+      end
     end
   end
 
@@ -1541,7 +1568,7 @@ class HPXMLDefaults
           fail 'Defaulting flow rates for multiple mechanical ventilation systems is currently not supported.'
         end
 
-        vent_fan.rated_flow_rate = Airflow.get_default_mech_vent_flow_rate(hpxml, vent_fan, infil_measurements, weather, 1.0, cfa, nbeds).round(1)
+        vent_fan.rated_flow_rate = Airflow.get_default_mech_vent_flow_rate(hpxml, vent_fan, infil_measurements, weather, cfa, nbeds).round(1)
         vent_fan.rated_flow_rate_isdefaulted = true
       end
       if vent_fan.fan_power.nil?
@@ -1636,14 +1663,16 @@ class HPXMLDefaults
         water_heating_system.performance_adjustment = Waterheater.get_default_performance_adjustment(water_heating_system)
         water_heating_system.performance_adjustment_isdefaulted = true
       end
-      if (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeCombiStorage) && water_heating_system.standby_loss.nil?
+      if (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeCombiStorage) && water_heating_system.standby_loss_value.nil?
         # Use equation fit from AHRI database
         # calculate independent variable SurfaceArea/vol(physically linear to standby_loss/skin_u under test condition) to fit the linear equation from AHRI database
         act_vol = Waterheater.calc_storage_tank_actual_vol(water_heating_system.tank_volume, nil)
         surface_area = Waterheater.calc_tank_areas(act_vol)[0]
         sqft_by_gal = surface_area / act_vol # sqft/gal
-        water_heating_system.standby_loss = (2.9721 * sqft_by_gal - 0.4732).round(3) # linear equation assuming a constant u, F/hr
-        water_heating_system.standby_loss_isdefaulted = true
+        water_heating_system.standby_loss_value = (2.9721 * sqft_by_gal - 0.4732).round(3) # linear equation assuming a constant u, F/hr
+        water_heating_system.standby_loss_value_isdefaulted = true
+        water_heating_system.standby_loss_units = HPXML::UnitsDegFPerHour
+        water_heating_system.standby_loss_units_isdefaulted = true
       end
       if (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage)
         if water_heating_system.heating_capacity.nil?
@@ -1675,7 +1704,7 @@ class HPXMLDefaults
         end
       end
       if water_heating_system.location.nil?
-        water_heating_system.location = Waterheater.get_default_location(hpxml, hpxml.climate_and_risk_zones.iecc_zone)
+        water_heating_system.location = Waterheater.get_default_location(hpxml, hpxml.climate_and_risk_zones.climate_zone_ieccs[0].zone)
         water_heating_system.location_isdefaulted = true
       end
       next unless water_heating_system.usage_bin.nil? && (not water_heating_system.uniform_energy_factor.nil?) # FHR & UsageBin only applies to UEF
@@ -2575,7 +2604,7 @@ class HPXMLDefaults
     hvacpl = hpxml.hvac_plant
     tol = 10 # Btuh
 
-    # Assign heating design loads back to HPXML object
+    # Assign heating design loads to HPXML object
     hvacpl.hdl_total = bldg_design_loads.Heat_Tot.round
     hvacpl.hdl_walls = bldg_design_loads.Heat_Walls.round
     hvacpl.hdl_ceilings = bldg_design_loads.Heat_Ceilings.round
@@ -2595,7 +2624,7 @@ class HPXMLDefaults
       fail 'Heating design loads do not sum to total.'
     end
 
-    # Cooling sensible design loads back to HPXML object
+    # Assign cooling sensible design loads to HPXML object
     hvacpl.cdl_sens_total = bldg_design_loads.Cool_Sens.round
     hvacpl.cdl_sens_walls = bldg_design_loads.Cool_Walls.round
     hvacpl.cdl_sens_ceilings = bldg_design_loads.Cool_Ceilings.round
@@ -2618,7 +2647,7 @@ class HPXMLDefaults
       fail 'Cooling sensible design loads do not sum to total.'
     end
 
-    # Cooling latent design loads back to HPXML object
+    # Assign cooling latent design loads to HPXML object
     hvacpl.cdl_lat_total = bldg_design_loads.Cool_Lat.round
     hvacpl.cdl_lat_ducts = bldg_design_loads.Cool_Ducts_Lat.round
     hvacpl.cdl_lat_infilvent = bldg_design_loads.Cool_Infil_Lat.round
@@ -2629,7 +2658,11 @@ class HPXMLDefaults
       fail 'Cooling latent design loads do not sum to total.'
     end
 
-    # Assign sizing values back to HPXML objects
+    # Assign design temperatures to HPXML object
+    hvacpl.temp_heating = weather.design.HeatingDrybulb.round(2)
+    hvacpl.temp_cooling = weather.design.CoolingDrybulb.round(2)
+
+    # Assign sizing values to HPXML objects
     all_hvac_sizing_values.each do |hvac_system, hvac_sizing_values|
       htg_sys = hvac_system[:heating]
       clg_sys = hvac_system[:cooling]

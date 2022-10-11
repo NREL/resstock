@@ -26,8 +26,10 @@ class TestRunAnalysis < MiniTest::Test
   def _test_measure_order(osw)
     expected_order = ['BuildExistingModel',
                       'ApplyUpgrade',
+                      'HPXMLtoOpenStudio',
                       'ReportSimulationOutput',
                       'ReportHPXMLOutput',
+                      'ReportUtilityBills',
                       'UpgradeCosts',
                       'QOIReport',
                       'ServerDirectoryCleanup']
@@ -280,7 +282,7 @@ class TestRunAnalysis < MiniTest::Test
     timeseries = _get_timeseries_columns(Dir[File.join(@national_baseline, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries))
 
-    assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
+    assert(!File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
 
     FileUtils.cp(results_baseline, File.join(File.dirname(@national_baseline), 'project_national'))
@@ -331,15 +333,11 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
-    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-existing-defaulted.xml')))
-    assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-upgraded-defaulted.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-existing.xml')))
     assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-upgraded.xml')))
 
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'AllUpgrades', '1-existing.osw')))
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'AllUpgrades', '1-upgraded.osw')))
-    assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-existing-defaulted.xml')))
-    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-upgraded-defaulted.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-existing.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-upgraded.xml')))
 
@@ -389,19 +387,15 @@ class TestRunAnalysis < MiniTest::Test
     timeseries = _get_timeseries_columns(Dir[File.join(@national_upgrades, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries))
 
-    assert(File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing-defaulted.xml')))
-    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-upgraded-defaulted.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing.xml')))
     assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-upgraded.xml')))
 
-    assert(File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-existing.osw')))
-    assert(File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-upgraded.osw')))
-    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-existing-defaulted.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-upgraded-defaulted.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-existing.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-upgraded.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-existing.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-upgraded.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-existing.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-upgraded.xml')))
 
     FileUtils.cp(results_allupgrades, File.join(File.dirname(@national_upgrades), 'project_national'))
   end

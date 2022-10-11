@@ -152,6 +152,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'invalid-foundation-wall-properties' => ['Expected DepthBelowGrade to be less than or equal to Height [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall, id: "FoundationWall1"]',
                                                                      'Expected DistanceToBottomOfInsulation to be greater than or equal to DistanceToTopOfInsulation [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer[InstallationType="continuous - exterior" or InstallationType="continuous - interior"], id: "FoundationWall1Insulation"]',
                                                                      'Expected DistanceToBottomOfInsulation to be less than or equal to ../../Height [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer[InstallationType="continuous - exterior" or InstallationType="continuous - interior"], id: "FoundationWall1Insulation"]'],
+                            'invalid-ground-conductivity' => ['Expected extension/GroundConductivity to be greater than 0'],
                             'invalid-hvac-installation-quality' => ['Expected extension/AirflowDefectRatio to be greater than or equal to -0.9 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[HeatPumpType="air-to-air"], id: "HeatPump1"]',
                                                                     'Expected extension/ChargeDefectRatio to be greater than or equal to -0.9 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[HeatPumpType="air-to-air"], id: "HeatPump1"]'],
                             'invalid-hvac-installation-quality2' => ['Expected extension/AirflowDefectRatio to be less than or equal to 9 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[HeatPumpType="air-to-air"], id: "HeatPump1"]',
@@ -164,10 +165,13 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                                            'Expected RadiantBarrierGrade to be less than or equal to 3 [context: /HPXML/Building/BuildingDetails/Enclosure/Roofs/Roof, id: "Roof1"]',
                                                            'Expected EnergyFactor to be less than or equal to 5 [context: /HPXML/Building/BuildingDetails/Appliances/Dishwasher, id: "Dishwasher1"]'],
                             'invalid-insulation-top' => ['Expected DistanceToTopOfInsulation to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer, id: "FoundationWall1Insulation"]'],
+                            'invalid-natvent-availability' => ['Expected extension/NaturalVentilationAvailabilityDaysperWeek to be less than or equal to 7'],
+                            'invalid-natvent-availability2' => ['Expected extension/NaturalVentilationAvailabilityDaysperWeek to be greater than or equal to 0'],
                             'invalid-number-of-bedrooms-served' => ['Expected extension/NumberofBedroomsServed to be greater than ../../../BuildingSummary/BuildingConstruction/NumberofBedrooms [context: /HPXML/Building/BuildingDetails/Systems/Photovoltaics/PVSystem[IsSharedSystem="true"], id: "PVSystem1"]'],
                             'invalid-number-of-conditioned-floors' => ['Expected NumberofConditionedFloors to be greater than or equal to NumberofConditionedFloorsAboveGrade [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]'],
                             'invalid-number-of-units-served' => ['Expected NumberofUnitsServed to be greater than 1 [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[IsSharedSystem="true"], id: "WaterHeatingSystem1"]'],
                             'invalid-shared-vent-in-unit-flowrate' => ['Expected RatedFlowRate to be greater than extension/InUnitFlowRate [context: /HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForWholeBuildingVentilation="true" and IsSharedSystem="true"], id: "VentilationFan1"]'],
+                            'invalid-timestep' => ['Expected Timestep to be 60, 30, 20, 15, 12, 10, 6, 5, 4, 3, 2, or 1'],
                             'invalid-timezone-utcoffset-low' => ['Expected TimeZone/UTCOffset to be greater than or equal to -12'],
                             'invalid-timezone-utcoffset-high' => ['Expected TimeZone/UTCOffset to be less than or equal to 14'],
                             'invalid-ventilation-fan' => ['Expected 1 element(s) for xpath: UsedForWholeBuildingVentilation[text()="true"] | UsedForLocalVentilation[text()="true"] | UsedForSeasonalCoolingLoadReduction[text()="true"] | UsedForGarageVentilation[text()="true"]'],
@@ -381,6 +385,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.foundation_walls[0].depth_below_grade = 9.0
         hpxml.foundation_walls[0].insulation_interior_distance_to_top = 12.0
         hpxml.foundation_walls[0].insulation_interior_distance_to_bottom = 10.0
+      elsif ['invalid-ground-conductivity'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.site.ground_conductivity = 0.0
       elsif ['invalid-hvac-installation-quality'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-1-speed.xml'))
         hpxml.heat_pumps[0].airflow_defect_ratio = -99
@@ -395,7 +402,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.header.transaction = 'modify'
         hpxml.site.site_type = 'mountain'
-        hpxml.climate_and_risk_zones.iecc_year = 2020
+        hpxml.climate_and_risk_zones.climate_zone_ieccs[0].year = 2020
         hpxml.roofs.each do |roof|
           roof.radiant_barrier_grade = 4
         end
@@ -405,6 +412,12 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['invalid-insulation-top'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.foundation_walls[0].insulation_interior_distance_to_top = -0.5
+      elsif ['invalid-natvent-availability'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.header.natvent_days_per_week = 8
+      elsif ['invalid-natvent-availability2'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.header.natvent_days_per_week = -1
       elsif ['invalid-number-of-bedrooms-served'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-pv.xml'))
         hpxml.pv_systems[0].number_of_bedrooms_served = 3
@@ -417,6 +430,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['invalid-shared-vent-in-unit-flowrate'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-mechvent.xml'))
         hpxml.ventilation_fans[0].rated_flow_rate = 80
+      elsif ['invalid-timestep'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.header.timestep = 45
       elsif ['invalid-timezone-utcoffset-low'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.header.time_zone_utc_offset = -13
@@ -701,7 +717,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'invalid-relatedhvac-desuperheater' => ["RelatedHVACSystem 'CoolingSystem_bad' not found for water heating system 'WaterHeatingSystem1'."],
                             'invalid-schema-version' => ["HPXML version #{Version::HPXML_Version} is required."],
                             'invalid-skylights-physical-properties' => ["Could not lookup UFactor and SHGC for skylight 'Skylight2'."],
-                            'invalid-timestep' => ['Timestep (45) must be one of: 60, 30, 20, 15, 12, 10, 6, 5, 4, 3, 2, 1.'],
                             'invalid-runperiod' => ['Run Period End Day of Month (31) must be one of: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30.'],
                             'invalid-windows-physical-properties' => ["Could not lookup UFactor and SHGC for window 'Window3'."],
                             'leap-year-TMY' => ['Specified a leap year (2008) but weather data has 8760 hours.'],
@@ -730,7 +745,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'unattached-hvac-distribution' => ["Attached HVAC distribution system 'foobar' not found for HVAC system 'HeatingSystem1'."],
                             'unattached-skylight' => ["Attached roof 'foobar' not found for skylight 'Skylight1'."],
                             'unattached-solar-thermal-system' => ["Attached water heating system 'foobar' not found for solar thermal system 'SolarThermalSystem1'."],
+                            'unattached-shared-clothes-washer-dhw-distribution' => ["Attached hot water distribution 'foobar' not found for clothes washer"],
                             'unattached-shared-clothes-washer-water-heater' => ["Attached water heating system 'foobar' not found for clothes washer"],
+                            'unattached-shared-dishwasher-dhw-distribution' => ["Attached hot water distribution 'foobar' not found for dishwasher"],
                             'unattached-shared-dishwasher-water-heater' => ["Attached water heating system 'foobar' not found for dishwasher"],
                             'unattached-window' => ["Attached wall 'foobar' not found for window 'Window1'."] }
 
@@ -873,9 +890,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['invalid-skylights-physical-properties'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-skylights-physical-properties.xml'))
         hpxml.skylights[1].thermal_break = false
-      elsif ['invalid-timestep'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.header.timestep = 45
       elsif ['invalid-windows-physical-properties'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-windows-physical-properties.xml'))
         hpxml.windows[2].thermal_break = false
@@ -1016,9 +1030,17 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['unattached-solar-thermal-system'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-dhw-solar-indirect-flat-plate.xml'))
         hpxml.solar_thermal_systems[0].water_heating_system_idref = 'foobar'
+      elsif ['unattached-shared-clothes-washer-dhw-distribution'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
+        hpxml.clothes_washers[0].water_heating_system_idref = nil
+        hpxml.clothes_washers[0].hot_water_distribution_idref = 'foobar'
       elsif ['unattached-shared-clothes-washer-water-heater'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
         hpxml.clothes_washers[0].water_heating_system_idref = 'foobar'
+      elsif ['unattached-shared-dishwasher-dhw-distribution'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
+        hpxml.dishwashers[0].water_heating_system_idref = nil
+        hpxml.dishwashers[0].hot_water_distribution_idref = 'foobar'
       elsif ['unattached-shared-dishwasher-water-heater'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
         hpxml.dishwashers[0].water_heating_system_idref = 'foobar'
@@ -1068,6 +1090,12 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                                                                   "Both 'refrigerator' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'refrigerator' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'refrigerator' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'extra_refrigerator' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'extra_refrigerator' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'extra_refrigerator' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'freezer' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'freezer' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'freezer' schedule file and monthly multipliers provided; the latter will be ignored.",
                                                                                   "Both 'cooking_range' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'cooking_range' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'cooking_range' schedule file and monthly multipliers provided; the latter will be ignored.",
@@ -1080,12 +1108,39 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                                                                   "Both 'plug_loads_other' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'plug_loads_other' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'plug_loads_other' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_vehicle' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_vehicle' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_vehicle' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_well_pump' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_well_pump' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_well_pump' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_grill' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_grill' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_grill' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_lighting' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_lighting' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_lighting' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_fireplace' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_fireplace' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_fireplace' schedule file and monthly multipliers provided; the latter will be ignored.",
                                                                                   "Both 'lighting_interior' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'lighting_interior' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'lighting_interior' schedule file and monthly multipliers provided; the latter will be ignored.",
                                                                                   "Both 'lighting_exterior' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'lighting_exterior' schedule file and weekend fractions provided; the latter will be ignored.",
-                                                                                  "Both 'lighting_exterior' schedule file and monthly multipliers provided; the latter will be ignored."],
+                                                                                  "Both 'lighting_exterior' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'pool_pump' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'pool_pump' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'pool_pump' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'pool_heater' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'pool_heater' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'pool_heater' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_pump' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_pump' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_pump' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_heater' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_heater' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_heater' schedule file and monthly multipliers provided; the latter will be ignored."],
                               'schedule-file-and-setpoints' => ["Both 'heating_setpoint' schedule file and heating setpoint temperature provided; the latter will be ignored.",
                                                                 "Both 'cooling_setpoint' schedule file and cooling setpoint temperature provided; the latter will be ignored.",
                                                                 "Both 'water_heater_setpoint' schedule file and setpoint temperature provided; the latter will be ignored."],
@@ -1106,7 +1161,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-setpoints-daily-schedules.xml'))
         hpxml.hvac_controls[0].weekday_heating_setpoints = '64, 64, 64, 64, 64, 64, 64, 76, 70, 66, 66, 66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 64, 64'
       elsif ['schedule-file-and-weekday-weekend-multipliers'].include? warning_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-simple.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-loads-large-uncommon.xml'))
+        hpxml.header.utility_bill_scenarios.clear # we don't want the propane warning
         hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth.csv'
       elsif ['schedule-file-and-setpoints'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))

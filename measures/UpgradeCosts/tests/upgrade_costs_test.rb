@@ -2,7 +2,7 @@
 
 require 'openstudio'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
-require_relative '../../../resources/hpxml-measures/ReportHPXMLOutput/measure.rb'
+require_relative '../../../measures/ReportHPXMLOutput/measure.rb'
 require_relative '../measure.rb'
 
 class UpgradeCostsTest < MiniTest::Test

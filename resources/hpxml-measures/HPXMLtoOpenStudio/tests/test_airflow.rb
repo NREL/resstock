@@ -117,6 +117,27 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     assert_in_epsilon(0.000109, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.000068, program_values['Cw'].sum, 0.01)
     assert_in_epsilon(0.0, UnitConversions.convert(program_values['WHF_Flow'].sum, 'm^3/s', 'cfm'), 0.01)
+
+    # Check natural ventilation is available 3 days/wk
+    nv_sched = model.getScheduleRulesets.select { |s| s.name.to_s.start_with? Constants.ObjectNameNaturalVentilation }[0]
+    assert_equal(3768, Schedule.annual_equivalent_full_load_hrs(2007, nv_sched))
+  end
+
+  def test_natural_ventilation_7_days_per_week
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-windows-natural-ventilation-availability.xml'))
+    model, _hpxml = _test_measure(args_hash)
+
+    # Check natural ventilation/whole house fan program
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameNaturalVentilation} program")
+    assert_in_epsilon(14.5, UnitConversions.convert(program_values['NVArea'].sum, 'cm^2', 'ft^2'), 0.01)
+    assert_in_epsilon(0.000109, program_values['Cs'].sum, 0.01)
+    assert_in_epsilon(0.000068, program_values['Cw'].sum, 0.01)
+    assert_in_epsilon(0.0, UnitConversions.convert(program_values['WHF_Flow'].sum, 'm^3/s', 'cfm'), 0.01)
+
+    # Check natural ventilation is available 7 days/wk
+    nv_sched = model.getScheduleRulesets.select { |s| s.name.to_s.start_with? Constants.ObjectNameNaturalVentilation }[0]
+    assert_equal(8760, Schedule.annual_equivalent_full_load_hrs(2007, nv_sched))
   end
 
   def test_mechanical_ventilation_none
@@ -464,8 +485,6 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
     assert_in_epsilon(supply_leakage_cfm25, UnitConversions.convert(program_values['f_sup'].sum, 'm^3/s', 'cfm'), 0.01)
     assert_in_epsilon(return_leakage_cfm25, UnitConversions.convert(program_values['f_ret'].sum, 'm^3/s', 'cfm'), 0.01)
-    assert_in_epsilon(33.4, UnitConversions.convert(program_values['supply_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.01)
-    assert_in_epsilon(29.4, UnitConversions.convert(program_values['return_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.01)
   end
 
   def test_ducts_leakage_cfm50
@@ -483,8 +502,6 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
     assert_in_epsilon(supply_leakage_cfm50 * (25.0 / 50.0)**0.65, UnitConversions.convert(program_values['f_sup'].sum, 'm^3/s', 'cfm'), 0.01)
     assert_in_epsilon(return_leakage_cfm50 * (25.0 / 50.0)**0.65, UnitConversions.convert(program_values['f_ret'].sum, 'm^3/s', 'cfm'), 0.01)
-    assert_in_epsilon(33.4, UnitConversions.convert(program_values['supply_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.01)
-    assert_in_epsilon(29.4, UnitConversions.convert(program_values['return_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.01)
   end
 
   def test_ducts_leakage_percent
@@ -502,8 +519,32 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
     assert_in_epsilon(supply_leakage_frac, program_values['f_sup'].sum, 0.01)
     assert_in_epsilon(return_leakage_frac, program_values['f_ret'].sum, 0.01)
+  end
+
+  def test_ducts_surface_area
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
+    model, _hpxml = _test_measure(args_hash)
+
+    # Check ducts program
+    program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
     assert_in_epsilon(33.4, UnitConversions.convert(program_values['supply_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.01)
     assert_in_epsilon(29.4, UnitConversions.convert(program_values['return_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.01)
+  end
+
+  def test_ducts_surface_area_multipliers
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-ducts-area-multipliers.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    supply_area_multiplier = hpxml.hvac_distributions[0].ducts[0].duct_surface_area_multiplier
+    return_area_multiplier = hpxml.hvac_distributions[0].ducts[1].duct_surface_area_multiplier
+
+    # Check ducts program
+    program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
+    assert_in_epsilon(33.4 * supply_area_multiplier, UnitConversions.convert(program_values['supply_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.01)
+    assert_in_epsilon(29.4 * return_area_multiplier, UnitConversions.convert(program_values['return_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.01)
   end
 
   def test_infiltration_compartmentalization_area
@@ -590,7 +631,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     model = OpenStudio::Model::Model.new
 
     # get arguments
-    args_hash['output_dir'] = 'tests'
+    args_hash['output_dir'] = File.dirname(__FILE__)
     arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 
