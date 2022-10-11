@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Airflow
-  def self.apply(model, weather, spaces, hpxml, cfa, nbeds,
+  def self.apply(runner, model, weather, spaces, hpxml, cfa, nbeds,
                  ncfl_ag, duct_systems, airloop_map, clg_ssn_sensor, eri_version,
                  frac_windows_operable, apply_ashrae140_assumptions, schedules_file)
 
@@ -106,9 +106,9 @@ class Airflow
       break
     end
 
-    apply_natural_ventilation_and_whole_house_fan(model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor,
-                                                  hpxml.header.natvent_days_per_week)
-    apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+    apply_natural_ventilation_and_whole_house_fan(runner, model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor,
+                                                  hpxml.header.natvent_days_per_week, schedules_file)
+    apply_infiltration_and_ventilation_fans(runner, model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
                                             vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
   end
@@ -268,8 +268,8 @@ class Airflow
     end
   end
 
-  def self.apply_natural_ventilation_and_whole_house_fan(model, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor,
-                                                         natvent_days_per_week)
+  def self.apply_natural_ventilation_and_whole_house_fan(runner, model, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor,
+                                                         natvent_days_per_week, schedules_file)
     if @living_zone.thermostatSetpointDualSetpoint.is_initialized
       thermostat = @living_zone.thermostatSetpointDualSetpoint.get
       htg_sch = thermostat.heatingSetpointTemperatureSchedule.get
@@ -277,7 +277,7 @@ class Airflow
     end
 
     # NV Availability Schedule
-    nv_avail_sch = create_nv_and_whf_avail_sch(model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week)
+    nv_avail_sch = create_nv_and_whf_avail_sch(runner, model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week, schedules_file, SchedulesFile::ColumnNaturalVentilation)
 
     nv_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     nv_avail_sensor.setName("#{Constants.ObjectNameNaturalVentilation} avail s")
@@ -289,7 +289,7 @@ class Airflow
     vent_fans_whf.each_with_index do |vent_whf, index|
       whf_num_days_per_week = 7 # FUTURE: Expose via HPXML?
       obj_name = "#{Constants.ObjectNameWholeHouseFan} #{index}"
-      whf_avail_sch = create_nv_and_whf_avail_sch(model, obj_name, whf_num_days_per_week)
+      whf_avail_sch = create_nv_and_whf_avail_sch(runner, model, obj_name, whf_num_days_per_week, schedules_file, SchedulesFile::ColumnWholeHouseFan)
 
       whf_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
       whf_avail_sensor.setName("#{obj_name} avail s")
@@ -420,23 +420,30 @@ class Airflow
     manager.addProgram(vent_program)
   end
 
-  def self.create_nv_and_whf_avail_sch(model, obj_name, num_days_per_week)
-    avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
-    avail_sch.setName("#{obj_name} avail schedule")
-    Schedule.set_schedule_type_limits(model, avail_sch, Constants.ScheduleTypeLimitsOnOff)
-    on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
-    on_rule.setName("#{obj_name} avail schedule rule")
-    on_rule_day = on_rule.daySchedule
-    on_rule_day.setName("#{obj_name} avail schedule day")
-    on_rule_day.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
-    method_array = ['setApplyMonday', 'setApplyWednesday', 'setApplyFriday', 'setApplySaturday', 'setApplyTuesday', 'setApplyThursday', 'setApplySunday']
-    for i in 1..7 do
-      if num_days_per_week >= i
-        on_rule.public_send(method_array[i - 1], true)
-      end
+  def self.create_nv_and_whf_avail_sch(runner, model, obj_name, num_days_per_week, schedules_file, col_name)
+    if not schedules_file.nil?
+      avail_sch = schedules_file.create_schedule_file(col_name: col_name)
     end
-    on_rule.setStartDate(OpenStudio::Date::fromDayOfYear(1))
-    on_rule.setEndDate(OpenStudio::Date::fromDayOfYear(365))
+    if avail_sch.nil?
+      avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
+      avail_sch.setName("#{obj_name} avail schedule")
+      on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
+      on_rule.setName("#{obj_name} avail schedule rule")
+      on_rule_day = on_rule.daySchedule
+      on_rule_day.setName("#{obj_name} avail schedule day")
+      on_rule_day.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
+      method_array = ['setApplyMonday', 'setApplyWednesday', 'setApplyFriday', 'setApplySaturday', 'setApplyTuesday', 'setApplyThursday', 'setApplySunday']
+      for i in 1..7 do
+        if num_days_per_week >= i
+          on_rule.public_send(method_array[i - 1], true)
+        end
+      end
+      on_rule.setStartDate(OpenStudio::Date::fromDayOfYear(1))
+      on_rule.setEndDate(OpenStudio::Date::fromDayOfYear(365))
+    else
+      runner.registerWarning("Both '#{col_name}' schedule file and days per week provided; the latter will be ignored.") if !num_days_per_week.nil?
+    end
+    Schedule.set_schedule_type_limits(model, avail_sch, Constants.ScheduleTypeLimitsOnOff)
     return avail_sch
   end
 
@@ -1196,22 +1203,32 @@ class Airflow
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
   end
 
-  def self.apply_local_ventilation(model, vent_object, obj_type_name, index)
-    daily_sch = [0.0] * 24
+  def self.apply_local_ventilation(runner, model, vent_object, obj_type_name, schedules_file, index)
     obj_name = "#{obj_type_name} #{index}"
-    remaining_hrs = vent_object.hours_in_operation
-    for hr in 1..(vent_object.hours_in_operation.ceil)
-      if remaining_hrs >= 1
-        daily_sch[(vent_object.start_hour + hr - 1) % 24] = 1.0
-      else
-        daily_sch[(vent_object.start_hour + hr - 1) % 24] = remaining_hrs
+
+    # Create schedule
+    obj_sch = nil
+    if not schedules_file.nil?
+      if vent_object.fan_location == HPXML::LocationKitchen
+        col_name = SchedulesFile::ColumnKitchenFan
+        obj_sch_name = col_name
+      elsif vent_object.fan_location == HPXML::LocationBath
+        col_name = SchedulesFile::ColumnBathFan
+        obj_sch_name = col_name
       end
-      remaining_hrs -= 1
+      obj_sch = schedules_file.create_schedule_file(col_name: col_name)
     end
-    obj_sch = HourlyByMonthSchedule.new(model, "#{obj_name} schedule", [daily_sch] * 12, [daily_sch] * 12, Constants.ScheduleTypeLimitsFraction, false)
+    if obj_sch.nil?
+      daily_sch = Schedule.create_daily_sch(vent_object.hours_in_operation, vent_object.start_hour)
+      obj_sch = HourlyByMonthSchedule.new(model, "#{obj_name} schedule", [daily_sch] * 12, [daily_sch] * 12, Constants.ScheduleTypeLimitsFraction, false)
+      obj_sch = obj_sch.schedule
+      obj_sch_name = obj_sch.name.to_s
+    else
+      runner.registerWarning("Both '#{col_name}' schedule file and #{obj_type_name} hours in operation and start hour provided; the latter will be ignored.") if !vent_object.hours_in_operation.nil? && !vent_object.start_hour.nil?
+    end
     obj_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     obj_sch_sensor.setName("#{obj_name} sch s")
-    obj_sch_sensor.setKeyName(obj_sch.schedule.name.to_s)
+    obj_sch_sensor.setKeyName(obj_sch_name)
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     equip_def.setName(obj_name)
@@ -1222,7 +1239,7 @@ class Airflow
     equip_def.setFractionRadiant(0)
     equip_def.setFractionLatent(0)
     equip_def.setFractionLost(1)
-    equip.setSchedule(obj_sch.schedule)
+    equip.setSchedule(obj_sch)
     equip.setEndUseSubcategory(Constants.ObjectNameMechanicalVentilation)
 
     return obj_sch_sensor
@@ -1402,7 +1419,15 @@ class Airflow
     end
   end
 
-  def self.add_ee_for_vent_fan_power(model, obj_name, frac_lost, is_cfis, pow = 0.0)
+  def self.add_ee_for_vent_fan_power(model, obj_name, frac_lost, is_cfis, schedules_file, col_name, pow = 0.0)
+    avail_sch = nil
+    if not schedules_file.nil?
+      avail_sch = schedules_file.create_schedule_file(col_name: col_name)
+    end
+    if avail_sch.nil?
+      avail_sch = model.alwaysOnDiscreteSchedule
+    end
+
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     equip_def.setName(obj_name)
     equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
@@ -1410,7 +1435,7 @@ class Airflow
     equip.setSpace(@living_space)
     equip_def.setFractionRadiant(0)
     equip_def.setFractionLatent(0)
-    equip.setSchedule(model.alwaysOnDiscreteSchedule)
+    equip.setSchedule(avail_sch)
     equip.setEndUseSubcategory(Constants.ObjectNameMechanicalVentilation)
     equip_def.setFractionLost(frac_lost)
     vent_mech_fan_actuator = nil
@@ -1449,12 +1474,12 @@ class Airflow
     return fan_sens_load_actuator, fan_lat_load_actuator
   end
 
-  def self.apply_infiltration_adjustment_to_conditioned(model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+  def self.apply_infiltration_adjustment_to_conditioned(runner, model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                         sup_cfm_tot, exh_cfm_tot, bal_cfm_tot, erv_hrv_cfm_tot, infil_flow_actuator, schedules_file)
     infil_program.addLine('Set Qrange = 0')
     vent_fans_kitchen.each_with_index do |vent_kitchen, index|
       # Electricity impact
-      obj_sch_sensor = apply_local_ventilation(model, vent_kitchen, Constants.ObjectNameMechanicalVentilationRangeFan, index)
+      obj_sch_sensor = apply_local_ventilation(runner, model, vent_kitchen, Constants.ObjectNameMechanicalVentilationRangeFan, schedules_file, index)
       next unless @cooking_range_in_cond_space
 
       # Infiltration impact
@@ -1464,7 +1489,7 @@ class Airflow
     infil_program.addLine('Set Qbath = 0')
     vent_fans_bath.each_with_index do |vent_bath, index|
       # Electricity impact
-      obj_sch_sensor = apply_local_ventilation(model, vent_bath, Constants.ObjectNameMechanicalVentilationBathFan, index)
+      obj_sch_sensor = apply_local_ventilation(runner, model, vent_bath, Constants.ObjectNameMechanicalVentilationBathFan, schedules_file, index)
       # Infiltration impact
       infil_program.addLine("Set Qbath = Qbath + #{UnitConversions.convert(vent_bath.flow_rate * vent_bath.quantity, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
@@ -1618,7 +1643,7 @@ class Airflow
     end
   end
 
-  def self.apply_infiltration_ventilation_to_conditioned(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+  def self.apply_infiltration_ventilation_to_conditioned(runner, model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                          has_flue_chimney, clg_ssn_sensor, schedules_file)
     # Categorize fans into different types
     vent_mech_preheat = vent_fans_mech.select { |vent_mech| (not vent_mech.preheating_efficiency_cop.nil?) }
@@ -1643,10 +1668,10 @@ class Airflow
     else
       fan_heat_lost_fraction = 1.0
     end
-    add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFan, fan_heat_lost_fraction, false, total_sup_exh_bal_w)
+    add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFan, fan_heat_lost_fraction, false, schedules_file, SchedulesFile::ColumnHouseFan, total_sup_exh_bal_w)
 
     # CFIS fan power
-    cfis_fan_actuator = add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFanCFIS, 0.0, true)
+    cfis_fan_actuator = add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFanCFIS, 0.0, true, schedules_file, SchedulesFile::ColumnHouseFan)
 
     # Average in-unit cfms (include recirculation from in unit cfms for shared systems)
     sup_cfm_tot = vent_mech_sup_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
@@ -1680,7 +1705,7 @@ class Airflow
 
     # Calculate Qfan, Qinf_adj
     # Calculate adjusted infiltration based on mechanical ventilation system
-    apply_infiltration_adjustment_to_conditioned(model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+    apply_infiltration_adjustment_to_conditioned(runner, model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                  sup_cfm_tot, exh_cfm_tot, bal_cfm_tot, erv_hrv_cfm_tot, infil_flow_actuator, schedules_file)
 
     # Address load of Qfan (Qload)
@@ -1701,7 +1726,7 @@ class Airflow
     program_calling_manager.addProgram(infil_program)
   end
 
-  def self.apply_infiltration_and_ventilation_fans(model, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+  def self.apply_infiltration_and_ventilation_fans(runner, model, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                    has_flue_chimney, air_infils, vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
     # Get living space infiltration
     living_ach50 = nil
@@ -1732,7 +1757,7 @@ class Airflow
     apply_infiltration_to_unvented_attic(model)
 
     # Infiltration/ventilation for conditioned space
-    apply_infiltration_ventilation_to_conditioned(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+    apply_infiltration_ventilation_to_conditioned(runner, model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                   has_flue_chimney, clg_ssn_sensor, schedules_file)
   end
 

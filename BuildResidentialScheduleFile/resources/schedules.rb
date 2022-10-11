@@ -68,7 +68,16 @@ class ScheduleGenerator
       return false if not success
     end
 
+    success = set_local_ventilation(args: args)
+    return false if not success
+
+    success = set_whole_house_fan(args: args)
+    return false if not success
+
     success = set_vacancy(args: args)
+    return false if not success
+
+    success = set_outage(args: args)
     return false if not success
 
     return true
@@ -100,6 +109,8 @@ class ScheduleGenerator
     create_average_pool_heater
     create_average_hot_tub_pump
     create_average_hot_tub_heater
+    create_average_dehumidifier
+    create_average_house_fan
   end
 
   def create_average_occupants
@@ -203,6 +214,14 @@ class ScheduleGenerator
 
   def create_average_hot_tub_heater
     create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnHotTubHeater, weekday_sch: Schedule.HotTubHeaterWeekdayFractions, weekend_sch: Schedule.HotTubHeaterWeekendFractions, monthly_sch: Schedule.HotTubHeaterMonthlyMultipliers)
+  end
+
+  def create_average_dehumidifier
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnDehumidifier, weekday_sch: Schedule.DehumidifierWeekdayFractions, weekend_sch: Schedule.DehumidifierWeekendFractions, monthly_sch: Schedule.DehumidifierMonthlyMultipliers)
+  end
+
+  def create_average_house_fan
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnHouseFan, weekday_sch: Schedule.HouseFanWeekdayFractions, weekend_sch: Schedule.HouseFanWeekendFractions, monthly_sch: Schedule.HouseFanMonthlyMultipliers)
   end
 
   def create_timeseries_from_weekday_weekend_monthly(sch_name:,
@@ -784,6 +803,36 @@ class ScheduleGenerator
     return true
   end
 
+  def set_local_ventilation(args:)
+    daily_sch = Schedule.create_daily_sch(args[:kitchen_fan_hours_in_operation], args[:kitchen_fan_start_hour])
+    kitchen_fan = daily_sch.map { |v| [v] * args[:steps_in_hour] }.flatten * @total_days_in_year
+    @schedules[SchedulesFile::ColumnKitchenFan] = kitchen_fan
+
+    daily_sch = Schedule.create_daily_sch(args[:bath_fan_hours_in_operation], args[:bath_fan_start_hour])
+    bath_fan = daily_sch.map { |v| [v] * args[:steps_in_hour] }.flatten * @total_days_in_year
+    @schedules[SchedulesFile::ColumnBathFan] = bath_fan
+
+    return true
+  end
+
+  def set_whole_house_fan(args:)
+    method_array = [1, 3, 5, 6, 2, 4, 0] # monday, wednesday, friday, saturday, tuesday, thursday, sunday
+    whole_house_fan = []
+    @total_days_in_year.times do |day|
+      today = @sim_start_day + day
+      availability = method_array[0...args[:whole_house_fan_availability]]
+      @steps_in_day.times do |_step|
+        if availability.include? today.wday
+          whole_house_fan << 1
+        else
+          whole_house_fan << 0
+        end
+      end
+    end
+    @schedules[SchedulesFile::ColumnWholeHouseFan] = whole_house_fan
+    return true
+  end
+
   def set_vacancy(args:)
     if (not args[:schedules_vacancy_begin_month].nil?) && (not args[:schedules_vacancy_begin_day].nil?) && (not args[:schedules_vacancy_end_month].nil?) && (not args[:schedules_vacancy_end_day].nil?)
       start_day_num = Schedule.get_day_num_from_month_day(@sim_year, args[:schedules_vacancy_begin_month], args[:schedules_vacancy_begin_day])
@@ -791,12 +840,111 @@ class ScheduleGenerator
 
       vacancy = Array.new(@schedules[SchedulesFile::ColumnOccupants].length, 0)
       if end_day_num >= start_day_num
-        vacancy.fill(1.0, (start_day_num - 1) * args[:steps_in_day], (end_day_num - start_day_num + 1) * args[:steps_in_day]) # Fill between start/end days
+        vacancy.fill(1.0, (start_day_num - 1) * @steps_in_day, (end_day_num - start_day_num + 1) * @steps_in_day) # Fill between start/end days
       else # Wrap around year
-        vacancy.fill(1.0, (start_day_num - 1) * args[:steps_in_day]) # Fill between start day and end of year
-        vacancy.fill(1.0, 0, end_day_num * args[:steps_in_day]) # Fill between start of year and end day
+        vacancy.fill(1.0, (start_day_num - 1) * @steps_in_day) # Fill between start day and end of year
+        vacancy.fill(1.0, 0, end_day_num * @steps_in_day) # Fill between start of year and end day
       end
       @schedules[SchedulesFile::ColumnVacancy] = vacancy
+    end
+    return true
+  end
+
+  def set_natural_ventilation(args:)
+    method_array = [1, 3, 5, 6, 2, 4, 0] # monday, wednesday, friday, saturday, tuesday, thursday, sunday
+    natural_ventilation = []
+    @total_days_in_year.times do |day|
+      today = @sim_start_day + day
+      availability = method_array[0...args[:window_natvent_availability]]
+      @steps_in_day.times do |_step|
+        if availability.include? today.wday
+          natural_ventilation << 1
+        else
+          natural_ventilation << 0
+        end
+      end
+    end
+    return natural_ventilation
+  end
+
+  def set_outage(args:)
+    if (not args[:schedules_outage_begin_month].nil?) && (not args[:schedules_outage_begin_day].nil?) && (not args[:schedules_outage_begin_hour].nil?) && (not args[:schedules_outage_end_month].nil?) && (not args[:schedules_outage_end_day].nil?) && (not args[:schedules_outage_end_hour].nil?)
+      outage = Array.new(@schedules[SchedulesFile::ColumnOccupants].length, 0)
+
+      # heating/cooling seasons
+      heating_season = Schedule.get_season(@sim_year, @steps_in_day, args[:seasons_heating_begin_month], args[:seasons_heating_begin_day], args[:seasons_heating_end_month], args[:seasons_heating_end_day])
+      cooling_season = Schedule.get_season(@sim_year, @steps_in_day, args[:seasons_cooling_begin_month], args[:seasons_cooling_begin_day], args[:seasons_cooling_end_month], args[:seasons_cooling_end_day])
+
+      # natural ventilation
+      natural_ventilation = nil
+      if args[:schedules_outage_window_natvent_availability].is_initialized
+        natural_ventilation = set_natural_ventilation(args: args)
+      end
+
+      # water heating
+      water_heater_setpoint = Array.new(@schedules[SchedulesFile::ColumnOccupants].length, args[:water_heater_setpoint])
+      water_heater_off = UnitConversions.convert(2, 'C', 'F') # E+ threshold to avoid warning
+
+      start_day_num = Schedule.get_day_num_from_month_day(@sim_year, args[:schedules_outage_begin_month], args[:schedules_outage_begin_day])
+
+      outage_begin = Time.new(@sim_year, args[:schedules_outage_begin_month], args[:schedules_outage_begin_day], args[:schedules_outage_begin_hour])
+      outage_end = Time.new(@sim_year, args[:schedules_outage_end_month], args[:schedules_outage_end_day], args[:schedules_outage_end_hour])
+
+      if outage_end >= outage_begin
+        outage_hours = (outage_end - outage_begin) / 3600.0
+        ix = (start_day_num - 1) * @steps_in_day + args[:schedules_outage_begin_hour] * args[:steps_in_hour]
+        length = outage_hours * args[:steps_in_hour]
+        outage.fill(1.0, ix, length) # Fill between start/end days
+
+        heating_season.fill(0.0, ix, length) # Fill between start/end days
+        cooling_season.fill(0.0, ix, length) # Fill between start/end days
+        water_heater_setpoint.fill(water_heater_off, ix, length) # Fill between start/end days
+
+        if not natural_ventilation.nil?
+          fill = 0.0 # windows closed
+          fill = 1.0 if args[:schedules_outage_window_natvent_availability].get # windows open
+          natural_ventilation.fill(fill, ix, length) # Fill between start/end days
+        end
+      else # Wrap around year
+        outage_begin = Time.new(@sim_year, args[:schedules_outage_begin_month], args[:schedules_outage_begin_day], args[:schedules_outage_begin_hour])
+        outage_end = Time.new(@sim_year + 1, 1, 1)
+        outage_hours = (outage_end - outage_begin) / 3600.0
+        ix = (start_day_num - 1) * @steps_in_day + args[:schedules_outage_begin_hour] * args[:steps_in_hour]
+        length = outage_hours * args[:steps_in_hour]
+        outage.fill(1.0, ix, length) # Fill between start day and end of year
+
+        heating_season.fill(0.0, ix, length) # Fill between start day and end of year
+        cooling_season.fill(0.0, ix, length) # Fill between start day and end of year
+        water_heater_setpoint.fill(water_heater_off, ix, length) # Fill between start day and end of year
+
+        if not natural_ventilation.nil?
+          fill = 0.0 # windows closed
+          fill = 1.0 if args[:schedules_outage_window_natvent_availability].get # windows open
+          natural_ventilation.fill(fill, ix, length) # Fill between start day and end of year
+        end
+
+        outage_begin = Time.new(@sim_year, 1, 1)
+        outage_end = Time.new(@sim_year, args[:schedules_outage_end_month], args[:schedules_outage_end_day], args[:schedules_outage_end_hour])
+        outage_hours = (outage_end - outage_begin) / 3600.0
+        ix = 0
+        length = outage_hours * args[:steps_in_hour]
+        outage.fill(1.0, ix, length) # Fill between start of year and end day
+
+        heating_season.fill(0.0, ix, length) # Fill between start of year and end day
+        cooling_season.fill(0.0, ix, length) # Fill between start of year and end day
+        water_heater_setpoint.fill(water_heater_off, ix, length) # Fill between start of year and end day
+
+        if not natural_ventilation.nil?
+          fill = 0.0 # windows closed
+          fill = 1.0 if args[:schedules_outage_window_natvent_availability].get # windows open
+          natural_ventilation.fill(fill, ix, length) # Fill between start of year and end day
+        end
+      end
+      @schedules[SchedulesFile::ColumnOutage] = outage
+      @schedules[SchedulesFile::ColumnHeatingSeason] = heating_season
+      @schedules[SchedulesFile::ColumnCoolingSeason] = cooling_season
+      @schedules[SchedulesFile::ColumnNaturalVentilation] = natural_ventilation if not natural_ventilation.nil?
+      @schedules[SchedulesFile::ColumnWaterHeaterSetpoint] = water_heater_setpoint
     end
     return true
   end

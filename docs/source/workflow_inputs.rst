@@ -151,42 +151,51 @@ They can be smooth schedules, or they can reflect real-world or stochastic occup
 Detailed schedule inputs are provided via one or more CSV file that should be referenced in the HPXML file as ``/HPXML/SoftwareInfo/extension/SchedulesFilePath`` elements.
 The column names available in the schedule CSV files are:
 
-  ===============================  =====  ==============================================================================  ===================
-  Column Name                      Units  Description                                                                     Affected by Vacancy
-  ===============================  =====  ==============================================================================  ===================
-  ``occupants``                    frac   Occupant heat gain schedule.                                                    Yes
-  ``lighting_interior``            frac   Interior lighting energy use schedule.                                          Yes
-  ``lighting_exterior``            frac   Exterior lighting energy use schedule.                                          Yes
-  ``lighting_garage``              frac   Garage lighting energy use schedule.                                            Yes
-  ``lighting_exterior_holiday``    frac   Exterior holiday lighting energy use schedule.                                  Yes
-  ``cooking_range``                frac   Cooking range & oven energy use schedule.                                       Yes
-  ``refrigerator``                 frac   Primary refrigerator energy use schedule.                                       No
-  ``extra_refrigerator``           frac   Non-primary refrigerator energy use schedule.                                   No
-  ``freezer``                      frac   Freezer energy use schedule.                                                    No
-  ``dishwasher``                   frac   Dishwasher energy use schedule.                                                 Yes
-  ``clothes_washer``               frac   Clothes washer energy use schedule.                                             Yes
-  ``clothes_dryer``                frac   Clothes dryer energy use schedule.                                              Yes
-  ``ceiling_fan``                  frac   Ceiling fan energy use schedule.                                                Yes
-  ``plug_loads_other``             frac   Other plug load energy use schedule.                                            Yes
-  ``plug_loads_tv``                frac   Television plug load energy use schedule.                                       Yes
-  ``plug_loads_vehicle``           frac   Electric vehicle plug load energy use schedule.                                 Yes
-  ``plug_loads_well_pump``         frac   Well pump plug load energy use schedule.                                        Yes
-  ``fuel_loads_grill``             frac   Grill fuel load energy use schedule.                                            Yes
-  ``fuel_loads_lighting``          frac   Lighting fuel load energy use schedule.                                         Yes
-  ``fuel_loads_fireplace``         frac   Fireplace fuel load energy use schedule.                                        Yes
-  ``pool_pump``                    frac   Pool pump energy use schedule.                                                  No
-  ``pool_heater``                  frac   Pool heater energy use schedule.                                                No
-  ``hot_tub_pump``                 frac   Hot tub pump energy use schedule.                                               No
-  ``hot_tub_heater``               frac   Hot tub heater energy use schedule.                                             No
-  ``hot_water_dishwasher``         frac   Dishwasher hot water use schedule.                                              Yes
-  ``hot_water_clothes_washer``     frac   Clothes washer hot water use schedule.                                          Yes
-  ``hot_water_fixtures``           frac   Fixtures (sinks, showers, baths) hot water use schedule.                        Yes
-  ``heating_setpoint``             F      Thermostat heating setpoint schedule.                                           No
-  ``cooling_setpoint``             F      Thermostat cooling setpoint schedule.                                           No
-  ``water_heater_setpoint``        F      Water heater setpoint schedule.                                                 No
-  ``water_heater_operating_mode``  0/1    Heat pump water heater operating mode schedule. 0=standard, 1=heat pump only.   No
-  ``vacancy``                      0/1    Vacancy schedule. 0=occupied, 1=vacant. Automatically overrides other columns.  N/A
-  ===============================  =====  ==============================================================================  ===================
+  ===============================  =====  =================================================================================  ===================  ==================
+  Column Name                      Units  Description                                                                        Affected by Vacancy  Affected By Outage
+  ===============================  =====  =================================================================================  ===================  ==================
+  ``occupants``                    frac   Occupant heat gain schedule.                                                       Yes                  No
+  ``lighting_interior``            frac   Interior lighting energy use schedule.                                             Yes                  Yes
+  ``lighting_exterior``            frac   Exterior lighting energy use schedule.                                             Yes                  Yes
+  ``lighting_garage``              frac   Garage lighting energy use schedule.                                               Yes                  Yes
+  ``lighting_exterior_holiday``    frac   Exterior holiday lighting energy use schedule.                                     Yes                  Yes
+  ``cooking_range``                frac   Cooking range & oven energy use schedule.                                          Yes                  Yes
+  ``refrigerator``                 frac   Primary refrigerator energy use schedule.                                          No                   Yes
+  ``extra_refrigerator``           frac   Non-primary refrigerator energy use schedule.                                      No                   Yes
+  ``freezer``                      frac   Freezer energy use schedule.                                                       No                   Yes
+  ``dishwasher``                   frac   Dishwasher energy use schedule.                                                    Yes                  Yes
+  ``clothes_washer``               frac   Clothes washer energy use schedule.                                                Yes                  Yes
+  ``clothes_dryer``                frac   Clothes dryer energy use schedule.                                                 Yes                  Yes
+  ``ceiling_fan``                  frac   Ceiling fan energy use schedule.                                                   Yes                  Yes
+  ``plug_loads_other``             frac   Other plug load energy use schedule.                                               Yes                  Yes
+  ``plug_loads_tv``                frac   Television plug load energy use schedule.                                          Yes                  Yes
+  ``plug_loads_vehicle``           frac   Electric vehicle plug load energy use schedule.                                    Yes                  Yes
+  ``plug_loads_well_pump``         frac   Well pump plug load energy use schedule.                                           Yes                  Yes
+  ``fuel_loads_grill``             frac   Grill fuel load energy use schedule.                                               Yes                  Yes
+  ``fuel_loads_lighting``          frac   Lighting fuel load energy use schedule.                                            Yes                  Yes
+  ``fuel_loads_fireplace``         frac   Fireplace fuel load energy use schedule.                                           Yes                  Yes
+  ``pool_pump``                    frac   Pool pump energy use schedule.                                                     No                   Yes
+  ``pool_heater``                  frac   Pool heater energy use schedule.                                                   No                   Yes
+  ``hot_tub_pump``                 frac   Hot tub pump energy use schedule.                                                  No                   Yes
+  ``hot_tub_heater``               frac   Hot tub heater energy use schedule.                                                No                   Yes
+  ``hot_water_dishwasher``         frac   Dishwasher hot water use schedule.                                                 Yes                  Yes
+  ``hot_water_clothes_washer``     frac   Clothes washer hot water use schedule.                                             Yes                  Yes
+  ``hot_water_fixtures``           frac   Fixtures (sinks, showers, baths) hot water use schedule.                           Yes                  Yes
+  ``dehumidifier``                 0/1    Dehumidifier availability schedule.                                                No                   Yes
+  ``kitchen_fan``                  0/1    Range ventilation fan availability schedule.                                       Yes                  Yes
+  ``bath_fan``                     0/1    Bath ventilation fan availability schedule.                                        Yes                  Yes
+  ``house_fan``                    0/1    Whole ventilation fan availability schedule.                                       No                   Yes
+  ``whole_house_fan``              0/1    Whole house fan availability schedule.                                             Yes                  Yes
+  ``heating_setpoint``             F      Thermostat heating setpoint schedule.                                              No                   No
+  ``cooling_setpoint``             F      Thermostat cooling setpoint schedule.                                              No                   No
+  ``heating_season``               0/1    Heating season schedule.                                                           No                   Yes
+  ``cooling_season``               0/1    Cooling season schedule.                                                           No                   Yes
+  ``natural_ventilation``          0/1    Natural ventilation schedule for operable windows.                                 Yes                  Yes
+  ``water_heater_setpoint``        F      Water heater setpoint schedule.                                                    No                   No
+  ``water_heater_operating_mode``  0/1    Heat pump water heater operating mode schedule. 0=standard, 1=heat pump only.      No                   No
+  ``vacancy``                      0/1    Vacancy schedule. 0=occupied, 1=vacant. Automatically overrides other columns.     N/A                  N/A
+  ``outage``                       0/1    Power outage schedule. 0=power, 1=nopower. Automatically overrides other columns.  N/A                  N/A
+  ===============================  =====  =================================================================================  ===================  ==================
 
 Columns with units of `frac` must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
 Example schedule CSV files are provided in the ``HPXMLtoOpenStudio/resources/schedule_files`` directory.
@@ -878,7 +887,7 @@ Each space type that borders the ground (i.e., basements, crawlspaces, garages, 
   ``DepthBelowGrade``                                      double    ft            >= 0         See [#]_             Depth from the top of the slab surface to grade
   ``PerimeterInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
   ``PerimeterInsulation/Layer/NominalRValue``              double    F-ft2-hr/Btu  >= 0         Yes                  R-value of vertical insulation
-  ``PerimeterInsulation/Layer/InsulationDepth``            double    ft            >= 0         Yes                  Depth from grade to bottom of vertical insulation
+  ``PerimeterInsulation/Layer/InsulationDepth``            double    ft            >= 0         Yes                  Depth from top of slab to bottom of vertical insulation
   ``UnderSlabInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
   ``UnderSlabInsulation/Layer/NominalRValue``              double    F-ft2-hr/Btu  >= 0         Yes                  R-value of horizontal insulation
   ``UnderSlabInsulation/Layer/InsulationWidth``            double    ft            >= 0         See [#]_             Width from slab edge inward of horizontal insulation
@@ -949,6 +958,8 @@ If operable windows are defined, the availability of natural ventilation is ente
   =============================================  ========  =========  ===========  ========  ========  ========================================================
 
   .. [#] Default of 3 days per week (Monday/Wednesday/Friday) is based on `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+
+Alternatively, availability of natural ventilation can be defined using :ref:`detailedschedules`.
 
 If UFactor and SHGC are not provided and GlassLayers is not "glass block", additional information is entered in ``Window``.
 
@@ -1748,6 +1759,8 @@ If a heating and/or cooling season is defined, additional information is entered
   ``EndDayOfMonth``    integer          1 - 31       Yes                End day
   ===================  ========  =====  ===========  ========  =======  ===========
 
+Alternatively, seasons can be defined using :ref:`detailedschedules`.
+
 Thermostat setpoints are additionally entered using either simple inputs or hourly inputs.
 Alternatively, setpoints can be defined using :ref:`detailedschedules`.
 
@@ -2317,7 +2330,7 @@ If the in-unit distribution system is specified as recirculation, additional inf
   =================================  =======  =====  ===========  ========  ========  =====================================
   ``ControlType``                    string          See [#]_     Yes                 Recirculation control type
   ``RecirculationPipingLoopLength``  double   ft     > 0          No        See [#]_  Recirculation piping loop length [#]_
-  ``BranchPipingLoopLength``         double   ft     > 0          No        10        Branch piping loop length [#]_
+  ``BranchPipingLength``             double   ft     > 0          No        10        Branch piping length [#]_
   ``PumpPower``                      double   W      >= 0         No        50 [#]_   Recirculation pump power
   =================================  =======  =====  ===========  ========  ========  =====================================
 
@@ -2329,7 +2342,7 @@ If the in-unit distribution system is specified as recirculation, additional inf
          | NCfl = number of conditioned floor levels number of conditioned floor levels in the residence including conditioned basements,
          | Bsmnt = presence (1.0) or absence (0.0) of an unconditioned basement in the residence.
   .. [#] RecirculationPipingLoopLength is the recirculation loop length including both supply and return sides, measured longitudinally from plans, assuming the hot water piping does not run diagonally, plus 20 feet of piping for each floor level greater than one plus 10 feet of piping for unconditioned basements.
-  .. [#] BranchPipingLoopLength is the length of the branch hot water piping from the recirculation loop to the farthest hot water fixture from the recirculation loop, measured longitudinally from plans, assuming the branch hot water piping does not run diagonally.
+  .. [#] BranchPipingLength is the length of the branch hot water piping from the recirculation loop to the farthest hot water fixture from the recirculation loop, measured longitudinally from plans, assuming the branch hot water piping does not run diagonally.
   .. [#] PumpPower default based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 
 Shared Recirculation

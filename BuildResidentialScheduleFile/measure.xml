@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_schedule_file</name>
   <uid>f770b2db-1a9f-4e99-99a7-7f3161a594b1</uid>
-  <version_id>1242b12b-5a97-40e7-a335-e1c6abb5095d</version_id>
-  <version_modified>20220930T164345Z</version_modified>
+  <version_id>a495cc5f-5995-4d35-b802-18828e988fb8</version_id>
+  <version_modified>20221011T190429Z</version_modified>
   <xml_checksum>03F02484</xml_checksum>
   <class_name>BuildResidentialScheduleFile</class_name>
   <display_name>Schedule File Builder</display_name>
@@ -45,6 +45,32 @@
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_outage_period</name>
+      <display_name>Schedules: Outage Period</display_name>
+      <description>Specifies the outage period. Enter a date/time like "Dec 15 10am - Jan 15 2pm". For start date/time, "12am" is the beginning of the day. For end date/time, "12am" is the end of the day.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_outage_window_natvent_availability</name>
+      <display_name>Schedules: Outage Period Natural Ventilation Availability</display_name>
+      <description>Whether natural ventilation is available during the outage period.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>schedules_random_seed</name>
@@ -894,13 +920,7 @@
       <filename>build_residential_schedule_file_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>41CA164F</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>15F4F182</checksum>
+      <checksum>2D77E21C</checksum>
     </file>
     <file>
       <version>
@@ -911,7 +931,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>8FF07C66</checksum>
+      <checksum>E4E023B0</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>EA099EE9</checksum>
     </file>
   </files>
 </measure>

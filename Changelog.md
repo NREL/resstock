@@ -4,6 +4,7 @@ __New Features__
 - **Breaking Change**: Replaces `FrameFloors/FrameFloor` with `Floors/Floor`.
 - **Breaking change**: Replaces `SoftwareInfo/extension/SimulationControl/DaylightSaving/Enabled` with `Building/Site/TimeZone/DSTObserved`.
 - **Breaking Change**: Replaces `StandbyLoss` with `StandbyLoss[Units="F/hr"]/Value` for an indirect water heater.
+- **Breaking Change**: Replaces `BranchPipingLoopLength` with `BranchPipingLength` for a hot water recirculation system.
 - **Breaking Change**: Deprecates ReportHPXMLOutput measure; HVAC autosized capacities & design loads moved to `results_annual.csv`.
 - Allows SEER2/HSPF2 efficiency types for central air conditioners and heat pumps.
 - Allows heating/cooling seasons that don't span the entire year.
@@ -26,6 +27,13 @@ __New Features__
 - ReportUtilityBills measure:
   - Removes utility rate and PV related arguments in lieu of new utility bill scenarios described inside the HPXML file.
 - Allows shared dishwasher/clothes washer to be attached to a hot water distribution system instead of a single water heater.
+- New capabilities for hourly/sub-hourly scheduling via schedule CSV files:
+  - Detailed HVAC seasons.
+  - Detailed natural ventilation for operable windows.
+  - Detailed dehumidifier availability schedule.
+- BuildResidentialScheduleFile measure:
+  - Adds optional argument for specifying a power outage period.
+  - Adds optional argument for controlling natural ventilation availability during a power outage period.
 - Improves Kiva foundation model heat transfer by providing better initial temperature assumptions based on foundation type and insulation levels.
 
 __Bugfixes__

@@ -1110,7 +1110,7 @@ class HPXMLTest < MiniTest::Test
     end
 
     # HVAC Load Fractions
-    if (not hpxml_path.include? 'location-miami') && (not hpxml_path.include? 'location-honolulu') && (not hpxml_path.include? 'location-phoenix')
+    if (not hpxml_path.include? 'location-miami') && (not hpxml_path.include? 'location-honolulu') && (not hpxml_path.include? 'location-phoenix') && (not hpxml_path.include? 'outage-full-year')
       htg_energy = results.select { |k, _v| (k.include?(': Heating (MBtu)') || k.include?(': Heating Fans/Pumps (MBtu)')) && !k.include?('Load') }.values.sum(0.0)
       assert_equal(hpxml.total_fraction_heat_load_served > 0, htg_energy > 0)
     end
@@ -1136,25 +1136,27 @@ class HPXMLTest < MiniTest::Test
           assert_operator(mv_energy, :<, fan_gj)
         end
       else
-        # Supply, exhaust, ERV, HRV, etc., check for appropriate mech vent energy
-        fan_gj = 0
-        if not fan_sup.empty?
-          fan_gj += fan_sup.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
+        if not hpxml_path.include?('base-mechvent-bath-kitchen-fans-detailed-availability.xml')
+          # Supply, exhaust, ERV, HRV, etc., check for appropriate mech vent energy
+          fan_gj = 0
+          if not fan_sup.empty?
+            fan_gj += fan_sup.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
+          end
+          if not fan_exh.empty?
+            fan_gj += fan_exh.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
+          end
+          if not fan_bal.empty?
+            fan_gj += fan_bal.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
+          end
+          if not vent_fan_kitchen.empty?
+            fan_gj += vent_fan_kitchen.map { |vent_kitchen| UnitConversions.convert(vent_kitchen.unit_fan_power * vent_kitchen.hours_in_operation * vent_kitchen.quantity * 365.0, 'Wh', 'GJ') }.sum(0.0)
+          end
+          if not vent_fan_bath.empty?
+            fan_gj += vent_fan_bath.map { |vent_bath| UnitConversions.convert(vent_bath.unit_fan_power * vent_bath.hours_in_operation * vent_bath.quantity * 365.0, 'Wh', 'GJ') }.sum(0.0)
+          end
+          # Maximum error that can be caused by rounding
+          assert_in_delta(mv_energy, fan_gj, 0.006)
         end
-        if not fan_exh.empty?
-          fan_gj += fan_exh.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
-        end
-        if not fan_bal.empty?
-          fan_gj += fan_bal.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
-        end
-        if not vent_fan_kitchen.empty?
-          fan_gj += vent_fan_kitchen.map { |vent_kitchen| UnitConversions.convert(vent_kitchen.unit_fan_power * vent_kitchen.hours_in_operation * vent_kitchen.quantity * 365.0, 'Wh', 'GJ') }.sum(0.0)
-        end
-        if not vent_fan_bath.empty?
-          fan_gj += vent_fan_bath.map { |vent_bath| UnitConversions.convert(vent_bath.unit_fan_power * vent_bath.hours_in_operation * vent_bath.quantity * 365.0, 'Wh', 'GJ') }.sum(0.0)
-        end
-        # Maximum error that can be caused by rounding
-        assert_in_delta(mv_energy, fan_gj, 0.006)
       end
     end
 
@@ -1179,8 +1181,10 @@ class HPXMLTest < MiniTest::Test
     end
 
     # Lighting
-    ltg_energy = results.select { |k, _v| k.include? 'End Use: Electricity: Lighting' }.values.sum(0.0)
-    assert_equal(hpxml.lighting_groups.size > 0, ltg_energy > 0)
+    if (not hpxml_path.include? 'outage-full-year')
+      ltg_energy = results.select { |k, _v| k.include? 'End Use: Electricity: Lighting' }.values.sum(0.0)
+      assert_equal(hpxml.lighting_groups.size > 0, ltg_energy > 0)
+    end
 
     # Get fuels
     htg_fuels = []
@@ -1230,7 +1234,7 @@ class HPXMLTest < MiniTest::Test
       energy_cd = results.fetch("End Use: #{fuel_name}: Clothes Dryer (MBtu)", 0)
       energy_cr = results.fetch("End Use: #{fuel_name}: Range/Oven (MBtu)", 0)
       if htg_fuels.include? fuel
-        if (not hpxml_path.include? 'autosize') && (not is_warm_climate)
+        if (not hpxml_path.include? 'autosize') && (not is_warm_climate) && (not hpxml_path.include? 'outage-full-year')
           assert_operator(energy_htg, :>, 0)
         end
       else
@@ -1266,6 +1270,13 @@ class HPXMLTest < MiniTest::Test
     if hpxml_path.include? 'base-hvac-undersized.xml'
       assert_operator(unmet_hours_htg, :>, 1000)
       assert_operator(unmet_hours_clg, :>, 1000)
+    elsif hpxml_path.include? 'outage'
+      assert_operator(unmet_hours_htg, :>, 4500) if hpxml_path.include? 'full-year'
+      assert_operator(unmet_hours_clg, :>, 2400) if hpxml_path.include? 'full-year'
+      assert_operator(unmet_hours_htg, :<, 350) if hpxml_path.include? 'summer'
+      assert_operator(unmet_hours_clg, :>, 100) if hpxml_path.include? 'summer'
+      assert_operator(unmet_hours_htg, :>, 150) if hpxml_path.include? 'winter'
+      assert_operator(unmet_hours_clg, :<, 350) if hpxml_path.include? 'winter'
     else
       if hpxml.total_fraction_heat_load_served == 0
         assert_equal(0, unmet_hours_htg)

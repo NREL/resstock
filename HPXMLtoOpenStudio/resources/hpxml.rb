@@ -4811,7 +4811,7 @@ class HPXML < Object
           recirculation = XMLHelper.add_element(system_type_el, @system_type)
           XMLHelper.add_element(recirculation, 'ControlType', @recirculation_control_type, :string) unless @recirculation_control_type.nil?
           XMLHelper.add_element(recirculation, 'RecirculationPipingLoopLength', @recirculation_piping_length, :float, @recirculation_piping_length_isdefaulted) unless @recirculation_piping_length.nil?
-          XMLHelper.add_element(recirculation, 'BranchPipingLoopLength', @recirculation_branch_piping_length, :float, @recirculation_branch_piping_length_isdefaulted) unless @recirculation_branch_piping_length.nil?
+          XMLHelper.add_element(recirculation, 'BranchPipingLength', @recirculation_branch_piping_length, :float, @recirculation_branch_piping_length_isdefaulted) unless @recirculation_branch_piping_length.nil?
           XMLHelper.add_element(recirculation, 'PumpPower', @recirculation_pump_power, :float, @recirculation_pump_power_isdefaulted) unless @recirculation_pump_power.nil?
         else
           fail "Unhandled hot water distribution type '#{@system_type}'."
@@ -4847,7 +4847,7 @@ class HPXML < Object
       elsif @system_type == 'Recirculation'
         @recirculation_control_type = XMLHelper.get_value(hot_water_distribution, 'SystemType/Recirculation/ControlType', :string)
         @recirculation_piping_length = XMLHelper.get_value(hot_water_distribution, 'SystemType/Recirculation/RecirculationPipingLoopLength', :float)
-        @recirculation_branch_piping_length = XMLHelper.get_value(hot_water_distribution, 'SystemType/Recirculation/BranchPipingLoopLength', :float)
+        @recirculation_branch_piping_length = XMLHelper.get_value(hot_water_distribution, 'SystemType/Recirculation/BranchPipingLength', :float)
         @recirculation_pump_power = XMLHelper.get_value(hot_water_distribution, 'SystemType/Recirculation/PumpPower', :float)
       end
       @pipe_r_value = XMLHelper.get_value(hot_water_distribution, 'PipeInsulation/PipeRValue', :float)

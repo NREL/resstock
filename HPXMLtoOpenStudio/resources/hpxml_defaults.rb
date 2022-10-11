@@ -31,7 +31,7 @@ class HPXMLDefaults
       end
     end
 
-    apply_header(hpxml, epw_file)
+    apply_header(hpxml, epw_file, schedules_file)
     apply_emissions_scenarios(hpxml)
     apply_utility_bill_scenarios(runner, hpxml)
     apply_site(hpxml)
@@ -56,7 +56,7 @@ class HPXMLDefaults
     apply_hvac(hpxml, weather, convert_shared_systems)
     apply_hvac_control(hpxml, schedules_file)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
-    apply_ventilation_fans(hpxml, infil_measurements, weather, cfa, nbeds)
+    apply_ventilation_fans(hpxml, infil_measurements, weather, cfa, nbeds, schedules_file)
     apply_water_heaters(hpxml, nbeds, eri_version, schedules_file)
     apply_hot_water_distribution(hpxml, cfa, ncfl, has_uncond_bsmnt)
     apply_water_fixtures(hpxml, schedules_file)
@@ -114,7 +114,7 @@ class HPXMLDefaults
 
   private
 
-  def self.apply_header(hpxml, epw_file)
+  def self.apply_header(hpxml, epw_file, schedules_file)
     if hpxml.header.occupancy_calculation_type.nil?
       hpxml.header.occupancy_calculation_type = HPXML::OccupancyCalculationTypeAsset
       hpxml.header.occupancy_calculation_type_isdefaulted = true
@@ -209,7 +209,8 @@ class HPXMLDefaults
       hpxml.header.temperature_capacitance_multiplier_isdefaulted = true
     end
 
-    if hpxml.header.natvent_days_per_week.nil?
+    schedules_file_includes_natvent = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnNaturalVentilation)
+    if hpxml.header.natvent_days_per_week.nil? && !schedules_file_includes_natvent
       hpxml.header.natvent_days_per_week = 3
       hpxml.header.natvent_days_per_week_isdefaulted = true
     end
@@ -1439,8 +1440,9 @@ class HPXMLDefaults
         hvac_control.cooling_setup_start_hour_isdefaulted = true
       end
 
-      if hvac_control.seasons_heating_begin_month.nil? || hvac_control.seasons_heating_begin_day.nil? ||
-         hvac_control.seasons_heating_end_month.nil? || hvac_control.seasons_heating_end_day.nil?
+      schedules_file_includes_heating_season = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnHeatingSeason)
+      if (hvac_control.seasons_heating_begin_month.nil? || hvac_control.seasons_heating_begin_day.nil? ||
+         hvac_control.seasons_heating_end_month.nil? || hvac_control.seasons_heating_end_day.nil?) && !schedules_file_includes_heating_season
         hvac_control.seasons_heating_begin_month = 1
         hvac_control.seasons_heating_begin_day = 1
         hvac_control.seasons_heating_end_month = 12
@@ -1451,8 +1453,9 @@ class HPXMLDefaults
         hvac_control.seasons_heating_end_day_isdefaulted = true
       end
 
-      next unless hvac_control.seasons_cooling_begin_month.nil? || hvac_control.seasons_cooling_begin_day.nil? ||
-                  hvac_control.seasons_cooling_end_month.nil? || hvac_control.seasons_cooling_end_day.nil?
+      schedules_file_includes_cooling_season = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnCoolingSeason)
+      next unless (hvac_control.seasons_cooling_begin_month.nil? || hvac_control.seasons_cooling_begin_day.nil? ||
+         hvac_control.seasons_cooling_end_month.nil? || hvac_control.seasons_cooling_end_day.nil?) && !schedules_file_includes_cooling_season
 
       hvac_control.seasons_cooling_begin_month = 1
       hvac_control.seasons_cooling_begin_day = 1
@@ -1550,7 +1553,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_ventilation_fans(hpxml, infil_measurements, weather, cfa, nbeds)
+  def self.apply_ventilation_fans(hpxml, infil_measurements, weather, cfa, nbeds, schedules_file)
     # Default mech vent systems
     hpxml.ventilation_fans.each do |vent_fan|
       next unless vent_fan.used_for_whole_building_ventilation
@@ -1593,7 +1596,8 @@ class HPXMLDefaults
         vent_fan.rated_flow_rate = 100.0 # cfm, per BA HSP
         vent_fan.rated_flow_rate_isdefaulted = true
       end
-      if vent_fan.hours_in_operation.nil?
+      schedules_file_includes_kitchen_fan = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnKitchenFan)
+      if vent_fan.hours_in_operation.nil? && !schedules_file_includes_kitchen_fan
         vent_fan.hours_in_operation = 1.0 # hrs/day, per BA HSP
         vent_fan.hours_in_operation_isdefaulted = true
       end
@@ -1601,7 +1605,7 @@ class HPXMLDefaults
         vent_fan.fan_power = 0.3 * vent_fan.flow_rate # W, per BA HSP
         vent_fan.fan_power_isdefaulted = true
       end
-      if vent_fan.start_hour.nil?
+      if vent_fan.start_hour.nil? && !schedules_file_includes_kitchen_fan
         vent_fan.start_hour = 18 # 6 pm, per BA HSP
         vent_fan.start_hour_isdefaulted = true
       end
@@ -1619,7 +1623,8 @@ class HPXMLDefaults
         vent_fan.rated_flow_rate = 50.0 # cfm, per BA HSP
         vent_fan.rated_flow_rate_isdefaulted = true
       end
-      if vent_fan.hours_in_operation.nil?
+      schedules_file_includes_bath_fan = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnBathFan)
+      if vent_fan.hours_in_operation.nil? && !schedules_file_includes_bath_fan
         vent_fan.hours_in_operation = 1.0 # hrs/day, per BA HSP
         vent_fan.hours_in_operation_isdefaulted = true
       end
@@ -1627,7 +1632,7 @@ class HPXMLDefaults
         vent_fan.fan_power = 0.3 * vent_fan.flow_rate # W, per BA HSP
         vent_fan.fan_power_isdefaulted = true
       end
-      if vent_fan.start_hour.nil?
+      if vent_fan.start_hour.nil? && !schedules_file_includes_bath_fan
         vent_fan.start_hour = 7 # 7 am, per BA HSP
         vent_fan.start_hour_isdefaulted = true
       end

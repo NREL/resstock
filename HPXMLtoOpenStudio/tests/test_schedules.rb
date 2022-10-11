@@ -47,7 +47,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     schedule_constants = 9
     schedule_rulesets = 5
     schedule_fixed_intervals = 1
-    schedule_files = 13
+    schedule_files = 14
 
     assert_equal(schedule_constants, model.getScheduleConstants.size)
     assert_equal(schedule_rulesets, model.getScheduleRulesets.size)
@@ -117,7 +117,41 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     schedule_constants = 9
     schedule_rulesets = 5
     schedule_fixed_intervals = 1
-    schedule_files = 13
+    schedule_files = 14
+
+    assert_equal(schedule_constants, model.getScheduleConstants.size)
+    assert_equal(schedule_rulesets, model.getScheduleRulesets.size)
+    assert_equal(schedule_fixed_intervals, model.getScheduleFixedIntervals.size)
+    assert_equal(schedule_files, model.getScheduleFiles.size)
+    assert_equal(model.getSchedules.size, schedule_constants + schedule_rulesets + schedule_fixed_intervals + schedule_files)
+  end
+
+  def test_stochastic_outage_schedules
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-outage-full-year.xml'))
+    model, _hpxml = _test_measure(args_hash)
+
+    schedule_constants = 8
+    schedule_rulesets = 5
+    schedule_fixed_intervals = 1
+    schedule_files = 18
+
+    assert_equal(schedule_constants, model.getScheduleConstants.size)
+    assert_equal(schedule_rulesets, model.getScheduleRulesets.size)
+    assert_equal(schedule_fixed_intervals, model.getScheduleFixedIntervals.size)
+    assert_equal(schedule_files, model.getScheduleFiles.size)
+    assert_equal(model.getSchedules.size, schedule_constants + schedule_rulesets + schedule_fixed_intervals + schedule_files)
+  end
+
+  def test_stochastic_outage_natvent_schedules
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-outage-summer.xml'))
+    model, _hpxml = _test_measure(args_hash)
+
+    schedule_constants = 6
+    schedule_rulesets = 4
+    schedule_fixed_intervals = 3
+    schedule_files = 19
 
     assert_equal(schedule_constants, model.getScheduleConstants.size)
     assert_equal(schedule_rulesets, model.getScheduleRulesets.size)
@@ -134,7 +168,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     schedule_constants = 9
     schedule_rulesets = 5
     schedule_fixed_intervals = 1
-    schedule_files = 13
+    schedule_files = 14
 
     assert_equal(schedule_constants, model.getScheduleConstants.size)
     assert_equal(schedule_rulesets, model.getScheduleRulesets.size)

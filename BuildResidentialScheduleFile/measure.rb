@@ -56,6 +56,16 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_outage_period', false)
+    arg.setDisplayName('Schedules: Outage Period')
+    arg.setDescription('Specifies the outage period. Enter a date/time like "Dec 15 10am - Jan 15 2pm". For start date/time, "12am" is the beginning of the day. For end date/time, "12am" is the end of the day.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('schedules_outage_window_natvent_availability', false)
+    arg.setDisplayName('Schedules: Outage Period Natural Ventilation Availability')
+    arg.setDescription('Whether natural ventilation is available during the outage period.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_random_seed', false)
     arg.setDisplayName('Schedules: Random Seed')
     arg.setUnits('#')
@@ -161,6 +171,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     info_msgs << "RandomSeed=#{args[:random_seed]}" if args[:schedules_random_seed].is_initialized
     info_msgs << "GeometryNumOccupants=#{args[:geometry_num_occupants]}"
     info_msgs << "VacancyPeriod=#{args[:schedules_vacancy_period].get}" if args[:schedules_vacancy_period].is_initialized
+    info_msgs << "OutagePeriod=#{args[:schedules_outage_period].get}" if args[:schedules_outage_period].is_initialized
 
     runner.registerInfo("Created #{args[:schedules_type]} schedule with #{info_msgs.join(', ')}")
 
@@ -172,7 +183,8 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     if !hpxml.header.timestep.nil?
       args[:minutes_per_step] = hpxml.header.timestep
     end
-    args[:steps_in_day] = 24 * 60 / args[:minutes_per_step]
+    args[:steps_in_hour] = 60 / args[:minutes_per_step]
+    args[:steps_in_day] = 24 * args[:steps_in_hour]
     args[:mkc_ts_per_day] = 96
     args[:mkc_ts_per_hour] = args[:mkc_ts_per_day] / 24
 
@@ -199,6 +211,41 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:geometry_num_occupants] = Float(Integer(args[:geometry_num_occupants]))
     end
 
+    # Local Ventilation
+    vent_fans_kitchen = []
+    vent_fans_bath = []
+    hpxml.ventilation_fans.each do |vent_fan|
+      next unless vent_fan.hours_in_operation.nil? || vent_fan.hours_in_operation > 0
+
+      if vent_fan.used_for_local_ventilation
+        if vent_fan.fan_location == HPXML::LocationKitchen
+          vent_fans_kitchen << vent_fan
+        elsif vent_fan.fan_location == HPXML::LocationBath
+          vent_fans_bath << vent_fan
+        end
+      end
+    end
+
+    args[:kitchen_fan_hours_in_operation] = 1.0
+    args[:kitchen_fan_start_hour] = 18
+    if !vent_fans_kitchen.empty?
+      # FIXME: what if 2+?
+      args[:kitchen_fan_hours_in_operation] = vent_fans_kitchen[0].hours_in_operation if !vent_fans_kitchen[0].hours_in_operation.nil?
+      args[:kitchen_fan_start_hour] = vent_fans_kitchen[0].start_hour if !vent_fans_kitchen[0].start_hour.nil?
+    end
+
+    args[:bath_fan_hours_in_operation] = 1.0
+    args[:bath_fan_start_hour] = 7
+    if !vent_fans_bath.empty?
+      # FIXME: what if 2+?
+      args[:bath_fan_hours_in_operation] = vent_fans_bath[0].hours_in_operation if !vent_fans_bath[0].hours_in_operation.nil?
+      args[:bath_fan_start_hour] = vent_fans_bath[0].start_hour if !vent_fans_bath[0].start_hour.nil?
+    end
+
+    # Whole House Fan
+    args[:whole_house_fan_availability] = 7
+
+    # Vacancy
     if args[:schedules_vacancy_period].is_initialized
       begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:schedules_vacancy_period].get)
       args[:schedules_vacancy_begin_month] = begin_month
@@ -207,6 +254,49 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:schedules_vacancy_end_day] = end_day
     end
 
+    # Outage
+    if args[:schedules_outage_period].is_initialized
+      begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Schedule.parse_date_time_range(args[:schedules_outage_period].get)
+      args[:schedules_outage_begin_month] = begin_month
+      args[:schedules_outage_begin_day] = begin_day
+      args[:schedules_outage_begin_hour] = begin_hour
+      args[:schedules_outage_end_month] = end_month
+      args[:schedules_outage_end_day] = end_day
+      args[:schedules_outage_end_hour] = end_hour
+
+      # Heating/Cooling Seasons
+      args[:seasons_heating_begin_month] = 1
+      args[:seasons_heating_begin_day] = 1
+      args[:seasons_heating_end_month] = 12
+      args[:seasons_heating_end_day] = 31
+      args[:seasons_cooling_begin_month] = 1
+      args[:seasons_cooling_begin_day] = 1
+      args[:seasons_cooling_end_month] = 12
+      args[:seasons_cooling_end_day] = 31
+      hpxml.hvac_controls.each do |hvac_control|
+        args[:seasons_heating_begin_month] = hvac_control.seasons_heating_begin_month if !hvac_control.seasons_heating_begin_month.nil?
+        args[:seasons_heating_begin_day] = hvac_control.seasons_heating_begin_day if !hvac_control.seasons_heating_begin_day.nil?
+        args[:seasons_heating_end_month] = hvac_control.seasons_heating_end_month if !hvac_control.seasons_heating_end_month.nil?
+        args[:seasons_heating_end_day] = hvac_control.seasons_heating_end_day if !hvac_control.seasons_heating_end_day.nil?
+        args[:seasons_cooling_begin_month] = hvac_control.seasons_cooling_begin_month if !hvac_control.seasons_cooling_begin_month.nil?
+        args[:seasons_cooling_begin_day] = hvac_control.seasons_cooling_begin_day if !hvac_control.seasons_cooling_begin_day.nil?
+        args[:seasons_cooling_end_month] = hvac_control.seasons_cooling_end_month if !hvac_control.seasons_cooling_end_month.nil?
+        args[:seasons_cooling_end_day] = hvac_control.seasons_cooling_end_day if !hvac_control.seasons_cooling_end_day.nil?
+      end
+
+      # Natural Ventilation
+      args[:window_natvent_availability] = 3
+      args[:window_natvent_availability] = hpxml.header.natvent_days_per_week if !hpxml.header.natvent_days_per_week.nil?
+
+      # Water Heating
+      args[:water_heater_setpoint] = 125.0
+      if !hpxml.water_heating_systems.empty?
+        # FIXME: what if 2+?
+        args[:water_heater_setpoint] = hpxml.water_heating_systems[0].temperature if !hpxml.water_heating_systems[0].temperature.nil?
+      end
+    end
+
+    # Debug
     debug = false
     if args[:schedules_type] == 'stochastic' && args[:debug].is_initialized
       debug = args[:debug].get

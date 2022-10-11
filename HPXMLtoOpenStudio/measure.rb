@@ -202,7 +202,7 @@ class OSModel
     spaces = {}
     create_or_get_space(model, spaces, HPXML::LocationLivingSpace)
     set_foundation_and_walls_top()
-    set_heating_and_cooling_seasons()
+    set_heating_and_cooling_seasons(runner)
     add_setpoints(runner, model, weather, spaces)
 
     # Geometry/Envelope
@@ -246,7 +246,7 @@ class OSModel
 
     # Other
 
-    add_airflow(model, weather, spaces, airloop_map)
+    add_airflow(runner, model, weather, spaces, airloop_map)
     add_photovoltaics(model)
     add_generators(model)
     add_batteries(model, spaces)
@@ -1434,12 +1434,12 @@ class OSModel
       check_distribution_system(cooling_system.distribution_system, cooling_system.cooling_system_type)
 
       # Calculate cooling sequential load fractions
-      sequential_cool_load_fracs = HVAC.calc_sequential_load_fractions(cooling_system.fraction_cool_load_served.to_f, @remaining_cool_load_frac, @cooling_days)
+      sequential_cool_load_fracs = HVAC.calc_sequential_load_fractions(cooling_system.fraction_cool_load_served.to_f, @remaining_cool_load_frac, @cooling_season)
       @remaining_cool_load_frac -= cooling_system.fraction_cool_load_served.to_f
 
       # Calculate heating sequential load fractions
       if not heating_system.nil?
-        sequential_heat_load_fracs = HVAC.calc_sequential_load_fractions(heating_system.fraction_heat_load_served, @remaining_heat_load_frac, @heating_days)
+        sequential_heat_load_fracs = HVAC.calc_sequential_load_fractions(heating_system.fraction_heat_load_served, @remaining_heat_load_frac, @heating_season)
         @remaining_heat_load_frac -= heating_system.fraction_heat_load_served
       else
         sequential_heat_load_fracs = [0]
@@ -1486,12 +1486,12 @@ class OSModel
       if heating_system.is_heat_pump_backup_system
         # Heating system will be last in the EquipmentList and should meet entirety of
         # remaining load during the heating season.
-        sequential_heat_load_fracs = @heating_days.map(&:to_f)
+        sequential_heat_load_fracs = @heating_season.map(&:to_f)
         if not heating_system.fraction_heat_load_served.nil?
           fail 'Heat pump backup system cannot have a fraction heat load served specified.'
         end
       else
-        sequential_heat_load_fracs = HVAC.calc_sequential_load_fractions(heating_system.fraction_heat_load_served, @remaining_heat_load_frac, @heating_days)
+        sequential_heat_load_fracs = HVAC.calc_sequential_load_fractions(heating_system.fraction_heat_load_served, @remaining_heat_load_frac, @heating_season)
         @remaining_heat_load_frac -= heating_system.fraction_heat_load_served
       end
 
@@ -1543,11 +1543,11 @@ class OSModel
       check_distribution_system(heat_pump.distribution_system, heat_pump.heat_pump_type)
 
       # Calculate heating sequential load fractions
-      sequential_heat_load_fracs = HVAC.calc_sequential_load_fractions(heat_pump.fraction_heat_load_served, @remaining_heat_load_frac, @heating_days)
+      sequential_heat_load_fracs = HVAC.calc_sequential_load_fractions(heat_pump.fraction_heat_load_served, @remaining_heat_load_frac, @heating_season)
       @remaining_heat_load_frac -= heat_pump.fraction_heat_load_served
 
       # Calculate cooling sequential load fractions
-      sequential_cool_load_fracs = HVAC.calc_sequential_load_fractions(heat_pump.fraction_cool_load_served, @remaining_cool_load_frac, @cooling_days)
+      sequential_cool_load_fracs = HVAC.calc_sequential_load_fractions(heat_pump.fraction_cool_load_served, @remaining_cool_load_frac, @cooling_season)
       @remaining_cool_load_frac -= heat_pump.fraction_cool_load_served
 
       sys_id = heat_pump.id
@@ -1631,8 +1631,7 @@ class OSModel
     hvac_control = @hpxml.hvac_controls[0]
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
     has_ceiling_fan = (@hpxml.ceiling_fans.size > 0)
-
-    HVAC.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, @heating_days, @cooling_days, @hpxml.header.sim_calendar_year, @schedules_file)
+    HVAC.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, @heating_season, @cooling_season, @hpxml.header.sim_calendar_year, @schedules_file)
   end
 
   def self.add_ceiling_fans(runner, model, weather, spaces)
@@ -1645,7 +1644,7 @@ class OSModel
   def self.add_dehumidifiers(model, spaces)
     return if @hpxml.dehumidifiers.size == 0
 
-    HVAC.apply_dehumidifiers(model, @hpxml.dehumidifiers, spaces[HPXML::LocationLivingSpace])
+    HVAC.apply_dehumidifiers(model, @hpxml.dehumidifiers, spaces[HPXML::LocationLivingSpace], @schedules_file)
   end
 
   def self.check_distribution_system(hvac_distribution, system_type)
@@ -1733,7 +1732,7 @@ class OSModel
     end
   end
 
-  def self.add_airflow(model, weather, spaces, airloop_map)
+  def self.add_airflow(runner, model, weather, spaces, airloop_map)
     # Ducts
     duct_systems = {}
     @hpxml.hvac_distributions.each do |hvac_distribution|
@@ -1764,7 +1763,7 @@ class OSModel
       end
     end
 
-    Airflow.apply(model, weather, spaces, @hpxml, @cfa, @nbeds,
+    Airflow.apply(runner, model, weather, spaces, @hpxml, @cfa, @nbeds,
                   @ncfl_ag, duct_systems, airloop_map, @clg_ssn_sensor, @eri_version,
                   @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file)
   end
@@ -1894,13 +1893,48 @@ class OSModel
   def self.add_unmet_hours_output(model, spaces)
     # We do our own unmet hours calculation via EMS so that we can incorporate,
     # e.g., heating/cooling seasons into the logic.
+
+    outage_sensor = nil
+    htg_season_sensor = nil
+    clg_season_sensor = nil
+    if not @schedules_file.nil?
+      outage_sch = @schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnOutage)
+      heating_season_sch = @schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnHeatingSeason)
+      cooling_season_sch = @schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnCoolingSeason)
+
+      if not outage_sch.nil?
+        Schedule.set_schedule_type_limits(model, outage_sch, Constants.ScheduleTypeLimitsFraction)
+        outage_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+        outage_sensor.setName("#{SchedulesFile::ColumnOutage} s")
+        outage_sensor.setKeyName(outage_sch.name.to_s)
+      end
+
+      if not heating_season_sch.nil?
+        Schedule.set_schedule_type_limits(model, heating_season_sch, Constants.ScheduleTypeLimitsFraction)
+        htg_season_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+        htg_season_sensor.setName("#{SchedulesFile::ColumnHeatingSeason} s")
+        htg_season_sensor.setKeyName(heating_season_sch.name.to_s)
+      end
+
+      if not cooling_season_sch.nil?
+        Schedule.set_schedule_type_limits(model, cooling_season_sch, Constants.ScheduleTypeLimitsFraction)
+        clg_season_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+        clg_season_sensor.setName("#{SchedulesFile::ColumnCoolingSeason} s")
+        clg_season_sensor.setKeyName(cooling_season_sch.name.to_s)
+      end
+    end
+
     hvac_control = @hpxml.hvac_controls[0]
+    sim_year = @hpxml.header.sim_calendar_year
     if not hvac_control.nil?
-      sim_year = @hpxml.header.sim_calendar_year
-      htg_start_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_begin_month, hvac_control.seasons_heating_begin_day)
-      htg_end_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_end_month, hvac_control.seasons_heating_end_day)
-      clg_start_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_begin_month, hvac_control.seasons_cooling_begin_day)
-      clg_end_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_end_month, hvac_control.seasons_cooling_end_day)
+      if htg_season_sensor.nil?
+        htg_start_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_begin_month, hvac_control.seasons_heating_begin_day)
+        htg_end_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_end_month, hvac_control.seasons_heating_end_day)
+      end
+      if clg_season_sensor.nil?
+        clg_start_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_begin_month, hvac_control.seasons_cooling_begin_day)
+        clg_end_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_end_month, hvac_control.seasons_cooling_end_day)
+      end
     end
 
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
@@ -1922,19 +1956,31 @@ class OSModel
     program.addLine("Set #{htg_hrs} = 0")
     program.addLine("Set #{clg_hrs} = 0")
     if @hpxml.total_fraction_heat_load_served > 0
-      if htg_end_day >= htg_start_day
-        program.addLine("If (DayOfYear >= #{htg_start_day}) && (DayOfYear <= #{htg_end_day})")
+      if htg_season_sensor.nil?
+        if htg_end_day >= htg_start_day
+          program.addLine("If (DayOfYear >= #{htg_start_day}) && (DayOfYear <= #{htg_end_day})")
+        else
+          program.addLine("If (DayOfYear >= #{htg_start_day}) || (DayOfYear <= #{htg_end_day})")
+        end
       else
-        program.addLine("If (DayOfYear >= #{htg_start_day}) || (DayOfYear <= #{htg_end_day})")
+        line = "If (#{htg_season_sensor.name} == 1)"
+        line += " || (#{outage_sensor.name} == 1)" if not outage_sensor.nil?
+        program.addLine(line)
       end
       program.addLine("  Set #{htg_hrs} = #{htg_hrs} + #{htg_sensor.name}")
       program.addLine('EndIf')
     end
     if @hpxml.total_fraction_cool_load_served > 0
-      if clg_end_day >= clg_start_day
-        program.addLine("If (DayOfYear >= #{clg_start_day}) && (DayOfYear <= #{clg_end_day})")
+      if clg_season_sensor.nil?
+        if clg_end_day >= clg_start_day
+          program.addLine("If (DayOfYear >= #{clg_start_day}) && (DayOfYear <= #{clg_end_day})")
+        else
+          program.addLine("If (DayOfYear >= #{clg_start_day}) || (DayOfYear <= #{clg_end_day})")
+        end
       else
-        program.addLine("If (DayOfYear >= #{clg_start_day}) || (DayOfYear <= #{clg_end_day})")
+        line = "If (#{clg_season_sensor.name} == 1)"
+        line += " || (#{outage_sensor.name} == 1)" if not outage_sensor.nil?
+        program.addLine(line)
       end
       program.addLine("  Set #{clg_hrs} = #{clg_hrs} + #{clg_sensor.name}")
       program.addLine('EndIf')
@@ -2645,22 +2691,44 @@ class OSModel
     @walls_top = @foundation_top + 8.0 * @ncfl_ag
   end
 
-  def self.set_heating_and_cooling_seasons()
+  def self.set_heating_and_cooling_seasons(runner)
     return if @hpxml.hvac_controls.size == 0
 
+    @heating_season = nil
+    @cooling_season = nil
+    if not @schedules_file.nil?
+      # the actual arrays are used for sequential fractions and setpoints
+      schedules = @schedules_file.schedules
+      @heating_season = schedules[SchedulesFile::ColumnHeatingSeason] if not schedules[SchedulesFile::ColumnHeatingSeason].nil?
+      @cooling_season = schedules[SchedulesFile::ColumnCoolingSeason] if not schedules[SchedulesFile::ColumnCoolingSeason].nil?
+    end
+
     hvac_control = @hpxml.hvac_controls[0]
+
+    steps_in_hour = 60 / @hpxml.header.timestep
+    steps_in_day = 24 * steps_in_hour
 
     htg_start_month = hvac_control.seasons_heating_begin_month
     htg_start_day = hvac_control.seasons_heating_begin_day
     htg_end_month = hvac_control.seasons_heating_end_month
     htg_end_day = hvac_control.seasons_heating_end_day
+
     clg_start_month = hvac_control.seasons_cooling_begin_month
     clg_start_day = hvac_control.seasons_cooling_begin_day
     clg_end_month = hvac_control.seasons_cooling_end_month
     clg_end_day = hvac_control.seasons_cooling_end_day
 
-    @heating_days = Schedule.get_daily_season(@hpxml.header.sim_calendar_year, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
-    @cooling_days = Schedule.get_daily_season(@hpxml.header.sim_calendar_year, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
+    if @heating_season.nil?
+      @heating_season = Schedule.get_season(@hpxml.header.sim_calendar_year, steps_in_day, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
+    else
+      runner.registerWarning("Both '#{SchedulesFile::ColumnHeatingSeason}' schedule file and heating season provided; the latter will be ignored.") if !htg_start_month.nil? && !htg_start_day.nil? && !htg_end_month.nil? && !htg_end_day.nil?
+    end
+
+    if @cooling_season.nil?
+      @cooling_season = Schedule.get_season(@hpxml.header.sim_calendar_year, steps_in_day, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
+    else
+      runner.registerWarning("Both '#{SchedulesFile::ColumnCoolingSeason}' schedule file and cooling season provided; the latter will be ignored.") if !clg_start_month.nil? && !clg_start_day.nil? && !clg_end_month.nil? && !clg_end_day.nil?
+    end
   end
 end
 

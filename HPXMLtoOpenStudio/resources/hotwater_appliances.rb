@@ -237,10 +237,8 @@ class HotWaterAndAppliances
       # Schedules
       # Replace mains water temperature schedule with water heater inlet temperature schedule.
       # These are identical unless there is a DWHR.
-      start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, hpxml.header.sim_calendar_year)
-      timestep_day = OpenStudio::Time.new(1, 0)
-      time_series_tmains = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(daily_wh_inlet_temperatures_c), 'C')
-      schedule_tmains = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_tmains, model).get
+      year = hpxml.header.sim_calendar_year
+      schedule_tmains = Schedule.create_interval_from_array(model, daily_wh_inlet_temperatures_c, 'C', year, 1, 0)
       schedule_tmains.setName('mains temperature schedule')
       model.getSiteWaterMainsTemperature.setTemperatureSchedule(schedule_tmains)
       mw_temp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
