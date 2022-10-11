@@ -12,7 +12,7 @@
         <Timestep>60</Timestep>
       </SimulationControl>
       <AdditionalProperties>
-        <ParentHPXMLFile>base.xml</ParentHPXMLFile>
+        <ParentHPXMLFile>base-location-honolulu-hi.xml</ParentHPXMLFile>
       </AdditionalProperties>
       <UtilityBillScenarios>
         <UtilityBillScenario>
@@ -26,7 +26,7 @@
     <Site>
       <SiteID id='SiteID'/>
       <Address>
-        <StateCode>CO</StateCode>
+        <StateCode>HI</StateCode>
       </Address>
     </Site>
     <ProjectStatus>
@@ -49,25 +49,25 @@
         </BuildingOccupancy>
         <BuildingConstruction>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
-          <NumberofConditionedFloors>2.0</NumberofConditionedFloors>
+          <NumberofConditionedFloors>1.0</NumberofConditionedFloors>
           <NumberofConditionedFloorsAboveGrade>1.0</NumberofConditionedFloorsAboveGrade>
           <AverageCeilingHeight>8.0</AverageCeilingHeight>
           <NumberofBedrooms>3</NumberofBedrooms>
           <NumberofBathrooms>2</NumberofBathrooms>
-          <ConditionedFloorArea>2700.0</ConditionedFloorArea>
-          <ConditionedBuildingVolume>21600.0</ConditionedBuildingVolume>
+          <ConditionedFloorArea>1350.0</ConditionedFloorArea>
+          <ConditionedBuildingVolume>10800.0</ConditionedBuildingVolume>
         </BuildingConstruction>
       </BuildingSummary>
       <ClimateandRiskZones>
         <ClimateZoneIECC>
           <Year>2006</Year>
-          <ClimateZone>5B</ClimateZone>
+          <ClimateZone>1A</ClimateZone>
         </ClimateZoneIECC>
         <WeatherStation>
           <SystemIdentifier id='WeatherStation'/>
-          <Name>USA_CO_Denver.Intl.AP.725650_TMY3</Name>
+          <Name>USA_HI_Honolulu.Intl.AP.911820_TMY3</Name>
           <extension>
-            <EPWFilePath>USA_CO_Denver.Intl.AP.725650_TMY3.epw</EPWFilePath>
+            <EPWFilePath>USA_HI_Honolulu.Intl.AP.911820_TMY3.epw</EPWFilePath>
           </extension>
         </WeatherStation>
       </ClimateandRiskZones>
@@ -80,7 +80,7 @@
               <UnitofMeasure>ACH</UnitofMeasure>
               <AirLeakage>3.0</AirLeakage>
             </BuildingAirLeakage>
-            <InfiltrationVolume>21600.0</InfiltrationVolume>
+            <InfiltrationVolume>10800.0</InfiltrationVolume>
           </AirInfiltrationMeasurement>
         </AirInfiltration>
         <Attics>
@@ -101,12 +101,8 @@
           <Foundation>
             <SystemIdentifier id='Foundation1'/>
             <FoundationType>
-              <Basement>
-                <Conditioned>true</Conditioned>
-              </Basement>
+              <SlabOnGrade/>
             </FoundationType>
-            <AttachedToRimJoist idref='RimJoist1'/>
-            <AttachedToFoundationWall idref='FoundationWall1'/>
             <AttachedToSlab idref='Slab1'/>
           </Foundation>
         </Foundations>
@@ -126,21 +122,6 @@
             </Insulation>
           </Roof>
         </Roofs>
-        <RimJoists>
-          <RimJoist>
-            <SystemIdentifier id='RimJoist1'/>
-            <ExteriorAdjacentTo>outside</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>basement - conditioned</InteriorAdjacentTo>
-            <Area>115.6</Area>
-            <Siding>wood siding</Siding>
-            <SolarAbsorptance>0.7</SolarAbsorptance>
-            <Emittance>0.92</Emittance>
-            <Insulation>
-              <SystemIdentifier id='RimJoist1Insulation'/>
-              <AssemblyEffectiveRValue>23.0</AssemblyEffectiveRValue>
-            </Insulation>
-          </RimJoist>
-        </RimJoists>
         <Walls>
           <Wall>
             <SystemIdentifier id='Wall1'/>
@@ -179,33 +160,6 @@
             </Insulation>
           </Wall>
         </Walls>
-        <FoundationWalls>
-          <FoundationWall>
-            <SystemIdentifier id='FoundationWall1'/>
-            <ExteriorAdjacentTo>ground</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>basement - conditioned</InteriorAdjacentTo>
-            <Height>8.0</Height>
-            <Area>1200.0</Area>
-            <Thickness>8.0</Thickness>
-            <DepthBelowGrade>7.0</DepthBelowGrade>
-            <InteriorFinish>
-              <Type>gypsum board</Type>
-            </InteriorFinish>
-            <Insulation>
-              <SystemIdentifier id='FoundationWall1Insulation'/>
-              <Layer>
-                <InstallationType>continuous - exterior</InstallationType>
-                <NominalRValue>8.9</NominalRValue>
-                <DistanceToTopOfInsulation>0.0</DistanceToTopOfInsulation>
-                <DistanceToBottomOfInsulation>8.0</DistanceToBottomOfInsulation>
-              </Layer>
-              <Layer>
-                <InstallationType>continuous - interior</InstallationType>
-                <NominalRValue>0.0</NominalRValue>
-              </Layer>
-            </Insulation>
-          </FoundationWall>
-        </FoundationWalls>
         <Floors>
           <Floor>
             <SystemIdentifier id='Floor1'/>
@@ -224,10 +178,11 @@
         <Slabs>
           <Slab>
             <SystemIdentifier id='Slab1'/>
-            <InteriorAdjacentTo>basement - conditioned</InteriorAdjacentTo>
+            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <Area>1350.0</Area>
             <Thickness>4.0</Thickness>
             <ExposedPerimeter>150.0</ExposedPerimeter>
+            <DepthBelowGrade>0.0</DepthBelowGrade>
             <PerimeterInsulation>
               <SystemIdentifier id='Slab1PerimeterInsulation'/>
               <Layer>
@@ -238,13 +193,13 @@
             <UnderSlabInsulation>
               <SystemIdentifier id='Slab1UnderSlabInsulation'/>
               <Layer>
-                <NominalRValue>0.0</NominalRValue>
-                <InsulationWidth>0.0</InsulationWidth>
+                <NominalRValue>5.0</NominalRValue>
+                <InsulationSpansEntireSlab>true</InsulationSpansEntireSlab>
               </Layer>
             </UnderSlabInsulation>
             <extension>
-              <CarpetFraction>0.0</CarpetFraction>
-              <CarpetRValue>0.0</CarpetRValue>
+              <CarpetFraction>1.0</CarpetFraction>
+              <CarpetRValue>2.5</CarpetRValue>
             </extension>
           </Slab>
         </Slabs>
@@ -487,7 +442,7 @@
           <PlugLoadType>other</PlugLoadType>
           <Load>
             <Units>kWh/year</Units>
-            <Value>2457.0</Value>
+            <Value>1228.5</Value>
           </Load>
           <extension>
             <FracSensible>0.855</FracSensible>
