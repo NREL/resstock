@@ -65,12 +65,6 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
 
   output_format = 'csv' if output_format == 'csv_dview'
 
-  # Add hpxml output measure to workflow
-  measure_subdir = 'ReportHPXMLOutput'
-  args = {}
-  args['output_format'] = output_format
-  update_args_hash(measures, measure_subdir, args)
-
   # Add utility bills measure to workflow
   measure_subdir = 'ReportUtilityBills'
   args = {}

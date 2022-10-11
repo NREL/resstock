@@ -4,6 +4,10 @@ __New Features__
 - **Breaking Change**: Replaces `FrameFloors/FrameFloor` with `Floors/Floor`.
 - **Breaking change**: Replaces `SoftwareInfo/extension/SimulationControl/DaylightSaving/Enabled` with `Building/Site/TimeZone/DSTObserved`.
 - **Breaking Change**: Replaces `StandbyLoss` with `StandbyLoss[Units="F/hr"]/Value` for an indirect water heater.
+<<<<<<< HEAD
+=======
+- **Breaking Change**: Deprecates ReportHPXMLOutput measure; HVAC autosized capacities & design loads moved to `results_annual.csv`.
+>>>>>>> develop
 - Allows SEER2/HSPF2 efficiency types for central air conditioners and heat pumps.
 - Allows heating/cooling seasons that don't span the entire year.
 - Allows calculating one or more utility bill scenarios (e.g., net metering vs feed-in tariff compensation types for a simulation with PV).
@@ -11,7 +15,11 @@ __New Features__
 - Allows setting the ground soil conductivity used for foundation heat transfer and ground source heat pumps.
 - Allows setting the natural ventilation availability (days/week that operable windows can be opened); default changed from 7 to 3 (M/W/F).
 - Allows specifying duct surface area multipliers.
+<<<<<<< HEAD
 - Design temperatures, used to calculate design loads for HVAC equipment autosizing, are now output in `in.xml` and `results_hpxml.csv`.
+=======
+- Design temperatures, used to calculate design loads for HVAC equipment autosizing, are now output in `in.xml` and `results_annual.csv`.
+>>>>>>> develop
 - EnergyPlus modeling changes:
   - Switches Kiva foundation model timestep from 'Hourly' to 'Timestep'; small increase in runtime for sub-hourly simulations.
 - Annual/timeseries outputs:
@@ -25,6 +33,7 @@ __New Features__
 - ReportUtilityBills measure:
   - Removes utility rate and PV related arguments in lieu of new utility bill scenarios described inside the HPXML file.
 - Allows shared dishwasher/clothes washer to be attached to a hot water distribution system instead of a single water heater.
+<<<<<<< HEAD
 - New capabilities for hourly/sub-hourly scheduling via schedule CSV files:
   - Detailed HVAC seasons.
   - Detailed natural ventilation for operable windows.
@@ -32,6 +41,8 @@ __New Features__
 - BuildResidentialScheduleFile measure:
   - Adds optional argument for specifying a power outage period.
   - Adds optional argument for controlling natural ventilation availability during a power outage period.
+=======
+>>>>>>> develop
 - Improves Kiva foundation model heat transfer by providing better initial temperature assumptions based on foundation type and insulation levels.
 
 __Bugfixes__

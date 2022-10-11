@@ -16,8 +16,6 @@ class HPXMLTest < MiniTest::Test
   def test_simulations
     results_out = File.join(@results_dir, 'results.csv')
     File.delete(results_out) if File.exist? results_out
-    sizing_out = File.join(@results_dir, 'results_hvac_sizing.csv')
-    File.delete(sizing_out) if File.exist? sizing_out
     bills_out = File.join(@results_dir, 'results_bills.csv')
     File.delete(bills_out) if File.exist? bills_out
 
@@ -35,16 +33,14 @@ class HPXMLTest < MiniTest::Test
     # Test simulations
     puts "Running #{xmls.size} HPXML files..."
     all_results = {}
-    all_sizing_results = {}
     all_bill_results = {}
     Parallel.map(xmls, in_threads: Parallel.processor_count) do |xml|
       _test_schema_validation(xml)
       xml_name = File.basename(xml)
-      all_results[xml_name], all_sizing_results[xml_name], all_bill_results[xml_name] = _run_xml(xml, Parallel.worker_number)
+      all_results[xml_name], all_bill_results[xml_name] = _run_xml(xml, Parallel.worker_number)
     end
 
     _write_results(all_results.sort_by { |k, _v| k.downcase }.to_h, results_out)
-    _write_results(all_sizing_results.sort_by { |k, _v| k.downcase }.to_h, sizing_out)
     _write_results(all_bill_results.sort_by { |k, _v| k.downcase }.to_h, bills_out)
   end
 
@@ -83,7 +79,6 @@ class HPXMLTest < MiniTest::Test
       assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
       assert(File.exist? File.join(File.dirname(xml), 'run', "results_annual.#{output_format}"))
       assert(File.exist? File.join(File.dirname(xml), 'run', "results_timeseries.#{output_format}"))
-      assert(File.exist? File.join(File.dirname(xml), 'run', "results_hpxml.#{output_format}"))
       assert(File.exist?(File.join(File.dirname(xml), 'run', "results_bills.#{output_format}")))
 
       # Check for debug files
@@ -108,7 +103,6 @@ class HPXMLTest < MiniTest::Test
     # Check for output files
     assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
     assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_hpxml.csv'))
   end
 
   def test_run_simulation_idf_input
@@ -124,7 +118,6 @@ class HPXMLTest < MiniTest::Test
     # Check for output files
     assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
     assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_hpxml.csv'))
   end
 
   def test_run_simulation_faster_performance
@@ -137,11 +130,10 @@ class HPXMLTest < MiniTest::Test
     # Check for output files
     assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
     assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_hpxml.csv'))
 
     # Check component loads don't exist
     component_loads = {}
-    CSV.read(File.join(File.dirname(xml), 'run', 'results_hpxml.csv'), headers: false).each do |data|
+    CSV.read(File.join(File.dirname(xml), 'run', 'results_annual.csv'), headers: false).each do |data|
       next unless data[0].to_s.start_with? 'Component Load'
 
       component_loads[data[0]] = Float(data[1])
@@ -166,7 +158,6 @@ class HPXMLTest < MiniTest::Test
       # Check for output files
       assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
       assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
-      assert(File.exist? File.join(File.dirname(xml), 'run', 'results_hpxml.csv'))
       assert(File.exist? File.join(File.dirname(xml), 'run', 'stochastic.csv'))
 
       # Check stochastic.csv headers
@@ -201,7 +192,6 @@ class HPXMLTest < MiniTest::Test
       # Check for output files
       assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
       assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
-      assert(File.exist? File.join(File.dirname(xml), 'run', 'results_hpxml.csv'))
       if not invalid_variable_only
         assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
         # Check timeseries columns exist
@@ -251,7 +241,6 @@ class HPXMLTest < MiniTest::Test
     # Check for output files
     assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'eplusout.msgpack'))
     assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'results_annual.csv'))
-    assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'results_hpxml.csv'))
 
     # Check for debug files
     assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'in.osm'))
@@ -291,7 +280,6 @@ class HPXMLTest < MiniTest::Test
     # Check for output files
     assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'eplusout.msgpack'))
     assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'results_annual.csv'))
-    assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'results_hpxml.csv'))
 
     # Check for debug files
     assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'in.osm'))
@@ -333,7 +321,6 @@ class HPXMLTest < MiniTest::Test
     # Check for output files
     assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'eplusout.msgpack'))
     assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'results_annual.csv'))
-    assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'results_hpxml.csv'))
 
     # Check for debug files
     assert(File.exist? File.join(File.dirname(osw_path_test), 'run', 'in.osm'))
@@ -394,7 +381,6 @@ class HPXMLTest < MiniTest::Test
       command = "#{OpenStudio.getOpenStudioCLI} OpenStudio-HPXML/workflow/run_simulation.rb -x OpenStudio-HPXML/workflow/sample_files/base.xml"
       system(command)
       assert(File.exist? 'OpenStudio-HPXML/workflow/sample_files/run/results_annual.csv')
-      assert(File.exist? 'OpenStudio-HPXML/workflow/sample_files/run/results_hpxml.csv')
 
       File.delete(zip_path)
       rm_path('OpenStudio-HPXML')
@@ -421,11 +407,9 @@ class HPXMLTest < MiniTest::Test
     # Check for output files
     annual_csv_path = File.join(rundir, 'results_annual.csv')
     timeseries_csv_path = File.join(rundir, 'results_timeseries.csv')
-    hpxml_csv_path = File.join(rundir, 'results_hpxml.csv')
     bills_csv_path = File.join(rundir, 'results_bills.csv')
     assert(File.exist? annual_csv_path)
     assert(File.exist? timeseries_csv_path)
-    assert(File.exist? hpxml_csv_path)
 
     # Check outputs
     hpxml_defaults_path = File.join(rundir, 'in.xml')
@@ -438,12 +422,11 @@ class HPXMLTest < MiniTest::Test
       end
       flunk "EPvalidator.xml error in #{hpxml_defaults_path}."
     end
-    sizing_results = _get_hvac_sizing_results(hpxml, xml)
     bill_results = _get_bill_results(bills_csv_path)
     results = _get_simulation_results(annual_csv_path, xml, hpxml)
     _verify_outputs(rundir, xml, results, hpxml)
 
-    return results, sizing_results, bill_results
+    return results, bill_results
   end
 
   def _get_simulation_results(annual_csv_path, xml, hpxml)
@@ -479,6 +462,7 @@ class HPXMLTest < MiniTest::Test
     return results
   end
 
+<<<<<<< HEAD
   def _get_hvac_sizing_results(hpxml, xml)
     results = {}
     return if xml.include? 'ASHRAE_Standard_140'
@@ -553,6 +537,8 @@ class HPXMLTest < MiniTest::Test
     return results
   end
 
+=======
+>>>>>>> develop
   def _get_bill_results(bill_csv_path)
     # Grab all outputs from reporting measure CSV bill results
     results = {}
