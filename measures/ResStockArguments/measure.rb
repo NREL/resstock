@@ -378,31 +378,31 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Conditioned floor area
     if args['geometry_unit_cfa'] == Constants.Auto
-      cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 309, # AHS 2019, 1 detached
-               ['0-499', HPXML::ResidentialTypeSFA] => 227, # AHS 2019, 1 attached
+      cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 307, # AHS 2019, 1 detached and mobile home weighted average
+               ['0-499', HPXML::ResidentialTypeSFA] => 307, # AHS 2019, 1 detached and mobile home weighted average
                ['0-499', HPXML::ResidentialTypeApartment] => 325, # AHS 2019, multi-family weighted average
-               ['500-749', HPXML::ResidentialTypeSFD] => 633, # AHS 2019, 1 detached
+               ['500-749', HPXML::ResidentialTypeSFD] => 633, # AHS 2019, 1 detached and mobile home weighted average
                ['500-749', HPXML::ResidentialTypeSFA] => 620, # AHS 2019, 1 attached
                ['500-749', HPXML::ResidentialTypeApartment] => 622, # AHS 2019, multi-family weighted average
-               ['750-999', HPXML::ResidentialTypeSFD] => 882, # AHS 2019, 1 detached
+               ['750-999', HPXML::ResidentialTypeSFD] => 882, # AHS 2019, 1 detached and mobile home weighted average
                ['750-999', HPXML::ResidentialTypeSFA] => 872, # AHS 2019, 1 attached
                ['750-999', HPXML::ResidentialTypeApartment] => 855, # AHS 2019, multi-family weighted average
-               ['1000-1499', HPXML::ResidentialTypeSFD] => 1223, # AHS 2019, 1 detached
+               ['1000-1499', HPXML::ResidentialTypeSFD] => 1223, # AHS 2019, 1 detached and mobile home weighted average
                ['1000-1499', HPXML::ResidentialTypeSFA] => 1216, # AHS 2019, 1 attached
                ['1000-1499', HPXML::ResidentialTypeApartment] => 1136, # AHS 2019, multi-family weighted average
-               ['1500-1999', HPXML::ResidentialTypeSFD] => 1698, # AHS 2019, 1 detached
+               ['1500-1999', HPXML::ResidentialTypeSFD] => 1698, # AHS 2019, 1 detached and mobile home weighted average
                ['1500-1999', HPXML::ResidentialTypeSFA] => 1682, # AHS 2019, 1 attached
                ['1500-1999', HPXML::ResidentialTypeApartment] => 1641, # AHS 2019, multi-family weighted average
-               ['2000-2499', HPXML::ResidentialTypeSFD] => 2179, # AHS 2019, 1 detached
+               ['2000-2499', HPXML::ResidentialTypeSFD] => 2179, # AHS 2019, 1 detached and mobile home weighted average
                ['2000-2499', HPXML::ResidentialTypeSFA] => 2147, # AHS 2019, 1 attached
                ['2000-2499', HPXML::ResidentialTypeApartment] => 2122, # AHS 2019, multi-family weighted average
-               ['2500-2999', HPXML::ResidentialTypeSFD] => 2679, # AHS 2019, 1 detached
+               ['2500-2999', HPXML::ResidentialTypeSFD] => 2679, # AHS 2019, 1 detached and mobile home weighted average
                ['2500-2999', HPXML::ResidentialTypeSFA] => 2658, # AHS 2019, 1 attached
                ['2500-2999', HPXML::ResidentialTypeApartment] => 2691, # AHS 2019, multi-family weighted average
-               ['3000-3999', HPXML::ResidentialTypeSFD] => 3307, # AHS 2019, 1 detached
+               ['3000-3999', HPXML::ResidentialTypeSFD] => 3307, # AHS 2019, 1 detached and mobile home weighted average
                ['3000-3999', HPXML::ResidentialTypeSFA] => 3250, # AHS 2019, 1 attached
                ['3000-3999', HPXML::ResidentialTypeApartment] => 3312, # AHS 2019, multi-family weighted average
-               ['4000+', HPXML::ResidentialTypeSFD] => 5561, # AHS 2019, 1 detached
+               ['4000+', HPXML::ResidentialTypeSFD] => 5561, # AHS 2019, 1 detached and mobile home weighted average
                ['4000+', HPXML::ResidentialTypeSFA] => 7414, # AHS 2019, 1 attached
                ['4000+', HPXML::ResidentialTypeApartment] => 6481 } # AHS 2019, 4,000 or more average
       cfa = cfas[[args['geometry_unit_cfa_bin'], args['geometry_unit_type']]]
