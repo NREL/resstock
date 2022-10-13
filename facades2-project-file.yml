@@ -1,0 +1,45 @@
+schema_version: '0.3'
+buildstock_directory: .
+output_directory:
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip #confirm TMY3
+
+sampler:
+  type: resdiential_quota_downlselect
+  args:
+    n_datapoints:
+    logic:
+      - Vacancy Status|Occupied
+      - or:
+        - Heating Fuel|Electricity
+        - Heating Fuel|Natural Gas
+        - Heating Fuel|Propane
+        - Heating Fuel|Fuel Oil
+    resample: true
+
+baseline:
+  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_run_period_calendar_year: 
+      add_component_loads: false
+
+    emissions:
+      - scenario_name:
+      - scenario_name:
+      - scenario_name:
+
+    simulation_output_report: 
+      timeseries_frequency: annual #check this is right keyword
+
+    server_directory_cleanup:
+      retain_in_osm: true
+      retain_in_idf: false
+      retain_elpus_out_rdd: true
+      retain_schedules_csv: false
+
+    debug: false
+
+upgrades:
