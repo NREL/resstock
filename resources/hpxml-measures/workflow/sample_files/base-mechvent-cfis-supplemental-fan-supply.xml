@@ -11,7 +11,6 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
-      <SchedulesFilePath>../../HPXMLtoOpenStudio/resources/schedule_files/house-fan.csv</SchedulesFilePath>
       <AdditionalProperties>
         <ParentHPXMLFile>base-mechvent-cfis.xml</ParentHPXMLFile>
       </AdditionalProperties>
@@ -400,11 +399,22 @@
             <VentilationFan>
               <SystemIdentifier id='VentilationFan1'/>
               <FanType>central fan integrated supply</FanType>
+              <CFISControls>
+                <AdditionalRuntimeOperatingMode>supplemental fan</AdditionalRuntimeOperatingMode>
+                <SupplementalFan idref='VentilationFan2'/>
+              </CFISControls>
               <RatedFlowRate>330.0</RatedFlowRate>
               <HoursInOperation>8.0</HoursInOperation>
               <UsedForWholeBuildingVentilation>true</UsedForWholeBuildingVentilation>
               <FanPower>300.0</FanPower>
               <AttachedToHVACDistributionSystem idref='HVACDistribution1'/>
+            </VentilationFan>
+            <VentilationFan>
+              <SystemIdentifier id='VentilationFan2'/>
+              <FanType>supply only</FanType>
+              <TestedFlowRate>120.0</TestedFlowRate>
+              <UsedForWholeBuildingVentilation>true</UsedForWholeBuildingVentilation>
+              <FanPower>30.0</FanPower>
             </VentilationFan>
           </VentilationFans>
         </MechanicalVentilation>

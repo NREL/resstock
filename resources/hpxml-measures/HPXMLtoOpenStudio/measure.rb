@@ -196,6 +196,7 @@ class OSModel
     @schedules_file.validate_schedules(year: @hpxml.header.sim_calendar_year) if not @schedules_file.nil?
     Location.apply(model, weather, epw_file, @hpxml)
     add_simulation_params(model)
+    @outage_sensor = create_outage_sensor(model)
 
     # Conditioned space/zone
 
@@ -268,6 +269,22 @@ class OSModel
   end
 
   private
+
+  def self.create_outage_sensor(model)
+    outage_sch = nil
+    if not @schedules_file.nil?
+      outage_sch = @schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnOutage)
+    end
+
+    outage_sensor = nil
+    if not outage_sch.nil?
+      Schedule.set_schedule_type_limits(model, outage_sch, Constants.ScheduleTypeLimitsFraction)
+      outage_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+      outage_sensor.setName("#{SchedulesFile::ColumnOutage} s")
+      outage_sensor.setKeyName(outage_sch.name.to_s)
+    end
+    return outage_sensor
+  end
 
   def self.check_file_references(hpxml_path)
     # Check/update file references
@@ -1763,7 +1780,7 @@ class OSModel
       end
     end
 
-    Airflow.apply(runner, model, weather, spaces, @hpxml, @cfa, @nbeds,
+    Airflow.apply(model, runner, weather, spaces, @hpxml, @cfa, @nbeds,
                   @ncfl_ag, duct_systems, airloop_map, @clg_ssn_sensor, @eri_version,
                   @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file)
   end
@@ -1894,20 +1911,12 @@ class OSModel
     # We do our own unmet hours calculation via EMS so that we can incorporate,
     # e.g., heating/cooling seasons into the logic.
 
-    outage_sensor = nil
     htg_season_sensor = nil
     clg_season_sensor = nil
     if not @schedules_file.nil?
-      outage_sch = @schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnOutage)
+
       heating_season_sch = @schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnHeatingSeason)
       cooling_season_sch = @schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnCoolingSeason)
-
-      if not outage_sch.nil?
-        Schedule.set_schedule_type_limits(model, outage_sch, Constants.ScheduleTypeLimitsFraction)
-        outage_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-        outage_sensor.setName("#{SchedulesFile::ColumnOutage} s")
-        outage_sensor.setKeyName(outage_sch.name.to_s)
-      end
 
       if not heating_season_sch.nil?
         Schedule.set_schedule_type_limits(model, heating_season_sch, Constants.ScheduleTypeLimitsFraction)
@@ -1964,7 +1973,7 @@ class OSModel
         end
       else
         line = "If (#{htg_season_sensor.name} == 1)"
-        line += " || (#{outage_sensor.name} == 1)" if not outage_sensor.nil?
+        line += " || (#{@outage_sensor.name} == 1)" if not @outage_sensor.nil?
         program.addLine(line)
       end
       program.addLine("  Set #{htg_hrs} = #{htg_hrs} + #{htg_sensor.name}")
@@ -1979,7 +1988,7 @@ class OSModel
         end
       else
         line = "If (#{clg_season_sensor.name} == 1)"
-        line += " || (#{outage_sensor.name} == 1)" if not outage_sensor.nil?
+        line += " || (#{@outage_sensor.name} == 1)" if not @outage_sensor.nil?
         program.addLine(line)
       end
       program.addLine("  Set #{clg_hrs} = #{clg_hrs} + #{clg_sensor.name}")

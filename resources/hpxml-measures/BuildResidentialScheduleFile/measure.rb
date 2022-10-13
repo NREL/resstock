@@ -122,10 +122,11 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     # create EpwFile object
     epw_path = Location.get_epw_path(hpxml, hpxml_path)
-    epw_file = OpenStudio::EpwFile.new(epw_path)
+    cache_path = epw_path.gsub('.epw', '-cache.csv')
+    weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
 
     # create the schedules
-    success = create_schedules(runner, hpxml, epw_file, args)
+    success = create_schedules(runner, hpxml, weather, epw_file, args)
     return false if not success
 
     # modify the hpxml with the schedules path
@@ -145,14 +146,14 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def create_schedules(runner, hpxml, epw_file, args)
+  def create_schedules(runner, hpxml, weather, epw_file, args)
     info_msgs = []
 
     get_simulation_parameters(hpxml, epw_file, args)
     get_generator_inputs(hpxml, epw_file, args)
 
     args[:resources_path] = File.join(File.dirname(__FILE__), 'resources')
-    schedule_generator = ScheduleGenerator.new(runner: runner, epw_file: epw_file, **args)
+    schedule_generator = ScheduleGenerator.new(runner: runner, weather: weather, epw_file: epw_file, hpxml: hpxml, **args)
 
     success = schedule_generator.create(args: args)
     return false if not success
@@ -210,40 +211,6 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     if args[:schedules_type] == 'stochastic'
       args[:geometry_num_occupants] = Float(Integer(args[:geometry_num_occupants]))
     end
-
-    # Local Ventilation
-    vent_fans_kitchen = []
-    vent_fans_bath = []
-    hpxml.ventilation_fans.each do |vent_fan|
-      next unless vent_fan.hours_in_operation.nil? || vent_fan.hours_in_operation > 0
-
-      if vent_fan.used_for_local_ventilation
-        if vent_fan.fan_location == HPXML::LocationKitchen
-          vent_fans_kitchen << vent_fan
-        elsif vent_fan.fan_location == HPXML::LocationBath
-          vent_fans_bath << vent_fan
-        end
-      end
-    end
-
-    args[:kitchen_fan_hours_in_operation] = 1.0
-    args[:kitchen_fan_start_hour] = 18
-    if !vent_fans_kitchen.empty?
-      # FIXME: what if 2+?
-      args[:kitchen_fan_hours_in_operation] = vent_fans_kitchen[0].hours_in_operation if !vent_fans_kitchen[0].hours_in_operation.nil?
-      args[:kitchen_fan_start_hour] = vent_fans_kitchen[0].start_hour if !vent_fans_kitchen[0].start_hour.nil?
-    end
-
-    args[:bath_fan_hours_in_operation] = 1.0
-    args[:bath_fan_start_hour] = 7
-    if !vent_fans_bath.empty?
-      # FIXME: what if 2+?
-      args[:bath_fan_hours_in_operation] = vent_fans_bath[0].hours_in_operation if !vent_fans_bath[0].hours_in_operation.nil?
-      args[:bath_fan_start_hour] = vent_fans_bath[0].start_hour if !vent_fans_bath[0].start_hour.nil?
-    end
-
-    # Whole House Fan
-    args[:whole_house_fan_availability] = 7
 
     # Vacancy
     if args[:schedules_vacancy_period].is_initialized
