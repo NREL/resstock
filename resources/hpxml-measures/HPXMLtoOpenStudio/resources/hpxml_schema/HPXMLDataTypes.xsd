@@ -373,29 +373,6 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<xs:simpleType name="TestDate_simple">
-		<xs:restriction base="xs:dateTime"/>
-	</xs:simpleType>
-	<xs:complexType name="TestDate">
-		<xs:simpleContent>
-			<xs:extension base="TestDate_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="TestInorOut_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="test in"/>
-			<xs:enumeration value="test out"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="TestInorOut">
-		<xs:simpleContent>
-			<xs:extension base="TestInorOut_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
 	<xs:simpleType name="TypeofBlowerDoorTest_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="pressurization"/>
@@ -1384,19 +1361,6 @@
 	</xs:complexType>
 	<!--Lighting Below-->
 	<!--Lighting Controls Below-->
-	<xs:simpleType name="InsulationLocation_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="interior"/>
-			<xs:enumeration value="exterior"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="InsulationLocation">
-		<xs:simpleContent>
-			<xs:extension base="InsulationLocation_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
 	<xs:simpleType name="LightingLocation_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="interior"/>
@@ -1732,7 +1696,7 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<!--Combustion Applicance Tests Below-->
+	<!--Combustion Appliance Tests Below-->
 	<xs:simpleType name="FlueCondition_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="pass"/>
@@ -2402,23 +2366,6 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<!--Homeowner Questionaire Below-->
-	<xs:simpleType name="HomeownerQuestionaireScore_simple">
-		<xs:annotation>
-			<xs:documentation>1-10 score of why they chose that option</xs:documentation>
-		</xs:annotation>
-		<xs:restriction base="xs:integer">
-			<xs:minInclusive value="0"/>
-			<xs:maxInclusive value="10"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="HomeownerQuestionaireScore">
-		<xs:simpleContent>
-			<xs:extension base="HomeownerQuestionaireScore_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
 	<!--Software Information Below-->
 	<xs:simpleType name="SoftwareProgramUsed_simple">
 		<xs:restriction base="xs:string"/>
@@ -2696,16 +2643,6 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<xs:simpleType name="AuditorRelationship_simple">
-		<xs:restriction base="xs:string"/>
-	</xs:simpleType>
-	<xs:complexType name="AuditorRelationship">
-		<xs:simpleContent>
-			<xs:extension base="AuditorRelationship_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
 	<xs:simpleType name="HVACInstallationStandard_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="ACCA 5 QI HVAC"/>
@@ -2924,6 +2861,8 @@
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="clear"/>
 			<xs:enumeration value="low-e"/>
+			<xs:enumeration value="low-e, high-solar-gain"/>
+			<xs:enumeration value="low-e, low-solar-gain"/>
 			<xs:enumeration value="tinted"/>
 			<xs:enumeration value="reflective"/>
 			<xs:enumeration value="tinted/reflective"/>
@@ -3272,16 +3211,6 @@
 	<xs:complexType name="FundingSourceCode">
 		<xs:simpleContent>
 			<xs:extension base="FundingSourceCode_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="TotalAmount_simple">
-		<xs:restriction base="xs:decimal"/>
-	</xs:simpleType>
-	<xs:complexType name="TotalAmount">
-		<xs:simpleContent>
-			<xs:extension base="TotalAmount_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -4897,6 +4826,21 @@
 	<xs:complexType name="UTCOffset">
 		<xs:simpleContent>
 			<xs:extension base="UTCOffset_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="AdditionalRuntimeOperatingModeType_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="none"/>
+			<xs:enumeration value="air handler fan"/>
+			<xs:enumeration value="supplemental fan"/>
+			<xs:enumeration value="other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="AdditionalRuntimeOperatingMode">
+		<xs:simpleContent>
+			<xs:extension base="AdditionalRuntimeOperatingModeType_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>

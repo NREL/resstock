@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 class Airflow
-  def self.apply(model, weather, spaces, hpxml, cfa, nbeds,
+  def self.apply(model, runner, weather, spaces, hpxml, cfa, nbeds,
                  ncfl_ag, duct_systems, airloop_map, clg_ssn_sensor, eri_version,
                  frac_windows_operable, apply_ashrae140_assumptions, schedules_file)
 
     # Global variables
 
+    @runner = runner
     @spaces = spaces
     @year = hpxml.header.sim_calendar_year
     @infil_volume = hpxml.air_infiltration_measurements.select { |i| !i.infiltration_volume.nil? }[0].infiltration_volume
@@ -51,11 +52,16 @@ class Airflow
     vent_fans_kitchen = []
     vent_fans_bath = []
     vent_fans_whf = []
+    vent_fans_cfis_suppl = []
     hpxml.ventilation_fans.each do |vent_fan|
       next unless vent_fan.hours_in_operation.nil? || vent_fan.hours_in_operation > 0
 
       if vent_fan.used_for_whole_building_ventilation
-        vent_fans_mech << vent_fan
+        if not vent_fan.is_cfis_supplemental_fan?
+          vent_fans_mech << vent_fan
+        else
+          vent_fans_cfis_suppl << vent_fan
+        end
       elsif vent_fan.used_for_seasonal_cooling_load_reduction
         vent_fans_whf << vent_fan
       elsif vent_fan.used_for_local_ventilation
@@ -110,7 +116,7 @@ class Airflow
                                                   hpxml.header.natvent_days_per_week)
     apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
-                                            vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
+                                            vented_attic, vented_crawl, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl)
   end
 
   def self.get_default_fraction_of_windows_operable()
@@ -188,8 +194,14 @@ class Airflow
       phi = q_inf / q_tot
     end
     q_fan = q_tot - phi * (q_inf * infil_a_ext)
+    q_fan = [q_fan, 0].max
 
-    return [q_fan, 0].max
+    if not vent_fan.hours_in_operation.nil?
+      # Convert from hourly average requirement to actual fan flow rate
+      q_fan *= 24.0 / vent_fan.hours_in_operation
+    end
+
+    return q_fan
   end
 
   private
@@ -516,7 +528,7 @@ class Airflow
     index = 0
 
     vent_fans_mech.each do |vent_mech|
-      next unless (vent_mech.fan_type == HPXML::MechVentTypeCFIS)
+      next if vent_mech.fan_type != HPXML::MechVentTypeCFIS
 
       vent_mech.distribution_system.hvac_systems.map { |system| system.id }.each do |cfis_id|
         next if airloop_map[cfis_id].nil?
@@ -1058,37 +1070,41 @@ class Airflow
 
       if @cfis_airloop.values.include? object
 
-        # Calculate additional CFIS duct losses during fan-only mode
         cfis_id = @cfis_airloop.key(object)
         vent_mech = vent_fans_mech.select { |vfm| vfm.id == cfis_id }[0]
-        duct_program.addLine("If #{@cfis_f_damper_extra_open_var[cfis_id].name} > 0")
-        duct_program.addLine("  Set cfis_m3s = (#{@fan_mfr_max_var[object].name} * #{vent_mech.cfis_vent_mode_airflow_fraction} / 1.16097654)") # Density of 1.16097654 was back calculated using E+ results
-        duct_program.addLine("  Set #{@fan_rtf_var[object].name} = #{@cfis_f_damper_extra_open_var[cfis_id].name}") # Need to use global vars to sync duct_program and infiltration program of different calling points
-        duct_program.addLine("  Set #{ah_vfr_var.name} = #{@fan_rtf_var[object].name}*cfis_m3s")
-        duct_program.addLine("  Set rho_in = (@RhoAirFnPbTdbW #{@pbar_sensor.name} #{@tin_sensor.name} #{@win_sensor.name})")
-        duct_program.addLine("  Set #{ah_mfr_var.name} = #{ah_vfr_var.name} * rho_in")
-        duct_program.addLine("  Set #{ah_tout_var.name} = #{ra_t_sensor.name}")
-        duct_program.addLine("  Set #{ah_wout_var.name} = #{ra_w_sensor.name}")
-        duct_program.addLine("  Set #{ra_t_var.name} = #{ra_t_sensor.name}")
-        duct_program.addLine("  Set #{ra_w_var.name} = #{ra_w_sensor.name}")
-        duct_program.addLine("  Run #{duct_subroutine.name}")
-        duct_program.addLine("  Set #{duct_actuators['cfis_supply_sens_lk_to_liv'].name} = #{duct_vars['supply_sens_lk_to_liv'].name}")
-        duct_program.addLine("  Set #{duct_actuators['cfis_supply_lat_lk_to_liv'].name} = #{duct_vars['supply_lat_lk_to_liv'].name}")
-        duct_program.addLine("  Set #{duct_actuators['cfis_supply_cond_to_liv'].name} = #{duct_vars['supply_cond_to_liv'].name}")
-        duct_program.addLine("  Set #{duct_actuators['cfis_return_sens_lk_to_rp'].name} = #{duct_vars['return_sens_lk_to_rp'].name}")
-        duct_program.addLine("  Set #{duct_actuators['cfis_return_lat_lk_to_rp'].name} = #{duct_vars['return_lat_lk_to_rp'].name}")
-        duct_program.addLine("  Set #{duct_actuators['cfis_return_cond_to_rp'].name} = #{duct_vars['return_cond_to_rp'].name}")
-        duct_program.addLine("  Set #{duct_actuators['cfis_return_cond_to_dz'].name} = #{duct_vars['return_cond_to_dz'].name}")
-        duct_program.addLine("  Set #{duct_actuators['cfis_supply_cond_to_dz'].name} = #{duct_vars['supply_cond_to_dz'].name}")
-        duct_program.addLine("  Set #{duct_actuators['cfis_supply_sens_lk_to_dz'].name} = #{duct_vars['supply_sens_lk_to_dz'].name}")
-        duct_program.addLine("  Set #{duct_actuators['cfis_supply_lat_lk_to_dz'].name} = #{duct_vars['supply_lat_lk_to_dz'].name}")
-        if not duct_actuators['dz_to_liv_flow_rate'].nil?
-          duct_program.addLine("  Set #{duct_actuators['cfis_dz_to_liv_flow_rate'].name} = #{duct_vars['dz_to_liv_flow_rate'].name}")
+
+        add_cfis_duct_losses = (vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeAirHandler)
+        if add_cfis_duct_losses
+          # Calculate additional CFIS duct losses during fan-only mode
+          duct_program.addLine("If #{@cfis_f_damper_extra_open_var[cfis_id].name} > 0")
+          duct_program.addLine("  Set cfis_m3s = (#{@fan_mfr_max_var[object].name} * #{vent_mech.cfis_vent_mode_airflow_fraction} / 1.16097654)") # Density of 1.16097654 was back calculated using E+ results
+          duct_program.addLine("  Set #{@fan_rtf_var[object].name} = #{@cfis_f_damper_extra_open_var[cfis_id].name}") # Need to use global vars to sync duct_program and infiltration program of different calling points
+          duct_program.addLine("  Set #{ah_vfr_var.name} = #{@fan_rtf_var[object].name}*cfis_m3s")
+          duct_program.addLine("  Set rho_in = (@RhoAirFnPbTdbW #{@pbar_sensor.name} #{@tin_sensor.name} #{@win_sensor.name})")
+          duct_program.addLine("  Set #{ah_mfr_var.name} = #{ah_vfr_var.name} * rho_in")
+          duct_program.addLine("  Set #{ah_tout_var.name} = #{ra_t_sensor.name}")
+          duct_program.addLine("  Set #{ah_wout_var.name} = #{ra_w_sensor.name}")
+          duct_program.addLine("  Set #{ra_t_var.name} = #{ra_t_sensor.name}")
+          duct_program.addLine("  Set #{ra_w_var.name} = #{ra_w_sensor.name}")
+          duct_program.addLine("  Run #{duct_subroutine.name}")
+          duct_program.addLine("  Set #{duct_actuators['cfis_supply_sens_lk_to_liv'].name} = #{duct_vars['supply_sens_lk_to_liv'].name}")
+          duct_program.addLine("  Set #{duct_actuators['cfis_supply_lat_lk_to_liv'].name} = #{duct_vars['supply_lat_lk_to_liv'].name}")
+          duct_program.addLine("  Set #{duct_actuators['cfis_supply_cond_to_liv'].name} = #{duct_vars['supply_cond_to_liv'].name}")
+          duct_program.addLine("  Set #{duct_actuators['cfis_return_sens_lk_to_rp'].name} = #{duct_vars['return_sens_lk_to_rp'].name}")
+          duct_program.addLine("  Set #{duct_actuators['cfis_return_lat_lk_to_rp'].name} = #{duct_vars['return_lat_lk_to_rp'].name}")
+          duct_program.addLine("  Set #{duct_actuators['cfis_return_cond_to_rp'].name} = #{duct_vars['return_cond_to_rp'].name}")
+          duct_program.addLine("  Set #{duct_actuators['cfis_return_cond_to_dz'].name} = #{duct_vars['return_cond_to_dz'].name}")
+          duct_program.addLine("  Set #{duct_actuators['cfis_supply_cond_to_dz'].name} = #{duct_vars['supply_cond_to_dz'].name}")
+          duct_program.addLine("  Set #{duct_actuators['cfis_supply_sens_lk_to_dz'].name} = #{duct_vars['supply_sens_lk_to_dz'].name}")
+          duct_program.addLine("  Set #{duct_actuators['cfis_supply_lat_lk_to_dz'].name} = #{duct_vars['supply_lat_lk_to_dz'].name}")
+          if not duct_actuators['dz_to_liv_flow_rate'].nil?
+            duct_program.addLine("  Set #{duct_actuators['cfis_dz_to_liv_flow_rate'].name} = #{duct_vars['dz_to_liv_flow_rate'].name}")
+          end
+          if not duct_actuators['liv_to_dz_flow_rate'].nil?
+            duct_program.addLine("  Set #{duct_actuators['cfis_liv_to_dz_flow_rate'].name} = #{duct_vars['liv_to_dz_flow_rate'].name}")
+          end
+          duct_program.addLine('Else')
         end
-        if not duct_actuators['liv_to_dz_flow_rate'].nil?
-          duct_program.addLine("  Set #{duct_actuators['cfis_liv_to_dz_flow_rate'].name} = #{duct_vars['liv_to_dz_flow_rate'].name}")
-        end
-        duct_program.addLine('Else')
         duct_program.addLine("  Set #{duct_actuators['cfis_supply_sens_lk_to_liv'].name} = 0")
         duct_program.addLine("  Set #{duct_actuators['cfis_supply_lat_lk_to_liv'].name} = 0")
         duct_program.addLine("  Set #{duct_actuators['cfis_supply_cond_to_liv'].name} = 0")
@@ -1105,7 +1121,9 @@ class Airflow
         if not duct_actuators['liv_to_dz_flow_rate'].nil?
           duct_program.addLine("  Set #{duct_actuators['cfis_liv_to_dz_flow_rate'].name} = 0")
         end
-        duct_program.addLine('EndIf')
+        if add_cfis_duct_losses
+          duct_program.addLine('EndIf')
+        end
 
       end
 
@@ -1349,60 +1367,110 @@ class Airflow
     return hrv_erv_effectiveness_map
   end
 
-  def self.apply_cfis(infil_program, vent_mech_fans, cfis_fan_actuator)
-    infil_program.addLine('Set QWHV_cfis_oa = 0.0')
+  def self.apply_cfis(infil_program, vent_mech_fans, cfis_fan_actuator, cfis_suppl_fan_actuator)
+    infil_program.addLine('Set QWHV_cfis_sup = 0.0') # CFIS supply outdoor airflow rate
+    infil_program.addLine('Set QWHV_cfis_suppl_sup = 0.0') # CFIS supplemental fan supply outdoor airflow rate
+    infil_program.addLine('Set QWHV_cfis_suppl_exh = 0.0') # CFIS supplemental fan exhaust outdoor airflow rate
 
     vent_mech_fans.each do |vent_mech|
       infil_program.addLine('Set fan_rtf_hvac = 0')
       @fan_rtf_sensor[@cfis_airloop[vent_mech.id]].each do |rtf_sensor|
         infil_program.addLine("Set fan_rtf_hvac = fan_rtf_hvac + #{rtf_sensor.name}")
       end
-      infil_program.addLine("Set CFIS_fan_w = #{vent_mech.unit_fan_power}") # W
+      infil_program.addLine("Set cfis_fan_w = #{vent_mech.unit_fan_power}") # W
 
       infil_program.addLine('If @ABS(Minute - ZoneTimeStep*60) < 0.1')
       infil_program.addLine("  Set #{@cfis_t_sum_open_var[vent_mech.id].name} = 0") # New hour, time on summation re-initializes to 0
       infil_program.addLine('EndIf')
 
       cfis_open_time = [vent_mech.hours_in_operation / 24.0 * 60.0, 59.999].min # Minimum open time in minutes
-      infil_program.addLine("Set CFIS_t_min_hr_open = #{cfis_open_time}") # minutes per hour the CFIS damper is open
-      infil_program.addLine("Set CFIS_Q_duct_oa = #{UnitConversions.convert(vent_mech.oa_unit_flow_rate, 'cfm', 'm^3/s')}")
+      infil_program.addLine("Set cfis_t_min_hr_open = #{cfis_open_time}") # minutes per hour the CFIS damper is open
+      infil_program.addLine("Set cfis_Q_duct_oa = #{UnitConversions.convert(vent_mech.oa_unit_flow_rate, 'cfm', 'm^3/s')}")
       infil_program.addLine('Set cfis_f_damper_open = 0') # fraction of the timestep the CFIS damper is open
       infil_program.addLine("Set #{@cfis_f_damper_extra_open_var[vent_mech.id].name} = 0") # additional runtime fraction to meet min/hr
 
-      infil_program.addLine("If #{@cfis_t_sum_open_var[vent_mech.id].name} < CFIS_t_min_hr_open")
-      infil_program.addLine("  Set CFIS_t_fan_on = 60 - (CFIS_t_min_hr_open - #{@cfis_t_sum_open_var[vent_mech.id].name})") # minute at which the blower needs to turn on to meet the ventilation requirements
+      infil_program.addLine("If #{@cfis_t_sum_open_var[vent_mech.id].name} < cfis_t_min_hr_open")
+      infil_program.addLine("  Set cfis_t_fan_on = 60 - (cfis_t_min_hr_open - #{@cfis_t_sum_open_var[vent_mech.id].name})") # minute at which the blower needs to turn on to meet the ventilation requirements
       # Evaluate condition of whether supply fan has to run to achieve target minutes per hour of operation
-      infil_program.addLine('  If (Minute+0.00001) >= CFIS_t_fan_on')
-      # Consider fan rtf read in current calling point (results of previous time step) + CFIS_t_fan_on based on min/hr requirement and previous EMS results.
-      infil_program.addLine('    Set cfis_fan_runtime = @Max (@ABS(Minute - CFIS_t_fan_on)) (fan_rtf_hvac * ZoneTimeStep * 60)')
+      infil_program.addLine('  If (Minute+0.00001) >= cfis_t_fan_on')
+      # Consider fan rtf read in current calling point (results of previous time step) + cfis_t_fan_on based on min/hr requirement and previous EMS results.
+      infil_program.addLine('    Set cfis_fan_runtime = @Max (@ABS(Minute - cfis_t_fan_on)) (fan_rtf_hvac * ZoneTimeStep * 60)')
       # If fan_rtf_hvac, make sure it's not exceeding ventilation requirements
-      infil_program.addLine("    Set cfis_fan_runtime = @Min cfis_fan_runtime (CFIS_t_min_hr_open - #{@cfis_t_sum_open_var[vent_mech.id].name})")
+      infil_program.addLine("    Set cfis_fan_runtime = @Min cfis_fan_runtime (cfis_t_min_hr_open - #{@cfis_t_sum_open_var[vent_mech.id].name})")
       infil_program.addLine('    Set cfis_f_damper_open = cfis_fan_runtime/(60.0*ZoneTimeStep)') # calculates the portion of the current timestep the CFIS damper needs to be open
       infil_program.addLine("    Set #{@cfis_t_sum_open_var[vent_mech.id].name} = #{@cfis_t_sum_open_var[vent_mech.id].name}+cfis_fan_runtime")
       infil_program.addLine("    Set #{@cfis_f_damper_extra_open_var[vent_mech.id].name} = @Max (cfis_f_damper_open-fan_rtf_hvac) 0.0")
-      infil_program.addLine("    Set #{cfis_fan_actuator.name} = #{cfis_fan_actuator.name} + CFIS_fan_w*#{@cfis_f_damper_extra_open_var[vent_mech.id].name}")
+      if vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeAirHandler
+        # Air handler meets additional runtime requirement
+        infil_program.addLine("    Set #{cfis_fan_actuator.name} = #{cfis_fan_actuator.name} + cfis_fan_w*#{@cfis_f_damper_extra_open_var[vent_mech.id].name}")
+      elsif vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeSupplementalFan
+        if vent_mech.cfis_supplemental_fan.oa_unit_flow_rate < vent_mech.average_total_unit_flow_rate
+          @runner.registerWarning("CFIS supplemental fan '#{vent_mech.cfis_supplemental_fan.id}' is undersized (#{vent_mech.cfis_supplemental_fan.oa_unit_flow_rate} cfm) compared to the target hourly ventilation rate (#{vent_mech.average_total_unit_flow_rate} cfm).")
+        end
+        infil_program.addLine("    Set cfis_suppl_Q_oa = #{UnitConversions.convert(vent_mech.cfis_supplemental_fan.oa_unit_flow_rate, 'cfm', 'm^3/s')}")
+        infil_program.addLine("    Set cfis_suppl_f = #{@cfis_f_damper_extra_open_var[vent_mech.id].name} / (cfis_suppl_Q_oa / cfis_Q_duct_oa)") # Calculate desired runtime for supplemental fan to provide remaining ventilation requirement
+        infil_program.addLine('    Set cfis_suppl_f = @Min cfis_suppl_f 1.0') # Ensure desired runtime does not exceed 100% (if the supplemental fan is undersized)
+        infil_program.addLine("    Set cfis_suppl_fan_w = #{vent_mech.cfis_supplemental_fan.unit_fan_power}") # W
+        infil_program.addLine("    Set #{cfis_suppl_fan_actuator.name} = #{cfis_suppl_fan_actuator.name} + cfis_suppl_fan_w*cfis_suppl_f")
+        if vent_mech.cfis_supplemental_fan.fan_type == HPXML::MechVentTypeSupply
+          infil_program.addLine('    Set QWHV_cfis_suppl_sup = QWHV_cfis_suppl_sup + cfis_suppl_f * cfis_suppl_Q_oa')
+        elsif vent_mech.cfis_supplemental_fan.fan_type == HPXML::MechVentTypeExhaust
+          infil_program.addLine('    Set QWHV_cfis_suppl_exh = QWHV_cfis_suppl_exh + cfis_suppl_f * cfis_suppl_Q_oa')
+        end
+      end
       infil_program.addLine('  Else')
       # No need to turn on blower for extra ventilation
       infil_program.addLine('    Set cfis_fan_runtime = fan_rtf_hvac*ZoneTimeStep*60')
-      infil_program.addLine("    If (#{@cfis_t_sum_open_var[vent_mech.id].name}+cfis_fan_runtime) > CFIS_t_min_hr_open")
+      infil_program.addLine("    If (#{@cfis_t_sum_open_var[vent_mech.id].name}+cfis_fan_runtime) > cfis_t_min_hr_open")
       # Damper is only open for a portion of this time step to achieve target minutes per hour
-      infil_program.addLine("      Set cfis_fan_runtime = CFIS_t_min_hr_open-#{@cfis_t_sum_open_var[vent_mech.id].name}")
+      infil_program.addLine("      Set cfis_fan_runtime = cfis_t_min_hr_open-#{@cfis_t_sum_open_var[vent_mech.id].name}")
       infil_program.addLine('      Set cfis_f_damper_open = cfis_fan_runtime/(ZoneTimeStep*60)')
-      infil_program.addLine("      Set #{@cfis_t_sum_open_var[vent_mech.id].name} = CFIS_t_min_hr_open")
+      infil_program.addLine("      Set #{@cfis_t_sum_open_var[vent_mech.id].name} = cfis_t_min_hr_open")
       infil_program.addLine('    Else')
       # Damper is open and using call for heat/cool to supply fresh air
       infil_program.addLine('      Set cfis_fan_runtime = fan_rtf_hvac*ZoneTimeStep*60')
       infil_program.addLine('      Set cfis_f_damper_open = fan_rtf_hvac')
       infil_program.addLine("      Set #{@cfis_t_sum_open_var[vent_mech.id].name} = #{@cfis_t_sum_open_var[vent_mech.id].name}+cfis_fan_runtime")
       infil_program.addLine('    EndIf')
-      # Fan power is metered under fan cooling and heating meters
       infil_program.addLine('  EndIf')
-      infil_program.addLine('  Set QWHV_cfis_oa = QWHV_cfis_oa + cfis_f_damper_open * CFIS_Q_duct_oa')
+
+      if vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeSupplementalFan
+        infil_program.addLine("  Set cfis_f_damper_open = @Max (cfis_f_damper_open-#{@cfis_f_damper_extra_open_var[vent_mech.id].name}) 0.0")
+      else
+      end
+      infil_program.addLine('  Set QWHV_cfis_sup = QWHV_cfis_sup + cfis_f_damper_open * cfis_Q_duct_oa')
+
       infil_program.addLine('EndIf')
     end
   end
 
-  def self.add_ee_for_vent_fan_power(model, obj_name, frac_lost, is_cfis, pow = 0.0)
+  def self.add_ee_for_vent_fan_power(model, obj_name, sup_fans = [], exh_fans = [], bal_fans = [], erv_hrv_fans = [])
+    # Calculate fan heat fraction
+    # 1.0: Fan heat does not enter space (e.g., exhaust)
+    # 0.0: Fan heat does enter space (e.g., supply)
+    if obj_name == Constants.ObjectNameMechanicalVentilationHouseFanCFIS
+      fan_heat_lost_fraction = 0.0
+    else
+      # Calculate total fan power
+      if obj_name == Constants.ObjectNameMechanicalVentilationHouseFanCFISSupplFan
+        sup_fans_w = sup_fans.map { |f| f.unit_fan_power }.sum(0.0)
+        exh_fans_w = exh_fans.map { |f| f.unit_fan_power }.sum(0.0)
+        bal_fans_w = (bal_fans + erv_hrv_fans).map { |f| f.unit_fan_power }.sum(0.0)
+      else
+        sup_fans_w = sup_fans.map { |f| f.average_unit_fan_power }.sum(0.0)
+        exh_fans_w = exh_fans.map { |f| f.average_unit_fan_power }.sum(0.0)
+        bal_fans_w = (bal_fans + erv_hrv_fans).map { |f| f.average_unit_fan_power }.sum(0.0)
+      end
+      tot_fans_w = sup_fans_w + exh_fans_w + bal_fans_w
+
+      # Calculate weighted-average value
+      if tot_fans_w > 0.0
+        fan_heat_lost_fraction = (1.0 * exh_fans_w + 0.0 * sup_fans_w + 0.5 * bal_fans_w) / tot_fans_w
+      else
+        fan_heat_lost_fraction = 1.0
+      end
+    end
+
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     equip_def.setName(obj_name)
     equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
@@ -1412,17 +1480,18 @@ class Airflow
     equip_def.setFractionLatent(0)
     equip.setSchedule(model.alwaysOnDiscreteSchedule)
     equip.setEndUseSubcategory(Constants.ObjectNameMechanicalVentilation)
-    equip_def.setFractionLost(frac_lost)
-    vent_mech_fan_actuator = nil
-    if is_cfis # actuate its power level in EMS
-      equip_def.setFractionLost(0.0) # Fan heat does enter space
-      vent_mech_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, *EPlus::EMSActuatorElectricEquipmentPower)
-      vent_mech_fan_actuator.setName("#{equip.name} act")
-    else
-      equip_def.setDesignLevel(pow)
+    equip_def.setFractionLost(fan_heat_lost_fraction)
+    equip_actuator = nil
+    if [Constants.ObjectNameMechanicalVentilationHouseFanCFIS,
+        Constants.ObjectNameMechanicalVentilationHouseFanCFISSupplFan].include? obj_name # actuate its power level in EMS
+      equip_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, *EPlus::EMSActuatorElectricEquipmentPower)
+      equip_actuator.setName("#{equip.name} act")
+    end
+    if not tot_fans_w.nil?
+      equip_def.setDesignLevel(tot_fans_w)
     end
 
-    return vent_mech_fan_actuator
+    return equip_actuator
   end
 
   def self.setup_mech_vent_vars_actuators(model:, program:)
@@ -1449,8 +1518,14 @@ class Airflow
     return fan_sens_load_actuator, fan_lat_load_actuator
   end
 
-  def self.apply_infiltration_adjustment_to_conditioned(model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                        sup_cfm_tot, exh_cfm_tot, bal_cfm_tot, erv_hrv_cfm_tot, infil_flow_actuator, schedules_file)
+  def self.apply_infiltration_adjustment_to_conditioned(model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers, vent_mech_sup_tot,
+                                                        vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot, infil_flow_actuator, schedules_file)
+    # Average in-unit CFMs (include recirculation from in unit CFMs for shared systems)
+    sup_cfm_tot = vent_mech_sup_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
+    exh_cfm_tot = vent_mech_exh_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
+    bal_cfm_tot = vent_mech_bal_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
+    erv_hrv_cfm_tot = vent_mech_erv_hrv_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
+
     infil_program.addLine('Set Qrange = 0')
     vent_fans_kitchen.each_with_index do |vent_kitchen, index|
       # Electricity impact
@@ -1478,12 +1553,11 @@ class Airflow
       infil_program.addLine("Set Qdryer = Qdryer + #{UnitConversions.convert(vented_dryer.vented_flow_rate * cfm_mult, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
 
-    infil_program.addLine("Set QWHV_sup = #{UnitConversions.convert(sup_cfm_tot, 'cfm', 'm^3/s').round(5)}")
-    infil_program.addLine("Set QWHV_exh = #{UnitConversions.convert(exh_cfm_tot, 'cfm', 'm^3/s').round(5)}")
-    infil_program.addLine("Set QWHV_bal_erv_hrv = #{UnitConversions.convert(bal_cfm_tot + erv_hrv_cfm_tot, 'cfm', 'm^3/s').round(5)}")
+    infil_program.addLine("Set QWHV_sup = #{UnitConversions.convert(sup_cfm_tot + bal_cfm_tot + erv_hrv_cfm_tot, 'cfm', 'm^3/s').round(5)}")
+    infil_program.addLine("Set QWHV_exh = #{UnitConversions.convert(exh_cfm_tot + bal_cfm_tot + erv_hrv_cfm_tot, 'cfm', 'm^3/s').round(5)}")
 
-    infil_program.addLine('Set Qexhaust = Qrange + Qbath + Qdryer + QWHV_exh + QWHV_bal_erv_hrv')
-    infil_program.addLine('Set Qsupply = QWHV_sup + QWHV_bal_erv_hrv + QWHV_cfis_oa')
+    infil_program.addLine('Set Qexhaust = Qrange + Qbath + Qdryer + QWHV_exh + QWHV_cfis_suppl_exh')
+    infil_program.addLine('Set Qsupply = QWHV_sup + QWHV_cfis_sup + QWHV_cfis_suppl_sup')
     infil_program.addLine('Set Qfan = (@Max Qexhaust Qsupply)')
     if Constants.ERIVersions.index(@eri_version) >= Constants.ERIVersions.index('2019')
       # Follow ASHRAE 62.2-2016, Normative Appendix C equations for time-varying total airflow
@@ -1509,7 +1583,7 @@ class Airflow
   end
 
   def self.calculate_fan_loads(infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, q_var, preconditioned = false)
-    # Variables for combined effectivenesses
+    # Variables for combined effectiveness
     infil_program.addLine('Set Effectiveness_Sens = 0.0')
     infil_program.addLine('Set Effectiveness_Lat = 0.0')
 
@@ -1524,8 +1598,11 @@ class Airflow
       # Therefore ERV is modeled within EMS infiltration program
       infil_program.addLine("If #{q_var} > 0")
       vent_mech_erv_hrv_tot.each do |vent_fan|
-        infil_program.addLine("  Set Effectiveness_Sens = Effectiveness_Sens + #{UnitConversions.convert(vent_fan.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)} / #{q_var} * #{hrv_erv_effectiveness_map[vent_fan][:vent_mech_sens_eff]}")
-        infil_program.addLine("  Set Effectiveness_Lat = Effectiveness_Lat + #{UnitConversions.convert(vent_fan.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)} / #{q_var} * #{hrv_erv_effectiveness_map[vent_fan][:vent_mech_lat_eff]}")
+        sens_eff = hrv_erv_effectiveness_map[vent_fan][:vent_mech_sens_eff]
+        lat_eff = hrv_erv_effectiveness_map[vent_fan][:vent_mech_lat_eff]
+        avg_oa_m3s = UnitConversions.convert(vent_fan.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)
+        infil_program.addLine("  Set Effectiveness_Sens = Effectiveness_Sens + #{avg_oa_m3s} / #{q_var} * #{sens_eff}")
+        infil_program.addLine("  Set Effectiveness_Lat = Effectiveness_Lat + #{avg_oa_m3s} / #{q_var} * #{lat_eff}")
       end
       infil_program.addLine('EndIf')
       infil_program.addLine('Set ERVCpMin = (@Min OASupCp ZoneCp)')
@@ -1619,7 +1696,7 @@ class Airflow
   end
 
   def self.apply_infiltration_ventilation_to_conditioned(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                         has_flue_chimney, clg_ssn_sensor, schedules_file)
+                                                         has_flue_chimney, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl)
     # Categorize fans into different types
     vent_mech_preheat = vent_fans_mech.select { |vent_mech| (not vent_mech.preheating_efficiency_cop.nil?) }
     vent_mech_precool = vent_fans_mech.select { |vent_mech| (not vent_mech.precooling_efficiency_cop.nil?) }
@@ -1631,30 +1708,23 @@ class Airflow
     vent_mech_erv_hrv_tot = vent_fans_mech.select { |vent_mech| [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include? vent_mech.fan_type }
 
     # Non-CFIS fan power
-    sup_vent_mech_fan_w = vent_mech_sup_tot.map { |vent_mech| vent_mech.average_unit_fan_power }.sum(0.0)
-    exh_vent_mech_fan_w = vent_mech_exh_tot.map { |vent_mech| vent_mech.average_unit_fan_power }.sum(0.0)
-
-    # ERV/HRV and balanced system fan power combined altogether
-    bal_vent_mech_fan_w = (vent_mech_bal_tot + vent_mech_erv_hrv_tot).map { |vent_mech| vent_mech.average_unit_fan_power }.sum(0.0)
-    total_sup_exh_bal_w = sup_vent_mech_fan_w + exh_vent_mech_fan_w + bal_vent_mech_fan_w
-    # 1.0: Fan heat does not enter space, 0.0: Fan heat does enter space, 0.5: Supply fan heat enters space
-    if total_sup_exh_bal_w > 0.0
-      fan_heat_lost_fraction = (1.0 * exh_vent_mech_fan_w + 0.0 * sup_vent_mech_fan_w + 0.5 * bal_vent_mech_fan_w) / total_sup_exh_bal_w
-    else
-      fan_heat_lost_fraction = 1.0
-    end
-    add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFan, fan_heat_lost_fraction, false, total_sup_exh_bal_w)
+    add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFan,
+                              vent_mech_sup_tot, vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot)
 
     # CFIS fan power
-    cfis_fan_actuator = add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFanCFIS, 0.0, true)
+    cfis_fan_actuator = add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFanCFIS) # Fan heat enters space
 
-    # Average in-unit cfms (include recirculation from in unit cfms for shared systems)
-    sup_cfm_tot = vent_mech_sup_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
-    exh_cfm_tot = vent_mech_exh_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
-    bal_cfm_tot = vent_mech_bal_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
-    erv_hrv_cfm_tot = vent_mech_erv_hrv_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
+    # CFIS supplemental fan power
+    if not vent_fans_cfis_suppl.empty?
+      vent_mech_cfis_suppl_sup_tot = vent_fans_cfis_suppl.select { |vent_mech| vent_mech.fan_type == HPXML::MechVentTypeSupply }
+      vent_mech_cfis_suppl_exh_tot = vent_fans_cfis_suppl.select { |vent_mech| vent_mech.fan_type == HPXML::MechVentTypeExhaust }
+      cfis_suppl_fan_actuator = add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFanCFISSupplFan,
+                                                          vent_mech_cfis_suppl_sup_tot, vent_mech_cfis_suppl_exh_tot)
+    else
+      cfis_suppl_fan_actuator = nil
+    end
 
-    # Calculate effectivenesses for all ERV/HRV and store results in a hash
+    # Calculate effectiveness for all ERV/HRV and store results in a hash
     hrv_erv_effectiveness_map = calc_hrv_erv_effectiveness(vent_mech_erv_hrv_tot)
 
     infil_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
@@ -1676,19 +1746,23 @@ class Airflow
 
     # Apply CFIS
     infil_program.addLine("Set #{cfis_fan_actuator.name} = 0.0")
-    apply_cfis(infil_program, vent_mech_cfis_tot, cfis_fan_actuator)
+    infil_program.addLine("Set #{cfis_suppl_fan_actuator.name} = 0.0") unless cfis_suppl_fan_actuator.nil?
+    apply_cfis(infil_program, vent_mech_cfis_tot, cfis_fan_actuator, cfis_suppl_fan_actuator)
 
     # Calculate Qfan, Qinf_adj
     # Calculate adjusted infiltration based on mechanical ventilation system
-    apply_infiltration_adjustment_to_conditioned(model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                 sup_cfm_tot, exh_cfm_tot, bal_cfm_tot, erv_hrv_cfm_tot, infil_flow_actuator, schedules_file)
+    apply_infiltration_adjustment_to_conditioned(model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers, vent_mech_sup_tot,
+                                                 vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot, infil_flow_actuator, schedules_file)
 
     # Address load of Qfan (Qload)
     # Qload as variable for tracking outdoor air flow rate, excluding recirculation
     infil_program.addLine('Set Qload = Qfan')
     vent_fans_mech.each do |f|
+      recirc_flow_rate = f.average_total_unit_flow_rate - f.average_oa_unit_flow_rate
+      next unless recirc_flow_rate > 0
+
       # Subtract recirculation air flow rate from Qfan, only come from supply side as exhaust is not allowed to have recirculation
-      infil_program.addLine("Set Qload = Qload - #{UnitConversions.convert(f.average_total_unit_flow_rate - f.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)}")
+      infil_program.addLine("Set Qload = Qload - #{UnitConversions.convert(recirc_flow_rate, 'cfm', 'm^3/s').round(4)}")
     end
     calculate_fan_loads(infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, 'Qload')
 
@@ -1702,7 +1776,8 @@ class Airflow
   end
 
   def self.apply_infiltration_and_ventilation_fans(model, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                   has_flue_chimney, air_infils, vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
+                                                   has_flue_chimney, air_infils, vented_attic, vented_crawl, clg_ssn_sensor, schedules_file,
+                                                   vent_fans_cfis_suppl)
     # Get living space infiltration
     living_ach50 = nil
     living_const_ach = nil
@@ -1733,7 +1808,7 @@ class Airflow
 
     # Infiltration/ventilation for conditioned space
     apply_infiltration_ventilation_to_conditioned(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                  has_flue_chimney, clg_ssn_sensor, schedules_file)
+                                                  has_flue_chimney, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl)
   end
 
   def self.apply_infiltration_to_conditioned(site, living_ach50, living_const_ach, infil_program, weather, has_flue_chimney)
