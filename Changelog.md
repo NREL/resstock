@@ -28,11 +28,11 @@ __New Features__
   - Adds optional arguments for utility bill scenarios.
 - ReportUtilityBills measure:
   - Removes utility rate and PV related arguments in lieu of new utility bill scenarios described inside the HPXML file.
-- Allows shared dishwasher/clothes washer to be attached to a hot water distribution system instead of a single water heater.
 - New capabilities for hourly/sub-hourly scheduling via schedule CSV files:
   - Detailed HVAC seasons.
   - Detailed natural ventilation for operable windows.
   - Detailed dehumidifier availability schedule.
+  - Detailed whole/local ventilation and whole house fans.
 - BuildResidentialScheduleFile measure:
   - Adds optional argument for specifying a power outage period.
   - Adds optional argument for controlling natural ventilation availability during a power outage period.
