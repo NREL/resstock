@@ -324,7 +324,7 @@
 				<xs:sequence>
 					<xs:element name="InsulationDepth" type="LengthMeasurement" minOccurs="0">
 						<xs:annotation>
-							<xs:documentation>[ft] Depth from grade to bottom of vertical slab perimeter insulation</xs:documentation>
+							<xs:documentation>[ft] Depth from top of slab to bottom of vertical slab perimeter insulation</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:element ref="extension" minOccurs="0"/>
@@ -588,11 +588,6 @@
 						</xs:annotation>
 					</xs:element>
 					<xs:element minOccurs="0" name="Location" type="AdjacentTo"/>
-					<xs:element minOccurs="0" name="Efficiency" type="HPXMLDouble">
-						<xs:annotation>
-							<xs:documentation>[L/kWh] DEPRECATED. This will be removed in v4.0. Use EnergyFactor or IntegratedEnergyFactor instead.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
 					<xs:element minOccurs="0" name="Capacity" type="HPXMLDouble">
 						<xs:annotation>
 							<xs:documentation>Rated water removal rate. This represents the expected performance in a basement for portable dehumidifiers and expected performance in the average home for whole-home dehumifiiers. [pints/day]</xs:documentation>
@@ -1517,6 +1512,31 @@
 													</xs:annotation>
 												</xs:element>
 												<xs:element minOccurs="0" name="FanType" type="VentilationFanType"/>
+												<xs:element minOccurs="0" name="CFISControls">
+													<xs:annotation>
+														<xs:documentation>Relevant when FanType="central fan integrated supply".</xs:documentation>
+													</xs:annotation>
+													<xs:complexType>
+														<xs:sequence>
+															<xs:element minOccurs="0" name="HasOutdoorAirControl" type="HPXMLBoolean">
+																<xs:annotation>
+																	<xs:documentation>Has controls to block the flow of outside air when the CFIS system is not ventilating. For example, an electronically-controlled mechanical damper, or an in-line fan that substantially blocks the flow when not running.</xs:documentation>
+																</xs:annotation>
+															</xs:element>
+															<xs:element minOccurs="0" name="AdditionalRuntimeOperatingMode" type="AdditionalRuntimeOperatingMode">
+																<xs:annotation>
+																	<xs:documentation>Describes if/how the CFIS system provides additional ventilation beyond when the HVAC system is running to meet a given ventilation target.</xs:documentation>
+																</xs:annotation>
+															</xs:element>
+															<xs:element name="SupplementalFan" type="LocalReference" minOccurs="0" maxOccurs="1">
+																<xs:annotation>
+																	<xs:documentation>When AdditionalRuntimeOperatingMode="supplemental fan", specifies the VentilationFan that serves as that supplemental fan.</xs:documentation>
+																</xs:annotation>
+															</xs:element>
+															<xs:element minOccurs="0" ref="extension"/>
+														</xs:sequence>
+													</xs:complexType>
+												</xs:element>
 												<xs:element minOccurs="0" name="RatedFlowRate" type="HPXMLDouble">
 													<xs:annotation>
 														<xs:documentation>[CFM] as rated by manufacturer</xs:documentation>
@@ -1687,7 +1707,12 @@
 									<xs:element minOccurs="0" name="ThirdPartyCertification" type="DHWThirdPartyCertification" maxOccurs="unbounded"/>
 									<xs:element name="TankVolume" type="Volume" minOccurs="0">
 										<xs:annotation>
-											<xs:documentation>[gal]</xs:documentation>
+											<xs:documentation>[gal] Nominal capacity</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="MeasuredTankVolume" type="Volume" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>[gal] Measured capacity</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="FractionDHWLoadServed" type="Fraction"/>
@@ -1875,7 +1900,7 @@
 																		longitudinally from plans, assuming the hot water piping does not run diagonally. [ft]</xs:documentation>
 																</xs:annotation>
 															</xs:element>
-															<xs:element minOccurs="0" name="BranchPipingLoopLength" type="LengthMeasurement">
+															<xs:element minOccurs="0" name="BranchPipingLength" type="LengthMeasurement">
 																<xs:annotation>
 																	<xs:documentation>Length of the branch hot water piping from the recirculation loop to the farthest hot water fixture from the
 																		recirculation loop, measured longitudinally from plans, assuming the branch hot water piping does not run diagonally, plus 20
@@ -2136,6 +2161,12 @@
 									<xs:element minOccurs="0" name="ModelNumber" type="Model"/>
 									<xs:element minOccurs="0" name="SerialNumber" type="HPXMLString"/>
 									<xs:element minOccurs="0" ref="ConnectedDevice"/>
+									<xs:element minOccurs="0" name="YearInstalled" type="Year"/>
+									<xs:element minOccurs="0" name="Count" type="IntegerGreaterThanZero">
+										<xs:annotation>
+											<xs:documentation>Number of similar batteries.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
 									<xs:element minOccurs="0" name="Location" type="BatteryLocation"/>
 									<xs:element minOccurs="0" name="GridConnected" type="HPXMLBoolean">
 										<xs:annotation>

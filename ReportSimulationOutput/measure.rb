@@ -1444,6 +1444,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
     @hpxml.ventilation_fans.each do |vent_fan|
       next unless vent_fan.used_for_whole_building_ventilation
+      next if vent_fan.is_cfis_supplemental_fan?
 
       if not vent_fan.preheating_fuel.nil?
         prehtg_ids << vent_fan.id

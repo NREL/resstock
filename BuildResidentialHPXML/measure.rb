@@ -4987,6 +4987,7 @@ class HPXMLFile
 
           distribution_system_idref = hvac_distribution.id
         end
+        cfis_addtl_runtime_operating_mode = HPXML::CFISModeAirHandler
       end
 
       if args[:mech_vent_num_units_served] > 1
@@ -5019,6 +5020,7 @@ class HPXMLFile
 
       hpxml.ventilation_fans.add(id: "VentilationFan#{hpxml.ventilation_fans.size + 1}",
                                  fan_type: args[:mech_vent_fan_type],
+                                 cfis_addtl_runtime_operating_mode: cfis_addtl_runtime_operating_mode,
                                  rated_flow_rate: rated_flow_rate,
                                  hours_in_operation: hours_in_operation,
                                  used_for_whole_building_ventilation: true,
