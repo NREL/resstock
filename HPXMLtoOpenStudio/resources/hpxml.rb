@@ -80,6 +80,9 @@ class HPXML < Object
   CertificationEnergyStar = 'Energy Star'
   ClothesDryerControlTypeMoisture = 'moisture'
   ClothesDryerControlTypeTimer = 'timer'
+  CFISModeAirHandler = 'air handler fan'
+  CFISModeNone = 'none'
+  CFISModeSupplementalFan = 'supplemental fan'
   ColorDark = 'dark'
   ColorLight = 'light'
   ColorMedium = 'medium'
@@ -4419,7 +4422,8 @@ class HPXML < Object
              :is_shared_system, :in_unit_flow_rate, :fraction_recirculation, :used_for_garage_ventilation,
              :preheating_fuel, :preheating_efficiency_cop, :preheating_fraction_load_served, :precooling_fuel,
              :precooling_efficiency_cop, :precooling_fraction_load_served, :calculated_flow_rate,
-             :delivered_ventilation, :cfis_vent_mode_airflow_fraction]
+             :delivered_ventilation, :cfis_vent_mode_airflow_fraction, :cfis_addtl_runtime_operating_mode,
+             :cfis_supplemental_fan_idref]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -4535,6 +4539,41 @@ class HPXML < Object
       return false
     end
 
+    def cfis_supplemental_fan
+      return if @cfis_supplemental_fan_idref.nil?
+      return unless @fan_type == MechVentTypeCFIS
+
+      @hpxml_object.ventilation_fans.each do |ventilation_fan|
+        next unless ventilation_fan.id == @cfis_supplemental_fan_idref
+
+        if not [MechVentTypeSupply, MechVentTypeExhaust].include? ventilation_fan.fan_type
+          fail "CFIS supplemental fan '#{ventilation_fan.id}' must be of type '#{MechVentTypeSupply}' or '#{MechVentTypeExhaust}'."
+        end
+        if not ventilation_fan.used_for_whole_building_ventilation
+          fail "CFIS supplemental fan '#{ventilation_fan.id}' must be set as used for whole building ventilation."
+        end
+        if ventilation_fan.is_shared_system
+          fail "CFIS supplemental fan '#{ventilation_fan.id}' cannot be a shared system."
+        end
+        if not ventilation_fan.hours_in_operation.nil?
+          fail "CFIS supplemental fan '#{ventilation_fan.id}' cannot have HoursInOperation specified."
+        end
+
+        return ventilation_fan
+      end
+      fail "CFIS Supplemental Fan '#{@cfis_supplemental_fan_idref}' not found for ventilation fan '#{@id}'."
+    end
+
+    def is_cfis_supplemental_fan?
+      @hpxml_object.ventilation_fans.each do |ventilation_fan|
+        next unless ventilation_fan.fan_type == MechVentTypeCFIS
+        next unless ventilation_fan.cfis_supplemental_fan_idref == @id
+
+        return true
+      end
+      return false
+    end
+
     def delete
       @hpxml_object.ventilation_fans.delete(self)
     end
@@ -4544,6 +4583,7 @@ class HPXML < Object
       begin; distribution_system; rescue StandardError => e; errors << e.message; end
       begin; oa_unit_flow_rate; rescue StandardError => e; errors << e.message; end
       begin; unit_flow_rate_ratio; rescue StandardError => e; errors << e.message; end
+      begin; cfis_supplemental_fan; rescue StandardError => e; errors << e.message; end
       return errors
     end
 
@@ -4556,6 +4596,14 @@ class HPXML < Object
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(ventilation_fan, 'Quantity', @quantity, :integer, @quantity_isdefaulted) unless @quantity.nil?
       XMLHelper.add_element(ventilation_fan, 'FanType', @fan_type, :string) unless @fan_type.nil?
+      if (not @cfis_addtl_runtime_operating_mode.nil?) || (not @cfis_supplemental_fan_idref.nil?)
+        cfis_controls = XMLHelper.add_element(ventilation_fan, 'CFISControls')
+        XMLHelper.add_element(cfis_controls, 'AdditionalRuntimeOperatingMode', @cfis_addtl_runtime_operating_mode, :string, @cfis_addtl_runtime_operating_mode_isdefaulted) unless @cfis_addtl_runtime_operating_mode.nil?
+        if not @cfis_supplemental_fan_idref.nil?
+          supplemental_fan = XMLHelper.add_element(cfis_controls, 'SupplementalFan')
+          XMLHelper.add_attribute(supplemental_fan, 'idref', @cfis_supplemental_fan_idref)
+        end
+      end
       XMLHelper.add_element(ventilation_fan, 'RatedFlowRate', @rated_flow_rate, :float, @rated_flow_rate_isdefaulted) unless @rated_flow_rate.nil?
       XMLHelper.add_element(ventilation_fan, 'CalculatedFlowRate', @calculated_flow_rate, :float, @calculated_flow_rate_isdefaulted) unless @calculated_flow_rate.nil?
       XMLHelper.add_element(ventilation_fan, 'TestedFlowRate', @tested_flow_rate, :float, @tested_flow_rate_isdefaulted) unless @tested_flow_rate.nil?
@@ -4635,6 +4683,8 @@ class HPXML < Object
       @flow_rate_not_tested = XMLHelper.get_value(ventilation_fan, 'extension/FlowRateNotTested', :boolean)
       @fan_power_defaulted = XMLHelper.get_value(ventilation_fan, 'extension/FanPowerDefaulted', :boolean)
       @cfis_vent_mode_airflow_fraction = XMLHelper.get_value(ventilation_fan, 'extension/VentilationOnlyModeAirflowFraction', :float)
+      @cfis_addtl_runtime_operating_mode = XMLHelper.get_value(ventilation_fan, 'CFISControls/AdditionalRuntimeOperatingMode', :string)
+      @cfis_supplemental_fan_idref = HPXML::get_idref(XMLHelper.get_element(ventilation_fan, 'CFISControls/SupplementalFan'))
     end
   end
 

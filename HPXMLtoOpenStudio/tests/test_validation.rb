@@ -177,6 +177,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'invalid-ventilation-fan' => ['Expected 1 element(s) for xpath: UsedForWholeBuildingVentilation[text()="true"] | UsedForLocalVentilation[text()="true"] | UsedForSeasonalCoolingLoadReduction[text()="true"] | UsedForGarageVentilation[text()="true"]'],
                             'invalid-window-height' => ['Expected DistanceToBottomOfWindow to be greater than DistanceToTopOfWindow [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0], id: "Window2"]'],
                             'lighting-fractions' => ['Expected sum(LightingGroup/FractionofUnitsInLocation) for Location="interior" to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails/Lighting]'],
+                            'missing-cfis-supplemental-fan' => ['Expected 1 element(s) for xpath: SupplementalFan'],
                             'missing-distribution-cfa-served' => ['Expected 1 element(s) for xpath: ../../../ConditionedFloorAreaServed [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[not(DuctSurfaceArea)], id: "HVACDistribution1"]'],
                             'missing-duct-area' => ['Expected 1 or more element(s) for xpath: FractionDuctArea | DuctSurfaceArea [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctLocation], id: "HVACDistribution1"]'],
                             'missing-duct-location' => ['Expected 0 element(s) for xpath: FractionDuctArea | DuctSurfaceArea [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[not(DuctLocation)], id: "HVACDistribution1"]'],
@@ -449,6 +450,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         int_cfl = hpxml.lighting_groups.select { |lg| lg.location == HPXML::LocationInterior && lg.lighting_type == HPXML::LightingTypeCFL }[0]
         int_cfl.fraction_of_units_in_location = 0.8
+      elsif ['missing-cfis-supplemental-fan'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-mechvent-cfis.xml'))
+        hpxml.ventilation_fans[0].cfis_addtl_runtime_operating_mode = HPXML::CFISModeSupplementalFan
       elsif ['missing-distribution-cfa-served'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.hvac_distributions[0].ducts[1].duct_surface_area = nil
@@ -683,9 +687,13 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     end
   end
 
-  def test_measure_error_messages
+  def test_ruby_error_messages
     # Test case => Error message
     all_expected_errors = { 'cfis-with-hydronic-distribution' => ["Attached HVAC distribution system 'HVACDistribution1' cannot be hydronic for ventilation fan 'VentilationFan1'."],
+                            'cfis-invalid-supplemental-fan' => ["CFIS supplemental fan 'VentilationFan2' must be of type 'supply only' or 'exhaust only'."],
+                            'cfis-invalid-supplemental-fan2' => ["CFIS supplemental fan 'VentilationFan2' must be set as used for whole building ventilation."],
+                            'cfis-invalid-supplemental-fan3' => ["CFIS supplemental fan 'VentilationFan2' cannot be a shared system."],
+                            'cfis-invalid-supplemental-fan4' => ["CFIS supplemental fan 'VentilationFan2' cannot have HoursInOperation specified."],
                             'dehumidifier-setpoints' => ['All dehumidifiers must have the same setpoint but multiple setpoints were specified.'],
                             'duplicate-id' => ["Duplicate SystemIdentifier IDs detected for 'Window1'."],
                             'emissions-duplicate-names' => ['Found multiple Emissions Scenarios with the Scenario Name='],
@@ -760,6 +768,25 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                    fan_type: HPXML::MechVentTypeCFIS,
                                    used_for_whole_building_ventilation: true,
                                    distribution_system_idref: hpxml.hvac_distributions[0].id)
+      elsif ['cfis-invalid-supplemental-fan'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-mechvent-cfis-supplemental-fan-exhaust.xml'))
+        suppl_fan = hpxml.ventilation_fans.select { |f| f.is_cfis_supplemental_fan? }[0]
+        suppl_fan.fan_type = HPXML::MechVentTypeBalanced
+      elsif ['cfis-invalid-supplemental-fan2'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-mechvent-cfis-supplemental-fan-exhaust.xml'))
+        suppl_fan = hpxml.ventilation_fans.select { |f| f.is_cfis_supplemental_fan? }[0]
+        suppl_fan.used_for_whole_building_ventilation = false
+        suppl_fan.used_for_garage_ventilation = true
+      elsif ['cfis-invalid-supplemental-fan3'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-mechvent-cfis-supplemental-fan-exhaust.xml'))
+        suppl_fan = hpxml.ventilation_fans.select { |f| f.is_cfis_supplemental_fan? }[0]
+        suppl_fan.is_shared_system = true
+        suppl_fan.fraction_recirculation = 0.0
+        suppl_fan.in_unit_flow_rate = suppl_fan.tested_flow_rate / 2.0
+      elsif ['cfis-invalid-supplemental-fan4'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-mechvent-cfis-supplemental-fan-exhaust.xml'))
+        suppl_fan = hpxml.ventilation_fans.select { |f| f.is_cfis_supplemental_fan? }[0]
+        suppl_fan.hours_in_operation = 12.0
       elsif ['dehumidifier-setpoints'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-appliances-dehumidifier-multiple.xml'))
         hpxml.dehumidifiers[-1].rh_setpoint = 0.55
@@ -1070,9 +1097,10 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     end
   end
 
-  def test_measure_warning_messages
+  def test_ruby_warning_messages
     # Test case => Error message
-    all_expected_warnings = { 'hvac-setpoint-adjustments' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
+    all_expected_warnings = { 'cfis-undersized-supplemental-fan' => ["CFIS supplemental fan 'VentilationFan2' is undersized (90.0 cfm) compared to the target hourly ventilation rate (110.0 cfm)."],
+                              'hvac-setpoint-adjustments' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
                               'hvac-setpoint-adjustments-daily-setbacks' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
                               'hvac-setpoint-adjustments-daily-schedules' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
                               'schedule-file-and-weekday-weekend-multipliers' => ["Both 'occupants' schedule file and weekday fractions provided; the latter will be ignored.",
@@ -1155,7 +1183,11 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     all_expected_warnings.each_with_index do |(warning_case, expected_warnings), i|
       puts "[#{i + 1}/#{all_expected_warnings.size}] Testing #{warning_case}..."
       # Create HPXML object
-      if ['hvac-setpoint-adjustments'].include? warning_case
+      if ['cfis-undersized-supplemental-fan'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-mechvent-cfis-supplemental-fan-exhaust.xml'))
+        suppl_fan = hpxml.ventilation_fans.select { |f| f.is_cfis_supplemental_fan? }[0]
+        suppl_fan.tested_flow_rate = 90.0
+      elsif ['hvac-setpoint-adjustments'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.hvac_controls[0].heating_setpoint_temp = 76.0
         hpxml.hvac_controls[0].cooling_setpoint_temp = 75.0

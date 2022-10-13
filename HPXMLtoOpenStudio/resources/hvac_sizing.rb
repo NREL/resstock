@@ -2005,7 +2005,9 @@ class HVACSizing
   end
 
   def self.get_ventilation_rates()
-    vent_fans_mech = @hpxml.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && f.flow_rate > 0 && f.hours_in_operation > 0 }
+    # If CFIS w/ supplemental fan, assume air handler is running most of the hour and can provide
+    # all ventilation needs (i.e., supplemental fan does not need to run), so skip supplement fan
+    vent_fans_mech = @hpxml.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && !f.is_cfis_supplemental_fan? && f.flow_rate > 0 && f.hours_in_operation > 0 }
     if vent_fans_mech.empty?
       return [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     end
@@ -2039,10 +2041,10 @@ class HVACSizing
     tot_unbal_cfm = (tot_sup_cfm - tot_exh_cfm).abs
     tot_bal_cfm = [tot_exh_cfm, tot_sup_cfm].min
 
-    # Calculate effectivenesses for all ERV/HRV and store results in a hash
+    # Calculate effectiveness for all ERV/HRV and store results in a hash
     hrv_erv_effectiveness_map = Airflow.calc_hrv_erv_effectiveness(vent_mech_erv_hrv_tot)
 
-    # Calculate cfm weighted average effectivenesses for the combined balanced airflow
+    # Calculate cfm weighted average effectiveness for the combined balanced airflow
     weighted_vent_mech_lat_eff = 0.0
     weighted_vent_mech_apparent_sens_eff = 0.0
     vent_mech_erv_hrv_unprecond = vent_mech_erv_hrv_tot.select { |vent_mech| vent_mech.preheating_efficiency_cop.nil? && vent_mech.precooling_efficiency_cop.nil? }
