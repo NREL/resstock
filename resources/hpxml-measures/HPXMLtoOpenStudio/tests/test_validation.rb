@@ -1177,7 +1177,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                               'schedule-file-and-local-ventilation' => ["Both 'kitchen_fan' schedule file and mech vent range fan hours in operation and start hour provided; the latter will be ignored.",
                                                                         "Both 'bath_fan' schedule file and mech vent bath fan hours in operation and start hour provided; the latter will be ignored."],
                               'schedule-file-and-natural-ventilation' => ["Both 'natural_ventilation' schedule file and days per week provided; the latter will be ignored."],
-                              'schedule-file-and-whole-house-fan' => ["Both 'whole_house_fan' schedule file and days per week provided; the latter will be ignored."],
                               'schedule-file-and-operating-mode' => ["Both 'water_heater_operating_mode' schedule file and operating mode provided; the latter will be ignored."] }
 
     all_expected_warnings.each_with_index do |(warning_case, expected_warnings), i|
@@ -1215,9 +1214,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['schedule-file-and-natural-ventilation'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-windows-natural-ventilation-availability.xml'))
         hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/natural-ventilation.csv'
-      elsif ['schedule-file-and-whole-house-fan'].include? warning_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-mechvent-whole-house-fan.xml'))
-        hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/whole-house-fan.csv'
       elsif ['schedule-file-and-operating-mode'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-dhw-tank-heat-pump-operating-mode-heat-pump-only.xml'))
         hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/water-heater-operating-modes.csv'
