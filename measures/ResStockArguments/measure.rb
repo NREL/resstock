@@ -378,33 +378,33 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Conditioned floor area
     if args['geometry_unit_cfa'] == Constants.Auto
-      cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 307, # AHS 2019, 1 detached and mobile home weighted average
-               ['0-499', HPXML::ResidentialTypeSFA] => 307, # AHS 2019, 1 detached and mobile home weighted average
-               ['0-499', HPXML::ResidentialTypeApartment] => 325, # AHS 2019, multi-family weighted average
-               ['500-749', HPXML::ResidentialTypeSFD] => 633, # AHS 2019, 1 detached and mobile home weighted average
-               ['500-749', HPXML::ResidentialTypeSFA] => 620, # AHS 2019, 1 attached
-               ['500-749', HPXML::ResidentialTypeApartment] => 622, # AHS 2019, multi-family weighted average
-               ['750-999', HPXML::ResidentialTypeSFD] => 882, # AHS 2019, 1 detached and mobile home weighted average
-               ['750-999', HPXML::ResidentialTypeSFA] => 872, # AHS 2019, 1 attached
-               ['750-999', HPXML::ResidentialTypeApartment] => 855, # AHS 2019, multi-family weighted average
-               ['1000-1499', HPXML::ResidentialTypeSFD] => 1223, # AHS 2019, 1 detached and mobile home weighted average
-               ['1000-1499', HPXML::ResidentialTypeSFA] => 1216, # AHS 2019, 1 attached
-               ['1000-1499', HPXML::ResidentialTypeApartment] => 1136, # AHS 2019, multi-family weighted average
-               ['1500-1999', HPXML::ResidentialTypeSFD] => 1698, # AHS 2019, 1 detached and mobile home weighted average
-               ['1500-1999', HPXML::ResidentialTypeSFA] => 1682, # AHS 2019, 1 attached
-               ['1500-1999', HPXML::ResidentialTypeApartment] => 1641, # AHS 2019, multi-family weighted average
-               ['2000-2499', HPXML::ResidentialTypeSFD] => 2179, # AHS 2019, 1 detached and mobile home weighted average
-               ['2000-2499', HPXML::ResidentialTypeSFA] => 2147, # AHS 2019, 1 attached
-               ['2000-2499', HPXML::ResidentialTypeApartment] => 2122, # AHS 2019, multi-family weighted average
-               ['2500-2999', HPXML::ResidentialTypeSFD] => 2679, # AHS 2019, 1 detached and mobile home weighted average
-               ['2500-2999', HPXML::ResidentialTypeSFA] => 2658, # AHS 2019, 1 attached
-               ['2500-2999', HPXML::ResidentialTypeApartment] => 2691, # AHS 2019, multi-family weighted average
-               ['3000-3999', HPXML::ResidentialTypeSFD] => 3307, # AHS 2019, 1 detached and mobile home weighted average
-               ['3000-3999', HPXML::ResidentialTypeSFA] => 3250, # AHS 2019, 1 attached
-               ['3000-3999', HPXML::ResidentialTypeApartment] => 3312, # AHS 2019, multi-family weighted average
-               ['4000+', HPXML::ResidentialTypeSFD] => 5561, # AHS 2019, 1 detached and mobile home weighted average
+      cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 298, # AHS 2021, 1 detached and mobile home weighted average
+               ['0-499', HPXML::ResidentialTypeSFA] => 273, # AHS 2021, 1 detached and mobile home weighted average
+               ['0-499', HPXML::ResidentialTypeApartment] => 322, # AHS 2021, multi-family weighted average
+               ['500-749', HPXML::ResidentialTypeSFD] => 634, # AHS 2021, 1 detached and mobile home weighted average
+               ['500-749', HPXML::ResidentialTypeSFA] => 625, # AHS 2021, 1 attached
+               ['500-749', HPXML::ResidentialTypeApartment] => 623, # AHS 2021, multi-family weighted average
+               ['750-999', HPXML::ResidentialTypeSFD] => 881, # AHS 2021, 1 detached and mobile home weighted average
+               ['750-999', HPXML::ResidentialTypeSFA] => 872, # AHS 2021, 1 attached
+               ['750-999', HPXML::ResidentialTypeApartment] => 854, # AHS 2021, multi-family weighted average
+               ['1000-1499', HPXML::ResidentialTypeSFD] => 1228, # AHS 2021, 1 detached and mobile home weighted average
+               ['1000-1499', HPXML::ResidentialTypeSFA] => 1207, # AHS 2021, 1 attached
+               ['1000-1499', HPXML::ResidentialTypeApartment] => 1138, # AHS 2021, multi-family weighted average
+               ['1500-1999', HPXML::ResidentialTypeSFD] => 1698, # AHS 2021, 1 detached and mobile home weighted average
+               ['1500-1999', HPXML::ResidentialTypeSFA] => 1678, # AHS 2021, 1 attached
+               ['1500-1999', HPXML::ResidentialTypeApartment] => 1682, # AHS 2021, multi-family weighted average
+               ['2000-2499', HPXML::ResidentialTypeSFD] => 2179, # AHS 2021, 1 detached and mobile home weighted average
+               ['2000-2499', HPXML::ResidentialTypeSFA] => 2152, # AHS 2021, 1 attached
+               ['2000-2499', HPXML::ResidentialTypeApartment] => 2115, # AHS 2021, multi-family weighted average
+               ['2500-2999', HPXML::ResidentialTypeSFD] => 2678, # AHS 2021, 1 detached and mobile home weighted average
+               ['2500-2999', HPXML::ResidentialTypeSFA] => 2663, # AHS 2021, 1 attached
+               ['2500-2999', HPXML::ResidentialTypeApartment] => 2648, # AHS 2021, multi-family weighted average
+               ['3000-3999', HPXML::ResidentialTypeSFD] => 3310, # AHS 2021, 1 detached and mobile home weighted average
+               ['3000-3999', HPXML::ResidentialTypeSFA] => 3228, # AHS 2021, 1 attached
+               ['3000-3999', HPXML::ResidentialTypeApartment] => 33171, # AHS 2021, multi-family weighted average
+               ['4000+', HPXML::ResidentialTypeSFD] => 5587, # AHS 2021, 1 detached and mobile home weighted average
                ['4000+', HPXML::ResidentialTypeSFA] => 7414, # AHS 2019, 1 attached
-               ['4000+', HPXML::ResidentialTypeApartment] => 6481 } # AHS 2019, 4,000 or more average
+               ['4000+', HPXML::ResidentialTypeApartment] => 6348 } # AHS 2021, 4,000 or more all unit average
       cfa = cfas[[args['geometry_unit_cfa_bin'], args['geometry_unit_type']]]
       if cfa.nil?
         runner.registerError("ResStockArguments: Could not look up conditioned floor area for '#{args['geometry_unit_cfa_bin']}' and 'args['geometry_unit_type']'.")
