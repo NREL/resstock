@@ -82,43 +82,19 @@ class ScheduleGenerator
   def create_smooth_schedules
     create_smooth_occupants(@hpxml.building_occupancy.weekday_fractions, @hpxml.building_occupancy.weekend_fractions, @hpxml.building_occupancy.monthly_multipliers)
 
-    @hpxml.cooking_ranges.each do |cooking_range|
-      create_smooth_cooking_range(cooking_range.weekday_fractions, cooking_range.weekend_fractions, cooking_range.monthly_multipliers)
-    end
-
-    @hpxml.plug_loads.each do |plug_load|
-      if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
-        create_smooth_plug_loads_other(plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers)
-      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
-        create_smooth_plug_loads_tv(plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers)
-      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
-        create_smooth_plug_loads_vehicle(plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers)
-      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
-        create_smooth_plug_loads_well_pump(plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers)
-      end
-    end
-
     create_smooth_lighting_interior
     create_smooth_lighting_exterior(@hpxml.lighting.exterior_weekday_fractions, @hpxml.lighting.exterior_weekend_fractions, @hpxml.lighting.exterior_monthly_multipliers)
-    create_smooth_lighting_garage(@hpxml.lighting.exterior_weekday_fractions, @hpxml.lighting.exterior_weekend_fractions, @hpxml.lighting.exterior_monthly_multipliers)
-    create_smooth_lighting_exterior_holiday(@hpxml.lighting.holiday_weekday_fractions, @hpxml.lighting.holiday_weekend_fractions, @hpxml.lighting.exterior_monthly_multipliers)
 
-    @hpxml.clothes_washers.each do |clothes_washer|
-      create_smooth_clothes_washer(clothes_washer.weekday_fractions, clothes_washer.weekend_fractions, clothes_washer.monthly_multipliers)
+    if @hpxml.has_location(HPXML::LocationGarage)
+      create_smooth_lighting_garage(@hpxml.lighting.exterior_weekday_fractions, @hpxml.lighting.exterior_weekend_fractions, @hpxml.lighting.exterior_monthly_multipliers)
     end
 
-    @hpxml.clothes_dryers.each do |clothes_dryer|
-      create_smooth_clothes_dryer(clothes_dryer.weekday_fractions, clothes_dryer.weekend_fractions, clothes_dryer.monthly_multipliers)
+    if @hpxml.lighting.holiday_exists
+      create_smooth_lighting_exterior_holiday(@hpxml.lighting.holiday_weekday_fractions, @hpxml.lighting.holiday_weekend_fractions, @hpxml.lighting.exterior_monthly_multipliers)
     end
 
-    @hpxml.dishwashers.each do |dishwasher|
-      create_smooth_dishwasher(dishwasher.weekday_fractions, dishwasher.weekend_fractions, dishwasher.monthly_multipliers)
-    end
-
-    create_smooth_fixtures(@hpxml.water_heating.water_fixtures_weekday_fractions, @hpxml.water_heating.water_fixtures_weekend_fractions, @hpxml.water_heating.water_fixtures_monthly_multipliers)
-
-    @hpxml.ceiling_fans.each do |ceiling_fan|
-      create_smooth_ceiling_fan(ceiling_fan.weekday_fractions, ceiling_fan.weekend_fractions, ceiling_fan.monthly_multipliers)
+    @hpxml.cooking_ranges.each do |cooking_range|
+      create_smooth_cooking_range(cooking_range.weekday_fractions, cooking_range.weekend_fractions, cooking_range.monthly_multipliers)
     end
 
     @hpxml.refrigerators.each do |refrigerator|
@@ -131,6 +107,34 @@ class ScheduleGenerator
 
     @hpxml.freezers.each do |freezer|
       create_smooth_freezer(freezer.weekday_fractions, freezer.weekend_fractions, freezer.monthly_multipliers)
+    end
+
+    @hpxml.dishwashers.each do |dishwasher|
+      create_smooth_dishwasher(dishwasher.weekday_fractions, dishwasher.weekend_fractions, dishwasher.monthly_multipliers)
+    end
+
+    @hpxml.clothes_washers.each do |clothes_washer|
+      create_smooth_clothes_washer(clothes_washer.weekday_fractions, clothes_washer.weekend_fractions, clothes_washer.monthly_multipliers)
+    end
+
+    @hpxml.clothes_dryers.each do |clothes_dryer|
+      create_smooth_clothes_dryer(clothes_dryer.weekday_fractions, clothes_dryer.weekend_fractions, clothes_dryer.monthly_multipliers)
+    end
+
+    @hpxml.ceiling_fans.each do |ceiling_fan|
+      create_smooth_ceiling_fan(ceiling_fan.weekday_fractions, ceiling_fan.weekend_fractions, ceiling_fan.monthly_multipliers)
+    end
+
+    @hpxml.plug_loads.each do |plug_load|
+      if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
+        create_smooth_plug_loads_other(plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers)
+      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
+        create_smooth_plug_loads_tv(plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers)
+      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
+        create_smooth_plug_loads_vehicle(plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers)
+      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
+        create_smooth_plug_loads_well_pump(plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers)
+      end
     end
 
     @hpxml.fuel_loads.each do |fuel_load|
@@ -166,6 +170,8 @@ class ScheduleGenerator
 
       create_smooth_hot_tub_heater(hot_tub.heater_weekday_fractions, hot_tub.heater_weekend_fractions, hot_tub.heater_monthly_multipliers)
     end
+
+    create_smooth_fixtures(@hpxml.water_heating.water_fixtures_weekday_fractions, @hpxml.water_heating.water_fixtures_weekend_fractions, @hpxml.water_heating.water_fixtures_monthly_multipliers)
 
     @hpxml.dehumidifiers.each do |_dehumidifier|
       create_smooth_dehumidifier
@@ -1048,8 +1054,8 @@ class ScheduleGenerator
       outage = Array.new(@schedules[SchedulesFile::ColumnOccupants].length, 0)
 
       # heating/cooling seasons
-      heating_season = Schedule.get_season(@sim_year, @steps_in_day, args[:seasons_heating_begin_month], args[:seasons_heating_begin_day], args[:seasons_heating_end_month], args[:seasons_heating_end_day])
-      cooling_season = Schedule.get_season(@sim_year, @steps_in_day, args[:seasons_cooling_begin_month], args[:seasons_cooling_begin_day], args[:seasons_cooling_end_month], args[:seasons_cooling_end_day])
+      heating_season = Schedule.get_season(@sim_year, @steps_in_hour, args[:seasons_heating_begin_month], args[:seasons_heating_begin_day], args[:seasons_heating_end_month], args[:seasons_heating_end_day])
+      cooling_season = Schedule.get_season(@sim_year, @steps_in_hour, args[:seasons_cooling_begin_month], args[:seasons_cooling_begin_day], args[:seasons_cooling_end_month], args[:seasons_cooling_end_day])
 
       # natural ventilation
       natural_ventilation = nil

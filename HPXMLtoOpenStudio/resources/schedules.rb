@@ -1034,16 +1034,16 @@ class Schedule
     return day_num
   end
 
-  def self.get_season(year, steps_in_day, start_month, start_day, end_month, end_day)
+  def self.get_season(year, steps_in_hour, start_month, start_day, end_month, end_day)
     start_day_num = get_day_num_from_month_day(year, start_month, start_day)
     end_day_num = get_day_num_from_month_day(year, end_month, end_day)
 
-    season = Array.new(Constants.NumHoursInYear(year), 0)
+    season = Array.new(Constants.NumHoursInYear(year) * steps_in_hour, 0)
     if end_day_num >= start_day_num
-      season.fill(1, (start_day_num - 1) * steps_in_day, (end_day_num - start_day_num + 1) * steps_in_day) # Fill between start/end days
+      season.fill(1, (start_day_num - 1) * 24 * steps_in_hour, (end_day_num - start_day_num + 1) * 24 * steps_in_hour) # Fill between start/end days
     else # Wrap around year
-      season.fill(1, (start_day_num - 1) * steps_in_day) # Fill between start day and end of year
-      season.fill(1, 0, end_day_num * steps_in_day) # Fill between start of year and end day
+      season.fill(1, (start_day_num - 1) * 24 * steps_in_hour) # Fill between start day and end of year
+      season.fill(1, 0, end_day_num * 24 * steps_in_hour) # Fill between start of year and end day
     end
     return season
   end

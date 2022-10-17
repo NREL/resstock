@@ -258,8 +258,8 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       # Water Heating
       args[:water_heater_setpoint] = 125.0
       if !hpxml.water_heating_systems.empty?
-        # FIXME: what if 2+?
-        args[:water_heater_setpoint] = hpxml.water_heating_systems[0].temperature if !hpxml.water_heating_systems[0].temperature.nil?
+        water_heating_system = hpxml.water_heating_systems[0]
+        args[:water_heater_setpoint] = water_heating_system.temperature if !water_heating_system.temperature.nil?
       end
     end
 
