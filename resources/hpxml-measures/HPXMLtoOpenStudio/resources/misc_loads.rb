@@ -139,7 +139,7 @@ class MiscLoads
     end
 
     if heater_kwh > 0
-      if (not schedules_file.nil?)
+      if (not schedules_file.nil?) && schedules_file.schedules.keys.include?(col_name)
         space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: heater_kwh)
       else
         space_design_level = heater_sch.calcDesignLevelFromDailykWh(heater_kwh / 365.0)
@@ -160,7 +160,7 @@ class MiscLoads
     end
 
     if heater_therm > 0
-      if not schedules_file.nil?
+      if (not schedules_file.nil?) && schedules_file.schedules.keys.include?(col_name)
         space_design_level = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: heater_therm)
       else
         space_design_level = heater_sch.calcDesignLevelFromDailyTherm(heater_therm / 365.0)
@@ -208,7 +208,7 @@ class MiscLoads
     end
 
     if pump_kwh > 0
-      if not schedules_file.nil?
+      if (not schedules_file.nil?) && schedules_file.schedules.keys.include?(col_name)
         space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: pump_kwh)
       else
         space_design_level = pump_sch.calcDesignLevelFromDailykWh(pump_kwh / 365.0)

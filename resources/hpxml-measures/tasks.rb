@@ -409,6 +409,7 @@ def create_hpxmls
     'base-schedules-simple.xml' => 'base.xml',
     'base-schedules-detailed-all-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
     'base-schedules-detailed-occupancy-smooth.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-smooth-misc-loads-large-uncommon.xml' => 'base-misc-loads-large-uncommon.xml',
     'base-schedules-detailed-occupancy-stochastic.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic-vacancy.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic-outage-full-year.xml' => 'base.xml',
@@ -2427,6 +2428,11 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     sch_args['schedules_type'] = 'smooth'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-occupancy-smooth-misc-loads-large-uncommon.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'smooth'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth-misc-loads-large-uncommon.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   elsif ['base-schedules-detailed-occupancy-stochastic.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
@@ -2513,6 +2519,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/seasons-heating-only.csv'
   elsif ['base-hvac-room-ac-only-detailed-seasons.xml'].include? hpxml_file
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/seasons-cooling-only.csv'
+  elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
+    args['schedules_filepaths'] += ', ../../HPXMLtoOpenStudio/resources/schedule_files/seasons-10-mins.csv'
   end
 
   # Natural Ventilation Schedules

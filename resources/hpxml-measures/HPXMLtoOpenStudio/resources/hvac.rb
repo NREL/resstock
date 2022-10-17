@@ -3584,14 +3584,14 @@ class HVAC
     return hspf
   end
 
-  def self.calc_sequential_load_fractions(load_fraction, remaining_fraction, availability_days)
-    # Returns the EnergyPlus sequential load fractions for every day of the year
+  def self.calc_sequential_load_fractions(load_fraction, remaining_fraction, availability)
+    # Returns the EnergyPlus sequential load fractions for every step
     if remaining_fraction > 0
       sequential_load_frac = load_fraction / remaining_fraction # Fraction of remaining load served by this system
     else
       sequential_load_frac = 0.0
     end
-    sequential_load_fracs = availability_days.map { |d| d * sequential_load_frac }
+    sequential_load_fracs = availability.map { |d| d * sequential_load_frac }
 
     return sequential_load_fracs
   end
