@@ -1931,19 +1931,40 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     vent_fan.is_shared_system = false
     vent_fan.hours_in_operation = 12.0
     vent_fan.fan_power = 12.5
+    vent_fan.rated_flow_rate = 222.0
     vent_fan.cfis_vent_mode_airflow_fraction = 0.5
+    vent_fan.cfis_addtl_runtime_operating_mode = HPXML::CFISModeSupplementalFan
+    hpxml.ventilation_fans.add(id: "VentilationFan#{hpxml.ventilation_fans.size + 1}",
+                               tested_flow_rate: 79.0,
+                               fan_power: 9.0,
+                               fan_type: HPXML::MechVentTypeExhaust,
+                               is_shared_system: false,
+                               used_for_whole_building_ventilation: true)
+    suppl_vent_fan = hpxml.ventilation_fans[-1]
+    vent_fan.cfis_supplemental_fan_idref = suppl_vent_fan.id
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_mech_vent_values(hpxml_default, false, 12.0, 12.5, 330, 0.5)
+    _test_default_mech_vent_values(hpxml_default, false, 12.0, 12.5, 222.0, 0.5, HPXML::CFISModeSupplementalFan)
+    _test_default_mech_vent_suppl_values(hpxml_default, false, nil, 9.0, 79.0)
+
+    # Test defaults w/ CFIS supplemental fan
+    suppl_vent_fan.tested_flow_rate = nil
+    suppl_vent_fan.is_shared_system = nil
+    suppl_vent_fan.fan_power = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_mech_vent_suppl_values(hpxml_default, false, nil, 35.0, 100.0)
 
     # Test defaults w/ CFIS
     vent_fan.is_shared_system = nil
     vent_fan.hours_in_operation = nil
     vent_fan.fan_power = nil
+    vent_fan.rated_flow_rate = nil
     vent_fan.cfis_vent_mode_airflow_fraction = nil
+    vent_fan.cfis_addtl_runtime_operating_mode = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_mech_vent_values(hpxml_default, false, 8.0, 165.0, 330, 1.0)
+    _test_default_mech_vent_values(hpxml_default, false, 8.0, 150.0, 300.0, 1.0, HPXML::CFISModeAirHandler)
 
     # Test inputs not overridden by defaults w/ ERV
     hpxml = _create_hpxml('base-mechvent-erv.xml')
@@ -3974,8 +3995,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   end
 
   def _test_default_mech_vent_values(hpxml, is_shared_system, hours_in_operation, fan_power, flow_rate,
-                                     cfis_vent_mode_airflow_fraction = nil)
-    vent_fan = hpxml.ventilation_fans.select { |f| f.used_for_whole_building_ventilation }[0]
+                                     cfis_vent_mode_airflow_fraction = nil, cfis_addtl_runtime_operating_mode = nil)
+    vent_fan = hpxml.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && !f.is_cfis_supplemental_fan? }[0]
 
     assert_equal(is_shared_system, vent_fan.is_shared_system)
     assert_equal(hours_in_operation, vent_fan.hours_in_operation)
@@ -3986,6 +4007,24 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     else
       assert_equal(cfis_vent_mode_airflow_fraction, vent_fan.cfis_vent_mode_airflow_fraction)
     end
+    if cfis_addtl_runtime_operating_mode.nil?
+      assert_nil(vent_fan.cfis_addtl_runtime_operating_mode)
+    else
+      assert_equal(cfis_addtl_runtime_operating_mode, vent_fan.cfis_addtl_runtime_operating_mode)
+    end
+  end
+
+  def _test_default_mech_vent_suppl_values(hpxml, is_shared_system, hours_in_operation, fan_power, flow_rate)
+    vent_fan = hpxml.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && f.is_cfis_supplemental_fan? }[0]
+
+    assert_equal(is_shared_system, vent_fan.is_shared_system)
+    if hours_in_operation.nil?
+      assert_nil(hours_in_operation, vent_fan.hours_in_operation)
+    else
+      assert_equal(hours_in_operation, vent_fan.hours_in_operation)
+    end
+    assert_in_epsilon(fan_power, vent_fan.fan_power, 0.01)
+    assert_in_epsilon(flow_rate, vent_fan.rated_flow_rate.to_f + vent_fan.calculated_flow_rate.to_f + vent_fan.tested_flow_rate.to_f + vent_fan.delivered_ventilation.to_f, 0.01)
   end
 
   def _test_default_kitchen_fan_values(hpxml, quantity, flow_rate, hours_in_operation, fan_power, start_hour)
