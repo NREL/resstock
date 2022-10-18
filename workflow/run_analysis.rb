@@ -177,6 +177,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
       'include_timeseries_zone_temperatures' => false,
       'include_timeseries_airflows' => false,
       'include_timeseries_weather' => false,
+      'timeseries_timestamp_convention' => 'end',
       'add_timeseries_dst_column' => true,
       'add_timeseries_utc_column' => true
     }
