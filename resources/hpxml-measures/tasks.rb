@@ -415,7 +415,8 @@ def create_hpxmls
     'base-simcontrol-temperature-capacitance-multiplier.xml' => 'base.xml',
     'base-simcontrol-timestep-10-mins.xml' => 'base.xml',
     'base-simcontrol-timestep-10-mins-occupancy-stochastic-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
-    'base-simcontrol-timestep-10-mins-occupancy-stochastic-60-mins.xml' => 'base-simcontrol-timestep-10-mins.xml'
+    'base-simcontrol-timestep-10-mins-occupancy-stochastic-60-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
+    'base-simcontrol-timestep-30-mins.xml' => 'base.xml',
   }
 
   puts "Generating #{hpxmls_files.size} HPXML files..."
@@ -2398,7 +2399,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   elsif ['base-simcontrol-daylight-saving-disabled.xml'].include? hpxml_file
     args['simulation_control_daylight_saving_enabled'] = false
   elsif ['base-simcontrol-runperiod-1-month.xml'].include? hpxml_file
-    args['simulation_control_run_period'] = 'Jan 1 - Jan 31'
+    args['simulation_control_run_period'] = 'Feb 1 - Feb 28'
   elsif ['base-simcontrol-temperature-capacitance-multiplier.xml'].include? hpxml_file
     args['simulation_control_temperature_capacitance_multiplier'] = 7.0
   elsif ['base-simcontrol-timestep-10-mins.xml'].include? hpxml_file
@@ -2407,6 +2408,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv'
   elsif ['base-simcontrol-timestep-10-mins-occupancy-stochastic-60-mins.xml'].include? hpxml_file
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv'
+  elsif ['base-simcontrol-timestep-30-mins.xml'].include? hpxml_file
+    args['simulation_control_timestep'] = 30
   end
 
   # Occupancy Schedules

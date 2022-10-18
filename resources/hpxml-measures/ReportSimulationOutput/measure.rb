@@ -133,6 +133,15 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    timestamp_chs = OpenStudio::StringVector.new
+    timestamp_chs << 'start'
+    timestamp_chs << 'end'
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('timeseries_timestamp_convention', timestamp_chs, false)
+    arg.setDisplayName('Generate Timeseries Output: Timestamp Convention')
+    arg.setDescription("Determines whether timeseries timestamps use the start-of-timestep or end-of-timestep convention. Doesn't apply if the output format is 'csv_dview'.")
+    arg.setDefaultValue('start')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('add_timeseries_dst_column', false)
     arg.setDisplayName('Generate Timeseries Output: Add TimeDST Column')
     arg.setDescription('Optionally add, in addition to the default local standard Time column, a local clock TimeDST column. Requires that daylight saving time is enabled.')
@@ -229,8 +238,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     has_heating = @model.getBuilding.additionalProperties.getFeatureAsBoolean('has_heating').get
     has_cooling = @model.getBuilding.additionalProperties.getFeatureAsBoolean('has_cooling').get
 
-    timeseries_frequency = runner.getOptionalStringArgumentValue('timeseries_frequency', user_arguments)
-    timeseries_frequency = timeseries_frequency.is_initialized ? timeseries_frequency.get : 'none'
+    timeseries_frequency = runner.getStringArgumentValue('timeseries_frequency', user_arguments)
     if timeseries_frequency != 'none'
       include_timeseries_total_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_total_consumptions', user_arguments)
       include_timeseries_fuel_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_fuel_consumptions', user_arguments)
@@ -454,8 +462,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       output_format = 'csv'
       use_dview_format = true
     end
-    timeseries_frequency = runner.getOptionalStringArgumentValue('timeseries_frequency', user_arguments)
-    timeseries_frequency = timeseries_frequency.is_initialized ? timeseries_frequency.get : 'none'
+    timeseries_frequency = runner.getStringArgumentValue('timeseries_frequency', user_arguments)
     if timeseries_frequency != 'none'
       include_timeseries_total_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_total_consumptions', user_arguments)
       include_timeseries_fuel_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_fuel_consumptions', user_arguments)
@@ -470,6 +477,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       include_timeseries_zone_temperatures = runner.getOptionalBoolArgumentValue('include_timeseries_zone_temperatures', user_arguments)
       include_timeseries_airflows = runner.getOptionalBoolArgumentValue('include_timeseries_airflows', user_arguments)
       include_timeseries_weather = runner.getOptionalBoolArgumentValue('include_timeseries_weather', user_arguments)
+      use_timestamp_start_convention = (runner.getStringArgumentValue('timeseries_timestamp_convention', user_arguments) == 'start')
       add_timeseries_dst_column = runner.getOptionalBoolArgumentValue('add_timeseries_dst_column', user_arguments)
       add_timeseries_utc_column = runner.getOptionalBoolArgumentValue('add_timeseries_utc_column', user_arguments)
       user_output_variables = runner.getOptionalStringArgumentValue('user_output_variables', user_arguments)
@@ -532,7 +540,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     if timeseries_frequency != 'none'
       add_dst_column = (add_timeseries_dst_column.is_initialized ? add_timeseries_dst_column.get : false)
       add_utc_column = (add_timeseries_utc_column.is_initialized ? add_timeseries_utc_column.get : false)
-      @timestamps, timestamps_dst, timestamps_utc = OutputMethods.get_timestamps(@msgpackDataTimeseries, @hpxml, add_dst_column, add_utc_column, use_dview_format)
+      @timestamps, timestamps_dst, timestamps_utc = OutputMethods.get_timestamps(@msgpackDataTimeseries, @hpxml, use_timestamp_start_convention,
+                                                                                 add_dst_column, add_utc_column, use_dview_format, timeseries_frequency)
     end
 
     # Retrieve outputs
@@ -1621,23 +1630,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     # Initial output data w/ Time column(s)
-    data = ['Time', nil]
-    @timestamps.each do |timestamp|
-      data << timestamp
-    end
+    data = ['Time', nil] + @timestamps
     if add_dst_column
-      timestamps2 = [['TimeDST', nil]]
-      timestamps_dst.each do |timestamp|
-        timestamps2[0] << timestamp
-      end
+      timestamps2 = [['TimeDST', nil] + timestamps_dst]
     else
       timestamps2 = []
     end
     if add_utc_column
-      timestamps3 = [['TimeUTC', nil]]
-      timestamps_utc.each do |timestamp|
-        timestamps3[0] << timestamp
-      end
+      timestamps3 = [['TimeUTC', nil] + timestamps_utc]
     else
       timestamps3 = []
     end

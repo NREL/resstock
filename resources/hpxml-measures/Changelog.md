@@ -2,6 +2,7 @@
 
 __New Features__
 - **Breaking Change**: Replaces `FrameFloors/FrameFloor` with `Floors/Floor`.
+- **Breaking Change**: Replaces `WallType/StructurallyInsulatedPanel` with `WallType/StructuralInsulatedPanel`.
 - **Breaking change**: Replaces `SoftwareInfo/extension/SimulationControl/DaylightSaving/Enabled` with `Building/Site/TimeZone/DSTObserved`.
 - **Breaking Change**: Replaces `StandbyLoss` with `StandbyLoss[Units="F/hr"]/Value` for an indirect water heater.
 - **Breaking Change**: Replaces `BranchPipingLoopLength` with `BranchPipingLength` for a hot water recirculation system.
@@ -19,6 +20,7 @@ __New Features__
 - EnergyPlus modeling changes:
   - Switches Kiva foundation model timestep from 'Hourly' to 'Timestep'; small increase in runtime for sub-hourly simulations.
 - Annual/timeseries outputs:
+  - Allows timeseries timestamps to be start or end of timestep convention; **Breaking change**: now defaults to start of timestep.
   - Adds annual emission outputs disaggregated by end use; timeseries emission outputs disaggregated by end use can be requested.
   - Allows generating timeseries unmet hours for heating and cooling.
   - Allows CSV timeseries output to be formatted for use with the DView application.
