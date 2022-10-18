@@ -1105,8 +1105,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     all_total = @fuels.values.map { |x| x.annual_output.to_f }.sum(0.0)
     all_total += @ideal_system_loads.values.map { |x| x.annual_output.to_f }.sum(0.0)
     if all_total == 0
-      runner.registerError('Simulation unsuccessful.')
-      return false
+      # FIXME: is there a different way we can determine whether a simulation was unsuccessful?
+      # runner.registerError('Simulation unsuccessful.')
+      # return false
     elsif all_total.infinite?
       runner.registerError('Simulation used infinite energy; double-check inputs.')
       return false
