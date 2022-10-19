@@ -43,3 +43,175 @@ workflow_generator:
     debug: false
 
 upgrades:
+  - upgrade_name: Residing
+    #Up01
+    options:
+      - &siding_upgrade_to_fibercement
+        option: Geometry Wall Exterior Finish|Fiber-Cement, Light
+        apply_logic:
+          and:
+            - or:
+              - Geometry Wall Exterior Finish|Aluminum, Light
+              - Geometry Wall Exterior Finish|Fiber-Cement, Light
+              - Geometry Wall Exterior Finish|Wood, Medium/Dark
+        costs: &siding_costs_to_fibercement
+          - value:
+            multiplier: 
+        lifetime: 30
+      - &siding_upgrade_to_stucco
+        option: Geometry Wall Exterior Finish|Stucco, Light
+        apply_logic:
+          and:
+            - or:
+              - Geometry Wall Exterior Finish|Brick, Light
+              - Geometry Wall Exterior Finish|Brick, Medium/Dark
+              - Geometry Wall Exterior Finish|Stucco, Light
+              - Geometry Wall Exterior Finish|Stucco, Medium/Dark
+        costs: &siding_costs_to_stucco
+          - value:
+            multiplier: 
+        lifetime: 30
+      - &siding_upgrade_to_vinyl
+        option: Geometry Wall Exterior Finish|Vinyl, Light
+        apply_logic:
+          and:
+            - or:
+              - Geometry Wall Exterior Finish|Shingle, Asbestos, Medium
+              - Geometry Wall Exterior Finish|Shingle, Composition, Medium
+              - Geometry Wall Exterior Finish|Vinyl, Light
+        costs: &siding_costs_to_vinyl
+          - value:
+            multiplier: 
+        lifetime: 30
+  - upgrade_name: Minimum windows
+    #Up02
+    options:
+      - option: 
+  - upgrade_name: Residing and minimum windows
+    #Up03
+  - upgrade_name: 1" polyiso exterior insulation + re-siding
+    #Up04
+    options:
+      - &polyiso_1inch_on_uninsulated_wood
+        option: Insulation Wall|Wood Stud, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, Uninsulated
+        costs: &polyiso_1inch_costs
+          - value: 1.4
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_wood
+        option: Insulation Wall|Wood Stud, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-7
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_wood
+        option: Insulation Wall|Wood Stud, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-11
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_wood
+        option: Insulation Wall|Wood Stud, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-15
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+  - upgrade_name: 2" polyiso exterior insulation + re-siding
+    #Up05
+    options:
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+  - upgrade_name: Exterior low-E storm windows
+    #Up06
+  - upgrade_name: Triple pane windows
+    #Up07
+  - upgrade_name: P1 Exterior low-E storm windows + 1" polyiso + re-siding
+    #Up08
+    options:
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+  - upgrade_name: P2 Triple pane windows + 1" polyiso + re-siding
+    #Up09
+    options:
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+  - upgrade_name: P3 Exterior low-E storm windows + 2" polyiso + re-siding
+    #Up10
+    options:
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+  - upgrade_name: P4 Triple pane windows + 2" polyiso + re-siding
+    #Up11
+    options:
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
