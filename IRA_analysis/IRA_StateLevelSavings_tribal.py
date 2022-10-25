@@ -1,11 +1,12 @@
 """
 Purpose: 
-Estimate energy savings using EUSS 2018 AMY results
+Estimate energy savings for TRIBAL LANDS using EUSS 2018 AMY results
 Results available for download as a .csv here:
 https://data.openei.org/s3_viewer?bucket=oedi-data-lake&prefix=nrel-pds-building-stock%2Fend-use-load-profiles-for-us-building-stock%2F2022%2Fresstock_amy2018_release_1%2Fmetadata_and_annual_results%2Fnational%2Fcsv%2F
 
-Estimate average energy savings by state and by technology improvement
-State excludes Hawaii and Alaska, Tribal lands, and territories
+Estimate average energy savings by Tribal land and by technology improvement
+- The weight of the savings are adjusted to reflect income distribution more specific to households identified as tribal
+- Tribal lands are identified via a 2010 tract-to-American Indian Area crosswalk based on housing unit count.
 
 Technology improvements are gradiented by 10 options
 More information can be found here:
@@ -85,6 +86,13 @@ class IRAAnalysis():
         self.euss_dir = self.validate_euss_directory(euss_dir)
         self.data_dir = Path(__file__).resolve().parent / "data"
         self.output_dir = self.validate_output_directory(output_dir)
+
+        # set tribal attr
+        self.tribal_map_file = self.data_dir / "2010_derived_map_puma_to_aia.csv"
+        if not self.tribal_map_file.exists():
+            raise ValueError(f"Tribal mapping file does not exist: {self.tribal_map_file} "
+                "Run `python tribal_nations_mapping.py` first to create that file.")
+        self.calculate_new_sample_weight_tribal_as_map()
         
 
     @staticmethod
@@ -362,7 +370,29 @@ class IRAAnalysis():
         # replace applicable_household_count with actual count from groupby_cols
         DF2["applicable_household_count"] = df_count_actual["applicable_household_count"]
 
-        return DF2
+        return self._remap_result_to_tribal_nations(DF2, groupby_cols)
+
+    def _remap_result_to_tribal_nations(self, DF2, groupby_cols):
+        """
+        Remap PUMA-level results to Tribal American Indian Area (AIA) using a map
+        """
+        groupby_cols = [col for col in groupby_cols if col != "in.puma"]
+        groupby_cols = ["AIANNHCE", "NAME"] + groupby_cols
+        count_cols = ["modeled_count", "applicable_household_count"]
+        metric_cols = [col for col in DF2.columns if col not in count_cols]
+
+        tribal_map = pd.read_csv(self.tribal_map_file).drop(columns=["PUMA", "State","sampling_probability"]).set_index(["PUMA_nhgis"])
+        # combine with tribal map
+        DF2 = DF2.reset_index().join(tribal_map, on=["in.puma"], how="inner")
+
+        # percent_hu: percent of housing units in a resstock geography that belongs to AIA
+        DF2["applicable_household_count"] *= DF2["percent_hu"] # new weight
+        DF2[metric_cols] = DF2[metric_cols].multiply(DF2["applicable_household_count"], axis=0)
+        DF3 = DF2.groupby(groupby_cols)[count_cols].sum()
+        DF3[metric_cols] = DF2.groupby(groupby_cols)[metric_cols].sum().divide(
+            DF2.groupby(groupby_cols)["applicable_household_count"].sum(), axis=0)
+
+        return DF3
 
     def _replace_savings_cols_as_percentage(self, df, energy_saving_cols, total_emission_saving_col):
         dfi = df.copy()
@@ -478,6 +508,7 @@ class IRAAnalysis():
     def get_savings_total(self, pkg, pkg_name, as_percentage=False, coarsening=True, return_df=False):
         print(f"\n> Calculating total savings for [[ {pkg_name} ]] from upgrade {pkg}...")
         df = self.load_results(pkg)
+        df = self.modify_weight_tribal(df)
 
         # filter
         cond = (df["applicability"]==True) & (df["in.vacancy_status"]=="Occupied")
@@ -493,6 +524,7 @@ class IRAAnalysis():
     def get_savings_dryer(self, pkg, pkg_name, as_percentage=False, coarsening=True, return_df=False):
         print(f"\n> Calculating dryer savings for [[ {pkg_name} ]] from upgrade {pkg}...")
         df = self.load_results(pkg)
+        df = self.modify_weight_tribal(df)
 
         # filter to tech
         cond = (df["applicability"]==True) & (df["in.vacancy_status"]=="Occupied")
@@ -510,6 +542,7 @@ class IRAAnalysis():
     def get_savings_cooking(self, pkg, pkg_name, as_percentage=False, coarsening=True, return_df=False):
         print(f"\n> Calculating cooking savings for [[ {pkg_name} ]] from upgrade {pkg}...")
         df = self.load_results(pkg)
+        df = self.modify_weight_tribal(df)
 
         # filter to tech
         cond = (df["applicability"]==True) & (df["in.vacancy_status"]=="Occupied")
@@ -576,6 +609,7 @@ class IRAAnalysis():
         print(f"\n> Calculating heat/cool savings for [[ {pkg_name} ]] from upgrade {pkg}...")
         print(f"  by removing from total savings: water_heating, dryer, cooking...")
         df = self.load_results(pkg)
+        df = self.modify_weight_tribal(df)
 
         # filter to tech
         cond = (df["applicability"]==True) & (df["in.vacancy_status"]=="Occupied")
@@ -605,6 +639,8 @@ class IRAAnalysis():
         print(f"\n> Calculating [[ {pkg_name} ]] from run {pkg}...")
         print(f"  for Occupied units only...")
         df = self.load_results(pkg)
+        df = self.modify_weight_tribal(df)
+
         # filter to tech
         cond = df["in.vacancy_status"]=="Occupied"
         df = df.loc[cond]
@@ -629,6 +665,8 @@ class IRAAnalysis():
     def get_segment_count_in_baseline(self):
         """ get unit count in segment (from baseline file) """
         df = self.load_results(0)
+        df = self.modify_weight_tribal(df)
+
         # filter to tech
         cond = df["in.vacancy_status"]=="Occupied"
         df = df.loc[cond]
@@ -641,6 +679,7 @@ class IRAAnalysis():
         print(f"\n> Calculating fraction of stock above savings for [[ {pkg_name} ]] from upgrade {pkg} {end_use}...")
 
         df = self.load_results(pkg)
+        df = self.modify_weight_tribal(df)
 
         # filter and reformat df as needed
         cond = (df["applicability"]==True) & (df["in.vacancy_status"]=="Occupied")
@@ -705,24 +744,115 @@ class IRAAnalysis():
         return pd.Series(dfo)
 
 
+    def load_tribal_hc_breakdown_file(self, hc_cols):
+        #filename = "VacancyStatus_PUMA_Tenure_AreaMedianIncomeTribal_GeometryBuildingTypeRECS_HeatingFuel_WaterHeaterFuel.csv"
+        filename = "_".join([col.replace(" ","") for col in hc_cols])+".csv"
+        df_weight = pd.read_csv(self.data_dir / filename)
+
+        # map puma to version in EUSS
+        puma_file_full_path = self.data_dir / "spatial_puma_lookup.csv"
+        if puma_file_full_path.exists():
+            puma_map = pd.read_csv(puma_file_full_path)
+        else:
+            puma_map = pd.read_parquet(data_dir / "spatial_block_lookup_table.parquet")
+            puma_map = puma_map[["puma_tsv", "nhgis_2010_puma_gisjoin"]].drop_duplicates()
+            puma_map.to_csv(puma_file_full_path , index=False)
+
+        df_weight["PUMA"] = df_weight["PUMA"].map(puma_map.set_index("puma_tsv")["nhgis_2010_puma_gisjoin"])
+
+        return df_weight
+
+
+    def calculate_new_sample_weight_tribal_as_map(self):
+        """ tribal_hc_breakdown_file is a breakdown of HCs (defined in cols below). 
+        It incoporated AMI and FPL distributions that are for tribal households only (as opposed to the entire US),
+        so here we need to redistribute the sample weight in EUSS results accordingly to enable result aggregation 
+        for Tribal Nations.
+        """
+        df = self.load_results(0) # load baseline file
+        hc_cols = [
+            "Vacancy Status",
+            "PUMA",
+            "Tenure",
+            # "Area Median Income Tribal", 
+            "Federal Poverty Level Tribal", # FPL only has the lowest NA sampling_prob problem
+            "Geometry Building Type RECS",
+            "Heating Fuel",
+            "Water Heater Fuel",
+            ] # cols in tribal HC breakdown file
+
+        df_cols = ["in."+col.replace(" Tribal","").replace(" ","_").lower() for col in hc_cols] # cols used in EUSS
+
+        weight_sum = df["weight"].sum()
+        df_weight = self.load_tribal_hc_breakdown_file(hc_cols)
+        df_weight = df_weight.rename(columns=dict(zip(hc_cols, df_cols))).set_index(df_cols)
+        df_weight = df_weight.join(df.groupby(df_cols)["weight"].count().rename("count"), how="right")
+
+        # QC - check dimension combinations with NA sampling_prob
+        df_na = df_weight[df_weight["sampling_probability"].isna()]
+        puma_na_prob = df_na.index.get_level_values("in.puma").unique()
+
+        tribal_map = pd.read_csv(self.tribal_map_file)
+        puma_aia = tribal_map[tribal_map["percent_hu"]>0]["PUMA_nhgis"].unique()
+        puma_aia_na = list(set(puma_na_prob).intersection(set(puma_aia)))
+        sa_puma_aia_na = tribal_map[tribal_map["PUMA_nhgis"].isin(puma_aia_na)]["sampling_probability"].sum()
+        sa_puma_aia = tribal_map[tribal_map["percent_hu"]>0]["sampling_probability"].sum()
+
+        print("WARING : ")
+        print("Redistributing weight based on Tribal Housing Characteristics will nullify / remove "
+            f"{len(df_na)} / {len(df)} bldgs ({(len(df_na)/len(df)*100):02f} %)")
+        print(f"This at least partially affects {len(puma_aia_na)} PUMA regions that contain AIAs "
+            f"or {(sa_puma_aia_na/sa_puma_aia*100):02f} % of the AIA building cohort"
+            )
+
+        # normalize to 1, then distribute to dimension combo based on count and normalize to weight_sum
+        df_weight["new_weight"] = (df_weight["sampling_probability"]/df_weight["sampling_probability"].sum()).divide(df_weight["count"], axis=0)*weight_sum
+        # scale back up to baseline
+        df_weight = df_weight.join(df.set_index(df_cols)[["bldg_id", "weight"]], how="right").reset_index()
+
+        # QC - total of redistributed weight is the same as before
+        assert round(df_weight["new_weight"].sum(),0) == round(weight_sum, 0), \
+            f"New weight and old weight are not approximately equal:\n{df_weight[['new_weight', 'weight']].sum()}"
+
+        df_weight.to_csv(self.data_dir / "EUSS_weight_redistribution_for_tribal_nations.csv")
+
+        # set class var
+        self.weight_map = df_weight.set_index(["bldg_id"])["new_weight"].sort_index()
+
+
+    def modify_weight_tribal(self, df):
+        # return df
+        df["weight"] = df["bldg_id"].map(self.weight_map)
+        return df
+
+
 ###### main ###### 
 
 # calculated unit count, rep unit count, savings by fuel, carbon saving
-# TODO: bills calc (here), upgrade costs (in another script pull from results on AWS)
+"""
+# Two things for Tribal Nations:
+# Tribal Nations refer to places, not people.
+# 1. We identify Tribal Nation/Homeland Area using 2010 Tract-to-American Indian Area (AIA) relationship file, 
+which when combined with other spatial mappings, let to a derived mapping from PUMA to AIA based on housing counts.
+Therefore, we using PUMA in the groupby below.
+# 2. We extracted AMI and FPL distributions by PUMA using 2019 5-yr ACS PUMS's person records to
+identify Tribal households. Using these tribe-only distributions, we renormalize the "weight" of the EUSS
+results as part of the data aggregation.
+"""
 
 def main(euss_dir):
 
     ### Upgrade settings
     emission_type = "lrmer_low_re_cost_25_2025_start" # <---- least controversial approach
     groupby_cols = [
-        "in.state",
+        "in.puma",
         "in.heating_fuel",
         "building_type",
         "in.tenure",
         "AMI", #"AMI", "FPL"
     ]
 
-    coarsening_map = {"in.state": "in.ashrae_iecc_climate_zone_2004_2_a_split"}
+    coarsening_map = {"in.puma": "in.ashrae_iecc_climate_zone_2004_2_a_split"}
 
     # Initialize
     IRA = IRAAnalysis(euss_dir, groupby_cols, coarsening_map, emission_type)
@@ -732,14 +862,14 @@ def main(euss_dir):
 
     ## Set control variables
     coarsening = True # <--- # whether to use coarsening_map
-    as_percentage = True # <--- # whether to calculate savings as pct
+    as_percentage = False # <--- # whether to calculate savings as pct
 
     print(f"coarsening = {coarsening}")
     print(f"as_percentage = {as_percentage}")
 
     # Do calculations
     # get baseline consumption
-    # IRA.get_baseline_consumption(0, "baseline_consumption", coarsening=coarsening)
+    IRA.get_baseline_consumption(0, "baseline_consumption", coarsening=coarsening)
 
     # [1] Basic enclosure: all (pkg 1)
     IRA.get_savings_total(1, "basic_enclosure_upgrade", as_percentage=as_percentage, coarsening=coarsening)
@@ -835,7 +965,6 @@ def main_goal_achievement(euss_dir):
 
 
 if __name__ == "__main__":
-
     if len(sys.argv) == 2:
         euss_dir = sys.argv[1]
     elif len(sys.argv) == 1:
