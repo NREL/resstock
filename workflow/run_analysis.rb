@@ -3,7 +3,6 @@
 require 'parallel'
 require 'json'
 require 'yaml'
-require 'zip'
 
 require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling'
@@ -11,10 +10,22 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders)
+def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders, samplingonly)
   fail "YML file does not exist at '#{yml}'." if !File.exist?(yml)
 
   cfg = YAML.load_file(yml)
+
+  if !cfg['workflow_generator']['args'].keys.include?('build_existing_model') || !cfg['workflow_generator']['args'].keys.include?('simulation_output_report')
+    fail "Both 'build_existing_model' and 'simulation_output_report' must be included in yml."
+  end
+
+  if !['residential_quota', 'residential_quota_downselect', 'precomputed'].include?(cfg['sampler']['type'])
+    fail "Sampler type '#{cfg['sampler']['type']}' is invalid or not supported."
+  end
+
+  if cfg['sampler']['type'] == 'residential_quota_downselect' && cfg['sampler']['args']['resample']
+    fail "Not supporting residential_quota_downselect's 'resample' at this time."
+  end
 
   thisdir = File.dirname(__FILE__)
 
@@ -23,7 +34,15 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   output_directory = cfg['output_directory']
   n_datapoints = cfg['sampler']['args']['n_datapoints']
 
-  results_dir = File.absolute_path(File.join(thisdir, output_directory))
+  if !(Pathname.new buildstock_directory).absolute?
+    buildstock_directory = File.absolute_path(File.join(File.dirname(yml), buildstock_directory))
+  end
+
+  if (Pathname.new output_directory).absolute?
+    results_dir = output_directory
+  else
+    results_dir = File.absolute_path(output_directory)
+  end
   fail "Output directory '#{output_directory}' already exists." if File.exist?(results_dir)
 
   Dir.mkdir(results_dir)
@@ -38,6 +57,24 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   if cfg.keys.include?('upgrades')
     cfg['upgrades'].each do |upgrade|
       upgrade_names << upgrade['upgrade_name'].gsub(' ', '')
+    end
+  end
+
+  measures = []
+  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
+    next unless ['measures'].include?(measure_dir_name)
+
+    cfg['workflow_generator']['args']['measures'].each do |k|
+      measures << k['measure_dir_name']
+    end
+  end
+
+  reporting_measures = []
+  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
+    next unless ['reporting_measures'].include?(measure_dir_name)
+
+    cfg['workflow_generator']['args']['reporting_measures'].each do |k|
+      reporting_measures << k['measure_dir_name']
     end
   end
 
@@ -57,12 +94,13 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
                           'server_directory_cleanup' => 'ServerDirectoryCleanup' }
 
     steps = []
-    measure_dir_names.each do |k, v|
+    measure_dir_names.keys.each do |k|
       workflow_args.each do |measure_dir_name, arguments|
         next if k != measure_dir_name
 
         if measure_dir_name == 'build_existing_model'
           arguments['building_id'] = 1
+          arguments['sample_weight'] = Float(cfg['baseline']['n_buildings_represented']) / n_datapoints # aligns with buildstockbatch
 
           if workflow_args.keys.include?('emissions')
             arguments['emissions_scenario_names'] = workflow_args['emissions'].collect { |s| s['scenario_name'] }.join(',')
@@ -92,14 +130,11 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
 
     workflow_args['simulation_output_report'].delete('output_variables')
 
-    if ['residential_quota_downselect'].include?(cfg['sampler']['type'])
-      if cfg['sampler']['args']['resample']
-        fail "Not supporting residential_quota_downselect's 'resample' at this time."
-      end
-
+    if cfg['sampler']['type'] == 'residential_quota_downselect'
       workflow_args['build_existing_model']['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
     end
 
+    step_idx = 1
     if upgrade_idx > 0
       measure_d = cfg['upgrades'][upgrade_idx - 1]
       apply_upgrade_measure = { 'measure_dir_name' => 'ApplyUpgrade',
@@ -131,10 +166,11 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
         apply_upgrade_measure['arguments']['package_apply_logic'] = make_apply_logic_arg(measure_d['package_apply_logic'])
       end
 
-      steps.insert(-3, apply_upgrade_measure)
+      steps.insert(step_idx, apply_upgrade_measure)
+      step_idx += 1
     end
 
-    workflow_args.each do |measure_dir_name, arguments|
+    workflow_args.keys.each do |measure_dir_name|
       next unless ['measures'].include?(measure_dir_name)
 
       workflow_args[measure_dir_name].each do |k|
@@ -142,18 +178,22 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
         if k.keys.include?('arguments')
           step['arguments'] = k['arguments']
         end
-        steps.insert(-3, step)
+        steps.insert(step_idx, step)
+        step_idx += 1
       end
     end
 
-    steps.insert(-2, { 'measure_dir_name' => 'ReportHPXMLOutput',
-                       'arguments' => {
-                         'output_format' => 'csv',
-                       } })
+    step_idx += 1 # for ReportSimulationOutput
+    steps.insert(step_idx, { 'measure_dir_name' => 'ReportHPXMLOutput',
+                             'arguments' => {
+                               'output_format' => 'csv',
+                             } })
+    step_idx += 1
 
-    steps.insert(-2, { 'measure_dir_name' => 'UpgradeCosts' })
+    steps.insert(step_idx, { 'measure_dir_name' => 'UpgradeCosts' })
+    step_idx += 1
 
-    workflow_args.each do |measure_dir_name, arguments|
+    workflow_args.keys.each do |measure_dir_name|
       next unless ['reporting_measures'].include?(measure_dir_name)
 
       workflow_args[measure_dir_name].each do |k|
@@ -161,17 +201,23 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
         if k.keys.include?('arguments')
           step['arguments'] = k['arguments']
         end
-        steps.insert(-2, step)
+        steps.insert(step_idx, step)
+        step_idx += 1
       end
     end
 
+    measure_paths = [
+      File.absolute_path(File.join(File.dirname(__FILE__), '../measures')),
+      File.absolute_path(File.join(File.dirname(__FILE__), '../resources/hpxml-measures'))
+    ]
+
     osw = {
-      'measure_paths': ['../../../measures', '../../../resources/hpxml-measures'],
+      'measure_paths': measure_paths,
       'run_options': { 'skip_zip_results': true },
       'steps': steps
     }
 
-    base, ext = File.basename(yml).split('.')
+    base, _ext = File.basename(yml).split('.')
 
     osw_paths[upgrade_name] = File.join(results_dir, "#{base}-#{upgrade_name}.osw")
     File.open(osw_paths[upgrade_name], 'w') do |f|
@@ -182,7 +228,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   # Create lib folder
   lib_dir = File.join(thisdir, '../lib')
   resources_dir = File.join(thisdir, '../resources')
-  housing_characteristics_dir = File.join(project_directory, 'housing_characteristics')
+  housing_characteristics_dir = File.join(buildstock_directory, project_directory, 'housing_characteristics')
   create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
 
   # Create weather folder
@@ -202,11 +248,17 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
       Dir.mkdir(weather_dir)
 
       weather_files_path = cfg['weather_files_path']
+
+      if !(Pathname.new weather_files_path).absolute?
+        weather_files_path = File.absolute_path(File.join(File.dirname(yml), weather_files_path))
+      end
     else
       fail "Must include 'weather_files_url' or 'weather_files_path' in yml."
     end
 
     puts 'Extracting weather files...'
+    require 'zip'
+    Zip.on_exists_proc = true
     Zip::File.open(weather_files_path) do |zip_file|
       zip_file.each do |f|
         fpath = File.join(weather_dir, f.name)
@@ -219,6 +271,11 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   outfile = File.join('../lib/housing_characteristics/buildstock.csv')
   if !['precomputed'].include?(cfg['sampler']['type'])
     create_buildstock_csv(project_directory, n_datapoints, outfile)
+    src = File.expand_path(File.join(File.dirname(__FILE__), '../lib/housing_characteristics/buildstock.csv'))
+    des = results_dir
+    FileUtils.cp(src, des)
+
+    return if samplingonly
 
     datapoints = (1..n_datapoints).to_a
   else
@@ -241,22 +298,23 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
     end
   end
 
-  all_results_characteristics = []
-  all_results_output = []
+  all_results_output = {}
   all_cli_output = []
 
   Parallel.map(workflow_and_building_ids, in_threads: n_threads) do |upgrade_name, workflow, building_id|
+    job_id = Parallel.worker_number + 1
     if keep_run_folders
-      job_id = workflow_and_building_ids.index([upgrade_name, workflow, building_id]) + 1
+      folder_id = workflow_and_building_ids.index([upgrade_name, workflow, building_id]) + 1
     else
-      job_id = Parallel.worker_number + 1
+      folder_id = job_id
     end
 
-    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_characteristics, all_results_output, all_cli_output, measures_only, debug)
+    all_results_output[upgrade_name] = [] if !all_results_output.keys.include?(upgrade_name)
+    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
 
     info = "[Parallel(n_jobs=#{n_threads})]: "
     max_size = "#{workflow_and_building_ids.size}".size
-    info += "%#{max_size}s" % "#{all_results_output.size}"
+    info += "%#{max_size}s" % "#{all_results_output.values.flatten.size}"
     info += " / #{workflow_and_building_ids.size}"
     info += ' | elapsed: '
     info += '%8s' % "#{get_elapsed_time(Time.now, $start_time)}"
@@ -264,8 +322,16 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   end
 
   puts
-  results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
-  results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
+  failures = []
+  all_results_output.each do |upgrade_name, results_output|
+    RunOSWs.write_summary_results(results_dir, "results-#{upgrade_name}.csv", results_output)
+
+    results_output.each do |results|
+      failures << results['building_id'] if results['completed_status'] == 'Fail'
+    end
+  end
+  puts "\nFailures detected for: #{failures.uniq.sort.join(', ')}.\nSee #{File.join(results_dir, 'cli_output.log')}." if !failures.empty?
+
   File.open(File.join(results_dir, 'cli_output.log'), 'a') do |f|
     all_cli_output.each do |cli_output|
       f.puts(cli_output)
@@ -273,10 +339,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
     end
   end
 
-  failures = all_results_output.select { |x| x['completed_status'] == 'Fail' }.collect { |x| x['building_id'] }.uniq.sort
-  puts "\nFailures detected for: #{failures.join(', ')}.\nSee #{File.join(results_dir, 'cli_output.log')}." if !failures.empty?
-
-  FileUtils.rm_rf(lib_dir)
+  FileUtils.rm_rf(lib_dir) if !debug
 
   return true
 end
@@ -306,14 +369,11 @@ def get_elapsed_time(t1, t0)
   return t
 end
 
-def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_characteristics, all_results_output, all_cli_output, measures_only, debug)
+def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
   scenario_osw_dir = File.join(results_dir, 'osw', upgrade_name)
-
   scenario_xml_dir = File.join(results_dir, 'xml', upgrade_name)
 
-  osw_basename = File.basename(workflow)
-
-  worker_folder = "run#{job_id}"
+  worker_folder = "run#{folder_id}"
   worker_dir = File.join(results_dir, worker_folder)
   FileUtils.rm_rf(worker_dir)
   Dir.mkdir(worker_dir)
@@ -323,36 +383,54 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_re
   change_building_id(osw, building_id)
 
   cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{job_id}.\n"
-  completed_status, result_characteristics, result_output, cli_output = RunOSWs.run_and_check(osw, worker_dir, cli_output, measures_only)
+  upgrade = upgrade_name != 'Baseline'
+  started_at, completed_at, completed_status, result_output, cli_output = RunOSWs.run(osw, worker_dir, cli_output, upgrade, measures, reporting_measures, measures_only)
 
-  osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
+  started_at = create_timestamp(started_at)
+  completed_at = create_timestamp(completed_at)
 
-  result_characteristics['OSW'] = osw
-  result_characteristics['job_id'] = job_id
-  result_characteristics['completed_status'] = completed_status
-
-  result_output['OSW'] = osw
   result_output['building_id'] = building_id
   result_output['job_id'] = job_id
+  result_output['started_at'] = started_at
+  result_output['completed_at'] = completed_at
   result_output['completed_status'] = completed_status
 
-  all_results_characteristics << result_characteristics
-  all_results_output << result_output
+  clean_up_result_output(result_output, upgrade)
+
+  all_results_output[upgrade_name] << result_output
   all_cli_output << cli_output
 
   run_dir = File.join(worker_dir, 'run')
   if debug
-    FileUtils.mv(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}-existing-defaulted.xml")) if File.exist?(File.join(run_dir, 'in.xml')) && !File.exist?(File.join(run_dir, 'upgraded.xml'))
-    FileUtils.mv(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}-upgraded-defaulted.xml")) if File.exist?(File.join(run_dir, 'in.xml')) && File.exist?(File.join(run_dir, 'upgraded.xml'))
-    FileUtils.mv(File.join(run_dir, 'existing.xml'), File.join(scenario_xml_dir, "#{building_id}-existing.xml")) if File.exist?(File.join(run_dir, 'existing.xml'))
-    FileUtils.mv(File.join(run_dir, 'upgraded.xml'), File.join(scenario_xml_dir, "#{building_id}-upgraded.xml")) if File.exist?(File.join(run_dir, 'upgraded.xml'))
-    FileUtils.mv(File.join(run_dir, 'existing.osw'), File.join(scenario_osw_dir, "#{building_id}-existing.osw")) if File.exist?(File.join(run_dir, 'existing.osw'))
-    FileUtils.mv(File.join(run_dir, 'upgraded.osw'), File.join(scenario_osw_dir, "#{building_id}-upgraded.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
+    FileUtils.cp(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}-existing-defaulted.xml")) if File.exist?(File.join(run_dir, 'in.xml')) && !File.exist?(File.join(run_dir, 'upgraded.xml'))
+    FileUtils.cp(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}-upgraded-defaulted.xml")) if File.exist?(File.join(run_dir, 'in.xml')) && File.exist?(File.join(run_dir, 'upgraded.xml'))
+    FileUtils.cp(File.join(run_dir, 'existing.xml'), File.join(scenario_xml_dir, "#{building_id}-existing.xml")) if File.exist?(File.join(run_dir, 'existing.xml'))
+    FileUtils.cp(File.join(run_dir, 'upgraded.xml'), File.join(scenario_xml_dir, "#{building_id}-upgraded.xml")) if File.exist?(File.join(run_dir, 'upgraded.xml'))
+    FileUtils.cp(File.join(run_dir, 'existing.osw'), File.join(scenario_osw_dir, "#{building_id}-existing.osw")) if File.exist?(File.join(run_dir, 'existing.osw'))
+    FileUtils.cp(File.join(run_dir, 'upgraded.osw'), File.join(scenario_osw_dir, "#{building_id}-upgraded.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
   else
-    FileUtils.mv(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}.xml")) if File.exist?(File.join(run_dir, 'in.xml'))
-    FileUtils.mv(File.join(run_dir, 'existing.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'existing.osw')) && !File.exist?(File.join(run_dir, 'upgraded.osw'))
-    FileUtils.mv(File.join(run_dir, 'upgraded.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
+    FileUtils.cp(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}.xml")) if File.exist?(File.join(run_dir, 'in.xml'))
+    FileUtils.cp(File.join(run_dir, 'existing.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'existing.osw')) && !File.exist?(File.join(run_dir, 'upgraded.osw'))
+    FileUtils.cp(File.join(run_dir, 'upgraded.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
   end
+end
+
+def clean_up_result_output(result_output, upgrade)
+  # aligns with buildstockbatch
+  result_output['build_existing_model.units_represented'] = 1 if !upgrade
+  result_output.keys.each do |col|
+    if col == 'build_existing_model.weight'
+      result_output.delete(col)
+    elsif col.include?('apply_upgrade')
+      if !['apply_upgrade.applicable', 'apply_upgrade.upgrade_name', 'apply_upgrade.reference_scenario'].include?(col)
+        result_output.delete(col)
+      end
+    end
+  end
+end
+
+def create_timestamp(time_str)
+  return Time.parse(time_str).iso8601.delete('Z')
 end
 
 def change_building_id(osw, building_id)
@@ -408,13 +486,8 @@ OptionParser.new do |opts|
   end
 
   options[:measures_only] = false
-  opts.on('-m', '--measures_only', 'Only run the OpenStudio and EnergyPlus measures') do |t|
+  opts.on('-m', '--measures_only', 'Only run the OpenStudio and EnergyPlus measures') do |_t|
     options[:measures_only] = true
-  end
-
-  options[:debug] = false
-  opts.on('-d', '--debug', 'Save both existing and upgraded xml/osw files') do |t|
-    options[:debug] = true
   end
 
   options[:building_ids] = []
@@ -423,31 +496,42 @@ OptionParser.new do |opts|
   end
 
   options[:keep_run_folders] = false
-  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints') do |t|
+  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints') do |_t|
     options[:keep_run_folders] = true
+  end
+
+  options[:samplingonly] = false
+  opts.on('-s', '--samplingonly', 'Run the sampling only') do |_t|
+    options[:samplingonly] = true
+  end
+
+  options[:version] = false
+  opts.on_tail('-v', '--version', 'Display version') do
+    options[:version] = true
+  end
+
+  options[:debug] = false
+  opts.on('-d', '--debug', 'Preserve lib folder and "existing" xml/osw files') do |_t|
+    options[:debug] = true
   end
 
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
   end
-
-  options[:version] = false
-  opts.on_tail('-v', '--version', 'Display version') do
-    options[:version] = true
-    puts "#{Version.software_program_used} v#{Version.software_program_version}"
-  end
 end.parse!
 
-if not options[:version]
+if options[:version]
+  puts "ResStock v#{Version::ResStock_Version}"
+else
   if not options[:yml]
     fail "YML argument is required. Call #{File.basename(__FILE__)} -h for usage."
   end
 
   # Run analysis
   puts "YML: #{options[:yml]}"
-  success = run_workflow(options[:yml], options[:threads], options[:measures_only],
-                         options[:debug], options[:building_ids], options[:keep_run_folders])
+  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug],
+                         options[:building_ids], options[:keep_run_folders], options[:samplingonly])
 
   if not success
     exit! 1

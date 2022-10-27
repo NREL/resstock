@@ -38,8 +38,15 @@ class BaseCompare:
                 files.append(file)
 
         for file in sorted(files):
-            base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
-            feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
+            base_file = os.path.join(self.base_folder, file)
+            feature_file = os.path.join(self.feature_folder, file)
+
+            if not os.path.exists(feature_file):
+                print("Warning: %s not found. Skipping..." % feature_file)
+                continue
+
+            base_df = pd.read_csv(base_file, index_col=0)
+            feature_df = pd.read_csv(feature_file, index_col=0)
 
             base_df = self.intersect_rows(base_df, feature_df)
             feature_df = self.intersect_rows(feature_df, base_df)
@@ -195,8 +202,15 @@ class BaseCompare:
             return cols
 
         for file in sorted(files):
-            base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
-            feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
+            base_file = os.path.join(self.base_folder, file)
+            feature_file = os.path.join(self.feature_folder, file)
+
+            if not os.path.exists(feature_file):
+                print("Warning: %s not found. Skipping..." % feature_file)
+                continue
+
+            base_df = pd.read_csv(base_file, index_col=0)
+            feature_df = pd.read_csv(feature_file, index_col=0)
 
             base_df = self.intersect_rows(base_df, feature_df)
             feature_df = self.intersect_rows(feature_df, base_df)

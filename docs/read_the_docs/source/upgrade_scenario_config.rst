@@ -43,10 +43,6 @@ Or say we want to apply the upgrade only to houses with 3 car garages that aren'
 .. code::
    
    (!Location Census Division|New England)&&(Geometry Garage|3 Car)
-
-.. todo::
-   
-   Come up with some better examples here.
    
 Currently, you can enter up to 25 options per upgrade. To allow additional options per upgrade you would need to update a method defined in a resource file, run a rake task, and update the outputs section for all PAT projects. See :doc:`../advanced_tutorial/increasing_upgrade_options` for more information.
 
@@ -67,6 +63,7 @@ The cost above is multiplied by this value, which is a function of the building.
    - Floor Area, Conditioned (ft^2)
    - Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)
    - Floor Area, Lighting (ft^2)
+   - Floor Area, Foundation (ft^2)
    - Floor Area, Attic (ft^2)
    - Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
    - Roof Area (ft^2)
@@ -86,7 +83,3 @@ Package Apply Logic
 ===================
 
 This is where to specifiy logic to determine whether the whole package of upgrades is applied (all of the options together). It uses the same format as :ref:`apply-logic`.
-
-.. todo::
-   
-   An example of when this might be useful would be nice.

@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 require 'openstudio'
-
-require_relative '../measure.rb'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
+require_relative '../measure.rb'
 
 class ApplyUpgradeTest < MiniTest::Test
   def test_SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH
@@ -20,7 +19,7 @@ class ApplyUpgradeTest < MiniTest::Test
       'heat_pump_backup_heating_capacity' => 100000.0
     }
 
-    _lighting_upgrade(args_hash, expected_capacities)
+    _lighting_upgrade(args_hash)
     _test_retaining_capacities(osw_file, args_hash, expected_capacities)
 
     _heating_system_upgrade(args_hash, expected_capacities)
@@ -50,7 +49,7 @@ class ApplyUpgradeTest < MiniTest::Test
       'heat_pump_backup_heating_capacity' => nil
     }
 
-    _lighting_upgrade(args_hash, expected_capacities)
+    _lighting_upgrade(args_hash)
     _test_retaining_capacities(osw_file, args_hash, expected_capacities)
 
     _heating_system_upgrade(args_hash, expected_capacities)
@@ -68,7 +67,7 @@ class ApplyUpgradeTest < MiniTest::Test
 
   private
 
-  def _lighting_upgrade(args_hash, expected_capacities)
+  def _lighting_upgrade(args_hash)
     puts "\twindow upgrade..."
     args_hash['window_ufactor'] = 0.29
     args_hash['window_shgc'] = 0.26

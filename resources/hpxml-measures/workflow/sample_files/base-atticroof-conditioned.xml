@@ -11,6 +11,14 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
+      <AdditionalProperties>
+        <ParentHPXMLFile>base.xml</ParentHPXMLFile>
+      </AdditionalProperties>
+      <UtilityBillScenarios>
+        <UtilityBillScenario>
+          <Name>Bills</Name>
+        </UtilityBillScenario>
+      </UtilityBillScenarios>
     </extension>
   </SoftwareInfo>
   <Building>
@@ -84,6 +92,7 @@
                 <Conditioned>true</Conditioned>
               </Attic>
             </AtticType>
+            <AttachedToRoof idref='Roof1'/>
           </Attic>
           <Attic>
             <SystemIdentifier id='Attic2'/>
@@ -258,9 +267,9 @@
             </Insulation>
           </FoundationWall>
         </FoundationWalls>
-        <FrameFloors>
-          <FrameFloor>
-            <SystemIdentifier id='FrameFloor1'/>
+        <Floors>
+          <Floor>
+            <SystemIdentifier id='Floor1'/>
             <ExteriorAdjacentTo>attic - unvented</ExteriorAdjacentTo>
             <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <Area>450.0</Area>
@@ -268,11 +277,11 @@
               <Type>gypsum board</Type>
             </InteriorFinish>
             <Insulation>
-              <SystemIdentifier id='FrameFloor1Insulation'/>
+              <SystemIdentifier id='Floor1Insulation'/>
               <AssemblyEffectiveRValue>39.3</AssemblyEffectiveRValue>
             </Insulation>
-          </FrameFloor>
-        </FrameFloors>
+          </Floor>
+        </Floors>
         <Slabs>
           <Slab>
             <SystemIdentifier id='Slab1'/>

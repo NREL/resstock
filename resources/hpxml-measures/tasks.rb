@@ -48,7 +48,9 @@ def create_hpxmls
     'base-appliances-modified.xml' => 'base.xml',
     'base-appliances-none.xml' => 'base.xml',
     'base-appliances-oil.xml' => 'base.xml',
+    'base-appliances-oil-location-miami-fl.xml' => 'base-appliances-oil.xml',
     'base-appliances-propane.xml' => 'base.xml',
+    'base-appliances-propane-location-portland-or.xml' => 'base-appliances-propane.xml',
     'base-appliances-wood.xml' => 'base.xml',
     'base-atticroof-cathedral.xml' => 'base.xml',
     'base-atticroof-conditioned.xml' => 'base.xml',
@@ -63,6 +65,7 @@ def create_hpxmls
     'base-bldgtype-multifamily-adjacent-to-non-freezing-space.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-adjacent-to-other-heated-space.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml' => 'base-bldgtype-multifamily.xml',
+    'base-bldgtype-multifamily-calctype-operational.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil.xml' => 'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.xml',
     'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil-ducted.xml' => 'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil.xml',
@@ -89,6 +92,11 @@ def create_hpxmls
     'base-bldgtype-multifamily-shared-water-heater-recirc.xml' => 'base-bldgtype-multifamily-shared-water-heater.xml',
     'base-bldgtype-single-family-attached.xml' => 'base.xml',
     'base-bldgtype-single-family-attached-2stories.xml' => 'base-bldgtype-single-family-attached.xml',
+    'base-bldgtype-single-family-attached-atticroof-cathedral.xml' => 'base-bldgtype-single-family-attached-2stories.xml',
+    'base-calctype-operational.xml' => 'base.xml',
+    'base-calctype-operational-misc-defaults.xml' => 'base-misc-defaults.xml',
+    'base-calctype-operational-misc-loads-large-uncommon.xml' => 'base-misc-loads-large-uncommon.xml',
+    'base-calctype-operational-misc-loads-large-uncommon2.xml' => 'base-misc-loads-large-uncommon2.xml',
     'base-dhw-combi-tankless.xml' => 'base-dhw-indirect.xml',
     'base-dhw-combi-tankless-outside.xml' => 'base-dhw-combi-tankless.xml',
     'base-dhw-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
@@ -132,6 +140,13 @@ def create_hpxmls
     'base-dhw-tank-heat-pump-uef.xml' => 'base-dhw-tank-heat-pump.xml',
     'base-dhw-tank-heat-pump-with-solar.xml' => 'base-dhw-tank-heat-pump.xml',
     'base-dhw-tank-heat-pump-with-solar-fraction.xml' => 'base-dhw-tank-heat-pump.xml',
+    'base-dhw-tank-heat-pump-operating-mode-heat-pump-only.xml' => 'base-dhw-tank-heat-pump-uef.xml',
+    'base-dhw-tank-heat-pump-detailed-setpoints.xml' => 'base-dhw-tank-heat-pump-uef.xml',
+    'base-dhw-tank-heat-pump-detailed-operating-modes.xml' => 'base-dhw-tank-heat-pump-uef.xml',
+    'base-dhw-tank-heat-pump-detailed-schedules.xml' => 'base-dhw-tank-heat-pump-uef.xml',
+    'base-dhw-tank-model-type-stratified.xml' => 'base.xml',
+    'base-dhw-tank-detailed-setpoints.xml' => 'base.xml',
+    'base-dhw-tank-model-type-stratified-detailed-occupancy-stochastic.xml' => 'base-dhw-tank-model-type-stratified.xml',
     'base-dhw-tank-oil.xml' => 'base-dhw-tank-gas.xml',
     'base-dhw-tank-wood.xml' => 'base-dhw-tank-gas.xml',
     'base-dhw-tankless-electric.xml' => 'base.xml',
@@ -142,6 +157,7 @@ def create_hpxmls
     'base-dhw-tankless-gas-with-solar.xml' => 'base-dhw-tankless-gas.xml',
     'base-dhw-tankless-gas-with-solar-fraction.xml' => 'base-dhw-tankless-gas.xml',
     'base-dhw-tankless-propane.xml' => 'base-dhw-tankless-gas.xml',
+    'base-dhw-tankless-detailed-setpoints.xml' => 'base-dhw-tankless-gas.xml',
     'base-enclosure-2stories.xml' => 'base.xml',
     'base-enclosure-2stories-garage.xml' => 'base-enclosure-2stories.xml',
     'base-enclosure-beds-1.xml' => 'base.xml',
@@ -188,20 +204,25 @@ def create_hpxmls
     'base-hvac-air-to-air-heat-pump-1-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-cooling-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-heating-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-air-to-air-heat-pump-1-speed-backup-lockout-temperature.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-2-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
     'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler-switchover-temperature.xml' => 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml',
     'base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml' => 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml',
     'base-hvac-autosize.xml' => 'base.xml',
-    'base-hvac-autosize-air-to-air-heat-pump-1-speed.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-autosize-air-to-air-heat-pump-1-speed-cooling-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed-cooling-only.xml',
     'base-hvac-autosize-air-to-air-heat-pump-1-speed-heating-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed-heating-only.xml',
-    'base-hvac-autosize-air-to-air-heat-pump-1-speed-manual-s-oversize-allowances.xml' => 'base-hvac-autosize-air-to-air-heat-pump-1-speed.xml',
-    'base-hvac-autosize-air-to-air-heat-pump-2-speed.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
-    'base-hvac-autosize-air-to-air-heat-pump-2-speed-manual-s-oversize-allowances.xml' => 'base-hvac-autosize-air-to-air-heat-pump-2-speed.xml',
-    'base-hvac-autosize-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
-    'base-hvac-autosize-air-to-air-heat-pump-var-speed-manual-s-oversize-allowances.xml' => 'base-hvac-autosize-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-acca.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-hers.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload-miami-fl.xml' => 'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-2-speed-sizing-methodology-acca.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-2-speed-sizing-methodology-hers.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-2-speed-sizing-methodology-maxload.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-var-speed-sizing-methodology-acca.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-var-speed-sizing-methodology-hers.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-var-speed-sizing-methodology-maxload.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
     'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-boiler.xml' => 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml',
     'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-furnace.xml' => 'base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml',
     'base-hvac-autosize-boiler-elec-only.xml' => 'base-hvac-boiler-elec-only.xml',
@@ -211,7 +232,9 @@ def create_hpxmls
     'base-hvac-autosize-central-ac-only-2-speed.xml' => 'base-hvac-central-ac-only-2-speed.xml',
     'base-hvac-autosize-central-ac-only-var-speed.xml' => 'base-hvac-central-ac-only-var-speed.xml',
     'base-hvac-autosize-central-ac-plus-air-to-air-heat-pump-heating.xml' => 'base-hvac-central-ac-plus-air-to-air-heat-pump-heating.xml',
-    'base-hvac-autosize-dual-fuel-air-to-air-heat-pump-1-speed.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-autosize-dual-fuel-air-to-air-heat-pump-1-speed-sizing-methodology-acca.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-autosize-dual-fuel-air-to-air-heat-pump-1-speed-sizing-methodology-hers.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-autosize-dual-fuel-air-to-air-heat-pump-1-speed-sizing-methodology-maxload.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-autosize-dual-fuel-mini-split-heat-pump-ducted.xml' => 'base-hvac-dual-fuel-mini-split-heat-pump-ducted.xml',
     'base-hvac-autosize-elec-resistance-only.xml' => 'base-hvac-elec-resistance-only.xml',
     'base-hvac-autosize-evap-cooler-furnace-gas.xml' => 'base-hvac-evap-cooler-furnace-gas.xml',
@@ -221,19 +244,23 @@ def create_hpxmls
     'base-hvac-autosize-furnace-gas-central-ac-var-speed.xml' => 'base-hvac-furnace-gas-central-ac-var-speed.xml',
     'base-hvac-autosize-furnace-gas-only.xml' => 'base-hvac-furnace-gas-only.xml',
     'base-hvac-autosize-furnace-gas-room-ac.xml' => 'base-hvac-furnace-gas-room-ac.xml',
-    'base-hvac-autosize-ground-to-air-heat-pump.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
     'base-hvac-autosize-ground-to-air-heat-pump-cooling-only.xml' => 'base-hvac-ground-to-air-heat-pump-cooling-only.xml',
     'base-hvac-autosize-ground-to-air-heat-pump-heating-only.xml' => 'base-hvac-ground-to-air-heat-pump-heating-only.xml',
-    'base-hvac-autosize-ground-to-air-heat-pump-manual-s-oversize-allowances.xml' => 'base-hvac-autosize-ground-to-air-heat-pump.xml',
-    'base-hvac-autosize-mini-split-heat-pump-ducted.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
+    'base-hvac-autosize-ground-to-air-heat-pump-sizing-methodology-acca.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
+    'base-hvac-autosize-ground-to-air-heat-pump-sizing-methodology-hers.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
+    'base-hvac-autosize-ground-to-air-heat-pump-sizing-methodology-maxload.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
     'base-hvac-autosize-mini-split-heat-pump-ducted-cooling-only.xml' => 'base-hvac-mini-split-heat-pump-ducted-cooling-only.xml',
     'base-hvac-autosize-mini-split-heat-pump-ducted-heating-only.xml' => 'base-hvac-mini-split-heat-pump-ducted-heating-only.xml',
-    'base-hvac-autosize-mini-split-heat-pump-ducted-manual-s-oversize-allowances.xml' => 'base-hvac-autosize-mini-split-heat-pump-ducted.xml',
+    'base-hvac-autosize-mini-split-heat-pump-ducted-sizing-methodology-acca.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
+    'base-hvac-autosize-mini-split-heat-pump-ducted-sizing-methodology-hers.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
+    'base-hvac-autosize-mini-split-heat-pump-ducted-sizing-methodology-maxload.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-autosize-mini-split-heat-pump-ductless-backup-stove.xml' => 'base-hvac-mini-split-heat-pump-ductless-backup-stove.xml',
     'base-hvac-autosize-mini-split-air-conditioner-only-ducted.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'base-hvac-autosize-ptac.xml' => 'base-hvac-ptac.xml',
     'base-hvac-autosize-ptac-with-heating.xml' => 'base-hvac-ptac-with-heating.xml',
-    'base-hvac-autosize-pthp.xml' => 'base-hvac-pthp.xml',
+    'base-hvac-autosize-pthp-sizing-methodology-acca.xml' => 'base-hvac-pthp.xml',
+    'base-hvac-autosize-pthp-sizing-methodology-hers.xml' => 'base-hvac-pthp.xml',
+    'base-hvac-autosize-pthp-sizing-methodology-maxload.xml' => 'base-hvac-pthp.xml',
     'base-hvac-autosize-room-ac-only.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-autosize-stove-oil-only.xml' => 'base-hvac-stove-oil-only.xml',
     'base-hvac-autosize-wall-furnace-elec-only.xml' => 'base-hvac-wall-furnace-elec-only.xml',
@@ -270,6 +297,7 @@ def create_hpxmls
     'base-hvac-furnace-gas-central-ac-2-speed.xml' => 'base.xml',
     'base-hvac-furnace-gas-central-ac-var-speed.xml' => 'base.xml',
     'base-hvac-furnace-gas-only.xml' => 'base.xml',
+    'base-hvac-furnace-gas-only-detailed-setpoints.xml' => 'base-hvac-furnace-gas-only.xml',
     'base-hvac-furnace-gas-room-ac.xml' => 'base.xml',
     'base-hvac-furnace-oil-only.xml' => 'base-hvac-furnace-gas-only.xml',
     'base-hvac-furnace-propane-only.xml' => 'base-hvac-furnace-gas-only.xml',
@@ -304,6 +332,7 @@ def create_hpxmls
     'base-hvac-room-ac-only.xml' => 'base.xml',
     'base-hvac-room-ac-only-33percent.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-room-ac-only-ceer.xml' => 'base-hvac-room-ac-only.xml',
+    'base-hvac-room-ac-only-detailed-setpoints.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-seasons.xml' => 'base.xml',
     'base-hvac-setpoints.xml' => 'base.xml',
     'base-hvac-setpoints-daily-schedules.xml' => 'base-hvac-setpoints-daily-setbacks.xml',
@@ -329,6 +358,7 @@ def create_hpxmls
     'base-mechvent-balanced.xml' => 'base.xml',
     'base-mechvent-bath-kitchen-fans.xml' => 'base.xml',
     'base-mechvent-cfis.xml' => 'base.xml',
+    'base-mechvent-cfis-airflow-fraction-zero.xml' => 'base-mechvent-cfis.xml',
     'base-mechvent-cfis-dse.xml' => 'base-hvac-dse.xml',
     'base-mechvent-cfis-evap-cooler-only-ducted.xml' => 'base-hvac-evap-cooler-only-ducted.xml',
     'base-mechvent-erv.xml' => 'base.xml',
@@ -341,6 +371,9 @@ def create_hpxmls
     'base-mechvent-supply.xml' => 'base.xml',
     'base-mechvent-whole-house-fan.xml' => 'base.xml',
     'base-misc-additional-properties.xml' => 'base.xml',
+    'base-misc-bills.xml' => 'base.xml',
+    'base-misc-bills-none.xml' => 'base.xml',
+    'base-misc-bills-pv.xml' => 'base-pv.xml',
     'base-misc-defaults.xml' => 'base.xml',
     'base-misc-emissions.xml' => 'base-pv-battery.xml',
     'base-misc-generators.xml' => 'base.xml',
@@ -357,25 +390,32 @@ def create_hpxmls
     'base-pv-battery-lifetime-model.xml' => 'base-pv-battery.xml',
     'base-pv-battery-garage.xml' => 'base-enclosure-garage.xml',
     'base-schedules-simple.xml' => 'base.xml',
-    'base-schedules-detailed-smooth.xml' => 'base.xml',
-    'base-schedules-detailed-stochastic.xml' => 'base.xml',
-    'base-schedules-detailed-stochastic-vacancy.xml' => 'base.xml',
-    'base-schedules-detailed-stochastic-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
+    'base-schedules-detailed-all-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
+    'base-schedules-detailed-occupancy-smooth.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-stochastic.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-stochastic-vacancy.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-stochastic-10-mins.xml' => 'base.xml',
+    'base-schedules-detailed-setpoints.xml' => 'base.xml',
+    'base-schedules-detailed-setpoints-daily-schedules.xml' => 'base.xml',
+    'base-schedules-detailed-setpoints-daily-setbacks.xml' => 'base.xml',
     'base-simcontrol-calendar-year-custom.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-custom.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-disabled.xml' => 'base.xml',
     'base-simcontrol-runperiod-1-month.xml' => 'base.xml',
-    'base-simcontrol-timestep-10-mins.xml' => 'base.xml'
+    'base-simcontrol-timestep-10-mins.xml' => 'base.xml',
+    'base-simcontrol-timestep-10-mins-occupancy-stochastic-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
+    'base-simcontrol-timestep-10-mins-occupancy-stochastic-60-mins.xml' => 'base-simcontrol-timestep-10-mins.xml'
   }
 
   puts "Generating #{hpxmls_files.size} HPXML files..."
 
   hpxml_docs = {}
-  hpxmls_files.each_with_index do |(hpxml_file, parent), i|
+  hpxmls_files.each_with_index do |(hpxml_file, orig_parent), i|
     puts "[#{i + 1}/#{hpxmls_files.size}] Generating #{hpxml_file}..."
 
     begin
       all_hpxml_files = [hpxml_file]
+      parent = orig_parent
       unless parent.nil?
         all_hpxml_files.unshift(parent)
       end
@@ -391,7 +431,7 @@ def create_hpxmls
       args = {}
       sch_args = {}
       all_hpxml_files.each do |f|
-        set_measure_argument_values(f, args, sch_args)
+        set_measure_argument_values(f, args, sch_args, orig_parent)
       end
 
       measures = {}
@@ -418,7 +458,7 @@ def create_hpxmls
       if hpxml_file.include? 'ASHRAE_Standard_140'
         hpxml_path = File.absolute_path(File.join(tests_dir, '..', 'tests', hpxml_file))
         hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
-        apply_hpxml_modification_ashrae_140(hpxml_file, hpxml)
+        apply_hpxml_modification_ashrae_140(hpxml)
       else
         hpxml_path = File.absolute_path(File.join(tests_dir, hpxml_file))
         hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
@@ -437,9 +477,12 @@ def create_hpxmls
           # Make all IDs unique so the HPXML is valid
           new_building_element.each_node do |node|
             next unless node.is_a?(Oga::XML::Element)
-            next if XMLHelper.get_attribute_value(node, 'id').nil?
 
-            XMLHelper.add_attribute(node, 'id', "#{XMLHelper.get_attribute_value(node, 'id')}_#{i}")
+            if not XMLHelper.get_attribute_value(node, 'id').nil?
+              XMLHelper.add_attribute(node, 'id', "#{XMLHelper.get_attribute_value(node, 'id')}_#{i}")
+            elsif not XMLHelper.get_attribute_value(node, 'idref').nil?
+              XMLHelper.add_attribute(node, 'idref', "#{XMLHelper.get_attribute_value(node, 'idref')}_#{i}")
+            end
           end
 
           hpxml_element.children << new_building_element
@@ -481,7 +524,7 @@ def create_hpxmls
   return hpxml_docs
 end
 
-def set_measure_argument_values(hpxml_file, args, sch_args)
+def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   if hpxml_file.include? 'ASHRAE_Standard_140'
     args['hpxml_path'] = "../workflow/tests/#{hpxml_file}"
   else
@@ -520,10 +563,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['geometry_unit_num_bedrooms'] = 3
     args['geometry_unit_num_bathrooms'] = 2
     args['geometry_unit_num_occupants'] = 3
-    args['geometry_has_flue_or_chimney'] = Constants.Auto
     args['floor_over_foundation_assembly_r'] = 0
     args['floor_over_garage_assembly_r'] = 0
-    args['foundation_wall_type'] = Constants.Auto
     args['foundation_wall_thickness'] = 8.0
     args['foundation_wall_insulation_r'] = 8.9
     args['foundation_wall_insulation_distance_to_top'] = 0.0
@@ -546,10 +587,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['neighbor_back_distance'] = 0
     args['neighbor_left_distance'] = 0
     args['neighbor_right_distance'] = 0
-    args['neighbor_front_height'] = Constants.Auto
-    args['neighbor_back_height'] = Constants.Auto
-    args['neighbor_left_height'] = Constants.Auto
-    args['neighbor_right_height'] = Constants.Auto
     args['wall_type'] = HPXML::WallTypeWoodStud
     args['wall_siding_type'] = HPXML::SidingTypeWood
     args['wall_color'] = HPXML::ColorMedium
@@ -591,7 +628,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['air_leakage_units'] = HPXML::UnitsACH
     args['air_leakage_house_pressure'] = 50
     args['air_leakage_value'] = 3
-    args['site_shielding_of_home'] = Constants.Auto
     args['heating_system_type'] = HPXML::HVACTypeFurnace
     args['heating_system_fuel'] = HPXML::FuelTypeNaturalGas
     args['heating_system_heating_efficiency'] = 0.92
@@ -613,7 +649,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['heat_pump_cooling_compressor_type'] = HPXML::HVACCompressorTypeSingleStage
     args['heat_pump_cooling_sensible_heat_fraction'] = 0.73
     args['heat_pump_heating_capacity'] = 36000.0
-    args['heat_pump_heating_capacity_17_f'] = Constants.Auto
     args['heat_pump_cooling_capacity'] = 36000.0
     args['heat_pump_fraction_heat_load_served'] = 1
     args['heat_pump_fraction_cool_load_served'] = 1
@@ -637,7 +672,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['heating_system_2_type'] = 'none'
     args['heating_system_2_fuel'] = HPXML::FuelTypeElectricity
     args['heating_system_2_heating_efficiency'] = 1.0
-    args['heating_system_2_heating_capacity'] = Constants.Auto
     args['heating_system_2_fraction_heat_load_served'] = 0.25
     args['mech_vent_fan_type'] = 'none'
     args['mech_vent_flow_rate'] = 110
@@ -657,8 +691,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['kitchen_fans_quantity'] = 0
     args['bathroom_fans_quantity'] = 0
     args['whole_house_fan_present'] = false
-    args['whole_house_fan_flow_rate'] = 4500
-    args['whole_house_fan_power'] = 300
     args['water_heater_type'] = HPXML::WaterHeaterTypeStorage
     args['water_heater_fuel_type'] = HPXML::FuelTypeElectricity
     args['water_heater_location'] = HPXML::LocationLivingSpace
@@ -683,7 +715,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['dwhr_efficiency'] = 0.55
     args['water_fixtures_shower_low_flow'] = true
     args['water_fixtures_sink_low_flow'] = false
-    args['water_fixtures_usage_multiplier'] = 1.0
     args['solar_thermal_system_type'] = 'none'
     args['solar_thermal_collector_area'] = 40.0
     args['solar_thermal_collector_loop_type'] = HPXML::SolarThermalLoopTypeDirect
@@ -692,47 +723,34 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['solar_thermal_collector_tilt'] = 20
     args['solar_thermal_collector_rated_optical_efficiency'] = 0.5
     args['solar_thermal_collector_rated_thermal_losses'] = 0.2799
-    args['solar_thermal_storage_volume'] = Constants.Auto
     args['solar_thermal_solar_fraction'] = 0
-    args['pv_system_module_type'] = 'none'
-    args['pv_system_location'] = Constants.Auto
-    args['pv_system_tracking'] = Constants.Auto
+    args['pv_system_present'] = false
     args['pv_system_array_azimuth'] = 180
     args['pv_system_array_tilt'] = 20
     args['pv_system_max_power_output'] = 4000
-    args['pv_system_inverter_efficiency'] = 0.96
-    args['pv_system_system_losses_fraction'] = 0.14
-    args['pv_system_num_bedrooms_served'] = 3
-    args['pv_system_2_module_type'] = 'none'
-    args['pv_system_2_location'] = Constants.Auto
-    args['pv_system_2_tracking'] = Constants.Auto
+    args['pv_system_2_present'] = false
     args['pv_system_2_array_azimuth'] = 180
     args['pv_system_2_array_tilt'] = 20
     args['pv_system_2_max_power_output'] = 4000
-    args['battery_location'] = 'none'
-    args['battery_power'] = Constants.Auto
-    args['battery_capacity'] = Constants.Auto
-    args['battery_usable_capacity'] = Constants.Auto
+    args['battery_present'] = false
+    args['lighting_present'] = true
     args['lighting_interior_fraction_cfl'] = 0.4
     args['lighting_interior_fraction_lfl'] = 0.1
     args['lighting_interior_fraction_led'] = 0.25
-    args['lighting_interior_usage_multiplier'] = 1.0
     args['lighting_exterior_fraction_cfl'] = 0.4
     args['lighting_exterior_fraction_lfl'] = 0.1
     args['lighting_exterior_fraction_led'] = 0.25
-    args['lighting_exterior_usage_multiplier'] = 1.0
     args['lighting_garage_fraction_cfl'] = 0.4
     args['lighting_garage_fraction_lfl'] = 0.1
     args['lighting_garage_fraction_led'] = 0.25
-    args['lighting_garage_usage_multiplier'] = 1.0
     args['holiday_lighting_present'] = false
-    args['holiday_lighting_daily_kwh'] = Constants.Auto
     args['dehumidifier_type'] = 'none'
     args['dehumidifier_efficiency_type'] = 'EnergyFactor'
     args['dehumidifier_efficiency'] = 1.8
     args['dehumidifier_capacity'] = 40
     args['dehumidifier_rh_setpoint'] = 0.5
     args['dehumidifier_fraction_dehumidification_load_served'] = 1
+    args['clothes_washer_present'] = true
     args['clothes_washer_location'] = HPXML::LocationLivingSpace
     args['clothes_washer_efficiency_type'] = 'IntegratedModifiedEnergyFactor'
     args['clothes_washer_efficiency'] = 1.21
@@ -742,13 +760,13 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['clothes_washer_label_annual_gas_cost'] = 27.0
     args['clothes_washer_label_usage'] = 6.0
     args['clothes_washer_capacity'] = 3.2
-    args['clothes_washer_usage_multiplier'] = 1.0
+    args['clothes_dryer_present'] = true
     args['clothes_dryer_location'] = HPXML::LocationLivingSpace
     args['clothes_dryer_fuel_type'] = HPXML::FuelTypeElectricity
     args['clothes_dryer_efficiency_type'] = 'CombinedEnergyFactor'
     args['clothes_dryer_efficiency'] = 3.73
     args['clothes_dryer_vented_flow_rate'] = 150.0
-    args['clothes_dryer_usage_multiplier'] = 1.0
+    args['dishwasher_present'] = true
     args['dishwasher_location'] = HPXML::LocationLivingSpace
     args['dishwasher_efficiency_type'] = 'RatedAnnualkWh'
     args['dishwasher_efficiency'] = 307
@@ -757,66 +775,35 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['dishwasher_label_annual_gas_cost'] = 22.32
     args['dishwasher_label_usage'] = 4.0
     args['dishwasher_place_setting_capacity'] = 12
-    args['dishwasher_usage_multiplier'] = 1.0
+    args['refrigerator_present'] = true
     args['refrigerator_location'] = HPXML::LocationLivingSpace
     args['refrigerator_rated_annual_kwh'] = 650.0
-    args['refrigerator_usage_multiplier'] = 1.0
-    args['extra_refrigerator_location'] = 'none'
-    args['extra_refrigerator_rated_annual_kwh'] = Constants.Auto
-    args['extra_refrigerator_usage_multiplier'] = 1.0
-    args['freezer_location'] = 'none'
-    args['freezer_rated_annual_kwh'] = Constants.Auto
-    args['freezer_usage_multiplier'] = 1.0
+    args['extra_refrigerator_present'] = false
+    args['freezer_present'] = false
+    args['cooking_range_oven_present'] = true
     args['cooking_range_oven_location'] = HPXML::LocationLivingSpace
     args['cooking_range_oven_fuel_type'] = HPXML::FuelTypeElectricity
     args['cooking_range_oven_is_induction'] = false
     args['cooking_range_oven_is_convection'] = false
-    args['cooking_range_oven_usage_multiplier'] = 1.0
     args['ceiling_fan_present'] = false
-    args['ceiling_fan_efficiency'] = Constants.Auto
-    args['ceiling_fan_quantity'] = Constants.Auto
-    args['ceiling_fan_cooling_setpoint_temp_offset'] = 0
     args['misc_plug_loads_television_present'] = true
     args['misc_plug_loads_television_annual_kwh'] = 620.0
-    args['misc_plug_loads_television_usage_multiplier'] = 1.0
     args['misc_plug_loads_other_annual_kwh'] = 2457.0
     args['misc_plug_loads_other_frac_sensible'] = 0.855
     args['misc_plug_loads_other_frac_latent'] = 0.045
-    args['misc_plug_loads_other_usage_multiplier'] = 1.0
     args['misc_plug_loads_well_pump_present'] = false
-    args['misc_plug_loads_well_pump_annual_kwh'] = Constants.Auto
-    args['misc_plug_loads_well_pump_usage_multiplier'] = 0.0
     args['misc_plug_loads_vehicle_present'] = false
-    args['misc_plug_loads_vehicle_annual_kwh'] = Constants.Auto
-    args['misc_plug_loads_vehicle_usage_multiplier'] = 0.0
     args['misc_fuel_loads_grill_present'] = false
     args['misc_fuel_loads_grill_fuel_type'] = HPXML::FuelTypeNaturalGas
-    args['misc_fuel_loads_grill_annual_therm'] = Constants.Auto
-    args['misc_fuel_loads_grill_usage_multiplier'] = 0.0
     args['misc_fuel_loads_lighting_present'] = false
     args['misc_fuel_loads_lighting_fuel_type'] = HPXML::FuelTypeNaturalGas
-    args['misc_fuel_loads_lighting_annual_therm'] = Constants.Auto
-    args['misc_fuel_loads_lighting_usage_multiplier'] = 0.0
     args['misc_fuel_loads_fireplace_present'] = false
     args['misc_fuel_loads_fireplace_fuel_type'] = HPXML::FuelTypeNaturalGas
-    args['misc_fuel_loads_fireplace_annual_therm'] = Constants.Auto
-    args['misc_fuel_loads_fireplace_frac_sensible'] = Constants.Auto
-    args['misc_fuel_loads_fireplace_frac_latent'] = Constants.Auto
-    args['misc_fuel_loads_fireplace_usage_multiplier'] = 0.0
     args['pool_present'] = false
-    args['pool_pump_annual_kwh'] = Constants.Auto
-    args['pool_pump_usage_multiplier'] = 1.0
     args['pool_heater_type'] = HPXML::HeaterTypeElectricResistance
-    args['pool_heater_annual_kwh'] = Constants.Auto
-    args['pool_heater_annual_therm'] = Constants.Auto
-    args['pool_heater_usage_multiplier'] = 1.0
     args['hot_tub_present'] = false
-    args['hot_tub_pump_annual_kwh'] = Constants.Auto
-    args['hot_tub_pump_usage_multiplier'] = 1.0
     args['hot_tub_heater_type'] = HPXML::HeaterTypeElectricResistance
-    args['hot_tub_heater_annual_kwh'] = Constants.Auto
-    args['hot_tub_heater_annual_therm'] = Constants.Auto
-    args['hot_tub_heater_usage_multiplier'] = 1.0
+    args['utility_bill_scenario_names'] = 'Bills'
   elsif ['ASHRAE_Standard_140/L100AC.xml'].include? hpxml_file
     args['weather_station_epw_filepath'] = 'USA_CO_Colorado.Springs-Peterson.Field.724660_TMY3.epw'
     args['geometry_unit_type'] = HPXML::ResidentialTypeSFD
@@ -842,12 +829,9 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['geometry_attic_type'] = HPXML::AtticTypeVented
     args['geometry_eaves_depth'] = 0
     args['geometry_unit_num_bedrooms'] = 3
-    args['geometry_unit_num_bathrooms'] = Constants.Auto
     args['geometry_unit_num_occupants'] = 0
-    args['geometry_has_flue_or_chimney'] = Constants.Auto
     args['floor_over_foundation_assembly_r'] = 14.15
     args['floor_over_garage_assembly_r'] = 0
-    args['foundation_wall_type'] = Constants.Auto
     args['foundation_wall_thickness'] = 6.0
     args['foundation_wall_insulation_r'] = 0
     args['foundation_wall_insulation_distance_to_top'] = 0
@@ -870,10 +854,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['neighbor_back_distance'] = 0
     args['neighbor_left_distance'] = 0
     args['neighbor_right_distance'] = 0
-    args['neighbor_front_height'] = Constants.Auto
-    args['neighbor_back_height'] = Constants.Auto
-    args['neighbor_left_height'] = Constants.Auto
-    args['neighbor_right_height'] = Constants.Auto
     args['wall_type'] = HPXML::WallTypeWoodStud
     args['wall_siding_type'] = HPXML::SidingTypeWood
     args['wall_color'] = HPXML::ColorMedium
@@ -915,18 +895,15 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['air_leakage_units'] = HPXML::UnitsACHNatural
     args['air_leakage_house_pressure'] = 50
     args['air_leakage_value'] = 0.67
-    args['site_shielding_of_home'] = Constants.Auto
     args['heating_system_type'] = 'none'
     args['heating_system_fuel'] = HPXML::FuelTypeNaturalGas
     args['heating_system_heating_efficiency'] = 0
-    args['heating_system_heating_capacity'] = Constants.Auto
     args['heating_system_fraction_heat_load_served'] = 0
     args['cooling_system_type'] = 'none'
     args['cooling_system_cooling_efficiency_type'] = HPXML::UnitsSEER
     args['cooling_system_cooling_efficiency'] = 0
     args['cooling_system_cooling_compressor_type'] = HPXML::HVACCompressorTypeSingleStage
     args['cooling_system_cooling_sensible_heat_fraction'] = 0
-    args['cooling_system_cooling_capacity'] = Constants.Auto
     args['cooling_system_fraction_cool_load_served'] = 0
     args['cooling_system_is_ducted'] = false
     args['heat_pump_type'] = 'none'
@@ -936,15 +913,11 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['heat_pump_cooling_efficiency'] = 0
     args['heat_pump_cooling_compressor_type'] = HPXML::HVACCompressorTypeSingleStage
     args['heat_pump_cooling_sensible_heat_fraction'] = 0
-    args['heat_pump_heating_capacity'] = Constants.Auto
-    args['heat_pump_heating_capacity_17_f'] = Constants.Auto
-    args['heat_pump_cooling_capacity'] = Constants.Auto
     args['heat_pump_fraction_heat_load_served'] = 0
     args['heat_pump_fraction_cool_load_served'] = 0
     args['heat_pump_backup_type'] = 'none'
     args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
     args['heat_pump_backup_heating_efficiency'] = 0
-    args['heat_pump_backup_heating_capacity'] = Constants.Auto
     args['hvac_control_heating_weekday_setpoint'] = 68
     args['hvac_control_heating_weekend_setpoint'] = 68
     args['hvac_control_cooling_weekday_setpoint'] = 78
@@ -961,7 +934,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['heating_system_2_type'] = 'none'
     args['heating_system_2_fuel'] = HPXML::FuelTypeElectricity
     args['heating_system_2_heating_efficiency'] = 0
-    args['heating_system_2_heating_capacity'] = Constants.Auto
     args['heating_system_2_fraction_heat_load_served'] = 0
     args['mech_vent_fan_type'] = 'none'
     args['mech_vent_flow_rate'] = 0
@@ -981,8 +953,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['kitchen_fans_quantity'] = 0
     args['bathroom_fans_quantity'] = 0
     args['whole_house_fan_present'] = false
-    args['whole_house_fan_flow_rate'] = 0
-    args['whole_house_fan_power'] = 0
     args['water_heater_type'] = 'none'
     args['water_heater_fuel_type'] = HPXML::FuelTypeElectricity
     args['water_heater_location'] = HPXML::LocationLivingSpace
@@ -990,7 +960,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['water_heater_efficiency_type'] = 'EnergyFactor'
     args['water_heater_efficiency'] = 0
     args['water_heater_recovery_efficiency'] = 0
-    args['water_heater_heating_capacity'] = Constants.Auto
     args['water_heater_standby_loss'] = 0
     args['water_heater_jacket_rvalue'] = 0
     args['water_heater_setpoint_temperature'] = 0
@@ -1016,27 +985,16 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['solar_thermal_collector_tilt'] = 0
     args['solar_thermal_collector_rated_optical_efficiency'] = 0
     args['solar_thermal_collector_rated_thermal_losses'] = 0
-    args['solar_thermal_storage_volume'] = Constants.Auto
     args['solar_thermal_solar_fraction'] = 0
-    args['pv_system_module_type'] = 'none'
-    args['pv_system_location'] = Constants.Auto
-    args['pv_system_tracking'] = Constants.Auto
+    args['pv_system_present'] = false
     args['pv_system_array_azimuth'] = 0
     args['pv_system_array_tilt'] = 0
     args['pv_system_max_power_output'] = 0
-    args['pv_system_inverter_efficiency'] = 0
-    args['pv_system_system_losses_fraction'] = 0
-    args['pv_system_num_bedrooms_served'] = 0
-    args['pv_system_2_module_type'] = 'none'
-    args['pv_system_2_location'] = Constants.Auto
-    args['pv_system_2_tracking'] = Constants.Auto
+    args['pv_system_2_present'] = false
     args['pv_system_2_array_azimuth'] = 0
     args['pv_system_2_array_tilt'] = 0
     args['pv_system_2_max_power_output'] = 0
-    args['battery_location'] = 'none'
-    args['battery_power'] = Constants.Auto
-    args['battery_capacity'] = Constants.Auto
-    args['battery_usable_capacity'] = Constants.Auto
+    args['battery_present'] = false
     args['lighting_present'] = false
     args['lighting_interior_fraction_cfl'] = 0
     args['lighting_interior_fraction_lfl'] = 0
@@ -1051,97 +1009,41 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['lighting_garage_fraction_led'] = 0
     args['lighting_garage_usage_multiplier'] = 0
     args['holiday_lighting_present'] = false
-    args['holiday_lighting_daily_kwh'] = Constants.Auto
     args['dehumidifier_type'] = 'none'
     args['dehumidifier_efficiency_type'] = 'EnergyFactor'
     args['dehumidifier_efficiency'] = 0
     args['dehumidifier_capacity'] = 0
     args['dehumidifier_rh_setpoint'] = 0
     args['dehumidifier_fraction_dehumidification_load_served'] = 0
-    args['clothes_washer_location'] = 'none'
+    args['clothes_washer_present'] = false
     args['clothes_washer_efficiency_type'] = 'IntegratedModifiedEnergyFactor'
-    args['clothes_washer_efficiency'] = 0
-    args['clothes_washer_rated_annual_kwh'] = 0
-    args['clothes_washer_label_electric_rate'] = 0
-    args['clothes_washer_label_gas_rate'] = 0
-    args['clothes_washer_label_annual_gas_cost'] = 0
-    args['clothes_washer_label_usage'] = 0
-    args['clothes_washer_capacity'] = 0
-    args['clothes_washer_usage_multiplier'] = 0
-    args['clothes_dryer_location'] = 'none'
+    args['clothes_dryer_present'] = false
     args['clothes_dryer_fuel_type'] = HPXML::FuelTypeElectricity
     args['clothes_dryer_efficiency_type'] = 'CombinedEnergyFactor'
-    args['clothes_dryer_efficiency'] = 0
-    args['clothes_dryer_vented_flow_rate'] = 0
-    args['clothes_dryer_usage_multiplier'] = 0
-    args['dishwasher_location'] = 'none'
+    args['dishwasher_present'] = false
     args['dishwasher_efficiency_type'] = 'RatedAnnualkWh'
-    args['dishwasher_efficiency'] = 0
-    args['dishwasher_label_electric_rate'] = 0
-    args['dishwasher_label_gas_rate'] = 0
-    args['dishwasher_label_annual_gas_cost'] = 0
-    args['dishwasher_label_usage'] = 0
-    args['dishwasher_place_setting_capacity'] = 0
-    args['dishwasher_usage_multiplier'] = 0
-    args['refrigerator_location'] = 'none'
-    args['refrigerator_rated_annual_kwh'] = 0
-    args['refrigerator_usage_multiplier'] = 0
-    args['extra_refrigerator_location'] = 'none'
-    args['extra_refrigerator_rated_annual_kwh'] = Constants.Auto
-    args['extra_refrigerator_usage_multiplier'] = 0
-    args['freezer_location'] = 'none'
-    args['freezer_rated_annual_kwh'] = Constants.Auto
-    args['freezer_usage_multiplier'] = 0
-    args['cooking_range_oven_location'] = 'none'
+    args['refrigerator_present'] = false
+    args['extra_refrigerator_present'] = false
+    args['freezer_present'] = false
+    args['cooking_range_oven_present'] = false
     args['cooking_range_oven_fuel_type'] = HPXML::FuelTypeElectricity
-    args['cooking_range_oven_is_induction'] = false
-    args['cooking_range_oven_is_convection'] = false
-    args['cooking_range_oven_usage_multiplier'] = 0
     args['ceiling_fan_present'] = false
-    args['ceiling_fan_efficiency'] = Constants.Auto
-    args['ceiling_fan_quantity'] = Constants.Auto
-    args['ceiling_fan_cooling_setpoint_temp_offset'] = 0
     args['misc_plug_loads_television_present'] = false
-    args['misc_plug_loads_television_annual_kwh'] = 0
-    args['misc_plug_loads_television_usage_multiplier'] = 0
     args['misc_plug_loads_other_annual_kwh'] = 7302.0
     args['misc_plug_loads_other_frac_sensible'] = 0.822
     args['misc_plug_loads_other_frac_latent'] = 0.178
-    args['misc_plug_loads_other_usage_multiplier'] = 1.0
     args['misc_plug_loads_well_pump_present'] = false
-    args['misc_plug_loads_well_pump_annual_kwh'] = Constants.Auto
-    args['misc_plug_loads_well_pump_usage_multiplier'] = 0
     args['misc_plug_loads_vehicle_present'] = false
-    args['misc_plug_loads_vehicle_annual_kwh'] = Constants.Auto
-    args['misc_plug_loads_vehicle_usage_multiplier'] = 0
     args['misc_fuel_loads_grill_present'] = false
     args['misc_fuel_loads_grill_fuel_type'] = HPXML::FuelTypeNaturalGas
-    args['misc_fuel_loads_grill_annual_therm'] = Constants.Auto
-    args['misc_fuel_loads_grill_usage_multiplier'] = 0
     args['misc_fuel_loads_lighting_present'] = false
     args['misc_fuel_loads_lighting_fuel_type'] = HPXML::FuelTypeNaturalGas
-    args['misc_fuel_loads_lighting_annual_therm'] = Constants.Auto
-    args['misc_fuel_loads_lighting_usage_multiplier'] = 0
     args['misc_fuel_loads_fireplace_present'] = false
     args['misc_fuel_loads_fireplace_fuel_type'] = HPXML::FuelTypeNaturalGas
-    args['misc_fuel_loads_fireplace_annual_therm'] = Constants.Auto
-    args['misc_fuel_loads_fireplace_frac_sensible'] = Constants.Auto
-    args['misc_fuel_loads_fireplace_frac_latent'] = Constants.Auto
-    args['misc_fuel_loads_fireplace_usage_multiplier'] = 0
     args['pool_present'] = false
-    args['pool_pump_annual_kwh'] = Constants.Auto
-    args['pool_pump_usage_multiplier'] = 0
     args['pool_heater_type'] = HPXML::HeaterTypeElectricResistance
-    args['pool_heater_annual_kwh'] = Constants.Auto
-    args['pool_heater_annual_therm'] = Constants.Auto
-    args['pool_heater_usage_multiplier'] = 0
     args['hot_tub_present'] = false
-    args['hot_tub_pump_annual_kwh'] = Constants.Auto
-    args['hot_tub_pump_usage_multiplier'] = 0
     args['hot_tub_heater_type'] = HPXML::HeaterTypeElectricResistance
-    args['hot_tub_heater_annual_kwh'] = Constants.Auto
-    args['hot_tub_heater_annual_therm'] = Constants.Auto
-    args['hot_tub_heater_usage_multiplier'] = 0
   end
 
   # ASHRAE 140
@@ -1218,7 +1120,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
   if ['base-appliances-coal.xml'].include? hpxml_file
     args['clothes_dryer_fuel_type'] = HPXML::FuelTypeCoal
     args['clothes_dryer_efficiency'] = 3.3
-    args['clothes_dryer_vented_flow_rate'] = Constants.Auto
+    args.delete('clothes_dryer_vented_flow_rate')
     args['cooking_range_oven_fuel_type'] = HPXML::FuelTypeCoal
   elsif ['base-appliances-dehumidifier.xml'].include? hpxml_file
     args['dehumidifier_type'] = HPXML::DehumidifierTypePortable
@@ -1230,7 +1132,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
   elsif ['base-appliances-gas.xml'].include? hpxml_file
     args['clothes_dryer_fuel_type'] = HPXML::FuelTypeNaturalGas
     args['clothes_dryer_efficiency'] = 3.3
-    args['clothes_dryer_vented_flow_rate'] = Constants.Auto
+    args.delete('clothes_dryer_vented_flow_rate')
     args['cooking_range_oven_fuel_type'] = HPXML::FuelTypeNaturalGas
   elsif ['base-appliances-modified.xml'].include? hpxml_file
     args['clothes_washer_efficiency_type'] = 'ModifiedEnergyFactor'
@@ -1242,25 +1144,27 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['dishwasher_efficiency'] = 0.7
     args['dishwasher_place_setting_capacity'] = 6
   elsif ['base-appliances-none.xml'].include? hpxml_file
-    args['clothes_washer_location'] = 'none'
-    args['clothes_dryer_location'] = 'none'
-    args['dishwasher_location'] = 'none'
-    args['refrigerator_location'] = 'none'
-    args['cooking_range_oven_location'] = 'none'
-  elsif ['base-appliances-oil.xml'].include? hpxml_file
+    args['clothes_washer_present'] = false
+    args['clothes_dryer_present'] = false
+    args['dishwasher_present'] = false
+    args['refrigerator_present'] = false
+    args['cooking_range_oven_present'] = false
+  elsif ['base-appliances-oil.xml',
+         'base-appliances-oil-location-miami-fl.xml'].include? hpxml_file
     args['clothes_dryer_fuel_type'] = HPXML::FuelTypeOil
     args['clothes_dryer_efficiency'] = 3.3
-    args['clothes_dryer_vented_flow_rate'] = Constants.Auto
+    args.delete('clothes_dryer_vented_flow_rate')
     args['cooking_range_oven_fuel_type'] = HPXML::FuelTypeOil
-  elsif ['base-appliances-propane.xml'].include? hpxml_file
+  elsif ['base-appliances-propane.xml',
+         'base-appliances-propane-location-portland-or.xml'].include? hpxml_file
     args['clothes_dryer_fuel_type'] = HPXML::FuelTypePropane
     args['clothes_dryer_efficiency'] = 3.3
-    args['clothes_dryer_vented_flow_rate'] = Constants.Auto
+    args.delete('clothes_dryer_vented_flow_rate')
     args['cooking_range_oven_fuel_type'] = HPXML::FuelTypePropane
   elsif ['base-appliances-wood.xml'].include? hpxml_file
     args['clothes_dryer_fuel_type'] = HPXML::FuelTypeWoodCord
     args['clothes_dryer_efficiency'] = 3.3
-    args['clothes_dryer_vented_flow_rate'] = Constants.Auto
+    args.delete('clothes_dryer_vented_flow_rate')
     args['cooking_range_oven_fuel_type'] = HPXML::FuelTypeWoodCord
   end
 
@@ -1339,6 +1243,12 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['ducts_supply_surface_area'] = 112.5
     args['ducts_return_surface_area'] = 37.5
     args['misc_plug_loads_other_annual_kwh'] = 2457.0
+  elsif ['base-bldgtype-single-family-attached-atticroof-cathedral.xml'].include? hpxml_file
+    args['geometry_attic_type'] = HPXML::AtticTypeConditioned
+    args['ducts_supply_location'] = HPXML::LocationLivingSpace
+    args['ducts_return_location'] = HPXML::LocationLivingSpace
+    args['ducts_supply_leakage_to_outside_value'] = 0
+    args['ducts_return_leakage_to_outside_value'] = 0
   end
 
   # Multifamily
@@ -1393,6 +1303,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['mech_vent_shared_precooling_efficiency'] = 4.0
     args['mech_vent_shared_precooling_fraction_cool_load_served'] = 0.8
   elsif ['base-bldgtype-multifamily-shared-pv.xml'].include? hpxml_file
+    args['pv_system_present'] = true
     args['pv_system_num_bedrooms_served'] = 6 * 3
     args['pv_system_location'] = HPXML::LocationGround
     args['pv_system_module_type'] = HPXML::PVModuleTypeStandard
@@ -1411,10 +1322,35 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['water_heater_heating_capacity'] = 40000
   end
 
+  # Occ Calc Type
+  if ['base-calctype-operational.xml',
+      'base-calctype-operational-misc-loads-large-uncommon.xml',
+      'base-calctype-operational-misc-loads-large-uncommon2.xml',
+      'base-bldgtype-multifamily-calctype-operational.xml'].include? hpxml_file
+    args['occupancy_calculation_type'] = HPXML::OccupancyCalculationTypeOperational
+    args['geometry_unit_num_occupants'] = 1
+    args.delete('misc_plug_loads_television_annual_kwh')
+    args.delete('misc_plug_loads_other_annual_kwh')
+    args.delete('pool_pump_annual_kwh')
+    args.delete('pool_heater_annual_therm')
+    args.delete('pool_heater_annual_kwh')
+    args.delete('hot_tub_pump_annual_kwh')
+    args.delete('hot_tub_heater_annual_therm')
+    args.delete('hot_tub_heater_annual_kwh')
+    args.delete('misc_plug_loads_well_pump_annual_kwh')
+    args.delete('misc_plug_loads_vehicle_annual_kwh')
+    args.delete('misc_fuel_loads_grill_annual_therm')
+    args.delete('misc_fuel_loads_lighting_annual_therm')
+    args.delete('misc_fuel_loads_fireplace_annual_therm')
+  elsif ['base-calctype-operational-misc-defaults.xml'].include? hpxml_file
+    args['occupancy_calculation_type'] = HPXML::OccupancyCalculationTypeOperational
+    args['geometry_unit_num_occupants'] = 5
+  end
+
   # DHW
   if ['base-dhw-combi-tankless.xml'].include? hpxml_file
     args['water_heater_type'] = HPXML::WaterHeaterTypeCombiTankless
-    args['water_heater_tank_volume'] = Constants.Auto
+    args.delete('water_heater_tank_volume')
   elsif ['base-dhw-combi-tankless-outside.xml',
          'base-dhw-indirect-outside.xml',
          'base-dhw-tank-gas-outside.xml',
@@ -1443,7 +1379,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['water_fixtures_sink_low_flow'] = true
   elsif ['base-dhw-none.xml'].include? hpxml_file
     args['water_heater_type'] = 'none'
-    args['dishwasher_location'] = 'none'
   elsif ['base-dhw-recirc-demand.xml'].include? hpxml_file
     args['hot_water_distribution_system_type'] = HPXML::DHWDistTypeRecirc
     args['hot_water_distribution_recirc_control_type'] = HPXML::DHWRecirControlTypeSensor
@@ -1517,7 +1452,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['solar_thermal_storage_volume'] = 60
   elsif ['base-dhw-tankless-electric.xml'].include? hpxml_file
     args['water_heater_type'] = HPXML::WaterHeaterTypeTankless
-    args['water_heater_tank_volume'] = Constants.Auto
+    args.delete('water_heater_tank_volume')
     args['water_heater_efficiency'] = 0.99
   elsif ['base-dhw-tankless-electric-uef.xml'].include? hpxml_file
     args['water_heater_efficiency_type'] = 'UniformEnergyFactor'
@@ -1525,7 +1460,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
   elsif ['base-dhw-tankless-gas.xml'].include? hpxml_file
     args['water_heater_type'] = HPXML::WaterHeaterTypeTankless
     args['water_heater_fuel_type'] = HPXML::FuelTypeNaturalGas
-    args['water_heater_tank_volume'] = Constants.Auto
+    args.delete('water_heater_tank_volume')
     args['water_heater_efficiency'] = 0.82
   elsif ['base-dhw-tankless-gas-uef.xml'].include? hpxml_file
     args['water_heater_efficiency_type'] = 'UniformEnergyFactor'
@@ -1545,8 +1480,12 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
   elsif ['base-dhw-desuperheater-tankless.xml'].include? hpxml_file
     args['water_heater_uses_desuperheater'] = true
     args['water_heater_type'] = HPXML::WaterHeaterTypeTankless
-    args['water_heater_tank_volume'] = Constants.Auto
+    args.delete('water_heater_tank_volume')
     args['water_heater_efficiency'] = 0.99
+  elsif ['base-dhw-tank-heat-pump-operating-mode-heat-pump-only.xml'].include? hpxml_file
+    args['water_heater_operating_mode'] = HPXML::WaterHeaterOperatingModeHeatPumpOnly
+  elsif ['base-dhw-tank-model-type-stratified.xml'].include? hpxml_file
+    args['water_heater_tank_model_type'] = HPXML::WaterHeaterTankModelTypeStratified
   end
 
   # Enclosure
@@ -1656,7 +1595,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
     args['geometry_foundation_height'] = 0.0
     args['geometry_foundation_height_above_grade'] = 0.0
-    args['foundation_wall_insulation_distance_to_bottom'] = Constants.Auto
+    args.delete('foundation_wall_insulation_distance_to_bottom')
     args['slab_under_insulation_r'] = 5
     args['slab_under_width'] = 999
     args['slab_carpet_fraction'] = 1.0
@@ -1745,6 +1684,10 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
   elsif ['base-hvac-air-to-air-heat-pump-1-speed-heating-only.xml'].include? hpxml_file
     args['heat_pump_cooling_capacity'] = 0.0
     args['heat_pump_fraction_cool_load_served'] = 0
+  elsif ['base-hvac-air-to-air-heat-pump-1-speed-backup-lockout-temperature.xml'].include? hpxml_file
+    args['hvac_control_heating_weekday_setpoint'] = '64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64'
+    args['hvac_control_heating_weekend_setpoint'] = '64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64'
+    args['heat_pump_backup_heating_lockout_temp'] = 35.0
   elsif ['base-hvac-air-to-air-heat-pump-2-speed.xml'].include? hpxml_file
     args['heating_system_type'] = 'none'
     args['cooling_system_type'] = 'none'
@@ -1776,17 +1719,22 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
   elsif ['base-hvac-air-to-air-heat-pump-var-speed-backup-boiler-switchover-temperature.xml'].include? hpxml_file
     args['heat_pump_backup_heating_switchover_temp'] = 25
   elsif hpxml_file.include? 'autosize'
-    args['heating_system_heating_capacity'] = Constants.Auto
-    args['heating_system_2_heating_capacity'] = Constants.Auto
-    args['cooling_system_cooling_capacity'] = Constants.Auto
-    if hpxml_file.include? 'manual-s-oversize-allowances'
-      args['heat_pump_heating_capacity'] = Constants.Auto
+    args.delete('heating_system_heating_capacity')
+    args.delete('heating_system_2_heating_capacity')
+    args.delete('cooling_system_cooling_capacity')
+    args.delete('heat_pump_heating_capacity')
+    if hpxml_file.include? 'sizing-methodology-hers'
+      args['heat_pump_sizing_methodology'] = HPXML::HeatPumpSizingHERS
+    elsif hpxml_file.include? 'sizing-methodology-maxload'
+      args['heat_pump_sizing_methodology'] = HPXML::HeatPumpSizingMaxLoad
+    elsif hpxml_file.include? 'sizing-methodology-acca'
+      args['heat_pump_sizing_methodology'] = HPXML::HeatPumpSizingACCA
     else
-      args['heat_pump_heating_capacity'] = Constants.AutoMaxLoad
+      args['heat_pump_sizing_methodology'] = HPXML::HeatPumpSizingHERS
     end
-    args['heat_pump_heating_capacity_17_f'] = Constants.Auto
-    args['heat_pump_backup_heating_capacity'] = Constants.Auto
-    args['heat_pump_cooling_capacity'] = Constants.Auto
+    args.delete('heat_pump_heating_capacity_17_f')
+    args.delete('heat_pump_backup_heating_capacity')
+    args.delete('heat_pump_cooling_capacity')
   elsif ['base-hvac-boiler-coal-only.xml',
          'base-hvac-furnace-coal-only.xml'].include? hpxml_file
     args['heating_system_fuel'] = HPXML::FuelTypeCoal
@@ -1937,8 +1885,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['heat_pump_cooling_capacity'] = 0.0
     args['heat_pump_fraction_cool_load_served'] = 0
   elsif ['base-hvac-seasons.xml'].include? hpxml_file
-    args['hvac_control_heating_season_period'] = 'Nov 1 - Jun 30'
-    args['hvac_control_cooling_season_period'] = 'Jun 1 - Oct 31'
+    args['hvac_control_heating_season_period'] = 'Nov 1 - May 1'
+    args['hvac_control_cooling_season_period'] = 'Jun 1 - Oct 1'
   elsif ['base-hvac-install-quality-air-to-air-heat-pump-1-speed.xml',
          'base-hvac-install-quality-air-to-air-heat-pump-2-speed.xml',
          'base-hvac-install-quality-air-to-air-heat-pump-var-speed.xml',
@@ -2096,17 +2044,23 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['site_state_code'] = 'HI'
     args['weather_station_epw_filepath'] = 'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw'
     args['heating_system_heating_capacity'] = 12000.0
-  elsif ['base-location-miami-fl.xml'].include? hpxml_file
+  elsif ['base-location-miami-fl.xml',
+         'base-appliances-oil-location-miami-fl.xml'].include? hpxml_file
     args['site_iecc_zone'] = '1A'
     args['site_state_code'] = 'FL'
     args['weather_station_epw_filepath'] = 'USA_FL_Miami.Intl.AP.722020_TMY3.epw'
     args['heating_system_heating_capacity'] = 12000.0
+  elsif ['base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload-miami-fl.xml'].include? hpxml_file
+    args['site_iecc_zone'] = '1A'
+    args['site_state_code'] = 'FL'
+    args['weather_station_epw_filepath'] = 'USA_FL_Miami.Intl.AP.722020_TMY3.epw'
   elsif ['base-location-phoenix-az.xml'].include? hpxml_file
     args['site_iecc_zone'] = '2B'
     args['site_state_code'] = 'AZ'
     args['weather_station_epw_filepath'] = 'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'
     args['heating_system_heating_capacity'] = 24000.0
-  elsif ['base-location-portland-or.xml'].include? hpxml_file
+  elsif ['base-location-portland-or.xml',
+         'base-appliances-propane-location-portland-or.xml'].include? hpxml_file
     args['site_iecc_zone'] = '4C'
     args['site_state_code'] = 'OR'
     args['weather_station_epw_filepath'] = 'USA_OR_Portland.Intl.AP.726980_TMY3.epw'
@@ -2172,21 +2126,47 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['mech_vent_fan_type'] = HPXML::MechVentTypeSupply
   elsif ['base-mechvent-whole-house-fan.xml'].include? hpxml_file
     args['whole_house_fan_present'] = true
+    args['whole_house_fan_flow_rate'] = 4500.0
+    args['whole_house_fan_power'] = 300.0
   end
 
   # Misc
+  if not orig_parent.nil?
+    args['additional_properties'] = "ParentHPXMLFile=#{File.basename(orig_parent)}"
+  end
   if ['base-misc-additional-properties.xml'].include? hpxml_file
-    args['additional_properties'] = 'LowIncome=false|Remodeled|Description=2-story home in Denver|comma=,|special=<|special2=>|special3=/|special4=\\'
+    args['additional_properties'] += '|LowIncome=false|Remodeled|Description=2-story home in Denver|comma=,|special=<|special2=>|special3=/|special4=\\'
+  elsif ['base-misc-bills.xml'].include? hpxml_file
+    args['utility_bill_scenario_names'] = 'Bills'
+    args['utility_bill_electricity_fixed_charges'] = '12'
+    args['utility_bill_electricity_marginal_rates'] = '0.12'
+    args['utility_bill_natural_gas_fixed_charges'] = '12'
+    args['utility_bill_natural_gas_marginal_rates'] = '1.10'
+  elsif ['base-misc-bills-none.xml'].include? hpxml_file
+    args.delete('utility_bill_scenario_names')
+  elsif ['base-misc-bills-pv.xml'].include? hpxml_file
+    args['pv_system_max_power_output'] = 10000 # Ensure there is excess annual PV production
+    args['utility_bill_scenario_names'] = 'Net Metering w/ Wholesale Excess Rate, Net Metering w/ Retail Excess Rate, Feed-In Tariff'
+    args['utility_bill_electricity_fixed_charges'] = '10, 10, 10'
+    args['utility_bill_electricity_marginal_rates'] = '0.12, 0.12, 0.12'
+    args['utility_bill_natural_gas_fixed_charges'] = '11, 11, 11'
+    args['utility_bill_natural_gas_marginal_rates'] = '1.10, 1.10, 1.10'
+    args['utility_bill_pv_compensation_types'] = "#{HPXML::PVCompensationTypeNetMetering}, #{HPXML::PVCompensationTypeNetMetering}, #{HPXML::PVCompensationTypeFeedInTariff}"
+    args['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = "#{HPXML::PVAnnualExcessSellbackRateTypeUserSpecified}, #{HPXML::PVAnnualExcessSellbackRateTypeRetailElectricityCost}, NA"
+    args['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = '0.035, NA, NA'
+    args['utility_bill_pv_feed_in_tariff_rates'] = 'NA, NA, 0.13'
+    args['utility_bill_pv_monthly_grid_connection_fee_units'] = "#{HPXML::UnitsDollarsPerkW}, #{HPXML::UnitsDollarsPerkW}, #{HPXML::UnitsDollars}"
+    args['utility_bill_pv_monthly_grid_connection_fees'] = '2.5, 2.5, 7.5'
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     args.delete('simulation_control_timestep')
     args.delete('site_type')
-    args['geometry_unit_num_bathrooms'] = Constants.Auto
-    args['geometry_unit_num_occupants'] = Constants.Auto
-    args['foundation_wall_insulation_distance_to_top'] = Constants.Auto
-    args['foundation_wall_insulation_distance_to_bottom'] = Constants.Auto
-    args['foundation_wall_thickness'] = Constants.Auto
-    args['slab_thickness'] = Constants.Auto
-    args['slab_carpet_fraction'] = Constants.Auto
+    args.delete('geometry_unit_num_bathrooms')
+    args.delete('geometry_unit_num_occupants')
+    args.delete('foundation_wall_insulation_distance_to_top')
+    args.delete('foundation_wall_insulation_distance_to_bottom')
+    args.delete('foundation_wall_thickness')
+    args.delete('slab_thickness')
+    args.delete('slab_carpet_fraction')
     args.delete('roof_material_type')
     args['roof_color'] = HPXML::ColorLight
     args.delete('roof_material_type')
@@ -2197,62 +2177,68 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args.delete('cooling_system_cooling_compressor_type')
     args.delete('cooling_system_cooling_sensible_heat_fraction')
     args['mech_vent_fan_type'] = HPXML::MechVentTypeExhaust
-    args['mech_vent_hours_in_operation'] = Constants.Auto
-    args['mech_vent_fan_power'] = Constants.Auto
-    args['ducts_supply_location'] = Constants.Auto
-    args['ducts_return_location'] = Constants.Auto
-    args['ducts_supply_surface_area'] = Constants.Auto
-    args['ducts_return_surface_area'] = Constants.Auto
+    args.delete('mech_vent_hours_in_operation')
+    args.delete('mech_vent_fan_power')
+    args.delete('ducts_supply_location')
+    args.delete('ducts_return_location')
+    args.delete('ducts_supply_surface_area')
+    args.delete('ducts_return_surface_area')
     args['ducts_number_of_return_registers'] = 2
-    args['kitchen_fans_quantity'] = Constants.Auto
-    args['bathroom_fans_quantity'] = Constants.Auto
-    args['water_heater_location'] = Constants.Auto
-    args['water_heater_tank_volume'] = Constants.Auto
-    args['water_heater_setpoint_temperature'] = Constants.Auto
-    args['hot_water_distribution_standard_piping_length'] = Constants.Auto
-    args['hot_water_distribution_pipe_r'] = Constants.Auto
+    args.delete('kitchen_fans_quantity')
+    args.delete('bathroom_fans_quantity')
+    args.delete('water_heater_location')
+    args.delete('water_heater_tank_volume')
+    args.delete('water_heater_setpoint_temperature')
+    args.delete('hot_water_distribution_standard_piping_length')
+    args.delete('hot_water_distribution_pipe_r')
     args['solar_thermal_system_type'] = HPXML::SolarThermalSystemType
     args['solar_thermal_collector_type'] = HPXML::SolarThermalTypeSingleGlazing
     args['solar_thermal_collector_rated_optical_efficiency'] = 0.77
     args['solar_thermal_collector_rated_thermal_losses'] = 0.793
-    args['pv_system_module_type'] = Constants.Auto
+    args['pv_system_present'] = true
+    args.delete('pv_system_module_type')
     args.delete('pv_system_inverter_efficiency')
     args.delete('pv_system_system_losses_fraction')
-    args['battery_location'] = Constants.Auto
-    args['clothes_washer_location'] = Constants.Auto
-    args['clothes_washer_efficiency'] = Constants.Auto
-    args['clothes_washer_rated_annual_kwh'] = Constants.Auto
-    args['clothes_washer_label_electric_rate'] = Constants.Auto
-    args['clothes_washer_label_gas_rate'] = Constants.Auto
-    args['clothes_washer_label_annual_gas_cost'] = Constants.Auto
-    args['clothes_washer_label_usage'] = Constants.Auto
-    args['clothes_washer_capacity'] = Constants.Auto
-    args['clothes_dryer_location'] = Constants.Auto
-    args['clothes_dryer_efficiency'] = Constants.Auto
-    args['clothes_dryer_vented_flow_rate'] = Constants.Auto
-    args['dishwasher_location'] = Constants.Auto
-    args['dishwasher_efficiency'] = Constants.Auto
-    args['dishwasher_label_electric_rate'] = Constants.Auto
-    args['dishwasher_label_gas_rate'] = Constants.Auto
-    args['dishwasher_label_annual_gas_cost'] = Constants.Auto
-    args['dishwasher_label_usage'] = Constants.Auto
-    args['dishwasher_place_setting_capacity'] = Constants.Auto
-    args['refrigerator_location'] = Constants.Auto
-    args['refrigerator_rated_annual_kwh'] = Constants.Auto
-    args['cooking_range_oven_location'] = Constants.Auto
+    args['battery_present'] = true
+    args.delete('battery_location')
+    args.delete('clothes_washer_location')
+    args.delete('clothes_washer_efficiency')
+    args.delete('clothes_washer_rated_annual_kwh')
+    args.delete('clothes_washer_label_electric_rate')
+    args.delete('clothes_washer_label_gas_rate')
+    args.delete('clothes_washer_label_annual_gas_cost')
+    args.delete('clothes_washer_label_usage')
+    args.delete('clothes_washer_capacity')
+    args.delete('clothes_dryer_location')
+    args.delete('clothes_dryer_efficiency')
+    args.delete('clothes_dryer_vented_flow_rate')
+    args.delete('dishwasher_location')
+    args.delete('dishwasher_efficiency')
+    args.delete('dishwasher_label_electric_rate')
+    args.delete('dishwasher_label_gas_rate')
+    args.delete('dishwasher_label_annual_gas_cost')
+    args.delete('dishwasher_label_usage')
+    args.delete('dishwasher_place_setting_capacity')
+    args.delete('refrigerator_location')
+    args.delete('refrigerator_rated_annual_kwh')
+    args.delete('cooking_range_oven_location')
     args.delete('cooking_range_oven_is_induction')
     args.delete('cooking_range_oven_is_convection')
     args['ceiling_fan_present'] = true
-    args['misc_plug_loads_television_annual_kwh'] = Constants.Auto
-    args['misc_plug_loads_other_annual_kwh'] = Constants.Auto
-    args['misc_plug_loads_other_frac_sensible'] = Constants.Auto
-    args['misc_plug_loads_other_frac_latent'] = Constants.Auto
-    args['mech_vent_flow_rate'] = Constants.Auto
-    args['kitchen_fans_flow_rate'] = Constants.Auto
-    args['bathroom_fans_flow_rate'] = Constants.Auto
+    args.delete('misc_plug_loads_television_annual_kwh')
+    args.delete('misc_plug_loads_other_annual_kwh')
+    args.delete('misc_plug_loads_other_frac_sensible')
+    args.delete('misc_plug_loads_other_frac_latent')
+    args.delete('mech_vent_flow_rate')
+    args.delete('kitchen_fans_flow_rate')
+    args.delete('bathroom_fans_flow_rate')
     args['whole_house_fan_present'] = true
-    args['whole_house_fan_flow_rate'] = Constants.Auto
-    args['whole_house_fan_power'] = Constants.Auto
+    args.delete('whole_house_fan_flow_rate')
+    args.delete('whole_house_fan_power')
+    args.delete('hvac_control_heating_weekday_setpoint')
+    args.delete('hvac_control_heating_weekend_setpoint')
+    args.delete('hvac_control_cooling_weekday_setpoint')
+    args.delete('hvac_control_cooling_weekend_setpoint')
   elsif ['base-misc-emissions.xml'].include? hpxml_file
     args['emissions_scenario_names'] = 'Cambium Hourly MidCase LRMER RMPA, Cambium Hourly LowRECosts LRMER RMPA, Cambium Annual MidCase AER National, eGRID RMPA, eGRID RMPA'
     args['emissions_types'] = 'CO2e, CO2e, CO2e, SO2, NOx'
@@ -2261,29 +2247,26 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['emissions_electricity_number_of_header_rows'] = '1, 1, , , '
     args['emissions_electricity_column_numbers'] = '17, 17, , , '
   elsif ['base-misc-loads-large-uncommon.xml'].include? hpxml_file
-    args['extra_refrigerator_location'] = Constants.Auto
+    args.delete('extra_refrigerator_location')
+    args['extra_refrigerator_present'] = true
     args['extra_refrigerator_rated_annual_kwh'] = 700.0
+    args['freezer_present'] = true
     args['freezer_location'] = HPXML::LocationLivingSpace
     args['freezer_rated_annual_kwh'] = 300.0
     args['misc_plug_loads_well_pump_present'] = true
     args['misc_plug_loads_well_pump_annual_kwh'] = 475.0
-    args['misc_plug_loads_well_pump_usage_multiplier'] = 1.0
     args['misc_plug_loads_vehicle_present'] = true
     args['misc_plug_loads_vehicle_annual_kwh'] = 1500.0
-    args['misc_plug_loads_vehicle_usage_multiplier'] = 1.0
     args['misc_fuel_loads_grill_present'] = true
     args['misc_fuel_loads_grill_fuel_type'] = HPXML::FuelTypePropane
     args['misc_fuel_loads_grill_annual_therm'] = 25.0
-    args['misc_fuel_loads_grill_usage_multiplier'] = 1.0
     args['misc_fuel_loads_lighting_present'] = true
     args['misc_fuel_loads_lighting_annual_therm'] = 28.0
-    args['misc_fuel_loads_lighting_usage_multiplier'] = 1.0
     args['misc_fuel_loads_fireplace_present'] = true
     args['misc_fuel_loads_fireplace_fuel_type'] = HPXML::FuelTypeWoodCord
     args['misc_fuel_loads_fireplace_annual_therm'] = 55.0
     args['misc_fuel_loads_fireplace_frac_sensible'] = 0.5
     args['misc_fuel_loads_fireplace_frac_latent'] = 0.1
-    args['misc_fuel_loads_fireplace_usage_multiplier'] = 1.0
     args['pool_present'] = true
     args['pool_heater_type'] = HPXML::HeaterTypeGas
     args['pool_pump_annual_kwh'] = 2700.0
@@ -2312,6 +2295,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['clothes_dryer_usage_multiplier'] = 0.9
     args['dishwasher_usage_multiplier'] = 0.9
     args['refrigerator_usage_multiplier'] = 0.9
+    args['freezer_present'] = true
     args['freezer_location'] = HPXML::LocationLivingSpace
     args['freezer_rated_annual_kwh'] = 300.0
     args['freezer_usage_multiplier'] = 0.9
@@ -2345,15 +2329,21 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
   elsif ['base-misc-loads-none.xml'].include? hpxml_file
     args['misc_plug_loads_television_present'] = false
     args['misc_plug_loads_other_annual_kwh'] = 0.0
-    args['misc_plug_loads_other_frac_sensible'] = Constants.Auto
-    args['misc_plug_loads_other_frac_latent'] = Constants.Auto
+    args.delete('misc_plug_loads_other_frac_sensible')
+    args.delete('misc_plug_loads_other_frac_latent')
   end
 
   # PV
-  if ['base-pv.xml'].include? hpxml_file
+  if ['base-pv.xml',
+      'base-pv-battery.xml',
+      'base-pv-battery-garage.xml'].include? hpxml_file
+    args['pv_system_present'] = true
     args['pv_system_module_type'] = HPXML::PVModuleTypeStandard
     args['pv_system_location'] = HPXML::LocationRoof
     args['pv_system_tracking'] = HPXML::PVTrackingTypeFixed
+    args['pv_system_inverter_efficiency'] = 0.96
+    args['pv_system_system_losses_fraction'] = 0.14
+    args['pv_system_2_present'] = true
     args['pv_system_2_module_type'] = HPXML::PVModuleTypePremium
     args['pv_system_2_location'] = HPXML::LocationRoof
     args['pv_system_2_tracking'] = HPXML::PVTrackingTypeFixed
@@ -2362,33 +2352,18 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
   end
 
   # Battery
-  if ['base-battery.xml'].include? hpxml_file
-    args['battery_location'] = HPXML::LocationOutside
-    args['battery_power'] = '15000'
-    args['battery_capacity'] = '20'
-    args['battery_usable_capacity'] = '18'
-  elsif ['base-pv-battery.xml'].include? hpxml_file
-    args['pv_system_module_type'] = HPXML::PVModuleTypeStandard
-    args['pv_system_location'] = HPXML::LocationRoof
-    args['pv_system_tracking'] = HPXML::PVTrackingTypeFixed
-    args['pv_system_2_module_type'] = HPXML::PVModuleTypePremium
-    args['pv_system_2_location'] = HPXML::LocationRoof
-    args['pv_system_2_tracking'] = HPXML::PVTrackingTypeFixed
-    args['pv_system_2_array_azimuth'] = 90
-    args['pv_system_2_max_power_output'] = 1500
-  elsif ['base-pv-battery-garage.xml'].include? hpxml_file
-    args['pv_system_module_type'] = HPXML::PVModuleTypeStandard
-    args['pv_system_location'] = HPXML::LocationRoof
-    args['pv_system_tracking'] = HPXML::PVTrackingTypeFixed
-    args['pv_system_2_module_type'] = HPXML::PVModuleTypePremium
-    args['pv_system_2_location'] = HPXML::LocationRoof
-    args['pv_system_2_tracking'] = HPXML::PVTrackingTypeFixed
-    args['pv_system_2_array_azimuth'] = 90
-    args['pv_system_2_max_power_output'] = 1500
-    args['battery_location'] = HPXML::LocationGarage
-    args['battery_power'] = '15000'
-    args['battery_capacity'] = '20'
-    args['battery_usable_capacity'] = '18'
+  if ['base-battery.xml',
+      'base-pv-battery.xml',
+      'base-pv-battery-garage.xml'].include? hpxml_file
+    args['battery_present'] = true
+    if hpxml_file == 'base-pv-battery-garage.xml'
+      args['battery_location'] = HPXML::LocationGarage
+    else
+      args['battery_location'] = HPXML::LocationOutside
+    end
+    args['battery_power'] = 15000
+    args['battery_capacity'] = 20
+    args['battery_usable_capacity'] = 18
   end
 
   # Simulation Control
@@ -2403,34 +2378,101 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['simulation_control_run_period'] = 'Jan 1 - Jan 31'
   elsif ['base-simcontrol-timestep-10-mins.xml'].include? hpxml_file
     args['simulation_control_timestep'] = 10
+  elsif ['base-simcontrol-timestep-10-mins-occupancy-stochastic-10-mins.xml'].include? hpxml_file
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv'
+  elsif ['base-simcontrol-timestep-10-mins-occupancy-stochastic-60-mins.xml'].include? hpxml_file
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv'
   end
 
-  # Schedules
-  if ['base-schedules-detailed-stochastic.xml'].include? hpxml_file
+  # Occupancy Schedules
+  if ['base-schedules-detailed-occupancy-smooth.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'smooth'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-occupancy-stochastic.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic.csv'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
-  elsif ['base-schedules-detailed-stochastic-vacancy.xml'].include? hpxml_file
+  elsif ['base-schedules-detailed-occupancy-stochastic-vacancy.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
     sch_args['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic-vacancy.csv'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-vacancy.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
-  elsif ['base-schedules-detailed-smooth.xml'].include? hpxml_file
-    sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'smooth'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/smooth.csv'
-    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
-  elsif ['base-schedules-detailed-stochastic-10-mins.xml'].include? hpxml_file
+  elsif ['base-schedules-detailed-occupancy-stochastic-10-mins.xml'].include? hpxml_file
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv'
+  elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic-10-mins.csv'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  end
+
+  # Setpoint Schedules
+  if ['base-schedules-detailed-setpoints.xml'].include? hpxml_file
+    args.delete('hvac_control_heating_weekday_setpoint')
+    args.delete('hvac_control_heating_weekend_setpoint')
+    args.delete('hvac_control_cooling_weekday_setpoint')
+    args.delete('hvac_control_cooling_weekend_setpoint')
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints.csv'
+  elsif ['base-schedules-detailed-setpoints-daily-schedules.xml'].include? hpxml_file
+    args.delete('hvac_control_heating_weekday_setpoint')
+    args.delete('hvac_control_heating_weekend_setpoint')
+    args.delete('hvac_control_cooling_weekday_setpoint')
+    args.delete('hvac_control_cooling_weekend_setpoint')
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-daily-schedules.csv'
+  elsif ['base-schedules-detailed-setpoints-daily-setbacks.xml'].include? hpxml_file
+    args.delete('hvac_control_heating_weekday_setpoint')
+    args.delete('hvac_control_heating_weekend_setpoint')
+    args.delete('hvac_control_cooling_weekday_setpoint')
+    args.delete('hvac_control_cooling_weekend_setpoint')
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-daily-setbacks.csv'
+  elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
+    args.delete('hvac_control_heating_weekday_setpoint')
+    args.delete('hvac_control_heating_weekend_setpoint')
+    args.delete('hvac_control_cooling_weekday_setpoint')
+    args.delete('hvac_control_cooling_weekend_setpoint')
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-10-mins.csv'
+  elsif ['base-hvac-furnace-gas-only-detailed-setpoints.xml'].include? hpxml_file
+    args.delete('hvac_control_heating_weekday_setpoint')
+    args.delete('hvac_control_heating_weekend_setpoint')
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-heating-only.csv'
+  elsif ['base-hvac-room-ac-only-detailed-setpoints.xml'].include? hpxml_file
+    args.delete('hvac_control_cooling_weekday_setpoint')
+    args.delete('hvac_control_cooling_weekend_setpoint')
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-cooling-only.csv'
+  end
+
+  # Water Heater Schedules
+  if ['base-dhw-tank-heat-pump-detailed-setpoints.xml'].include? hpxml_file
+    args.delete('water_heater_setpoint_temperature')
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv'
+  elsif ['base-dhw-tank-heat-pump-detailed-operating-modes.xml'].include? hpxml_file
+    args.delete('water_heater_setpoint_temperature')
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-operating-modes.csv'
+  elsif ['base-dhw-tank-heat-pump-detailed-schedules.xml'].include? hpxml_file
+    args.delete('water_heater_setpoint_temperature')
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv, ../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-operating-modes.csv'
+  elsif ['base-dhw-tank-detailed-setpoints.xml'].include? hpxml_file
+    args.delete('water_heater_setpoint_temperature')
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv'
+  elsif ['base-dhw-tankless-detailed-setpoints.xml'].include? hpxml_file
+    args.delete('water_heater_setpoint_temperature')
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv'
+  elsif ['base-dhw-tank-model-type-stratified-detailed-occupancy-stochastic.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'stochastic'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
+    args.delete('water_heater_setpoint_temperature')
+    args['schedules_filepaths'] += ', ../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints-10-mins.csv'
   end
 end
 
-def apply_hpxml_modification_ashrae_140(hpxml_file, hpxml)
+def apply_hpxml_modification_ashrae_140(hpxml)
   # Set detailed HPXML values for ASHRAE 140 test files
 
   renumber_hpxml_ids(hpxml)
@@ -2440,7 +2482,7 @@ def apply_hpxml_modification_ashrae_140(hpxml_file, hpxml)
   # ------------ #
 
   hpxml.header.xml_generated_by = 'tasks.rb'
-  hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
+  hpxml.header.created_date_and_time = Time.new(2000, 1, 1, 0, 0, 0, '-07:00').strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
   hpxml.header.apply_ashrae140_assumptions = true
 
   # --------------------- #
@@ -2484,11 +2526,11 @@ def apply_hpxml_modification_ashrae_140(hpxml_file, hpxml)
       end
     end
   end
-  hpxml.frame_floors.each do |frame_floor|
-    next unless frame_floor.is_ceiling
+  hpxml.floors.each do |floor|
+    next unless floor.is_ceiling
 
-    frame_floor.interior_finish_type = HPXML::InteriorFinishGypsumBoard
-    frame_floor.interior_finish_thickness = 0.5
+    floor.interior_finish_type = HPXML::InteriorFinishGypsumBoard
+    floor.interior_finish_thickness = 0.5
   end
   hpxml.foundation_walls.each do |fwall|
     if fwall.insulation_interior_r_value == 0
@@ -2549,7 +2591,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
 
   # General logic for all files
   hpxml.header.xml_generated_by = 'tasks.rb'
-  hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
+  hpxml.header.created_date_and_time = Time.new(2000, 1, 1, 0, 0, 0, '-07:00').strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
 
   # Logic that can only be applied based on the file name
   if ['base-hvac-undersized-allow-increased-fixed-capacities.xml'].include? hpxml_file
@@ -2616,7 +2658,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
 
     roof.interior_finish_type = HPXML::InteriorFinishGypsumBoard
   end
-  (hpxml.walls + hpxml.foundation_walls + hpxml.frame_floors).each do |surface|
+  (hpxml.walls + hpxml.foundation_walls + hpxml.floors).each do |surface|
     if surface.is_a?(HPXML::FoundationWall) && surface.interior_adjacent_to != HPXML::LocationBasementConditioned
       surface.interior_finish_type = HPXML::InteriorFinishNone
     end
@@ -2629,7 +2671,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                  HPXML::LocationAtticVented,
                  HPXML::LocationOtherHousingUnit,
                  HPXML::LocationBasementConditioned].include?(surface.exterior_adjacent_to)
-    next if surface.is_a?(HPXML::FrameFloor) && surface.is_floor
+    next if surface.is_a?(HPXML::Floor) && surface.is_floor
 
     surface.interior_finish_type = HPXML::InteriorFinishGypsumBoard
   end
@@ -2671,12 +2713,12 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
            }           [0]
     wall.exterior_adjacent_to = adjacent_to
-    hpxml.frame_floors[0].exterior_adjacent_to = adjacent_to
-    hpxml.frame_floors[1].exterior_adjacent_to = adjacent_to
+    hpxml.floors[0].exterior_adjacent_to = adjacent_to
+    hpxml.floors[1].exterior_adjacent_to = adjacent_to
     if hpxml_file != 'base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml'
       wall.insulation_assembly_r_value = 23
-      hpxml.frame_floors[0].insulation_assembly_r_value = 18.7
-      hpxml.frame_floors[1].insulation_assembly_r_value = 18.7
+      hpxml.floors[0].insulation_assembly_r_value = 18.7
+      hpxml.floors[1].insulation_assembly_r_value = 18.7
     end
     hpxml.windows.each do |window|
       window.area *= 0.35
@@ -2739,25 +2781,25 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     emittance: 0.92,
                     interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 4.0)
-    hpxml.frame_floors[0].delete
-    hpxml.frame_floors.add(id: "FrameFloor#{hpxml.frame_floors.size + 1}",
-                           exterior_adjacent_to: HPXML::LocationOtherNonFreezingSpace,
-                           interior_adjacent_to: HPXML::LocationLivingSpace,
-                           area: 550,
-                           insulation_assembly_r_value: 18.7,
-                           other_space_above_or_below: HPXML::FrameFloorOtherSpaceBelow)
-    hpxml.frame_floors.add(id: "FrameFloor#{hpxml.frame_floors.size + 1}",
-                           exterior_adjacent_to: HPXML::LocationOtherMultifamilyBufferSpace,
-                           interior_adjacent_to: HPXML::LocationLivingSpace,
-                           area: 200,
-                           insulation_assembly_r_value: 18.7,
-                           other_space_above_or_below: HPXML::FrameFloorOtherSpaceBelow)
-    hpxml.frame_floors.add(id: "FrameFloor#{hpxml.frame_floors.size + 1}",
-                           exterior_adjacent_to: HPXML::LocationOtherHeatedSpace,
-                           interior_adjacent_to: HPXML::LocationLivingSpace,
-                           area: 150,
-                           insulation_assembly_r_value: 2.1,
-                           other_space_above_or_below: HPXML::FrameFloorOtherSpaceBelow)
+    hpxml.floors[0].delete
+    hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
+                     exterior_adjacent_to: HPXML::LocationOtherNonFreezingSpace,
+                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     area: 550,
+                     insulation_assembly_r_value: 18.7,
+                     other_space_above_or_below: HPXML::FloorOtherSpaceBelow)
+    hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
+                     exterior_adjacent_to: HPXML::LocationOtherMultifamilyBufferSpace,
+                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     area: 200,
+                     insulation_assembly_r_value: 18.7,
+                     other_space_above_or_below: HPXML::FloorOtherSpaceBelow)
+    hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
+                     exterior_adjacent_to: HPXML::LocationOtherHeatedSpace,
+                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     area: 150,
+                     insulation_assembly_r_value: 2.1,
+                     other_space_above_or_below: HPXML::FloorOtherSpaceBelow)
     wall = hpxml.walls.select { |w|
              w.interior_adjacent_to == HPXML::LocationLivingSpace &&
                w.exterior_adjacent_to == HPXML::LocationOtherMultifamilyBufferSpace
@@ -2860,12 +2902,12 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.foundation_walls.each do |foundation_wall|
       foundation_wall.area = 1200.0 / hpxml.foundation_walls.size
     end
-    hpxml.frame_floors.add(id: "FrameFloor#{hpxml.frame_floors.size + 1}",
-                           exterior_adjacent_to: HPXML::LocationAtticUnvented,
-                           interior_adjacent_to: HPXML::LocationLivingSpace,
-                           area: 450,
-                           interior_finish_type: HPXML::InteriorFinishGypsumBoard,
-                           insulation_assembly_r_value: 39.3)
+    hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
+                     exterior_adjacent_to: HPXML::LocationAtticUnvented,
+                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     area: 450,
+                     interior_finish_type: HPXML::InteriorFinishGypsumBoard,
+                     insulation_assembly_r_value: 39.3)
     hpxml.slabs[0].area = 1350
     hpxml.slabs[0].exposed_perimeter = 150
     hpxml.windows[1].area = 108
@@ -3104,12 +3146,12 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                depth_below_grade: 3,
                                insulation_interior_r_value: 0,
                                insulation_exterior_r_value: 0)
-    hpxml.frame_floors[0].area = 675
-    hpxml.frame_floors.add(id: "FrameFloor#{hpxml.frame_floors.size + 1}",
-                           exterior_adjacent_to: HPXML::LocationCrawlspaceUnvented,
-                           interior_adjacent_to: HPXML::LocationLivingSpace,
-                           area: 675,
-                           insulation_assembly_r_value: 18.7)
+    hpxml.floors[0].area = 675
+    hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
+                     exterior_adjacent_to: HPXML::LocationCrawlspaceUnvented,
+                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     area: 675,
+                     insulation_assembly_r_value: 18.7)
     hpxml.slabs[0].area = 675
     hpxml.slabs[0].exposed_perimeter = 75
     hpxml.slabs.add(id: "Slab#{hpxml.slabs.size + 1}",
@@ -3246,11 +3288,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     solar_absorptance: 0.7,
                     emittance: 0.92,
                     insulation_assembly_r_value: 4)
-    hpxml.frame_floors.add(id: "FrameFloor#{hpxml.frame_floors.size + 1}",
-                           exterior_adjacent_to: HPXML::LocationGarage,
-                           interior_adjacent_to: HPXML::LocationLivingSpace,
-                           area: 400,
-                           insulation_assembly_r_value: 39.3)
+    hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
+                     exterior_adjacent_to: HPXML::LocationGarage,
+                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     area: 400,
+                     insulation_assembly_r_value: 39.3)
     hpxml.slabs[0].area -= 400
     hpxml.slabs[0].exposed_perimeter -= 40
     hpxml.slabs.add(id: "Slab#{hpxml.slabs.size + 1}",
@@ -3289,7 +3331,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     [HPXML::SidingTypeSyntheticStucco, HPXML::ColorMediumDark],
                     [HPXML::SidingTypeVinyl, HPXML::ColorLight],
                     [HPXML::SidingTypeNone, HPXML::ColorMedium]]
-    siding_types.each_with_index do |siding_type, i|
+    siding_types.each do |siding_type|
       hpxml.rim_joists.add(id: "RimJoist#{hpxml.rim_joists.size + 1}",
                            exterior_adjacent_to: HPXML::LocationOutside,
                            interior_adjacent_to: HPXML::LocationBasementConditioned,
@@ -3476,19 +3518,19 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.foundation_walls << hpxml.foundation_walls[-1].dup
     hpxml.foundation_walls[-1].id += '_tiny'
     hpxml.foundation_walls[-1].area = 0.05
-    for n in 1..hpxml.frame_floors.size
-      hpxml.frame_floors[n - 1].area /= 9.0
+    for n in 1..hpxml.floors.size
+      hpxml.floors[n - 1].area /= 9.0
       for i in 2..9
-        hpxml.frame_floors << hpxml.frame_floors[n - 1].dup
-        hpxml.frame_floors[-1].id += "_#{i}"
+        hpxml.floors << hpxml.floors[n - 1].dup
+        hpxml.floors[-1].id += "_#{i}"
         if hpxml_file == 'base-enclosure-split-surfaces2.xml'
-          hpxml.frame_floors[-1].insulation_assembly_r_value += 0.01 * i
+          hpxml.floors[-1].insulation_assembly_r_value += 0.01 * i
         end
       end
     end
-    hpxml.frame_floors << hpxml.frame_floors[-1].dup
-    hpxml.frame_floors[-1].id += '_tiny'
-    hpxml.frame_floors[-1].area = 0.05
+    hpxml.floors << hpxml.floors[-1].dup
+    hpxml.floors[-1].id += '_tiny'
+    hpxml.floors[-1].area = 0.05
     for n in 1..hpxml.slabs.size
       hpxml.slabs[n - 1].area /= 9.0
       hpxml.slabs[n - 1].exposed_perimeter /= 9.0
@@ -3504,7 +3546,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.slabs << hpxml.slabs[-1].dup
     hpxml.slabs[-1].id += '_tiny'
     hpxml.slabs[-1].area = 0.05
-    area_adjustments = []
     for n in 1..hpxml.windows.size
       hpxml.windows[n - 1].area /= 9.0
       hpxml.windows[n - 1].fraction_operable = 0.0
@@ -3541,7 +3582,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.skylights << hpxml.skylights[-1].dup
     hpxml.skylights[-1].id += '_tiny'
     hpxml.skylights[-1].area = 0.05
-    area_adjustments = []
     for n in 1..hpxml.doors.size
       hpxml.doors[n - 1].area /= 9.0
       for i in 2..9
@@ -4290,6 +4330,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                sensible_recovery_efficiency: 0.72,
                                fan_power: 7.5,
                                used_for_whole_building_ventilation: true)
+  elsif ['base-mechvent-cfis-airflow-fraction-zero.xml'].include? hpxml_file
+    hpxml.ventilation_fans[0].cfis_vent_mode_airflow_fraction = 0.0
   end
 
   # ---------------- #
@@ -4483,7 +4525,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
      hpxml.rim_joists +
      hpxml.walls +
      hpxml.foundation_walls +
-     hpxml.frame_floors +
+     hpxml.floors +
      hpxml.slabs +
      hpxml.windows +
      hpxml.skylights +
@@ -4501,7 +4543,7 @@ def renumber_hpxml_ids(hpxml)
   { hpxml.walls => 'Wall',
     hpxml.foundation_walls => 'FoundationWall',
     hpxml.rim_joists => 'RimJoist',
-    hpxml.frame_floors => 'FrameFloor',
+    hpxml.floors => 'Floor',
     hpxml.roofs => 'Roof',
     hpxml.slabs => 'Slab',
     hpxml.windows => 'Window',
@@ -4518,8 +4560,8 @@ def renumber_hpxml_ids(hpxml)
         if attic_or_fnd.respond_to?(:attached_to_rim_joist_idrefs) && !attic_or_fnd.attached_to_rim_joist_idrefs.nil? && !attic_or_fnd.attached_to_rim_joist_idrefs.delete(surf.id).nil?
           attic_or_fnd.attached_to_rim_joist_idrefs << "#{surf_name}#{i + 1}"
         end
-        if attic_or_fnd.respond_to?(:attached_to_frame_floor_idrefs) && !attic_or_fnd.attached_to_frame_floor_idrefs.nil? && !attic_or_fnd.attached_to_frame_floor_idrefs.delete(surf.id).nil?
-          attic_or_fnd.attached_to_frame_floor_idrefs << "#{surf_name}#{i + 1}"
+        if attic_or_fnd.respond_to?(:attached_to_floor_idrefs) && !attic_or_fnd.attached_to_floor_idrefs.nil? && !attic_or_fnd.attached_to_floor_idrefs.delete(surf.id).nil?
+          attic_or_fnd.attached_to_floor_idrefs << "#{surf_name}#{i + 1}"
         end
         if attic_or_fnd.respond_to?(:attached_to_slab_idrefs) && !attic_or_fnd.attached_to_slab_idrefs.nil? && !attic_or_fnd.attached_to_slab_idrefs.delete(surf.id).nil?
           attic_or_fnd.attached_to_slab_idrefs << "#{surf_name}#{i + 1}"
@@ -4578,7 +4620,7 @@ end
 
 def get_elements_from_sample_files(hpxml_docs)
   elements_being_used = []
-  hpxml_docs.each do |xml, hpxml_doc|
+  hpxml_docs.values.each do |hpxml_doc|
     root = XMLHelper.get_element(hpxml_doc, '/HPXML')
     root.each_node do |node|
       next unless node.is_a?(Oga::XML::Element)
@@ -4635,7 +4677,7 @@ def create_schematron_hpxml_validator(hpxml_docs)
   end
 
   # construct HPXMLvalidator.xml
-  hpxml_validator = XMLHelper.create_doc(version = '1.0', encoding = 'UTF-8')
+  hpxml_validator = XMLHelper.create_doc('1.0', 'UTF-8')
   root = XMLHelper.add_element(hpxml_validator, 'sch:schema')
   XMLHelper.add_attribute(root, 'xmlns:sch', 'http://purl.oclc.org/dsdl/schematron')
   XMLHelper.add_element(root, 'sch:title', 'HPXML Schematron Validator: HPXML.xsd', :string)
@@ -4773,7 +4815,7 @@ def create_schematron_hpxml_validator(hpxml_docs)
   id_names = ['SystemIdentifier',
               'BuildingID']
   idref_names = ['AttachedToRoof',
-                 'AttachedToFrameFloor',
+                 'AttachedToFloor',
                  'AttachedToSlab',
                  'AttachedToFoundationWall',
                  'AttachedToWall',
@@ -4864,7 +4906,17 @@ if ARGV[0].to_sym == :update_measures
   # Apply rubocop
   cops = ['Layout',
           'Lint/DeprecatedClassMethods',
+          'Lint/DuplicateElsifCondition',
+          'Lint/DuplicateHashKey',
+          'Lint/DuplicateMethods',
+          'Lint/InterpolationCheck',
+          'Lint/LiteralAsCondition',
           'Lint/RedundantStringCoercion',
+          'Lint/SelfAssignment',
+          'Lint/UnderscorePrefixedVariableName',
+          'Lint/UnusedBlockArgument',
+          'Lint/UnusedMethodArgument',
+          'Lint/UselessAssignment',
           'Style/AndOr',
           'Style/FrozenStringLiteralComment',
           'Style/HashSyntax',
@@ -4888,7 +4940,7 @@ if ARGV[0].to_sym == :update_measures
   require 'oga'
   require_relative 'HPXMLtoOpenStudio/resources/xmlhelper'
   Dir['**/measure.xml'].each do |measure_xml|
-    for n_attempt in 1..5 # For some reason CLI randomly generates errors, so try multiple times; FIXME: Fix CLI so this doesn't happen
+    for n_attempt in 1..5 # For some reason CLI randomly generates errors, so try multiple times
       measure_dir = File.dirname(measure_xml)
       command = "#{OpenStudio.getOpenStudioCLI} measure -u '#{measure_dir}'"
       system(command, [:out, :err] => File::NULL)
@@ -4906,7 +4958,21 @@ if ARGV[0].to_sym == :update_measures
           fail "#{measure_xml}: #{err_val}" # Error generated all 5 times, fail
         else
           # Remove error from measure XML, try again
-          new_lines = File.readlines(measure_xml).select { |l| !l.include?('<error>') }
+          orig_lines = File.readlines(measure_xml)
+          new_lines = []
+          inside_error = false
+          orig_lines.each do |l|
+            if l.include? '<error>'
+              inside_error = true
+            end
+            if l.include? '</error>'
+              inside_error = false
+              next
+            end
+            next if inside_error
+
+            new_lines << l
+          end
           File.open(measure_xml, 'w') do |file|
             file.puts new_lines
           end
@@ -4989,16 +5055,19 @@ if ARGV[0].to_sym == :create_release_zips
            'BuildResidentialScheduleFile/resources/**/*.*',
            'HPXMLtoOpenStudio/measure.*',
            'HPXMLtoOpenStudio/resources/**/*.*',
-           'ReportSimulationOutput/measure.*',
-           'ReportSimulationOutput/resources/**/*.*',
            'ReportHPXMLOutput/measure.*',
            'ReportHPXMLOutput/resources/**/*.*',
+           'ReportSimulationOutput/measure.*',
+           'ReportSimulationOutput/resources/**/*.*',
+           'ReportUtilityBills/measure.*',
+           'ReportUtilityBills/resources/**/*.*',
            'weather/*.*',
            'workflow/*.*',
+           'workflow/real_homes/*.xml',
            'workflow/sample_files/*.xml',
            'workflow/tests/*test*.rb',
-           'workflow/tests/ASHRAE_Standard_140/*.xml',
-           'workflow/tests/base_results/*.csv',
+           'workflow/tests/**/*.xml',
+           'workflow/tests/**/*.csv',
            'documentation/index.html',
            'documentation/_static/**/*.*']
 
@@ -5016,7 +5085,11 @@ if ARGV[0].to_sym == :create_release_zips
       puts "Command failed: '#{command}'. Perhaps sphinx needs to be installed?"
       exit!
     end
-    FileUtils.rm_r(File.join(File.dirname(__FILE__), 'documentation', '_static', 'fonts'))
+
+    fonts_dir = File.join(File.dirname(__FILE__), 'documentation', '_static', 'fonts')
+    if Dir.exist? fonts_dir
+      FileUtils.rm_r(fonts_dir)
+    end
 
     # Check if we need to download weather files for the full release zip
     num_epws_expected = 1011
@@ -5033,7 +5106,7 @@ if ARGV[0].to_sym == :create_release_zips
     if num_epws_local < num_epws_expected
       puts 'Fetching all weather files...'
       command = "#{OpenStudio.getOpenStudioCLI} #{__FILE__} download_weather"
-      log = `#{command}`
+      `#{command}`
     end
   end
 

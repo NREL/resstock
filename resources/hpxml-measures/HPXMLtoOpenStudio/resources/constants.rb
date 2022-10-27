@@ -39,42 +39,6 @@ class Constants
     return 'AirFilm'
   end
 
-  def self.Auto
-    return 'auto'
-  end
-
-  def self.AutoMaxLoad
-    return 'auto using max load'
-  end
-
-  def self.CalcTypeCO2eRatedHome
-    return 'CO2e Rated Home'
-  end
-
-  def self.CalcTypeCO2eReferenceHome
-    return 'CO2e Reference Home'
-  end
-
-  def self.CalcTypeERIRatedHome
-    return 'ERI Rated Home'
-  end
-
-  def self.CalcTypeERIReferenceHome
-    return 'ERI Reference Home'
-  end
-
-  def self.CalcTypeERIIndexAdjustmentDesign
-    return 'ERI Index Adjustment Design'
-  end
-
-  def self.CalcTypeERIIndexAdjustmentReferenceHome
-    return 'ERI Index Adjustment Reference Home'
-  end
-
-  def self.BuildingAmericaClimateZone
-    return 'Building America'
-  end
-
   def self.ERIVersions
     return ['2014', '2014A', '2014AE', '2014AEG', '2019', '2019A',
             '2019AB', '2019ABC', '2019ABCD']
@@ -164,14 +128,6 @@ class Constants
 
   def self.ObjectNameClothesDryerExhaust
     return 'clothes dryer exhaust'
-  end
-
-  def self.ObjectNameCombiWaterHeatingEnergy(water_heater_name)
-    return "#{water_heater_name} dhw energy"
-  end
-
-  def self.ObjectNameCombiSpaceHeatingEnergy(water_heater_name)
-    return "#{water_heater_name} htg energy"
   end
 
   def self.ObjectNameComponentLoadsProgram
@@ -264,6 +220,10 @@ class Constants
 
   def self.ObjectNameGroundSourceHeatPump
     return 'ground source heat pump'
+  end
+
+  def self.ObjectNameGSHPSharedPump()
+    return 'gshp shared loop pump'
   end
 
   def self.ObjectNameHeatingSeason
@@ -418,10 +378,6 @@ class Constants
     return 'room ac'
   end
 
-  def self.ObjectNameSharedPump(hvac_name)
-    return "#{hvac_name} shared pump"
-  end
-
   def self.ObjectNameSkylightShade
     return 'skylight shade'
   end
@@ -440,6 +396,10 @@ class Constants
 
   def self.ObjectNameUnitHeater
     return 'unit heater'
+  end
+
+  def self.ObjectNameUnmetHoursProgram
+    return 'unmet hours program'
   end
 
   def self.ObjectNameWaterHeater
@@ -482,11 +442,57 @@ class Constants
     return 'Temperature'
   end
 
-  def self.StateCodes
-    return ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
-            'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
-            'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM',
-            'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX',
-            'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
+  def self.StateCodesMap
+    return { 'AK' => 'Alaska',
+             'AL' => 'Alabama',
+             'AR' => 'Arkansas',
+             'AZ' => 'Arizona',
+             'CA' => 'California',
+             'CO' => 'Colorado',
+             'CT' => 'Connecticut',
+             'DC' => 'District of Columbia',
+             'DE' => 'Delaware',
+             'FL' => 'Florida',
+             'GA' => 'Georgia',
+             'HI' => 'Hawaii',
+             'IA' => 'Iowa',
+             'ID' => 'Idaho',
+             'IL' => 'Illinois',
+             'IN' => 'Indiana',
+             'KS' => 'Kansas',
+             'KY' => 'Kentucky',
+             'LA' => 'Louisiana',
+             'MA' => 'Massachusetts',
+             'MD' => 'Maryland',
+             'ME' => 'Maine',
+             'MI' => 'Michigan',
+             'MN' => 'Minnesota',
+             'MO' => 'Missouri',
+             'MS' => 'Mississippi',
+             'MT' => 'Montana',
+             'NC' => 'North Carolina',
+             'ND' => 'North Dakota',
+             'NE' => 'Nebraska',
+             'NH' => 'New Hampshire',
+             'NJ' => 'New Jersey',
+             'NM' => 'New Mexico',
+             'NV' => 'Nevada',
+             'NY' => 'New York',
+             'OH' => 'Ohio',
+             'OK' => 'Oklahoma',
+             'OR' => 'Oregon',
+             'PA' => 'Pennsylvania',
+             'RI' => 'Rhode Island',
+             'SC' => 'South Carolina',
+             'SD' => 'South Dakota',
+             'TN' => 'Tennessee',
+             'TX' => 'Texas',
+             'UT' => 'Utah',
+             'VA' => 'Virginia',
+             'VT' => 'Vermont',
+             'WA' => 'Washington',
+             'WI' => 'Wisconsin',
+             'WV' => 'West Virginia',
+             'WY' => 'Wyoming' }
   end
 end

@@ -1035,7 +1035,7 @@ class Schedule
 
   def self.day_start_months(year)
     month_num_days = Constants.NumDaysInMonths(year)
-    return month_num_days.each_with_index.map { |n, i| get_day_num_from_month_day(year, i + 1, 1) }
+    return month_num_days.each_with_index.map { |_n, i| get_day_num_from_month_day(year, i + 1, 1) }
   end
 
   def self.day_end_months(year)
@@ -1135,27 +1135,35 @@ class SchedulesFile
   ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
   ColumnHotWaterFixtures = 'hot_water_fixtures'
   ColumnVacancy = 'vacancy'
+  ColumnHeatingSetpoint = 'heating_setpoint'
+  ColumnCoolingSetpoint = 'cooling_setpoint'
+  ColumnWaterHeaterSetpoint = 'water_heater_setpoint'
+  ColumnWaterHeaterOperatingMode = 'water_heater_operating_mode'
+  ColumnSleeping = 'sleeping'
 
   def initialize(runner: nil,
                  model: nil,
-                 schedules_paths:,
-                 col_names:)
+                 schedules_paths:)
     return if schedules_paths.empty?
 
     @runner = runner
     @model = model
     @schedules_paths = schedules_paths
 
-    import(col_names: col_names)
+    import()
 
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_vacancy
+    convert_setpoints
 
-    tmpfile = Tempfile.new(['schedules', '.csv'])
-    @tmp_schedules_path = tmpfile.path.to_s
-    export
+    tmpdir = Dir.tmpdir
+    tmpdir = ENV['LOCAL_SCRATCH'] if ENV.keys.include?('LOCAL_SCRATCH')
+    tmpfile = Tempfile.new(['schedules', '.csv'], tmpdir)
+    tmp_schedules_path = tmpfile.path.to_s
 
-    get_external_file
+    export(tmp_schedules_path)
+
+    get_external_file(tmp_schedules_path)
   end
 
   def nil?
@@ -1166,15 +1174,12 @@ class SchedulesFile
     return false
   end
 
-  def import(col_names:)
+  def import()
     @schedules = {}
     @schedules_paths.each do |schedules_path|
       columns = CSV.read(schedules_path).transpose
       columns.each do |col|
         col_name = col[0]
-        unless col_names.include? col_name
-          fail "Schedule column name '#{col_name}' is invalid. [context: #{schedules_path}]" unless [SchedulesFile::ColumnVacancy].include?(col_name)
-        end
 
         values = col[1..-1].reject { |v| v.nil? }
 
@@ -1217,6 +1222,12 @@ class SchedulesFile
           end
         end
 
+        if only_zeros_and_ones[col_name]
+          if values.any? { |v| v != 0 && v != 1 }
+            fail "Schedule value for column '#{col_name}' must be either 0 or 1. [context: #{schedules_path}]"
+          end
+        end
+
         valid_minutes_per_item = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]
         valid_num_rows = valid_minutes_per_item.map { |min_per_item| (60.0 * num_hrs_in_year / min_per_item).to_i }
         unless valid_num_rows.include? schedule_length
@@ -1226,10 +1237,10 @@ class SchedulesFile
     end
   end
 
-  def export
-    return false if @tmp_schedules_path.nil?
+  def export(tmp_schedules_path)
+    return false if tmp_schedules_path.nil?
 
-    CSV.open(@tmp_schedules_path, 'wb') do |csv|
+    CSV.open(tmp_schedules_path, 'wb') do |csv|
       csv << @tmp_schedules.keys
       rows = @tmp_schedules.values.transpose
       rows.each do |row|
@@ -1354,7 +1365,8 @@ class SchedulesFile
   end
 
   # similar to calc_design_level_from_daily_kwh but for water usage
-  def calc_peak_flow_from_daily_gpm(col_name:, daily_water:)
+  def calc_peak_flow_from_daily_gpm(col_name:,
+                                    daily_water:)
     if @schedules[col_name].nil?
       return
     end
@@ -1368,11 +1380,18 @@ class SchedulesFile
     return peak_flow
   end
 
-  def get_external_file
-    if File.exist? @tmp_schedules_path
-      @external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @tmp_schedules_path)
+  def get_external_file(tmp_schedules_path)
+    if File.exist? tmp_schedules_path
+      @external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, tmp_schedules_path)
       if @external_file.is_initialized
         @external_file = @external_file.get
+        # ExternalFile creates a new file, so delete our temporary one immediately if we can
+        begin
+          File.delete(tmp_schedules_path)
+        rescue
+        end
+      else
+        fail "Could not get external file for path '#{tmp_schedules_path}'."
       end
     end
   end
@@ -1383,7 +1402,7 @@ class SchedulesFile
 
     col_names = SchedulesFile.ColumnNames
 
-    @tmp_schedules[col_names[0]].each_with_index do |ts, i|
+    @tmp_schedules[col_names[0]].each_with_index do |_ts, i|
       col_names.each do |col_name|
         next unless affected_by_vacancy[col_name] # skip those unaffected by vacancy
 
@@ -1392,8 +1411,22 @@ class SchedulesFile
     end
   end
 
+  def convert_setpoints
+    return if @tmp_schedules.keys.none? { |k| SchedulesFile.SetpointColumnNames.include?(k) }
+
+    col_names = @tmp_schedules.keys
+
+    @tmp_schedules[col_names[0]].each_with_index do |_ts, i|
+      SchedulesFile.SetpointColumnNames.each do |setpoint_col_name|
+        next unless col_names.include?(setpoint_col_name)
+
+        @tmp_schedules[setpoint_col_name][i] = UnitConversions.convert(@tmp_schedules[setpoint_col_name][i], 'f', 'c')
+      end
+    end
+  end
+
   def self.ColumnNames
-    return SchedulesFile.OccupancyColumnNames
+    return SchedulesFile.OccupancyColumnNames + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames
   end
 
   def self.OccupancyColumnNames
@@ -1428,18 +1461,47 @@ class SchedulesFile
     ]
   end
 
+  def self.HVACSetpointColumnNames
+    return [
+      ColumnHeatingSetpoint,
+      ColumnCoolingSetpoint
+    ]
+  end
+
+  def self.WaterHeaterColumnNames
+    return [
+      ColumnWaterHeaterSetpoint,
+      ColumnWaterHeaterOperatingMode
+    ]
+  end
+
+  def self.SetpointColumnNames
+    return [
+      ColumnHeatingSetpoint,
+      ColumnCoolingSetpoint,
+      ColumnWaterHeaterSetpoint
+    ]
+  end
+
+  def self.OperatingModeColumnNames
+    return [
+      ColumnWaterHeaterOperatingMode
+    ]
+  end
+
   def affected_by_vacancy
     affected_by_vacancy = {}
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       affected_by_vacancy[column_name] = true
-      next unless [ColumnRefrigerator,
-                   ColumnExtraRefrigerator,
-                   ColumnFreezer,
-                   ColumnPoolPump,
-                   ColumnPoolHeater,
-                   ColumnHotTubPump,
-                   ColumnHotTubHeater].include? column_name
+      next unless ([ColumnRefrigerator,
+                    ColumnExtraRefrigerator,
+                    ColumnFreezer,
+                    ColumnPoolPump,
+                    ColumnPoolHeater,
+                    ColumnHotTubPump,
+                    ColumnHotTubHeater,
+                    ColumnSleeping] + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames).include? column_name
 
       affected_by_vacancy[column_name] = false
     end
@@ -1451,6 +1513,9 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       max_value_one[column_name] = true
+      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name)
+        max_value_one[column_name] = false
+      end
     end
     return max_value_one
   end
@@ -1460,7 +1525,22 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       min_value_zero[column_name] = true
+      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name)
+        min_value_zero[column_name] = false
+      end
     end
     return min_value_zero
+  end
+
+  def only_zeros_and_ones
+    only_zeros_and_ones = { SchedulesFile::ColumnVacancy => true }
+    column_names = SchedulesFile.ColumnNames
+    column_names.each do |column_name|
+      only_zeros_and_ones[column_name] = false
+      if SchedulesFile.OperatingModeColumnNames.include?(column_name)
+        only_zeros_and_ones[column_name] = true
+      end
+    end
+    return only_zeros_and_ones
   end
 end

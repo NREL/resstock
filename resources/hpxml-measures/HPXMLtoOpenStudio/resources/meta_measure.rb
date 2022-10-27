@@ -4,13 +4,13 @@ require 'fileutils'
 
 def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars: [],
                        output_meters: [], run_measures_only: false, print_prefix: '',
-                       ep_input_format: 'idf')
+                       ep_input_format: 'idf', skip_simulation: false, suppress_print: false)
   rm_path(rundir)
   FileUtils.mkdir_p(rundir)
 
   # Use print instead of puts in here in case running inside
   # a Parallel process (see https://stackoverflow.com/a/5044669)
-  print "#{print_prefix}Creating input...\n"
+  print "#{print_prefix}Creating input...\n" unless suppress_print
 
   OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
   os_log = OpenStudio::StringStreamLogSink.new
@@ -92,8 +92,12 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
     fail "Unexpected ep_input_format: #{ep_input_format}."
   end
 
+  if skip_simulation
+    return { success: success, runner: runner }
+  end
+
   # Run simulation
-  print "#{print_prefix}Running simulation...\n"
+  print "#{print_prefix}Running simulation...\n" unless suppress_print
   ep_path = File.absolute_path(File.join(OpenStudio.getOpenStudioCLI.to_s, '..', '..', 'EnergyPlus', 'energyplus')) # getEnergyPlusDirectory can be unreliable, using getOpenStudioCLI instead
   simulation_start = Time.now
   command = "\"#{ep_path}\" -w \"#{model.getWeatherFile.path.get}\" #{ep_input_filename}"
@@ -119,7 +123,7 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
       break
     end
     if sim_success
-      print "#{print_prefix}Completed simulation in #{sim_time}s.\n"
+      print "#{print_prefix}Completed simulation in #{sim_time}s.\n" unless suppress_print
     else
       print "#{print_prefix}Simulation unsuccessful.\n"
       print "#{print_prefix}See #{File.join(rundir, 'eplusout.err')} for details.\n"
@@ -130,23 +134,17 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
     return { success: false, runner: runner }
   end
 
-  print "#{print_prefix}Processing output...\n"
+  print "#{print_prefix}Processing output...\n" unless suppress_print
 
   # Apply reporting measures
-  runner.setLastEnergyPlusSqlFilePath(File.join(rundir, 'eplusout.sql'))
+  runner.setLastEpwFilePath(File.join(rundir, 'in.epw'))
   success = apply_measures(measures_dir, measures, runner, model, false, 'OpenStudio::Measure::ReportingMeasure')
   report_measure_errors_warnings(runner, rundir, debug)
   report_os_warnings(os_log, rundir)
-  runner.resetLastEnergyPlusSqlFilePath
+  runner.resetLastEpwFilePath
 
-  annual_csv_path = File.join(rundir, 'results_annual.csv')
-  if File.exist? annual_csv_path
-    print "#{print_prefix}Wrote output file: #{annual_csv_path}.\n"
-  end
-
-  timeseries_csv_path = File.join(rundir, 'results_timeseries.csv')
-  if File.exist? timeseries_csv_path
-    print "#{print_prefix}Wrote output file: #{timeseries_csv_path}.\n"
+  Dir[File.join(rundir, 'results_*.*')].each do |results_path|
+    print "#{print_prefix}Wrote output file: #{results_path}.\n" unless suppress_print
   end
 
   if not success
@@ -154,10 +152,10 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
     print "#{print_prefix}See #{File.join(rundir, 'run.log')} for details.\n"
     return { success: false, runner: runner }
   else
-    print "#{print_prefix}Wrote log file: #{File.join(rundir, 'run.log')}.\n"
+    print "#{print_prefix}Wrote log file: #{File.join(rundir, 'run.log')}.\n" unless suppress_print
   end
 
-  print "#{print_prefix}Done.\n"
+  print "#{print_prefix}Done.\n" unless suppress_print
 
   return { success: true, runner: runner, sim_time: sim_time }
 end
@@ -235,7 +233,7 @@ def print_measure_call(measure_args, measure_dir, runner)
     return
   end
 
-  args_s = hash_to_string(measure_args, delim = ' -> ', separator = " \n")
+  args_s = hash_to_string(measure_args, ' -> ', " \n")
   if args_s.size > 0
     runner.registerInfo("Calling #{measure_dir} measure with arguments:\n#{args_s}")
   else
@@ -365,7 +363,7 @@ def run_measure(model, measure, argument_map, runner)
     end
     if measure.class.superclass.name.to_s == 'OpenStudio::Measure::ReportingMeasure'
       runner_child.setLastOpenStudioModel(model)
-      runner_child.setLastEnergyPlusSqlFilePath(runner.lastEnergyPlusSqlFile.get.path)
+      runner_child.setLastEpwFilePath(runner.lastEpwFilePath.get)
       measure.run(runner_child, argument_map)
     else
       measure.run(model, runner_child, argument_map)

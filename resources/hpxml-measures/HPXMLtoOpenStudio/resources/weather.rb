@@ -32,22 +32,15 @@ class WeatherProcess
       return
     end
 
-    @model = model
-    @runner = runner
+    epw_path = get_epw_path(model)
 
-    @epw_path = WeatherProcess.get_epw_path(@model)
-
-    if not File.exist?(@epw_path)
+    if not File.exist?(epw_path)
       fail "Cannot find weather file at #{epw_path}."
     end
 
-    @epw_file = OpenStudio::EpwFile.new(@epw_path, true)
+    epw_file = OpenStudio::EpwFile.new(epw_path, true)
 
-    process_epw
-  end
-
-  def epw_path
-    return @epw_path
+    process_epw(runner, epw_file)
   end
 
   def dump_to_csv(csv_path)
@@ -106,7 +99,7 @@ class WeatherProcess
 
   private
 
-  def self.get_epw_path(model)
+  def get_epw_path(model)
     if model.weatherFile.is_initialized
 
       wf = model.weatherFile.get
@@ -125,23 +118,23 @@ class WeatherProcess
     fail 'Model has not been assigned a weather file.'
   end
 
-  def process_epw
+  def process_epw(runner, epw_file)
     # Header info:
-    @header.City = @epw_file.city
-    @header.State = @epw_file.stateProvinceRegion
-    @header.Country = @epw_file.country
-    @header.DataSource = @epw_file.dataSource
-    @header.Station = @epw_file.wmoNumber
-    @header.Latitude = @epw_file.latitude
-    @header.Longitude = @epw_file.longitude
-    @header.Timezone = @epw_file.timeZone
-    @header.Altitude = UnitConversions.convert(@epw_file.elevation, 'm', 'ft')
+    @header.City = epw_file.city
+    @header.State = epw_file.stateProvinceRegion
+    @header.Country = epw_file.country
+    @header.DataSource = epw_file.dataSource
+    @header.Station = epw_file.wmoNumber
+    @header.Latitude = epw_file.latitude
+    @header.Longitude = epw_file.longitude
+    @header.Timezone = epw_file.timeZone
+    @header.Altitude = UnitConversions.convert(epw_file.elevation, 'm', 'ft')
     @header.LocalPressure = Math::exp(-0.0000368 * @header.Altitude) # atm
-    @header.RecordsPerHour = @epw_file.recordsPerHour
+    @header.RecordsPerHour = epw_file.recordsPerHour
 
-    epw_file_data = @epw_file.data
+    epw_file_data = epw_file.data
 
-    epwHasDesignData = get_design_info_from_epw
+    epwHasDesignData = get_design_info_from_epw(epw_file)
 
     # Timeseries data:
     rowdata = []
@@ -208,14 +201,14 @@ class WeatherProcess
 
     calc_annual_drybulbs(rowdata)
     calc_monthly_drybulbs(rowdata)
-    calc_heat_cool_degree_days(rowdata, dailydbs)
+    calc_heat_cool_degree_days(dailydbs)
     calc_avg_monthly_highs_lows(dailyhighdbs, dailylowdbs)
     calc_avg_windspeed(rowdata)
     calc_ground_temperatures
     @data.WSF = calc_ashrae_622_wsf(rowdata)
 
     if not epwHasDesignData
-      @runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
+      runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
       calc_design_info(rowdata)
       @design.DailyTemperatureRange = @data.MonthlyAvgDailyHighDrybulbs[7] - @data.MonthlyAvgDailyLowDrybulbs[7]
     end
@@ -271,7 +264,7 @@ class WeatherProcess
     @data.AnnualAvgWindspeed = avgws
   end
 
-  def calc_heat_cool_degree_days(hd, dailydbs)
+  def calc_heat_cool_degree_days(dailydbs)
     # Calculates and stores heating/cooling degree days
     @data.HDD65F = calc_degree_days(dailydbs, 65, true)
     @data.HDD50F = calc_degree_days(dailydbs, 50, true)
@@ -404,8 +397,8 @@ class WeatherProcess
     return wsf.round(2)
   end
 
-  def get_design_info_from_epw
-    epw_design_conditions = @epw_file.designConditions
+  def get_design_info_from_epw(epw_file)
+    epw_design_conditions = epw_file.designConditions
     epwHasDesignData = false
     if epw_design_conditions.length > 0
       epwHasDesignData = true
