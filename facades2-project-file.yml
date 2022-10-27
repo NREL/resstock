@@ -9,12 +9,16 @@ sampler:
     n_datapoints:
     logic:
       - Vacancy Status|Occupied
+      - Geometry Building Type RECS|Single-Family Detached
+      - not: Vintage|1990s
+      - not: Vintage|2000s
+      - not: Vintage|2010s
       - or:
         - Heating Fuel|Electricity
         - Heating Fuel|Natural Gas
         - Heating Fuel|Propane
         - Heating Fuel|Fuel Oil
-    resample: true
+    resample: false
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
@@ -26,10 +30,35 @@ workflow_generator:
       simulation_control_run_period_calendar_year: 
       add_component_loads: false
 
-    emissions:
-      - scenario_name:
-      - scenario_name:
-      - scenario_name:
+    emissions: #same as EUSS res round 1
+      - scenario_name: LRMER_MidCase_15_2025start
+        type: CO2e
+        elec_folder: data/cambium/LRMER_MidCase_15_2025start
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+      - scenario_name: LRMER_LowRECost_15_2025start
+        type: CO2e
+        elec_folder: data/cambium/LRMER_LowRECost_15_2025start
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+      - scenario_name: LRMER_95DecarbBy2035_15_2025start
+        type: CO2e
+        elec_folder: data/cambium/LRMER_95DecarbBy2035_15_2025start
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+      - scenario_name: LRMER_LowRECost_25_2025start
+        type: CO2e
+        elec_folder: data/cambium/LRMER_LowRECost_25_2025start
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
 
     simulation_output_report: 
       timeseries_frequency: annual #check this is right keyword
