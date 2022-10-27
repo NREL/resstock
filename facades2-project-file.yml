@@ -55,8 +55,8 @@ upgrades:
               - Geometry Wall Exterior Finish|Fiber-Cement, Light
               - Geometry Wall Exterior Finish|Wood, Medium/Dark
         costs: &siding_costs_to_fibercement
-          - value:
-            multiplier: 
+          - value: 4.00
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
         lifetime: 30
       - &siding_upgrade_to_stucco
         option: Geometry Wall Exterior Finish|Stucco, Light
@@ -68,8 +68,8 @@ upgrades:
               - Geometry Wall Exterior Finish|Stucco, Light
               - Geometry Wall Exterior Finish|Stucco, Medium/Dark
         costs: &siding_costs_to_stucco
-          - value:
-            multiplier: 
+          - value: 5.70
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
         lifetime: 30
       - &siding_upgrade_to_vinyl
         option: Geometry Wall Exterior Finish|Vinyl, Light
@@ -80,15 +80,13 @@ upgrades:
               - Geometry Wall Exterior Finish|Shingle, Composition, Medium
               - Geometry Wall Exterior Finish|Vinyl, Light
         costs: &siding_costs_to_vinyl
-          - value:
-            multiplier: 
+          - value: 3.30
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
         lifetime: 30
-  - upgrade_name: Minimum windows
-    #Up02
-    options:
-      - option: 
-  - upgrade_name: Residing and minimum windows
-    #Up03
+  # - upgrade_name: Minimum windows
+  #   #Up02
+  # - upgrade_name: Residing and minimum windows
+  #   #Up03
   - upgrade_name: 1" polyiso exterior insulation + re-siding
     #Up04
     options:
@@ -148,7 +146,7 @@ upgrades:
               - Windows|Single, Clear, Metal
               - Windows|Single, Clear, Metal, Exterior Clear Storm
         costs: &low-e_storm_costs
-          - value: 14.7
+          - value: 11
             multiplier: Window Area (ft^2)
         lifetime: 30
       - &low-e_storms_on_single_clear_nonmetal
@@ -193,8 +191,8 @@ upgrades:
         option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
         apply_logic:
           and:
-            - &upgradable_windows
-              or:
+            - or:
+              &upgradable_windows
                 - Windows|Single, Clear, Non-metal
                 - Windows|Single, Clear, Metal
                 - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
@@ -205,7 +203,7 @@ upgrades:
             multiplier: Window Area (ft^2)
         lifetime: 30
       #15% ACH50 reduction for replacing double pane with triple pane
-      - &triple_replaces_single_infiltration_reduction
+      - &triple_replaces_double_infiltration_reduction
         option: Infiltration Reduction|15%
         apply_logic:
           - &double_pane_metal_windows
@@ -213,8 +211,8 @@ upgrades:
               - Windows|Double, Clear, Metal, Air
         costs: *no_cost
         lifetime: 30
-      #30% ACH50 reduction for replacing double pane with triple pane
-      - &triple_replaces_double_infiltration_reduction 
+      #30% ACH50 reduction for replacing single pane with triple pane
+      - &triple_replaces_single_infiltration_reduction 
         option: Infiltration Reduction|30%
         apply_logic:
           - &single_pane_windows
@@ -228,24 +226,168 @@ upgrades:
   - upgrade_name: P1 Exterior low-E storm windows + 1" polyiso + re-siding
     #Up08
     options:
+      - *polyiso_1inch
+      - *low-e_storms_on_single_clear_metal
+      - *low-e_storms_on_single_clear_nonmetal
+      - *low-e_storms_on_double_clear_metal
+      - &polyiso_package_infiltration_reduction
+        option: Infiltration Reduction|19%
+        apply_logic:
+          and:
+            - or: *upgradable_walls
+            - not:
+              - or: *upgradable_windows
+        costs: *no_cost
+        lifetime: 30
+      - &lowE_storms_replace_clear_storms_package_infiltration_reduction
+        option: Infiltration Reduction|10%
+        apply_logic:
+          and:
+            - not:
+              - or: *upgradable_walls
+            - or: 
+              &upgradable_clearstorm_windows
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
+      - &lowE_storms_new_package_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          and:
+            - not: 
+              - or: *upgradable_walls
+            - or:
+              &upgradable_nostorm_windows
+                - Windows|Single, Clear, Non-metal
+                - Windows|Single, Clear, Metal
+                - Windows|Double, Clear, Metal, Air
+        costs: *no_cost
+        lifetime: 30
+      - &polyiso_and_lowE_storms_replacing_clear_storm_infiltration_reduction
+        option: Infiltration Reduction|27.10%
+        apply_logic: 
+          and:
+            - or: *upgradable_walls
+            - or: *upgradable_clearstorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - &polyiso_and_lowE_storms_new_infiltration_reduction
+        option: Infiltration Reduction|31.15%
+        apply_logic: 
+          and:
+            - or: *upgradable_walls
+            - or: *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
       - *siding_upgrade_to_fibercement
       - *siding_upgrade_to_stucco
       - *siding_upgrade_to_vinyl
   - upgrade_name: P2 Triple pane windows + 1" polyiso + re-siding
     #Up09
     options:
+      - *polyiso_1inch
+      - *triple_window
+      - *polyiso_package_infiltration_reduction
+      - &triple_replaces_single_package_infiltration_reduction
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - and:
+            - not:
+              - or: *upgradable_walls
+            - or: *single_pane_windows
+      - &triple_replaces_double_package_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          - and:
+            - not:
+              - or: *upgradable_walls
+            - or: *double_pane_metal_windows
+      - &polyiso_and_triple_replaces_single_infiltration_reduction
+        option: Infiltration Reduction|43.30%
+        apply_logic:
+          - and:
+            - or: *upgradable_walls
+          - or: *single_pane_windows
+      - &polyiso_and_triple_replaces_double_infiltration_reduction
+        option: Infiltration Reduction|31.15%
+        apply_logic:
+          - and:
+            - or: *upgradable_walls
+          - or: *double_pane_metal_windows
       - *siding_upgrade_to_fibercement
       - *siding_upgrade_to_stucco
       - *siding_upgrade_to_vinyl
   - upgrade_name: P3 Exterior low-E storm windows + 2" polyiso + re-siding
     #Up10
     options:
+      - *polyiso_2inch
+      - *low-e_storms_on_single_clear_metal
+      - *low-e_storms_on_single_clear_nonmetal
+      - *low-e_storms_on_double_clear_metal
+      - &polyiso_package_infiltration_reduction
+        option: Infiltration Reduction|19%
+        apply_logic:
+          and:
+            - or: *upgradable_walls
+            - not:
+              - or: *upgradable_windows
+        costs: *no_cost
+        lifetime: 30
+      - &lowE_storms_replace_clear_storms_package_infiltration_reduction
+        option: Infiltration Reduction|10%
+        apply_logic:
+          and:
+            - not:
+              - or: *upgradable_walls
+            - or: 
+              &upgradable_clearstorm_windows
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
+      - &lowE_storms_new_package_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          and:
+            - not: 
+              - or: *upgradable_walls
+            - or:
+              &upgradable_nostorm_windows
+                - Windows|Single, Clear, Non-metal
+                - Windows|Single, Clear, Metal
+                - Windows|Double, Clear, Metal, Air
+        costs: *no_cost
+        lifetime: 30
+      - &polyiso_and_lowE_storms_replacing_clear_storm_infiltration_reduction
+        option: Infiltration Reduction|27.10%
+        apply_logic: 
+          and:
+            - or: *upgradable_walls
+            - or: *upgradable_clearstorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - &polyiso_and_lowE_storms_new_infiltration_reduction
+        option: Infiltration Reduction|31.15%
+        apply_logic: 
+          and:
+            - or: *upgradable_walls
+            - or: *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
       - *siding_upgrade_to_fibercement
       - *siding_upgrade_to_stucco
       - *siding_upgrade_to_vinyl
   - upgrade_name: P4 Triple pane windows + 2" polyiso + re-siding
     #Up11
     options:
+      - *polyiso_2inch
+      - *triple_window
+      - *polyiso_package_infiltration_reduction
+      - *triple_replaces_single_package_infiltration_reduction
+      - *triple_replaces_double_package_infiltration_reduction
+      - *polyiso_and_triple_replaces_single_infiltration_reduction
+      - *polyiso_and_triple_replaces_double_infiltration_reduction
       - *siding_upgrade_to_fibercement
       - *siding_upgrade_to_stucco
       - *siding_upgrade_to_vinyl
