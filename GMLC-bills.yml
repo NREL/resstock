@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: /home/epresent/resstock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/enduse/gmlc-bills/upload-test-aps
+output_directory: /projects/enduse/gmlc-bills/test-4ups-aps
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_2019_FIPS.zip
 
@@ -1030,8 +1030,8 @@ eagle:
   minutes_per_sim: 30
   account: enduse
   postprocessing:
-    time: 480
-    n_workers: 32
+    time: 240
+    n_workers: 15
   sampling:
     time: 60
 
@@ -1040,7 +1040,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: resstock-gmlc-bills-lbnl #change this to an NREL bucket if needed for testing
-      prefix: upload-test-aps #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+      prefix: test-4ups-aps #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: resstock-gmlc #collection of Athena tables (post-crawling), can be constant for the entire analysis
