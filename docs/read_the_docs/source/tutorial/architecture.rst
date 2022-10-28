@@ -42,7 +42,7 @@ The following depicts the order in which workflow measure steps are applied:
   3     HPXMLtoOpenStudio             Model              No                      OS-HPXML [#]_
   4     *Other Model Measures*        Model              Yes                     Any [#]_
   5     ReportSimulationOutput        Reporting          No                      OS-HPXML
-  6     ReportHPXMLOutput             Reporting          No                      OS-HPXML
+  6     ReportHPXMLOutput             Reporting          No                      ResStock
   7     ReportUtilityBills            Reporting          No                      OS-HPXML
   8     UpgradeCosts                  Reporting          No                      ResStock
   9     *Other Reporting Measures*    Reporting          Yes                     Any [#]_
@@ -169,11 +169,11 @@ They process and report simulation output.
 
 **ReportHPXMLOutput**
 
-  .. include:: ../../../../resources/hpxml-measures/ReportHPXMLOutput/measure.xml
+  .. include:: ../../../../measures/ReportHPXMLOutput/measure.xml
      :start-after: <description>
      :end-before: <
 
-  .. include:: ../../../../resources/hpxml-measures/ReportHPXMLOutput/measure.xml
+  .. include:: ../../../../measures/ReportHPXMLOutput/measure.xml
      :start-after: <modeler_description>
      :end-before: <
 
