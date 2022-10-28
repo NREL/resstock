@@ -5,9 +5,9 @@ output_directory:
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: resdiential_quota_downlselect
+  type: residential_quota_downselect
   args:
-    n_datapoints:
+    n_datapoints: 100
     logic:
       - Vacancy Status|Occupied
       - Geometry Building Type RECS|Single-Family Detached
@@ -28,7 +28,7 @@ workflow_generator:
   type: residential_hpxml
   args:
     build_existing_model:
-      simulation_control_run_period_calendar_year: 
+      simulation_control_run_period_calendar_year: 2007
       add_component_loads: false
 
     emissions: #same as EUSS res round 1
@@ -62,12 +62,12 @@ workflow_generator:
         wood_value: 200.0
 
     simulation_output_report: 
-      timeseries_frequency: annual #check this is right keyword
+      timeseries_frequency: none
 
     server_directory_cleanup:
       retain_in_osm: true
       retain_in_idf: false
-      retain_elpus_out_rdd: true
+      retain_eplusout_rdd: true
       retain_schedules_csv: false
 
     debug: false
@@ -247,8 +247,7 @@ upgrades:
       - &triple_replaces_double_infiltration_reduction
         option: Infiltration Reduction|15%
         apply_logic:
-          - &double_pane_metal_windows
-            or:
+          - or: &double_pane_metal_windows
               - Windows|Double, Clear, Metal, Air
         costs: *no_cost
         lifetime: 30
