@@ -3,7 +3,7 @@
 Available Outputs
 =================
 
-ResStock generates a default set of characteristics, simulation output, and upgrade costs outputs.
+ResStock generates a default set of housing characteristics, simulation output, and upgrade cost outputs.
 ResStock optionally generates outputs related to timeseries data, component loads, emissions, utility bills, and quantities of interest.
 
 .. toctree::

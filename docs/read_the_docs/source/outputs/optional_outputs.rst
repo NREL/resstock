@@ -9,6 +9,10 @@ Additionally, timeseries outputs can be requested.
 To be generated, some optional outputs need only a single switch enabled (e.g., component loads).
 Others need additional input arguments specified (e.g., emissions, utility bills).
 
+Note that enabling a set of optional outputs will by default generate the entire set.
+For example, requesting emissions outputs will result in columns for totals by fuel *and* by end use.
+There is currently no way to request totals by fuel while excluding totals by end use.
+
 Component Loads
 ***************
 

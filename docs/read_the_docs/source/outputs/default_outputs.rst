@@ -3,10 +3,10 @@
 Default Outputs
 ===============
 
-The default set of outputs include dwelling unit characteristics, annual simulation outputs, and upgrade costs information.
+The default set of outputs include housing characteristics, annual simulation outputs, and upgrade cost information.
 
-Characteristics
-***************
+Housing Characteristics
+***********************
 
 Default characteristics include sampled properties for each dwelling unit.
 
@@ -45,4 +45,4 @@ Other upgrade cost information includes:
 where <#> represents any of the defined option numbers.
 See :doc:`../upgrade_scenario_config` for more information.
 
-Note that option level information will only exist when applicable for a given upgrade.
+Note that the name, cost, and lifetime information will only be populated when applicable for a given upgrade option (i.e., when the apply logic evaluates as true).
