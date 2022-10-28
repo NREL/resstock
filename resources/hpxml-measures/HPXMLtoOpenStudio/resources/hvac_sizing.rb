@@ -949,12 +949,12 @@ class HVACSizing
       next unless slab.is_thermal_boundary
 
       if slab.interior_adjacent_to == HPXML::LocationLivingSpace # Slab-on-grade
-        f_value = calc_slab_f_value(slab)
+        f_value = calc_slab_f_value(slab, @hpxml.site.ground_conductivity)
         bldg_design_loads.Heat_Slabs += f_value * slab.exposed_perimeter * @htd
       elsif HPXML::conditioned_below_grade_locations.include? slab.interior_adjacent_to
         # Based on MJ 8th Ed. A12-7 and ASHRAE HoF 2013 pg 18.31 Eq 40
         # FIXME: Assumes slab is uninsulated?
-        k_soil = UnitConversions.convert(BaseMaterial.Soil.k_in, 'in', 'ft')
+        k_soil = @hpxml.site.ground_conductivity
         r_other = Material.Concrete(4.0).rvalue + Material.AirFilmFloorAverage.rvalue
         foundation_walls = @hpxml.foundation_walls.select { |fw| fw.is_thermal_boundary }
         z_f = foundation_walls.map { |fw| fw.depth_below_grade }.sum(0.0) / foundation_walls.size # Average below-grade depth
@@ -2005,7 +2005,9 @@ class HVACSizing
   end
 
   def self.get_ventilation_rates()
-    vent_fans_mech = @hpxml.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && f.flow_rate > 0 && f.hours_in_operation > 0 }
+    # If CFIS w/ supplemental fan, assume air handler is running most of the hour and can provide
+    # all ventilation needs (i.e., supplemental fan does not need to run), so skip supplement fan
+    vent_fans_mech = @hpxml.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && !f.is_cfis_supplemental_fan? && f.flow_rate > 0 && f.hours_in_operation > 0 }
     if vent_fans_mech.empty?
       return [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     end
@@ -2039,10 +2041,10 @@ class HVACSizing
     tot_unbal_cfm = (tot_sup_cfm - tot_exh_cfm).abs
     tot_bal_cfm = [tot_exh_cfm, tot_sup_cfm].min
 
-    # Calculate effectivenesses for all ERV/HRV and store results in a hash
+    # Calculate effectiveness for all ERV/HRV and store results in a hash
     hrv_erv_effectiveness_map = Airflow.calc_hrv_erv_effectiveness(vent_mech_erv_hrv_tot)
 
-    # Calculate cfm weighted average effectivenesses for the combined balanced airflow
+    # Calculate cfm weighted average effectiveness for the combined balanced airflow
     weighted_vent_mech_lat_eff = 0.0
     weighted_vent_mech_apparent_sens_eff = 0.0
     vent_mech_erv_hrv_unprecond = vent_mech_erv_hrv_tot.select { |vent_mech| vent_mech.preheating_efficiency_cop.nil? && vent_mech.precooling_efficiency_cop.nil? }
@@ -2470,7 +2472,6 @@ class HVACSizing
         hvac.GSHP_pipe_od = hpxml_hvac_ap.pipe_od
         hvac.GSHP_pipe_id = hpxml_hvac_ap.pipe_id
         hvac.GSHP_pipe_cond = hpxml_hvac_ap.pipe_cond
-        hvac.GSHP_ground_k = hpxml_hvac_ap.ground_conductivity
         hvac.GSHP_grout_k = hpxml_hvac_ap.grout_conductivity
       end
 
@@ -2920,7 +2921,7 @@ class HVACSizing
       beta_1 = -0.94467
     end
 
-    r_value_ground = Math.log(bore_spacing / hvac.GSHP_bore_d * 12.0) / 2.0 / Math::PI / hvac.GSHP_ground_k
+    r_value_ground = Math.log(bore_spacing / hvac.GSHP_bore_d * 12.0) / 2.0 / Math::PI / @hpxml.site.ground_conductivity
     r_value_grout = 1.0 / hvac.GSHP_grout_k / beta_0 / ((hvac.GSHP_bore_d / hvac.GSHP_pipe_od)**beta_1)
     r_value_bore = r_value_grout + pipe_r_value / 2.0 # Note: Convection resistance is negligible when calculated against Glhepro (Jeffrey D. Spitler, 2000)
 
@@ -3286,7 +3287,7 @@ class HVACSizing
       wall_ins_heights = [foundation_wall.insulation_interior_distance_to_bottom - foundation_wall.insulation_interior_distance_to_top,
                           foundation_wall.insulation_exterior_distance_to_bottom - foundation_wall.insulation_exterior_distance_to_top]
     end
-    k_soil = UnitConversions.convert(BaseMaterial.Soil.k_in, 'in', 'ft')
+    k_soil = @hpxml.site.ground_conductivity
 
     # Calculated based on Manual J 8th Ed. procedure in section A12-4 (15% decrease due to soil thermal storage)
     u_wall_with_soil = 0.0
@@ -3314,7 +3315,7 @@ class HVACSizing
     return u_wall_with_soil, u_wall_without_soil
   end
 
-  def self.calc_slab_f_value(slab)
+  def self.calc_slab_f_value(slab, ground_conductivity)
     # Calculation for the F-values in Table 4A for slab foundations.
     # Important pages are the Table values (pg. 344-345) and the software protocols
     # in Appendix 12 (pg. 517-518).
@@ -3332,7 +3333,7 @@ class HVACSizing
       end
     end
 
-    soil_r_per_foot = Material.Soil(12.0).rvalue
+    soil_r_per_foot = ground_conductivity
     slab_r_gravel_per_inch = 0.65 # Based on calibration by Tony Fontanini
 
     # Because of uncertainty pertaining to the effective path radius, F-values are calculated
@@ -3427,7 +3428,7 @@ class HVACInfo
                 :GSHP_SpacingType, :EvapCoolerEffectiveness, :SwitchoverTemperature, :LeavingAirTemp,
                 :HeatingLoadFraction, :CoolingLoadFraction, :SupplyAirTemp, :BackupSupplyAirTemp,
                 :GSHP_design_chw, :GSHP_design_delta_t, :GSHP_design_hw, :GSHP_bore_d,
-                :GSHP_pipe_od, :GSHP_pipe_id, :GSHP_pipe_cond, :GSHP_ground_k, :GSHP_grout_k)
+                :GSHP_pipe_od, :GSHP_pipe_id, :GSHP_pipe_cond, :GSHP_grout_k)
 end
 
 class DuctInfo

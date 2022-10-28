@@ -450,16 +450,18 @@ HPXML Site
 
 Site information is entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/Site``.
 
-  ================================  ========  =====  ===========  ========  ========  ============================================================
-  Element                           Type      Units  Constraints  Required  Default   Notes
-  ================================  ========  =====  ===========  ========  ========  ============================================================
-  ``SiteType``                      string           See [#]_     No        suburban  Terrain type for infiltration model
-  ``ShieldingofHome``               string           See [#]_     No        normal    Presence of nearby buildings, trees, obstructions for infiltration model
-  ``extension/Neighbors``           element          >= 0         No        <none>    Presence of neighboring buildings for solar shading
-  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ================================  ========  ===========  ===========  ========  ========  ============================================================
+  Element                           Type      Units        Constraints  Required  Default   Notes
+  ================================  ========  ===========  ===========  ========  ========  ============================================================
+  ``SiteType``                      string                 See [#]_     No        suburban  Terrain type for infiltration model
+  ``ShieldingofHome``               string                 See [#]_     No        normal    Presence of nearby buildings, trees, obstructions for infiltration model
+  ``extension/GroundConductivity``  double    Btu/hr-ft-F  > 0          No        1.0       Thermal conductivity of the ground soil [#]_
+  ``extension/Neighbors``           element                >= 0         No        <none>    Presence of neighboring buildings for solar shading
+  ================================  ========  ===========  ===========  ========  ========  ============================================================
 
   .. [#] SiteType choices are "rural", "suburban", or "urban".
   .. [#] ShieldingofHome choices are "normal", "exposed", or "well-shielded".
+  .. [#] GroundConductivity used for foundation heat transfer and ground source heat pumps.
 
 For each neighboring building defined, additional information is entered in a ``extension/Neighbors/NeighborBuilding``.
 
@@ -530,19 +532,19 @@ HPXML Climate Zones
 HPXML Climate Zone IECC
 ***********************
 
-Climate zone information can be entered as an ``/HPXML/Building/BuildingDetails/ClimateandRiskZones/ClimateZoneIECC``.
+Climate zone information can be optionally entered as an ``/HPXML/Building/BuildingDetails/ClimateandRiskZones/ClimateZoneIECC``.
 
   =================================  ========  =====  ===========  ========  ========  ===============
   Element                            Type      Units  Constraints  Required  Default   Description
   =================================  ========  =====  ===========  ========  ========  ===============
-  ``Year``                           integer          See [#]_     No        2006      IECC year
-  ``ClimateZone``                    string           See [#]_     No        See [#]_  IECC zone
+  ``Year``                           integer          See [#]_     Yes                 IECC year
+  ``ClimateZone``                    string           See [#]_     Yes                 IECC zone
   =================================  ========  =====  ===========  ========  ========  ===============
 
   .. [#] Year choices are 2003, 2006, 2009, 2012, 2015, 2018, or 2021.
   .. [#] ClimateZone choices are "1A", "1B", "1C", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "5A", "5B", "5C", "6A", "6B", "6C", "7", or "8".
-  .. [#] If ClimateZone not provided, defaults according to the EPW weather file header.
 
+If Climate zone information not provided, defaults according to the EPW weather file header.
 
 Weather information is entered in ``/HPXML/Building/BuildingDetails/ClimateandRiskZones/WeatherStation``.
 
@@ -876,7 +878,7 @@ Each space type that borders the ground (i.e., basements, crawlspaces, garages, 
   ``DepthBelowGrade``                                      double    ft            >= 0         See [#]_             Depth from the top of the slab surface to grade
   ``PerimeterInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
   ``PerimeterInsulation/Layer/NominalRValue``              double    F-ft2-hr/Btu  >= 0         Yes                  R-value of vertical insulation
-  ``PerimeterInsulation/Layer/InsulationDepth``            double    ft            >= 0         Yes                  Depth from grade to bottom of vertical insulation
+  ``PerimeterInsulation/Layer/InsulationDepth``            double    ft            >= 0         Yes                  Depth from top of slab to bottom of vertical insulation
   ``UnderSlabInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
   ``UnderSlabInsulation/Layer/NominalRValue``              double    F-ft2-hr/Btu  >= 0         Yes                  R-value of horizontal insulation
   ``UnderSlabInsulation/Layer/InsulationWidth``            double    ft            >= 0         See [#]_             Width from slab edge inward of horizontal insulation
@@ -1958,7 +1960,7 @@ If not entered, the simulation will not include mechanical ventilation.
   ``IsSharedSystem``                                                                             boolean            See [#]_     No        false      Whether it serves multiple dwelling units
   ``FanType``                                                                                    string             See [#]_     Yes                  Type of ventilation system
   ``RatedFlowRate`` or ``TestedFlowRate`` or ``CalculatedFlowRate`` or ``DeliveredVentilation``  double    cfm      >= 0         No        See [#]_   Flow rate [#]_
-  ``HoursInOperation``                                                                           double    hrs/day  0 - 24       No        See [#]_   Hours per day of operation
+  ``HoursInOperation``                                                                           double    hrs/day  0 - 24       See [#]_  See [#]_   Hours per day of operation
   ``FanPower``                                                                                   double    W        >= 0         No        See [#]_   Fan power
   =============================================================================================  ========  =======  ===========  ========  =========  =========================================
 
@@ -1966,7 +1968,10 @@ If not entered, the simulation will not include mechanical ventilation.
   .. [#] FanType choices are "energy recovery ventilator", "heat recovery ventilator", "exhaust only", "supply only", "balanced", or "central fan integrated supply".
   .. [#] If flow rate not provided, defaults to the required mechanical ventilation rate per `ASHRAE 62.2-2019 <https://www.techstreet.com/ashrae/standards/ashrae-62-2-2019?product_id=2087691>`_, including adjustments for A) infiltration credit, B) balanced vs imbalanced systems, and C) adiabatic surfaces for SFA/MF buildings.
   .. [#] For a central fan integrated supply system, the flow rate should equal the amount of outdoor air provided to the distribution system.
+  .. [#] HoursInOperation is optional unless the VentilationFan refers to the supplemental fan of a CFIS system, in which case it is not allowed.
   .. [#] If HoursInOperation not provided, defaults to 24 (i.e., running continuously) for all system types other than central fan integrated supply (CFIS), and 8.0 (i.e., running intermittently) for CFIS systems.
+         For a CFIS system, the HoursInOperation and the flow rate are combined to form the hourly target ventilation rate (e.g., inputs of 90 cfm and 8 hrs/day produce an hourly target ventilation rate of 30 cfm).
+         For a CFIS system with a supplemental fan, the supplemental fan's runtime is automatically calculated for each hour (based on the air handler runtime) to maintain the hourly target ventilation rate.
   .. [#] If FanPower not provided, defaults based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_:
          
          - "energy recovery ventilator", "heat recovery ventilator", or shared system: 1.0 W/cfm
@@ -2005,20 +2010,30 @@ If an energy recovery ventilator system is specified, additional information is 
 
 **Central Fan Integrated Supply**
 
-If a central fan integrated supply system is specified, additional information is entered in ``VentilationFan``.
+If a central fan integrated supply (CFIS) system is specified, additional information is entered in ``VentilationFan``.
 
-  ================================================  ======  =====  ===========  ========  =======  ==================================
-  Element                                           Type    Units  Constraints  Required  Default  Notes
-  ================================================  ======  =====  ===========  ========  =======  ==================================
-  ``AttachedToHVACDistributionSystem``              idref          See [#]_     Yes                ID of attached distribution system
-  ``extension/VentilationOnlyModeAirflowFraction``  double         0 - 1        No        1.0      Blower airflow rate fraction during ventilation only mode [#]_
-  ================================================  ======  =====  ===========  ========  =======  ==================================
+  ================================================  ======  =====  ===========  ========  ===============  ==================================
+  Element                                           Type    Units  Constraints  Required  Default          Notes
+  ================================================  ======  =====  ===========  ========  ===============  ==================================
+  ``CFISControls/AdditionalRuntimeOperatingMode``   string         See [#]_     No        air handler fan  How additional ventilation is provided (beyond when the HVAC system is running)
+  ``CFISControls/SupplementalFan``                  idref          See [#]_     See [#]_                   The supplemental fan providing additional ventilation
+  ``AttachedToHVACDistributionSystem``              idref          See [#]_     Yes                        ID of attached distribution system
+  ``extension/VentilationOnlyModeAirflowFraction``  double         0 - 1        No        1.0              Blower airflow rate fraction during ventilation only mode [#]_
+  ================================================  ======  =====  ===========  ========  ===============  ==================================
 
+  .. [#] AdditionalRuntimeOperatingMode choices are "air handler fan" or "supplemental fan".
+  .. [#] SupplementalFan must reference another ``VentilationFan`` where UsedForWholeBuildingVentilation=true, IsSharedSystem=false, and FanType="exhaust only" or "supply only".
+  .. [#] SupplementalFan only required if AdditionalRuntimeOperatingMode is "supplemental fan".
   .. [#] HVACDistribution type cannot be HydronicDistribution.
   .. [#] Blower airflow rate when operating in ventilation only mode (i.e., not heating or cooling mode), as a fraction of the maximum blower airflow rate.
          This value will depend on whether the blower fan can operate at reduced airflow rates during ventilation only operation.
          It is used to determine how much conditioned air is recirculated through ducts during ventilation only operation, resulting in additional duct losses.
          A value of zero will result in no conditioned air recirculation, and thus no additional duct losses.
+
+.. note::
+
+  CFIS systems are automated controllers that use the HVAC system's air handler fan to draw in outdoor air to meet an hourly ventilation target.
+  CFIS systems are modeled as assuming they A) maximize the use of normal heating/cooling runtime operation to meet the hourly ventilation target, B) block the flow of outdoor air when the hourly ventilation target has been met, and C) provide additional runtime operation (via air handler fan or supplemental fan) to meet the remainder of the hourly ventilation target when space heating/cooling runtime alone is not sufficient.
 
 **Shared System**
 
@@ -2230,7 +2245,7 @@ If a combination boiler w/ storage tank (sometimes referred to as an indirect wa
   ``RelatedHVACSystem``                          idref                  See [#]_     Yes                     ID of boiler
   ``TankVolume``                                 double   gal           > 0          Yes                     Nominal volume of the storage tank
   ``WaterHeaterInsulation/Jacket/JacketRValue``  double   F-ft2-hr/Btu  >= 0         No            0         R-value of additional storage tank insulation wrap
-  ``StandbyLoss``                                double   F/hr          > 0          No            See [#]_  Storage tank standby losses
+  ``StandbyLoss[Units="F/hr"]/Value``            double   F/hr          > 0          No            See [#]_  Storage tank standby losses
   =============================================  =======  ============  ===========  ============  ========  ==================================================
 
   .. [#] RelatedHVACSystem must reference a ``HeatingSystem`` (Boiler).
@@ -2315,7 +2330,7 @@ If the in-unit distribution system is specified as recirculation, additional inf
   =================================  =======  =====  ===========  ========  ========  =====================================
   ``ControlType``                    string          See [#]_     Yes                 Recirculation control type
   ``RecirculationPipingLoopLength``  double   ft     > 0          No        See [#]_  Recirculation piping loop length [#]_
-  ``BranchPipingLoopLength``         double   ft     > 0          No        10        Branch piping loop length [#]_
+  ``BranchPipingLength``             double   ft     > 0          No        10        Branch piping length [#]_
   ``PumpPower``                      double   W      >= 0         No        50 [#]_   Recirculation pump power
   =================================  =======  =====  ===========  ========  ========  =====================================
 
@@ -2327,7 +2342,7 @@ If the in-unit distribution system is specified as recirculation, additional inf
          | NCfl = number of conditioned floor levels number of conditioned floor levels in the residence including conditioned basements,
          | Bsmnt = presence (1.0) or absence (0.0) of an unconditioned basement in the residence.
   .. [#] RecirculationPipingLoopLength is the recirculation loop length including both supply and return sides, measured longitudinally from plans, assuming the hot water piping does not run diagonally, plus 20 feet of piping for each floor level greater than one plus 10 feet of piping for unconditioned basements.
-  .. [#] BranchPipingLoopLength is the length of the branch hot water piping from the recirculation loop to the farthest hot water fixture from the recirculation loop, measured longitudinally from plans, assuming the branch hot water piping does not run diagonally.
+  .. [#] BranchPipingLength is the length of the branch hot water piping from the recirculation loop to the farthest hot water fixture from the recirculation loop, measured longitudinally from plans, assuming the branch hot water piping does not run diagonally.
   .. [#] PumpPower default based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 
 Shared Recirculation
@@ -2563,19 +2578,19 @@ HPXML Clothes Washer
 A single clothes washer can be entered as a ``/HPXML/Building/BuildingDetails/Appliances/ClothesWasher``.
 If not entered, the simulation will not include a clothes washer.
 
-  ==============================================================  =======  ===========  ===========  ========  ============  ==============================================
-  Element                                                         Type     Units        Constraints  Required  Default       Notes
-  ==============================================================  =======  ===========  ===========  ========  ============  ==============================================
-  ``SystemIdentifier``                                            id                                 Yes                     Unique identifier
-  ``IsSharedAppliance``                                           boolean                            No        false         Whether it serves multiple dwelling units [#]_
-  ``Location``                                                    string                See [#]_     No        living space  Location
-  ``IntegratedModifiedEnergyFactor`` or ``ModifiedEnergyFactor``  double   ft3/kWh/cyc  > 0          No        See [#]_      Efficiency [#]_
-  ``AttachedToWaterHeatingSystem``                                idref                 See [#]_     See [#]_                ID of attached water heater
-  ``extension/UsageMultiplier``                                   double                >= 0         No        1.0           Multiplier on energy & hot water usage
-  ``extension/WeekdayScheduleFractions``                          array                              No        See [#]_      24 comma-separated weekday fractions
-  ``extension/WeekendScheduleFractions``                          array                              No                      24 comma-separated weekend fractions
-  ``extension/MonthlyScheduleMultipliers``                        array                              No        See [#]_      12 comma-separated monthly multipliers
-  ==============================================================  =======  ===========  ===========  ========  ============  ==============================================
+  ======================================================================  =======  ===========  ===========  ========  ============  ==============================================
+  Element                                                                 Type     Units        Constraints  Required  Default       Notes
+  ======================================================================  =======  ===========  ===========  ========  ============  ==============================================
+  ``SystemIdentifier``                                                    id                                 Yes                     Unique identifier
+  ``IsSharedAppliance``                                                   boolean                            No        false         Whether it serves multiple dwelling units [#]_
+  ``Location``                                                            string                See [#]_     No        living space  Location
+  ``IntegratedModifiedEnergyFactor`` or ``ModifiedEnergyFactor``          double   ft3/kWh/cyc  > 0          No        See [#]_      Efficiency [#]_
+  ``AttachedToWaterHeatingSystem`` or ``AttachedToHotWaterDistribution``  idref                 See [#]_     See [#]_                ID of attached water heater or distribution system
+  ``extension/UsageMultiplier``                                           double                >= 0         No        1.0           Multiplier on energy & hot water usage
+  ``extension/WeekdayScheduleFractions``                                  array                              No        See [#]_      24 comma-separated weekday fractions
+  ``extension/WeekendScheduleFractions``                                  array                              No                      24 comma-separated weekend fractions
+  ``extension/MonthlyScheduleMultipliers``                                array                              No        See [#]_      12 comma-separated monthly multipliers
+  ======================================================================  =======  ===========  ===========  ========  ============  ==============================================
 
   .. [#] For example, a clothes washer in a shared laundry room of a MF building.
   .. [#] Location choices are "living space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space".
@@ -2591,8 +2606,8 @@ If not entered, the simulation will not include a clothes washer.
   .. [#] If ModifiedEnergyFactor (MEF) provided instead of IntegratedModifiedEnergyFactor (IMEF), it will be converted using the `Interpretation on ANSI/RESNET 301-2014 Clothes Washer IMEF <https://www.resnet.us/wp-content/uploads/No.-301-2014-08-sECTION-4.2.2.5.2.8-Clothes-Washers-Eq-4.2-6.pdf>`_:
          IMEF = (MEF - 0.503) / 0.95.
          IMEF may be found using the manufacturer’s data sheet, the `California Energy Commission Appliance Database <https://cacertappliances.energy.ca.gov/Pages/ApplianceSearch.aspx>`_, the `EPA ENERGY STAR website <https://www.energystar.gov/productfinder/>`_, or another reputable source.
-  .. [#] AttachedToWaterHeatingSystem must reference a ``WaterHeatingSystem``.
-  .. [#] AttachedToWaterHeatingSystem only required if IsSharedAppliance is true.
+  .. [#] AttachedToWaterHeatingSystem must reference a ``WaterHeatingSystem``; AttachedToHotWaterDistribution must reference a ``HotWaterDistribution``.
+  .. [#] AttachedToWaterHeatingSystem (or AttachedToHotWaterDistribution) only required if IsSharedAppliance is true.
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figure 17 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.009, 0.007, 0.004, 0.004, 0.007, 0.011, 0.022, 0.049, 0.073, 0.086, 0.084, 0.075, 0.067, 0.060, 0.049, 0.052, 0.050, 0.049, 0.049, 0.049, 0.049, 0.047, 0.032, 0.017".
   .. [#] If MonthlyScheduleMultipliers not provided (and :ref:`detailedschedules` not used), default values from Figure 24 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "1.011, 1.002, 1.022, 1.020, 1.022, 0.996, 0.999, 0.999, 0.996, 0.964, 0.959, 1.011".
 
@@ -2654,19 +2669,19 @@ HPXML Dishwasher
 A single dishwasher can be entered as a ``/HPXML/Building/BuildingDetails/Appliances/Dishwasher``.
 If not entered, the simulation will not include a dishwasher.
 
-  ============================================  =======  ===========  ===========  ========  ============  ==============================================
-  Element                                       Type     Units        Constraints  Required  Default       Notes
-  ============================================  =======  ===========  ===========  ========  ============  ==============================================
-  ``SystemIdentifier``                          id                                 Yes                     Unique identifier
-  ``IsSharedAppliance``                         boolean                            No        false         Whether it serves multiple dwelling units [#]_
-  ``Location``                                  string                See [#]_     No        living space  Location
-  ``RatedAnnualkWh`` or ``EnergyFactor``        double   kWh/yr or #  > 0          No        See [#]_      EnergyGuide label consumption/efficiency [#]_
-  ``AttachedToWaterHeatingSystem``              idref                 See [#]_     See [#]_                ID of attached water heater
-  ``extension/UsageMultiplier``                 double                >= 0         No        1.0           Multiplier on energy & hot water usage
-  ``extension/WeekdayScheduleFractions``        array                              No        See [#]_      24 comma-separated weekday fractions
-  ``extension/WeekendScheduleFractions``        array                              No                      24 comma-separated weekend fractions
-  ``extension/MonthlyScheduleMultipliers``      array                              No        See [#]_      12 comma-separated monthly multipliers
-  ============================================  =======  ===========  ===========  ========  ============  ==============================================
+  ======================================================================  =======  ===========  ===========  ========  ============  ==============================================
+  Element                                                                 Type     Units        Constraints  Required  Default       Notes
+  ======================================================================  =======  ===========  ===========  ========  ============  ==============================================
+  ``SystemIdentifier``                                                    id                                 Yes                     Unique identifier
+  ``IsSharedAppliance``                                                   boolean                            No        false         Whether it serves multiple dwelling units [#]_
+  ``Location``                                                            string                See [#]_     No        living space  Location
+  ``RatedAnnualkWh`` or ``EnergyFactor``                                  double   kWh/yr or #  > 0          No        See [#]_      EnergyGuide label consumption/efficiency [#]_
+  ``AttachedToWaterHeatingSystem`` or ``AttachedToHotWaterDistribution``  idref                 See [#]_     See [#]_                ID of attached water heater or distribution system
+  ``extension/UsageMultiplier``                                           double                >= 0         No        1.0           Multiplier on energy & hot water usage
+  ``extension/WeekdayScheduleFractions``                                  array                              No        See [#]_      24 comma-separated weekday fractions
+  ``extension/WeekendScheduleFractions``                                  array                              No                      24 comma-separated weekend fractions
+  ``extension/MonthlyScheduleMultipliers``                                array                              No        See [#]_      12 comma-separated monthly multipliers
+  ======================================================================  =======  ===========  ===========  ========  ============  ==============================================
 
   .. [#] For example, a dishwasher in a shared mechanical room of a MF building.
   .. [#] Location choices are "living space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space".
@@ -2680,8 +2695,8 @@ If not entered, the simulation will not include a dishwasher.
          PlaceSettingCapacity = 12.
   .. [#] If EnergyFactor (EF) provided instead of RatedAnnualkWh, it will be converted using the following equation based on `ANSI/RESNET/ICC 301-2014 <https://codes.iccsafe.org/content/document/843>`_:
          RatedAnnualkWh = 215.0 / EF.
-  .. [#] AttachedToWaterHeatingSystem must reference a ``WaterHeatingSystem``.
-  .. [#] AttachedToWaterHeatingSystem only required if IsSharedAppliance is true.
+  .. [#] AttachedToWaterHeatingSystem must reference a ``WaterHeatingSystem``; AttachedToHotWaterDistribution must reference a ``HotWaterDistribution``.
+  .. [#] AttachedToWaterHeatingSystem (or AttachedToHotWaterDistribution) only required if IsSharedAppliance is true.
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figure 21 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.015, 0.007, 0.005, 0.003, 0.003, 0.010, 0.020, 0.031, 0.058, 0.065, 0.056, 0.048, 0.041, 0.046, 0.036, 0.038, 0.038, 0.049, 0.087, 0.111, 0.090, 0.067, 0.044, 0.031".
   .. [#] If MonthlyScheduleMultipliers not provided (and :ref:`detailedschedules` not used), default values from Figure 24 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097".
 
