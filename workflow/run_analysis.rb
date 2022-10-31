@@ -5,7 +5,7 @@ require 'json'
 require 'yaml'
 
 require_relative '../resources/buildstock'
-require_relative '../resources/run_sampling'
+require_relative '../resources/run_sampling_lib'
 require_relative '../resources/util'
 
 $start_time = Time.now
