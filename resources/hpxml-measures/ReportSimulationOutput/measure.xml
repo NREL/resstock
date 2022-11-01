@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>report_simulation_output</name>
   <uid>df9d170c-c21a-4130-866d-0d46b06073fd</uid>
-  <version_id>77af4368-78f0-487b-a0f5-0b2377a76c25</version_id>
-  <version_modified>20221011T212705Z</version_modified>
+  <version_id>8d0f44a7-cad9-4306-9a43-bef79d1511cd</version_id>
+  <version_modified>20221018T164335Z</version_modified>
   <xml_checksum>9BF1E6AC</xml_checksum>
   <class_name>ReportSimulationOutput</class_name>
   <display_name>HPXML Simulation Output Report</display_name>
@@ -313,6 +313,25 @@
         <choice>
           <value>false</value>
           <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>timeseries_timestamp_convention</name>
+      <display_name>Generate Timeseries Output: Timestamp Convention</display_name>
+      <description>Determines whether timeseries timestamps use the start-of-timestep or end-of-timestep convention. Doesn't apply if the output format is 'csv_dview'.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>start</default_value>
+      <choices>
+        <choice>
+          <value>start</value>
+          <display_name>start</display_name>
+        </choice>
+        <choice>
+          <value>end</value>
+          <display_name>end</display_name>
         </choice>
       </choices>
     </argument>
@@ -1500,12 +1519,6 @@
   </attributes>
   <files>
     <file>
-      <filename>output_report_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>674785DD</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.1</identifier>
@@ -1514,7 +1527,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>7CBF9F38</checksum>
+      <checksum>73543972</checksum>
+    </file>
+    <file>
+      <filename>output_report_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>964F8EE6</checksum>
     </file>
   </files>
 </measure>

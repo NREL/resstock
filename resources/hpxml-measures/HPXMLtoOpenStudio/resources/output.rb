@@ -139,7 +139,8 @@ class WT
 end
 
 class OutputMethods
-  def self.get_timestamps(msgpackData, hpxml, add_dst_column = false, add_utc_column = false, use_dview_format = false)
+  def self.get_timestamps(msgpackData, hpxml, use_timestamp_start_convention, add_dst_column = false, add_utc_column = false,
+                          use_dview_format = false, timeseries_frequency = nil)
     return if msgpackData.nil?
 
     if msgpackData.keys.include? 'MeterData'
@@ -162,12 +163,29 @@ class OutputMethods
     timestamps = []
     timestamps_dst = [] if add_dst_column || use_dview_format
     timestamps_utc = [] if add_utc_column
-    year = hpxml.header.sim_calendar_year.to_s
+    year = hpxml.header.sim_calendar_year
     ep_timestamps.each do |ep_timestamp|
       month_day, hour_minute = ep_timestamp.split(' ')
-      month, day = month_day.split('/')
-      hour, minute, _ = hour_minute.split(':')
+      month, day = month_day.split('/').map(&:to_i)
+      hour, minute, _ = hour_minute.split(':').map(&:to_i)
+
+      # Convert from EnergyPlus default (end-of-timestep) to start-of-timestep convention
+      if use_timestamp_start_convention
+        if timeseries_frequency == 'timestep'
+          ts_offset = hpxml.header.timestep * 60 # seconds
+        elsif timeseries_frequency == 'hourly'
+          ts_offset = 60 * 60 # seconds
+        elsif timeseries_frequency == 'daily'
+          ts_offset = 60 * 60 * 24 # seconds
+        elsif timeseries_frequency == 'monthly'
+          ts_offset = Constants.NumDaysInMonths(year)[month - 1] * 60 * 60 * 24 # seconds
+        else
+          fail 'Unexpected timeseries_frequency/'
+        end
+      end
+
       ts = Time.utc(year, month, day, hour, minute)
+      ts -= ts_offset unless ts_offset.nil?
 
       timestamps << ts.iso8601.delete('Z')
 
