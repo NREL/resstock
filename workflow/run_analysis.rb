@@ -5,7 +5,7 @@ require 'json'
 require 'yaml'
 
 require_relative '../resources/buildstock'
-require_relative '../resources/run_sampling'
+require_relative '../resources/run_sampling_lib'
 require_relative '../resources/util'
 
 $start_time = Time.now
@@ -177,6 +177,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
       'include_timeseries_zone_temperatures' => false,
       'include_timeseries_airflows' => false,
       'include_timeseries_weather' => false,
+      'timeseries_timestamp_convention' => 'end',
       'add_timeseries_dst_column' => true,
       'add_timeseries_utc_column' => true
     }
@@ -204,8 +205,6 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
         'skip_zip_results' => true
       }
     }
-
-    osw['steps'] += workflow_args['measures']
 
     debug = false
     if workflow_args.keys.include?('debug')
@@ -244,7 +243,12 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
           'debug' => debug,
           'add_component_loads' => add_component_loads
         }
-      },
+      }
+    ]
+
+    osw['steps'] += workflow_args['measures']
+
+    osw['steps'] += [
       {
         'measure_dir_name' => 'ReportSimulationOutput',
         'arguments' => sim_out_rep_args

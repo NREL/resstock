@@ -189,8 +189,8 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     # Setup fuel outputs
     fuels = setup_fuel_outputs()
 
-    # Get timestamps
-    @timestamps, _, _ = OutputMethods.get_timestamps(@msgpackData, @hpxml)
+    # Get number of timestamps
+    @n_timestamps = OutputMethods.get_timestamps(@msgpackData, @hpxml, false)[0].size
 
     # Get outputs
     get_outputs(fuels)
@@ -485,7 +485,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_report_meter_data_timeseries(meter_names, unit_conv, unit_adder)
-    return [0.0] * @timestamps.size if meter_names.empty?
+    return [0.0] * @n_timestamps if meter_names.empty?
 
     msgpack_timeseries_name = OutputMethods.msgpack_frequency_map[timeseries_frequency]
     cols = @msgpackData['MeterData'][msgpack_timeseries_name]['Cols']

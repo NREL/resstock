@@ -11,6 +11,16 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
     'Server Directory Cleanup'
   end
 
+  # human readable description
+  def description
+    return 'Optionally removes a significant portion of the saved results from each run, helping to alleviate memory problems.'
+  end
+
+  # human readable description of modeling approach
+  def modeler_description
+    return ''
+  end
+
   # define the arguments that the user will input
   def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Ruleset::OSArgumentVector.new
