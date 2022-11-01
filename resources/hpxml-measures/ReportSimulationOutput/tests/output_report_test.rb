@@ -8,6 +8,7 @@ require 'csv'
 require_relative '../measure.rb'
 require_relative '../../HPXMLtoOpenStudio/resources/xmlhelper.rb'
 require_relative '../../HPXMLtoOpenStudio/resources/constants.rb'
+require_relative '../../HPXMLtoOpenStudio/resources/version.rb'
 require 'oga'
 
 class ReportSimulationOutputTest < MiniTest::Test
@@ -1019,54 +1020,26 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
   end
 
-  def test_timeseries_hourly_runperiod_Jan
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
-                  'timeseries_frequency' => 'hourly',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(31 * 24, timeseries_rows.size - 2)
-    timeseries_cols = timeseries_rows.transpose
-    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-  end
+  def test_timeseries_hourly_runperiod_1month
+    expected_values = { 'timestep' => 28 * 24,
+                        'hourly' => 28 * 24,
+                        'daily' => 28,
+                        'monthly' => 1 }
 
-  def test_timeseries_daily_runperiod_Jan
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
-                  'timeseries_frequency' => 'daily',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(31, timeseries_rows.size - 2)
-    timeseries_cols = timeseries_rows.transpose
-    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-  end
-
-  def test_timeseries_monthly_runperiod_Jan
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
-                  'timeseries_frequency' => 'monthly',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(1, timeseries_rows.size - 2)
-  end
-
-  def test_timeseries_timestep_runperiod_Jan
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
-                  'timeseries_frequency' => 'timestep',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(31 * 24, timeseries_rows.size - 2)
-    timeseries_cols = timeseries_rows.transpose
-    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    expected_values.each do |timeseries_frequency, expected_value|
+      args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
+                    'timeseries_frequency' => timeseries_frequency,
+                    'include_timeseries_fuel_consumptions' => true }
+      annual_csv, timeseries_csv = _test_measure(args_hash)
+      assert(File.exist?(annual_csv))
+      assert(File.exist?(timeseries_csv))
+      timeseries_rows = CSV.read(timeseries_csv)
+      assert_equal(expected_value, timeseries_rows.size - 2)
+      if timeseries_frequency != 'monthly'
+        timeseries_cols = timeseries_rows.transpose
+        assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+      end
+    end
   end
 
   def test_timeseries_hourly_AMY_2012
@@ -1080,6 +1053,36 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8784, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+  end
+
+  def test_timeseries_timestamp_convention
+    # Expected values are arrays of time offsets (in seconds) for each reported row of output
+    expected_values_array = { 'timestep' => [30 * 60] * 17520,
+                              'hourly' => [60 * 60] * 8760,
+                              'daily' => [60 * 60 * 24] * 365,
+                              'monthly' => Constants.NumDaysInMonths(1999).map { |n_days| n_days * 60 * 60 * 24 } }
+
+    expected_values_array.each do |timeseries_frequency, expected_values|
+      args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-timestep-30-mins.xml'),
+                    'timeseries_frequency' => timeseries_frequency,
+                    'include_timeseries_fuel_consumptions' => true,
+                    'timeseries_timestamp_convention' => 'end' }
+      annual_csv, timeseries_csv = _test_measure(args_hash)
+      assert(File.exist?(annual_csv))
+      assert(File.exist?(timeseries_csv))
+      timeseries_csv = CSV.readlines(timeseries_csv)
+
+      args_hash['timeseries_timestamp_convention'] = 'start'
+      annual_csv, timeseries_csv2 = _test_measure(args_hash)
+      assert(File.exist?(annual_csv))
+      assert(File.exist?(timeseries_csv2))
+      timeseries_csv2 = CSV.readlines(timeseries_csv2)
+
+      for rownum in 2..timeseries_csv.size - 1
+        timestamp_offset = _parse_time(timeseries_csv[rownum][0]) - _parse_time(timeseries_csv2[rownum][0])
+        assert_equal(expected_values[rownum - 2], timestamp_offset)
+      end
+    end
   end
 
   def test_timeseries_for_dview
