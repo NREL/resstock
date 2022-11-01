@@ -7,6 +7,7 @@ col_exclusions = ['applicable',
                   'include_timeseries_',
                   'output_format',
                   'timeseries_frequency',
+                  'timeseries_timestamp_convention',
                   'upgrade_name',
                   'add_timeseries_',
                   'user_output_variables']
