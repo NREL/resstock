@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: . # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: windows_yml_test_v3
+output_directory: ../windows_yml_test_v1
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
 weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 # weather_files_path: /shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
@@ -18,49 +18,14 @@ workflow_generator:
   type: residential_hpxml
   args:
     build_existing_model:
-      simulation_control_timestep: 15 # minutes
+      simulation_control_timestep: 15 
       simulation_control_run_period_begin_month: 1
       simulation_control_run_period_begin_day_of_month: 1
       simulation_control_run_period_end_month: 12
       simulation_control_run_period_end_day_of_month: 31
       simulation_control_run_period_calendar_year: 2018
 
-    emissions: #double check syntax
-      # - scenario_name: LRMER_95DecarbBy2035_15_2025start
-      #   type: CO2e
-      #   elec_folder: data/cambium/LRMER_95DecarbBy2035_15_2025start
-      #   gas_value: 147.3
-      #   propane_value: 177.8
-      #   oil_value: 195.9
-      #   wood_value: 200.0
-      # - scenario_name: LRMER_95DecarbBy2035_25_2025start
-      #   type: CO2e
-      #   elec_folder: data/cambium/LRMER_95DecarbBy2035_25_2025start
-      #   gas_value: 147.3
-      #   propane_value: 177.8
-      #   oil_value: 195.9
-      #   wood_value: 200.0
-      # - scenario_name: LRMER_LowRECost_15_2025start
-      #   type: CO2e
-      #   elec_folder: data/cambium/LRMER_LowRECost_15_2025start
-      #   gas_value: 147.3
-      #   propane_value: 177.8
-      #   oil_value: 195.9
-      #   wood_value: 200.0
-      # - scenario_name: LRMER_LowRECost_25_2025start
-      #   type: CO2e
-      #   elec_folder: data/cambium/LRMER_LowRECost_25_2025start
-      #   gas_value: 147.3
-      #   propane_value: 177.8
-      #   oil_value: 195.9
-      #   wood_value: 200.0
-      # - scenario_name: LRMER_MidCase_15_2025start
-      #   type: CO2e
-      #   elec_folder: data/cambium/LRMER_MidCase_15_2025start
-      #   gas_value: 147.3
-      #   propane_value: 177.8
-      #   oil_value: 195.9
-      #   wood_value: 200.0
+    emissions:
       - scenario_name: LRMER_MidCase_25_2025start
         type: CO2e
         elec_folder: data/cambium/LRMER_MidCase_25_2025start
@@ -90,10 +55,10 @@ workflow_generator:
       - name: Cooling Coil Total Cooling Energy
       - name: Cooling Coil Sensible Cooling Energy
 
-    reporting_measures: #do we want this?
+    reporting_measures:
       - measure_dir_name: QOIReport
 
-    server_directory_cleanup: #check
+    server_directory_cleanup: 
       debug: false
 
 # eagle:
@@ -122,7 +87,7 @@ workflow_generator:
 #       max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
 
 upgrades:
-  - upgrade_name: High-efficiency heat pumps with electric backup
+  - upgrade_name: High-efficiency heat pumps with electric backup, ACCA 
     #up01
     options:
       #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
@@ -178,42 +143,6 @@ upgrades:
             - *ducted_higheff_HP_all_fuel_apply_logic
             - *nonducted_higheff_HP_all_fuel_apply_logic
 
-  - upgrade_name: triple-pane and heat pumps
-    options:
-      - &triple_window_h_gain
-        option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
-        apply_logic:
-          or:
-            - ASHRAE IECC Climate Zone 2004|4A
-            - ASHRAE IECC Climate Zone 2004|4B
-            - ASHRAE IECC Climate Zone 2004|4C
-            - ASHRAE IECC Climate Zone 2004|5A
-            - ASHRAE IECC Climate Zone 2004|5B
-            - ASHRAE IECC Climate Zone 2004|6A
-            - ASHRAE IECC Climate Zone 2004|6B
-            - ASHRAE IECC Climate Zone 2004|7A
-            - ASHRAE IECC Climate Zone 2004|7B            
-        costs:
-          - value: 46
-            multiplier: Window Area (ft^2)
-        lifetime: 30
-      #15% ACH50 reduction for replacing double with triple pane
-      - &triple_window_l_gain
-        option: Windows|Triple, Low-E, Insulated, Argon, L-Gain
-        apply_logic:
-          or:
-            - ASHRAE IECC Climate Zone 2004|1A
-            - ASHRAE IECC Climate Zone 2004|2A
-            - ASHRAE IECC Climate Zone 2004|2B
-            - ASHRAE IECC Climate Zone 2004|3A
-            - ASHRAE IECC Climate Zone 2004|3B
-            - ASHRAE IECC Climate Zone 2004|3C          
-        costs:
-          - value: 46
-            multiplier: Window Area (ft^2)
-        lifetime: 30
-      #15% ACH50 reduction for replacing double with triple pane
-
   - upgrade_name: triple-pane only
     options:
       - &triple_window_h_gain
@@ -249,8 +178,241 @@ upgrades:
             multiplier: Window Area (ft^2)
         lifetime: 30
       #15% ACH50 reduction for replacing double with triple pane
+      - &triple_replaces_double_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          - or: &double_pane_metal_windows
+              - Windows|Double, Clear, Metal, Air
+        costs: *no_cost
+        lifetime: 30
+      #30% ACH50 reduction for replacing single pane with triple pane
+      - &triple_replaces_single_infiltration_reduction 
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - or: &single_pane_windows
+            - Windows|Single, Clear, Non-metal
+            - Windows|Single, Clear, Metal
+            - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
+            - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
+
+  - upgrade_name: triple-pane and heat pumps
+    options:
+      - &triple_window_h_gain
+        option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
+        apply_logic:
+          or:
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B            
+        costs:
+          - value: 46
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      #15% ACH50 reduction for replacing double with triple pane
+      - &triple_window_l_gain
+        option: Windows|Triple, Low-E, Insulated, Argon, L-Gain
+        apply_logic:
+          or:
+            - ASHRAE IECC Climate Zone 2004|1A
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C          
+        costs:
+          - value: 46
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      #15% ACH50 reduction for replacing double with triple pane
+      - &triple_replaces_double_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          - or: &double_pane_metal_windows
+              - Windows|Double, Clear, Metal, Air
+        costs: *no_cost
+        lifetime: 30
+      #30% ACH50 reduction for replacing single pane with triple pane
+      - &triple_replaces_single_infiltration_reduction 
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - or: &single_pane_windows
+            - Windows|Single, Clear, Non-metal
+            - Windows|Single, Clear, Metal
+            - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
+            - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
       - &higheff_ducted_HP_all_fuel
         option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
+        apply_logic: &ducted_higheff_HP_all_fuel_apply_logic
+          - HVAC Has Ducts|Yes
+          - or: &not_ASHP_greater_than_SEER_15_9_HSPF
+            - not: HVAC Cooling Efficiency|Heat Pump
+            - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+        costs: &costs_mshp_ducted_SEER_24_13_HSPF
+        # Source: Using the ASHP regression because ducted MSHP costs are more similar to ASHP costs than ductless MSHP costs. 
+        # Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+        # The regression only had 3 datapoints > 11 HSPF (all < $15k); extrapolating to 13 HSPF leads to very high costs and may not be appropriate.
+          - value: 15030.40 # for HSPF 13. Value of $9,468.70 for HSPF 11 may be a better fixed value for all highly-performance cold climate variable-speed heat pumps with HSPF 11 or higher.
+            multiplier: Fixed (1)
+          - value: 155.17
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ducted_SEER_24_13_HSPF 15
+      - &apply_ducted_heat_pump_heating_type
+        option: HVAC Heating Type|Ducted Heat Pump
+        apply_logic: *ducted_higheff_HP_all_fuel_apply_logic
+      # MSHP
+      - &higheff_nonducted_HP_all_fuel
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load # changed to Max Load
+        apply_logic: &nonducted_higheff_HP_all_fuel_apply_logic
+          - HVAC Has Ducts|No
+          - or: &not_MSHP_greater_than_SEER_29_14_HSPF
+            - not: HVAC Cooling Efficiency|Heat Pump
+            - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+            - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        costs: &costs_mshp_ductless_SEER_29_14_HSPF
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB (https://remdb.nrel.gov/).
+          - value: 2820.60
+            multiplier: Fixed (1)
+          - value: 367.22
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ductless_SEER_29_14_HSPF 15
+      #global
+      - &apply_heat_pump_cooling_efficiency
+        option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *ducted_higheff_HP_all_fuel_apply_logic
+            - *nonducted_higheff_HP_all_fuel_apply_logic
+
+  - upgrade_name: High-efficiency heat pumps with electric backup, Max Load 
+    #up01
+    options:
+      #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
+      - &higheff_ducted_HP_all_fuel
+        option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Max Load # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
+        apply_logic: &ducted_higheff_HP_all_fuel_apply_logic
+          - HVAC Has Ducts|Yes
+          - or: &not_ASHP_greater_than_SEER_15_9_HSPF
+            - not: HVAC Cooling Efficiency|Heat Pump
+            - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+        costs: &costs_mshp_ducted_SEER_24_13_HSPF
+        # Source: Using the ASHP regression because ducted MSHP costs are more similar to ASHP costs than ductless MSHP costs. 
+        # Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+        # The regression only had 3 datapoints > 11 HSPF (all < $15k); extrapolating to 13 HSPF leads to very high costs and may not be appropriate.
+          - value: 15030.40 # for HSPF 13. Value of $9,468.70 for HSPF 11 may be a better fixed value for all highly-performance cold climate variable-speed heat pumps with HSPF 11 or higher.
+            multiplier: Fixed (1)
+          - value: 155.17
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ducted_SEER_24_13_HSPF 15
+      - &apply_ducted_heat_pump_heating_type
+        option: HVAC Heating Type|Ducted Heat Pump
+        apply_logic: *ducted_higheff_HP_all_fuel_apply_logic
+      # MSHP
+      - &higheff_nonducted_HP_all_fuel
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load # changed to Max Load
+        apply_logic: &nonducted_higheff_HP_all_fuel_apply_logic
+          - HVAC Has Ducts|No
+          - or: &not_MSHP_greater_than_SEER_29_14_HSPF
+            - not: HVAC Cooling Efficiency|Heat Pump
+            - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+            - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        costs: &costs_mshp_ductless_SEER_29_14_HSPF
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB (https://remdb.nrel.gov/).
+          - value: 2820.60
+            multiplier: Fixed (1)
+          - value: 367.22
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ductless_SEER_29_14_HSPF 15
+      #global
+      - &apply_heat_pump_cooling_efficiency
+        option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *ducted_higheff_HP_all_fuel_apply_logic
+            - *nonducted_higheff_HP_all_fuel_apply_logic
+
+  - upgrade_name: triple-pane and heat pumps, max load
+    options:
+      - &triple_window_h_gain
+        option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
+        apply_logic:
+          or:
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B            
+        costs:
+          - value: 46
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      #15% ACH50 reduction for replacing double with triple pane
+      - &triple_window_l_gain
+        option: Windows|Triple, Low-E, Insulated, Argon, L-Gain
+        apply_logic:
+          or:
+            - ASHRAE IECC Climate Zone 2004|1A
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C          
+        costs:
+          - value: 46
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      #15% ACH50 reduction for replacing double with triple pane
+      - &triple_replaces_double_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          - or: &double_pane_metal_windows
+              - Windows|Double, Clear, Metal, Air
+        costs: *no_cost
+        lifetime: 30
+      #30% ACH50 reduction for replacing single pane with triple pane
+      - &triple_replaces_single_infiltration_reduction 
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - or: &single_pane_windows
+            - Windows|Single, Clear, Non-metal
+            - Windows|Single, Clear, Metal
+            - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
+            - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
+      - &higheff_ducted_HP_all_fuel
+        option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Max Load # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
         apply_logic: &ducted_higheff_HP_all_fuel_apply_logic
           - HVAC Has Ducts|Yes
           - or: &not_ASHP_greater_than_SEER_15_9_HSPF
