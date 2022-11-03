@@ -59,9 +59,43 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
       fail "'#{hpxml_path}' does not exist or is not an .xml file."
     end
 
-    # TODO
+    _hpxml = HPXML.new(hpxml_path: hpxml_path)
+
+    # init
+    new_schedules = {}
+
+    # TODO: populate new_schedules
+
+    # return if not writing schedules
+    return true if new_schedules.empty?
+
+    # write schedules
+    schedules_filepath = File.join(File.dirname(args[:output_csv_path].get), 'schedules2.csv')
+    write_new_schedules(new_schedules, schedules_filepath)
+
+    # modify the hpxml with the schedules path
+    doc = XMLHelper.parse_file(hpxml_path)
+    extension = XMLHelper.create_elements_as_needed(XMLHelper.get_element(doc, '/HPXML'), ['SoftwareInfo', 'extension'])
+    schedules_filepaths = XMLHelper.get_values(extension, 'SchedulesFilePath', :string)
+    if !schedules_filepaths.include?(schedules_filepath)
+      XMLHelper.add_element(extension, 'SchedulesFilePath', schedules_filepath, :string)
+
+      # write out the modified hpxml
+      XMLHelper.write_file(doc, hpxml_path)
+      runner.registerInfo("Wrote file: #{hpxml_path}")
+    end
 
     return true
+  end
+
+  def write_new_schedules(schedules, schedules_filepath)
+    CSV.open(schedules_filepath, 'w') do |csv|
+      csv << schedules.keys
+      rows = schedules.values.transpose
+      rows.each do |row|
+        csv << row.map { |x| '%.3g' % x }
+      end
+    end
   end
 end
 

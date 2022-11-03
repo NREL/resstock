@@ -324,6 +324,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../upgraded.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
+    measures['ResStockArgumentsPostHPXML'] = [{ 'hpxml_path' => hpxml_path }]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
@@ -422,7 +423,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # ResStockArgumentsPostHPXML
-    measures['ResStockArgumentsPostHPXML'][0]['hpxml_path'] = hpxml_path
     measures['ResStockArgumentsPostHPXML'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # Specify measures to run

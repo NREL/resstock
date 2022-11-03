@@ -328,6 +328,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../existing.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
+    measures['ResStockArgumentsPostHPXML'] = [{ 'hpxml_path' => hpxml_path }]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
@@ -538,8 +539,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # ResStockArgumentsPostHPXML
-    measures['ResStockArgumentsPostHPXML'] = [{}] if !measures.keys.include?('ResStockArgumentsPostHPXML') # FIXME: remove when ResStockArgumentsPostHPXML is introduced into options_lookup.tsv
-    measures['ResStockArgumentsPostHPXML'][0]['hpxml_path'] = hpxml_path
     measures['ResStockArgumentsPostHPXML'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # Specify measures to run
