@@ -39,10 +39,10 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
     model, _hpxml = _test_measure(args_hash)
 
     begin_month, begin_day, end_month, end_day = get_run_period_month_and_days(model)
-    assert_equal(1, begin_month)
+    assert_equal(2, begin_month)
     assert_equal(1, begin_day)
-    assert_equal(1, end_month)
-    assert_equal(31, end_day)
+    assert_equal(2, end_month)
+    assert_equal(28, end_day)
   end
 
   def test_timestep_1hour
@@ -69,7 +69,7 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
     model = OpenStudio::Model::Model.new
 
     # get arguments
-    args_hash['output_dir'] = 'tests'
+    args_hash['output_dir'] = File.dirname(__FILE__)
     arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 

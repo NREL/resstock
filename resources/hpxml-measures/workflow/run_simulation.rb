@@ -11,8 +11,9 @@ require_relative '../HPXMLtoOpenStudio/resources/version'
 
 basedir = File.expand_path(File.dirname(__FILE__))
 
-def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs, skip_validation, add_comp_loads, add_utility_bills,
-                 output_format, building_id, ep_input_format, detailed_schedules_type, timeseries_time_column_types, timeseries_output_variables)
+def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs, skip_validation, add_comp_loads,
+                 output_format, building_id, ep_input_format, detailed_schedules_type, timeseries_time_column_types,
+                 timeseries_output_variables, timeseries_timestamp_convention)
   measures_dir = File.join(basedir, '..')
 
   measures = {}
@@ -58,6 +59,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['include_timeseries_zone_temperatures'] = timeseries_outputs.include? 'temperatures'
   args['include_timeseries_airflows'] = timeseries_outputs.include? 'airflows'
   args['include_timeseries_weather'] = timeseries_outputs.include? 'weather'
+  args['timeseries_timestamp_convention'] = timeseries_timestamp_convention
   args['add_timeseries_dst_column'] = timeseries_time_column_types.include? 'DST'
   args['add_timeseries_utc_column'] = timeseries_time_column_types.include? 'UTC'
   args['user_output_variables'] = timeseries_output_variables.join(', ') unless timeseries_output_variables.empty?
@@ -65,19 +67,11 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
 
   output_format = 'csv' if output_format == 'csv_dview'
 
-  # Add hpxml output measure to workflow
-  measure_subdir = 'ReportHPXMLOutput'
+  # Add utility bills measure to workflow
+  measure_subdir = 'ReportUtilityBills'
   args = {}
   args['output_format'] = output_format
   update_args_hash(measures, measure_subdir, args)
-
-  # Add utility bills measure to workflow
-  if add_utility_bills
-    measure_subdir = 'ReportUtilityBills'
-    args = {}
-    args['output_format'] = output_format
-    update_args_hash(measures, measure_subdir, args)
-  end
 
   results = run_hpxml_workflow(rundir, measures, measures_dir, debug: debug, ep_input_format: ep_input_format)
 
@@ -148,9 +142,9 @@ OptionParser.new do |opts|
     options[:timeseries_output_variables] << t
   end
 
-  options[:add_utility_bills] = false
-  opts.on('--add-utility-bills', 'Add utility bill calculations (using default rates).') do |_t|
-    options[:add_utility_bills] = true
+  options[:timeseries_timestamp_convention] = 'start'
+  opts.on('--timeseries-timestamp-convention TYPE', ['start', 'end'], 'Convention (start, end) for timeseries timestamps') do |t|
+    options[:timeseries_timestamp_convention] = t
   end
 
   options[:ep_input_format] = 'idf'
@@ -245,9 +239,9 @@ else
   # Run design
   puts "HPXML: #{options[:hpxml]}"
   success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
-                         options[:skip_validation], options[:add_comp_loads], options[:add_utility_bills], options[:output_format], options[:building_id],
+                         options[:skip_validation], options[:add_comp_loads], options[:output_format], options[:building_id],
                          options[:ep_input_format], options[:detailed_schedules_type], options[:timeseries_time_column_types],
-                         options[:timeseries_output_variables])
+                         options[:timeseries_output_variables], options[:timeseries_timestamp_convention])
 
   if not success
     exit! 1

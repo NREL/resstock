@@ -80,6 +80,15 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
     assert_in_epsilon(htg_design_load, htg_capacity, 0.001) # 0.001 to handle rounding
   end
 
+  def test_heat_pump_integrated_backup_systems
+    # Check that HP backup heating capacity matches heating design load even when using MaxLoad in a hot climate (GitHub issue #1140)
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload-miami-fl.xml'))
+    _model, hpxml = _test_measure(args_hash)
+
+    assert_equal(hpxml.heat_pumps[0].backup_heating_capacity, hpxml.hvac_plant.hdl_total)
+  end
+
   def test_slab_f_factor
     def get_unins_slab()
       slab = HPXML::Slab.new(nil)
@@ -94,28 +103,28 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
 
     # Uninsulated slab
     slab = get_unins_slab()
-    f_factor = HVACSizing.calc_slab_f_value(slab)
+    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
     assert_in_epsilon(1.41, f_factor, 0.01)
 
     # R-10, 4ft under slab insulation
     slab = get_unins_slab()
     slab.under_slab_insulation_width = 4
     slab.under_slab_insulation_r_value = 10
-    f_factor = HVACSizing.calc_slab_f_value(slab)
+    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
     assert_in_epsilon(1.27, f_factor, 0.01)
 
     # R-20, 4ft perimeter insulation
     slab = get_unins_slab()
     slab.perimeter_insulation_depth = 4
     slab.perimeter_insulation_r_value = 20
-    f_factor = HVACSizing.calc_slab_f_value(slab)
+    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
     assert_in_epsilon(0.39, f_factor, 0.01)
 
     # R-40, whole slab insulation
     slab = get_unins_slab()
     slab.under_slab_insulation_spans_entire_slab = true
     slab.under_slab_insulation_r_value = 40
-    f_factor = HVACSizing.calc_slab_f_value(slab)
+    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
     assert_in_epsilon(1.04, f_factor, 0.01)
   end
 
@@ -127,7 +136,7 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
     model = OpenStudio::Model::Model.new
 
     # get arguments
-    args_hash['output_dir'] = 'tests'
+    args_hash['output_dir'] = File.dirname(__FILE__)
     arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 

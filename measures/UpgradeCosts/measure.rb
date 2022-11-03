@@ -29,6 +29,12 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
   def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
+    arg.setDisplayName('Debug Mode?')
+    arg.setDescription('If true, retain existing and upgraded intermediate files.')
+    arg.setDefaultValue(false)
+    args << arg
+
     return args
   end
 
@@ -60,6 +66,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
+
+    debug = runner.getBoolArgumentValue('debug', user_arguments)
 
     # Retrieve values from BuildExistingModel, ApplyUpgrade, ReportHPXMLOutput
     values = { 'apply_upgrade' => get_values_from_runner_past_results(runner, 'apply_upgrade'),
@@ -108,6 +116,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
 
     if not has_costs
+      remove_intermediate_files() if !debug
       register_value(runner, upgrade_cost_name, 0.0)
       runner.registerInfo("Registering 0.0 for #{upgrade_cost_name}.")
       return true
@@ -151,7 +160,16 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     register_value(runner, upgrade_cost_name, upgrade_cost)
     runner.registerInfo("Registering #{upgrade_cost} for #{upgrade_cost_name}.")
 
+    remove_intermediate_files() if !debug
+
     return true
+  end
+
+  def remove_intermediate_files()
+    FileUtils.rm_rf(File.expand_path('../existing.osw'))
+    FileUtils.rm_rf(File.expand_path('../existing.xml'))
+    FileUtils.rm_rf(File.expand_path('../upgraded.osw'))
+    FileUtils.rm_rf(File.expand_path('../upgraded.xml'))
   end
 
   def retrieve_hpxmls(existing_hpxml, upgraded_hpxml)
@@ -207,14 +225,14 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if !upgraded_hpxml.nil?
         ceiling_assembly_r = { existing_hpxml => [], upgraded_hpxml => [] }
         [existing_hpxml, upgraded_hpxml].each do |hpxml_obj|
-          hpxml_obj.frame_floors.each do |frame_floor|
-            next unless frame_floor.is_thermal_boundary
-            next unless frame_floor.is_interior
-            next unless frame_floor.is_ceiling
+          hpxml_obj.floors.each do |floor|
+            next unless floor.is_thermal_boundary
+            next unless floor.is_interior
+            next unless floor.is_ceiling
             next unless [HPXML::LocationAtticVented,
-                         HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
+                         HPXML::LocationAtticUnvented].include?(floor.exterior_adjacent_to)
 
-            ceiling_assembly_r[hpxml_obj] << frame_floor.insulation_assembly_r_value unless frame_floor.insulation_assembly_r_value.nil?
+            ceiling_assembly_r[hpxml_obj] << floor.insulation_assembly_r_value unless floor.insulation_assembly_r_value.nil?
           end
         end
         fail 'Found multiple ceiling assembly R-values.' if ceiling_assembly_r[existing_hpxml].uniq.size > 1 || ceiling_assembly_r[upgraded_hpxml].uniq.size > 1

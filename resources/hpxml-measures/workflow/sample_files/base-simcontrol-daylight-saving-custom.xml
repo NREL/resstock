@@ -10,17 +10,15 @@
     <extension>
       <SimulationControl>
         <Timestep>60</Timestep>
-        <DaylightSaving>
-          <Enabled>true</Enabled>
-          <BeginMonth>3</BeginMonth>
-          <BeginDayOfMonth>10</BeginDayOfMonth>
-          <EndMonth>11</EndMonth>
-          <EndDayOfMonth>6</EndDayOfMonth>
-        </DaylightSaving>
       </SimulationControl>
       <AdditionalProperties>
         <ParentHPXMLFile>base.xml</ParentHPXMLFile>
       </AdditionalProperties>
+      <UtilityBillScenarios>
+        <UtilityBillScenario>
+          <Name>Bills</Name>
+        </UtilityBillScenario>
+      </UtilityBillScenarios>
     </extension>
   </SoftwareInfo>
   <Building>
@@ -30,6 +28,15 @@
       <Address>
         <StateCode>CO</StateCode>
       </Address>
+      <TimeZone>
+        <DSTObserved>true</DSTObserved>
+        <extension>
+          <DSTBeginMonth>3</DSTBeginMonth>
+          <DSTBeginDayOfMonth>10</DSTBeginDayOfMonth>
+          <DSTEndMonth>11</DSTEndMonth>
+          <DSTEndDayOfMonth>6</DSTEndDayOfMonth>
+        </extension>
+      </TimeZone>
     </Site>
     <ProjectStatus>
       <EventType>proposed workscope</EventType>
@@ -96,7 +103,7 @@
             <WithinInfiltrationVolume>false</WithinInfiltrationVolume>
             <AttachedToRoof idref='Roof1'/>
             <AttachedToWall idref='Wall2'/>
-            <AttachedToFrameFloor idref='FrameFloor1'/>
+            <AttachedToFloor idref='Floor1'/>
           </Attic>
         </Attics>
         <Foundations>
@@ -208,9 +215,9 @@
             </Insulation>
           </FoundationWall>
         </FoundationWalls>
-        <FrameFloors>
-          <FrameFloor>
-            <SystemIdentifier id='FrameFloor1'/>
+        <Floors>
+          <Floor>
+            <SystemIdentifier id='Floor1'/>
             <ExteriorAdjacentTo>attic - unvented</ExteriorAdjacentTo>
             <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <Area>1350.0</Area>
@@ -218,11 +225,11 @@
               <Type>gypsum board</Type>
             </InteriorFinish>
             <Insulation>
-              <SystemIdentifier id='FrameFloor1Insulation'/>
+              <SystemIdentifier id='Floor1Insulation'/>
               <AssemblyEffectiveRValue>39.3</AssemblyEffectiveRValue>
             </Insulation>
-          </FrameFloor>
-        </FrameFloors>
+          </Floor>
+        </Floors>
         <Slabs>
           <Slab>
             <SystemIdentifier id='Slab1'/>

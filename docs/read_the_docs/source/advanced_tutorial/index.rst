@@ -1,7 +1,7 @@
 .. _advanced_tutorial:
 
 Advanced Tutorial
-#################
+=================
 
 This advanced tutorial describes the process for developing residential measures and testing residential building models. Reasons for wanting to develop residential measures include: customizing any of the existing residential modeling algorithms or adding new technology models.
 

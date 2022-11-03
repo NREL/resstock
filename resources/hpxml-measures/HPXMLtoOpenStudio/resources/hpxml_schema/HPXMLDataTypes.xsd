@@ -373,29 +373,6 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<xs:simpleType name="TestDate_simple">
-		<xs:restriction base="xs:dateTime"/>
-	</xs:simpleType>
-	<xs:complexType name="TestDate">
-		<xs:simpleContent>
-			<xs:extension base="TestDate_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="TestInorOut_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="test in"/>
-			<xs:enumeration value="test out"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="TestInorOut">
-		<xs:simpleContent>
-			<xs:extension base="TestInorOut_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
 	<xs:simpleType name="TypeofBlowerDoorTest_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="pressurization"/>
@@ -1158,6 +1135,7 @@
 			<xs:enumeration value="basement"/>
 			<xs:enumeration value="basement - conditioned"/>
 			<xs:enumeration value="basement - unconditioned"/>
+			<xs:enumeration value="conditioned space"/>
 			<xs:enumeration value="crawlspace"/>
 			<xs:enumeration value="crawlspace - conditioned"/>
 			<xs:enumeration value="crawlspace - unconditioned"/>
@@ -1181,7 +1159,7 @@
 	</xs:simpleType>
 	<xs:complexType name="AdjacentTo">
 		<xs:annotation>
-			<xs:documentation>DEPRECATION WARNING: Choices "other housing unit above" and "other housing unit below" will be deprecated in the future. Use Ceiling vs FrameFloor to describe whether "other housing unit" is above or below the given surface.</xs:documentation>
+			<xs:documentation>DEPRECATION WARNING: Choices "other housing unit above" and "other housing unit below" will be deprecated in the future. Use Ceiling vs Floor to describe whether "other housing unit" is above or below the given surface.</xs:documentation>
 		</xs:annotation>
 		<xs:simpleContent>
 			<xs:extension base="AdjacentTo_simple">
@@ -1383,19 +1361,6 @@
 	</xs:complexType>
 	<!--Lighting Below-->
 	<!--Lighting Controls Below-->
-	<xs:simpleType name="InsulationLocation_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="interior"/>
-			<xs:enumeration value="exterior"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="InsulationLocation">
-		<xs:simpleContent>
-			<xs:extension base="InsulationLocation_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
 	<xs:simpleType name="LightingLocation_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="interior"/>
@@ -1731,7 +1696,7 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<!--Combustion Applicance Tests Below-->
+	<!--Combustion Appliance Tests Below-->
 	<xs:simpleType name="FlueCondition_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="pass"/>
@@ -1815,8 +1780,10 @@
 	<xs:simpleType name="CoolingEfficiencyUnits_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="SEER"/>
+			<xs:enumeration value="SEER2"/>
 			<xs:enumeration value="CEER"/>
 			<xs:enumeration value="EER"/>
+			<xs:enumeration value="EER2"/>
 			<xs:enumeration value="COP"/>
 			<xs:enumeration value="kW/ton"/>
 		</xs:restriction>
@@ -1831,6 +1798,7 @@
 	<xs:simpleType name="HeatingEfficiencyUnits_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="HSPF"/>
+			<xs:enumeration value="HSPF2"/>
 			<xs:enumeration value="COP"/>
 			<xs:enumeration value="AFUE"/>
 			<xs:enumeration value="Percent"/>
@@ -1839,6 +1807,20 @@
 	<xs:complexType name="HeatingEfficiencyUnits">
 		<xs:simpleContent>
 			<xs:extension base="HeatingEfficiencyUnits_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="StandbyLossUnits_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="F/hr"/>
+			<xs:enumeration value="%/hr"/>
+			<xs:enumeration value="Btu/hr"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="StandbyLossUnits">
+		<xs:simpleContent>
+			<xs:extension base="StandbyLossUnits_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -1859,7 +1841,7 @@
 	</xs:complexType>
 	<xs:simpleType name="Efficiency_simple">
 		<xs:restriction base="xs:double">
-			<xs:minInclusive value="0"/>
+			<xs:minExclusive value="0"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:complexType name="Efficiency">
@@ -1893,9 +1875,10 @@
 			<xs:enumeration value="mini-split"/>
 			<xs:enumeration value="ground-to-air"/>
 			<xs:enumeration value="ground-to-water"/>
-			<xs:enumeration value="packaged terminal heat pump"/>
 			<xs:enumeration value="water-loop-to-air"/>
 			<xs:enumeration value="variable refrigerant flow"/>
+			<xs:enumeration value="packaged terminal heat pump"/>
+			<xs:enumeration value="room heat pump"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:complexType name="HeatPumpType">
@@ -1963,6 +1946,7 @@
 			<xs:enumeration value="basement"/>
 			<xs:enumeration value="basement - conditioned"/>
 			<xs:enumeration value="basement - unconditioned"/>
+			<xs:enumeration value="conditioned space"/>
 			<xs:enumeration value="crawlspace"/>
 			<xs:enumeration value="crawlspace - conditioned"/>
 			<xs:enumeration value="crawlspace - unconditioned"/>
@@ -2147,6 +2131,7 @@
 			<xs:enumeration value="basement"/>
 			<xs:enumeration value="basement - conditioned"/>
 			<xs:enumeration value="basement - unconditioned"/>
+			<xs:enumeration value="conditioned space"/>
 			<xs:enumeration value="crawlspace"/>
 			<xs:enumeration value="crawlspace - conditioned"/>
 			<xs:enumeration value="crawlspace - unconditioned"/>
@@ -2381,23 +2366,6 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<!--Homeowner Questionaire Below-->
-	<xs:simpleType name="HomeownerQuestionaireScore_simple">
-		<xs:annotation>
-			<xs:documentation>1-10 score of why they chose that option</xs:documentation>
-		</xs:annotation>
-		<xs:restriction base="xs:integer">
-			<xs:minInclusive value="0"/>
-			<xs:maxInclusive value="10"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="HomeownerQuestionaireScore">
-		<xs:simpleContent>
-			<xs:extension base="HomeownerQuestionaireScore_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
 	<!--Software Information Below-->
 	<xs:simpleType name="SoftwareProgramUsed_simple">
 		<xs:restriction base="xs:string"/>
@@ -2510,6 +2478,9 @@
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="energyUnitType_simple">
+		<xs:annotation>
+			<xs:documentation>MBtu refers to million Btu.</xs:documentation>
+		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="cmh"/>
 			<xs:enumeration value="ccf"/>
@@ -2668,16 +2639,6 @@
 	<xs:complexType name="TransactionType">
 		<xs:simpleContent>
 			<xs:extension base="TransactionType_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="AuditorRelationship_simple">
-		<xs:restriction base="xs:string"/>
-	</xs:simpleType>
-	<xs:complexType name="AuditorRelationship">
-		<xs:simpleContent>
-			<xs:extension base="AuditorRelationship_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -2900,6 +2861,8 @@
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="clear"/>
 			<xs:enumeration value="low-e"/>
+			<xs:enumeration value="low-e, high-solar-gain"/>
+			<xs:enumeration value="low-e, low-solar-gain"/>
 			<xs:enumeration value="tinted"/>
 			<xs:enumeration value="reflective"/>
 			<xs:enumeration value="tinted/reflective"/>
@@ -2961,6 +2924,7 @@
 			<xs:enumeration value="basement"/>
 			<xs:enumeration value="basement - conditioned"/>
 			<xs:enumeration value="basement - unconditioned"/>
+			<xs:enumeration value="conditioned space"/>
 			<xs:enumeration value="garage"/>
 			<xs:enumeration value="garage - conditioned"/>
 			<xs:enumeration value="garage - unconditioned"/>
@@ -3025,6 +2989,7 @@
 			<xs:enumeration value="basement"/>
 			<xs:enumeration value="basement - conditioned"/>
 			<xs:enumeration value="basement - unconditioned"/>
+			<xs:enumeration value="conditioned space"/>
 			<xs:enumeration value="garage"/>
 			<xs:enumeration value="garage - conditioned"/>
 			<xs:enumeration value="garage - unconditioned"/>
@@ -3250,16 +3215,6 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<xs:simpleType name="TotalAmount_simple">
-		<xs:restriction base="xs:decimal"/>
-	</xs:simpleType>
-	<xs:complexType name="TotalAmount">
-		<xs:simpleContent>
-			<xs:extension base="TotalAmount_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
 	<xs:simpleType name="FundingSourceName_simple">
 		<xs:restriction base="xs:string"/>
 	</xs:simpleType>
@@ -3371,7 +3326,7 @@
 	</xs:complexType>
 	<xs:simpleType name="FoundationThermalBoundary_simple">
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="frame floor"/>
+			<xs:enumeration value="floor"/>
 			<xs:enumeration value="foundation wall"/>
 		</xs:restriction>
 	</xs:simpleType>
@@ -4403,6 +4358,7 @@
 			<xs:enumeration value="basement"/>
 			<xs:enumeration value="basement - conditioned"/>
 			<xs:enumeration value="basement - unconditioned"/>
+			<xs:enumeration value="conditioned space"/>
 			<xs:enumeration value="crawlspace"/>
 			<xs:enumeration value="crawlspace - conditioned"/>
 			<xs:enumeration value="crawlspace - unconditioned"/>
@@ -4831,6 +4787,60 @@
 	<xs:complexType name="eGridSubregions">
 		<xs:simpleContent>
 			<xs:extension base="eGridSubregions_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="Latitude_simple">
+		<xs:restriction base="xs:double">
+			<xs:minInclusive value="-90"/>
+			<xs:maxInclusive value="90"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="Latitude">
+		<xs:simpleContent>
+			<xs:extension base="Latitude_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="Longitude_simple">
+		<xs:restriction base="xs:double">
+			<xs:minInclusive value="-180"/>
+			<xs:maxInclusive value="180"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="Longitude">
+		<xs:simpleContent>
+			<xs:extension base="Longitude_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="UTCOffset_simple">
+		<xs:restriction base="xs:double">
+			<xs:minInclusive value="-12"/>
+			<xs:maxInclusive value="14"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="UTCOffset">
+		<xs:simpleContent>
+			<xs:extension base="UTCOffset_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="AdditionalRuntimeOperatingModeType_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="none"/>
+			<xs:enumeration value="air handler fan"/>
+			<xs:enumeration value="supplemental fan"/>
+			<xs:enumeration value="other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="AdditionalRuntimeOperatingMode">
+		<xs:simpleContent>
+			<xs:extension base="AdditionalRuntimeOperatingModeType_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>

@@ -22,7 +22,8 @@ class Location
     # parsing the weather file.
     if File.exist? weather_cache_path
       weather = WeatherProcess.new(nil, nil, weather_cache_path)
-    else
+    end
+    if weather.nil? || weather.data.AnnualAvgDrybulb.nil?
       weather = WeatherProcess.new(model, runner)
     end
 
@@ -115,5 +116,15 @@ class Location
     end
 
     return epw_path
+  end
+
+  def self.get_sim_calendar_year(sim_calendar_year, epw_file)
+    if (not epw_file.nil?) && epw_file.startDateActualYear.is_initialized # AMY
+      sim_calendar_year = epw_file.startDateActualYear.get
+    end
+    if sim_calendar_year.nil?
+      sim_calendar_year = 2007 # For consistency with SAM utility bill calculations
+    end
+    return sim_calendar_year
   end
 end

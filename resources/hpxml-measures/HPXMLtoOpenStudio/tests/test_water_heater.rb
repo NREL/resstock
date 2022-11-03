@@ -5,8 +5,6 @@ require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
 require_relative '../measure.rb'
-require_relative '../resources/util.rb'
-require_relative '../resources/waterheater.rb'
 
 class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def sample_files_dir
@@ -1175,7 +1173,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     model = OpenStudio::Model::Model.new
 
     # get arguments
-    args_hash['output_dir'] = 'tests'
+    args_hash['output_dir'] = File.dirname(__FILE__)
     arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 

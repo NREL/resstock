@@ -26,8 +26,10 @@ class TestRunAnalysis < MiniTest::Test
   def _test_measure_order(osw)
     expected_order = ['BuildExistingModel',
                       'ApplyUpgrade',
+                      'HPXMLtoOpenStudio',
                       'ReportSimulationOutput',
                       'ReportHPXMLOutput',
+                      'ReportUtilityBills',
                       'UpgradeCosts',
                       'QOIReport',
                       'ServerDirectoryCleanup']
@@ -116,6 +118,26 @@ class TestRunAnalysis < MiniTest::Test
     assert(cli_output.include?("Both 'build_existing_model' and 'simulation_output_report' must be included in yml."))
   end
 
+  def test_errors_precomputed_outdated_missing_parameter
+    yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_missing.yml'
+    @command += yml
+
+    cli_output = `#{@command}` # rubocop:disable Lint/UselessAssignment
+    cli_output = File.read(File.join(@testing_baseline, 'cli_output.log'))
+
+    assert(cli_output.include?('Mismatch between buildstock.csv and options_lookup.tsv. Missing parameters: HVAC Cooling Partial Space Conditioning.'))
+  end
+
+  def test_errors_precomputed_outdated_extra_parameter
+    yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_extra.yml'
+    @command += yml
+
+    cli_output = `#{@command}` # rubocop:disable Lint/UselessAssignment
+    cli_output = File.read(File.join(@testing_baseline, 'cli_output.log'))
+
+    assert(cli_output.include?('Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: Extra Parameter.'))
+  end
+
   def test_measures_only
     yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
     @command += yml
@@ -135,7 +157,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
-    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(!File.exist?(File.join(@testing_baseline, 'testing_baseline-Baseline.osw')))
     assert(!File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'buildstock.csv')))
   end
@@ -180,6 +202,18 @@ class TestRunAnalysis < MiniTest::Test
 
     FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
+  end
+
+  def test_precomputed
+    yml = ' -y test/tests_yml_files/yml_precomputed/testing_baseline.yml'
+    @command += yml
+
+    system(@command)
+
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(File.exist?(File.join(@testing_baseline, 'run2')))
+    assert(!File.exist?(File.join(@testing_baseline, 'run3')))
   end
 
   def test_testing_baseline
@@ -248,7 +282,7 @@ class TestRunAnalysis < MiniTest::Test
     timeseries = _get_timeseries_columns(Dir[File.join(@national_baseline, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries))
 
-    assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
+    assert(!File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
 
     FileUtils.cp(results_baseline, File.join(File.dirname(@national_baseline), 'project_national'))
@@ -299,15 +333,11 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
-    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-existing-defaulted.xml')))
-    assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-upgraded-defaulted.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-existing.xml')))
     assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-upgraded.xml')))
 
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'AllUpgrades', '1-existing.osw')))
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'AllUpgrades', '1-upgraded.osw')))
-    assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-existing-defaulted.xml')))
-    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-upgraded-defaulted.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-existing.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-upgraded.xml')))
 
@@ -357,19 +387,15 @@ class TestRunAnalysis < MiniTest::Test
     timeseries = _get_timeseries_columns(Dir[File.join(@national_upgrades, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries))
 
-    assert(File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing-defaulted.xml')))
-    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-upgraded-defaulted.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing.xml')))
     assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-upgraded.xml')))
 
-    assert(File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-existing.osw')))
-    assert(File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-upgraded.osw')))
-    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-existing-defaulted.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-upgraded-defaulted.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-existing.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-upgraded.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-existing.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-upgraded.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-existing.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-upgraded.xml')))
 
     FileUtils.cp(results_allupgrades, File.join(File.dirname(@national_upgrades), 'project_national'))
   end

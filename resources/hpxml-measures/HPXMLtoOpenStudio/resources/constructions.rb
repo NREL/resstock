@@ -758,13 +758,13 @@ class Constructions
   def self.apply_foundation_wall(model, surfaces, constr_name,
                                  ext_rigid_ins_offset, int_rigid_ins_offset, ext_rigid_ins_height,
                                  int_rigid_ins_height, ext_rigid_r, int_rigid_r, mat_int_finish,
-                                 mat_wall, height_above_grade)
+                                 mat_wall, height_above_grade, soil_k_in)
 
     # Create Kiva foundation
     foundation = apply_kiva_walled_foundation(model, ext_rigid_r, int_rigid_r, ext_rigid_ins_offset,
                                               int_rigid_ins_offset, ext_rigid_ins_height,
                                               int_rigid_ins_height, height_above_grade,
-                                              mat_wall.thick_in, mat_int_finish)
+                                              mat_wall.thick_in, mat_int_finish, soil_k_in)
 
     # Define construction
     constr = Construction.new(constr_name, [1])
@@ -786,7 +786,7 @@ class Constructions
                                  under_r, under_width, gap_r,
                                  perimeter_r, perimeter_depth,
                                  whole_r, concrete_thick_in, exposed_perimeter,
-                                 mat_carpet, foundation)
+                                 mat_carpet, soil_k_in, foundation)
 
     return if surface.nil?
 
@@ -795,7 +795,7 @@ class Constructions
       thick = UnitConversions.convert(concrete_thick_in, 'in', 'ft')
       foundation = create_kiva_slab_foundation(model, under_r, under_width,
                                                gap_r, thick, perimeter_r, perimeter_depth,
-                                               concrete_thick_in)
+                                               concrete_thick_in, soil_k_in)
     else
       # Kiva foundation (for crawlspace/basement) exists
       if (under_r > 0) && (under_width > 0)
@@ -813,7 +813,7 @@ class Constructions
       mat_concrete = Material.Concrete(concrete_thick_in)
     else
       # Use 0.5 - 1.0 inches of soil, per Neal Kruis recommendation
-      mat_soil = Material.Soil(0.5)
+      mat_soil = Material.Soil(0.5, soil_k_in)
     end
     mat_rigid = nil
     if whole_r > 0
@@ -1214,7 +1214,7 @@ class Constructions
 
   def self.create_kiva_slab_foundation(model, int_horiz_r, int_horiz_width, int_vert_r,
                                        int_vert_depth, ext_vert_r, ext_vert_depth,
-                                       concrete_thick_in)
+                                       concrete_thick_in, soil_k_in)
 
     # Create the Foundation:Kiva object for slab foundations
     foundation = OpenStudio::Model::FoundationKiva.new(model)
@@ -1244,14 +1244,15 @@ class Constructions
     foundation.setWallHeightAboveGrade(UnitConversions.convert(concrete_thick_in, 'in', 'm'))
     foundation.setWallDepthBelowSlab(UnitConversions.convert(8.0, 'in', 'm'))
 
-    apply_kiva_settings(model)
+    apply_kiva_settings(model, soil_k_in)
 
     return foundation
   end
 
   def self.apply_kiva_walled_foundation(model, ext_vert_r, int_vert_r,
                                         ext_vert_offset, int_vert_offset, ext_vert_depth, int_vert_depth,
-                                        wall_height_above_grade, wall_material_thick_in, wall_mat_int_finish)
+                                        wall_height_above_grade, wall_material_thick_in, wall_mat_int_finish,
+                                        soil_k_in)
 
     # Create the Foundation:Kiva object for crawl/basement foundations
     foundation = OpenStudio::Model::FoundationKiva.new(model)
@@ -1263,6 +1264,17 @@ class Constructions
                                 UnitConversions.convert(int_vert_depth, 'ft', 'm'),
                                 -int_vert_mat.thickness,
                                 UnitConversions.convert(int_vert_offset, 'ft', 'm'))
+      if int_vert_offset > 0
+        # Workaround for high Kiva foundation heat transfer when insulation does not start from top of wall.
+        # See https://github.com/NREL/OpenStudio-HPXML/issues/1151
+        # May be able to remove this additional custom block when EnergyPlus is fixed.
+        int_concrete_thickness_in = UnitConversions.convert(int_vert_mat.thickness, 'm', 'in') * 1.001 # Needed due to Kiva floating point issue?
+        int_concrete_mat = create_concrete_material(model, 'interior vertical conc', int_concrete_thickness_in)
+        foundation.addCustomBlock(int_concrete_mat,
+                                  UnitConversions.convert(int_vert_offset, 'ft', 'm'),
+                                  -int_concrete_mat.thickness,
+                                  0.0)
+      end
     end
 
     # Exterior vertical insulation
@@ -1278,14 +1290,14 @@ class Constructions
     foundation.setWallHeightAboveGrade(UnitConversions.convert(wall_height_above_grade, 'ft', 'm'))
     foundation.setWallDepthBelowSlab(UnitConversions.convert(8.0, 'in', 'm'))
 
-    apply_kiva_settings(model)
+    apply_kiva_settings(model, soil_k_in)
 
     return foundation
   end
 
-  def self.apply_kiva_settings(model)
+  def self.apply_kiva_settings(model, soil_k_in)
     # Set the Foundation:Kiva:Settings object
-    soil_mat = BaseMaterial.Soil
+    soil_mat = BaseMaterial.Soil(soil_k_in)
     settings = model.getFoundationKivaSettings
     settings.setSoilConductivity(UnitConversions.convert(soil_mat.k_in, 'Btu*in/(hr*ft^2*R)', 'W/(m*K)'))
     settings.setSoilDensity(UnitConversions.convert(soil_mat.rho, 'lbm/ft^3', 'kg/m^3'))
@@ -1304,6 +1316,108 @@ class Constructions
     settings.setSimulationTimestep('Timestep')
   end
 
+  def self.apply_kiva_initial_temp(foundation, slab, weather, conditioned_zone,
+                                   sim_begin_month, sim_begin_day, sim_year,
+                                   foundation_walls_insulated, foundation_ceiling_insulated)
+    # Set Kiva foundation initial temperature
+
+    outdoor_temp = weather.data.MonthlyAvgDrybulbs[sim_begin_month - 1]
+
+    # Approximate indoor temperature
+    if conditioned_zone.thermostatSetpointDualSetpoint.is_initialized
+      # Building has HVAC system
+      setpoint_sch = conditioned_zone.thermostatSetpointDualSetpoint.get
+      sim_begin_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(sim_begin_month), sim_begin_day, sim_year)
+
+      # Get heating/cooling setpoints for the simulation start
+      htg_setpoint_sch = setpoint_sch.heatingSetpointTemperatureSchedule.get
+      if htg_setpoint_sch.to_ScheduleRuleset.is_initialized
+        htg_day_sch = htg_setpoint_sch.to_ScheduleRuleset.get.getDaySchedules(sim_begin_date, sim_begin_date)[0]
+        heat_setpoint = UnitConversions.convert(htg_day_sch.values[0], 'C', 'F')
+      else
+        heat_setpoint = 78.0 # F, from ASHRAE 152 (avoids runtime impact from processing ScheduleFile CSV)
+      end
+      clg_setpoint_sch = setpoint_sch.coolingSetpointTemperatureSchedule.get
+      if clg_setpoint_sch.to_ScheduleRuleset.is_initialized
+        clg_day_sch = clg_setpoint_sch.to_ScheduleRuleset.get.getDaySchedules(sim_begin_date, sim_begin_date)[0]
+        cool_setpoint = UnitConversions.convert(clg_day_sch.values[0], 'C', 'F')
+      else
+        cool_setpoint = 68.0 # F, from ASHRAE 152 (avoids runtime impact from processing ScheduleFile CSV)
+      end
+
+      # Methodology adapted from https://github.com/NREL/EnergyPlus/blob/b18a2733c3131db808feac44bc278a14b05d8e1f/src/EnergyPlus/HeatBalanceKivaManager.cc#L303-L313
+      heat_balance_temp = UnitConversions.convert(10.0, 'C', 'F')
+      cool_balance_temp = UnitConversions.convert(15.0, 'C', 'F')
+      if outdoor_temp < heat_balance_temp
+        indoor_temp = heat_setpoint
+      elsif outdoor_temp > cool_balance_temp
+        indoor_temp = cool_setpoint
+      elsif cool_balance_temp == heat_balance_temp
+        indoor_temp = heat_balance_temp
+      else
+        weight = (cool_balance_temp - outdoor_temp) / (cool_balance_temp - heat_balance_temp)
+        indoor_temp = heat_setpoint * weight + cool_setpoint * (1.0 - weight)
+      end
+    else
+      # Building does not have HVAC system
+      indoor_temp = outdoor_temp
+    end
+
+    # Determine initial temperature
+    # For unconditioned spaces, this overrides EnergyPlus's built-in assumption of 22C (71.6F);
+    #   see https://github.com/NREL/EnergyPlus/blob/b18a2733c3131db808feac44bc278a14b05d8e1f/src/EnergyPlus/HeatBalanceKivaManager.cc#L257-L259
+    # For conditioned spaces, this avoids an E+ 22.2 bug; see https://github.com/NREL/EnergyPlus/issues/9692
+    if HPXML::conditioned_locations.include? slab.interior_adjacent_to
+      initial_temp = indoor_temp
+    else
+      # Space temperature assumptions from ASHRAE 152 - Duct Efficiency Calculations.xls, Zone temperatures
+      ground_temp = weather.data.GroundMonthlyTemps[sim_begin_month - 1]
+      if slab.interior_adjacent_to == HPXML::LocationBasementUnconditioned
+        if foundation_ceiling_insulated
+          # Insulated ceiling: 75% ground, 25% outdoor, 0% indoor
+          ground_weight, outdoor_weight, indoor_weight = 0.75, 0.25, 0.0
+        elsif foundation_walls_insulated
+          # Insulated walls: 50% ground, 0% outdoor, 50% indoor (case not in ASHRAE 152)
+          ground_weight, outdoor_weight, indoor_weight = 0.5, 0.0, 0.5
+        else
+          # Uninsulated: 50% ground, 20% outdoor, 30% indoor
+          ground_weight, outdoor_weight, indoor_weight = 0.5, 0.2, 0.3
+        end
+        initial_temp = outdoor_temp * outdoor_weight + ground_temp * ground_weight + indoor_weight * indoor_temp
+      elsif slab.interior_adjacent_to == HPXML::LocationCrawlspaceVented
+        if foundation_ceiling_insulated
+          # Insulated ceiling: 90% outdoor, 10% indoor
+          outdoor_weight, indoor_weight = 0.9, 0.1
+        elsif foundation_walls_insulated
+          # Insulated walls: 25% outdoor, 75% indoor (case not in ASHRAE 152)
+          outdoor_weight, indoor_weight = 0.25, 0.75
+        else
+          # Uninsulated: 50% outdoor, 50% indoor
+          outdoor_weight, indoor_weight = 0.5, 0.5
+        end
+        initial_temp = outdoor_temp * outdoor_weight + indoor_weight * indoor_temp
+      elsif slab.interior_adjacent_to == HPXML::LocationCrawlspaceUnvented
+        if foundation_ceiling_insulated
+          # Insulated ceiling: 85% outdoor, 15% indoor
+          outdoor_weight, indoor_weight = 0.85, 0.15
+        elsif foundation_walls_insulated
+          # Insulated walls: 25% outdoor, 75% indoor
+          outdoor_weight, indoor_weight = 0.25, 0.75
+        else
+          # Uninsulated: 40% outdoor, 60% indoor
+          outdoor_weight, indoor_weight = 0.4, 0.6
+        end
+        initial_temp = outdoor_temp * outdoor_weight + indoor_weight * indoor_temp
+      elsif slab.interior_adjacent_to == HPXML::LocationGarage
+        initial_temp = outdoor_temp + 11.0
+      else
+        fail "Unhandled space: #{slab.interior_adjacent_to}"
+      end
+    end
+
+    foundation.setInitialIndoorAirTemperature(UnitConversions.convert(initial_temp, 'F', 'C'))
+  end
+
   def self.create_insulation_material(model, name, rvalue)
     rigid_mat = BaseMaterial.InsulationRigid
     mat = OpenStudio::Model::StandardOpaqueMaterial.new(model)
@@ -1316,8 +1430,8 @@ class Constructions
     return mat
   end
 
-  def self.create_footing_material(model, name)
-    footing_mat = Material.Concrete(8.0)
+  def self.create_concrete_material(model, name, thickness_in)
+    footing_mat = Material.Concrete(thickness_in)
     mat = OpenStudio::Model::StandardOpaqueMaterial.new(model)
     mat.setName(name)
     mat.setRoughness('Rough')
@@ -1578,7 +1692,7 @@ class Constructions
         base_mat = BaseMaterial.Brick
       elsif wall_type == HPXML::WallTypeAdobe
         thick_in = 10.0
-        base_mat = BaseMaterial.Soil
+        base_mat = BaseMaterial.Soil(12.0)
       elsif wall_type == HPXML::WallTypeStrawBale
         thick_in = 23.0
         base_mat = BaseMaterial.StrawBale
