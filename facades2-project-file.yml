@@ -123,6 +123,14 @@ upgrades:
           - value: 3.30
             multiplier: Wall Area, Above-Grade, Exterior (ft^2)
         lifetime: 30
+      - &wallwork_infiltration_reduction
+        option: Infiltration Reduction|19%
+        apply_logic:
+          or: *upgradable_walls
+        costs: &no_cost
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
   - upgrade_name: Minimum windows
     #Up02
     options:
@@ -143,7 +151,12 @@ upgrades:
               - CEC Climate Zone|13
               - CEC Climate Zone|14
               - CEC Climate Zone|15
-            - or: &U030S023_applicable_windows
+            - or: &upgradable_windows
+                - Windows|Single, Clear, Non-metal
+                - Windows|Single, Clear, Metal
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+                - Windows|Double, Clear, Metal, Air
         costs: &U030_costs
           - value: 36.3
             multiplier: Window Area (ft^2)
@@ -162,7 +175,7 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|3A
                   - ASHRAE IECC Climate Zone 2004|3B
                   - ASHRAE IECC Climate Zone 2004|3C
-            - or: &U030S025_applicable_windows
+            - or: *upgradable_windows
         costs: *U030_costs
         lifetime: 30
       - &codewindows_U030S030
@@ -225,7 +238,7 @@ upgrades:
                 - CEC Climate Zone|3
                 - CEC Climate Zone|5
                 - CEC Climate Zone|16
-            - or: &U030S030_applicable_windows
+            - or:  *upgradable_windows
         costs: *U030_costs
         lifetime: 30
       - &codewindows_U030S040
@@ -242,7 +255,7 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|5A 
                   - ASHRAE IECC Climate Zone 2004|5B 
               - State|DC 
-            - or: &U030S040_applicable_windows
+            - or:  *upgradable_windows
         costs: *U030_costs
         lifetime: 30
       - &codewindows_U032S025
@@ -256,7 +269,7 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|3A 
                   - ASHRAE IECC Climate Zone 2004|3B 
                   - ASHRAE IECC Climate Zone 2004|3C
-            - or: &U032S025_applicable_windows
+            - or:  *upgradable_windows
         costs: &U032_costs
           - value: 35.5
             multiplier: Window Area (ft^2)
@@ -302,7 +315,7 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|5A
                   - ASHRAE IECC Climate Zone 2004|5B
               - State|MI
-            - or: &U032S030_applicable_windows
+            - or: *upgradable_windows
         costs: *U032_costs
         lifetime: 30
       - &codewindows_U032S040
@@ -315,7 +328,7 @@ upgrades:
                 - or:
                   - ASHRAE IECC Climate Zone 2004|4A 
                   - ASHRAE IECC Climate Zone 2004|4B
-            - or: &U032S040_applicable_windows
+            - or:  *upgradable_windows
         costs: *U032_costs
         lifetime: 30
       - &codewindows_U035S025
@@ -334,7 +347,7 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|3A 
                   - ASHRAE IECC Climate Zone 2004|3B 
                   - ASHRAE IECC Climate Zone 2004|3C
-            - or: &U035S025_applicable_windows
+            - or: *upgradable_windows
         costs: &U035_costs
           - value: 31.50
             multiplier: Window Area (ft^2)
@@ -389,7 +402,7 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|3A 
                   - ASHRAE IECC Climate Zone 2004|4A
                   - ASHRAE IECC Climate Zone 2004|5A
-            - or: &U035S030_applicable_windows
+            - or: *upgradable_windows
         costs: *U035_costs
         lifetime: 30
       - &codewindows_U035S040
@@ -407,7 +420,7 @@ upgrades:
                 - or:
                   - ASHRAE IECC Climate Zone 2004|4A 
                   - ASHRAE IECC Climate Zone 2004|4B
-            - or: &U035S040_applicable_windows
+            - or: *upgradable_windows
         costs: *U035_costs
         lifetime: 30
       - &codewindows_U038S030
@@ -416,7 +429,7 @@ upgrades:
           - and:
             - or: &U038S030_code_and_cz
               - State|OK
-            - or: &U038S030_applicable_windows
+            - or: *upgradable_windows
         costs: &U038_costs
           - value: 29.45
             multiplier: Window Area (ft^2)
@@ -435,7 +448,7 @@ upgrades:
                 - or:
                   - ASHRAE IECC Climate Zone 2004|2A 
                   - ASHRAE IECC Climate Zone 2004|2B
-            - or: &U040S025_applicable_windows
+            - or: *upgradable_windows
         costs: &U040_costs
           - value: 27.40
             multiplier: Window Area (ft^2)
@@ -450,7 +463,7 @@ upgrades:
                 - or:
                   - ASHRAE IECC Climate Zone 2004|4A 
                   - ASHRAE IECC Climate Zone 2004|4B
-            - or: &U040S030_applicable_windows
+            - or: *upgradable_windows
         costs: *U040_costs
         lifetime: 30
       - &codewindows_U050S025
@@ -462,7 +475,7 @@ upgrades:
                 - or: *IECC2021states
                 - or:
                   - ASHRAE IECC Climate Zone 2004|1A
-            - or: &U050S025_applicable_windows
+            - or: *upgradable_windows
         costs: &U050_costs
           - value: 26.60
             multiplier: Window Area (ft^2)
@@ -478,7 +491,7 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|3A 
                   - ASHRAE IECC Climate Zone 2004|3B
                   - ASHRAE IECC Climate Zone 2004|3C 
-            - or: &U050S030_applicable_windows
+            - or: *upgradable_windows
         costs: *U050_costs
         lifetime: 30
       - &codewindows_U065S025
@@ -492,7 +505,7 @@ upgrades:
                   - or: *IECC2015states
                   - or: *IECC2018states
                 - ASHRAE IECC Climate Zone 2004|1A 
-            - or: &U065S025_applicable_windows
+            - or: *upgradable_windows
         costs: &U065_costs
           - value: 26.60
             multiplier: Window Area (ft^2)
@@ -507,7 +520,7 @@ upgrades:
                 - or:
                   - ASHRAE IECC Climate Zone 2004|2A 
                   - ASHRAE IECC Climate Zone 2004|2B
-            - or: &U065S030_applicable_windows
+            - or: *upgradable_windows
         costs: *U065_costs
         lifetime: 30
       - &codewindows_U065S040
@@ -521,7 +534,7 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|3A 
                   - ASHRAE IECC Climate Zone 2004|3B
                   - ASHRAE IECC Climate Zone 2004|3C 
-            - or: &U065S040_applicable_windows
+            - or: *upgradable_windows
         costs: *U065_costs
         lifetime: 30
       - &codewindows_U075S040
@@ -534,7 +547,7 @@ upgrades:
                 - or:
                   - ASHRAE IECC Climate Zone 2004|2A 
                   - ASHRAE IECC Climate Zone 2004|2B
-            - or: &U075S040_applicable_windows
+            - or: *upgradable_windows
         costs: &U075_costs
           - value: 26.60
             multiplier: Window Area (ft^2)
@@ -548,7 +561,7 @@ upgrades:
                 - or: *IECC2009states
                 - or:
                   - ASHRAE IECC Climate Zone 2004|1A 
-            - or: &U120S030_applicable_windows
+            - or: *upgradable_windows
         costs: &U120_costs
           - value: 26.60
             multiplier: Window Area (ft^2)
@@ -562,7 +575,7 @@ upgrades:
                 - or: *nostatecode
                 - or:
                   - ASHRAE IECC Climate Zone 2004|1A
-            - or: &U120S040_applicable_windows
+            - or: *upgradable_windows
         costs: *U120_costs
         lifetime: 30
   # - upgrade_name: Residing and minimum windows
@@ -591,14 +604,7 @@ upgrades:
             multiplier: Wall Area, Above-Grade, Exterior (ft^2)
         lifetime: 30
       #19% ACH50 reductions are for 1" or 2" polyiso without window upgrade
-      - &polyiso_infiltration_reduction
-        option: Infiltration Reduction|19%
-        apply_logic:
-          or: *upgradable_walls
-        costs: &no_cost
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 30
+      - *wallwork_infiltration_reduction
       - *siding_upgrade_to_fibercement
       - *siding_upgrade_to_stucco
       - *siding_upgrade_to_vinyl
@@ -613,7 +619,7 @@ upgrades:
           - value: 1.9
             multiplier: Wall Area, Above-Grade, Exterior (ft^2)
         lifetime: 30
-      - *polyiso_infiltration_reduction
+      - *wallwork_infiltration_reduction
       - *siding_upgrade_to_fibercement
       - *siding_upgrade_to_stucco
       - *siding_upgrade_to_vinyl
