@@ -578,6 +578,25 @@ upgrades:
             - or: *upgradable_windows
         costs: *U120_costs
         lifetime: 30
+      #15% ACH50 reduction for replacing double pane
+      - &code_replaces_double_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          - or: &double_pane_metal_windows
+              - Windows|Double, Clear, Metal, Air
+        costs: *no_cost
+        lifetime: 30
+      #30% ACH50 reduction for replacing single pane
+      - &code_replaces_single_infiltration_reduction 
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - or: &single_pane_windows
+            - Windows|Single, Clear, Non-metal
+            - Windows|Single, Clear, Metal
+            - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
+            - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
   # - upgrade_name: Residing and minimum windows
   #   #Up03
   - upgrade_name: 1" polyiso exterior insulation + re-siding
@@ -679,12 +698,7 @@ upgrades:
         option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
         apply_logic:
           and:
-            - or: &upgradable_windows
-                - Windows|Single, Clear, Non-metal
-                - Windows|Single, Clear, Metal
-                - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
-                - Windows|Single, Clear, Metal, Exterior Clear Storm
-                - Windows|Double, Clear, Metal, Air
+            - or: *upgradable_windows
         costs:
           - value: 46
             multiplier: Window Area (ft^2)
@@ -693,19 +707,14 @@ upgrades:
       - &triple_replaces_double_infiltration_reduction
         option: Infiltration Reduction|15%
         apply_logic:
-          - or: &double_pane_metal_windows
-              - Windows|Double, Clear, Metal, Air
+          - or: *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
       #30% ACH50 reduction for replacing single pane with triple pane
       - &triple_replaces_single_infiltration_reduction 
         option: Infiltration Reduction|30%
         apply_logic:
-          - or: &single_pane_windows
-            - Windows|Single, Clear, Non-metal
-            - Windows|Single, Clear, Metal
-            - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
-            - Windows|Single, Clear, Metal, Exterior Clear Storm
+          - or: *single_pane_windows
         costs: *no_cost
         lifetime: 30
   - upgrade_name: P1 Exterior low-E storm windows + 1" polyiso + re-siding
