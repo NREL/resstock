@@ -12,7 +12,7 @@ baseline:
 sampler: 
   type: residential_quota
   args: 
-    n_datapoints: 3
+    n_datapoints: 20
 
 workflow_generator: 
   type: residential_hpxml
@@ -88,7 +88,6 @@ workflow_generator:
 
 upgrades:
   - upgrade_name: High-efficiency heat pumps with electric backup, ACCA 
-    #up01
     options:
       #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
       - &higheff_ducted_HP_all_fuel
@@ -162,7 +161,6 @@ upgrades:
           - value: 46
             multiplier: Window Area (ft^2)
         lifetime: 30
-      #15% ACH50 reduction for replacing double with triple pane
       - &triple_window_l_gain
         option: Windows|Triple, Low-E, Insulated, Argon, L-Gain
         apply_logic:
@@ -183,7 +181,9 @@ upgrades:
         apply_logic:
           - or: &double_pane_metal_windows
               - Windows|Double, Clear, Metal, Air
-        costs: *no_cost
+        costs: &no_cost
+          - value: 0
+            multiplier: Fixed (1)
         lifetime: 30
       #30% ACH50 reduction for replacing single pane with triple pane
       - &triple_replaces_single_infiltration_reduction 
@@ -216,7 +216,6 @@ upgrades:
           - value: 46
             multiplier: Window Area (ft^2)
         lifetime: 30
-      #15% ACH50 reduction for replacing double with triple pane
       - &triple_window_l_gain
         option: Windows|Triple, Low-E, Insulated, Argon, L-Gain
         apply_logic:
@@ -303,7 +302,6 @@ upgrades:
             - *nonducted_higheff_HP_all_fuel_apply_logic
 
   - upgrade_name: High-efficiency heat pumps with electric backup, Max Load 
-    #up01
     options:
       #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
       - &higheff_ducted_HP_all_fuel
