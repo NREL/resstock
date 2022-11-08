@@ -694,16 +694,57 @@ upgrades:
   - upgrade_name: Triple pane windows
     #Up07
     options:
-      - &triple_window
+      - &triple_hgain_window
         option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
         apply_logic:
           and:
+            - or:
+              - *U030S040_code_and_cz
+              - *U032S040_code_and_cz
+              - *U035S040_code_and_cz
+              - *U065S040_code_and_cz
+              - *U075S040_code_and_cz
+              - *U120S040_code_and_cz
             - or: *upgradable_windows
         costs:
           - value: 46
             multiplier: Window Area (ft^2)
         lifetime: 30
-      #15% ACH50 reduction for replacing double pane with triple pane
+      - &triple_lgain_window
+        option: Windows|Triple, Low-E, Insulated, Argon, L-Gain
+        apply_logic:
+          and:
+            - or:
+              - *U030S030_code_and_cz
+              - *U032S030_code_and_cz
+              - *U035S030_code_and_cz
+              - *U038S030_code_and_cz
+              - *U040S030_code_and_cz
+              - *U050S030_code_and_cz
+              - *U065S030_code_and_cz
+              - *U120S030_code_and_cz
+            - or: *upgradable_windows
+        costs:
+          - value: 46
+            multiplier: Window Area (ft^2)
+        lifetime: 30      
+      - &triple_vlgain_window
+        option: Windows|Triple, Low-E, Insulated, Argon, VL-Gain
+        apply_logic:
+          and:
+            - or:
+              - *U030S023_code_and_cz
+              - *U030S025_code_and_cz
+              - *U032S025_code_and_cz
+              - *U040S025_code_and_cz
+              - *U050S025_code_and_cz
+              - *U065S025_code_and_cz
+            - or: *upgradable_windows
+        costs:
+          - value: 46
+            multiplier: Window Area (ft^2)
+        lifetime: 30      
+        #15% ACH50 reduction for replacing double pane with triple pane
       - &triple_replaces_double_infiltration_reduction
         option: Infiltration Reduction|15%
         apply_logic:
@@ -779,7 +820,9 @@ upgrades:
     #Up09
     options:
       - *polyiso_1inch
-      - *triple_window
+      - *triple_hgain_window
+      - *triple_lgain_window
+      - *triple_vlgain_window
       - *polyiso_package_infiltration_reduction
       - &triple_replaces_single_package_infiltration_reduction
         option: Infiltration Reduction|30%
@@ -826,7 +869,9 @@ upgrades:
     #Up11
     options:
       - *polyiso_2inch
-      - *triple_window
+      - *triple_hgain_window
+      - *triple_lgain_window
+      - *triple_vlgain_window
       - *polyiso_package_infiltration_reduction
       - *triple_replaces_single_package_infiltration_reduction
       - *triple_replaces_double_package_infiltration_reduction
