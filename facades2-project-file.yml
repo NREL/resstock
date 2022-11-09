@@ -1,13 +1,13 @@
 schema_version: '0.3'
 buildstock_directory: .
 project_directory: project_national
-output_directory: /projects/resfacades/test100_20221028
+output_directory: /projects/resfacades/fullsample01
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 100
+    n_datapoints: 550000
     logic:
       - Vacancy Status|Occupied
       - Geometry Building Type RECS|Single-Family Detached
@@ -126,7 +126,19 @@ upgrades:
       - &wallwork_infiltration_reduction
         option: Infiltration Reduction|19%
         apply_logic:
-          or: *upgradable_walls
+          - or: &upgradable_walls
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-15
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
         costs: &no_cost
           - value: 0
             multiplier: Fixed (1)
@@ -202,7 +214,6 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|4C 
                   - ASHRAE IECC Climate Zone 2004|5A
                   - ASHRAE IECC Climate Zone 2004|5B
-                  - ASHRAE IECC Climate Zone 2004|5C
                   - ASHRAE IECC Climate Zone 2004|6A
                   - ASHRAE IECC Climate Zone 2004|6B
                   - ASHRAE IECC Climate Zone 2004|7A
@@ -286,7 +297,6 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|4C 
                   - ASHRAE IECC Climate Zone 2004|5A
                   - ASHRAE IECC Climate Zone 2004|5B
-                  - ASHRAE IECC Climate Zone 2004|5C
                   - ASHRAE IECC Climate Zone 2004|6A
                   - ASHRAE IECC Climate Zone 2004|6B
                   - ASHRAE IECC Climate Zone 2004|7A
@@ -304,7 +314,6 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|4C 
                   - ASHRAE IECC Climate Zone 2004|5A
                   - ASHRAE IECC Climate Zone 2004|5B
-                  - ASHRAE IECC Climate Zone 2004|5C
                   - ASHRAE IECC Climate Zone 2004|6A
                   - ASHRAE IECC Climate Zone 2004|6B
                   - ASHRAE IECC Climate Zone 2004|7A
@@ -344,9 +353,6 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|3C 
               - and:
                 - or: *IECC2015states
-                  - ASHRAE IECC Climate Zone 2004|3A 
-                  - ASHRAE IECC Climate Zone 2004|3B 
-                  - ASHRAE IECC Climate Zone 2004|3C
             - or: *upgradable_windows
         costs: &U035_costs
           - value: 31.50
@@ -371,7 +377,6 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|4C 
                   - ASHRAE IECC Climate Zone 2004|5A
                   - ASHRAE IECC Climate Zone 2004|5B
-                  - ASHRAE IECC Climate Zone 2004|5C
                   - ASHRAE IECC Climate Zone 2004|6A
                   - ASHRAE IECC Climate Zone 2004|6B
                   - ASHRAE IECC Climate Zone 2004|7A
@@ -391,7 +396,6 @@ upgrades:
                   - ASHRAE IECC Climate Zone 2004|4C 
                   - ASHRAE IECC Climate Zone 2004|5A
                   - ASHRAE IECC Climate Zone 2004|5B
-                  - ASHRAE IECC Climate Zone 2004|5C
                   - ASHRAE IECC Climate Zone 2004|6A
                   - ASHRAE IECC Climate Zone 2004|6B
                   - ASHRAE IECC Climate Zone 2004|7A
@@ -459,7 +463,7 @@ upgrades:
           - and:
             - or: &U040S030_code_and_cz
               - and:
-                - *nostatecode
+                - or: *nostatecode
                 - or:
                   - ASHRAE IECC Climate Zone 2004|4A 
                   - ASHRAE IECC Climate Zone 2004|4B
@@ -605,19 +609,7 @@ upgrades:
       - &polyiso_1inch
         option: Insulation Sheathing|R-6.5
         apply_logic:
-          - or: &upgradable_walls
-            - Insulation Wall|Wood Stud, Uninsulated
-            - Insulation Wall|Wood Stud, R-7
-            - Insulation Wall|Wood Stud, R-11
-            - Insulation Wall|Wood Stud, R-15
-            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
-            - Insulation Wall|CMU, 6-in Hollow, R-7
-            - Insulation Wall|CMU, 6-in Hollow, R-11
-            - Insulation Wall|CMU, 6-in Hollow, R-15
-            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
-            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
-            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
-            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+          - or: *upgradable_walls
         costs: &polyiso_1inch_costs
           - value: 1.4
             multiplier: Wall Area, Above-Grade, Exterior (ft^2)
@@ -699,12 +691,12 @@ upgrades:
         apply_logic:
           and:
             - or:
-              - *U030S040_code_and_cz
-              - *U032S040_code_and_cz
-              - *U035S040_code_and_cz
-              - *U065S040_code_and_cz
-              - *U075S040_code_and_cz
-              - *U120S040_code_and_cz
+              - or: *U030S040_code_and_cz
+              - or: *U032S040_code_and_cz
+              - or: *U035S040_code_and_cz
+              - or: *U065S040_code_and_cz
+              - or: *U075S040_code_and_cz
+              - or: *U120S040_code_and_cz
             - or: *upgradable_windows
         costs:
           - value: 46
@@ -715,14 +707,14 @@ upgrades:
         apply_logic:
           and:
             - or:
-              - *U030S030_code_and_cz
-              - *U032S030_code_and_cz
-              - *U035S030_code_and_cz
-              - *U038S030_code_and_cz
-              - *U040S030_code_and_cz
-              - *U050S030_code_and_cz
-              - *U065S030_code_and_cz
-              - *U120S030_code_and_cz
+              - or: *U030S030_code_and_cz
+              - or: *U032S030_code_and_cz
+              - or: *U035S030_code_and_cz
+              - or: *U038S030_code_and_cz
+              - or: *U040S030_code_and_cz
+              - or: *U050S030_code_and_cz
+              - or: *U065S030_code_and_cz
+              - or: *U120S030_code_and_cz
             - or: *upgradable_windows
         costs:
           - value: 46
@@ -733,12 +725,12 @@ upgrades:
         apply_logic:
           and:
             - or:
-              - *U030S023_code_and_cz
-              - *U030S025_code_and_cz
-              - *U032S025_code_and_cz
-              - *U040S025_code_and_cz
-              - *U050S025_code_and_cz
-              - *U065S025_code_and_cz
+              - or: *U030S023_code_and_cz
+              - or: *U030S025_code_and_cz
+              - or: *U032S025_code_and_cz
+              - or: *U040S025_code_and_cz
+              - or: *U050S025_code_and_cz
+              - or: *U065S025_code_and_cz
             - or: *upgradable_windows
         costs:
           - value: 46
