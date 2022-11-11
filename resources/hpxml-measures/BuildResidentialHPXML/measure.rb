@@ -7,33 +7,14 @@ require 'openstudio'
 require 'pathname'
 require 'csv'
 require 'oga'
-require_relative 'resources/geometry'
-require_relative '../HPXMLtoOpenStudio/resources/airflow'
-require_relative '../HPXMLtoOpenStudio/resources/battery'
-require_relative '../HPXMLtoOpenStudio/resources/constants'
-require_relative '../HPXMLtoOpenStudio/resources/constructions'
-require_relative '../HPXMLtoOpenStudio/resources/geometry'
-require_relative '../HPXMLtoOpenStudio/resources/hotwater_appliances'
-require_relative '../HPXMLtoOpenStudio/resources/hpxml_defaults'
-require_relative '../HPXMLtoOpenStudio/resources/hpxml'
-require_relative '../HPXMLtoOpenStudio/resources/hvac'
-require_relative '../HPXMLtoOpenStudio/resources/hvac_sizing'
-require_relative '../HPXMLtoOpenStudio/resources/lighting'
-require_relative '../HPXMLtoOpenStudio/resources/location'
-require_relative '../HPXMLtoOpenStudio/resources/materials'
-require_relative '../HPXMLtoOpenStudio/resources/misc_loads'
-require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
-require_relative '../HPXMLtoOpenStudio/resources/psychrometrics'
-require_relative '../HPXMLtoOpenStudio/resources/pv'
-require_relative '../HPXMLtoOpenStudio/resources/schedules'
-require_relative '../HPXMLtoOpenStudio/resources/unit_conversions'
-require_relative '../HPXMLtoOpenStudio/resources/util'
-require_relative '../HPXMLtoOpenStudio/resources/utility_bills'
-require_relative '../HPXMLtoOpenStudio/resources/validator'
-require_relative '../HPXMLtoOpenStudio/resources/version'
-require_relative '../HPXMLtoOpenStudio/resources/waterheater'
-require_relative '../HPXMLtoOpenStudio/resources/weather'
-require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
+Dir["#{File.dirname(__FILE__)}/resources/*.rb"].each do |resource_file|
+  require resource_file
+end
+Dir["#{File.dirname(__FILE__)}/../HPXMLtoOpenStudio/resources/*.rb"].each do |resource_file|
+  next if resource_file.include? 'minitest_helper.rb'
+
+  require resource_file
+end
 
 # start the measure
 class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
@@ -135,6 +116,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('site_shielding_of_home', site_shielding_of_home_choices, false)
     arg.setDisplayName('Site: Shielding of Home')
     arg.setDescription('Presence of nearby buildings, trees, obstructions for infiltration model. If not provided, the OS-HPXML default is used.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_ground_conductivity', false)
+    arg.setDisplayName('Site: Ground Conductivity')
+    arg.setDescription('Conductivity of the ground soil. If not provided, the OS-HPXML default is used.')
+    arg.setUnits('Btu/hr-ft-F')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('site_zip_code', false)
@@ -751,6 +738,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Windows: Fraction Operable')
     arg.setUnits('Frac')
     arg.setDescription('Fraction of windows that are operable. If not provided, the OS-HPXML default is used.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('window_natvent_availability', false)
+    arg.setDisplayName('Windows: Natural Ventilation Availability')
+    arg.setUnits('Days/week')
+    arg.setDescription('For operable windows, the number of days/week that windows can be opened by occupants for natural ventilation. If not provided, the OS-HPXML default is used.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_ufactor', true)
@@ -3433,6 +3426,9 @@ class HPXMLFile
     if args[:occupancy_calculation_type].is_initialized
       hpxml.header.occupancy_calculation_type = args[:occupancy_calculation_type].get
     end
+    if args[:window_natvent_availability].is_initialized
+      hpxml.header.natvent_days_per_week = args[:window_natvent_availability].get
+    end
     if args[:schedules_filepaths].is_initialized
       hpxml.header.schedules_filepaths = args[:schedules_filepaths].get.split(',').map(&:strip)
     end
@@ -3440,7 +3436,6 @@ class HPXMLFile
     if args[:software_info_program_used].is_initialized
       hpxml.header.software_program_used = args[:software_info_program_used].get
     end
-
     if args[:software_info_program_version].is_initialized
       hpxml.header.software_program_version = args[:software_info_program_version].get
     end
@@ -3728,7 +3723,11 @@ class HPXMLFile
 
   def self.set_site(hpxml, args)
     if args[:site_shielding_of_home].is_initialized
-      shielding_of_home = args[:site_shielding_of_home].get
+      hpxml.site.shielding_of_home = args[:site_shielding_of_home].get
+    end
+
+    if args[:site_ground_conductivity].is_initialized
+      hpxml.site.ground_conductivity = args[:site_ground_conductivity].get
     end
 
     if args[:site_type].is_initialized
@@ -3767,7 +3766,6 @@ class HPXMLFile
     end
 
     hpxml.site.azimuth_of_front_of_home = args[:geometry_unit_orientation]
-    hpxml.site.shielding_of_home = shielding_of_home
   end
 
   def self.set_neighbor_buildings(hpxml, args)
@@ -3835,8 +3833,8 @@ class HPXMLFile
     hpxml.climate_and_risk_zones.weather_station_id = 'WeatherStation'
 
     if args[:site_iecc_zone].is_initialized
-      hpxml.climate_and_risk_zones.iecc_zone = args[:site_iecc_zone].get
-      hpxml.climate_and_risk_zones.iecc_year = 2006
+      hpxml.climate_and_risk_zones.climate_zone_ieccs.add(zone: args[:site_iecc_zone].get,
+                                                          year: 2006)
     end
 
     weather_station_name = File.basename(args[:weather_station_epw_filepath]).gsub('.epw', '')
@@ -5011,6 +5009,7 @@ class HPXMLFile
 
           distribution_system_idref = hvac_distribution.id
         end
+        cfis_addtl_runtime_operating_mode = HPXML::CFISModeAirHandler
       end
 
       if args[:mech_vent_num_units_served] > 1
@@ -5043,6 +5042,7 @@ class HPXMLFile
 
       hpxml.ventilation_fans.add(id: "VentilationFan#{hpxml.ventilation_fans.size + 1}",
                                  fan_type: args[:mech_vent_fan_type],
+                                 cfis_addtl_runtime_operating_mode: cfis_addtl_runtime_operating_mode,
                                  rated_flow_rate: rated_flow_rate,
                                  hours_in_operation: hours_in_operation,
                                  used_for_whole_building_ventilation: true,
@@ -5233,7 +5233,8 @@ class HPXMLFile
     if [HPXML::WaterHeaterTypeCombiTankless, HPXML::WaterHeaterTypeCombiStorage].include? water_heater_type
       if args[:water_heater_standby_loss].is_initialized
         if args[:water_heater_standby_loss].get > 0
-          standby_loss = args[:water_heater_standby_loss].get
+          standby_loss_units = HPXML::UnitsDegFPerHour
+          standby_loss_value = args[:water_heater_standby_loss].get
         end
       end
     end
@@ -5296,7 +5297,8 @@ class HPXMLFile
                                     recovery_efficiency: recovery_efficiency,
                                     uses_desuperheater: uses_desuperheater,
                                     related_hvac_idref: related_hvac_idref,
-                                    standby_loss: standby_loss,
+                                    standby_loss_units: standby_loss_units,
+                                    standby_loss_value: standby_loss_value,
                                     jacket_r_value: jacket_r_value,
                                     temperature: temperature,
                                     heating_capacity: heating_capacity,

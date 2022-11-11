@@ -3,14 +3,34 @@
   <schema_version>3.0</schema_version>
   <name>upgrade_costs</name>
   <uid>ef51212c-acc4-48d7-9b29-cf2a5c6c4449</uid>
-  <version_id>8563ad85-03da-4290-874d-412993187788</version_id>
-  <version_modified>20220818T192129Z</version_modified>
+  <version_id>8c1d5760-86fe-4eb5-a930-db95fd658af0</version_id>
+  <version_modified>20221010T224131Z</version_modified>
   <xml_checksum>9BF1E6AC</xml_checksum>
   <class_name>UpgradeCosts</class_name>
   <display_name>Upgrade Costs</display_name>
   <description>Measure that calculates upgrade costs.</description>
   <modeler_description>Multiplies cost value by cost multiplier.</modeler_description>
-  <arguments />
+  <arguments>
+    <argument>
+      <name>debug</name>
+      <display_name>Debug Mode?</display_name>
+      <description>If true, retain existing and upgraded intermediate files.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
   <outputs />
   <provenances />
   <tags>
@@ -34,23 +54,6 @@
     </attribute>
   </attributes>
   <files>
-    <file>
-      <filename>upgrade_costs_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4EABC096</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>3.1.0</identifier>
-        <min_compatible>3.1.0</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>7CB40E44</checksum>
-    </file>
     <file>
       <filename>SFD_1story_FB_UA_GRG_RoomAC_ElecBoiler_FuelTanklessWH.osw</filename>
       <filetype>osw</filetype>
@@ -182,6 +185,23 @@
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
       <checksum>0FF62C85</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>3.1.0</identifier>
+        <min_compatible>3.1.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>79B35318</checksum>
+    </file>
+    <file>
+      <filename>upgrade_costs_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>56F4CB4A</checksum>
     </file>
   </files>
 </measure>

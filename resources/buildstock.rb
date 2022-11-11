@@ -216,7 +216,7 @@ def get_combination_hashes(tsvfiles, dependencies)
   depval_array = []
   dependencies.each do |dep|
     depval_array << tsvfiles[dep].option_cols.keys
-    depval_array[-1].delete("Void")  # Dependency will never have Void option
+    depval_array[-1].delete('Void') # Dependency will never have Void option
   end
 
   if depval_array.size == 0
@@ -470,6 +470,7 @@ class RunOSWs
       result_output = get_measure_results(rows, result_output, measure)
     end
     result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
+    result_output = get_measure_results(rows, result_output, 'ReportUtilityBills')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
     reporting_measures.each do |reporting_measure|
       result_output = get_measure_results(rows, result_output, reporting_measure)
@@ -533,7 +534,7 @@ end
 
 class Version
   ResStock_Version = '2.6.0-beta' # Version of ResStock
-  BuildStockBatch_Version = '0.22' # Minimum required version of BuildStockBatch
+  BuildStockBatch_Version = '2022.10.1' # Minimum required version of BuildStockBatch
 
   def self.check_buildstockbatch_version
     if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed

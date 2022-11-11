@@ -8,6 +8,7 @@ require 'csv'
 require_relative '../measure.rb'
 require_relative '../../HPXMLtoOpenStudio/resources/xmlhelper.rb'
 require_relative '../../HPXMLtoOpenStudio/resources/constants.rb'
+require_relative '../../HPXMLtoOpenStudio/resources/version.rb'
 require 'oga'
 
 class ReportSimulationOutputTest < MiniTest::Test
@@ -175,6 +176,38 @@ class ReportSimulationOutputTest < MiniTest::Test
     'Hot Water: Dishwasher (gal)',
     'Hot Water: Fixtures (gal)',
     'Hot Water: Distribution Waste (gal)',
+    'HVAC Capacity: Cooling (Btu/h)',
+    'HVAC Capacity: Heating (Btu/h)',
+    'HVAC Capacity: Heat Pump Backup (Btu/h)',
+    'HVAC Design Temperature: Heating (F)',
+    'HVAC Design Temperature: Cooling (F)',
+    'HVAC Design Load: Heating: Total (Btu/h)',
+    'HVAC Design Load: Heating: Ducts (Btu/h)',
+    'HVAC Design Load: Heating: Windows (Btu/h)',
+    'HVAC Design Load: Heating: Skylights (Btu/h)',
+    'HVAC Design Load: Heating: Doors (Btu/h)',
+    'HVAC Design Load: Heating: Walls (Btu/h)',
+    'HVAC Design Load: Heating: Roofs (Btu/h)',
+    'HVAC Design Load: Heating: Floors (Btu/h)',
+    'HVAC Design Load: Heating: Slabs (Btu/h)',
+    'HVAC Design Load: Heating: Ceilings (Btu/h)',
+    'HVAC Design Load: Heating: Infiltration/Ventilation (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Total (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Ducts (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Windows (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Skylights (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Doors (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Walls (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Roofs (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Floors (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Slabs (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Ceilings (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Infiltration/Ventilation (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Internal Gains (Btu/h)',
+    'HVAC Design Load: Cooling Latent: Total (Btu/h)',
+    'HVAC Design Load: Cooling Latent: Ducts (Btu/h)',
+    'HVAC Design Load: Cooling Latent: Infiltration/Ventilation (Btu/h)',
+    'HVAC Design Load: Cooling Latent: Internal Gains (Btu/h)'
   ]
 
   BaseHPXMLTimeseriesColsEnergy = [
@@ -426,9 +459,9 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
     expected_annual_rows = AnnualRows
-    actual_annual_rows = File.readlines(annual_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
-    assert_equal(expected_annual_rows.sort, actual_annual_rows.sort)
-    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), expected_annual_rows)
+    actual_annual_rows = _get_actual_annual_rows(annual_csv)
+    assert_equal(expected_annual_rows.sort, actual_annual_rows.keys.sort)
+    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), actual_annual_rows)
   end
 
   def test_annual_only2
@@ -452,9 +485,9 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
     expected_annual_rows = AnnualRows + emission_annual_cols
-    actual_annual_rows = File.readlines(annual_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
-    assert_equal(expected_annual_rows.sort, actual_annual_rows.sort)
-    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), expected_annual_rows)
+    actual_annual_rows = _get_actual_annual_rows(annual_csv)
+    assert_equal(expected_annual_rows.sort, actual_annual_rows.keys.sort)
+    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), actual_annual_rows)
   end
 
   def test_timeseries_hourly_total_energy
@@ -987,54 +1020,26 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
   end
 
-  def test_timeseries_hourly_runperiod_Jan
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
-                  'timeseries_frequency' => 'hourly',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(31 * 24, timeseries_rows.size - 2)
-    timeseries_cols = timeseries_rows.transpose
-    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-  end
+  def test_timeseries_hourly_runperiod_1month
+    expected_values = { 'timestep' => 28 * 24,
+                        'hourly' => 28 * 24,
+                        'daily' => 28,
+                        'monthly' => 1 }
 
-  def test_timeseries_daily_runperiod_Jan
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
-                  'timeseries_frequency' => 'daily',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(31, timeseries_rows.size - 2)
-    timeseries_cols = timeseries_rows.transpose
-    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-  end
-
-  def test_timeseries_monthly_runperiod_Jan
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
-                  'timeseries_frequency' => 'monthly',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(1, timeseries_rows.size - 2)
-  end
-
-  def test_timeseries_timestep_runperiod_Jan
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
-                  'timeseries_frequency' => 'timestep',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(31 * 24, timeseries_rows.size - 2)
-    timeseries_cols = timeseries_rows.transpose
-    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    expected_values.each do |timeseries_frequency, expected_value|
+      args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
+                    'timeseries_frequency' => timeseries_frequency,
+                    'include_timeseries_fuel_consumptions' => true }
+      annual_csv, timeseries_csv = _test_measure(args_hash)
+      assert(File.exist?(annual_csv))
+      assert(File.exist?(timeseries_csv))
+      timeseries_rows = CSV.read(timeseries_csv)
+      assert_equal(expected_value, timeseries_rows.size - 2)
+      if timeseries_frequency != 'monthly'
+        timeseries_cols = timeseries_rows.transpose
+        assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+      end
+    end
   end
 
   def test_timeseries_hourly_AMY_2012
@@ -1050,16 +1055,58 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
   end
 
+  def test_timeseries_timestamp_convention
+    # Expected values are arrays of time offsets (in seconds) for each reported row of output
+    expected_values_array = { 'timestep' => [30 * 60] * 17520,
+                              'hourly' => [60 * 60] * 8760,
+                              'daily' => [60 * 60 * 24] * 365,
+                              'monthly' => Constants.NumDaysInMonths(1999).map { |n_days| n_days * 60 * 60 * 24 } }
+
+    expected_values_array.each do |timeseries_frequency, expected_values|
+      args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-timestep-30-mins.xml'),
+                    'timeseries_frequency' => timeseries_frequency,
+                    'include_timeseries_fuel_consumptions' => true,
+                    'timeseries_timestamp_convention' => 'end' }
+      annual_csv, timeseries_csv = _test_measure(args_hash)
+      assert(File.exist?(annual_csv))
+      assert(File.exist?(timeseries_csv))
+      timeseries_csv = CSV.readlines(timeseries_csv)
+
+      args_hash['timeseries_timestamp_convention'] = 'start'
+      annual_csv, timeseries_csv2 = _test_measure(args_hash)
+      assert(File.exist?(annual_csv))
+      assert(File.exist?(timeseries_csv2))
+      timeseries_csv2 = CSV.readlines(timeseries_csv2)
+
+      for rownum in 2..timeseries_csv.size - 1
+        timestamp_offset = _parse_time(timeseries_csv[rownum][0]) - _parse_time(timeseries_csv2[rownum][0])
+        assert_equal(expected_values[rownum - 2], timestamp_offset)
+      end
+    end
+  end
+
   def test_timeseries_for_dview
     args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'output_format' => 'csv_dview',
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
-                  'add_timeseries_dst_column' => true }
+                  'include_timeseries_weather' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    assert_equal('wxDVFileHeaderVer.1', CSV.readlines(timeseries_csv)[0][0].strip)
+    timeseries_csv = CSV.readlines(timeseries_csv)
+    assert_equal('wxDVFileHeaderVer.1', timeseries_csv[0][0].strip)
+
+    args_hash['hpxml_path'] = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-daylight-saving-disabled.xml')
+    annual_csv, timeseries_csv2 = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv2))
+    timeseries_csv2 = CSV.readlines(timeseries_csv2)
+    assert_equal('wxDVFileHeaderVer.1', timeseries_csv2[0][0].strip)
+
+    col_ix = timeseries_csv[1].find_index('Weather| Drybulb Temperature')
+    assert_equal(Float(timeseries_csv[5][col_ix].strip), Float(timeseries_csv2[5][col_ix].strip)) # not in dst period, values line up
+    assert_equal(Float(timeseries_csv[5000 + 1][col_ix].strip), Float(timeseries_csv2[5000][col_ix].strip)) # in dst period, values are shifted forward
   end
 
   def test_timeseries_local_time_dst
@@ -1304,15 +1351,27 @@ class ReportSimulationOutputTest < MiniTest::Test
     end
   end
 
-  def _check_for_runner_registered_values(results_json, expected_annual_rows)
-    expected_registered_values = expected_annual_rows.map { |c| OpenStudio::toUnderscoreCase(c).chomp('_') }
+  def _get_actual_annual_rows(annual_csv)
+    actual_annual_rows = {}
+    File.readlines(annual_csv).each do |line|
+      next if line.strip.empty?
 
+      key, value = line.split(',').map { |x| x.strip }
+      actual_annual_rows[key] = Float(value)
+    end
+    return actual_annual_rows
+  end
+
+  def _check_for_runner_registered_values(results_json, actual_annual_rows)
     require 'json'
-    json = JSON.parse(File.read(results_json))
-    actual_registered_values = json['ReportSimulationOutput'].keys
+    runner_annual_rows = JSON.parse(File.read(results_json))
+    runner_annual_rows = runner_annual_rows['ReportSimulationOutput']
 
-    expected_registered_values.each do |val|
-      assert(actual_registered_values.include? val)
+    actual_annual_rows.each do |name, value|
+      name = OpenStudio::toUnderscoreCase(name).chomp('_')
+
+      assert_includes(runner_annual_rows.keys, name)
+      assert_equal(value, runner_annual_rows[name])
     end
   end
 end

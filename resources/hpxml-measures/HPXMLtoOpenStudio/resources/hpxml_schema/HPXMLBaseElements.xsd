@@ -324,7 +324,7 @@
 				<xs:sequence>
 					<xs:element name="InsulationDepth" type="LengthMeasurement" minOccurs="0">
 						<xs:annotation>
-							<xs:documentation>[ft] Depth from grade to bottom of vertical slab perimeter insulation</xs:documentation>
+							<xs:documentation>[ft] Depth from top of slab to bottom of vertical slab perimeter insulation</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:element ref="extension" minOccurs="0"/>
@@ -588,11 +588,6 @@
 						</xs:annotation>
 					</xs:element>
 					<xs:element minOccurs="0" name="Location" type="AdjacentTo"/>
-					<xs:element minOccurs="0" name="Efficiency" type="HPXMLDouble">
-						<xs:annotation>
-							<xs:documentation>[L/kWh] DEPRECATED. This will be removed in v4.0. Use EnergyFactor or IntegratedEnergyFactor instead.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
 					<xs:element minOccurs="0" name="Capacity" type="HPXMLDouble">
 						<xs:annotation>
 							<xs:documentation>Rated water removal rate. This represents the expected performance in a basement for portable dehumidifiers and expected performance in the average home for whole-home dehumifiiers. [pints/day]</xs:documentation>
@@ -1155,7 +1150,7 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="InteriorStuds" type="StudProperties"/>
-									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"> </xs:element>
+									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"/>
 									<xs:element maxOccurs="1" minOccurs="0" name="Insulation" type="FoundationWallInsulationInfo"/>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
@@ -1168,7 +1163,7 @@
 			</xs:element>
 			<xs:element minOccurs="0" name="Ceilings">
 				<xs:annotation>
-					<xs:documentation>Use Ceilings for horizontal surfaces above living space (e.g., sufaces between living space and attic).</xs:documentation>
+					<xs:documentation>Use Ceilings for horizontal surfaces above living space (e.g., surfaces between living space and attic).</xs:documentation>
 				</xs:annotation>
 				<xs:complexType>
 					<xs:sequence>
@@ -1199,13 +1194,13 @@
 			</xs:element>
 			<xs:element minOccurs="0" name="Floors">
 				<xs:annotation>
-					<xs:documentation>Use Floors for horizontal surfaces below living space (e.g., sufaces between living space and crawlspace/basement/ambient foundations).</xs:documentation>
+					<xs:documentation>Use Floors for horizontal surfaces below living space (e.g., surfaces between living space and crawlspace/basement/ambient foundations).</xs:documentation>
 				</xs:annotation>
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="Floor" maxOccurs="unbounded" minOccurs="1">
 							<xs:annotation>
-								<xs:documentation>Interior partition surfaces should not be described using the Floor element.</xs:documentation>
+								<xs:documentation>Interior partition surfaces should not be described using the FrameFloor element.</xs:documentation>
 							</xs:annotation>
 							<xs:complexType>
 								<xs:sequence>
@@ -1213,7 +1208,7 @@
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
 									<xs:element name="ExteriorAdjacentTo" type="AdjacentTo" minOccurs="0"/>
 									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
-									<xs:element name="FloorType" type="FloorType" minOccurs="0"/>
+									<xs:element minOccurs="0" name="FloorType" type="FloorType"/>
 									<xs:element minOccurs="0" name="FloorJoists" type="StudProperties"/>
 									<xs:element minOccurs="0" name="FloorTrusses" type="StudProperties"/>
 									<xs:element minOccurs="0" name="FloorCovering" type="FloorCovering"/>
@@ -1517,6 +1512,31 @@
 													</xs:annotation>
 												</xs:element>
 												<xs:element minOccurs="0" name="FanType" type="VentilationFanType"/>
+												<xs:element minOccurs="0" name="CFISControls">
+													<xs:annotation>
+														<xs:documentation>Relevant when FanType="central fan integrated supply".</xs:documentation>
+													</xs:annotation>
+													<xs:complexType>
+														<xs:sequence>
+															<xs:element minOccurs="0" name="HasOutdoorAirControl" type="HPXMLBoolean">
+																<xs:annotation>
+																	<xs:documentation>Has controls to block the flow of outside air when the CFIS system is not ventilating. For example, an electronically-controlled mechanical damper, or an in-line fan that substantially blocks the flow when not running.</xs:documentation>
+																</xs:annotation>
+															</xs:element>
+															<xs:element minOccurs="0" name="AdditionalRuntimeOperatingMode" type="AdditionalRuntimeOperatingMode">
+																<xs:annotation>
+																	<xs:documentation>Describes if/how the CFIS system provides additional ventilation beyond when the HVAC system is running to meet a given ventilation target.</xs:documentation>
+																</xs:annotation>
+															</xs:element>
+															<xs:element name="SupplementalFan" type="LocalReference" minOccurs="0" maxOccurs="1">
+																<xs:annotation>
+																	<xs:documentation>When AdditionalRuntimeOperatingMode="supplemental fan", specifies the VentilationFan that serves as that supplemental fan.</xs:documentation>
+																</xs:annotation>
+															</xs:element>
+															<xs:element minOccurs="0" ref="extension"/>
+														</xs:sequence>
+													</xs:complexType>
+												</xs:element>
 												<xs:element minOccurs="0" name="RatedFlowRate" type="HPXMLDouble">
 													<xs:annotation>
 														<xs:documentation>[CFM] as rated by manufacturer</xs:documentation>
@@ -1687,7 +1707,12 @@
 									<xs:element minOccurs="0" name="ThirdPartyCertification" type="DHWThirdPartyCertification" maxOccurs="unbounded"/>
 									<xs:element name="TankVolume" type="Volume" minOccurs="0">
 										<xs:annotation>
-											<xs:documentation>[gal]</xs:documentation>
+											<xs:documentation>[gal] Nominal capacity</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="MeasuredTankVolume" type="Volume" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>[gal] Measured capacity</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="FractionDHWLoadServed" type="Fraction"/>
@@ -1707,6 +1732,11 @@
 											<xs:documentation>DOE’s new metric for communicating the energy efficiency of a residential water heater, which replaces the Energy Factor (EF) metric. More
 												efficient water heaters have a higher Uniform Energy Factor (UEF). UEF is determined by the Department of Energy’s test method outlined in 10 CFR Part
 												430, Subpart B, Appendix E.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="HeatPumpCOP" type="Efficiency">
+										<xs:annotation>
+											<xs:documentation>The dimensionless coefficient of performance, used to measure the efficiency of a commercial heat pump water heater.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="FirstHourRating" type="Volume">
@@ -1774,9 +1804,9 @@
 											<xs:attribute name="dataSource" type="DataSource"/>
 										</xs:complexType>
 									</xs:element>
-									<xs:element minOccurs="0" name="StandbyLoss" type="HPXMLDouble">
+									<xs:element minOccurs="0" name="StandbyLoss" type="StandbyLossType">
 										<xs:annotation>
-											<xs:documentation>[degF/hr] The standby heat loss rate for, e.g., indirect water heaters in degrees per hour. Published in the AHRI Consumer’s Directory of Certified Efficiency Ratings.</xs:documentation>
+											<xs:documentation>The standby heat loss rate for, e.g., indirect or commercial water heaters. Published in the AHRI Consumer’s Directory of Certified Efficiency Ratings.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element name="MeetsACCA5QIHVACSpecification" type="HPXMLBoolean" minOccurs="0"/>
@@ -1870,7 +1900,7 @@
 																		longitudinally from plans, assuming the hot water piping does not run diagonally. [ft]</xs:documentation>
 																</xs:annotation>
 															</xs:element>
-															<xs:element minOccurs="0" name="BranchPipingLoopLength" type="LengthMeasurement">
+															<xs:element minOccurs="0" name="BranchPipingLength" type="LengthMeasurement">
 																<xs:annotation>
 																	<xs:documentation>Length of the branch hot water piping from the recirculation loop to the farthest hot water fixture from the
 																		recirculation loop, measured longitudinally from plans, assuming the branch hot water piping does not run diagonally, plus 20
@@ -2131,6 +2161,12 @@
 									<xs:element minOccurs="0" name="ModelNumber" type="Model"/>
 									<xs:element minOccurs="0" name="SerialNumber" type="HPXMLString"/>
 									<xs:element minOccurs="0" ref="ConnectedDevice"/>
+									<xs:element minOccurs="0" name="YearInstalled" type="Year"/>
+									<xs:element minOccurs="0" name="Count" type="IntegerGreaterThanZero">
+										<xs:annotation>
+											<xs:documentation>Number of similar batteries.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
 									<xs:element minOccurs="0" name="Location" type="BatteryLocation"/>
 									<xs:element minOccurs="0" name="GridConnected" type="HPXMLBoolean">
 										<xs:annotation>
@@ -3948,6 +3984,17 @@
 					<xs:documentation>Ah is computed by multiplying the discharge current (Amps) by the discharge time (hours). kWh is computed by multiplying the power output (kW) by the discharge time (hours).</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+    </xs:sequence>
+		<xs:attribute name="dataSource" type="DataSource"/>
+	</xs:complexType>
+	<xs:complexType name="StandbyLossType">
+		<xs:sequence>
+			<xs:element name="Units" type="StandbyLossUnits">
+				<xs:annotation>
+					<xs:documentation>For %/hr enter values as a fraction, i.e. 1.20%/hr = 0.0120 and 0.68%/hr = 0.0068.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Value" type="HPXMLDouble"/>
 		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
@@ -5481,9 +5528,6 @@
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="ConcreteMasonryUnit">
-				<xs:annotation>
-					<xs:documentation>Concrete Masonry Unit</xs:documentation>
-				</xs:annotation>
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element minOccurs="0" ref="extension"/>
@@ -5491,10 +5535,7 @@
 					<xs:attribute name="dataSource" type="DataSource"/>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="StructurallyInsulatedPanel">
-				<xs:annotation>
-					<xs:documentation>Structurally Insulated Panel</xs:documentation>
-				</xs:annotation>
+			<xs:element name="StructuralInsulatedPanel">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element minOccurs="0" ref="extension"/>
@@ -5503,9 +5544,6 @@
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="InsulatedConcreteForms">
-				<xs:annotation>
-					<xs:documentation>Insulated Concrete Forms</xs:documentation>
-				</xs:annotation>
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element minOccurs="0" ref="extension"/>
@@ -5582,7 +5620,7 @@
 	</xs:complexType>
 	<xs:complexType name="FloorType">
 		<xs:choice>
-			<xs:element name="WoodStud">
+			<xs:element name="WoodFrame">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element minOccurs="0" ref="extension"/>
@@ -5590,7 +5628,7 @@
 					<xs:attribute name="dataSource" type="DataSource"/>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="StructurallyInsulatedPanel">
+			<xs:element name="StructuralInsulatedPanel">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element minOccurs="0" ref="extension"/>
