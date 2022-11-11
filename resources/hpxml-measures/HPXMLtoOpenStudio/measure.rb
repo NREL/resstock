@@ -2308,6 +2308,16 @@ class OSModel
       intgains_dhw_sensors[dhw_sensor] = [offcycle_loss, oncycle_loss, dhw_rtf_sensor]
     end
 
+    # EMS Actuators
+    natvent_flow_actuator = nil
+    model.getEnergyManagementSystemActuators.each do |actuator|
+      next unless (actuator.actuatedComponentType == 'Zone Infiltration') && (actuator.actuatedComponentControlType == 'Air Exchange Flow Rate')
+      next unless actuator.name.to_s.start_with? Constants.ObjectNameNaturalVentilation.gsub(' ', '_')
+
+      natvent_flow_actuator = actuator
+      break
+    end   
+
     nonsurf_names = ['intgains', 'lighting', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
 
     # EMS program: Initialize coasting hours count variable
@@ -2418,36 +2428,50 @@ class OSModel
       program.addLine("Set hr_ducts = hr_ducts + (#{ducts_mix_loss_sensor.name} - #{ducts_mix_gain_sensor.name})")
     end
 
+    if living_zone.thermostatSetpointDualSetpoint.is_initialized
+      thermostat = living_zone.thermostatSetpointDualSetpoint.get
+      htg_sch = thermostat.heatingSetpointTemperatureSchedule.get
+      clg_sch = thermostat.coolingSetpointTemperatureSchedule.get
+    end
+
+    # Sensors
+    tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Mean Air Temperature')
+    tin_sensor.setName("#{Constants.ObjectNameAirflow} tin s")
+    tin_sensor.setKeyName(living_zone.name.to_s)
+
+    if not htg_sch.nil?
+      htg_sp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+      htg_sp_sensor.setName('htg sp s')
+      htg_sp_sensor.setKeyName(htg_sch.name.to_s)
+    end
+
+    if not clg_sch.nil?
+      clg_sp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+      clg_sp_sensor.setName('clg sp s')
+      clg_sp_sensor.setKeyName(clg_sch.name.to_s)
+    end
+
+
     # EMS program: Heating vs Cooling logic
     program.addLine('Set htg_mode = 0')
     program.addLine('Set clg_mode = 0')
-    program.addLine('Set hvac_on = 0')
     program.addLine("If (#{liv_load_sensors[:htg].name} > 0)") # Assign hour to heating if heating load
     program.addLine('  Set htg_mode = 1')
-    program.addLine('  Set hvac_on = 1')
-    program.addLine("ElseIf (#{liv_load_sensors[:clg].name} > 0)") # Assign hour to cooling if cooling load
+    program.addLine("ElseIf (#{liv_load_sensors[:clg].name} > 0) || (#{natvent_flow_actuator.name} > 0)") # Assign hour to cooling if cooling load or natural ventilation is operating
     program.addLine('  Set clg_mode = 1')
-    program.addLine('  Set hvac_on = 1')
+    program.addLine('Else') # No load, assign hour to cooling if temperature closer to cooling setpoint, otherwise assign hour to heating
+    if (not htg_sp_sensor.nil?) && (not clg_sp_sensor.nil?)
+      program.addLine("  Set Tmid_setpoint = (#{htg_sp_sensor.name} + #{clg_sp_sensor.name}) / 2") # Average of heating/cooling setpoints
+    else
+      program.addLine("  Set Tmid_setpoint = #{UnitConversions.convert(73.0, 'F', 'C')}") # Assumption when no HVAC system
+    end
+    program.addLine("  If #{tin_sensor.name} > Tmid_setpoint")
+    program.addLine('    Set clg_mode = 1')
+    program.addLine('  Else')
+    program.addLine('    Set htg_mode = 1')
+    program.addLine('  EndIf')
     program.addLine('EndIf')
 
-    # EMS program: Sum the last n hours of coasting if the hvac turned on
-    program.addLine("If (coast_hrs > 0) && (hvac_on==1)")
-    surfaces_sensors.keys.each do |k|
-      program.addLine("  Set hr_#{k}_trendsum = @TrendSum hr_#{k}_trend coast_hrs")
-    end
-    nonsurf_names.each do |name|
-      program.addLine("  Set hr_#{name}_trendsum = @TrendSum hr_#{name}_trend coast_hrs")
-    end
-    program.addLine("Else")
-    surfaces_sensors.keys.each do |k|
-      program.addLine("  Set hr_#{k}_trendsum = 0")
-    end
-    nonsurf_names.each do |name|
-      program.addLine("  Set hr_#{name}_trendsum = 0")
-    end
-    program.addLine("EndIf")
-
-    
     [:htg, :clg].each do |mode|
       if mode == :htg
         sign = ''
@@ -2455,21 +2479,12 @@ class OSModel
         sign = '-'
       end
       surfaces_sensors.keys.each do |k|
-        program.addLine("Set loads_#{mode}_#{k} = #{sign}(hr_#{k} + hr_#{k}_trendsum) * #{mode}_mode")
+        program.addLine("Set loads_#{mode}_#{k} = #{sign}hr_#{k} * #{mode}_mode")
       end
-      nonsurf_names.each do |name|
-        program.addLine("Set loads_#{mode}_#{name} = #{sign}(hr_#{name} + hr_#{name}_trendsum) * #{mode}_mode")
+      nonsurf_names.each do |nonsurf_name|
+        program.addLine("Set loads_#{mode}_#{nonsurf_name} = #{sign}hr_#{nonsurf_name} * #{mode}_mode")
       end
     end
-
-    # Update coast hours count
-    program.addLine("If (hvac_on == 0) && (coast_hrs == 23)")
-    program.addLine("  Set coast_hrs = 23") # Max of 24 hrs (including current)
-    program.addLine("ElseIf hvac_on == 0")
-    program.addLine("  Set coast_hrs = coast_hrs + 1") 
-    program.addLine("Else") 
-    program.addLine("  Set coast_hrs = 0") 
-    program.addLine('EndIf')
 
     # EMS calling manager
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
