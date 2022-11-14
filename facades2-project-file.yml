@@ -1,13 +1,13 @@
 schema_version: '0.3'
 buildstock_directory: .
 project_directory: project_national
-output_directory: /projects/resfacades/fullsample01
+output_directory: /projects/resfacades/test_5000_20221110
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 550000
+    n_datapoints: 5000
     logic:
       - Vacancy Status|Occupied
       - Geometry Building Type RECS|Single-Family Detached
@@ -81,6 +81,17 @@ eagle:
     n_workers: 32
   sampling:
     time: 1200
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: euss
+      prefix: facades2/test_5000_20221110 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: facades2 #collection of Athena tables (post-crawling), can be constant for the entire analysis
+      max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
 
 upgrades:
   - upgrade_name: Residing
@@ -333,7 +344,9 @@ upgrades:
           - and:
             - or: &U032S040_code_and_cz
               - and:
-                - or: *IECC2018states 
+                - or: 
+                  - or: *IECC2018states
+                  - State|OK
                 - or:
                   - ASHRAE IECC Climate Zone 2004|4A 
                   - ASHRAE IECC Climate Zone 2004|4B
@@ -601,8 +614,68 @@ upgrades:
             - Windows|Single, Clear, Metal, Exterior Clear Storm
         costs: *no_cost
         lifetime: 30
-  # - upgrade_name: Residing and minimum windows
-  #   #Up03
+  - upgrade_name: Residing and minimum windows
+    #Up03
+    options:
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+      - *codewindows_U030S023
+      - *codewindows_U030S025
+      - *codewindows_U030S030
+      - *codewindows_U030S040
+      - *codewindows_U032S025
+      - *codewindows_U032S030
+      - *codewindows_U032S040
+      - *codewindows_U035S025
+      - *codewindows_U035S030
+      - *codewindows_U035S040
+      - *codewindows_U038S030
+      - *codewindows_U040S025
+      - *codewindows_U040S030
+      - *codewindows_U050S025
+      - *codewindows_U050S030
+      - *codewindows_U065S025
+      - *codewindows_U065S030
+      - *codewindows_U065S040
+      - *codewindows_U075S040
+      - *codewindows_U120S030
+      - *codewindows_U120S040
+      - &wall_package_infiltration_reduction
+        option: Infiltration Reduction|19%
+        apply_logic:
+          and:
+            - or: *upgradable_walls
+            - not:
+              - or: *upgradable_windows
+        costs: *no_cost
+        lifetime: 30
+      - &window_replaces_single_package_infiltration_reduction
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - and:
+            - not:
+              - or: *upgradable_walls
+            - or: *single_pane_windows
+      - &window_replaces_double_package_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          - and:
+            - not:
+              - or: *upgradable_walls
+            - or: *double_pane_metal_windows
+      - &walls_and_replace_single_window_infiltration_reduction
+        option: Infiltration Reduction|43.30%
+        apply_logic:
+          - and:
+            - or: *upgradable_walls
+          - or: *single_pane_windows
+      - &walls_and_replace_double_window_infiltration_reduction
+        option: Infiltration Reduction|31.15%
+        apply_logic:
+          - and:
+            - or: *upgradable_walls
+          - or: *double_pane_metal_windows
   - upgrade_name: 1" polyiso exterior insulation + re-siding
     #Up04
     options:
@@ -757,15 +830,7 @@ upgrades:
       - *low-e_storms_on_single_clear_metal
       - *low-e_storms_on_single_clear_nonmetal
       - *low-e_storms_on_double_clear_metal
-      - &polyiso_package_infiltration_reduction
-        option: Infiltration Reduction|19%
-        apply_logic:
-          and:
-            - or: *upgradable_walls
-            - not:
-              - or: *upgradable_windows
-        costs: *no_cost
-        lifetime: 30
+      - *wall_package_infiltration_reduction
       - &lowE_storms_replace_clear_storms_package_infiltration_reduction
         option: Infiltration Reduction|10%
         apply_logic:
@@ -815,33 +880,11 @@ upgrades:
       - *triple_hgain_window
       - *triple_lgain_window
       - *triple_vlgain_window
-      - *polyiso_package_infiltration_reduction
-      - &triple_replaces_single_package_infiltration_reduction
-        option: Infiltration Reduction|30%
-        apply_logic:
-          - and:
-            - not:
-              - or: *upgradable_walls
-            - or: *single_pane_windows
-      - &triple_replaces_double_package_infiltration_reduction
-        option: Infiltration Reduction|15%
-        apply_logic:
-          - and:
-            - not:
-              - or: *upgradable_walls
-            - or: *double_pane_metal_windows
-      - &polyiso_and_triple_replaces_single_infiltration_reduction
-        option: Infiltration Reduction|43.30%
-        apply_logic:
-          - and:
-            - or: *upgradable_walls
-          - or: *single_pane_windows
-      - &polyiso_and_triple_replaces_double_infiltration_reduction
-        option: Infiltration Reduction|31.15%
-        apply_logic:
-          - and:
-            - or: *upgradable_walls
-          - or: *double_pane_metal_windows
+      - *wall_package_infiltration_reduction
+      - *window_replaces_single_package_infiltration_reduction
+      - *window_replaces_double_package_infiltration_reduction
+      - *walls_and_replace_single_window_infiltration_reduction
+      - *walls_and_replace_double_window_infiltration_reduction
       - *siding_upgrade_to_fibercement
       - *siding_upgrade_to_stucco
       - *siding_upgrade_to_vinyl
@@ -852,7 +895,7 @@ upgrades:
       - *low-e_storms_on_single_clear_metal
       - *low-e_storms_on_single_clear_nonmetal
       - *low-e_storms_on_double_clear_metal
-      - *polyiso_package_infiltration_reduction
+      - *wall_package_infiltration_reduction
       - *lowE_storms_replace_clear_storms_package_infiltration_reduction
       - *lowE_storms_new_package_infiltration_reduction
       - *polyiso_and_lowE_storms_replacing_clear_storm_infiltration_reduction
@@ -864,11 +907,11 @@ upgrades:
       - *triple_hgain_window
       - *triple_lgain_window
       - *triple_vlgain_window
-      - *polyiso_package_infiltration_reduction
-      - *triple_replaces_single_package_infiltration_reduction
-      - *triple_replaces_double_package_infiltration_reduction
-      - *polyiso_and_triple_replaces_single_infiltration_reduction
-      - *polyiso_and_triple_replaces_double_infiltration_reduction
+      - *wall_package_infiltration_reduction
+      - *window_replaces_single_package_infiltration_reduction
+      - *window_replaces_double_package_infiltration_reduction
+      - *walls_and_replace_single_window_infiltration_reduction
+      - *walls_and_replace_double_window_infiltration_reduction
       - *siding_upgrade_to_fibercement
       - *siding_upgrade_to_stucco
       - *siding_upgrade_to_vinyl
