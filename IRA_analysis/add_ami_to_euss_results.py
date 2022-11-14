@@ -10,6 +10,7 @@ from pathlib import Path
 import sys
 import numpy as np
 import pandas as pd
+from functools import cache
 
 resstock_estimation = Path(__file__).resolve().parents[2] / "resstock-estimation"
 sys.path.append(resstock_estimation)
@@ -26,7 +27,9 @@ def process_ami_lookup(geography):
     geography option: PUMA, State, Census Division
 
     """
-    if geography == "PUMA":
+    if geography == "County and PUMA":
+        file = "income_bin_representative_values_by_county_puma_occ_FPL.csv"
+    elif geography == "PUMA":
         file = "income_bin_representative_values_by_puma_occ_FPL.csv"
     elif geography == "State":
         file = "income_bin_representative_values_by_state_occ_FPL.csv"
@@ -78,88 +81,138 @@ def get_median_from_bin(value_bin, lower_multiplier=0.9, upper_multipler=1.1):
 
 
 def assign_representative_income(df):
-    # map value by PUMA
-    geography = "PUMA"
-    geo_col = "in." + geography.lower().replace(" ", "_")
-    ami_lookup_puma, deps_puma = process_ami_lookup(geography)
-    df = df.join(
-        ami_lookup_puma.set_index(deps_puma),
-        on=[geo_col, "in.occupants", "in.federal_poverty_level", "in.income"],
-    )
+    non_geo_cols = ["in.occupants", "in.federal_poverty_level", "in.income"]
+    geographies = [
+        "County and PUMA",
+        "PUMA",
+        "State",
+        "Census Division",
+        "Census Region",
+        ]
+    geo_cols = ["in." + geo.lower().replace(" ", "_") for geo in geographies]
+    df_section = df[geo_cols+non_geo_cols].copy()
+    geographies += ["National"]
 
-    # map remaining value by State
-    geography = "State"
-    geo_col = "in." + geography.lower().replace(" ", "_")
-    ami_lookup_state, deps_state = process_ami_lookup(geography)
-    keys = [geo_col, "in.occupants", "in.federal_poverty_level", "in.income"]
-    df.loc[df["rep_income"].isna(), "rep_income"] = (
-        df[keys]
-        .astype(str)
-        .agg("-".join, axis=1)
-        .map(
-            ami_lookup_state.assign(
-                key=ami_lookup_state[deps_state].astype(str).agg("-".join, axis=1)
-            ).set_index("key")["rep_income"]
-        )
-    )
+    # map rep income by increasingly large geographic resolution
+    for idx in range(len(geographies)):
+        geography = geographies[idx]
+        ami_lookup, deps = process_ami_lookup(geography)
+        if idx == len(geographies)-1:
+            keys = non_geo_cols
+        else:
+            keys = [geo_cols[idx]]+non_geo_cols
 
-    # map remaining value by Census Division
-    geography = "Census Division"
-    geo_col = "in." + geography.lower().replace(" ", "_")
-    ami_lookup_state, deps_state = process_ami_lookup(geography)
-    keys = [geo_col, "in.occupants", "in.federal_poverty_level", "in.income"]
-    df.loc[df["rep_income"].isna(), "rep_income"] = (
-        df[keys]
-        .astype(str)
-        .agg("-".join, axis=1)
-        .map(
-            ami_lookup_state.assign(
-                key=ami_lookup_state[deps_state].astype(str).agg("-".join, axis=1)
-            ).set_index("key")["rep_income"]
-        )
-    )
+        if idx == 0:
+            # map value by County and PUMA
+            df_section = df_section.join(
+                ami_lookup.set_index(deps),
+                on=keys,
+            )
+        else:
+            # map remaining value
+            df_section.loc[df_section["rep_income"].isna(), "rep_income"] = (
+                df_section[keys]
+                .astype(str)
+                .agg("-".join, axis=1)
+                .map(
+                    ami_lookup.assign(
+                        key=ami_lookup[deps].astype(str).agg("-".join, axis=1)
+                    ).set_index("key")["rep_income"]
+                )
+            )
+            if len(df_section[df_section["rep_income"].isna()]) == 0:
+                print(f"Highest resolution used for mapping representative income: {geography}")
+                break
 
-    # map remaining value by Census Region
-    geography = "Census Region"
-    geo_col = "in." + geography.lower().replace(" ", "_")
-    ami_lookup_state, deps_state = process_ami_lookup(geography)
-    keys = [geo_col, "in.occupants", "in.federal_poverty_level", "in.income"]
-    df.loc[df["rep_income"].isna(), "rep_income"] = (
-        df[keys]
-        .astype(str)
-        .agg("-".join, axis=1)
-        .map(
-            ami_lookup_state.assign(
-                key=ami_lookup_state[deps_state].astype(str).agg("-".join, axis=1)
-            ).set_index("key")["rep_income"]
-        )
-    )
+    assert len(df_section[df_section["rep_income"].isna()]) == 0, df_section[df_section["rep_income"].isna()]
 
-    # map remaining value by National
-    geography = "National"
-    ami_lookup_state, deps_state = process_ami_lookup(geography)
-    keys = ["in.occupants", "in.federal_poverty_level", "in.income"]
-    df.loc[df["rep_income"].isna(), "rep_income"] = (
-        df[keys]
-        .astype(str)
-        .agg("-".join, axis=1)
-        .map(
-            ami_lookup_state.assign(
-                key=ami_lookup_state[deps_state].astype(str).agg("-".join, axis=1)
-            ).set_index("key")["rep_income"]
-        )
-    )
-
-    assert len(df[df["rep_income"].isna()]) == 0, df[df["rep_income"].isna()]
+    df["rep_income"] = df_section["rep_income"]
 
     return df
 
 
-def assign_median_income_by_county(df):
-    mi_county = pd.read_csv(data_dir / "fy2019_hud_median_income_by_county.csv")
-    df = df.join(mi_county.set_index("county_gis")["median2019"], on=["in.county"])
+def map_ami_by_income_limits_by_county(df):
+    income_limits_df = pd.read_csv(data_dir / "fy2019_hud_income_limits_by_county.csv")
+    income_limits_df.set_index("county_gis", inplace=True)
 
-    assert len(df[df["median2019"].isna()]) == 0, df[df["median2019"].isna()]
+    max_occupants = 8
+    bin_edges = POM.load_bin_edges()
+
+    def get_pivoted_income_limits_df(income_limits_df):
+        """Reformat income limit table"""
+        multi_cols = [
+            (int(c.split("_")[1]), int(c.removeprefix("l").split("_")[0]))
+            for c in income_limits_df.columns
+        ]
+        income_limits_df.columns = pd.MultiIndex.from_tuples(
+            multi_cols, names=["occupant", "income_limit"]
+        )
+        melted_idf = (
+            income_limits_df.transpose()
+            .reset_index()
+            .melt(id_vars=["occupant", "income_limit"])
+        )
+        pivoted_income_limits_df = melted_idf.pivot(
+            index=["occupant", income_limits_df.index.name],
+            columns="income_limit",
+            values="value",
+        ).reset_index()
+        return pivoted_income_limits_df
+
+    pidf = get_pivoted_income_limits_df(income_limits_df)
+
+    @cache
+    def get_extrapolation_factor_from_8occupants(occupant):
+        """Get multiplier for extrapolating income limits beyond
+        max_occupants available in map, extrapolation is based
+        on 8-occupant income limits
+        """
+        if occupant > max_occupants:
+            factor = POM._household_size_adjustment(
+                occupant
+            ) / POM._household_size_adjustment(8)
+            return factor
+        return 1
+
+    location_col = "in.county"
+    income_col = "rep_income"
+    occupant_col = "rep_occupants"
+    output_col = "in.area_median_income"
+
+    df_section = df[[location_col, income_col, occupant_col]].copy()
+    df_section["extrapolation_factor"] = df[occupant_col].map(
+        get_extrapolation_factor_from_8occupants
+    )
+    df_section["clipped_occupant"] = df[occupant_col].map(
+        lambda occ: occ if occ <= max_occupants else 8
+    )
+
+    df_income_limit = df_section.merge(
+        pidf,
+        how="left",
+        left_on=[location_col, "clipped_occupant"],
+        right_on=[income_limits_df.index.name, "occupant"],
+    ).drop(columns=["clipped_occupant", income_limits_df.index.name])
+
+    # update income limits to actual occupant number
+    # using extrapolation_factor, round to nearest 50
+    df_income_limit[bin_edges] = (
+        df_income_limit[bin_edges].mul(
+            df_income_limit["extrapolation_factor"], axis=0
+        )
+        / 50
+    ).round() * 50
+    conds = df_income_limit[[income_col]].values < df_income_limit[bin_edges].values
+    bin_labels = [f"0-{bin_edges[0]}%"] + [
+        f"{bin_edges[i-1]}-{bin_edges[i]}%" for i in range(1, len(bin_edges))
+    ]  # all except last bin
+    cases = np.repeat(np.array(bin_labels, ndmin=2), len(conds), axis=0)
+    default_bin = [f"{bin_edges[-1]}%+"]
+    ami_bin = np.select(conds.transpose(), cases.transpose(), default=default_bin)
+
+    df[output_col] = ami_bin
+    # nully ami_bin where income is nan
+    df.loc[df[income_col].isna(), output_col] = np.nan
 
     return df
 
@@ -208,12 +261,12 @@ def add_ami_column_to_file(file_path):
         release_1%2Fmetadata_and_annual_results%2Fnational%2Fcsv%2F
         """
     )
-    print("It expects result columns with prefixes such as: 'in.', 'out.'")
+    print("The file expected has columns with prefixes such as: 'in.', 'out.'")
     print("")
     print(
         "This script requires resstock-estimation conda env and access to resstock-estimation GitHub repo"
     )
-    print("Adding in.area_median_income to file:")
+    print("to add 'in.area_median_income' column to file:")
     print(
         f"""
         {file_path}
@@ -225,20 +278,12 @@ def add_ami_column_to_file(file_path):
     file_path = Path(file_path)
     df = read_file(file_path)
     df = assign_representative_income(df)
-    df = assign_median_income_by_county(df)
     df = assign_representative_occupants(df)
-    df = POM.map_percent_area_median_income(
-        df,
-        "median2019",
-        "rep_income",
-        "rep_occupants",
-        output_col="in.area_median_income",
-    )
-    assert len(df[df["in.area_median_income"].isna()]) == 0, df[
-        df["in.area_median_income"].isna()
-    ]
+    df = map_ami_by_income_limits_by_county(df)
 
-    df = df.drop(columns=["median2019", "rep_income", "rep_occupants"])
+    cols_to_drop = {"pct_ami", "rep_income", "rep_occupants"}
+    cols_to_drop = list(cols_to_drop.intersection(set(df.columns)))
+    df = df.drop(columns=cols_to_drop)
     write_to_file(df, file_path)
 
 
