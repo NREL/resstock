@@ -31,9 +31,16 @@ class HPXMLDefaults
       end
     end
 
+    # Check for presence of fuels once
+    has_fuel = {}
+    hpxml_doc = hpxml.to_oga
+    Constants.FossilFuels.each do |fuel|
+      has_fuel[fuel] = hpxml.has_fuel(fuel, hpxml_doc)
+    end
+
     apply_header(hpxml, epw_file)
-    apply_emissions_scenarios(hpxml)
-    apply_utility_bill_scenarios(runner, hpxml)
+    apply_emissions_scenarios(hpxml, has_fuel)
+    apply_utility_bill_scenarios(runner, hpxml, has_fuel)
     apply_site(hpxml)
     apply_neighbor_buildings(hpxml)
     apply_building_occupancy(hpxml, nbeds, schedules_file)
@@ -215,7 +222,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_emissions_scenarios(hpxml)
+  def self.apply_emissions_scenarios(hpxml, has_fuel)
     hpxml.header.emissions_scenarios.each do |scenario|
       # Electricity
       if not scenario.elec_schedule_filepath.nil?
@@ -240,36 +247,48 @@ class HPXMLDefaults
       else
         natural_gas, propane, fuel_oil, coal, wood, wood_pellets = nil, nil, nil, nil, nil, nil
       end
-      if (scenario.natural_gas_units.nil? || scenario.natural_gas_value.nil?) && (not natural_gas.nil?)
-        scenario.natural_gas_units = default_units
-        scenario.natural_gas_units_isdefaulted = true
-        scenario.natural_gas_value = natural_gas
-        scenario.natural_gas_value_isdefaulted = true
+      if has_fuel[HPXML::FuelTypeNaturalGas]
+        if (scenario.natural_gas_units.nil? || scenario.natural_gas_value.nil?) && (not natural_gas.nil?)
+          scenario.natural_gas_units = default_units
+          scenario.natural_gas_units_isdefaulted = true
+          scenario.natural_gas_value = natural_gas
+          scenario.natural_gas_value_isdefaulted = true
+        end
       end
-      if (scenario.propane_units.nil? || scenario.propane_value.nil?) && (not propane.nil?)
-        scenario.propane_units = default_units
-        scenario.propane_units_isdefaulted = true
-        scenario.propane_value = propane
-        scenario.propane_value_isdefaulted = true
+      if has_fuel[HPXML::FuelTypePropane]
+        if (scenario.propane_units.nil? || scenario.propane_value.nil?) && (not propane.nil?)
+          scenario.propane_units = default_units
+          scenario.propane_units_isdefaulted = true
+          scenario.propane_value = propane
+          scenario.propane_value_isdefaulted = true
+        end
       end
-      if (scenario.fuel_oil_units.nil? || scenario.fuel_oil_value.nil?) && (not fuel_oil.nil?)
-        scenario.fuel_oil_units = default_units
-        scenario.fuel_oil_units_isdefaulted = true
-        scenario.fuel_oil_value = fuel_oil
-        scenario.fuel_oil_value_isdefaulted = true
+      if has_fuel[HPXML::FuelTypeOil]
+        if (scenario.fuel_oil_units.nil? || scenario.fuel_oil_value.nil?) && (not fuel_oil.nil?)
+          scenario.fuel_oil_units = default_units
+          scenario.fuel_oil_units_isdefaulted = true
+          scenario.fuel_oil_value = fuel_oil
+          scenario.fuel_oil_value_isdefaulted = true
+        end
       end
-      if (scenario.coal_units.nil? || scenario.coal_value.nil?) && (not coal.nil?)
-        scenario.coal_units = default_units
-        scenario.coal_units_isdefaulted = true
-        scenario.coal_value = coal
-        scenario.coal_value_isdefaulted = true
+      if has_fuel[HPXML::FuelTypeCoal]
+        if (scenario.coal_units.nil? || scenario.coal_value.nil?) && (not coal.nil?)
+          scenario.coal_units = default_units
+          scenario.coal_units_isdefaulted = true
+          scenario.coal_value = coal
+          scenario.coal_value_isdefaulted = true
+        end
       end
-      if (scenario.wood_units.nil? || scenario.wood_value.nil?) && (not wood.nil?)
-        scenario.wood_units = default_units
-        scenario.wood_units_isdefaulted = true
-        scenario.wood_value = wood
-        scenario.wood_value_isdefaulted = true
+      if has_fuel[HPXML::FuelTypeWoodCord]
+        if (scenario.wood_units.nil? || scenario.wood_value.nil?) && (not wood.nil?)
+          scenario.wood_units = default_units
+          scenario.wood_units_isdefaulted = true
+          scenario.wood_value = wood
+          scenario.wood_value_isdefaulted = true
+        end
       end
+      next unless has_fuel[HPXML::FuelTypeWoodPellets]
+
       next unless (scenario.wood_pellets_units.nil? || scenario.wood_pellets_value.nil?) && (not wood_pellets.nil?)
 
       scenario.wood_pellets_units = default_units
@@ -279,12 +298,9 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_utility_bill_scenarios(runner, hpxml)
-    hpxml_doc = nil
+  def self.apply_utility_bill_scenarios(runner, hpxml, has_fuel)
     hpxml.header.utility_bill_scenarios.each do |scenario|
-      hpxml_doc = hpxml.to_oga if hpxml_doc.nil?
-
-      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeElectricity)
+      if scenario.elec_tariff_filepath.nil?
         if scenario.elec_fixed_charge.nil?
           scenario.elec_fixed_charge = 12.0 # https://www.nrdc.org/experts/samantha-williams/there-war-attrition-electricity-fixed-charges says $11.19/month in 2018
           scenario.elec_fixed_charge_isdefaulted = true
@@ -295,7 +311,7 @@ class HPXMLDefaults
         end
       end
 
-      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeNaturalGas)
+      if has_fuel[HPXML::FuelTypeNaturalGas]
         if scenario.natural_gas_fixed_charge.nil?
           scenario.natural_gas_fixed_charge = 12.0 # https://www.aga.org/sites/default/files/aga_energy_analysis_-_natural_gas_utility_rate_structure.pdf says $11.25/month in 2015
           scenario.natural_gas_fixed_charge_isdefaulted = true
@@ -306,7 +322,7 @@ class HPXMLDefaults
         end
       end
 
-      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypePropane)
+      if has_fuel[HPXML::FuelTypePropane]
         if scenario.propane_fixed_charge.nil?
           scenario.propane_fixed_charge = 0.0
           scenario.propane_fixed_charge_isdefaulted = true
@@ -317,7 +333,7 @@ class HPXMLDefaults
         end
       end
 
-      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeOil)
+      if has_fuel[HPXML::FuelTypeOil]
         if scenario.fuel_oil_fixed_charge.nil?
           scenario.fuel_oil_fixed_charge = 0.0
           scenario.fuel_oil_fixed_charge_isdefaulted = true
@@ -328,7 +344,7 @@ class HPXMLDefaults
         end
       end
 
-      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeCoal)
+      if has_fuel[HPXML::FuelTypeCoal]
         if scenario.coal_fixed_charge.nil?
           scenario.coal_fixed_charge = 0.0
           scenario.coal_fixed_charge_isdefaulted = true
@@ -339,7 +355,7 @@ class HPXMLDefaults
         end
       end
 
-      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeWoodCord)
+      if has_fuel[HPXML::FuelTypeWoodCord]
         if scenario.wood_fixed_charge.nil?
           scenario.wood_fixed_charge = 0.0
           scenario.wood_fixed_charge_isdefaulted = true
@@ -350,7 +366,7 @@ class HPXMLDefaults
         end
       end
 
-      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeWoodPellets)
+      if has_fuel[HPXML::FuelTypeWoodPellets]
         if scenario.wood_pellets_fixed_charge.nil?
           scenario.wood_pellets_fixed_charge = 0.0
           scenario.wood_pellets_fixed_charge_isdefaulted = true
@@ -759,6 +775,16 @@ class HPXMLDefaults
 
   def self.apply_floors(hpxml)
     hpxml.floors.each do |floor|
+      if floor.floor_or_ceiling.nil?
+        if floor.is_ceiling
+          floor.floor_or_ceiling = HPXML::FloorOrCeilingCeiling
+          floor.floor_or_ceiling_isdefaulted = true
+        elsif floor.is_floor
+          floor.floor_or_ceiling = HPXML::FloorOrCeilingFloor
+          floor.floor_or_ceiling_isdefaulted = true
+        end
+      end
+
       if floor.interior_finish_type.nil?
         if floor.is_floor
           floor.interior_finish_type = HPXML::InteriorFinishNone
@@ -1001,90 +1027,37 @@ class HPXMLDefaults
       end
     end
 
-    # HVAC efficiencies (based on HEScore assumption)
-    hpxml.heating_systems.each do |heating_system|
-      year_installed = heating_system.year_installed
-      heating_system_type = heating_system.heating_system_type
-      heating_system_fuel = heating_system.heating_system_fuel
-
-      if [HPXML::HVACTypeBoiler, HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace].include? heating_system_type
-        next unless heating_system.heating_efficiency_afue.nil?
-
-        if heating_system_fuel == HPXML::FuelTypeElectricity
-          heating_system.heating_efficiency_afue = 0.98
-        else
-          heating_system.heating_efficiency_afue = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heating_system_type, heating_system_fuel, HPXML::UnitsAFUE)
-        end
-        heating_system.heating_efficiency_afue_isdefaulted = true
-      elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypePTACHeating].include? heating_system_type
-        next unless heating_system.heating_efficiency_percent.nil?
-
-        heating_system.heating_efficiency_percent = 1.0
-        heating_system.heating_efficiency_percent_isdefaulted = true
-      elsif [HPXML::HVACTypeStove, HPXML::HVACTypeFireplace, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFixedHeater].include? heating_system_type
-        next unless heating_system.heating_efficiency_percent.nil?
-
-        if heating_system_fuel == HPXML::FuelTypeElectricity
-          heating_system.heating_efficiency_percent = 1.0
-        elsif heating_system_fuel == HPXML::FuelTypeWoodCord
-          heating_system.heating_efficiency_percent = 0.60  # HEScore assumption
-        elsif heating_system_fuel == HPXML::FuelTypeWoodPellets
-          heating_system.heating_efficiency_percent = 0.78  # HEScore assumption
-        else
-          heating_system.heating_efficiency_percent = 0.81  # https://www.lopistoves.com/products/ and https://www.kozyheat.com/products/
-        end
-        heating_system.heating_efficiency_percent_isdefaulted = true
-      end
-    end
-
+    # Convert SEER2/HSPF2 to SEER/HSPF
     hpxml.cooling_systems.each do |cooling_system|
-      year_installed = cooling_system.year_installed
-      cooling_system_type = cooling_system.cooling_system_type
-      cooling_system_fuel = HPXML::FuelTypeElectricity
+      next unless [HPXML::HVACTypeCentralAirConditioner,
+                   HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system.cooling_system_type
+      next unless cooling_system.cooling_efficiency_seer.nil?
 
-      if cooling_system_type == HPXML::HVACTypeCentralAirConditioner
-        if cooling_system.cooling_efficiency_seer.nil?
-          if cooling_system.cooling_efficiency_seer2.nil?
-            cooling_system.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, cooling_system_type, cooling_system_fuel, HPXML::UnitsSEER)
-          else
-            cooling_system.cooling_efficiency_seer = HVAC.calc_seer_from_seer2(cooling_system.cooling_efficiency_seer2).round(2)
-            cooling_system.cooling_efficiency_seer2 = nil
-          end
-          cooling_system.cooling_efficiency_seer_isdefaulted = true
-        end
-      elsif [HPXML::HVACTypeRoomAirConditioner].include? cooling_system_type
-        next unless cooling_system.cooling_efficiency_eer.nil? && cooling_system.cooling_efficiency_ceer.nil?
-
-        cooling_system.cooling_efficiency_eer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, cooling_system_type, cooling_system_fuel, HPXML::UnitsEER)
-        cooling_system.cooling_efficiency_eer_isdefaulted = true
-      end
+      is_ducted = !cooling_system.distribution_system_idref.nil?
+      cooling_system.cooling_efficiency_seer = HVAC.calc_seer_from_seer2(cooling_system.cooling_efficiency_seer2, is_ducted).round(2)
+      cooling_system.cooling_efficiency_seer_isdefaulted = true
+      cooling_system.cooling_efficiency_seer2 = nil
     end
 
     hpxml.heat_pumps.each do |heat_pump|
-      year_installed = heat_pump.year_installed
-      heat_pump_type = heat_pump.heat_pump_type
-      heat_pump_fuel = HPXML::FuelTypeElectricity
+      next unless [HPXML::HVACTypeHeatPumpAirToAir,
+                   HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
+      next unless heat_pump.cooling_efficiency_seer.nil?
 
-      next unless [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump_type
-
-      if heat_pump.cooling_efficiency_seer.nil?
-        if heat_pump.cooling_efficiency_seer2.nil?
-          heat_pump.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heat_pump_type, heat_pump_fuel, HPXML::UnitsSEER)
-        else
-          heat_pump.cooling_efficiency_seer = HVAC.calc_seer_from_seer2(heat_pump.cooling_efficiency_seer2).round(2)
-          heat_pump.cooling_efficiency_seer2 = nil
-        end
-        heat_pump.cooling_efficiency_seer_isdefaulted = true
-      end
+      is_ducted = !heat_pump.distribution_system_idref.nil?
+      heat_pump.cooling_efficiency_seer = HVAC.calc_seer_from_seer2(heat_pump.cooling_efficiency_seer2, is_ducted).round(2)
+      heat_pump.cooling_efficiency_seer_isdefaulted = true
+      heat_pump.cooling_efficiency_seer2 = nil
+    end
+    hpxml.heat_pumps.each do |heat_pump|
+      next unless [HPXML::HVACTypeHeatPumpAirToAir,
+                   HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
       next unless heat_pump.heating_efficiency_hspf.nil?
 
-      if heat_pump.heating_efficiency_hspf2.nil?
-        heat_pump.heating_efficiency_hspf = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heat_pump_type, heat_pump_fuel, HPXML::UnitsHSPF)
-      else
-        heat_pump.heating_efficiency_hspf = HVAC.calc_hspf_from_hspf2(heat_pump.heating_efficiency_hspf2).round(2)
-        heat_pump.heating_efficiency_hspf2 = nil
-      end
+      is_ducted = !heat_pump.distribution_system_idref.nil?
+      heat_pump.heating_efficiency_hspf = HVAC.calc_hspf_from_hspf2(heat_pump.heating_efficiency_hspf2, is_ducted).round(2)
       heat_pump.heating_efficiency_hspf_isdefaulted = true
+      heat_pump.heating_efficiency_hspf2 = nil
     end
 
     # Default AC/HP compressor type
@@ -1359,8 +1332,9 @@ class HPXMLDefaults
     hpxml.heat_pumps.each do |heat_pump|
       hp_ap = heat_pump.additional_properties
       if [HPXML::HVACTypeHeatPumpAirToAir,
-          HPXML::HVACTypeHeatPumpPTHP].include? heat_pump.heat_pump_type
-        if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpPTHP
+          HPXML::HVACTypeHeatPumpPTHP,
+          HPXML::HVACTypeHeatPumpRoom].include? heat_pump.heat_pump_type
+        if [HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include? heat_pump.heat_pump_type
           use_eer_cop = true
         else
           use_eer_cop = false
@@ -1502,7 +1476,8 @@ class HPXMLDefaults
               duct.duct_location_isdefaulted = true
 
               if secondary_duct_area > 0
-                hvac_distribution.ducts.add(duct_type: duct.duct_type,
+                hvac_distribution.ducts.add(id: "#{duct.id}_secondary",
+                                            duct_type: duct.duct_type,
                                             duct_insulation_r_value: duct.duct_insulation_r_value,
                                             duct_location: secondary_duct_location,
                                             duct_location_isdefaulted: true,
@@ -1689,10 +1664,6 @@ class HPXMLDefaults
           water_heating_system.tank_volume = Waterheater.get_default_tank_volume(water_heating_system.fuel_type, nbeds, hpxml.building_construction.number_of_bathrooms)
           water_heating_system.tank_volume_isdefaulted = true
         end
-        if water_heating_system.energy_factor.nil? && water_heating_system.uniform_energy_factor.nil?
-          water_heating_system.energy_factor = Waterheater.get_default_water_heater_efficiency_by_year_installed(water_heating_system.year_installed, water_heating_system.fuel_type)
-          water_heating_system.energy_factor_isdefaulted = true
-        end
         if water_heating_system.recovery_efficiency.nil?
           water_heating_system.recovery_efficiency = Waterheater.get_default_recovery_efficiency(water_heating_system)
           water_heating_system.recovery_efficiency_isdefaulted = true
@@ -1710,7 +1681,7 @@ class HPXMLDefaults
         end
       end
       if water_heating_system.location.nil?
-        water_heating_system.location = Waterheater.get_default_location(hpxml, hpxml.climate_and_risk_zones.climate_zone_ieccs[0].zone)
+        water_heating_system.location = Waterheater.get_default_location(hpxml, hpxml.climate_and_risk_zones.climate_zone_ieccs[0])
         water_heating_system.location_isdefaulted = true
       end
       next unless water_heating_system.usage_bin.nil? && (not water_heating_system.uniform_energy_factor.nil?) # FHR & UsageBin only applies to UEF
@@ -2732,6 +2703,15 @@ class HPXMLDefaults
       if clg_sys.cooling_capacity.nil? || ((clg_sys.cooling_capacity - hvac_sizing_values.Cool_Capacity).abs >= 1.0)
         clg_sys.cooling_capacity = hvac_sizing_values.Cool_Capacity.round
         clg_sys.cooling_capacity_isdefaulted = true
+      end
+      # Integrated heating system capacities
+      if (clg_sys.is_a? HPXML::CoolingSystem) && clg_sys.has_integrated_heating
+        if clg_sys.integrated_heating_system_capacity.nil? || ((clg_sys.integrated_heating_system_capacity - hvac_sizing_values.Heat_Capacity).abs >= 1.0)
+          clg_sys.integrated_heating_system_capacity = hvac_sizing_values.Heat_Capacity.round
+          clg_sys.integrated_heating_system_capacity_isdefaulted = true
+        end
+        clg_sys.integrated_heating_system_airflow_cfm = hvac_sizing_values.Heat_Airflow.round
+        clg_sys.integrated_heating_system_airflow_cfm_isdefaulted = true
       end
       clg_sys.additional_properties.cooling_capacity_sensible = hvac_sizing_values.Cool_Capacity_Sens.round
 

@@ -658,97 +658,310 @@ class Constructions
     constr.create_and_assign_constructions(surfaces, model)
   end
 
-  def self.apply_ceiling(model, surfaces, constr_name,
-                         cavity_r, install_grade, addtl_r,
-                         framing_factor, joist_height_in,
-                         mat_int_finish, inside_film, outside_film)
+  def self.apply_wood_frame_floor_ceiling(model, surfaces, constr_name, is_ceiling,
+                                          cavity_r, install_grade,
+                                          framing_factor, joist_height_in,
+                                          plywood_thick_in, rigid_r, mat_int_finish_or_covering,
+                                          inside_film, outside_film)
 
     # Interior finish below, open cavity above (e.g., attic floor)
+    # Open cavity below, floor covering above (e.g., crawlspace ceiling)
 
     return if surfaces.empty?
 
-    # Define materials
-    mat_addtl_ins = nil
-    if cavity_r == 0
-      mat_cavity = Material.AirCavityOpen(joist_height_in)
-    else
-      if addtl_r > 0
-        # If there is additional insulation beyond the rafter height,
-        # these inputs are used for defining an additional layer
-        addtl_thick_in = addtl_r / 3.0 # Assume roughly R-3 per inch of loose-fill above cavity
-        mat_addtl_ins = Material.new(name: 'ceiling loosefill ins', thick_in: addtl_thick_in, mat_base: BaseMaterial.InsulationGenericLoosefill, k_in: addtl_thick_in / addtl_r)
+    if is_ceiling
+      # Define materials
+      mat_addtl_ins = nil
+      if cavity_r == 0
+        mat_cavity = Material.AirCavityOpen(joist_height_in)
+      else
+        if rigid_r > 0
+          # If there is additional insulation beyond the rafter height,
+          # these inputs are used for defining an additional layer
+          addtl_thick_in = rigid_r / 3.0 # Assume roughly R-3 per inch of loose-fill above cavity
+          mat_addtl_ins = Material.new(name: 'ceiling loosefill ins', thick_in: addtl_thick_in, mat_base: BaseMaterial.InsulationGenericLoosefill, k_in: addtl_thick_in / rigid_r)
+        end
+        mat_cavity = Material.new(thick_in: joist_height_in, mat_base: BaseMaterial.InsulationGenericLoosefill, k_in: joist_height_in / cavity_r)
       end
-      mat_cavity = Material.new(thick_in: joist_height_in, mat_base: BaseMaterial.InsulationGenericLoosefill, k_in: joist_height_in / cavity_r)
+      mat_framing = Material.new(thick_in: joist_height_in, mat_base: BaseMaterial.Wood)
+      mat_gap = Material.AirCavityOpen(joist_height_in)
+
+      # Set paths
+      gapFactor = get_gap_factor(install_grade, framing_factor, cavity_r)
+      path_fracs = [framing_factor, 1 - framing_factor - gapFactor, gapFactor]
+
+      # Define construction
+      constr = Construction.new(constr_name, path_fracs)
+      constr.add_layer(outside_film)
+      if not mat_addtl_ins.nil?
+        constr.add_layer(mat_addtl_ins)
+      end
+      constr.add_layer([mat_framing, mat_cavity, mat_gap], 'ceiling stud and cavity')
+      if not mat_int_finish_or_covering.nil?
+        constr.add_layer(mat_int_finish_or_covering)
+      end
+      constr.add_layer(inside_film)
+    else # floors
+      # Define materials
+      mat_2x = Material.Stud2x(joist_height_in)
+      if cavity_r == 0
+        mat_cavity = Material.AirCavityOpen(mat_2x.thick_in)
+      else
+        mat_cavity = Material.new(thick_in: mat_2x.thick_in, mat_base: BaseMaterial.InsulationGenericDensepack, k_in: mat_2x.thick_in / cavity_r)
+      end
+      mat_framing = Material.new(thick_in: mat_2x.thick_in, mat_base: BaseMaterial.Wood)
+      mat_gap = Material.AirCavityOpen(joist_height_in)
+      mat_rigid = nil
+      if rigid_r > 0
+        rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
+        mat_rigid = Material.new(name: 'floor rigid ins', thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
+      end
+
+      # Set paths
+      gapFactor = get_gap_factor(install_grade, framing_factor, cavity_r)
+      path_fracs = [framing_factor, 1 - framing_factor - gapFactor, gapFactor]
+
+      # Define construction
+      constr = Construction.new(constr_name, path_fracs)
+      constr.add_layer(outside_film)
+      constr.add_layer([mat_framing, mat_cavity, mat_gap], 'floor stud and cavity')
+      if not mat_rigid.nil?
+        constr.add_layer(mat_rigid)
+      end
+      if plywood_thick_in > 0
+        constr.add_layer(Material.OSBSheathing(plywood_thick_in))
+      end
+      if not mat_int_finish_or_covering.nil?
+        constr.add_layer(mat_int_finish_or_covering)
+      end
+      constr.add_layer(inside_film)
     end
-    mat_framing = Material.new(thick_in: joist_height_in, mat_base: BaseMaterial.Wood)
-    mat_gap = Material.AirCavityOpen(joist_height_in)
+
+    constr.set_interior_material_properties()
+
+    # Create and assign construction to surfaces
+    constr.create_and_assign_constructions(surfaces, model)
+  end
+
+  def self.apply_steel_frame_floor_ceiling(model, surfaces, constr_name, is_ceiling,
+                                           cavity_r, install_grade,
+                                           framing_factor, correction_factor, joist_height_in,
+                                           plywood_thick_in, rigid_r, mat_int_finish_or_covering,
+                                           inside_film, outside_film)
+
+    # Interior finish below, open cavity above (e.g., attic floor)
+    # Open cavity below, floor covering above (e.g., crawlspace ceiling)
+
+    return if surfaces.empty?
+
+    if is_ceiling
+      # Define materials
+      mat_addtl_ins = nil
+      eR = cavity_r * correction_factor # The effective R-value of the cavity insulation with steel stud framing
+      if eR == 0
+        mat_cavity = Material.AirCavityOpen(joist_height_in)
+      else
+        if rigid_r > 0
+          # If there is additional insulation beyond the rafter height,
+          # these inputs are used for defining an additional layer
+          addtl_thick_in = rigid_r / 3.0 # Assume roughly R-3 per inch of loose-fill above cavity
+          mat_addtl_ins = Material.new(name: 'ceiling loosefill ins', thick_in: addtl_thick_in, mat_base: BaseMaterial.InsulationGenericLoosefill, k_in: addtl_thick_in / rigid_r)
+        end
+        mat_cavity = Material.new(thick_in: joist_height_in, mat_base: BaseMaterial.InsulationGenericLoosefill, k_in: joist_height_in / eR)
+      end
+      mat_gap = Material.AirCavityOpen(joist_height_in)
+
+      # Set paths
+      gapFactor = get_gap_factor(install_grade, framing_factor, cavity_r)
+      path_fracs = [1 - gapFactor, gapFactor]
+
+      # Define construction
+      constr = Construction.new(constr_name, path_fracs)
+      constr.add_layer(outside_film)
+      if not mat_addtl_ins.nil?
+        constr.add_layer(mat_addtl_ins)
+      end
+      constr.add_layer([mat_cavity, mat_gap], 'ceiling stud and cavity')
+      if not mat_int_finish_or_covering.nil?
+        constr.add_layer(mat_int_finish_or_covering)
+      end
+      constr.add_layer(inside_film)
+    else # floors
+      # Define materials
+      mat_2x = Material.Stud2x(joist_height_in)
+      eR = cavity_r * correction_factor # The effective R-value of the cavity insulation with steel stud framing
+      if eR == 0
+        mat_cavity = Material.AirCavityOpen(mat_2x.thick_in)
+      else
+        mat_cavity = Material.new(thick_in: mat_2x.thick_in, mat_base: BaseMaterial.InsulationGenericDensepack, k_in: mat_2x.thick_in / eR)
+      end
+      mat_gap = Material.AirCavityOpen(joist_height_in)
+      mat_rigid = nil
+      if rigid_r > 0
+        rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
+        mat_rigid = Material.new(name: 'floor rigid ins', thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
+      end
+
+      # Set paths
+      gapFactor = get_gap_factor(install_grade, framing_factor, cavity_r)
+      path_fracs = [1 - gapFactor, gapFactor]
+
+      # Define construction
+      constr = Construction.new(constr_name, path_fracs)
+      constr.add_layer(outside_film)
+      constr.add_layer([mat_cavity, mat_gap], 'floor stud and cavity')
+      if not mat_rigid.nil?
+        constr.add_layer(mat_rigid)
+      end
+      if plywood_thick_in > 0
+        constr.add_layer(Material.OSBSheathing(plywood_thick_in))
+      end
+      if not mat_int_finish_or_covering.nil?
+        constr.add_layer(mat_int_finish_or_covering)
+      end
+      constr.add_layer(inside_film)
+    end
+
+    constr.set_interior_material_properties()
+
+    # Create and assign construction to surfaces
+    constr.create_and_assign_constructions(surfaces, model)
+  end
+
+  def self.apply_sip_floor_ceiling(model, surfaces, constr_name, is_ceiling,
+                                   sip_r, sip_thick_in, framing_factor,
+                                   mat_int_finish, osb_thick_in, rigid_r,
+                                   mat_ext_finish, inside_film, outside_film,
+                                   solar_absorptance = nil, emittance = nil)
+
+    return if surfaces.empty?
+
+    if is_ceiling
+      constr_type = HPXML::FloorOrCeilingCeiling
+    else
+      constr_type = HPXML::FloorOrCeilingFloor
+    end
+
+    # Define materials
+    spline_thick_in = 0.5
+    ins_thick_in = sip_thick_in - (2.0 * spline_thick_in) # in
+    mat_framing_inner_outer = Material.new(thick_in: spline_thick_in, mat_base: BaseMaterial.Wood)
+    mat_framing_middle = Material.new(thick_in: ins_thick_in, mat_base: BaseMaterial.Wood)
+    mat_spline = Material.new(thick_in: spline_thick_in, mat_base: BaseMaterial.Wood)
+    mat_ins_inner_outer = Material.new(thick_in: spline_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: sip_thick_in / sip_r)
+    mat_ins_middle = Material.new(thick_in: ins_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: sip_thick_in / sip_r)
+    mat_osb = nil
+    if osb_thick_in > 0
+      mat_osb = Material.OSBSheathing(osb_thick_in)
+    end
+    mat_rigid = nil
+    if rigid_r > 0
+      rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
+      mat_rigid = Material.new(name: "#{constr_type} rigid ins", thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
+    end
 
     # Set paths
-    gapFactor = get_gap_factor(install_grade, framing_factor, cavity_r)
-    path_fracs = [framing_factor, 1 - framing_factor - gapFactor, gapFactor]
+    spline_frac = 4.0 / 48.0 # One 4" spline for every 48" wide panel
+    cavity_frac = 1.0 - (spline_frac + framing_factor)
+    path_fracs = [framing_factor, spline_frac, cavity_frac]
 
     # Define construction
     constr = Construction.new(constr_name, path_fracs)
     constr.add_layer(outside_film)
-    if not mat_addtl_ins.nil?
-      constr.add_layer(mat_addtl_ins)
+    if not mat_ext_finish.nil?
+      constr.add_layer(mat_ext_finish)
     end
-    constr.add_layer([mat_framing, mat_cavity, mat_gap], 'ceiling stud and cavity')
+    constr.add_layer([mat_framing_inner_outer, mat_spline, mat_ins_inner_outer], "#{constr_type} spline layer")
+    constr.add_layer([mat_framing_middle, mat_ins_middle, mat_ins_middle], "#{constr_type} ins layer")
+    constr.add_layer([mat_framing_inner_outer, mat_spline, mat_ins_inner_outer], "#{constr_type} spline layer")
+    if not mat_rigid.nil?
+      constr.add_layer(mat_rigid)
+    end
+    if not mat_osb.nil?
+      constr.add_layer(mat_osb)
+    end
     if not mat_int_finish.nil?
       constr.add_layer(mat_int_finish)
     end
     constr.add_layer(inside_film)
 
+    constr.set_exterior_material_properties(solar_absorptance, emittance)
     constr.set_interior_material_properties()
 
-    # Create and assign construction to ceiling surfaces
+    # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
   end
 
-  def self.apply_floor(model, surfaces, constr_name,
-                       cavity_r, install_grade,
-                       framing_factor, joist_height_in,
-                       plywood_thick_in, rigid_r, mat_floor_covering,
-                       inside_film, outside_film)
-
-    # Open cavity below, floor covering above (e.g., crawlspace ceiling)
+  def self.apply_generic_layered_floor_ceiling(model, surfaces, constr_name, is_ceiling,
+                                               thick_ins, conds, denss, specheats,
+                                               mat_int_finish, osb_thick_in, rigid_r,
+                                               mat_ext_finish, inside_film, outside_film,
+                                               solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
-    # Define materials
-    mat_2x = Material.Stud2x(joist_height_in)
-    if cavity_r == 0
-      mat_cavity = Material.AirCavityOpen(mat_2x.thick_in)
+    if is_ceiling
+      constr_type = HPXML::FloorOrCeilingCeiling
     else
-      mat_cavity = Material.new(thick_in: mat_2x.thick_in, mat_base: BaseMaterial.InsulationGenericDensepack, k_in: mat_2x.thick_in / cavity_r)
+      constr_type = HPXML::FloorOrCeilingFloor
     end
-    mat_framing = Material.new(thick_in: mat_2x.thick_in, mat_base: BaseMaterial.Wood)
-    mat_gap = Material.AirCavityOpen(joist_height_in)
+
+    # Validate inputs
+    for idx in 0..4
+      if (thick_ins[idx].nil? != conds[idx].nil?) || (thick_ins[idx].nil? != denss[idx].nil?) || (thick_ins[idx].nil? != specheats[idx].nil?)
+        fail "Layer #{idx + 1} does not have all four properties (thickness, conductivity, density, specific heat) entered."
+      end
+    end
+
+    # Define materials
+    mats = []
+    mats << Material.new(name: "#{constr_type} layer 1", thick_in: thick_ins[0], k_in: conds[0], rho: denss[0], cp: specheats[0])
+    if not thick_ins[1].nil?
+      mats << Material.new(name: "#{constr_type} layer 2", thick_in: thick_ins[1], k_in: conds[1], rho: denss[1], cp: specheats[1])
+    end
+    if not thick_ins[2].nil?
+      mats << Material.new(name: "#{constr_type} layer 3", thick_in: thick_ins[2], k_in: conds[2], rho: denss[2], cp: specheats[2])
+    end
+    if not thick_ins[3].nil?
+      mats << Material.new(name: "#{constr_type} layer 4", thick_in: thick_ins[3], k_in: conds[3], rho: denss[3], cp: specheats[3])
+    end
+    if not thick_ins[4].nil?
+      mats << Material.new(name: "#{constr_type} layer 5", thick_in: thick_ins[4], k_in: conds[4], rho: denss[4], cp: specheats[4])
+    end
+    mat_osb = nil
+    if osb_thick_in > 0
+      mat_osb = Material.OSBSheathing(osb_thick_in)
+    end
     mat_rigid = nil
     if rigid_r > 0
       rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
-      mat_rigid = Material.new(name: 'floor rigid ins', thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
+      mat_rigid = Material.new(name: "#{constr_type} rigid ins", thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
     end
 
     # Set paths
-    gapFactor = get_gap_factor(install_grade, framing_factor, cavity_r)
-    path_fracs = [framing_factor, 1 - framing_factor - gapFactor, gapFactor]
+    path_fracs = [1]
 
     # Define construction
     constr = Construction.new(constr_name, path_fracs)
     constr.add_layer(outside_film)
-    constr.add_layer([mat_framing, mat_cavity, mat_gap], 'floor stud and cavity')
+    if not mat_ext_finish.nil?
+      constr.add_layer(mat_ext_finish)
+    end
+    mats.each do |mat|
+      constr.add_layer(mat)
+    end
     if not mat_rigid.nil?
       constr.add_layer(mat_rigid)
     end
-    if plywood_thick_in > 0
-      constr.add_layer(Material.OSBSheathing(plywood_thick_in))
+    if not mat_osb.nil?
+      constr.add_layer(mat_osb)
     end
-    if not mat_floor_covering.nil?
-      constr.add_layer(mat_floor_covering)
+    if not mat_int_finish.nil?
+      constr.add_layer(mat_int_finish)
     end
     constr.add_layer(inside_film)
 
+    constr.set_exterior_material_properties(solar_absorptance, emittance)
     constr.set_interior_material_properties()
 
     # Create and assign construction to surfaces
@@ -871,41 +1084,22 @@ class Constructions
     apply_window_skylight(model, 'Skylight', subsurface, constr_name, ufactor, shgc)
   end
 
-  def self.apply_partition_walls(model, constr_name, mat_int_finish, partition_wall_area,
-                                 basement_frac_of_cfa, living_space)
+  def self.apply_partition_walls(model, constr_name, mat_int_finish, partition_wall_area, spaces)
+    return if partition_wall_area <= 0
 
-    imdefs = []
+    # Add remaining partition walls within spaces (those without geometric representation)
+    # as internal mass object.
+    obj_name = 'partition wall mass'
+    imdef = create_os_int_mass_and_def(model, obj_name, spaces[HPXML::LocationLivingSpace], partition_wall_area)
 
-    # Determine additional partition wall mass required
-    addtl_surface_area_base = partition_wall_area * basement_frac_of_cfa
-    addtl_surface_area_lv = partition_wall_area * (1.0 - basement_frac_of_cfa)
-
-    if addtl_surface_area_lv > 0
-      # Add remaining partition walls within spaces (those without geometric representation)
-      # as internal mass object.
-      obj_name = 'partition wall mass above grade'
-      imdef = create_os_int_mass_and_def(model, obj_name, living_space, addtl_surface_area_lv)
-      imdefs << imdef
-    end
-
-    if addtl_surface_area_base > 0
-      # Add remaining partition walls within spaces (those without geometric representation)
-      # as internal mass object.
-      obj_name = 'partition wall mass below grade'
-      imdef = create_os_int_mass_and_def(model, obj_name, living_space, addtl_surface_area_base)
-      imdefs << imdef
-    end
-
-    apply_wood_stud_wall(model, imdefs, constr_name,
+    apply_wood_stud_wall(model, [imdef], constr_name,
                          0, 1, 3.5, false, 0.16,
                          mat_int_finish, 0, 0, mat_int_finish,
                          Material.AirFilmVertical,
                          Material.AirFilmVertical)
   end
 
-  def self.apply_furniture(model, furniture_mass, cfa, ubfa, gfa,
-                           basement_frac_of_cfa, living_space)
-
+  def self.apply_furniture(model, furniture_mass, spaces)
     if furniture_mass.type == HPXML::FurnitureMassTypeLightWeight
       mass_lb_per_sqft = 8.0
       mat = BaseMaterial.FurnitureLightWeight
@@ -915,29 +1109,28 @@ class Constructions
     end
 
     # Add user-specified furniture mass
-    model.getSpaces.each do |space|
+    spaces.each do |location, space|
+      floor_area = UnitConversions.convert(space.floorArea, 'm^2', 'ft^2')
+      next if floor_area <= 0
+
       furnAreaFraction = nil # Fraction of conditioned floor area
       furnConductivity = mat.k_in
       furnSolarAbsorptance = 0.6
       furnSpecHeat = mat.cp
       furnDensity = mat.rho
-      if space == living_space
+      if location == HPXML::LocationLivingSpace
         furnAreaFraction = furniture_mass.area_fraction
         furnMass = mass_lb_per_sqft
-        floor_area = cfa
-      elsif Geometry.is_unconditioned_basement(space)
+      elsif location == HPXML::LocationBasementUnconditioned
         furnAreaFraction = 0.4
         furnMass = mass_lb_per_sqft
-        floor_area = ubfa
-      elsif Geometry.is_garage(space)
+      elsif location == HPXML::LocationGarage
         furnAreaFraction = 0.1
         furnMass = 2.0
-        floor_area = gfa
       end
 
       next if furnAreaFraction.nil?
       next if furnAreaFraction <= 0
-      next if space.floorArea <= 0
 
       mat_obj_name_space = "#{Constants.ObjectNameFurniture} material #{space.name}"
       constr_obj_name_space = "#{Constants.ObjectNameFurniture} construction #{space.name}"
@@ -955,30 +1148,11 @@ class Constructions
       constr = Construction.new(constr_obj_name_space, path_fracs)
       constr.add_layer(mat_fm)
 
-      imdefs = []
-      if space == living_space
-        # if living space, judge if includes conditioned basement, create furniture independently
-        living_surface_area = furnAreaFraction * floor_area * (1 - basement_frac_of_cfa)
-        base_surface_area = furnAreaFraction * floor_area * basement_frac_of_cfa
-        # living furniture mass
-        if living_surface_area > 0
-          living_obj_name = mass_obj_name_space + ' above grade'
-          imdef = create_os_int_mass_and_def(model, living_obj_name, space, living_surface_area)
-          imdefs << imdef
-        end
-        # basement furniture mass
-        if base_surface_area > 0
-          base_obj_name = mass_obj_name_space + ' below grade'
-          imdef = create_os_int_mass_and_def(model, base_obj_name, space, base_surface_area)
-          imdefs << imdef
-        end
-      else
-        surface_area = furnAreaFraction * floor_area
-        imdef = create_os_int_mass_and_def(model, mass_obj_name_space, space, surface_area)
-        imdefs << imdef
-      end
+      surface_area = furnAreaFraction * floor_area
+      imdef = create_os_int_mass_and_def(model, mass_obj_name_space, space, surface_area)
+
       # Create and assign construction to surfaces
-      constr.create_and_assign_constructions(imdefs, model)
+      constr.create_and_assign_constructions([imdef], model)
     end
   end
 
@@ -1264,17 +1438,6 @@ class Constructions
                                 UnitConversions.convert(int_vert_depth, 'ft', 'm'),
                                 -int_vert_mat.thickness,
                                 UnitConversions.convert(int_vert_offset, 'ft', 'm'))
-      if int_vert_offset > 0
-        # Workaround for high Kiva foundation heat transfer when insulation does not start from top of wall.
-        # See https://github.com/NREL/OpenStudio-HPXML/issues/1151
-        # May be able to remove this additional custom block when EnergyPlus is fixed.
-        int_concrete_thickness_in = UnitConversions.convert(int_vert_mat.thickness, 'm', 'in') * 1.001 # Needed due to Kiva floating point issue?
-        int_concrete_mat = create_concrete_material(model, 'interior vertical conc', int_concrete_thickness_in)
-        foundation.addCustomBlock(int_concrete_mat,
-                                  UnitConversions.convert(int_vert_offset, 'ft', 'm'),
-                                  -int_concrete_mat.thickness,
-                                  0.0)
-      end
     end
 
     # Exterior vertical insulation
@@ -1427,19 +1590,6 @@ class Constructions
     mat.setConductivity(UnitConversions.convert(rigid_mat.k_in, 'Btu*in/(hr*ft^2*R)', 'W/(m*K)'))
     mat.setDensity(UnitConversions.convert(rigid_mat.rho, 'lbm/ft^3', 'kg/m^3'))
     mat.setSpecificHeat(UnitConversions.convert(rigid_mat.cp, 'Btu/(lbm*R)', 'J/(kg*K)'))
-    return mat
-  end
-
-  def self.create_concrete_material(model, name, thickness_in)
-    footing_mat = Material.Concrete(thickness_in)
-    mat = OpenStudio::Model::StandardOpaqueMaterial.new(model)
-    mat.setName(name)
-    mat.setRoughness('Rough')
-    mat.setThickness(UnitConversions.convert(footing_mat.thick_in, 'in', 'm'))
-    mat.setConductivity(UnitConversions.convert(footing_mat.k_in, 'Btu*in/(hr*ft^2*R)', 'W/(m*K)'))
-    mat.setDensity(UnitConversions.convert(footing_mat.rho, 'lbm/ft^3', 'kg/m^3'))
-    mat.setSpecificHeat(UnitConversions.convert(footing_mat.cp, 'Btu/(lbm*R)', 'J/(kg*K)'))
-    mat.setThermalAbsorptance(footing_mat.tAbs)
     return mat
   end
 
@@ -1723,6 +1873,108 @@ class Constructions
     end
 
     check_surface_assembly_rvalue(runner, surfaces, inside_film, outside_film, assembly_r, match)
+  end
+
+  def self.apply_floor_ceiling_construction(runner, model, surface, floor_id, floor_type, is_ceiling, assembly_r,
+                                            mat_int_finish_or_covering, inside_film, outside_film)
+
+    if mat_int_finish_or_covering.nil?
+      fallback_mat_int_finish_or_covering = nil
+    else
+      if is_ceiling
+        fallback_mat_int_finish_or_covering = Material.InteriorFinishMaterial(mat_int_finish_or_covering.name, 0.1) # Try thin material
+      else
+        fallback_mat_int_finish_or_covering = Material.CoveringBare(0.8, 0.01) # Try thin material
+      end
+    end
+    osb_thick_in = (is_ceiling ? 0.0 : 0.75)
+
+    if floor_type == HPXML::FloorTypeWoodFrame
+      install_grade = 1
+      constr_sets = [
+        WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 50.0, osb_thick_in, mat_int_finish_or_covering, nil), # 2x6, 24" o.c. + R50
+        WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 40.0, osb_thick_in, mat_int_finish_or_covering, nil), # 2x6, 24" o.c. + R40
+        WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 30.0, osb_thick_in, mat_int_finish_or_covering, nil), # 2x6, 24" o.c. + R30
+        WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 20.0, osb_thick_in, mat_int_finish_or_covering, nil), # 2x6, 24" o.c. + R20
+        WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 10.0, osb_thick_in, mat_int_finish_or_covering, nil), # 2x6, 24" o.c. + R10
+        WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 0.0, osb_thick_in, mat_int_finish_or_covering, nil), # 2x6, 24" o.c.
+        WoodStudConstructionSet.new(Material.Stud2x4, 0.13, 0.0, osb_thick_in, mat_int_finish_or_covering, nil),  # 2x4, 16" o.c.
+        WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, fallback_mat_int_finish_or_covering, nil),  # Fallback
+      ]
+      match, constr_set, cavity_r = pick_wood_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film)
+      constr_int_finish_or_covering = constr_set.mat_int_finish
+
+      apply_wood_frame_floor_ceiling(model, surface, "#{floor_id} construction", is_ceiling,
+                                     cavity_r, install_grade,
+                                     constr_set.framing_factor, constr_set.stud.thick_in,
+                                     constr_set.osb_thick_in, constr_set.rigid_r, constr_int_finish_or_covering,
+                                     inside_film, outside_film)
+
+    elsif floor_type == HPXML::FloorTypeSteelFrame
+      install_grade = 1
+      corr_factor = 0.45
+      osb_thick_in = (is_ceiling ? 0.0 : 0.75)
+      constr_sets = [
+        SteelStudConstructionSet.new(5.5, corr_factor, 0.10, 50.0, osb_thick_in, mat_int_finish_or_covering, nil), # 2x6, 24" o.c. + R50
+        SteelStudConstructionSet.new(5.5, corr_factor, 0.10, 40.0, osb_thick_in, mat_int_finish_or_covering, nil), # 2x6, 24" o.c. + R40
+        SteelStudConstructionSet.new(5.5, corr_factor, 0.10, 30.0, osb_thick_in, mat_int_finish_or_covering, nil), # 2x6, 24" o.c. + R30
+        SteelStudConstructionSet.new(5.5, corr_factor, 0.10, 20.0, osb_thick_in, mat_int_finish_or_covering, nil), # 2x6, 24" o.c. + R20
+        SteelStudConstructionSet.new(5.5, corr_factor, 0.10, 10.0, osb_thick_in, mat_int_finish_or_covering, nil), # 2x6, 24" o.c. + R10
+        SteelStudConstructionSet.new(3.5, corr_factor, 0.13, 0.0, osb_thick_in, mat_int_finish_or_covering, nil),  # 2x4, 16" o.c.
+        SteelStudConstructionSet.new(3.5, 1.0, 0.01, 0.0, 0.0, fallback_mat_int_finish_or_covering, nil),          # Fallback
+      ]
+      match, constr_set, cavity_r = pick_steel_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film)
+      constr_int_finish_or_covering = constr_set.mat_int_finish
+
+      apply_steel_frame_floor_ceiling(model, surface, "#{floor_id} construction", is_ceiling,
+                                      cavity_r, install_grade,
+                                      constr_set.framing_factor, constr_set.corr_factor, constr_set.cavity_thick_in,
+                                      constr_set.osb_thick_in, constr_set.rigid_r, constr_int_finish_or_covering,
+                                      inside_film, outside_film)
+
+    elsif floor_type == HPXML::FloorTypeSIP
+      constr_sets = [
+        SIPConstructionSet.new(16.0, 0.16, 0.0, 0.0, osb_thick_in, mat_int_finish_or_covering, nil), # 16" SIP core
+        SIPConstructionSet.new(12.0, 0.16, 0.0, 0.0, osb_thick_in, mat_int_finish_or_covering, nil), # 12" SIP core
+        SIPConstructionSet.new(8.0, 0.16, 0.0, 0.0, osb_thick_in, mat_int_finish_or_covering, nil),  # 8" SIP core
+        SIPConstructionSet.new(1.0, 0.01, 0.0, 0.0, 0.0, fallback_mat_int_finish_or_covering, nil), # Fallback
+      ]
+      match, constr_set, cavity_r = pick_sip_construction_set(assembly_r, constr_sets, inside_film, outside_film)
+
+      apply_sip_floor_ceiling(model, surface, "#{floor_id} construction", is_ceiling,
+                              cavity_r, constr_set.thick_in, constr_set.framing_factor,
+                              constr_set.mat_int_finish, constr_set.osb_thick_in, constr_set.rigid_r,
+                              constr_set.mat_ext_finish, inside_film, outside_film)
+    elsif floor_type == HPXML::FloorTypeConcrete
+      constr_sets = [
+        GenericConstructionSet.new(20.0, osb_thick_in, mat_int_finish_or_covering, nil), # w/R-20 rigid
+        GenericConstructionSet.new(10.0, osb_thick_in, mat_int_finish_or_covering, nil), # w/R-10 rigid
+        GenericConstructionSet.new(0.0, osb_thick_in, mat_int_finish_or_covering, nil),  # Standard
+        GenericConstructionSet.new(0.0, 0.0, fallback_mat_int_finish_or_covering, nil),  # Fallback
+      ]
+      match, constr_set, layer_r = pick_generic_construction_set(assembly_r, constr_sets, inside_film, outside_film)
+
+      thick_in = 6.0
+      base_mat = BaseMaterial.Concrete
+      thick_ins = [thick_in]
+      if layer_r == 0
+        conds = [99]
+      else
+        conds = [thick_in / layer_r]
+      end
+      denss = [base_mat.rho]
+      specheats = [base_mat.cp]
+
+      apply_generic_layered_floor_ceiling(model, surface, "#{floor_id} construction", is_ceiling,
+                                          thick_ins, conds, denss, specheats,
+                                          constr_set.mat_int_finish, constr_set.osb_thick_in,
+                                          constr_set.rigid_r, constr_set.mat_ext_finish,
+                                          inside_film, outside_film)
+    else
+      fail "Unexpected floor type '#{floor_type}'."
+    end
+
+    check_surface_assembly_rvalue(runner, surface, inside_film, outside_film, assembly_r, match)
   end
 
   def self.pick_wood_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film)

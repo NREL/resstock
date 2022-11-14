@@ -644,7 +644,7 @@ class Waterheater
     availability_manager.setColdNode(storage_tank.demandOutletModelObject.get.to_Node.get)
     availability_manager.setTemperatureDifferenceOnLimit(0)
     availability_manager.setTemperatureDifferenceOffLimit(0)
-    plant_loop.setAvailabilityManager(availability_manager)
+    plant_loop.addAvailabilityManager(availability_manager)
 
     # Add EMS code for SWH control (keeps the WH for the last hour if there's useful energy that can be delivered, E+ wouldn't always do this by default)
     # Sensors
@@ -1438,7 +1438,8 @@ class Waterheater
     end
   end
 
-  def self.get_default_location(hpxml, iecc_zone)
+  def self.get_default_location(hpxml, climate_zone_iecc)
+    iecc_zone = (climate_zone_iecc.nil? ? nil : climate_zone_iecc.zone)
     if ['1A', '1B', '1C', '2A', '2B', '2C', '3B', '3C'].include? iecc_zone
       location_hierarchy = [HPXML::LocationGarage,
                             HPXML::LocationLivingSpace]
@@ -1838,30 +1839,6 @@ class Waterheater
       solar_fraction = solar_thermal_system.solar_fraction
     end
     return solar_fraction.to_f
-  end
-
-  def self.get_default_water_heater_efficiency_by_year_installed(year, fuel_type)
-    fuel_primary_id = { EPlus::FuelTypeElectricity => 'electric',
-                        EPlus::FuelTypeNaturalGas => 'natural_gas',
-                        EPlus::FuelTypeOil => 'fuel_oil',
-                        EPlus::FuelTypeCoal => 'fuel_oil', # assumption
-                        EPlus::FuelTypeWoodCord => 'fuel_oil', # assumption
-                        EPlus::FuelTypeWoodPellets => 'fuel_oil', # assumption
-                        EPlus::FuelTypePropane => 'lpg' }[EPlus.fuel_type(fuel_type)]
-
-    value = nil
-    lookup_year = 0
-    CSV.foreach(File.join(File.dirname(__FILE__), 'data', 'water_heater_efficiency.csv'), headers: true) do |row|
-      next unless row['fuel_primary_id'] == fuel_primary_id
-
-      row_year = Integer(row['year'])
-      if (row_year - year).abs <= (lookup_year - year).abs
-        lookup_year = row_year
-        value = Float(row['value'])
-      end
-    end
-
-    return value
   end
 
   def self.get_usage_bin_from_first_hour_rating(fhr)

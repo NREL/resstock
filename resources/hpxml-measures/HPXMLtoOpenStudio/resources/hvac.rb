@@ -15,6 +15,9 @@ class HVAC
         elsif cooling_system.heat_pump_type == HPXML::HVACTypeHeatPumpPTHP
           obj_name = Constants.ObjectNamePTHP
           fan_watts_per_cfm = 0.0
+        elsif cooling_system.heat_pump_type == HPXML::HVACTypeHeatPumpRoom
+          obj_name = Constants.ObjectNameRoomHP
+          fan_watts_per_cfm = 0.0
         else
           fail "Unexpected heat pump type: #{cooling_system.heat_pump_type}."
         end
@@ -29,14 +32,15 @@ class HVAC
               fail "Fan powers for heating system '#{heating_system.id}' and cooling system '#{cooling_system.id}' are attached to a single distribution system and therefore must be the same."
             end
           end
-        elsif cooling_system.cooling_system_type == HPXML::HVACTypeRoomAirConditioner
-          obj_name = Constants.ObjectNameRoomAirConditioner
+        elsif [HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type
           fan_watts_per_cfm = 0.0
+          if cooling_system.cooling_system_type == HPXML::HVACTypeRoomAirConditioner
+            obj_name = Constants.ObjectNameRoomAirConditioner
+          else
+            obj_name = Constants.ObjectNamePTAC
+          end
         elsif cooling_system.cooling_system_type == HPXML::HVACTypeMiniSplitAirConditioner
           obj_name = Constants.ObjectNameMiniSplitAirConditioner
-        elsif cooling_system.cooling_system_type == HPXML::HVACTypePTAC
-          obj_name = Constants.ObjectNamePTAC
-          fan_watts_per_cfm = 0.0
         else
           fail "Unexpected cooling system type: #{cooling_system.cooling_system_type}."
         end
@@ -45,10 +49,6 @@ class HVAC
       num_speeds = clg_ap.num_speeds
     elsif (heating_system.is_a? HPXML::HeatingSystem) && (heating_system.heating_system_type == HPXML::HVACTypeFurnace)
       obj_name = Constants.ObjectNameFurnace
-      num_speeds = 1
-    elsif (heating_system.is_a? HPXML::HeatingSystem) && (heating_system.heating_system_type == HPXML::HVACTypePTACHeating)
-      obj_name = Constants.ObjectNamePTACHeating
-      fan_watts_per_cfm = 0.0
       num_speeds = 1
     else
       fail "Unexpected heating system type: #{heating_system.heating_system_type}, expect central air source hvac systems."
@@ -62,6 +62,23 @@ class HVAC
       clg_cfm = cooling_system.cooling_airflow_cfm
       clg_ap.cool_fan_speed_ratios.each do |r|
         fan_cfms << clg_cfm * r
+      end
+      if (cooling_system.is_a? HPXML::CoolingSystem) && cooling_system.has_integrated_heating
+        if cooling_system.integrated_heating_system_fuel == HPXML::FuelTypeElectricity
+          htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model)
+          htg_coil.setEfficiency(cooling_system.integrated_heating_system_efficiency_percent)
+        else
+          htg_coil = OpenStudio::Model::CoilHeatingGas.new(model)
+          htg_coil.setGasBurnerEfficiency(cooling_system.integrated_heating_system_efficiency_percent)
+          htg_coil.setParasiticElectricLoad(0)
+          htg_coil.setParasiticGasLoad(0)
+          htg_coil.setFuelType(EPlus.fuel_type(cooling_system.integrated_heating_system_fuel))
+        end
+        htg_coil.setNominalCapacity(UnitConversions.convert(cooling_system.integrated_heating_system_capacity, 'Btu/hr', 'W'))
+        htg_coil.setName(obj_name + ' htg coil')
+        htg_coil.additionalProperties.setFeature('HPXML_ID', cooling_system.id) # Used by reporting measure
+        htg_cfm = cooling_system.integrated_heating_system_airflow_cfm
+        fan_cfms << htg_cfm
       end
     end
 
@@ -83,11 +100,7 @@ class HVAC
         # Heating Coil
         if heating_system.heating_system_fuel == HPXML::FuelTypeElectricity
           htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model)
-          if heating_system.heating_system_type == HPXML::HVACTypePTACHeating
-            htg_coil.setEfficiency(heating_system.heating_efficiency_percent)
-          else
-            htg_coil.setEfficiency(heating_system.heating_efficiency_afue)
-          end
+          htg_coil.setEfficiency(heating_system.heating_efficiency_afue)
         else
           htg_coil = OpenStudio::Model::CoilHeatingGas.new(model)
           htg_coil.setGasBurnerEfficiency(heating_system.heating_efficiency_afue)
@@ -119,7 +132,11 @@ class HVAC
       disaggregate_fan_or_pump(model, fan, htg_coil, clg_coil, htg_supp_coil, cooling_system)
     else
       if not cooling_system.nil?
-        disaggregate_fan_or_pump(model, fan, nil, clg_coil, nil, cooling_system)
+        if cooling_system.has_integrated_heating
+          disaggregate_fan_or_pump(model, fan, htg_coil, clg_coil, nil, cooling_system)
+        else
+          disaggregate_fan_or_pump(model, fan, nil, clg_coil, nil, cooling_system)
+        end
       end
       if not heating_system.nil?
         disaggregate_fan_or_pump(model, fan, htg_coil, nil, htg_supp_coil, heating_system)
@@ -351,7 +368,7 @@ class HVAC
       equip_def.setName(Constants.ObjectNameGSHPSharedPump)
       equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
       equip.setName(equip_def.name.to_s)
-      equip.setSpace(control_zone.spaces[0])
+      equip.setSpace(control_zone.spaces[0]) # no heat gain, so assign the equipment to an arbitrary space
       equip_def.setDesignLevel(shared_pump_w)
       equip_def.setFractionRadiant(0)
       equip_def.setFractionLatent(0)
@@ -841,7 +858,7 @@ class HVAC
 
     num_days = Constants.NumDaysInYear(year)
     warning = false
-    (0..(num_days - 1)).to_a.each do |i|
+    for i in 0..(num_days - 1)
       if (heating_days[i] == cooling_days[i]) # both (or neither) heating/cooling seasons
         htg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
         htg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
@@ -1211,7 +1228,10 @@ class HVAC
       elsif seer > 21
         return HPXML::HVACCompressorTypeVariableSpeed
       end
-    elsif [HPXML::HVACTypePTAC, HPXML::HVACTypeHeatPumpPTHP].include? hvac_type
+    elsif [HPXML::HVACTypePTAC,
+           HPXML::HVACTypeHeatPumpPTHP,
+           HPXML::HVACTypeHeatPumpRoom,
+           HPXML::HVACTypeRoomAirConditioner].include? hvac_type
       return HPXML::HVACCompressorTypeSingleStage
     end
     return
@@ -2595,7 +2615,7 @@ class HVAC
     clg_ap = cooling_system.additional_properties
 
     if ((cooling_system.is_a? HPXML::CoolingSystem) && ([HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type)) ||
-       ((cooling_system.is_a? HPXML::HeatPump) && (cooling_system.heat_pump_type == HPXML::HVACTypeHeatPumpPTHP))
+       ((cooling_system.is_a? HPXML::HeatPump) && ([HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include? cooling_system.heat_pump_type))
       clg_ap.cool_rated_cfm_per_ton = [312.0] # medium speed
     else
       clg_ap.cool_rated_cfm_per_ton = []
@@ -2609,7 +2629,7 @@ class HVAC
     htg_ap = heating_system.additional_properties
 
     if (heating_system.is_a? HPXML::HeatingSystem) ||
-       ((heating_system.is_a? HPXML::HeatPump) && (heating_system.heat_pump_type == HPXML::HVACTypeHeatPumpPTHP))
+       ((heating_system.is_a? HPXML::HeatPump) && ([HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include? heating_system.heat_pump_type))
       htg_ap.heat_rated_cfm_per_ton = [350.0]
     else
       htg_ap.heat_rated_cfm_per_ton = []
@@ -2816,7 +2836,7 @@ class HVAC
       if clg_ap.num_speeds == 1
         clg_coil = OpenStudio::Model::CoilCoolingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, cap_ft_curve, cap_fff_curve, eir_ft_curve, eir_fff_curve, plf_fplr_curve)
         # Coil COP calculation based on system type
-        if [HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypePTAC, HPXML::HVACTypeHeatPumpPTHP].include? clg_type
+        if [HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypePTAC, HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include? clg_type
           if cooling_system.cooling_efficiency_ceer.nil?
             ceer = calc_ceer_from_eer(cooling_system)
           else
@@ -2887,7 +2907,7 @@ class HVAC
         htg_coil = OpenStudio::Model::CoilHeatingDXSingleSpeed.new(model, model.alwaysOnDiscreteSchedule, cap_ft_curve, cap_fff_curve, eir_ft_curve, eir_fff_curve, plf_fplr_curve)
         if heating_system.heating_efficiency_cop.nil?
           htg_coil.setRatedCOP(1.0 / htg_ap.heat_rated_eirs[i])
-        else # PTHP
+        else # PTHP or room heat pump
           htg_coil.setRatedCOP(heating_system.heating_efficiency_cop)
         end
         htg_coil.setRatedTotalHeatingCapacity(UnitConversions.convert(heating_system.heating_capacity, 'Btu/hr', 'W'))
@@ -2929,7 +2949,7 @@ class HVAC
     clg_ap = cooling_system.additional_properties
 
     clg_ap.cool_rated_eirs = []
-    (0...clg_ap.num_speeds).to_a.each do |speed|
+    for speed in 0..clg_ap.num_speeds - 1
       clg_ap.cool_rated_eirs << calc_eir_from_eer(clg_ap.cool_eers[speed], clg_ap.fan_power_rated)
     end
   end
@@ -2938,7 +2958,7 @@ class HVAC
     htg_ap = heating_system.additional_properties
 
     htg_ap.heat_rated_eirs = []
-    (0...htg_ap.num_speeds).to_a.each do |speed|
+    for speed in 0..htg_ap.num_speeds - 1
       htg_ap.heat_rated_eirs << calc_eir_from_cop(htg_ap.heat_cops[speed], htg_ap.fan_power_rated)
     end
   end
@@ -2948,11 +2968,11 @@ class HVAC
 
     # Convert SHRs from net to gross.
     if ((cooling_system.is_a? HPXML::CoolingSystem) && ([HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type)) ||
-       ((cooling_system.is_a? HPXML::HeatPump) && ([HPXML::HVACTypeHeatPumpPTHP].include? cooling_system.heat_pump_type))
+       ((cooling_system.is_a? HPXML::HeatPump) && ([HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include? cooling_system.heat_pump_type))
       clg_ap.cool_rated_shrs_gross = [cooling_system.cooling_shr] # We don't model the fan separately, so set gross == net
     else
       clg_ap.cool_rated_shrs_gross = []
-      (0...clg_ap.num_speeds).to_a.each do |speed|
+      for speed in 0..clg_ap.num_speeds - 1
         qtot_net_nominal = 12000.0
         qsens_net_nominal = qtot_net_nominal * clg_ap.cool_rated_shrs_net[speed]
         qtot_gross_nominal = qtot_net_nominal + UnitConversions.convert(clg_ap.cool_rated_cfm_per_ton[speed] * clg_ap.fan_power_rated, 'Wh', 'Btu')
@@ -2978,7 +2998,7 @@ class HVAC
 
     # Degradation coefficient for cooling
     if ((cooling_system.is_a? HPXML::CoolingSystem) && ([HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type)) ||
-       ((cooling_system.is_a? HPXML::HeatPump) && (cooling_system.heat_pump_type == HPXML::HVACTypeHeatPumpPTHP))
+       ((cooling_system.is_a? HPXML::HeatPump) && ([HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include? cooling_system.heat_pump_type))
       clg_ap.cool_c_d = 0.22
     elsif num_speeds == 1
       if cooling_system.cooling_efficiency_seer < 13.0
@@ -3000,7 +3020,7 @@ class HVAC
     htg_ap = heating_system.additional_properties
 
     # Degradation coefficient for heating
-    if (heating_system.is_a? HPXML::HeatPump) && (heating_system.heat_pump_type == HPXML::HVACTypeHeatPumpPTHP)
+    if (heating_system.is_a? HPXML::HeatPump) && ([HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include? heating_system.heat_pump_type)
       htg_ap.heat_c_d = 0.22
     elsif num_speeds == 1
       if heating_system.heating_efficiency_hspf < 7.0
@@ -3077,7 +3097,7 @@ class HVAC
     hp_ap.cool_rated_cfm_per_ton = []
     hp_ap.cool_rated_shrs_gross = []
 
-    (0...num_speeds).each do |i|
+    for i in 0..num_speeds - 1
       hp_ap.cool_capacity_ratios << hp_ap.cool_min_capacity_ratio + i * (hp_ap.cool_max_capacity_ratio - hp_ap.cool_min_capacity_ratio) / (num_speeds - 1)
       hp_ap.cool_rated_cfm_per_ton << (hp_ap.cool_min_cfm_per_ton * hp_ap.cool_min_capacity_ratio + i * (hp_ap.cool_max_cfm_per_ton * hp_ap.cool_max_capacity_ratio - hp_ap.cool_min_cfm_per_ton * hp_ap.cool_min_capacity_ratio) / (num_speeds - 1)) / hp_ap.cool_capacity_ratios[-1]
       # Calculate the SHR for each speed. Use minimum value of 0.98 to prevent E+ bypass factor calculation errors
@@ -3096,7 +3116,7 @@ class HVAC
     fan_powers_rated = []
     eers_rated = []
 
-    (0...num_speeds).each do |i|
+    for i in 0..num_speeds - 1
       fan_powers_rated << clg_ap.fan_power_rated * fan_powers_norm[i]
       eers_rated << UnitConversions.convert(cop_max_speed, 'W', 'Btu/hr') * cops_norm[i]
     end
@@ -3111,9 +3131,9 @@ class HVAC
     cvg = false
     final_n = nil
 
-    (1...itmax + 1).each do |n|
+    for n in 1..itmax + 1
       final_n = n
-      (0...num_speeds).each do |i|
+      for i in 0..num_speeds - 1
         eers_rated[i] = UnitConversions.convert(cop_max_speed, 'W', 'Btu/hr') * cops_norm[i]
       end
 
@@ -3132,7 +3152,7 @@ class HVAC
 
     clg_ap.cool_rated_eirs = []
 
-    (0...num_speeds).each do |i|
+    for i in 0..num_speeds - 1
       clg_ap.cool_rated_eirs << calc_eir_from_eer(UnitConversions.convert(cop_max_speed, 'W', 'Btu/hr') * cops_norm[i], fan_powers_rated[i])
     end
   end
@@ -3252,7 +3272,7 @@ class HVAC
     t_bins = [67.0, 72.0, 77.0, 82.0, 87.0, 92.0, 97.0, 102.0]
     frac_hours = [0.214, 0.231, 0.216, 0.161, 0.104, 0.052, 0.018, 0.004]
 
-    (0...8).each do |i|
+    for i in 0..7
       bL = ((t_bins[i] - 65.0) / (95.0 - 65.0)) * (q_A2_net / 1.1)
       q_k1 = q_F1_net + (q_B1_net - q_F1_net) / (82.0 - 67.0) * (t_bins[i] - 67.0)
       p_k1 = p_F1 + (p_B1 - p_F1) / (82.0 - 67.0) * (t_bins[i] - 67)
@@ -3286,7 +3306,7 @@ class HVAC
     hp_ap.heat_capacity_ratios = []
     hp_ap.heat_rated_cfm_per_ton = []
 
-    (0...num_speeds).each do |i|
+    for i in 0..num_speeds - 1
       hp_ap.heat_capacity_ratios << hp_ap.heat_min_capacity_ratio + i * (hp_ap.heat_max_capacity_ratio - hp_ap.heat_min_capacity_ratio) / (num_speeds - 1)
       hp_ap.heat_rated_cfm_per_ton << (hp_ap.heat_min_cfm_per_ton * hp_ap.heat_min_capacity_ratio + i * (hp_ap.heat_max_cfm_per_ton * hp_ap.heat_max_capacity_ratio - hp_ap.heat_min_cfm_per_ton * hp_ap.heat_min_capacity_ratio) / (num_speeds - 1)) / hp_ap.heat_capacity_ratios[-1]
     end
@@ -3303,7 +3323,7 @@ class HVAC
     fan_powers_rated = []
     cops_rated = []
 
-    (0...num_speeds).each do |i|
+    for i in 0..num_speeds - 1
       fan_powers_rated << hp_ap.fan_power_rated * fan_powers_norm[i]
       cops_rated << cop_max_speed * cops_norm[i]
     end
@@ -3319,9 +3339,9 @@ class HVAC
     cvg = false
     final_n = nil
 
-    (1...itmax + 1).each do |n|
+    for n in 1..itmax
       final_n = n
-      (0...num_speeds).each do |i|
+      for i in 0..num_speeds - 1
         cops_rated[i] = cop_max_speed * cops_norm[i]
       end
 
@@ -3339,7 +3359,7 @@ class HVAC
     end
 
     hp_ap.heat_rated_eirs = []
-    (0...num_speeds).each do |i|
+    for i in 0..num_speeds - 1
       hp_ap.heat_rated_eirs << calc_eir_from_cop(cop_max_speed * cops_norm[i], fan_powers_rated[i])
     end
   end
@@ -3476,7 +3496,7 @@ class HVAC
     etot = 0
     bLtot = 0
 
-    (0...15).each do |i|
+    for i in 0..14
       bL = ((65.0 - t_bins[i]) / (65.0 - t_OD)) * 0.77 * dHR
 
       q_1 = q_H1_1_net + (q_H0_1_net - q_H1_1_net) / (62.0 - 47.0) * (t_bins[i] - 47.0)
@@ -3561,7 +3581,7 @@ class HVAC
       hvac_ap.crankcase_kw = 0.0
       hvac_ap.crankcase_temp = nil
     else
-      if [HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypePTAC, HPXML::HVACTypeRoomAirConditioner].include? clg_sys_type
+      if [HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom, HPXML::HVACTypePTAC, HPXML::HVACTypeRoomAirConditioner].include? clg_sys_type
         hvac_ap.crankcase_kw = 0.0
       else
         hvac_ap.crankcase_kw = 0.05 * hvac_system.fraction_cool_load_served # From RESNET Publication No. 002-2017
@@ -4001,8 +4021,17 @@ class HVAC
         # Convert "fan coil" air distribution system to "regular velocity"
         if distribution_system.hvac_systems.size > 1
           # Has attached heating system, so create a copy specifically for the cooling system
-          hpxml.hvac_distributions << distribution_system.dup
-          hpxml.hvac_distributions[-1].id += "#{cooling_system.id}AirDistributionSystem"
+          hpxml.hvac_distributions.add(id: "#{distribution_system.id}_#{cooling_system.id}",
+                                       distribution_system_type: distribution_system.distribution_system_type,
+                                       air_type: distribution_system.air_type,
+                                       number_of_return_registers: distribution_system.number_of_return_registers,
+                                       conditioned_floor_area_served: distribution_system.conditioned_floor_area_served)
+          distribution_system.duct_leakage_measurements.each do |lm|
+            hpxml.hvac_distributions[-1].duct_leakage_measurements << lm.dup
+          end
+          distribution_system.ducts.each do |d|
+            hpxml.hvac_distributions[-1].ducts << d.dup
+          end
           cooling_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
         end
         hpxml.hvac_distributions[-1].air_type = HPXML::AirTypeRegularVelocity
@@ -4019,6 +4048,9 @@ class HVAC
                                                                      duct_leakage_units: HPXML::UnitsCFM25,
                                                                      duct_leakage_value: 0,
                                                                      duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
+        end
+        hpxml.hvac_distributions[-1].ducts.each do |d|
+          d.id = "#{d.id}_#{cooling_system.id}"
         end
       end
     end
@@ -4082,11 +4114,11 @@ class HVAC
   end
 
   def self.is_attached_heating_and_cooling_systems(hpxml, heating_system, cooling_system)
-    # Now only allows furnace+AC and PTAC
-    if not (hpxml.heating_systems.include?(heating_system) && ([HPXML::HVACTypeFurnace, HPXML::HVACTypePTACHeating].include? heating_system.heating_system_type))
+    # Now only allows furnace+AC
+    if not ((hpxml.heating_systems.include? heating_system) && (hpxml.cooling_systems.include? cooling_system))
       return false
     end
-    if not (hpxml.cooling_systems.include?(cooling_system) && ([HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type))
+    if not (heating_system.heating_system_type == HPXML::HVACTypeFurnace && cooling_system.cooling_system_type == HPXML::HVACTypeCentralAirConditioner)
       return false
     end
 
@@ -4173,58 +4205,25 @@ class HVAC
     return { rh_setpoint: rh_setpoint, ief: ief }
   end
 
-  def self.get_default_hvac_efficiency_by_year_installed(year, hvac_type, fuel_type, units)
-    if [HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace].include? hvac_type
-      # For wall/floor furnaces, map other fuel types to natural gas because the lookup table only provides efficiencies for natural gas.
-      fuel_type = HPXML::FuelTypeNaturalGas
+  def self.calc_seer_from_seer2(seer2, is_ducted)
+    # ANSI/RESNET/ICC 301 Table 4.4.4.1(1) SEER2/HSPF2 Conversion Factors
+    # Note: There are less common system types (packaged, small duct high velocity,
+    # and space-constrained) that we don't handle here.
+    if is_ducted # Ducted split system
+      return seer2 / 0.95
+    else # Ductless systems
+      return seer2 / 1.00
     end
-
-    type_id = { HPXML::HVACTypeCentralAirConditioner => 'split_dx',
-                HPXML::HVACTypeRoomAirConditioner => 'packaged_dx',
-                HPXML::HVACTypePTAC => 'packaged_dx',
-                HPXML::HVACTypeHeatPumpAirToAir => 'heat_pump',
-                HPXML::HVACTypeFurnace => 'central_furnace',
-                HPXML::HVACTypeWallFurnace => 'wall_furnace',
-                HPXML::HVACTypeFloorFurnace => 'wall_furnace', # floor furnaces mapped to wall furnaces
-                HPXML::HVACTypeBoiler => 'boiler' }[hvac_type]
-
-    fuel_primary_id = { EPlus::FuelTypeElectricity => 'electric',
-                        EPlus::FuelTypeNaturalGas => 'natural_gas',
-                        EPlus::FuelTypeOil => 'fuel_oil',
-                        EPlus::FuelTypeCoal => 'fuel_oil', # assumption
-                        EPlus::FuelTypeWoodCord => 'fuel_oil', # assumption
-                        EPlus::FuelTypeWoodPellets => 'fuel_oil', # assumption
-                        EPlus::FuelTypePropane => 'lpg' }[EPlus.fuel_type(fuel_type)]
-
-    metric_id = units.downcase
-    value = nil
-    lookup_year = 0
-    CSV.foreach(File.join(File.dirname(__FILE__), 'data', 'hvac_equipment_efficiency.csv'), headers: true) do |row|
-      next unless row['type_id'] == type_id
-      next unless row['fuel_primary_id'] == fuel_primary_id
-      next unless row['metric_id'] == metric_id
-
-      row_year = Integer(row['year'])
-      if (row_year - year).abs <= (lookup_year - year).abs
-        lookup_year = row_year
-        value = Float(row['value'])
-      end
-    end
-
-    return value
   end
 
-  def self.calc_seer_from_seer2(seer2)
-    # ANSI/RESNET/ICC 301 Table 4.4.4.1(1) SEER2/HSPF2 Conversion Factors (from AHRI)
-    # Calculation below for split systems.
-    seer = seer2 / 0.95
-    return seer
-  end
-
-  def self.calc_hspf_from_hspf2(hspf2)
-    # ANSI/RESNET/ICC 301 Table 4.4.4.1(1) SEER2/HSPF2 Conversion Factors (from AHRI)
-    # Calculation below for split systems.
-    hspf = hspf2 / 0.85
-    return hspf
+  def self.calc_hspf_from_hspf2(hspf2, is_ducted)
+    # ANSI/RESNET/ICC 301 Table 4.4.4.1(1) SEER2/HSPF2 Conversion Factors
+    # Note: There are less common system types (packaged, small duct high velocity,
+    # and space-constrained) that we don't handle here.
+    if is_ducted # Ducted split system
+      return hspf2 / 0.85
+    else # Ducted split system
+      return hspf2 / 0.90
+    end
   end
 end
