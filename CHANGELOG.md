@@ -18,6 +18,7 @@ Features
 - Add ability to calculate emissions for various scenarios ([#791](https://github.com/NREL/resstock/pull/791))
 - Add ability to calculate simple utility bills for various scenarios ([#984](https://github.com/NREL/resstock/pull/984))
 - Modeled floor area based on AHS 2021 and AHS 2019 ([#978](https://github.com/NREL/resstock/pull/978))
+- Add area median income ([#1004](https://github.com/NREL/resstock/pull/1004))
 - Add new ResStockArgumentsPostHPXML measure to the workflow that post-processes the output of the BuildResidentialHPXML and BuildResidentialScheduleFile measures ([#929](https://github.com/NREL/resstock/pull/929))
 
 Fixes
