@@ -139,7 +139,7 @@ class Geometry
     end
 
     num_points = footprint_polygon.size
-    (1..num_points).to_a.each do |i|
+    for i in 1..num_points
       pt1 = footprint_polygon[(i + 1) % num_points]
       pt2 = footprint_polygon[i % num_points]
       polygon_points = [pt1, pt2]
@@ -865,16 +865,6 @@ class Geometry
     return m
   end
 
-  def self.get_garage_spaces(spaces)
-    garage_spaces = []
-    spaces.each do |space|
-      next if not is_garage(space)
-
-      garage_spaces << space
-    end
-    return garage_spaces
-  end
-
   def self.get_space_floor_z(space)
     space.surfaces.each do |surface|
       next unless surface.surfaceType.downcase == 'floor'
@@ -1370,15 +1360,21 @@ class Geometry
   def self.get_conditioned_spaces(spaces)
     conditioned_spaces = []
     spaces.each do |space|
-      next if space_is_unconditioned(space)
+      next unless space.spaceType.get.standardsSpaceType.get == HPXML::LocationLivingSpace
 
       conditioned_spaces << space
     end
     return conditioned_spaces
   end
 
-  def self.space_is_unconditioned(space)
-    return !space_is_conditioned(space)
+  def self.get_garage_spaces(spaces)
+    garage_spaces = []
+    spaces.each do |space|
+      next unless space.spaceType.get.standardsSpaceType.get == HPXML::LocationGarage
+
+      garage_spaces << space
+    end
+    return garage_spaces
   end
 
   def self.is_rectangular_wall(surface)
@@ -1667,7 +1663,7 @@ class Geometry
     end
 
     # additional floors
-    (2..num_floors).to_a.each do |story|
+    for story in 2..num_floors
       new_living_space = living_space.clone.to_Space.get
       assign_indexes(model, living_polygon, new_living_space)
       new_living_space.setName("living space|story #{story}")
@@ -2403,25 +2399,6 @@ class Geometry
       end
     end
     return facade
-  end
-
-  def self.space_is_conditioned(space)
-    unless space.isPlenum
-      if space.spaceType.is_initialized
-        if space.spaceType.get.standardsSpaceType.is_initialized
-          return is_conditioned_space_type(space.spaceType.get.standardsSpaceType.get)
-        end
-      end
-    end
-    return false
-  end
-
-  def self.is_conditioned_space_type(space_type)
-    if [HPXML::LocationLivingSpace].include? space_type
-      return true
-    end
-
-    return false
   end
 
   # Return an array of x values for surfaces passed in. The values will be relative to the parent origin. This was intended for spaces.

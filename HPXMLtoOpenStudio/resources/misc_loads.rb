@@ -150,7 +150,7 @@ class MiscLoads
       mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
       mel.setName(obj_name)
       mel.setEndUseSubcategory(obj_name)
-      mel.setSpace(living_space)
+      mel.setSpace(living_space) # no heat gain, so assign the equipment to an arbitrary space
       mel_def.setName(obj_name)
       mel_def.setDesignLevel(space_design_level)
       mel_def.setFractionRadiant(0)
@@ -172,7 +172,7 @@ class MiscLoads
       mfl.setName(obj_name)
       mfl.setEndUseSubcategory(obj_name)
       mfl.setFuelType(EPlus.fuel_type(HPXML::FuelTypeNaturalGas))
-      mfl.setSpace(living_space)
+      mfl.setSpace(living_space) # no heat gain, so assign the equipment to an arbitrary space
       mfl_def.setName(obj_name)
       mfl_def.setDesignLevel(space_design_level)
       mfl_def.setFractionRadiant(0)
@@ -219,7 +219,7 @@ class MiscLoads
       mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
       mel.setName(obj_name)
       mel.setEndUseSubcategory(obj_name)
-      mel.setSpace(living_space)
+      mel.setSpace(living_space) # no heat gain, so assign the equipment to an arbitrary space
       mel_def.setName(obj_name)
       mel_def.setDesignLevel(space_design_level)
       mel_def.setFractionRadiant(0)

@@ -19,6 +19,7 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
      'base-hvac-autosize-ground-to-air-heat-pump-sizing-methodology',
      'base-hvac-autosize-mini-split-heat-pump-ducted-sizing-methodology',
      'base-hvac-autosize-pthp-sizing-methodology',
+     'base-hvac-autosize-room-ac-with-reverse-cycle-sizing-methodology',
      'base-hvac-autosize-dual-fuel-air-to-air-heat-pump-1-speed-sizing-methodology'].each do |hpxml_file|
       # Run w/ ACCA sizing
       args_hash = {}

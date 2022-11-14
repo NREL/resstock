@@ -331,7 +331,7 @@ class ScheduleGenerator
           end
           if j >= @mkc_ts_per_day then break end # break as soon as we have filled activities for the day
 
-          transition_probs = transition_matrix[(j - 1) * 7...j * 7] # obtain the transition matrix for current timestep
+          transition_probs = transition_matrix[(j - 1) * 7..j * 7 - 1] # obtain the transition matrix for current timestep
           state_prob = transition_probs[active_state]
         end
       end
@@ -434,7 +434,7 @@ class ScheduleGenerator
     sink_flow_rate = gaussian_rand(prng, sink_flow_rate_mean, sink_flow_rate_std, 0.1)
     @total_days_in_year.times do |day|
       for _n in 1..cluster_per_day
-        todays_probable_steps = sink_activity_probable_mins[day * @mkc_ts_per_day...((day + 1) * @mkc_ts_per_day)]
+        todays_probable_steps = sink_activity_probable_mins[day * @mkc_ts_per_day..((day + 1) * @mkc_ts_per_day - 1)]
         todays_probablities = todays_probable_steps.map.with_index { |p, i| p * hourly_onset_prob[i / @mkc_ts_per_hour] }
         prob_sum = todays_probablities.sum(0)
         normalized_probabilities = todays_probablities.map { |p| p * 1 / prob_sum }
@@ -805,7 +805,7 @@ class ScheduleGenerator
     new_array_size = array.size / group_size
     new_array = [0] * new_array_size
     new_array_size.times do |j|
-      new_array[j] = array[(j * group_size)...(j + 1) * group_size].sum(0)
+      new_array[j] = array[(j * group_size)..(j + 1) * group_size - 1].sum(0)
     end
     return new_array
   end
@@ -1032,7 +1032,7 @@ class ScheduleGenerator
     sch = [0] * 24 * @total_days_in_year
     final_days = @total_days_in_year - holiday_start_day + 1
     beginning_days = holiday_end_day
-    sch[0...holiday_end_day * 24] = holiday_sch * beginning_days
+    sch[0..holiday_end_day * 24 - 1] = holiday_sch * beginning_days
     sch[(holiday_start_day - 1) * 24..-1] = holiday_sch * final_days
     m = sch.max
     sch = sch.map { |s| s / m }

@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright © ISO/IEC 2015
+    The following permission notice and disclaimer shall be included in all
+    copies of this XML schema ("the Schema"), and derivations of the Schema:
+    Permission is hereby granted, free of charge in perpetuity, to any
+    person obtaining a copy of the Schema, to use, copy, modify, merge and
+    distribute free of charge, copies of the Schema for the purposes of
+    developing, implementing, installing and using software based on the
+    Schema, and to permit persons to whom the Schema is furnished to do so,
+    subject to the following conditions:
+    THE SCHEMA IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+    OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+    ARISING FROM, OUT OF OR IN CONNECTION WITH THE SCHEMA OR THE USE OR
+    OTHER DEALINGS IN THE SCHEMA.
+    In addition, any modified copy of the Schema shall include the following
+    notice:
+    "THIS SCHEMA HAS BEEN MODIFIED FROM THE SCHEMA DEFINED IN ISO/IEC 19757-3,
+    AND SHOULD NOT BE INTERPRETED AS COMPLYING WITH THAT STANDARD".
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://purl.oclc.org/dsdl/schematron" xmlns:sch="http://purl.oclc.org/dsdl/schematron">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <!-- Element declarations -->
+    <xs:element name="schema">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="sch:foreign"/>
+                <xs:element ref="sch:include"/>
+                <xs:choice>
+                    <xs:element ref="sch:title"/>
+                    <xs:element ref="sch:ns"/>
+                    <xs:element ref="sch:p"/>
+                    <xs:element ref="sch:let"/>
+                    <xs:element ref="sch:phase"/>
+                    <xs:element ref="sch:pattern"/>
+                    <xs:element ref="sch:diagnostics"/>
+                    <xs:element ref="sch:properties"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attributeGroup ref="sch:rich"/>
+            <xs:attribute name="schemaVersion" type="sch:non-empty-string"/>
+            <xs:attribute name="defaultPhase" type="xs:IDREF"/>
+            <xs:attribute name="queryBinding" type="sch:non-empty-string"/>
+            <xs:attributeGroup ref="sch:foreign"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="active">
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="sch:foreign"/>
+                <xs:choice>
+                    <xs:element ref="sch:dir"/>
+                    <xs:element ref="sch:emph"/>
+                    <xs:element ref="sch:span"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="pattern" use="required" type="xs:IDREF"/>
+            <xs:attributeGroup ref="sch:foreign"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="assert">
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="sch:foreign"/>
+                <xs:choice>
+                    <xs:element ref="sch:name"/>
+                    <xs:element ref="sch:value-of"/>
+                    <xs:element ref="sch:emph"/>
+                    <xs:element ref="sch:dir"/>
+                    <xs:element ref="sch:span"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="test" use="required" type="sch:exprValue"/>
+            <xs:attribute name="flag" type="sch:flagValue"/>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="diagnostics" type="xs:IDREFS"/>
+            <xs:attribute name="properties" type="xs:IDREFS"/>
+            <xs:attributeGroup ref="sch:rich"/>
+            <xs:attributeGroup ref="sch:linkable"/>
+            <xs:attributeGroup ref="sch:foreign"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="diagnostic">
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="sch:foreign"/>
+                <xs:choice>
+                    <xs:element ref="sch:value-of"/>
+                    <xs:element ref="sch:emph"/>
+                    <xs:element ref="sch:dir"/>
+                    <xs:element ref="sch:span"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="id" use="required" type="xs:ID"/>
+            <xs:attributeGroup ref="sch:rich"/>
+            <xs:attributeGroup ref="sch:foreign"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="diagnostics">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="sch:foreign"/>
+                <xs:element ref="sch:include"/>
+                <xs:element ref="sch:diagnostic"/>
+            </xs:choice>
+            <xs:attributeGroup ref="sch:foreign"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="dir">
+        <xs:complexType mixed="true">
+            <xs:group ref="sch:foreign"/>
+            <xs:attribute name="value">
+                <xs:simpleType>
+                    <xs:restriction base="xs:token">
+                        <xs:enumeration value="ltr"/>
+                        <xs:enumeration value="rtl"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attributeGroup ref="sch:foreign"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="emph">
+        <xs:complexType mixed="true"/>
+    </xs:element>
+    <xs:element name="extends">
+        <xs:complexType>
+            <xs:attribute name="rule" type="xs:IDREF"/>
+            <xs:attribute name="href" type="sch:uriValue"/>
+            <xs:attributeGroup ref="sch:foreign-empty"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="let">
+        <xs:complexType>
+            <xs:group minOccurs="0" maxOccurs="unbounded" ref="sch:foreign-element"/>
+            <xs:attribute name="name" use="required" type="sch:nameValue"/>
+            <xs:attribute name="value" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="name">
+        <xs:complexType>
+            <xs:attribute name="path" type="sch:pathValue"/>
+            <xs:attributeGroup ref="sch:foreign-empty"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="ns">
+        <xs:complexType>
+            <xs:attribute name="uri" use="required" type="sch:uriValue"/>
+            <xs:attribute name="prefix" use="required" type="sch:nameValue"/>
+            <xs:attributeGroup ref="sch:foreign-empty"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="p">
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="sch:foreign"/>
+                <xs:choice>
+                    <xs:element ref="sch:dir"/>
+                    <xs:element ref="sch:emph"/>
+                    <xs:element ref="sch:span"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="class" type="sch:classValue"/>
+            <xs:attribute name="icon" type="sch:uriValue"/>
+            <xs:attributeGroup ref="sch:foreign"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="param">
+        <xs:complexType>
+            <xs:attribute name="name" use="required" type="sch:nameValue"/>
+            <xs:attribute name="value" use="required" type="sch:non-empty-string"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="pattern">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="sch:foreign"/>
+                <xs:element ref="sch:include"/>
+                <xs:choice>
+                    <xs:element ref="sch:title"/>
+                    <xs:element ref="sch:p"/>
+                    <xs:element ref="sch:param"/>
+                    <xs:element ref="sch:let"/>
+                    <xs:element ref="sch:rule"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="documents" type="sch:pathValue"/>
+            <xs:attributeGroup ref="sch:rich"/>
+            <xs:attributeGroup ref="sch:foreign"/>
+            <xs:attribute name="abstract">
+                <xs:simpleType>
+                    <xs:restriction base="xs:token">
+                        <xs:enumeration value="true"/>
+                        <xs:enumeration value="false"/>
+                        <xs:enumeration value="false"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="is-a" type="xs:IDREF"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="phase">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="sch:foreign"/>
+                <xs:element ref="sch:include"/>
+                <xs:choice>
+                    <xs:element ref="sch:p"/>
+                    <xs:element ref="sch:let"/>
+                    <xs:element ref="sch:active"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="id" use="required" type="xs:ID"/>
+            <xs:attributeGroup ref="sch:rich"/>
+            <xs:attributeGroup ref="sch:foreign"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="properties">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="0" maxOccurs="unbounded" ref="sch:property"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="property">
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="sch:foreign"/>
+                <xs:choice>
+                    <xs:element ref="sch:name"/>
+                    <xs:element ref="sch:value-of"/>
+                    <xs:element ref="sch:emph"/>
+                    <xs:element ref="sch:dir"/>
+                    <xs:element ref="sch:span"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="id" use="required" type="xs:ID"/>
+            <xs:attribute name="role" type="sch:roleValue"/>
+            <xs:attribute name="scheme"/>
+            <xs:attributeGroup ref="sch:foreign"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="report">
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="sch:foreign"/>
+                <xs:choice>
+                    <xs:element ref="sch:name"/>
+                    <xs:element ref="sch:value-of"/>
+                    <xs:element ref="sch:emph"/>
+                    <xs:element ref="sch:dir"/>
+                    <xs:element ref="sch:span"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="test" use="required" type="sch:exprValue"/>
+            <xs:attribute name="flag" type="sch:flagValue"/>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="diagnostics" type="xs:IDREFS"/>
+            <xs:attribute name="properties" type="xs:IDREFS"/>
+            <xs:attributeGroup ref="sch:rich"/>
+            <xs:attributeGroup ref="sch:linkable"/>
+            <xs:attributeGroup ref="sch:foreign"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="rule">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="sch:foreign"/>
+                <xs:element ref="sch:include"/>
+                <xs:choice>
+                    <xs:element ref="sch:let"/>
+                    <xs:element ref="sch:assert"/>
+                    <xs:element ref="sch:report"/>
+                    <xs:element ref="sch:extends"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="flag" type="sch:flagValue"/>
+            <xs:attributeGroup ref="sch:rich"/>
+            <xs:attributeGroup ref="sch:linkable"/>
+            <xs:attributeGroup ref="sch:foreign"/>
+            <xs:attribute name="abstract">
+                <xs:simpleType>
+                    <xs:restriction base="xs:token">
+                        <xs:enumeration value="true"/>
+                        <xs:enumeration value="false"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="context" type="sch:pathValue"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="span">
+        <xs:complexType mixed="true">
+            <xs:group ref="sch:foreign"/>
+            <xs:attribute name="class" use="required" type="sch:classValue"/>
+            <xs:attributeGroup ref="sch:foreign"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="title">
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:element minOccurs="0" maxOccurs="unbounded" ref="sch:dir"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="value-of">
+        <xs:complexType>
+            <xs:attribute name="select" use="required" type="sch:pathValue"/>
+            <xs:attributeGroup ref="sch:foreign-empty"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- common declarations -->
+    <xs:element name="include">
+        <xs:complexType>
+            <xs:attribute name="href" use="required" type="sch:uriValue"/>
+            <xs:attributeGroup ref="sch:foreign-empty"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:attributeGroup name="rich">
+        <xs:attribute name="icon" type="sch:uriValue"/>
+        <xs:attribute name="see" type="sch:uriValue"/>
+        <xs:attribute name="fpi" type="sch:fpiValue"/>
+        <!-- <xs:attribute ref="xml:lang"/> -->
+        <!-- <xs:attribute ref="xml:space"/> -->
+    </xs:attributeGroup>
+    <xs:attributeGroup name="linkable">
+        <xs:attribute name="role" type="sch:roleValue"/>
+        <xs:attribute name="subject" type="sch:pathValue"/>
+    </xs:attributeGroup>
+    <xs:group name="foreign">
+        <xs:sequence>
+            <xs:group minOccurs="0" maxOccurs="unbounded" ref="sch:foreign-element"/>
+        </xs:sequence>
+    </xs:group>
+    <xs:attributeGroup name="foreign">
+        <xs:attributeGroup ref="sch:foreign-attributes"/>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="foreign-empty">
+        <xs:attributeGroup ref="sch:foreign-attributes"/>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="foreign-attributes">
+        <xs:anyAttribute namespace="##local" processContents="skip"/>
+    </xs:attributeGroup>
+    <xs:group name="foreign-element">
+        <xs:choice>
+            <xs:any namespace="##other" processContents="skip"/>
+            <xs:any namespace="##local" processContents="skip"/>
+        </xs:choice>
+    </xs:group>
+    <!-- Data types -->
+    <xs:simpleType name="uriValue">
+        <xs:restriction base="xs:anyURI"/>
+    </xs:simpleType>
+    <xs:simpleType name="pathValue">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="exprValue">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="fpiValue">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="langValue">
+        <xs:restriction base="xs:language"/>
+    </xs:simpleType>
+    <xs:simpleType name="roleValue">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="flagValue">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="nameValue">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <!-- In the default query language binding, xsd:NCNAME -->
+    <xs:simpleType name="classValue">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="non-empty-string">
+        <xs:restriction base="xs:token">
+            <xs:minLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

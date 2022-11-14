@@ -809,7 +809,7 @@ class Psychrometrics
     itmax = 50 # maximum iterations
     cvg = false
 
-    (1...itmax + 1).each do |i|
+    for i in 1..itmax
       w_ADP = w_fT_R_P_SI(t_ADP, 1.0, p)
       error = h_ADP - h_fT_w_SI(t_ADP, w_ADP)
 
