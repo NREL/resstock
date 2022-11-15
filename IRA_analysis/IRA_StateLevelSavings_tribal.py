@@ -1025,7 +1025,6 @@ class IRAAnalysis:
             "Vacancy Status",
             "PUMA",
             "Tenure",
-            # "Area Median Income Tribal",
             "Federal Poverty Level Tribal",  # FPL only has the lowest NA sampling_prob problem
             "Geometry Building Type RECS",
             "Heating Fuel",
@@ -1136,7 +1135,7 @@ def main(euss_dir):
 
     ## Set control variables
     coarsening = True  # <--- # whether to use coarsening_map
-    as_percentage = False  # <--- # whether to calculate savings as pct
+    as_percentage = False # <--- # whether to calculate savings as pct
 
     print(f"coarsening = {coarsening}")
     print(f"as_percentage = {as_percentage}")
@@ -1316,11 +1315,11 @@ if __name__ == "__main__":
     else:
         print(
             """
-            usage: python IRA_StateLevelSavings.py [optional] <path_to_downloaded_euss_round1_sightglass_files>
+            usage: python IRA_StateLevelSavings_tribal.py [optional] <path_to_downloaded_euss_round1_sightglass_files>
             check code for default path_to_downloaded_euss_round1_sightglass_files
             """
         )
         sys.exit(1)
 
     main(euss_dir)
-    main_goal_achievement(euss_dir)
+    # main_goal_achievement(euss_dir)
