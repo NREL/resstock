@@ -18,6 +18,7 @@ class Simulation
 
     zonecap = model.getZoneCapacitanceMultiplierResearchSpecial
     zonecap.setHumidityCapacityMultiplier(15)
+    zonecap.setTemperatureCapacityMultiplier(7)
 
     if not min_system_timestep_mins.nil?
       convlim = model.getConvergenceLimits
