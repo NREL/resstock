@@ -319,7 +319,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Get the absolute paths relative to this meta measure in the run directory
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
-    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
       register_logs(runner, new_runner)
       return false
     end
@@ -328,6 +328,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../existing.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
+    measures['ResStockArgumentsPostHPXML'] = [{ 'hpxml_path' => hpxml_path }]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
@@ -352,7 +353,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
     measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
 
-    # Get registered values and pass them to BuildResidentialHPXML
+    # Simulation control
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = args['simulation_control_timestep'].get if args['simulation_control_timestep'].is_initialized
     if args['simulation_control_run_period_begin_month'].is_initialized && args['simulation_control_run_period_begin_day_of_month'].is_initialized && args['simulation_control_run_period_end_month'].is_initialized && args['simulation_control_run_period_end_day_of_month'].is_initialized
       begin_month = "#{Date::ABBR_MONTHNAMES[args['simulation_control_run_period_begin_month'].get]}"
@@ -533,9 +534,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # Get registered values and pass them to BuildResidentialScheduleFile
+    # BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
+
+    # ResStockArgumentsPostHPXML
+    measures['ResStockArgumentsPostHPXML'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # Specify measures to run
     measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # for apply_hvac_sizing
@@ -546,6 +550,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
+      register_logs(runner, new_runner)
+      return false
+    end
+
+    if not apply_measures(measures_dir, { 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
       register_logs(runner, new_runner)
       return false
     end
@@ -601,19 +610,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     return true
-  end
-
-  def register_logs(runner, new_runner)
-    new_runner.result.warnings.each do |warning|
-      runner.registerWarning(warning.logMessage)
-    end
-    new_runner.result.info.each do |info|
-      runner.registerInfo(info.logMessage)
-    end
-    new_runner.result.errors.each do |error|
-      runner.registerError(error.logMessage)
-    end
-    return
   end
 end
 
