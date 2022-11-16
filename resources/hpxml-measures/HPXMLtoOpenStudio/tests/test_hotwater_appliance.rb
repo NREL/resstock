@@ -13,18 +13,14 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
   end
 
   def get_ee_kwh_per_year(model, name)
-    kwh_yr = []
+    kwh_yr = 0.0
     model.getElectricEquipments.each do |ee|
       next unless ee.endUseSubcategory == name
 
       hrs = Schedule.annual_equivalent_full_load_hrs(model.yearDescription.get.assumedYear, ee.schedule.get)
-      kwh_yr << UnitConversions.convert(hrs * ee.designLevel.get * ee.multiplier * ee.space.get.multiplier, 'Wh', 'kWh')
+      kwh_yr += UnitConversions.convert(hrs * ee.designLevel.get * ee.multiplier * ee.space.get.multiplier, 'Wh', 'kWh')
     end
-    if kwh_yr.empty?
-      return
-    else
-      return kwh_yr.sum(0.0)
-    end
+    return kwh_yr
   end
 
   def get_ee_fractions(model, name)
@@ -459,20 +455,20 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
     assert_nil(get_wu_gpd(model, Constants.ObjectNameDishwasher))
 
     # electric equipment
-    assert_nil(get_ee_kwh_per_year(model, Constants.ObjectNameClothesWasher))
-    assert_equal([], get_ee_fractions(model, Constants.ObjectNameClothesWasher))
+    assert_equal(0.0, get_ee_kwh_per_year(model, Constants.ObjectNameClothesWasher))
+    assert(get_ee_fractions(model, Constants.ObjectNameClothesWasher).empty?)
 
-    assert_nil(get_ee_kwh_per_year(model, Constants.ObjectNameDishwasher))
-    assert_equal([], get_ee_fractions(model, Constants.ObjectNameDishwasher))
+    assert_equal(0.0, get_ee_kwh_per_year(model, Constants.ObjectNameDishwasher))
+    assert(get_ee_fractions(model, Constants.ObjectNameDishwasher).empty?)
 
-    assert_nil(get_ee_kwh_per_year(model, Constants.ObjectNameClothesDryer))
-    assert_equal([], get_ee_fractions(model, Constants.ObjectNameClothesDryer))
+    assert_equal(0.0, get_ee_kwh_per_year(model, Constants.ObjectNameClothesDryer))
+    assert(get_ee_fractions(model, Constants.ObjectNameClothesDryer).empty?)
 
-    assert_nil(get_ee_kwh_per_year(model, Constants.ObjectNameRefrigerator))
-    assert_equal([], get_ee_fractions(model, Constants.ObjectNameRefrigerator))
+    assert_equal(0.0, get_ee_kwh_per_year(model, Constants.ObjectNameRefrigerator))
+    assert(get_ee_fractions(model, Constants.ObjectNameRefrigerator).empty?)
 
-    assert_nil(get_ee_kwh_per_year(model, Constants.ObjectNameCookingRange))
-    assert_equal([], get_ee_fractions(model, Constants.ObjectNameCookingRange))
+    assert_equal(0.0, get_ee_kwh_per_year(model, Constants.ObjectNameCookingRange))
+    assert(get_ee_fractions(model, Constants.ObjectNameCookingRange).empty?)
 
     # other equipment
     water_sens = -262.507

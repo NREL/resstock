@@ -138,7 +138,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     timestamp_chs << 'end'
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('timeseries_timestamp_convention', timestamp_chs, false)
     arg.setDisplayName('Generate Timeseries Output: Timestamp Convention')
-    arg.setDescription("Determines whether timeseries timestamps use the start-of-timestep or end-of-timestep convention. Doesn't apply if the output format is 'csv_dview'.")
+    arg.setDescription("Determines whether timeseries timestamps use the start-of-period or end-of-period convention. Doesn't apply if the output format is 'csv_dview'.")
     arg.setDefaultValue('start')
     args << arg
 
@@ -1278,6 +1278,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         htg_cap += hvac_system.heating_capacity.to_f
       elsif hvac_system.is_a? HPXML::CoolingSystem
         clg_cap += hvac_system.cooling_capacity.to_f
+        if hvac_system.has_integrated_heating
+          htg_cap += hvac_system.integrated_heating_system_capacity.to_f
+        end
       elsif hvac_system.is_a? HPXML::HeatPump
         htg_cap += hvac_system.heating_capacity.to_f
         clg_cap += hvac_system.cooling_capacity.to_f
@@ -1383,6 +1386,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
     @hpxml.cooling_systems.each do |clg_system|
+      if clg_system.has_integrated_heating && clg_system.integrated_heating_system_fraction_heat_load_served > 0
+        # Cooling system w/ integrated heating (e.g., Room AC w/ electric resistance heating)
+        htg_ids << clg_system.id
+        htg_seed_id_map[clg_system.id] = clg_system.htg_seed_id
+        htg_fuels[clg_system.id] = clg_system.integrated_heating_system_fuel
+        htg_eecs[clg_system.id] = get_eec_value_numerator('Percent') / clg_system.integrated_heating_system_efficiency_percent
+      end
+
       next unless clg_system.fraction_cool_load_served > 0
 
       clg_ids << clg_system.id
@@ -1418,6 +1429,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
       clg_ids << heat_pump.id
       clg_seed_id_map[heat_pump.id] = heat_pump.clg_seed_id
+      clg_fuels[heat_pump.id] = heat_pump.heat_pump_fuel
       if not heat_pump.cooling_efficiency_seer.nil?
         clg_eecs[heat_pump.id] = get_eec_value_numerator('SEER') / heat_pump.cooling_efficiency_seer
       elsif not heat_pump.cooling_efficiency_seer2.nil?
@@ -1474,9 +1486,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       @loads[LT::Heating].annual_output_by_system[htg_system.id] = htg_system.fraction_heat_load_served * @loads[LT::Heating].annual_output
     end
     (@hpxml.cooling_systems + @hpxml.heat_pumps).each do |clg_system|
-      next unless clg_ids.include? clg_system.id
+      if clg_ids.include? clg_system.id
+        @loads[LT::Cooling].annual_output_by_system[clg_system.id] = clg_system.fraction_cool_load_served * @loads[LT::Cooling].annual_output
+      end
+      next unless (clg_system.is_a? HPXML::CoolingSystem) && clg_system.has_integrated_heating # Cooling system w/ integrated heating (e.g., Room AC w/ electric resistance heating)
 
-      @loads[LT::Cooling].annual_output_by_system[clg_system.id] = clg_system.fraction_cool_load_served * @loads[LT::Cooling].annual_output
+      if htg_ids.include? clg_system.id
+        @loads[LT::Heating].annual_output_by_system[clg_system.id] = clg_system.integrated_heating_system_fraction_heat_load_served * @loads[LT::Heating].annual_output
+      end
     end
 
     # Handle dual-fuel heat pumps

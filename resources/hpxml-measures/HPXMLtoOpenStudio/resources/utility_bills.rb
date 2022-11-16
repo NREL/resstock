@@ -22,7 +22,7 @@ class UtilityBills
       else
         # Calculate marginal & average rates from user-specified fixed charge and EIA data
         year_ix = nil
-        rows = CSV.read(File.join(File.dirname(__FILE__), '../../ReportUtilityBills/resources/Data/UtilityRates/Average_retail_price_of_electricity.csv'))
+        rows = CSV.read(File.join(File.dirname(__FILE__), '../../ReportUtilityBills/resources/simple_rates/Average_retail_price_of_electricity.csv'))
         rows.each do |row|
           year_ix = row.index('2021') if row[0] == 'description'
           next if row[0].upcase != "Residential : #{state_name}".upcase
@@ -39,7 +39,7 @@ class UtilityBills
         average_rate = marginal_rate_to_average_rate(marginal_rate, fixed_charge, household_consumption)
       else
         # Calculate marginal & average rates from user-specified fixed charge and EIA data
-        rows = CSV.read(File.join(File.dirname(__FILE__), '../../ReportUtilityBills/resources/Data/UtilityRates/NG_PRI_SUM_A_EPG0_PRS_DMCF_A.csv'))
+        rows = CSV.read(File.join(File.dirname(__FILE__), '../../ReportUtilityBills/resources/simple_rates/NG_PRI_SUM_A_EPG0_PRS_DMCF_A.csv'))
         rows = rows[2..-1]
         state_ix = rows[0].index("#{state_name} Price of Natural Gas Delivered to Residential Consumers (Dollars per Thousand Cubic Feet)")
         rows[1..-1].each do |row|
@@ -82,7 +82,7 @@ class UtilityBills
   end
 
   def self.get_household_consumption(state_code, fuel_type)
-    rows = CSV.read(File.join(File.dirname(__FILE__), '../../ReportUtilityBills/resources/Data/UtilityRates/HouseholdConsumption.csv'))
+    rows = CSV.read(File.join(File.dirname(__FILE__), '../../ReportUtilityBills/resources/simple_rates/HouseholdConsumption.csv'))
     rows.each do |row|
       next if row[0] != state_code
 
@@ -125,7 +125,7 @@ class UtilityBills
   def self.get_gallon_marginal_rates(filename)
     marginal_rates = {}
 
-    rows = CSV.read(File.join(File.dirname(__FILE__), "../../ReportUtilityBills/resources/Data/UtilityRates/#{filename}"))
+    rows = CSV.read(File.join(File.dirname(__FILE__), "../../ReportUtilityBills/resources/simple_rates/#{filename}"))
     rows = rows[2..-1]
     headers = rows[0]
 
