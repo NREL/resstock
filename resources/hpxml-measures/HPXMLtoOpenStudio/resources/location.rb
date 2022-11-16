@@ -104,7 +104,7 @@ class Location
       test_epw_path = File.join(File.dirname(hpxml_path), epw_path)
       epw_path = test_epw_path if File.exist? test_epw_path
     end
-    (1..3).to_a.each do |level_deep|
+    for level_deep in 1..3
       next unless not File.exist? epw_path
 
       level = (['..'] * level_deep).join('/')

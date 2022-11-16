@@ -167,6 +167,8 @@ def create_hpxmls
     'base-enclosure-beds-2.xml' => 'base.xml',
     'base-enclosure-beds-4.xml' => 'base.xml',
     'base-enclosure-beds-5.xml' => 'base.xml',
+    'base-enclosure-ceilingtypes.xml' => 'base.xml',
+    'base-enclosure-floortypes.xml' => 'base-foundation-ambient.xml',
     'base-enclosure-garage.xml' => 'base.xml',
     'base-enclosure-infil-ach-house-pressure.xml' => 'base.xml',
     'base-enclosure-infil-cfm-house-pressure.xml' => 'base-enclosure-infil-cfm50.xml',
@@ -262,10 +264,14 @@ def create_hpxmls
     'base-hvac-autosize-mini-split-heat-pump-ductless-backup-stove.xml' => 'base-hvac-mini-split-heat-pump-ductless-backup-stove.xml',
     'base-hvac-autosize-mini-split-air-conditioner-only-ducted.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'base-hvac-autosize-ptac.xml' => 'base-hvac-ptac.xml',
-    'base-hvac-autosize-ptac-with-heating.xml' => 'base-hvac-ptac-with-heating.xml',
+    'base-hvac-autosize-ptac-with-heating.xml' => 'base-hvac-ptac-with-heating-electricity.xml',
     'base-hvac-autosize-pthp-sizing-methodology-acca.xml' => 'base-hvac-pthp.xml',
     'base-hvac-autosize-pthp-sizing-methodology-hers.xml' => 'base-hvac-pthp.xml',
     'base-hvac-autosize-pthp-sizing-methodology-maxload.xml' => 'base-hvac-pthp.xml',
+    'base-hvac-autosize-room-ac-with-reverse-cycle-sizing-methodology-acca.xml' => 'base-hvac-room-ac-with-reverse-cycle.xml',
+    'base-hvac-autosize-room-ac-with-reverse-cycle-sizing-methodology-hers.xml' => 'base-hvac-room-ac-with-reverse-cycle.xml',
+    'base-hvac-autosize-room-ac-with-reverse-cycle-sizing-methodology-maxload.xml' => 'base-hvac-room-ac-with-reverse-cycle.xml',
+    'base-hvac-autosize-room-ac-with-heating.xml' => 'base-hvac-room-ac-with-heating.xml',
     'base-hvac-autosize-room-ac-only.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-autosize-stove-oil-only.xml' => 'base-hvac-stove-oil-only.xml',
     'base-hvac-autosize-wall-furnace-elec-only.xml' => 'base-hvac-wall-furnace-elec-only.xml',
@@ -334,11 +340,14 @@ def create_hpxmls
     'base-hvac-none.xml' => 'base-location-honolulu-hi.xml',
     'base-hvac-portable-heater-gas-only.xml' => 'base.xml',
     'base-hvac-ptac.xml' => 'base.xml',
-    'base-hvac-ptac-with-heating.xml' => 'base-hvac-ptac.xml',
+    'base-hvac-ptac-with-heating-electricity.xml' => 'base-hvac-ptac.xml',
+    'base-hvac-ptac-with-heating-natural-gas.xml' => 'base-hvac-ptac.xml',
     'base-hvac-pthp.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
     'base-hvac-room-ac-only.xml' => 'base.xml',
     'base-hvac-room-ac-only-33percent.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-room-ac-only-ceer.xml' => 'base-hvac-room-ac-only.xml',
+    'base-hvac-room-ac-with-heating.xml' => 'base-hvac-room-ac-only.xml',
+    'base-hvac-room-ac-with-reverse-cycle.xml' => 'base-hvac-pthp.xml',
     'base-hvac-room-ac-only-detailed-setpoints.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-seasons.xml' => 'base.xml',
     'base-hvac-setpoints.xml' => 'base.xml',
@@ -383,6 +392,8 @@ def create_hpxmls
     'base-misc-bills.xml' => 'base.xml',
     'base-misc-bills-none.xml' => 'base.xml',
     'base-misc-bills-pv.xml' => 'base-pv.xml',
+    'base-misc-bills-pv-detailed-only.xml' => 'base-pv.xml',
+    'base-misc-bills-pv-mixed.xml' => 'base-pv.xml',
     'base-misc-defaults.xml' => 'base.xml',
     'base-misc-emissions.xml' => 'base-pv-battery.xml',
     'base-misc-generators.xml' => 'base.xml',
@@ -421,7 +432,6 @@ def create_hpxmls
 
   puts "Generating #{hpxmls_files.size} HPXML files..."
 
-  hpxml_docs = {}
   hpxmls_files.each_with_index do |(hpxml_file, orig_parent), i|
     puts "[#{i + 1}/#{hpxmls_files.size}] Generating #{hpxml_file}..."
 
@@ -484,7 +494,7 @@ def create_hpxmls
         hpxml_element = XMLHelper.get_element(hpxml_doc, '/HPXML')
         building_element = XMLHelper.get_element(hpxml_element, 'Building')
         for i in 2..3
-          new_building_element = deep_copy_object(building_element)
+          new_building_element = Marshal.load(Marshal.dump(building_element)) # Deep copy
 
           # Make all IDs unique so the HPXML is valid
           new_building_element.each_node do |node|
@@ -502,7 +512,13 @@ def create_hpxmls
       end
 
       XMLHelper.write_file(hpxml_doc, hpxml_path)
-      hpxml_docs[File.basename(hpxml_file)] = deep_copy_object(hpxml_doc)
+
+      schema_path = File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
+      errors, _ = XMLValidator.validate_against_schema(hpxml_path, schema_path)
+      if errors.size > 0
+        puts "\nError: Did not successfully validate #{hpxml_file}."
+        exit!
+      end
     rescue Exception => e
       puts "\n#{e}\n#{e.backtrace.join('\n')}"
       puts "\nError: Did not successfully generate #{hpxml_file}."
@@ -528,12 +544,6 @@ def create_hpxmls
       puts "Warning: Extra HPXML file found at #{File.absolute_path(hpxml)}"
     end
   end
-
-  if hpxml_docs.size != hpxmls_files.size
-    return
-  end
-
-  return hpxml_docs
 end
 
 def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
@@ -542,7 +552,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   else
     args['hpxml_path'] = "workflow/sample_files/#{hpxml_file}"
   end
-  args['apply_validation'] = false # It's faster not to validate and the CI tests will catch issues
+  args['apply_validation'] = false
 
   if ['base.xml'].include? hpxml_file
     args['simulation_control_timestep'] = 60
@@ -577,6 +587,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['geometry_unit_num_occupants'] = 3
     args['floor_over_foundation_assembly_r'] = 0
     args['floor_over_garage_assembly_r'] = 0
+    args['floor_type'] = HPXML::FloorTypeWoodFrame
     args['foundation_wall_thickness'] = 8.0
     args['foundation_wall_insulation_r'] = 8.9
     args['foundation_wall_insulation_distance_to_top'] = 0.0
@@ -843,6 +854,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['geometry_unit_num_occupants'] = 0
     args['floor_over_foundation_assembly_r'] = 14.15
     args['floor_over_garage_assembly_r'] = 0
+    args['floor_type'] = HPXML::FloorTypeWoodFrame
     args['foundation_wall_thickness'] = 6.0
     args['foundation_wall_insulation_r'] = 0
     args['foundation_wall_insulation_distance_to_top'] = 0
@@ -1742,6 +1754,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args.delete('heating_system_2_heating_capacity')
     args.delete('cooling_system_cooling_capacity')
     args.delete('heat_pump_heating_capacity')
+    args.delete('cooling_system_integrated_heating_system_capacity')
     if hpxml_file.include? 'sizing-methodology-hers'
       args['heat_pump_sizing_methodology'] = HPXML::HeatPumpSizingHERS
     elsif hpxml_file.include? 'sizing-methodology-maxload'
@@ -1988,6 +2001,18 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   elsif ['base-hvac-room-ac-only-33percent.xml'].include? hpxml_file
     args['cooling_system_fraction_cool_load_served'] = 0.33
     args['cooling_system_cooling_capacity'] = 8000.0
+  elsif ['base-hvac-room-ac-with-heating.xml',
+         'base-hvac-ptac-with-heating-electricity.xml',
+         'base-hvac-ptac-with-heating-natural-gas.xml'].include? hpxml_file
+    args['cooling_system_integrated_heating_system_capacity'] = 36000.0
+    args['cooling_system_integrated_heating_system_fraction_heat_load_served'] = 1.0
+    if ['base-hvac-ptac-with-heating-natural-gas.xml'].include? hpxml_file
+      args['cooling_system_integrated_heating_system_fuel'] = HPXML::FuelTypeNaturalGas
+      args['cooling_system_integrated_heating_system_efficiency_percent'] = 0.8
+    else
+      args['cooling_system_integrated_heating_system_fuel'] = HPXML::FuelTypeElectricity
+      args['cooling_system_integrated_heating_system_efficiency_percent'] = 1.0
+    end
   elsif ['base-hvac-setpoints.xml'].include? hpxml_file
     args['hvac_control_heating_weekday_setpoint'] = 60
     args['hvac_control_heating_weekend_setpoint'] = 60
@@ -2014,15 +2039,14 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heat_pump_type'] = HPXML::HVACTypeHeatPumpPTHP
     args['heat_pump_cooling_efficiency'] = 11.4
     args['heat_pump_cooling_sensible_heat_fraction'] = 0.65
+  elsif ['base-hvac-room-ac-with-reverse-cycle.xml'].include? hpxml_file
+    args['heat_pump_type'] = HPXML::HVACTypeHeatPumpRoom
   elsif ['base-hvac-ptac.xml'].include? hpxml_file
     args['heating_system_type'] = 'none'
     args['cooling_system_type'] = HPXML::HVACTypePTAC
     args['cooling_system_cooling_efficiency_type'] = HPXML::UnitsEER
     args['cooling_system_cooling_efficiency'] = 10.7
     args['cooling_system_cooling_sensible_heat_fraction'] = 0.65
-  elsif ['base-hvac-ptac-with-heating.xml'].include? hpxml_file
-    args['heating_system_type'] = HPXML::HVACTypePTACHeating
-    args['heating_system_heating_efficiency'] = 1.0
   end
 
   # Lighting
@@ -2181,6 +2205,12 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['utility_bill_pv_feed_in_tariff_rates'] = 'NA, NA, 0.13'
     args['utility_bill_pv_monthly_grid_connection_fee_units'] = "#{HPXML::UnitsDollarsPerkW}, #{HPXML::UnitsDollarsPerkW}, #{HPXML::UnitsDollars}"
     args['utility_bill_pv_monthly_grid_connection_fees'] = '2.5, 2.5, 7.5'
+  elsif ['base-misc-bills-pv-detailed-only.xml'].include? hpxml_file
+    args['utility_bill_scenario_names'] = 'Tiered, TOU, Tiered and TOU, Real-Time Pricing'
+    args['utility_bill_electricity_filepaths'] = '../../ReportUtilityBills/resources/detailed_rates/Sample Tiered Rate.json, ../../ReportUtilityBills/resources/detailed_rates/Sample Time-of-Use Rate.json, ../../ReportUtilityBills/resources/detailed_rates/Sample Tiered Time-of-Use Rate.json, ../../ReportUtilityBills/resources/detailed_rates/Sample Real-Time Pricing Rate.json'
+  elsif ['base-misc-bills-pv-mixed.xml'].include? hpxml_file
+    args['utility_bill_scenario_names'] = 'Simple, Detailed'
+    args['utility_bill_electricity_filepaths'] = 'NA, ../../ReportUtilityBills/resources/detailed_rates/Sample Tiered Rate.json'
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     args.delete('simulation_control_timestep')
     args.delete('site_type')
@@ -2813,21 +2843,24 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationOtherNonFreezingSpace,
                      interior_adjacent_to: HPXML::LocationLivingSpace,
+                     floor_type: HPXML::FloorTypeWoodFrame,
                      area: 550,
                      insulation_assembly_r_value: 18.7,
-                     other_space_above_or_below: HPXML::FloorOtherSpaceBelow)
+                     floor_or_ceiling: HPXML::FloorOrCeilingFloor)
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationOtherMultifamilyBufferSpace,
                      interior_adjacent_to: HPXML::LocationLivingSpace,
+                     floor_type: HPXML::FloorTypeWoodFrame,
                      area: 200,
                      insulation_assembly_r_value: 18.7,
-                     other_space_above_or_below: HPXML::FloorOtherSpaceBelow)
+                     floor_or_ceiling: HPXML::FloorOrCeilingFloor)
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationOtherHeatedSpace,
                      interior_adjacent_to: HPXML::LocationLivingSpace,
+                     floor_type: HPXML::FloorTypeWoodFrame,
                      area: 150,
                      insulation_assembly_r_value: 2.1,
-                     other_space_above_or_below: HPXML::FloorOtherSpaceBelow)
+                     floor_or_ceiling: HPXML::FloorOrCeilingFloor)
     wall = hpxml.walls.select { |w|
              w.interior_adjacent_to == HPXML::LocationLivingSpace &&
                w.exterior_adjacent_to == HPXML::LocationOtherMultifamilyBufferSpace
@@ -2933,9 +2966,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationAtticUnvented,
                      interior_adjacent_to: HPXML::LocationLivingSpace,
+                     floor_type: HPXML::FloorTypeWoodFrame,
                      area: 450,
                      interior_finish_type: HPXML::InteriorFinishGypsumBoard,
-                     insulation_assembly_r_value: 39.3)
+                     insulation_assembly_r_value: 39.3,
+                     floor_or_ceiling: HPXML::FloorOrCeilingCeiling)
     hpxml.slabs[0].area = 1350
     hpxml.slabs[0].exposed_perimeter = 150
     hpxml.windows[1].area = 108
@@ -3178,8 +3213,10 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationCrawlspaceUnvented,
                      interior_adjacent_to: HPXML::LocationLivingSpace,
+                     floor_type: HPXML::FloorTypeWoodFrame,
                      area: 675,
-                     insulation_assembly_r_value: 18.7)
+                     insulation_assembly_r_value: 18.7,
+                     floor_or_ceiling: HPXML::FloorOrCeilingFloor)
     hpxml.slabs[0].area = 675
     hpxml.slabs[0].exposed_perimeter = 75
     hpxml.slabs.add(id: "Slab#{hpxml.slabs.size + 1}",
@@ -3319,8 +3356,10 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationGarage,
                      interior_adjacent_to: HPXML::LocationLivingSpace,
+                     floor_type: HPXML::FloorTypeWoodFrame,
                      area: 400,
-                     insulation_assembly_r_value: 39.3)
+                     insulation_assembly_r_value: 39.3,
+                     floor_or_ceiling: HPXML::FloorOrCeilingFloor)
     hpxml.slabs[0].area -= 400
     hpxml.slabs[0].exposed_perimeter -= 40
     hpxml.slabs.add(id: "Slab#{hpxml.slabs.size + 1}",
@@ -3345,6 +3384,45 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     area: 4,
                     azimuth: 0,
                     r_value: 4.4)
+  elsif ['base-enclosure-ceilingtypes.xml'].include? hpxml_file
+    exterior_adjacent_to = hpxml.floors[0].exterior_adjacent_to
+    area = hpxml.floors[0].area
+    hpxml.floors.reverse_each do |floor|
+      floor.delete
+    end
+    floors_map = { HPXML::FloorTypeSIP => 16.1,
+                   HPXML::FloorTypeConcrete => 3.2,
+                   HPXML::FloorTypeSteelFrame => 8.1 }
+    floors_map.each_with_index do |(floor_type, assembly_r), _i|
+      hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
+                       exterior_adjacent_to: exterior_adjacent_to,
+                       interior_adjacent_to: HPXML::LocationLivingSpace,
+                       floor_type: floor_type,
+                       area: area / floors_map.size,
+                       insulation_assembly_r_value: assembly_r,
+                       floor_or_ceiling: HPXML::FloorOrCeilingCeiling)
+    end
+  elsif ['base-enclosure-floortypes.xml'].include? hpxml_file
+    exterior_adjacent_to = hpxml.floors[0].exterior_adjacent_to
+    area = hpxml.floors[0].area
+    ceiling = hpxml.floors[1].dup
+    hpxml.floors.reverse_each do |floor|
+      floor.delete
+    end
+    floors_map = { HPXML::FloorTypeSIP => 16.1,
+                   HPXML::FloorTypeConcrete => 3.2,
+                   HPXML::FloorTypeSteelFrame => 8.1 }
+    floors_map.each_with_index do |(floor_type, assembly_r), _i|
+      hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
+                       exterior_adjacent_to: exterior_adjacent_to,
+                       interior_adjacent_to: HPXML::LocationLivingSpace,
+                       floor_type: floor_type,
+                       area: area / floors_map.size,
+                       insulation_assembly_r_value: assembly_r,
+                       floor_or_ceiling: HPXML::FloorOrCeilingFloor)
+    end
+    hpxml.floors << ceiling
+    hpxml.floors[-1].id = "Floor#{hpxml.floors.size}"
   elsif ['base-enclosure-walltypes.xml'].include? hpxml_file
     hpxml.rim_joists.reverse_each do |rim_joist|
       rim_joist.delete
@@ -3757,11 +3835,13 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                                                  duct_leakage_units: HPXML::UnitsCFM25,
                                                                  duct_leakage_value: 10,
                                                                  duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
-      hpxml.hvac_distributions[-1].ducts.add(duct_type: HPXML::DuctTypeSupply,
+      hpxml.hvac_distributions[-1].ducts.add(id: "Ducts#{hpxml.hvac_distributions[-1].ducts.size + 1}",
+                                             duct_type: HPXML::DuctTypeSupply,
                                              duct_insulation_r_value: 0,
                                              duct_location: HPXML::LocationOtherMultifamilyBufferSpace,
                                              duct_surface_area: 50)
-      hpxml.hvac_distributions[-1].ducts.add(duct_type: HPXML::DuctTypeReturn,
+      hpxml.hvac_distributions[-1].ducts.add(id: "Ducts#{hpxml.hvac_distributions[-1].ducts.size + 1}",
+                                             duct_type: HPXML::DuctTypeReturn,
                                              duct_insulation_r_value: 0,
                                              duct_location: HPXML::LocationOtherMultifamilyBufferSpace,
                                              duct_surface_area: 20)
@@ -3861,11 +3941,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
         hpxml.heating_systems[i].fraction_heat_load_served = 0.35
       end
     end
-  elsif ['base-misc-defaults.xml'].include? hpxml_file
-    hpxml.heating_systems[0].year_installed = 2009
-    hpxml.heating_systems[0].heating_efficiency_afue = nil
-    hpxml.cooling_systems[0].year_installed = 2009
-    hpxml.cooling_systems[0].cooling_efficiency_seer = nil
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml'].include? hpxml_file
     hpxml.heat_pumps[0].backup_heating_efficiency_afue = hpxml.heat_pumps[0].backup_heating_efficiency_percent
     hpxml.heat_pumps[0].backup_heating_efficiency_percent = nil
@@ -3873,7 +3948,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
          'base-enclosure-2stories-garage.xml',
          'base-hvac-ducts-area-fractions.xml'].include? hpxml_file
     hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[0].ducts[0].dup
+    hpxml.hvac_distributions[0].ducts[-1].id = "Ducts#{hpxml.hvac_distributions[0].ducts.size}"
     hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[0].ducts[1].dup
+    hpxml.hvac_distributions[0].ducts[-1].id = "Ducts#{hpxml.hvac_distributions[0].ducts.size}"
     hpxml.hvac_distributions[0].ducts[2].duct_location = HPXML::LocationExteriorWall
     hpxml.hvac_distributions[0].ducts[2].duct_surface_area = 37.5
     hpxml.hvac_distributions[0].ducts[3].duct_location = HPXML::LocationLivingSpace
@@ -3897,42 +3974,67 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.hvac_distributions.add(id: "HVACDistribution#{hpxml.hvac_distributions.size + 1}",
                                  distribution_system_type: HPXML::HVACDistributionTypeAir,
                                  air_type: HPXML::AirTypeRegularVelocity)
-    hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
-                                                               duct_leakage_units: HPXML::UnitsCFM25,
-                                                               duct_leakage_value: 75,
-                                                               duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
-    hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
-                                                               duct_leakage_units: HPXML::UnitsCFM25,
-                                                               duct_leakage_value: 25,
-                                                               duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
-    hpxml.hvac_distributions[0].ducts.add(duct_type: HPXML::DuctTypeSupply,
+    hpxml.hvac_distributions[0].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
+                                                              duct_leakage_units: HPXML::UnitsCFM25,
+                                                              duct_leakage_value: 75,
+                                                              duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
+    hpxml.hvac_distributions[0].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
+                                                              duct_leakage_units: HPXML::UnitsCFM25,
+                                                              duct_leakage_value: 25,
+                                                              duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
+    hpxml.hvac_distributions[0].ducts.add(id: "Ducts#{hpxml.hvac_distributions[0].ducts.size + 1}",
+                                          duct_type: HPXML::DuctTypeSupply,
                                           duct_insulation_r_value: 8,
                                           duct_location: HPXML::LocationAtticUnvented,
                                           duct_surface_area: 75)
-    hpxml.hvac_distributions[0].ducts.add(duct_type: HPXML::DuctTypeSupply,
+    hpxml.hvac_distributions[0].ducts.add(id: "Ducts#{hpxml.hvac_distributions[0].ducts.size + 1}",
+                                          duct_type: HPXML::DuctTypeSupply,
                                           duct_insulation_r_value: 8,
                                           duct_location: HPXML::LocationOutside,
                                           duct_surface_area: 75)
-    hpxml.hvac_distributions[0].ducts.add(duct_type: HPXML::DuctTypeReturn,
+    hpxml.hvac_distributions[0].ducts.add(id: "Ducts#{hpxml.hvac_distributions[0].ducts.size + 1}",
+                                          duct_type: HPXML::DuctTypeReturn,
                                           duct_insulation_r_value: 4,
                                           duct_location: HPXML::LocationAtticUnvented,
                                           duct_surface_area: 25)
-    hpxml.hvac_distributions[0].ducts.add(duct_type: HPXML::DuctTypeReturn,
+    hpxml.hvac_distributions[0].ducts.add(id: "Ducts#{hpxml.hvac_distributions[0].ducts.size + 1}",
+                                          duct_type: HPXML::DuctTypeReturn,
                                           duct_insulation_r_value: 4,
                                           duct_location: HPXML::LocationOutside,
                                           duct_surface_area: 25)
-    hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
-    hpxml.hvac_distributions[-1].id = "HVACDistribution#{hpxml.hvac_distributions.size}"
+    hpxml.hvac_distributions.add(id: "HVACDistribution#{hpxml.hvac_distributions.size + 1}",
+                                 distribution_system_type: HPXML::HVACDistributionTypeAir,
+                                 air_type: HPXML::AirTypeRegularVelocity)
+    hpxml.hvac_distributions[-1].duct_leakage_measurements << hpxml.hvac_distributions[0].duct_leakage_measurements[0].dup
+    hpxml.hvac_distributions[-1].duct_leakage_measurements << hpxml.hvac_distributions[0].duct_leakage_measurements[1].dup
+    for i in 0..3
+      hpxml.hvac_distributions[-1].ducts << hpxml.hvac_distributions[0].ducts[i].dup
+      hpxml.hvac_distributions[-1].ducts[-1].id = "Ducts#{hpxml.hvac_distributions[0].ducts.size + i + 1}"
+    end
     hpxml.hvac_distributions.add(id: "HVACDistribution#{hpxml.hvac_distributions.size + 1}",
                                  distribution_system_type: HPXML::HVACDistributionTypeHydronic,
                                  hydronic_type: HPXML::HydronicTypeBaseboard)
     hpxml.hvac_distributions.add(id: "HVACDistribution#{hpxml.hvac_distributions.size + 1}",
                                  distribution_system_type: HPXML::HVACDistributionTypeHydronic,
                                  hydronic_type: HPXML::HydronicTypeBaseboard)
-    hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
-    hpxml.hvac_distributions[-1].id = "HVACDistribution#{hpxml.hvac_distributions.size}"
-    hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
-    hpxml.hvac_distributions[-1].id = "HVACDistribution#{hpxml.hvac_distributions.size}"
+    hpxml.hvac_distributions.add(id: "HVACDistribution#{hpxml.hvac_distributions.size + 1}",
+                                 distribution_system_type: HPXML::HVACDistributionTypeAir,
+                                 air_type: HPXML::AirTypeRegularVelocity)
+    hpxml.hvac_distributions[-1].duct_leakage_measurements << hpxml.hvac_distributions[0].duct_leakage_measurements[0].dup
+    hpxml.hvac_distributions[-1].duct_leakage_measurements << hpxml.hvac_distributions[0].duct_leakage_measurements[1].dup
+    for i in 0..3
+      hpxml.hvac_distributions[-1].ducts << hpxml.hvac_distributions[0].ducts[i].dup
+      hpxml.hvac_distributions[-1].ducts[-1].id = "Ducts#{hpxml.hvac_distributions[0].ducts.size * 2 + i + 1}"
+    end
+    hpxml.hvac_distributions.add(id: "HVACDistribution#{hpxml.hvac_distributions.size + 1}",
+                                 distribution_system_type: HPXML::HVACDistributionTypeAir,
+                                 air_type: HPXML::AirTypeRegularVelocity)
+    hpxml.hvac_distributions[-1].duct_leakage_measurements << hpxml.hvac_distributions[0].duct_leakage_measurements[0].dup
+    hpxml.hvac_distributions[-1].duct_leakage_measurements << hpxml.hvac_distributions[0].duct_leakage_measurements[1].dup
+    for i in 0..3
+      hpxml.hvac_distributions[-1].ducts << hpxml.hvac_distributions[0].ducts[i].dup
+      hpxml.hvac_distributions[-1].ducts[-1].id = "Ducts#{hpxml.hvac_distributions[0].ducts.size * 3 + i + 1}"
+    end
     hpxml.heating_systems.reverse_each do |heating_system|
       heating_system.delete
     end
@@ -4055,8 +4157,15 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                          primary_heating_system: true)
   elsif ['base-mechvent-multiple.xml',
          'base-bldgtype-multifamily-shared-mechvent-multiple.xml'].include? hpxml_file
-    hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
-    hpxml.hvac_distributions[1].id = "HVACDistribution#{hpxml.hvac_distributions.size}"
+    hpxml.hvac_distributions.add(id: "HVACDistribution#{hpxml.hvac_distributions.size + 1}",
+                                 distribution_system_type: HPXML::HVACDistributionTypeAir,
+                                 air_type: HPXML::AirTypeRegularVelocity)
+    hpxml.hvac_distributions[1].duct_leakage_measurements << hpxml.hvac_distributions[0].duct_leakage_measurements[0].dup
+    hpxml.hvac_distributions[1].duct_leakage_measurements << hpxml.hvac_distributions[0].duct_leakage_measurements[1].dup
+    hpxml.hvac_distributions[1].ducts << hpxml.hvac_distributions[0].ducts[0].dup
+    hpxml.hvac_distributions[1].ducts << hpxml.hvac_distributions[0].ducts[1].dup
+    hpxml.hvac_distributions[1].ducts[0].id = "Ducts#{hpxml.hvac_distributions[0].ducts.size + 1}"
+    hpxml.hvac_distributions[1].ducts[1].id = "Ducts#{hpxml.hvac_distributions[0].ducts.size + 2}"
     hpxml.heating_systems[0].heating_capacity /= 2.0
     hpxml.heating_systems[0].fraction_heat_load_served /= 2.0
     hpxml.heating_systems[0].primary_system = false
@@ -4073,11 +4182,13 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.cooling_systems[1].primary_system = true
   elsif ['base-bldgtype-multifamily-adjacent-to-multiple.xml'].include? hpxml_file
     hpxml.hvac_distributions[0].ducts[1].duct_location = HPXML::LocationOtherHousingUnit
-    hpxml.hvac_distributions[0].ducts.add(duct_type: HPXML::DuctTypeSupply,
+    hpxml.hvac_distributions[0].ducts.add(id: "Ducts#{hpxml.hvac_distributions[0].ducts.size + 1}",
+                                          duct_type: HPXML::DuctTypeSupply,
                                           duct_insulation_r_value: 4,
                                           duct_location: HPXML::LocationRoofDeck,
                                           duct_surface_area: 150)
-    hpxml.hvac_distributions[0].ducts.add(duct_type: HPXML::DuctTypeReturn,
+    hpxml.hvac_distributions[0].ducts.add(id: "Ducts#{hpxml.hvac_distributions[0].ducts.size + 1}",
+                                          duct_type: HPXML::DuctTypeReturn,
                                           duct_insulation_r_value: 0,
                                           duct_location: HPXML::LocationRoofDeck,
                                           duct_surface_area: 50)
@@ -4101,6 +4212,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.hvac_distributions[0].duct_leakage_measurements << hpxml.hvac_distributions[1].duct_leakage_measurements[1].dup
     hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[1].ducts[0].dup
     hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[1].ducts[1].dup
+    hpxml.hvac_distributions[1].ducts[0].id = "Ducts#{hpxml.hvac_distributions[0].ducts.size + 1}"
+    hpxml.hvac_distributions[1].ducts[1].id = "Ducts#{hpxml.hvac_distributions[0].ducts.size + 2}"
   end
   if ['base-hvac-ducts-area-multipliers.xml'].include? hpxml_file
     hpxml.hvac_distributions[0].ducts[0].duct_surface_area_multiplier = 0.5
@@ -4152,10 +4265,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.water_heating_systems[0].usage_bin = nil
   elsif ['base-dhw-tankless-electric-outside.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].performance_adjustment = 0.92
-  elsif ['base-misc-defaults.xml'].include? hpxml_file
-    hpxml.water_heating_systems[0].year_installed = 2009
-    hpxml.water_heating_systems[0].heating_capacity = nil
-    hpxml.water_heating_systems[0].energy_factor = nil
   elsif ['base-dhw-multiple.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].fraction_dhw_load_served = 0.2
     hpxml.water_heating_systems.add(id: "WaterHeatingSystem#{hpxml.water_heating_systems.size + 1}",
@@ -4678,267 +4787,37 @@ def download_epws
   exit!
 end
 
-def get_elements_from_sample_files(hpxml_docs)
-  elements_being_used = []
-  hpxml_docs.values.each do |hpxml_doc|
-    root = XMLHelper.get_element(hpxml_doc, '/HPXML')
-    root.each_node do |node|
-      next unless node.is_a?(Oga::XML::Element)
+def download_utility_rates
+  require_relative 'HPXMLtoOpenStudio/resources/util'
+  require_relative 'ReportUtilityBills/resources/util'
 
-      ancestors = []
-      node.each_ancestor do |parent_node|
-        ancestors << ['h:', parent_node.name].join()
+  rates_dir = File.join(File.dirname(__FILE__), 'ReportUtilityBills/resources/detailed_rates')
+  FileUtils.mkdir(rates_dir) if !File.exist?(rates_dir)
+  filepath = File.join(rates_dir, 'usurdb.csv')
+
+  if !File.exist?(filepath)
+    require 'tempfile'
+    tmpfile = Tempfile.new('rates')
+
+    UrlResolver.fetch('https://openei.org/apps/USURDB/download/usurdb.csv.gz', tmpfile)
+
+    puts 'Extracting utility rates...'
+    require 'zlib'
+    Zlib::GzipReader.open(tmpfile.path.to_s) do |input_stream|
+      File.open(filepath, 'w') do |output_stream|
+        IO.copy_stream(input_stream, output_stream)
       end
-      parent_element_xpath = ancestors.reverse
-      child_element_xpath = ['h:', node.name].join()
-      element_xpath = [parent_element_xpath, child_element_xpath].join('/')
-
-      next if element_xpath.include? 'extension'
-
-      elements_being_used << element_xpath if not elements_being_used.include? element_xpath
     end
   end
 
-  return elements_being_used
+  num_rates_actual = process_usurdb(filepath)
+
+  puts "#{num_rates_actual} rate files are available in openei_rates.zip."
+  puts 'Completed.'
+  exit!
 end
 
-def create_schematron_hpxml_validator(hpxml_docs)
-  puts 'Generating HPXMLvalidator.xml...'
-  elements_in_sample_files = get_elements_from_sample_files(hpxml_docs)
-
-  hpxml_base_elements_xsd = File.read(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXMLBaseElements.xsd'))
-  hpxml_base_elements_xsd_doc = Oga.parse_xml(hpxml_base_elements_xsd)
-
-  # construct dictionary for enumerations and min/max values of HPXML data types
-  hpxml_data_types_xsd = File.read(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXMLDataTypes.xsd'))
-  hpxml_data_types_xsd_doc = Oga.parse_xml(hpxml_data_types_xsd)
-  hpxml_data_types_dict = {}
-  hpxml_data_types_xsd_doc.xpath('//xs:simpleType | //xs:complexType').each do |simple_type_element|
-    enums = []
-    simple_type_element.xpath('xs:restriction/xs:enumeration').each do |enum|
-      enums << enum.get('value')
-    end
-    minInclusive_element = simple_type_element.at_xpath('xs:restriction/xs:minInclusive')
-    min_inclusive = minInclusive_element.get('value') if not minInclusive_element.nil?
-    maxInclusive_element = simple_type_element.at_xpath('xs:restriction/xs:maxInclusive')
-    max_inclusive = maxInclusive_element.get('value') if not maxInclusive_element.nil?
-    minExclusive_element = simple_type_element.at_xpath('xs:restriction/xs:minExclusive')
-    min_exclusive = minExclusive_element.get('value') if not minExclusive_element.nil?
-    maxExclusive_element = simple_type_element.at_xpath('xs:restriction/xs:maxExclusive')
-    max_exclusive = maxExclusive_element.get('value') if not maxExclusive_element.nil?
-
-    simple_type_element_name = simple_type_element.get('name')
-    hpxml_data_types_dict[simple_type_element_name] = {}
-    hpxml_data_types_dict[simple_type_element_name][:enums] = enums
-    hpxml_data_types_dict[simple_type_element_name][:min_inclusive] = min_inclusive
-    hpxml_data_types_dict[simple_type_element_name][:max_inclusive] = max_inclusive
-    hpxml_data_types_dict[simple_type_element_name][:min_exclusive] = min_exclusive
-    hpxml_data_types_dict[simple_type_element_name][:max_exclusive] = max_exclusive
-  end
-
-  # construct HPXMLvalidator.xml
-  hpxml_validator = XMLHelper.create_doc('1.0', 'UTF-8')
-  root = XMLHelper.add_element(hpxml_validator, 'sch:schema')
-  XMLHelper.add_attribute(root, 'xmlns:sch', 'http://purl.oclc.org/dsdl/schematron')
-  XMLHelper.add_element(root, 'sch:title', 'HPXML Schematron Validator: HPXML.xsd', :string)
-  name_space = XMLHelper.add_element(root, 'sch:ns')
-  XMLHelper.add_attribute(name_space, 'uri', 'http://hpxmlonline.com/2019/10')
-  XMLHelper.add_attribute(name_space, 'prefix', 'h')
-  pattern = XMLHelper.add_element(root, 'sch:pattern')
-
-  # construct complexType and group elements dictionary
-  complex_type_or_group_dict = {}
-  ['//xs:complexType', '//xs:group', '//xs:element'].each do |param|
-    hpxml_base_elements_xsd_doc.xpath(param).each do |param_type|
-      next if param_type.name == 'element' && (not ['XMLTransactionHeaderInformation', 'ProjectStatus', 'SoftwareInfo'].include?(param_type.get('name')))
-      next if param_type.get('name').nil?
-
-      param_type_name = param_type.get('name')
-      complex_type_or_group_dict[param_type_name] = {}
-
-      elements = { 'child' => [], 'base' => [] }
-      param_type.each_node do |element|
-        elements['child'] << element
-        next unless element.is_a? Oga::XML::Element
-
-        next unless element.name == 'extension'
-
-        base_element_name = element.get('base').to_s
-        hpxml_base_elements_xsd_doc.xpath("#{param}[@name='#{base_element_name}']").each do |base_element|
-          base_element.each_node do |element|
-            elements['base'] << element
-          end
-        end
-      end
-
-      elements.each do |element_child_or_base, element_list|
-        element_list.each do |element|
-          next unless element.is_a? Oga::XML::Element
-          next unless (element.name == 'element' || element.name == 'group')
-          next if element.name == 'element' && (element.get('name').nil? && element.get('ref').nil?)
-          next if element.name == 'group' && element.get('ref').nil?
-
-          ancestors = []
-          element.each_ancestor do |node|
-            next if node.get('name').nil?
-            next if node.get('name') == param_type.get('name') # exclude complexType name from element xpath
-
-            ancestors << node.get('name')
-          end
-          ancestors.shift if element_child_or_base == 'base'
-
-          parent_element_names = ancestors.reverse
-          if element.name == 'element'
-            child_element_name = element.get('name')
-            child_element_name = element.get('ref') if child_element_name.nil? # Backup
-            element_type = element.get('type')
-            element_type = element.get('ref') if element_type.nil? # Backup
-          elsif element.name == 'group'
-            child_element_name = nil # exclude group name from the element's xpath
-            element_type = element.get('ref')
-          end
-          element_xpath = parent_element_names.push(child_element_name)
-          complex_type_or_group_dict[param_type_name][element_xpath] = element_type
-        end
-      end
-    end
-  end
-
-  element_xpaths = {}
-  top_level_elements_of_interest = elements_in_sample_files.map { |e| e.split('/')[1].gsub('h:', '') }.uniq
-  top_level_elements_of_interest.each do |element|
-    top_level_element = []
-    top_level_element << element
-    top_level_element_type = element
-    get_element_full_xpaths(element_xpaths, complex_type_or_group_dict, top_level_element, top_level_element_type)
-  end
-
-  # Add enumeration and min/max numeric values
-  rules = {}
-  element_xpaths.each do |element_xpath, element_type|
-    next if element_type.nil?
-
-    # Skip element xpaths not being used in sample files
-    element_xpath_with_prefix = element_xpath.compact.map { |e| "h:#{e}" }
-    context_xpath = element_xpath_with_prefix.join('/').chomp('/')
-    next unless elements_in_sample_files.any? { |item| item.include? context_xpath }
-
-    hpxml_data_type_name = [element_type, '_simple'].join() # FUTURE: This may need to be improved later since enumeration and minimum/maximum values cannot be guaranteed to always be placed within simpleType.
-    hpxml_data_type = hpxml_data_types_dict[hpxml_data_type_name]
-    hpxml_data_type = hpxml_data_types_dict[element_type] if hpxml_data_type.nil? # Backup
-    if hpxml_data_type.nil?
-      fail "Could not find data type name for '#{element_type}'."
-    end
-
-    next if hpxml_data_type[:enums].empty? && hpxml_data_type[:min_inclusive].nil? && hpxml_data_type[:max_inclusive].nil? && hpxml_data_type[:min_exclusive].nil? && hpxml_data_type[:max_exclusive].nil?
-
-    element_name = context_xpath.split('/')[-1]
-    context_xpath = context_xpath.split('/')[0..-2].join('/').chomp('/').prepend('/h:HPXML/')
-    rule = rules[context_xpath]
-    if rule.nil?
-      # Need new rule
-      rule = XMLHelper.add_element(pattern, 'sch:rule')
-      XMLHelper.add_attribute(rule, 'context', context_xpath)
-      rules[context_xpath] = rule
-    end
-
-    if not hpxml_data_type[:enums].empty?
-      assertion = XMLHelper.add_element(rule, 'sch:assert', "Expected #{element_name.gsub('h:', '')} to be \"#{hpxml_data_type[:enums].join('" or "')}\"", :string)
-      XMLHelper.add_attribute(assertion, 'role', 'ERROR')
-      XMLHelper.add_attribute(assertion, 'test', "#{element_name}[#{hpxml_data_type[:enums].map { |e| "text()=\"#{e}\"" }.join(' or ')}] or not(#{element_name})")
-    else
-      if hpxml_data_type[:min_inclusive]
-        assertion = XMLHelper.add_element(rule, 'sch:assert', "Expected #{element_name.gsub('h:', '')} to be greater than or equal to #{hpxml_data_type[:min_inclusive]}", :string)
-        XMLHelper.add_attribute(assertion, 'role', 'ERROR')
-        XMLHelper.add_attribute(assertion, 'test', "number(#{element_name}) &gt;= #{hpxml_data_type[:min_inclusive]} or not(#{element_name})")
-      end
-      if hpxml_data_type[:max_inclusive]
-        assertion = XMLHelper.add_element(rule, 'sch:assert', "Expected #{element_name.gsub('h:', '')} to be less than or equal to #{hpxml_data_type[:max_inclusive]}", :string)
-        XMLHelper.add_attribute(assertion, 'role', 'ERROR')
-        XMLHelper.add_attribute(assertion, 'test', "number(#{element_name}) &lt;= #{hpxml_data_type[:max_inclusive]} or not(#{element_name})")
-      end
-      if hpxml_data_type[:min_exclusive]
-        assertion = XMLHelper.add_element(rule, 'sch:assert', "Expected #{element_name.gsub('h:', '')} to be greater than #{hpxml_data_type[:min_exclusive]}", :string)
-        XMLHelper.add_attribute(assertion, 'role', 'ERROR')
-        XMLHelper.add_attribute(assertion, 'test', "number(#{element_name}) &gt; #{hpxml_data_type[:min_exclusive]} or not(#{element_name})")
-      end
-      if hpxml_data_type[:max_exclusive]
-        assertion = XMLHelper.add_element(rule, 'sch:assert', "Expected #{element_name.gsub('h:', '')} to be less than #{hpxml_data_type[:max_exclusive]}", :string)
-        XMLHelper.add_attribute(assertion, 'role', 'ERROR')
-        XMLHelper.add_attribute(assertion, 'test', "number(#{element_name}) &lt; #{hpxml_data_type[:max_exclusive]} or not(#{element_name})")
-      end
-    end
-  end
-
-  # Add ID/IDref checks
-  # FUTURE: Dynamically obtain these lists
-  id_names = ['SystemIdentifier',
-              'BuildingID']
-  idref_names = ['AttachedToRoof',
-                 'AttachedToFloor',
-                 'AttachedToSlab',
-                 'AttachedToFoundationWall',
-                 'AttachedToWall',
-                 'AttachedToRimJoist',
-                 'DistributionSystem',
-                 'AttachedToHVACDistributionSystem',
-                 'RelatedHVACSystem',
-                 'ConnectedTo']
-  elements_in_sample_files.each do |element_xpath|
-    element_name = element_xpath.split('/')[-1].gsub('h:', '')
-    context_xpath = "/#{element_xpath.split('/')[0..-2].join('/')}"
-    if id_names.include? element_name
-      rule = rules[context_xpath]
-      if rule.nil?
-        # Need new rule
-        rule = XMLHelper.add_element(pattern, 'sch:rule')
-        XMLHelper.add_attribute(rule, 'context', context_xpath)
-        rules[context_xpath] = rule
-      end
-      assertion = XMLHelper.add_element(rule, 'sch:assert', "Expected #{element_name} with id attribute", :string)
-      XMLHelper.add_attribute(assertion, 'role', 'ERROR')
-      XMLHelper.add_attribute(assertion, 'test', "count(h:#{element_name}[@id]) = 1")
-    elsif idref_names.include?(element_name)
-      rule = rules[context_xpath]
-      if rule.nil?
-        # Need new rule
-        rule = XMLHelper.add_element(pattern, 'sch:rule')
-        XMLHelper.add_attribute(rule, 'context', context_xpath)
-        rules[context_xpath] = rule
-      end
-      assertion = XMLHelper.add_element(rule, 'sch:assert', "Expected idref attribute for #{element_name}", :string)
-      XMLHelper.add_attribute(assertion, 'role', 'ERROR')
-      XMLHelper.add_attribute(assertion, 'test', "count(h:#{element_name}[@idref]) = count(h:#{element_name})")
-    end
-  end
-
-  XMLHelper.write_file(hpxml_validator, File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schematron', 'HPXMLvalidator.xml'))
-end
-
-def get_element_full_xpaths(element_xpaths, complex_type_or_group_dict, element_xpath, element_type)
-  if not complex_type_or_group_dict.keys.include? element_type
-    element_xpaths[element_xpath] = element_type
-  else
-    complex_type_or_group = deep_copy_object(complex_type_or_group_dict[element_type])
-    complex_type_or_group.each do |k, v|
-      child_element_xpath = k.unshift(element_xpath).flatten!
-      child_element_type = v
-
-      if not complex_type_or_group_dict.keys.include? child_element_type
-        element_xpaths[child_element_xpath] = child_element_type
-        next
-      end
-
-      get_element_full_xpaths(element_xpaths, complex_type_or_group_dict, child_element_xpath, child_element_type)
-    end
-  end
-end
-
-def deep_copy_object(obj)
-  return Marshal.load(Marshal.dump(obj))
-end
-
-command_list = [:update_measures, :update_hpxmls, :cache_weather, :create_release_zips, :download_weather]
+command_list = [:update_measures, :update_hpxmls, :cache_weather, :create_release_zips, :download_weather, :download_utility_rates]
 
 def display_usage(command_list)
   puts "Usage: openstudio #{File.basename(__FILE__)} [COMMAND]\nCommands:\n  " + command_list.join("\n  ")
@@ -5049,12 +4928,7 @@ if ARGV[0].to_sym == :update_hpxmls
   ENV['HOMEDRIVE'] = 'C:\\' if !ENV['HOMEDRIVE'].nil? && ENV['HOMEDRIVE'].start_with?('U:')
 
   # Create sample/test HPXMLs
-  hpxml_docs = create_hpxmls()
-
-  # Create Schematron file that reflects HPXML schema
-  if not hpxml_docs.nil?
-    create_schematron_hpxml_validator(hpxml_docs)
-  end
+  create_hpxmls()
 end
 
 if ARGV[0].to_sym == :cache_weather
@@ -5078,6 +4952,10 @@ end
 
 if ARGV[0].to_sym == :download_weather
   download_epws
+end
+
+if ARGV[0].to_sym == :download_utility_rates
+  download_utility_rates
 end
 
 if ARGV[0].to_sym == :create_release_zips

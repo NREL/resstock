@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>85cba5f3-110e-46bb-b0d6-ae7f5a9e91a6</version_id>
-  <version_modified>20220930T224205Z</version_modified>
+  <version_id>38ad8438-274c-47d0-aab3-0bbcb5a15754</version_id>
+  <version_modified>20221111T164102Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -1053,6 +1053,33 @@
       <default_value>28.1</default_value>
     </argument>
     <argument>
+      <name>floor_type</name>
+      <display_name>Floor: Type</display_name>
+      <description>The type of floors.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>WoodFrame</default_value>
+      <choices>
+        <choice>
+          <value>WoodFrame</value>
+          <display_name>WoodFrame</display_name>
+        </choice>
+        <choice>
+          <value>StructuralInsulatedPanel</value>
+          <display_name>StructuralInsulatedPanel</display_name>
+        </choice>
+        <choice>
+          <value>SolidConcrete</value>
+          <display_name>SolidConcrete</display_name>
+        </choice>
+        <choice>
+          <value>SteelFrame</value>
+          <display_name>SteelFrame</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>foundation_wall_type</name>
       <display_name>Foundation Wall: Type</display_name>
       <description>The material type of the foundation wall. If not provided, the OS-HPXML default is used.</description>
@@ -1404,8 +1431,8 @@
           <display_name>LogWall</display_name>
         </choice>
         <choice>
-          <value>StructurallyInsulatedPanel</value>
-          <display_name>StructurallyInsulatedPanel</display_name>
+          <value>StructuralInsulatedPanel</value>
+          <display_name>StructuralInsulatedPanel</display_name>
         </choice>
         <choice>
           <value>SolidConcrete</value>
@@ -2013,10 +2040,6 @@
           <display_name>FixedHeater</display_name>
         </choice>
         <choice>
-          <value>PackagedTerminalAirConditionerHeating</value>
-          <display_name>PackagedTerminalAirConditionerHeating</display_name>
-        </choice>
-        <choice>
           <value>Shared Boiler w/ Baseboard</value>
           <display_name>Shared Boiler w/ Baseboard</display_name>
         </choice>
@@ -2029,7 +2052,7 @@
     <argument>
       <name>heating_system_fuel</name>
       <display_name>Heating System: Fuel Type</display_name>
-      <description>The fuel type of the heating system. Ignored for ElectricResistance and PackagedTerminalAirConditionerHeating.</description>
+      <description>The fuel type of the heating system. Ignored for ElectricResistance.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2262,6 +2285,71 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>cooling_system_integrated_heating_system_fuel</name>
+      <display_name>Cooling System: Integrated Heating System Fuel Type</display_name>
+      <description>The fuel type of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>electricity</value>
+          <display_name>electricity</display_name>
+        </choice>
+        <choice>
+          <value>natural gas</value>
+          <display_name>natural gas</display_name>
+        </choice>
+        <choice>
+          <value>fuel oil</value>
+          <display_name>fuel oil</display_name>
+        </choice>
+        <choice>
+          <value>propane</value>
+          <display_name>propane</display_name>
+        </choice>
+        <choice>
+          <value>wood</value>
+          <display_name>wood</display_name>
+        </choice>
+        <choice>
+          <value>wood pellets</value>
+          <display_name>wood pellets</display_name>
+        </choice>
+        <choice>
+          <value>coal</value>
+          <display_name>coal</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>cooling_system_integrated_heating_system_efficiency_percent</name>
+      <display_name>Cooling System: Integrated Heating System Efficiency</display_name>
+      <description>The rated heating efficiency value of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.</description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_integrated_heating_system_capacity</name>
+      <display_name>Cooling System: Integrated Heating System Heating Capacity</display_name>
+      <description>The output heating capacity of the heating system integrated into cooling system. If not provided, the OS-HPXML autosized default is used. Only used for packaged terminal air conditioner and room air conditioner.</description>
+      <type>Double</type>
+      <units>Btu/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_integrated_heating_system_fraction_heat_load_served</name>
+      <display_name>Cooling System: Integrated Heating System Fraction Heat Load Served</display_name>
+      <description>The heating load served by the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.</description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>heat_pump_type</name>
       <display_name>Heat Pump: Type</display_name>
       <description>The type of heat pump. Use 'none' if there is no heat pump.</description>
@@ -2290,12 +2378,16 @@
           <value>packaged terminal heat pump</value>
           <display_name>packaged terminal heat pump</display_name>
         </choice>
+        <choice>
+          <value>room air conditioner with reverse cycle</value>
+          <display_name>room air conditioner with reverse cycle</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
       <name>heat_pump_heating_efficiency_type</name>
       <display_name>Heat Pump: Heating Efficiency Type</display_name>
-      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air and packaged terminal heat pump use COP.</description>
+      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use COP.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2327,7 +2419,7 @@
     <argument>
       <name>heat_pump_cooling_efficiency_type</name>
       <display_name>Heat Pump: Cooling Efficiency Type</display_name>
-      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER or SEER2. System types ground-to-air and packaged terminal heat pump use EER.</description>
+      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER or SEER2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use EER.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -6173,6 +6265,14 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>utility_bill_electricity_filepaths</name>
+      <display_name>Utility Bills: Electricity File Paths</display_name>
+      <description>Electricity tariff file specified as an absolute/relative path to a file with utility rate structure information. Tariff file must be formatted to OpenEI API version 7. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>utility_bill_electricity_fixed_charges</name>
       <display_name>Utility Bills: Electricity Fixed Charges</display_name>
       <description>Electricity utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.</description>
@@ -6396,13 +6496,13 @@
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>80E1626B</checksum>
+      <checksum>D9E75C2E</checksum>
     </file>
     <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>6678B9E5</checksum>
+      <checksum>B16976B9</checksum>
     </file>
     <file>
       <version>
@@ -6413,7 +6513,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>963C6E7F</checksum>
+      <checksum>6C8A5852</checksum>
     </file>
   </files>
 </measure>
