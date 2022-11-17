@@ -1,13 +1,13 @@
 schema_version: '0.3'
 buildstock_directory: .
 project_directory: project_national
-output_directory: /projects/resfacades/test_1000_20221114
+output_directory: /projects/resfacades/fullsample03b
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 5000
+    n_datapoints: 550000
     logic:
       - Vacancy Status|Occupied
       - Geometry Building Type RECS|Single-Family Detached
@@ -87,7 +87,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: euss
-      prefix: facades2/test_1000_20221114 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+      prefix: facades2/fullsample03b #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: facades2 #collection of Athena tables (post-crawling), can be constant for the entire analysis
@@ -105,6 +105,19 @@ upgrades:
               - Geometry Wall Exterior Finish|Aluminum, Light
               - Geometry Wall Exterior Finish|Fiber-Cement, Light
               - Geometry Wall Exterior Finish|Wood, Medium/Dark
+            - or: &upgradable_walls
+              - Insulation Wall|Wood Stud, Uninsulated
+              - Insulation Wall|Wood Stud, R-7
+              - Insulation Wall|Wood Stud, R-11
+              - Insulation Wall|Wood Stud, R-15
+              - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+              - Insulation Wall|CMU, 6-in Hollow, R-7
+              - Insulation Wall|CMU, 6-in Hollow, R-11
+              - Insulation Wall|CMU, 6-in Hollow, R-15
+              - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+              - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+              - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+              - Insulation Wall|Brick, 12-in, 3-wythe, R-15
         costs: &siding_costs_to_fibercement
           - value: 4.00
             multiplier: Wall Area, Above-Grade, Exterior (ft^2)
@@ -118,6 +131,7 @@ upgrades:
               - Geometry Wall Exterior Finish|Brick, Medium/Dark
               - Geometry Wall Exterior Finish|Stucco, Light
               - Geometry Wall Exterior Finish|Stucco, Medium/Dark
+            - or: *upgradable_walls
         costs: &siding_costs_to_stucco
           - value: 5.70
             multiplier: Wall Area, Above-Grade, Exterior (ft^2)
@@ -130,6 +144,7 @@ upgrades:
               - Geometry Wall Exterior Finish|Shingle, Asbestos, Medium
               - Geometry Wall Exterior Finish|Shingle, Composition, Medium
               - Geometry Wall Exterior Finish|Vinyl, Light
+            - or: *upgradable_walls
         costs: &siding_costs_to_vinyl
           - value: 3.30
             multiplier: Wall Area, Above-Grade, Exterior (ft^2)
@@ -137,19 +152,7 @@ upgrades:
       - &wallwork_infiltration_reduction
         option: Infiltration Reduction|19%
         apply_logic:
-          - or: &upgradable_walls
-            - Insulation Wall|Wood Stud, Uninsulated
-            - Insulation Wall|Wood Stud, R-7
-            - Insulation Wall|Wood Stud, R-11
-            - Insulation Wall|Wood Stud, R-15
-            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
-            - Insulation Wall|CMU, 6-in Hollow, R-7
-            - Insulation Wall|CMU, 6-in Hollow, R-11
-            - Insulation Wall|CMU, 6-in Hollow, R-15
-            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
-            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
-            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
-            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+          - or: *upgradable_walls
         costs: &no_cost
           - value: 0
             multiplier: Fixed (1)
@@ -359,13 +362,13 @@ upgrades:
           - and:
             - or: &U035S025_code_and_cz
               - and:
-                - or: *IECC2012states
+                - or: 
+                  - or: *IECC2012states
+                  - or: *IECC2015states
                 - or:
                   - ASHRAE IECC Climate Zone 2004|3A 
                   - ASHRAE IECC Climate Zone 2004|3B 
                   - ASHRAE IECC Climate Zone 2004|3C 
-              - and:
-                - or: *IECC2015states
             - or: *upgradable_windows
         costs: &U035_costs
           - value: 31.50
@@ -445,7 +448,12 @@ upgrades:
         apply_logic:
           - and:
             - or: &U038S030_code_and_cz
-              - State|OK
+              - and:
+                - State|OK
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|3A 
+                  - ASHRAE IECC Climate Zone 2004|3B 
+                  - ASHRAE IECC Climate Zone 2004|3C 
             - or: *upgradable_windows
         costs: &U038_costs
           - value: 29.45
