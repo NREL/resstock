@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: .
 project_directory: project_national
-output_directory: /projects/resfacades/fullsample05
+output_directory: /projects/resfacades/full01
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
@@ -87,7 +87,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: euss
-      prefix: facades2/fullsample05 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+      prefix: facades2/full01 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: facades2 #collection of Athena tables (post-crawling), can be constant for the entire analysis
@@ -252,14 +252,9 @@ upgrades:
               - and:
                 - State|RI 
                 - ASHRAE IECC Climate Zone 2004|5A 
-              - and:
+              - or:
                 - State|VT 
-              - and:
-                - State|WA 
-                - or:
-                  - ASHRAE IECC Climate Zone 2004|4C 
-                  - ASHRAE IECC Climate Zone 2004|5A 
-                  - ASHRAE IECC Climate Zone 2004|5B
+                - State|WA
               - or:
                 - CEC Climate Zone|1
                 - CEC Climate Zone|3
@@ -811,6 +806,7 @@ upgrades:
               - or: *U030S023_code_and_cz
               - or: *U030S025_code_and_cz
               - or: *U032S025_code_and_cz
+              - or: *U035S025_code_and_cz
               - or: *U040S025_code_and_cz
               - or: *U050S025_code_and_cz
               - or: *U065S025_code_and_cz
