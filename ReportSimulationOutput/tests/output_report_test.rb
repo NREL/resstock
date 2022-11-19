@@ -64,6 +64,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     'End Use: Electricity: Hot Tub Pump (MBtu)',
     'End Use: Electricity: PV (MBtu)',
     'End Use: Electricity: Generator (MBtu)',
+    'End Use: Electricity: Battery (MBtu)',
     'End Use: Natural Gas: Heating (MBtu)',
     'End Use: Natural Gas: Heating Heat Pump Backup (MBtu)',
     'End Use: Natural Gas: Hot Water (MBtu)',
@@ -391,6 +392,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                "Emissions: #{scenario}: Electricity: Television (lb)",
                "Emissions: #{scenario}: Electricity: Plug Loads (lb)",
                "Emissions: #{scenario}: Electricity: PV (lb)",
+               "Emissions: #{scenario}: Electricity: Battery (lb)",
                "Emissions: #{scenario}: Natural Gas: Total (lb)",
                "Emissions: #{scenario}: Natural Gas: Heating (lb)"]
     end
@@ -431,6 +433,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                "Emissions: #{scenario}: Electricity: Television",
                "Emissions: #{scenario}: Electricity: Plug Loads",
                "Emissions: #{scenario}: Electricity: PV",
+               "Emissions: #{scenario}: Electricity: Battery",
                "Emissions: #{scenario}: Natural Gas: Heating"]
     end
     return cols
@@ -882,7 +885,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                                emissions_timeseries_cols +
                                emission_fuels_timeseries_cols +
                                emission_end_uses_timeseries_cols +
-                               ['End Use: Electricity: PV', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
+                               ['End Use: Electricity: PV', 'End Use: Electricity: Battery', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
@@ -917,7 +920,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                                emissions_timeseries_cols +
                                emission_fuels_timeseries_cols +
                                emission_end_uses_timeseries_cols +
-                               ['End Use: Electricity: PV', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
+                               ['End Use: Electricity: PV', 'End Use: Electricity: Battery', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
@@ -952,7 +955,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                                emissions_timeseries_cols +
                                emission_fuels_timeseries_cols +
                                emission_end_uses_timeseries_cols +
-                               ['End Use: Electricity: PV', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
+                               ['End Use: Electricity: PV', 'End Use: Electricity: Battery', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)

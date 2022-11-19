@@ -430,6 +430,10 @@ class Constants
     return "#{water_heater_name} EC adjustment"
   end
 
+  def self.ObjectNameBatteryLossesAdjustment(battery_name)
+    return "#{battery_name} losses adjustment"
+  end
+
   def self.ObjectNameWaterLoopHeatPump
     return 'water loop heat pump'
   end

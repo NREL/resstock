@@ -362,7 +362,7 @@ class HPXMLTest < MiniTest::Test
     top_dir = File.join(@this_dir, '..', '..')
     command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{File.join(top_dir, 'tasks.rb')}\" create_release_zips"
     system(command)
-    assert_equal(2, Dir["#{top_dir}/*.zip"].size)
+    assert_equal(1, Dir["#{top_dir}/*.zip"].size)
 
     # Check successful running of simulation from release zips
     require 'zip'
@@ -400,6 +400,7 @@ class HPXMLTest < MiniTest::Test
     rundir = File.join(rundir, 'run')
 
     # Check results
+    print "Simulation failed: #{xml}.\n" unless success
     assert_equal(true, success)
 
     # Check for output files
@@ -533,8 +534,8 @@ class HPXMLTest < MiniTest::Test
       if hpxml.windows.empty?
         next if log_line.include? 'No windows specified, the model will not include window heat transfer.'
       end
-      if hpxml.pv_systems.empty? && !hpxml.batteries.empty?
-        next if log_line.include? 'Battery without PV specified; battery is assumed to operate as backup and will not be modeled.'
+      if hpxml.pv_systems.empty? && !hpxml.batteries.empty? && hpxml.header.schedules_filepaths.empty?
+        next if log_line.include? 'Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.'
       end
       if hpxml_path.include? 'base-location-capetown-zaf.xml'
         next if log_line.include? 'OS Message: Minutes field (60) on line 9 of EPW file'

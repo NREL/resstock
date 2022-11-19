@@ -2173,6 +2173,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('kWh')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('battery_round_trip_efficiency', false)
+    arg.setDisplayName('Battery: Round Trip Efficiency')
+    arg.setDescription('The round trip efficiency of the lithium ion battery. If not provided, the OS-HPXML default is used.')
+    arg.setUnits('Frac')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('lighting_present', true)
     arg.setDisplayName('Lighting: Present')
     arg.setDescription('Whether there is lighting energy use.')
@@ -5529,12 +5535,17 @@ class HPXMLFile
       usable_capacity_kwh = args[:battery_usable_capacity].get
     end
 
+    if args[:battery_round_trip_efficiency].is_initialized
+      round_trip_efficiency = args[:battery_round_trip_efficiency].get
+    end
+
     hpxml.batteries.add(id: "Battery#{hpxml.batteries.size + 1}",
                         type: HPXML::BatteryTypeLithiumIon,
                         location: location,
                         rated_power_output: rated_power_output,
                         nominal_capacity_kwh: nominal_capacity_kwh,
-                        usable_capacity_kwh: usable_capacity_kwh)
+                        usable_capacity_kwh: usable_capacity_kwh,
+                        round_trip_efficiency: round_trip_efficiency)
   end
 
   def self.set_lighting(hpxml, args)

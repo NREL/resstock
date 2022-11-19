@@ -1203,7 +1203,7 @@ class HPXMLDefaults
     hpxml.heating_systems.each do |heating_system|
       if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
         if heating_system.fan_watts_per_cfm.nil?
-          if heating_system.distribution_system.air_type == HPXML::AirTypeGravity
+          if (not heating_system.distribution_system.nil?) && (heating_system.distribution_system.air_type == HPXML::AirTypeGravity)
             heating_system.fan_watts_per_cfm = 0.0
           elsif heating_system.heating_efficiency_afue > 0.9 # HEScore assumption
             heating_system.fan_watts_per_cfm = ecm_watts_per_cfm
@@ -1825,13 +1825,17 @@ class HPXMLDefaults
         battery.location = default_values[:location]
         battery.location_isdefaulted = true
       end
-      if battery.lifetime_model.nil?
-        battery.lifetime_model = default_values[:lifetime_model]
-        battery.lifetime_model_isdefaulted = true
-      end
+      # if battery.lifetime_model.nil?
+      # battery.lifetime_model = default_values[:lifetime_model]
+      # battery.lifetime_model_isdefaulted = true
+      # end
       if battery.nominal_voltage.nil?
         battery.nominal_voltage = default_values[:nominal_voltage] # V
         battery.nominal_voltage_isdefaulted = true
+      end
+      if battery.round_trip_efficiency.nil?
+        battery.round_trip_efficiency = default_values[:round_trip_efficiency]
+        battery.round_trip_efficiency_isdefaulted = true
       end
       if battery.nominal_capacity_kwh.nil? && battery.nominal_capacity_ah.nil?
         # Calculate nominal capacity from usable capacity or rated power output if available

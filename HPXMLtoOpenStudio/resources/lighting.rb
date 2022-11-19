@@ -48,9 +48,9 @@ class Lighting
         end
 
         if lighting.interior_weekday_fractions.nil?
-          design_level = interior_sch.calcDesignLevel(interior_sch.maxval * int_kwh)
+          design_level = interior_sch.calc_design_level(interior_sch.maxval * int_kwh)
         else
-          design_level = interior_sch.calcDesignLevelFromDailykWh(int_kwh / 365.0)
+          design_level = interior_sch.calc_design_level_from_daily_kwh(int_kwh / 365.0)
         end
         interior_sch = interior_sch.schedule
       else
@@ -84,7 +84,7 @@ class Lighting
       end
       if garage_sch.nil?
         garage_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameGarageLighting + ' schedule', lighting.garage_weekday_fractions, lighting.garage_weekend_fractions, lighting.garage_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
-        design_level = garage_sch.calcDesignLevelFromDailykWh(grg_kwh / 365.0)
+        design_level = garage_sch.calc_design_level_from_daily_kwh(grg_kwh / 365.0)
         garage_sch = garage_sch.schedule
       else
         runner.registerWarning("Both '#{SchedulesFile::ColumnLightingGarage}' schedule file and weekday fractions provided; the latter will be ignored.") if !lighting.garage_weekday_fractions.nil?
@@ -116,7 +116,7 @@ class Lighting
       end
       if exterior_sch.nil?
         exterior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameExteriorLighting + ' schedule', lighting.exterior_weekday_fractions, lighting.exterior_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
-        design_level = exterior_sch.calcDesignLevelFromDailykWh(ext_kwh / 365.0)
+        design_level = exterior_sch.calc_design_level_from_daily_kwh(ext_kwh / 365.0)
         exterior_sch = exterior_sch.schedule
       else
         runner.registerWarning("Both '#{SchedulesFile::ColumnLightingExterior}' schedule file and weekday fractions provided; the latter will be ignored.") if !lighting.exterior_weekday_fractions.nil?
@@ -144,7 +144,7 @@ class Lighting
       end
       if exterior_holiday_sch.nil?
         exterior_holiday_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameLightingExteriorHoliday + ' schedule', lighting.holiday_weekday_fractions, lighting.holiday_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, true, lighting.holiday_period_begin_month, lighting.holiday_period_begin_day, lighting.holiday_period_end_month, lighting.holiday_period_end_day)
-        design_level = exterior_holiday_sch.calcDesignLevelFromDailykWh(lighting.holiday_kwh_per_day)
+        design_level = exterior_holiday_sch.calc_design_level_from_daily_kwh(lighting.holiday_kwh_per_day)
         exterior_holiday_sch = exterior_holiday_sch.schedule
       else
         runner.registerWarning("Both '#{SchedulesFile::ColumnLightingExteriorHoliday}' schedule file and weekday fractions provided; the latter will be ignored.") if !lighting.holiday_weekday_fractions.nil?
