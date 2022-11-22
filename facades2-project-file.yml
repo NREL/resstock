@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: .
 project_directory: project_national
-output_directory: /projects/resfacades/full01
+output_directory: /projects/resfacades/full02
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
@@ -73,21 +73,22 @@ workflow_generator:
     debug: false
 
 eagle:
-  n_jobs: 50
-  minutes_per_sim: 30
+#using values from euss resround1 final runs
+  n_jobs: 600
+  minutes_per_sim: 2
   account: resfacades
   postprocessing:
-    time: 480
+    time: 6000
     n_workers: 32
   sampling:
-    time: 1200
+    time: 60
 
 postprocessing:
   aws:
     region_name: 'us-west-2'
     s3:
       bucket: euss
-      prefix: facades2/full01 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+      prefix: facades2/full02 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: facades2 #collection of Athena tables (post-crawling), can be constant for the entire analysis
