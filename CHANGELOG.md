@@ -20,6 +20,7 @@ Features
 - Modeled floor area based on AHS 2021 and AHS 2019 ([#978](https://github.com/NREL/resstock/pull/978))
 - Add area median income ([#1004](https://github.com/NREL/resstock/pull/1004))
 - Update to OpenStudio v3.5.0 ([#1006](https://github.com/NREL/resstock/pull/1006))
+- Update to OpenStudio-HPXML v1.5.0 ([#1007](https://github.com/NREL/resstock/pull/1007))
 
 Fixes
 - Clean up option names for natural ventilation and hot water distribution ([#828](https://github.com/NREL/resstock/pull/828))
