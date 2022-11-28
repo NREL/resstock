@@ -2,44 +2,48 @@
 
 __New Features__
 - Updates to OpenStudio 3.5.0/EnergyPlus 22.2.
+- Updates to newer proposed HPXML v4.0:
+  - **Breaking Change**: Replaces `FrameFloors/FrameFloor` with `Floors/Floor`.
+  - **Breaking change**: `Floor/FloorType` (WoodFrame, StructuralInsulatedPanel, SteelFrame, or SolidConcrete) is a required input.
+  - **Breaking Change**: All `Ducts` must now have a `SystemIdentifier`.
+  - **Breaking Change**: Replaces `WallType/StructurallyInsulatedPanel` with `WallType/StructuralInsulatedPanel`.
+  - **Breaking change**: Replaces `SoftwareInfo/extension/SimulationControl/DaylightSaving/Enabled` with `Building/Site/TimeZone/DSTObserved`.
+  - **Breaking Change**: Replaces `StandbyLoss` with `StandbyLoss[Units="F/hr"]/Value` for an indirect water heater.
+  - **Breaking Change**: Replaces `BranchPipingLoopLength` with `BranchPipingLength` for a hot water recirculation system.
+  - **Breaking Change**: Replaces `Floor/extension/OtherSpaceAboveOrBelow` with `Floor/FloorOrCeiling`.
+  - **Breaking change**: For PTAC with heating, replaces `HeatingSystem` of type PackagedTerminalAirConditionerHeating with `CoolingSystem/IntegratedHeating*` elements.
 - **Breaking Change**: Now performs full HPXML XSD schema validation (previously just limited checks); yields runtime speed improvements.
-- **Breaking Change**: Replaces `FrameFloors/FrameFloor` with `Floors/Floor`.
-- **Breaking change**: `Floor/FloorType` (WoodFrame, StructuralInsulatedPanel, SteelFrame, or SolidConcrete) is a required input.
-- **Breaking Change**: All `Ducts` must now have a `SystemIdentifier`.
-- **Breaking Change**: Replaces `WallType/StructurallyInsulatedPanel` with `WallType/StructuralInsulatedPanel`.
-- **Breaking change**: Replaces `SoftwareInfo/extension/SimulationControl/DaylightSaving/Enabled` with `Building/Site/TimeZone/DSTObserved`.
-- **Breaking Change**: Replaces `StandbyLoss` with `StandbyLoss[Units="F/hr"]/Value` for an indirect water heater.
-- **Breaking Change**: Replaces `BranchPipingLoopLength` with `BranchPipingLength` for a hot water recirculation system.
-- **Breaking Change**: Replaces `Floor/extension/OtherSpaceAboveOrBelow` with `Floor/FloorOrCeiling`.
 - **Breaking Change**: HVAC/DHW equipment efficiencies can no longer be defaulted (e.g., based on age of equipment); they are now required.
 - **Breaking Change**: Deprecates ReportHPXMLOutput measure; HVAC autosized capacities & design loads moved to `results_annual.csv`.
+- **Breaking change**: BuildResidentialHPXML measure: Replaces arguments using 'auto' for defaults with optional arguments of the appropriate data type.
+- Utility bill calculations:
+  - **Breaking change**: Removes utility rate and PV related arguments from the ReportUtilityBills measure in lieu of HPXML file inputs.
+  - Allows calculating one or more utility bill scenarios (e.g., net metering vs feed-in tariff compensation types for a simulation with PV).
+  - Adds detailed calculations for tiered, time-of-use, or real-time pricing electric rates using OpenEI tariff files.  
+- Lithium ion battery:
+  - Allows detailed charging/discharging schedules via CSV files.
+  - Allows setting round trip efficiency.
+  - **Breaking change**: Lifetime model is temporarily disabled; `Battery/extension/LifetimeModel` is not allowed.
 - Allows SEER2/HSPF2 efficiency types for central air conditioners and heat pumps.
-- Allows heating/cooling seasons that don't span the entire year.
-- Allows calculating one or more utility bill scenarios (e.g., net metering vs feed-in tariff compensation types for a simulation with PV).
-- Allows setting the EnergyPlus temperature capacitance multiplier.
-- Allows setting the ground soil conductivity used for foundation heat transfer and ground source heat pumps.
 - Allows setting the natural ventilation availability (days/week that operable windows can be opened); default changed from 7 to 3 (M/W/F).
 - Allows specifying duct surface area multipliers.
 - Allows modeling CFIS ventilation systems with supplemental fans.
 - Allows shared dishwasher/clothes washer to be attached to a hot water distribution system instead of a single water heater.
-- Design temperatures, used to calculate design loads for HVAC equipment autosizing, are now output in `in.xml` and `results_annual.csv`.
+- Allows heating/cooling seasons that don't span the entire year.
+- Allows modeling room air conditioners with heating or reverse cycle.
+- Allows setting the ground soil conductivity used for foundation heat transfer and ground source heat pumps.
+- Allows setting the EnergyPlus temperature capacitance multiplier.
 - EnergyPlus modeling changes:
   - Switches Kiva foundation model timestep from 'Hourly' to 'Timestep'; small increase in runtime for sub-hourly simulations.
+  - Improves Kiva foundation model heat transfer by providing better initial temperature assumptions based on foundation type and insulation levels.
 - Annual/timeseries outputs:
   - Allows timeseries timestamps to be start or end of timestep convention; **Breaking change**: now defaults to start of timestep.
   - Adds annual emission outputs disaggregated by end use; timeseries emission outputs disaggregated by end use can be requested.
   - Allows generating timeseries unmet hours for heating and cooling.
   - Allows CSV timeseries output to be formatted for use with the DView application.
   - Adds heating/cooling setpoints to timeseries outputs when requesting zone temperatures.
-- Allows modeling room air conditioners with heating or reverse cycle.
-- **Breaking change**: For PTAC with heating, replaces `HeatingSystem` of type PackagedTerminalAirConditionerHeating with `CoolingSystem/IntegratedHeating*` elements.
-- BuildResidentialHPXML measure:
-  - **Breaking change**: Replaces arguments using 'auto' for defaults with optional arguments of the appropriate data type. New `heat_pump_sizing_methodology` argument and new boolean `foo_present` arguments for lighting, appliances, etc.
-  - Adds optional arguments for utility bill scenarios.
-- ReportUtilityBills measure:
-  - Removes utility rate and PV related arguments in lieu of new utility bill scenarios described inside the HPXML file.
-  - Adds detailed calculations for tiered, time-of-use, or real-time pricing electric rates using OpenEI tariff files.
-- Improves Kiva foundation model heat transfer by providing better initial temperature assumptions based on foundation type and insulation levels.
+  - Disaggregates Battery outputs from PV outputs.
+  - Design temperatures, used to calculate design loads for HVAC equipment autosizing, are now output in `in.xml` and `results_annual.csv`.
 
 __Bugfixes__
 - Fixes possible incorrect autosizing of heat pump *separate* backup systems with respect to duct loads.
@@ -55,7 +59,8 @@ __Bugfixes__
 - Fixes possible simulation error if a slab has an ExposedPerimeter near zero.
 - Fixes possible "Could not identify surface type for surface" error.
 - Fixes possible ruby error when defaulting water heater location.
-- BuildResidentialHPXML measure:
+- Battery round trip efficiency now correctly affects results.
+- BuildResidentialHPXML measure: 
   - Fixes aspect ratio convention for single-family attached and multifamily dwelling units.
 
 ## OpenStudio-HPXML v1.4.0

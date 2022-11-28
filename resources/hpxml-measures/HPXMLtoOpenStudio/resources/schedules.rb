@@ -10,19 +10,19 @@ class HourlyByMonthSchedule
     @year = model.getYearDescription.assumedYear
     @sch_name = sch_name
     @schedule = nil
-    @weekday_month_by_hour_values = validateValues(weekday_month_by_hour_values, 12, 24)
-    @weekend_month_by_hour_values = validateValues(weekend_month_by_hour_values, 12, 24)
+    @weekday_month_by_hour_values = validate_values(weekday_month_by_hour_values, 12, 24)
+    @weekend_month_by_hour_values = validate_values(weekend_month_by_hour_values, 12, 24)
     @schedule_type_limits_name = schedule_type_limits_name
 
     if normalize_values
-      @maxval = calcMaxval()
+      @maxval = calc_max_val()
     else
       @maxval = 1.0
     end
-    @schedule = createSchedule()
+    @schedule = create_schedule()
   end
 
-  def calcDesignLevel(val)
+  def calc_design_level(val)
     return val * 1000
   end
 
@@ -36,7 +36,7 @@ class HourlyByMonthSchedule
 
   private
 
-  def validateValues(vals, num_outter_values, num_inner_values)
+  def validate_values(vals, num_outter_values, num_inner_values)
     err_msg = "A #{num_outter_values}-element array with #{num_inner_values}-element arrays of numbers must be entered for the schedule."
     if not vals.is_a?(Array)
       fail err_msg
@@ -61,7 +61,7 @@ class HourlyByMonthSchedule
     return vals
   end
 
-  def calcMaxval()
+  def calc_max_val()
     maxval = [@weekday_month_by_hour_values.flatten.max, @weekend_month_by_hour_values.flatten.max].max
     if maxval == 0.0
       maxval = 1.0 # Prevent divide by zero
@@ -69,7 +69,7 @@ class HourlyByMonthSchedule
     return maxval
   end
 
-  def createSchedule()
+  def create_schedule()
     day_startm = Schedule.day_start_months(@year)
     day_endm = Schedule.day_end_months(@year)
 
@@ -176,19 +176,19 @@ class HourlyByDaySchedule
     @sch_name = sch_name
     @schedule = nil
     @num_days = Constants.NumDaysInYear(@year)
-    @weekday_day_by_hour_values = validateValues(weekday_day_by_hour_values, @num_days, 24)
-    @weekend_day_by_hour_values = validateValues(weekend_day_by_hour_values, @num_days, 24)
+    @weekday_day_by_hour_values = validate_values(weekday_day_by_hour_values, @num_days, 24)
+    @weekend_day_by_hour_values = validate_values(weekend_day_by_hour_values, @num_days, 24)
     @schedule_type_limits_name = schedule_type_limits_name
 
     if normalize_values
-      @maxval = calcMaxval()
+      @maxval = calc_max_val()
     else
       @maxval = 1.0
     end
-    @schedule = createSchedule()
+    @schedule = create_schedule()
   end
 
-  def calcDesignLevel(val)
+  def calc_design_level(val)
     return val * 1000
   end
 
@@ -202,7 +202,7 @@ class HourlyByDaySchedule
 
   private
 
-  def validateValues(vals, num_outter_values, num_inner_values)
+  def validate_values(vals, num_outter_values, num_inner_values)
     err_msg = "A #{num_outter_values}-element array with #{num_inner_values}-element arrays of numbers must be entered for the schedule."
     if not vals.is_a?(Array)
       fail err_msg
@@ -227,7 +227,7 @@ class HourlyByDaySchedule
     return vals
   end
 
-  def calcMaxval()
+  def calc_max_val()
     maxval = [@weekday_month_by_hour_values.flatten.max, @weekend_month_by_hour_values.flatten.max].max
     if maxval == 0.0
       maxval = 1.0 # Prevent divide by zero
@@ -235,7 +235,7 @@ class HourlyByDaySchedule
     return maxval
   end
 
-  def createSchedule()
+  def create_schedule()
     time = []
     for h in 1..24
       time[h] = OpenStudio::Time.new(0, h, 0, 0)
@@ -340,9 +340,9 @@ class MonthWeekdayWeekendSchedule
     @year = model.getYearDescription.assumedYear
     @sch_name = sch_name
     @schedule = nil
-    @weekday_hourly_values = validateValues(weekday_hourly_values, 24, 'weekday')
-    @weekend_hourly_values = validateValues(weekend_hourly_values, 24, 'weekend')
-    @monthly_values = validateValues(monthly_values, 12, 'monthly')
+    @weekday_hourly_values = validate_values(weekday_hourly_values, 24, 'weekday')
+    @weekend_hourly_values = validate_values(weekend_hourly_values, 24, 'weekend')
+    @monthly_values = validate_values(monthly_values, 12, 'monthly')
     @schedule_type_limits_name = schedule_type_limits_name
     @begin_month = begin_month
     @begin_day = begin_day
@@ -350,28 +350,28 @@ class MonthWeekdayWeekendSchedule
     @end_day = end_day
 
     if normalize_values
-      @weekday_hourly_values = normalizeSumToOne(@weekday_hourly_values)
-      @weekend_hourly_values = normalizeSumToOne(@weekend_hourly_values)
-      @monthly_values = normalizeAvgToOne(@monthly_values)
-      @maxval = calcMaxval()
-      @schadjust = calcSchadjust()
+      @weekday_hourly_values = normalize_sum_to_one(@weekday_hourly_values)
+      @weekend_hourly_values = normalize_sum_to_one(@weekend_hourly_values)
+      @monthly_values = normalize_avg_to_one(@monthly_values)
+      @maxval = calc_max_val()
+      @schadjust = calc_sch_adjust()
     else
       @maxval = 1.0
       @schadjust = 1.0
     end
-    @schedule = createSchedule()
+    @schedule = create_schedule()
   end
 
-  def calcDesignLevelFromDailykWh(daily_kwh)
+  def calc_design_level_from_daily_kwh(daily_kwh)
     design_level_kw = daily_kwh * @maxval * @schadjust
     return UnitConversions.convert(design_level_kw, 'kW', 'W')
   end
 
-  def calcDesignLevelFromDailyTherm(daily_therm)
-    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, 'therm', 'kWh'))
+  def calc_design_level_from_daily_therm(daily_therm)
+    return calc_design_level_from_daily_kwh(UnitConversions.convert(daily_therm, 'therm', 'kWh'))
   end
 
-  def calcPeakFlowFromDailygpm(daily_water)
+  def calc_design_level_from_daily_gpm(daily_water)
     water_gpm = daily_water * @maxval * @schadjust / 60.0
     return UnitConversions.convert(water_gpm, 'gal/min', 'm^3/s')
   end
@@ -382,7 +382,7 @@ class MonthWeekdayWeekendSchedule
 
   private
 
-  def validateValues(values, num_values, sch_name)
+  def validate_values(values, num_values, sch_name)
     err_msg = "A comma-separated string of #{num_values} numbers must be entered for the #{sch_name} schedule."
     if values.is_a?(Array)
       if values.length != num_values
@@ -420,7 +420,7 @@ class MonthWeekdayWeekendSchedule
     !!Float(str) rescue false
   end
 
-  def normalizeSumToOne(values)
+  def normalize_sum_to_one(values)
     sum = values.reduce(:+).to_f
     if sum == 0.0
       return values
@@ -429,7 +429,7 @@ class MonthWeekdayWeekendSchedule
     return values.map { |val| val / sum }
   end
 
-  def normalizeAvgToOne(values)
+  def normalize_avg_to_one(values)
     avg = values.reduce(:+).to_f / values.size
     if avg == 0.0
       return values
@@ -438,7 +438,7 @@ class MonthWeekdayWeekendSchedule
     return values.map { |val| val / avg }
   end
 
-  def calcMaxval()
+  def calc_max_val()
     if @weekday_hourly_values.max > @weekend_hourly_values.max
       maxval = @monthly_values.max * @weekday_hourly_values.max
     else
@@ -450,7 +450,7 @@ class MonthWeekdayWeekendSchedule
     return maxval
   end
 
-  def calcSchadjust()
+  def calc_sch_adjust()
     # if sum != 1, normalize to get correct max val
     sum_wkdy = 0
     sum_wknd = 0
@@ -467,7 +467,7 @@ class MonthWeekdayWeekendSchedule
     return 1 / sum_wkdy
   end
 
-  def createSchedule()
+  def create_schedule()
     month_num_days = Constants.NumDaysInMonths(@year)
     month_num_days[@end_month - 1] = @end_day
 
@@ -1152,11 +1152,14 @@ class SchedulesFile
   ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
   ColumnHotWaterFixtures = 'hot_water_fixtures'
   ColumnVacancy = 'vacancy'
+  ColumnSleeping = 'sleeping'
   ColumnHeatingSetpoint = 'heating_setpoint'
   ColumnCoolingSetpoint = 'cooling_setpoint'
   ColumnWaterHeaterSetpoint = 'water_heater_setpoint'
   ColumnWaterHeaterOperatingMode = 'water_heater_operating_mode'
-  ColumnSleeping = 'sleeping'
+  ColumnBattery = 'battery'
+  ColumnBatteryCharging = 'battery_charging'
+  ColumnBatteryDischarging = 'battery_discharging'
 
   def initialize(runner: nil,
                  model: nil,
@@ -1168,8 +1171,9 @@ class SchedulesFile
     @schedules_paths = schedules_paths
 
     import()
-
+    battery_schedules
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
+
     set_vacancy
     convert_setpoints
 
@@ -1239,6 +1243,12 @@ class SchedulesFile
           end
         end
 
+        if min_value_neg_one[col_name]
+          if values.min < -1
+            fail "Schedule min value for column '#{col_name}' must be -1. [context: #{schedules_path}]"
+          end
+        end
+
         if only_zeros_and_ones[col_name]
           if values.any? { |v| v != 0 && v != 1 }
             fail "Schedule value for column '#{col_name}' must be either 0 or 1. [context: #{schedules_path}]"
@@ -1281,12 +1291,8 @@ class SchedulesFile
   end
 
   def get_col_index(col_name:)
-    headers = []
-    @schedules_paths.each do |schedules_path|
-      next if schedules_path.nil?
+    headers = @tmp_schedules.keys
 
-      headers += CSV.open(schedules_path, 'r') { |csv| csv.first }
-    end
     col_num = headers.index(col_name)
     return col_num
   end
@@ -1417,10 +1423,9 @@ class SchedulesFile
     return unless @tmp_schedules.keys.include? ColumnVacancy
     return if @tmp_schedules[ColumnVacancy].all? { |i| i == 0 }
 
-    col_names = SchedulesFile.ColumnNames
-
-    @tmp_schedules[col_names[0]].each_with_index do |_ts, i|
-      col_names.each do |col_name|
+    @tmp_schedules[ColumnVacancy].each_with_index do |_ts, i|
+      @tmp_schedules.keys.each do |col_name|
+        next if col_name == ColumnVacancy
         next unless affected_by_vacancy[col_name] # skip those unaffected by vacancy
 
         @tmp_schedules[col_name][i] *= (1.0 - @tmp_schedules[ColumnVacancy][i])
@@ -1442,8 +1447,23 @@ class SchedulesFile
     end
   end
 
+  def battery_schedules
+    return if !@schedules.keys.include?(SchedulesFile::ColumnBattery)
+
+    @schedules[SchedulesFile::ColumnBatteryCharging] = Array.new(@schedules[SchedulesFile::ColumnBattery].size, 0)
+    @schedules[SchedulesFile::ColumnBatteryDischarging] = Array.new(@schedules[SchedulesFile::ColumnBattery].size, 0)
+    @schedules[SchedulesFile::ColumnBattery].each_with_index do |_ts, i|
+      if @schedules[SchedulesFile::ColumnBattery][i] > 0
+        @schedules[SchedulesFile::ColumnBatteryCharging][i] = @schedules[SchedulesFile::ColumnBattery][i]
+      elsif @schedules[SchedulesFile::ColumnBattery][i] < 0
+        @schedules[SchedulesFile::ColumnBatteryDischarging][i] = -1 * @schedules[SchedulesFile::ColumnBattery][i]
+      end
+    end
+    @schedules.delete(SchedulesFile::ColumnBattery)
+  end
+
   def self.ColumnNames
-    return SchedulesFile.OccupancyColumnNames + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames
+    return SchedulesFile.OccupancyColumnNames + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames + SchedulesFile.BatteryColumnNames
   end
 
   def self.OccupancyColumnNames
@@ -1506,6 +1526,14 @@ class SchedulesFile
     ]
   end
 
+  def self.BatteryColumnNames
+    return [
+      ColumnBattery,
+      ColumnBatteryCharging,
+      ColumnBatteryDischarging
+    ]
+  end
+
   def affected_by_vacancy
     affected_by_vacancy = {}
     column_names = SchedulesFile.ColumnNames
@@ -1518,7 +1546,7 @@ class SchedulesFile
                     ColumnPoolHeater,
                     ColumnHotTubPump,
                     ColumnHotTubHeater,
-                    ColumnSleeping] + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames).include? column_name
+                    ColumnSleeping] + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames + SchedulesFile.BatteryColumnNames).include? column_name
 
       affected_by_vacancy[column_name] = false
     end
@@ -1542,11 +1570,23 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       min_value_zero[column_name] = true
-      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name)
+      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name) || SchedulesFile.BatteryColumnNames.include?(column_name)
         min_value_zero[column_name] = false
       end
     end
     return min_value_zero
+  end
+
+  def min_value_neg_one
+    min_value_neg_one = {}
+    column_names = SchedulesFile.ColumnNames
+    column_names.each do |column_name|
+      min_value_neg_one[column_name] = false
+      if column_name == SchedulesFile::ColumnBattery
+        min_value_neg_one[column_name] = true
+      end
+    end
+    return min_value_neg_one
   end
 
   def only_zeros_and_ones
