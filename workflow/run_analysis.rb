@@ -206,8 +206,6 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
       }
     }
 
-    osw['steps'] += workflow_args['measures']
-
     debug = false
     if workflow_args.keys.include?('debug')
       debug = workflow_args['debug']
@@ -245,7 +243,12 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
           'debug' => debug,
           'add_component_loads' => add_component_loads
         }
-      },
+      }
+    ]
+
+    osw['steps'] += workflow_args['measures']
+
+    osw['steps'] += [
       {
         'measure_dir_name' => 'ReportSimulationOutput',
         'arguments' => sim_out_rep_args

@@ -152,8 +152,9 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Electricity: Pool Pump (MBtu)
    End Use: Electricity: Hot Tub Heater (MBtu)
    End Use: Electricity: Hot Tub Pump (MBtu)
-   End Use: Electricity: PV (MBtu)                                      Negative value for any power produced (including any battery storage)
+   End Use: Electricity: PV (MBtu)                                      Negative value for any power produced
    End Use: Electricity: Generator (MBtu)                               Negative value for any power produced
+   End Use: Electricity: Battery (MBtu)                                 Positive value for charging (including efficiency losses); negative value for discharging
    End Use: Natural Gas: Heating (MBtu)                                 Excludes heat pump backup
    End Use: Natural Gas: Heating Heat Pump Backup (MBtu)
    End Use: Natural Gas: Hot Water (MBtu)
@@ -451,7 +452,7 @@ Depending on the outputs requested, the file may include:
 
 Timeseries outputs can be one of the following frequencies: hourly, daily, monthly, or timestep (i.e., equal to the simulation timestep, which defaults to an hour but can be sub-hourly).
 
-Timestamps in the output use the start-of-timestep (e.g., start-of-hour for hourly frequency or start-of-day for daily frequency) convention unless you have requested the end-of-timestep timestamp convention.
+Timestamps in the output use the start-of-period convention unless you have requested the end-of-period timestamp convention.
 Additional timestamp columns can be optionally requested that reflect daylight saving time (DST) and/or coordinated universal time (UTC).
 Most outputs will be summed over the hour (e.g., energy) but some will be averaged over the hour (e.g., temperatures, airflows).
 
@@ -462,7 +463,6 @@ Utility Bill Outputs
 
 OpenStudio-HPXML can optionally generate a utility bills output file.
 The utility bills output file is called ``results_bills.csv`` (or ``results_bills.json`` or ``results_bills.msgpack``) and located in the run directory.
-Monthly fixed charges and marginal rates, as well as PV compensation types/rates/fees, are defined to determine how utility bills are calculated.
 
 Results for each utility bill scenario defined in the HPXML file are listed as shown below.
 Note that rows below with values of zero will be excluded.
@@ -472,25 +472,25 @@ Note that rows below with values of zero will be excluded.
    =============================================  ====================
    <ScenarioName>: Total ($)                      Scenario annual total charges.
    <ScenarioName>: Electricity: Fixed ($)         Scenario annual fixed charges for electricity.
-   <ScenarioName>: Electricity: Marginal ($)      Scenario annual energy charges for electricity.
+   <ScenarioName>: Electricity: Energy ($)        Scenario annual energy charges for electricity.
    <ScenarioName>: Electricity: PV Credit ($)     Scenario annual production credit (negative value) for PV.
    <ScenarioName>: Electricity: Total ($)         Scenario annual total charges for electricity.
    <ScenarioName>: Natural Gas: Fixed ($)         Scenario annual fixed charges for natural gas.
-   <ScenarioName>: Natural Gas: Marginal ($)      Scenario annual energy charges for natural gas.
+   <ScenarioName>: Natural Gas: Energy ($)        Scenario annual energy charges for natural gas.
    <ScenarioName>: Natural Gas: Total ($)         Scenario annual total charges for natural gas.
    <ScenarioName>: Fuel Oil: Fixed ($)            Scenario annual fixed charges for fuel oil.
-   <ScenarioName>: Fuel Oil: Marginal ($)         Scenario annual energy charges for fuel oil.
+   <ScenarioName>: Fuel Oil: Energy ($)           Scenario annual energy charges for fuel oil.
    <ScenarioName>: Fuel Oil: Total ($)            Scenario annual total charges for fuel oil.
    <ScenarioName>: Propane: Fixed ($)             Scenario annual fixed charges for propane.
-   <ScenarioName>: Propane: Marginal ($)          Scenario annual energy charges for propane.
+   <ScenarioName>: Propane: Energy ($)            Scenario annual energy charges for propane.
    <ScenarioName>: Propane: Total ($)             Scenario annual total charges for propane.
    <ScenarioName>: Wood Cord: Fixed ($)           Scenario annual fixed charges for wood cord.
-   <ScenarioName>: Wood Cord: Marginal ($)        Scenario annual energy charges for wood cord.
+   <ScenarioName>: Wood Cord: Energy ($)          Scenario annual energy charges for wood cord.
    <ScenarioName>: Wood Cord: Total ($)           Scenario annual total charges for wood cord.
    <ScenarioName>: Wood Pellets: Fixed ($)        Scenario annual fixed charges for wood pellets.
-   <ScenarioName>: Wood Pellets: Marginal ($)     Scenario annual energy charges for wood pellets.
+   <ScenarioName>: Wood Pellets: Energy ($)       Scenario annual energy charges for wood pellets.
    <ScenarioName>: Wood Pellets: Total ($)        Scenario annual total charges for wood pellets.
    <ScenarioName>: Coal: Fixed ($)                Scenario annual fixed charges for coal.
-   <ScenarioName>: Coal: Marginal ($)             Scenario annual energy charges for coal.
+   <ScenarioName>: Coal: Energy ($)               Scenario annual energy charges for coal.
    <ScenarioName>: Coal: Total ($)                Scenario annual total charges for coal.
    =============================================  ====================

@@ -242,7 +242,7 @@ class WeatherProcess
   def calc_monthly_drybulbs(hd)
     # Calculates and stores monthly average drybulbs
     @data.MonthlyAvgDrybulbs = []
-    (1...13).to_a.each do |month|
+    for month in 1..12
       y = []
       hd.each do |x|
         if x['month'] == month
@@ -498,7 +498,7 @@ class WeatherProcess
     bo = (data.MonthlyAvgDrybulbs.max - data.MonthlyAvgDrybulbs.min) * 0.5
 
     @data.GroundMonthlyTemps = []
-    (0...12).to_a.each do |i|
+    for i in 0..11
       theta = amon[i] * 24.0
       @data.GroundMonthlyTemps << UnitConversions.convert(data.AnnualAvgDrybulb - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0, 'R', 'F')
     end

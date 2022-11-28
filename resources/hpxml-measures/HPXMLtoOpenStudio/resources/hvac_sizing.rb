@@ -1093,7 +1093,8 @@ class HVACSizing
         HPXML::HVACTypeHeatPumpMiniSplit,
         HPXML::HVACTypeHeatPumpGroundToAir,
         HPXML::HVACTypeHeatPumpWaterLoopToAir,
-        HPXML::HVACTypeHeatPumpPTHP].include? hvac.HeatType
+        HPXML::HVACTypeHeatPumpPTHP,
+        HPXML::HVACTypeHeatPumpRoom].include? hvac.HeatType
       hvac.SupplyAirTemp = 105.0 # F
       hvac.BackupSupplyAirTemp = 120.0 # F
     else
@@ -1132,7 +1133,8 @@ class HVACSizing
         HPXML::HVACTypeHeatPumpMiniSplit,
         HPXML::HVACTypeHeatPumpGroundToAir,
         HPXML::HVACTypeHeatPumpWaterLoopToAir,
-        HPXML::HVACTypeHeatPumpPTHP].include? hvac.CoolType
+        HPXML::HVACTypeHeatPumpPTHP,
+        HPXML::HVACTypeHeatPumpRoom].include? hvac.CoolType
       if (@hpxml.header.heat_pump_sizing_methodology != HPXML::HeatPumpSizingACCA) && (hvac.CoolingLoadFraction > 0) && (hvac.HeatingLoadFraction > 0)
         # Note: Heat_Load_Supp should NOT be adjusted; we only want to adjust the HP capacity, not the HP backup heating capacity.
         max_load = [hvac_sizing_values.Heat_Load, hvac_sizing_values.Cool_Load_Tot].max
@@ -1476,7 +1478,8 @@ class HVACSizing
 
     elsif [HPXML::HVACTypeRoomAirConditioner,
            HPXML::HVACTypePTAC,
-           HPXML::HVACTypeHeatPumpPTHP].include? hvac.CoolType
+           HPXML::HVACTypeHeatPumpPTHP,
+           HPXML::HVACTypeHeatPumpRoom].include? hvac.CoolType
 
       enteringTemp = weather.design.CoolingDrybulb
       totalCap_CurveValue = MathTools.biquadratic(@wetbulb_indoor_cooling, enteringTemp, hvac.COOL_CAP_FT_SPEC[hvac.SizingSpeed])
@@ -1562,7 +1565,8 @@ class HVACSizing
 
     elsif [HPXML::HVACTypeHeatPumpAirToAir,
            HPXML::HVACTypeHeatPumpMiniSplit,
-           HPXML::HVACTypeHeatPumpPTHP].include? hvac.HeatType
+           HPXML::HVACTypeHeatPumpPTHP,
+           HPXML::HVACTypeHeatPumpRoom].include? hvac.HeatType
       process_heat_pump_adjustment(hvac_sizing_values, weather, hvac, totalCap_CurveValue)
       hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load_Supp
       if hvac.HeatType == HPXML::HVACTypeHeatPumpAirToAir
@@ -1607,7 +1611,7 @@ class HVACSizing
       hvac_sizing_values.Heat_Airflow = calc_airflow_rate_manual_s(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
       hvac_sizing_values.Heat_Airflow_Supp = calc_airflow_rate_manual_s(hvac_sizing_values.Heat_Capacity_Supp, (hvac.BackupSupplyAirTemp - @heat_setpoint))
 
-    elsif [HPXML::HVACTypeFurnace, HPXML::HVACTypePTACHeating].include? hvac.HeatType
+    elsif (hvac.HeatType == HPXML::HVACTypeFurnace) || hvac.HasIntegratedHeating
 
       hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
       hvac_sizing_values.Heat_Capacity_Supp = 0.0
@@ -2337,6 +2341,13 @@ class HVACSizing
         elsif not hpxml_hvac.backup_system.nil?
           hvac.FixedSuppHeatingCapacity = hpxml_hvac.backup_system.heating_capacity
         end
+      end
+
+      # Integrated heating systems
+      if hpxml_hvac.is_a?(HPXML::CoolingSystem) && hpxml_hvac.has_integrated_heating
+        hvac.HasIntegratedHeating = true
+        hvac.HeatingLoadFraction = hpxml_hvac.integrated_heating_system_fraction_heat_load_served
+        hvac.FixedHeatingCapacity = hpxml_hvac.integrated_heating_system_capacity
       end
 
       # HP Switchover Temperature
@@ -3428,7 +3439,7 @@ class HVACInfo
                 :GSHP_SpacingType, :EvapCoolerEffectiveness, :SwitchoverTemperature, :LeavingAirTemp,
                 :HeatingLoadFraction, :CoolingLoadFraction, :SupplyAirTemp, :BackupSupplyAirTemp,
                 :GSHP_design_chw, :GSHP_design_delta_t, :GSHP_design_hw, :GSHP_bore_d,
-                :GSHP_pipe_od, :GSHP_pipe_id, :GSHP_pipe_cond, :GSHP_grout_k)
+                :GSHP_pipe_od, :GSHP_pipe_id, :GSHP_pipe_cond, :GSHP_grout_k, :HasIntegratedHeating)
 end
 
 class DuctInfo

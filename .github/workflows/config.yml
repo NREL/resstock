@@ -11,7 +11,7 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.4.0
+      image: docker://nrel/openstudio:3.5.0
     steps:
       - uses: actions/checkout@v2
         with:
@@ -20,9 +20,6 @@ jobs:
       - name: Install gems and software
         run: |
           rm -f Gemfile.lock && bundle install
-          sudo apt update
-          sudo apt-get install -y wget unzip libxml2-utils python3-lxml python3-pip
-          sudo pip3 install sphinx sphinx-rtd-theme
 
       - name: Run integrity checks for all projects
         run: |
@@ -42,21 +39,10 @@ jobs:
           path: resources/buildstock.csv
           name: samples
 
-      - name: Build documentation
-        run: |
-          cd docs/read_the_docs
-          make html SPHINXOPTS="-W --keep-going -n"
-
-      - name: Save Docs
-        uses: actions/upload-artifact@v2
-        with:
-          name: documentation
-          path: docs/read_the_docs/_build/html/
-
   analysis-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.4.0
+      image: docker://nrel/openstudio:3.5.0
     steps:
       - uses: actions/checkout@v2
         with:
@@ -89,7 +75,7 @@ jobs:
 
       - name: Run buildstockbatch
         run: |
-          pip install git+https://github.com/NREL/buildstockbatch.git@develop
+          pip install git+https://github.com/NREL/buildstockbatch.git@v2022.10.1
           
           buildstock_docker project_national/national_baseline.yml
           buildstock_docker project_testing/testing_baseline.yml
@@ -127,6 +113,13 @@ jobs:
             baseline
             upgrades
           name: results
+
+      - name: Upload output files
+        uses: actions/upload-artifact@v2
+        with:
+          path: |
+            outputs
+          name: outputs
 
       - name: Upload buildstockbatch results
         uses: actions/upload-artifact@v2
@@ -252,6 +245,12 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Install gems and software
+        run: |
+          sudo apt update
+          sudo apt-get install -y wget unzip libxml2-utils python3-lxml python3-pip
+          sudo pip3 install sphinx sphinx-rtd-theme
+
       - name: Download feature samples
         uses: actions/download-artifact@v2
         with:
@@ -264,6 +263,12 @@ jobs:
           path: results
           name: results
 
+      - name: Download output files
+        uses: actions/download-artifact@v2
+        with:
+          path: outputs
+          name: outputs
+
       - name: Commit latest results
         shell: bash        
         run: |
@@ -274,6 +279,7 @@ jobs:
           cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
           cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
           cp -r results/upgrades/timeseries/results*.csv test/base_results/upgrades/timeseries
+          cp -r outputs/*.csv test/base_results/outputs
           git add test/base_results
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
@@ -283,3 +289,14 @@ jobs:
             echo "Pushing to branch: $branch_name"
             git push -u origin $branch_name
           fi
+
+      - name: Build documentation
+        run: |
+          cd docs/read_the_docs
+          make html SPHINXOPTS="-W --keep-going -n"
+
+      - name: Save Docs
+        uses: actions/upload-artifact@v2
+        with:
+          name: documentation
+          path: docs/read_the_docs/_build/html/

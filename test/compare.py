@@ -21,6 +21,7 @@ enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family
 cols_to_ignore = ['applicable',
                   'output_format',
                   'timeseries_frequency',
+                  'timeseries_timestamp_convention',
                   'completed_status',
                   'color_index',
                   'upgrade_name']
