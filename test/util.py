@@ -99,10 +99,10 @@ results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
 def write_csv_cols(array, filename):
   file = os.path.join('outputs', '{}'.format(filename))
-  print('Wrote: {}'.format(file))
   wtr = csv.writer(open(file, 'w'), delimiter=',', lineterminator='\n')
   for x in array:
     wtr.writerow([x])
+  print('Wrote: {}'.format(file))
 
 # files for readthedocs
 if not os.path.exists('outputs'):
