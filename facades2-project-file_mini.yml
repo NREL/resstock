@@ -1,0 +1,924 @@
+schema_version: '0.3'
+buildstock_directory: .
+project_directory: project_national
+output_directory: /projects/resfacades/mini01
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota_downselect
+  args:
+    n_datapoints: 20
+    logic:
+      - Vacancy Status|Occupied
+      - Geometry Building Type RECS|Single-Family Detached
+      - not: Vintage|1990s
+      - not: Vintage|2000s
+      - not: Vintage|2010s
+      - or:
+        - Heating Fuel|Electricity
+        - Heating Fuel|Natural Gas
+        - Heating Fuel|Propane
+        - Heating Fuel|Fuel Oil
+    resample: false
+
+baseline:
+  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_run_period_calendar_year: 2007
+      add_component_loads: false
+
+    emissions: #same as EUSS res round 1
+      - scenario_name: LRMER_MidCase_15_2025start
+        type: CO2e
+        elec_folder: data/cambium/LRMER_MidCase_15_2025start
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+      - scenario_name: LRMER_LowRECost_15_2025start
+        type: CO2e
+        elec_folder: data/cambium/LRMER_LowRECost_15_2025start
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+      - scenario_name: LRMER_95DecarbBy2035_15_2025start
+        type: CO2e
+        elec_folder: data/cambium/LRMER_95DecarbBy2035_15_2025start
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+      - scenario_name: LRMER_LowRECost_25_2025start
+        type: CO2e
+        elec_folder: data/cambium/LRMER_LowRECost_25_2025start
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+
+    simulation_output_report: 
+      timeseries_frequency: none
+
+    server_directory_cleanup:
+      retain_in_osm: true
+      retain_in_idf: false
+      retain_eplusout_rdd: true
+      retain_schedules_csv: false
+
+    debug: false
+
+eagle:
+#using values from euss resround1 final runs
+  n_jobs: 1
+  minutes_per_sim: 2
+  account: resfacades
+  postprocessing:
+    time: 6000
+    n_workers: 2
+  sampling:
+    time: 60
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: euss
+      prefix: facades2/mini01 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: facades2 #collection of Athena tables (post-crawling), can be constant for the entire analysis
+      max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
+
+upgrades:
+  - upgrade_name: Residing
+    #Up01
+    options:
+      - &siding_upgrade_to_fibercement
+        option: Geometry Wall Exterior Finish|Fiber-Cement, Light
+        apply_logic:
+          and:
+            - or:
+              - Geometry Wall Exterior Finish|Aluminum, Light
+              - Geometry Wall Exterior Finish|Fiber-Cement, Light
+              - Geometry Wall Exterior Finish|Wood, Medium/Dark
+            - and: &upgradable_walls
+              - or:
+                - Insulation Wall|Wood Stud, Uninsulated
+                - Insulation Wall|Wood Stud, R-7
+                - Insulation Wall|Wood Stud, R-11
+                - Insulation Wall|Wood Stud, R-15
+                - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+                - Insulation Wall|CMU, 6-in Hollow, R-7
+                - Insulation Wall|CMU, 6-in Hollow, R-11
+                - Insulation Wall|CMU, 6-in Hollow, R-15
+                - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+                - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+                - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+                - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+              - not: Geometry Wall Exterior Finish|None
+        costs: &siding_costs_to_fibercement
+          - value: 4.00
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      - &siding_upgrade_to_stucco
+        option: Geometry Wall Exterior Finish|Stucco, Light
+        apply_logic:
+          and:
+            - or:
+              - Geometry Wall Exterior Finish|Brick, Light
+              - Geometry Wall Exterior Finish|Brick, Medium/Dark
+              - Geometry Wall Exterior Finish|Stucco, Light
+              - Geometry Wall Exterior Finish|Stucco, Medium/Dark
+            - and: *upgradable_walls
+        costs: &siding_costs_to_stucco
+          - value: 5.70
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      - &siding_upgrade_to_vinyl
+        option: Geometry Wall Exterior Finish|Vinyl, Light
+        apply_logic:
+          and:
+            - or:
+              - Geometry Wall Exterior Finish|Shingle, Asbestos, Medium
+              - Geometry Wall Exterior Finish|Shingle, Composition, Medium
+              - Geometry Wall Exterior Finish|Vinyl, Light
+            - and: *upgradable_walls
+        costs: &siding_costs_to_vinyl
+          - value: 3.30
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      - &wallwork_infiltration_reduction
+        option: Infiltration Reduction|19%
+        apply_logic:
+          - and: *upgradable_walls
+        costs: &no_cost
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+  - upgrade_name: Minimum windows
+    #Up02
+    options:
+      - &codewindows_U030S023
+        option: Windows|Code U 0.30 SHGC 0.23
+        apply_logic:
+          - and:
+            - or: &U030S023_code_and_cz
+              - CEC Climate Zone|2
+              - CEC Climate Zone|4
+              - CEC Climate Zone|6
+              - CEC Climate Zone|7
+              - CEC Climate Zone|8
+              - CEC Climate Zone|9
+              - CEC Climate Zone|10
+              - CEC Climate Zone|11
+              - CEC Climate Zone|12
+              - CEC Climate Zone|13
+              - CEC Climate Zone|14
+              - CEC Climate Zone|15
+            - or: &upgradable_windows
+                - Windows|Single, Clear, Non-metal
+                - Windows|Single, Clear, Metal
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+                - Windows|Double, Clear, Metal, Air
+        costs: &U030_costs
+          - value: 36.3
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &codewindows_U030S025
+        option: Windows|Code U 0.30 SHGC 0.25
+        apply_logic:
+          - and:
+            - or: &U030S025_code_and_cz
+              - and:
+                - or: &IECC2021states
+                  - State|CT
+                  - State|MT 
+                  - State|NJ
+                - or: 
+                  - ASHRAE IECC Climate Zone 2004|3A
+                  - ASHRAE IECC Climate Zone 2004|3B
+                  - ASHRAE IECC Climate Zone 2004|3C
+            - or: *upgradable_windows
+        costs: *U030_costs
+        lifetime: 30
+      - &codewindows_U030S030
+        option: Windows|Code U 0.30 SHGC 0.30
+        apply_logic:
+          - and:
+            - or: &U030S030_code_and_cz
+              - and:
+                - or: &IECC2018states
+                  - State|DE
+                  - State|IL 
+                  - State|IN 
+                  - State|MD 
+                  - State|NE 
+                  - State|NH 
+                  - State|NM 
+                  - State|NV 
+                  - State|NY
+                  - State|OH 
+                  - State|OR 
+                  - State|PA 
+                  - State|VA
+                - or: 
+                  - ASHRAE IECC Climate Zone 2004|4C 
+                  - ASHRAE IECC Climate Zone 2004|5A
+                  - ASHRAE IECC Climate Zone 2004|5B
+                  - ASHRAE IECC Climate Zone 2004|6A
+                  - ASHRAE IECC Climate Zone 2004|6B
+                  - ASHRAE IECC Climate Zone 2004|7A
+                  - ASHRAE IECC Climate Zone 2004|7B
+              - and:
+                - or: *IECC2021states
+                - or: 
+                  - ASHRAE IECC Climate Zone 2004|6A
+                  - ASHRAE IECC Climate Zone 2004|6B
+                  - ASHRAE IECC Climate Zone 2004|7A
+                  - ASHRAE IECC Climate Zone 2004|7B
+              - and:
+                - State|ID 
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|6A 
+                  - ASHRAE IECC Climate Zone 2004|6B
+              - and:
+                - State|MA 
+                - ASHRAE IECC Climate Zone 2004|5A
+              - and:
+                - State|RI 
+                - ASHRAE IECC Climate Zone 2004|5A 
+              - or:
+                - State|VT 
+                - State|WA
+              - or:
+                - CEC Climate Zone|1
+                - CEC Climate Zone|3
+                - CEC Climate Zone|5
+                - CEC Climate Zone|16
+            - or: *upgradable_windows
+        costs: *U030_costs
+        lifetime: 30
+      - &codewindows_U030S040
+        option: Windows|Code U 0.30 SHGC 0.40
+        apply_logic:
+          - and:
+            - or: &U030S040_code_and_cz
+              - and:
+                - or: *IECC2021states
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|4A 
+                  - ASHRAE IECC Climate Zone 2004|4B 
+                  - ASHRAE IECC Climate Zone 2004|4C 
+                  - ASHRAE IECC Climate Zone 2004|5A 
+                  - ASHRAE IECC Climate Zone 2004|5B 
+              - State|DC 
+            - or: *upgradable_windows
+        costs: *U030_costs
+        lifetime: 30
+      - &codewindows_U032S025
+        option: Windows|Code U 0.32 SHGC 0.25
+        apply_logic:
+          - and:
+            - or: &U032S025_code_and_cz
+              - and:
+                - or: *IECC2018states 
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|3A 
+                  - ASHRAE IECC Climate Zone 2004|3B 
+                  - ASHRAE IECC Climate Zone 2004|3C
+            - or: *upgradable_windows
+        costs: &U032_costs
+          - value: 35.5
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &codewindows_U032S030
+        option: Windows|Code U 0.32 SHGC 0.30
+        apply_logic:
+          - and:
+            - or: &U032S030_code_and_cz
+              - and:
+                - or: &IECC2012states
+                  - State|IA 
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|4C 
+                  - ASHRAE IECC Climate Zone 2004|5A
+                  - ASHRAE IECC Climate Zone 2004|5B
+                  - ASHRAE IECC Climate Zone 2004|6A
+                  - ASHRAE IECC Climate Zone 2004|6B
+                  - ASHRAE IECC Climate Zone 2004|7A
+                  - ASHRAE IECC Climate Zone 2004|7B
+              - and:
+                - or: &IECC2015states
+                  - State|AL 
+                  - State|FL 
+                  - State|GA 
+                  - State|ME 
+                  - State|MN 
+                  - State|TX 
+                  - State|UT
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|4C 
+                  - ASHRAE IECC Climate Zone 2004|5A
+                  - ASHRAE IECC Climate Zone 2004|5B
+                  - ASHRAE IECC Climate Zone 2004|6A
+                  - ASHRAE IECC Climate Zone 2004|6B
+                  - ASHRAE IECC Climate Zone 2004|7A
+                  - ASHRAE IECC Climate Zone 2004|7B
+              - and:
+                - State|ID 
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|5A
+                  - ASHRAE IECC Climate Zone 2004|5B
+              - State|MI
+            - or: *upgradable_windows
+        costs: *U032_costs
+        lifetime: 30
+      - &codewindows_U032S040
+        option: Windows|Code U 0.32 SHGC 0.40
+        apply_logic:
+          - and:
+            - or: &U032S040_code_and_cz
+              - and:
+                - or: 
+                  - or: *IECC2018states
+                  - State|OK
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|4A 
+                  - ASHRAE IECC Climate Zone 2004|4B
+            - or: *upgradable_windows
+        costs: *U032_costs
+        lifetime: 30
+      - &codewindows_U035S025
+        option: Windows|Code U 0.35 SHGC 0.25
+        apply_logic:
+          - and:
+            - or: &U035S025_code_and_cz
+              - and:
+                - or: 
+                  - or: *IECC2012states
+                  - or: *IECC2015states
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|3A 
+                  - ASHRAE IECC Climate Zone 2004|3B 
+                  - ASHRAE IECC Climate Zone 2004|3C 
+            - or: *upgradable_windows
+        costs: &U035_costs
+          - value: 31.50
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &codewindows_U035S030
+        option: Windows|Code U 0.35 SHGC 0.30
+        apply_logic:
+          - and:
+            - or: &U035S030_code_and_cz
+              - and:
+                - or: &nostatecode
+                  - State|AZ 
+                  - State|CO 
+                  - State|KS
+                  - State|MO 
+                  - State|MS
+                  - State|ND 
+                  - State|SD 
+                  - State|WY
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|4C 
+                  - ASHRAE IECC Climate Zone 2004|5A
+                  - ASHRAE IECC Climate Zone 2004|5B
+                  - ASHRAE IECC Climate Zone 2004|6A
+                  - ASHRAE IECC Climate Zone 2004|6B
+                  - ASHRAE IECC Climate Zone 2004|7A
+                  - ASHRAE IECC Climate Zone 2004|7B
+              - and:
+                - or: &IECC2009states
+                  - State|AR 
+                  - State|KY
+                  - State|LA 
+                  - State|SC 
+                  - State|TN 
+                  - State|WI 
+                  - State|WV
+                - or: 
+                  - ASHRAE IECC Climate Zone 2004|4A 
+                  - ASHRAE IECC Climate Zone 2004|4B 
+                  - ASHRAE IECC Climate Zone 2004|4C 
+                  - ASHRAE IECC Climate Zone 2004|5A
+                  - ASHRAE IECC Climate Zone 2004|5B
+                  - ASHRAE IECC Climate Zone 2004|6A
+                  - ASHRAE IECC Climate Zone 2004|6B
+                  - ASHRAE IECC Climate Zone 2004|7A
+                  - ASHRAE IECC Climate Zone 2004|7B
+              - and:
+                - State|NC 
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|3A 
+                  - ASHRAE IECC Climate Zone 2004|4A
+                  - ASHRAE IECC Climate Zone 2004|5A
+            - or: *upgradable_windows
+        costs: *U035_costs
+        lifetime: 30
+      - &codewindows_U035S040
+        option: Windows|Code U 0.35 SHGC 0.40
+        apply_logic:
+          - and:
+            - or: &U035S040_code_and_cz
+              - and:
+                - or: *IECC2012states
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|4A 
+                  - ASHRAE IECC Climate Zone 2004|4B
+              - and:
+                - or: *IECC2015states
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|4A 
+                  - ASHRAE IECC Climate Zone 2004|4B
+            - or: *upgradable_windows
+        costs: *U035_costs
+        lifetime: 30
+      - &codewindows_U038S030
+        option: Windows|Code U 0.38 SHGC 0.30
+        apply_logic:
+          - and:
+            - or: &U038S030_code_and_cz
+              - and:
+                - State|OK
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|3A 
+                  - ASHRAE IECC Climate Zone 2004|3B 
+                  - ASHRAE IECC Climate Zone 2004|3C 
+            - or: *upgradable_windows
+        costs: &U038_costs
+          - value: 29.45
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &codewindows_U040S025
+        option: Windows|Code U 0.40 SHGC 0.25
+        apply_logic:
+          - and:
+            - or: &U040S025_code_and_cz
+              - and:
+                - or: 
+                  - or: *IECC2012states
+                  - or: *IECC2015states
+                  - or: *IECC2018states
+                  - or: *IECC2021states
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|2A 
+                  - ASHRAE IECC Climate Zone 2004|2B
+            - or: *upgradable_windows
+        costs: &U040_costs
+          - value: 27.40
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &codewindows_U040S030
+        option: Windows|Code U 0.40 SHGC 0.30
+        apply_logic:
+          - and:
+            - or: &U040S030_code_and_cz
+              - and:
+                - or: *nostatecode
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|4A 
+                  - ASHRAE IECC Climate Zone 2004|4B
+            - or: *upgradable_windows
+        costs: *U040_costs
+        lifetime: 30
+      - &codewindows_U050S025
+        option: Windows|Code U 0.50 SHGC 0.25
+        apply_logic:
+          - and:
+            - or: &U050S025_code_and_cz
+              - and:
+                - or: *IECC2021states
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|1A
+            - or: *upgradable_windows
+        costs: &U050_costs
+          - value: 26.60
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &codewindows_U050S030
+        option: Windows|Code U 0.50 SHGC 0.30
+        apply_logic:
+          - and:
+            - or: &U050S030_code_and_cz
+              - and:
+                - or: *IECC2009states
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|3A 
+                  - ASHRAE IECC Climate Zone 2004|3B
+                  - ASHRAE IECC Climate Zone 2004|3C 
+            - or: *upgradable_windows
+        costs: *U050_costs
+        lifetime: 30
+      - &codewindows_U065S025
+        option: Windows|Code U 0.65 SHGC 0.25
+        apply_logic:
+          - and:
+            - or: &U065S025_code_and_cz
+              - and:
+                - or: 
+                  - or: *IECC2012states
+                  - or: *IECC2015states
+                  - or: *IECC2018states
+                - ASHRAE IECC Climate Zone 2004|1A 
+            - or: *upgradable_windows
+        costs: &U065_costs
+          - value: 26.60
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &codewindows_U065S030
+        option: Windows|Code U 0.65 SHGC 0.30
+        apply_logic:
+          - and:
+            - or: &U065S030_code_and_cz
+              - and:
+                - or: *IECC2009states
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|2A 
+                  - ASHRAE IECC Climate Zone 2004|2B
+            - or: *upgradable_windows
+        costs: *U065_costs
+        lifetime: 30
+      - &codewindows_U065S040
+        option: Windows|Code U 0.65 SHGC 0.40
+        apply_logic:
+          - and:
+            - or: &U065S040_code_and_cz
+              - and:
+                - or: *nostatecode
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|3A 
+                  - ASHRAE IECC Climate Zone 2004|3B
+                  - ASHRAE IECC Climate Zone 2004|3C 
+            - or: *upgradable_windows
+        costs: *U065_costs
+        lifetime: 30
+      - &codewindows_U075S040
+        option: Windows|Code U 0.75 SHGC 0.40
+        apply_logic:
+          - and:
+            - or: &U075S040_code_and_cz
+              - and:
+                - or: *nostatecode
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|2A 
+                  - ASHRAE IECC Climate Zone 2004|2B
+            - or: *upgradable_windows
+        costs: &U075_costs
+          - value: 26.60
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &codewindows_U120S030
+        option: Windows|Code U 1.2 SHGC 0.30
+        apply_logic:
+          - and:
+            - or: &U120S030_code_and_cz
+              - and:
+                - or: *IECC2009states
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|1A 
+            - or: *upgradable_windows
+        costs: &U120_costs
+          - value: 26.60
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &codewindows_U120S040
+        option: Windows|Code U 1.2 SHGC 0.40
+        apply_logic:
+          - and:
+            - or: &U120S040_code_and_cz
+              - and:
+                - or: *nostatecode
+                - or:
+                  - ASHRAE IECC Climate Zone 2004|1A
+            - or: *upgradable_windows
+        costs: *U120_costs
+        lifetime: 30
+      #15% ACH50 reduction for replacing double pane
+      - &code_replaces_double_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          - or: &double_pane_metal_windows
+              - Windows|Double, Clear, Metal, Air
+        costs: *no_cost
+        lifetime: 30
+      #30% ACH50 reduction for replacing single pane
+      - &code_replaces_single_infiltration_reduction 
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - or: &single_pane_windows
+            - Windows|Single, Clear, Non-metal
+            - Windows|Single, Clear, Metal
+            - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
+            - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
+  - upgrade_name: Residing and minimum windows
+    #Up03
+    options:
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+      - *codewindows_U030S023
+      - *codewindows_U030S025
+      - *codewindows_U030S030
+      - *codewindows_U030S040
+      - *codewindows_U032S025
+      - *codewindows_U032S030
+      - *codewindows_U032S040
+      - *codewindows_U035S025
+      - *codewindows_U035S030
+      - *codewindows_U035S040
+      - *codewindows_U038S030
+      - *codewindows_U040S025
+      - *codewindows_U040S030
+      - *codewindows_U050S025
+      - *codewindows_U050S030
+      - *codewindows_U065S025
+      - *codewindows_U065S030
+      - *codewindows_U065S040
+      - *codewindows_U075S040
+      - *codewindows_U120S030
+      - *codewindows_U120S040
+      - &wall_package_infiltration_reduction
+        option: Infiltration Reduction|19%
+        apply_logic:
+          and:
+            - and: *upgradable_walls
+            - not:
+              - or: *upgradable_windows
+        costs: *no_cost
+        lifetime: 30
+      - &window_replaces_single_package_infiltration_reduction
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - and:
+            - not:
+              - and: *upgradable_walls
+            - or: *single_pane_windows
+      - &window_replaces_double_package_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          - and:
+            - not:
+              - and: *upgradable_walls
+            - or: *double_pane_metal_windows
+      - &walls_and_replace_single_window_infiltration_reduction
+        option: Infiltration Reduction|43.30%
+        apply_logic:
+          - and:
+            - and: *upgradable_walls
+          - or: *single_pane_windows
+      - &walls_and_replace_double_window_infiltration_reduction
+        option: Infiltration Reduction|31.15%
+        apply_logic:
+          - and:
+            - and: *upgradable_walls
+          - or: *double_pane_metal_windows
+  - upgrade_name: 1" polyiso exterior insulation + re-siding
+    #Up04
+    options:
+      - &polyiso_1inch
+        option: Insulation Sheathing|R-6.5
+        apply_logic:
+          - and: *upgradable_walls
+        costs: &polyiso_1inch_costs
+          - value: 1.4
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      #19% ACH50 reductions are for 1" or 2" polyiso without window upgrade
+      - *wallwork_infiltration_reduction
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+  - upgrade_name: 2" polyiso exterior insulation + re-siding
+    #Up05
+    options:
+      - &polyiso_2inch
+        option: Insulation Sheathing|R-13
+        apply_logic:
+          - and: *upgradable_walls
+        costs: &polyiso_2inch_costs
+          - value: 1.9
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      - *wallwork_infiltration_reduction
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+  - upgrade_name: Exterior low-E storm windows
+    #Up06
+    options:
+      #low-E Storm windows
+      - &low-e_storms_on_single_clear_metal
+        option: Windows|Single, Clear, Metal, Exterior Low-E Storm
+        apply_logic:
+          - or:
+              - Windows|Single, Clear, Metal
+              - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: &low-e_storm_costs
+          - value: 11
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &low-e_storms_on_single_clear_nonmetal
+        option: Windows|Single, Clear, Non-metal, Exterior Low-E Storm
+        apply_logic:
+          and:
+            - or:
+                - Windows|Single, Clear, Non-metal
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+        costs: *low-e_storm_costs
+        lifetime: 30
+      - &low-e_storms_on_double_clear_metal
+        option: Windows|Double, Clear, Metal, Exterior Low-E Storm
+        apply_logic:
+          and:
+            - Windows|Double, Clear, Metal, Air
+        costs: *low-e_storm_costs
+        lifetime: 30
+      #10% ACH50 reduction for low-E storms replacing clear storms
+      - &lowE_storms_replace_clear_storms_infiltration_reduction
+        option: Infiltration Reduction|10%
+        apply_logic:
+          or: 
+          - Windows|Single, Clear, Metal, Exterior Clear Storm
+          - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
+      #15% ACH50 reduction for adding low-E storms where they weren't before
+      - &lowE_storms_new_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          or:
+            - Windows|Double, Clear, Metal, Air
+            - Windows|Single, Clear, Metal
+            - Windows|Single, Clear, Non-metal
+        costs: *no_cost
+        lifetime: 30
+  - upgrade_name: Triple pane windows
+    #Up07
+    options:
+      - &triple_hgain_window
+        option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
+        apply_logic:
+          and:
+            - or:
+              - or: *U030S040_code_and_cz
+              - or: *U032S040_code_and_cz
+              - or: *U035S040_code_and_cz
+              - or: *U065S040_code_and_cz
+              - or: *U075S040_code_and_cz
+              - or: *U120S040_code_and_cz
+            - or: *upgradable_windows
+        costs:
+          - value: 46
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &triple_lgain_window
+        option: Windows|Triple, Low-E, Insulated, Argon, L-Gain
+        apply_logic:
+          and:
+            - or:
+              - or: *U030S030_code_and_cz
+              - or: *U032S030_code_and_cz
+              - or: *U035S030_code_and_cz
+              - or: *U038S030_code_and_cz
+              - or: *U040S030_code_and_cz
+              - or: *U050S030_code_and_cz
+              - or: *U065S030_code_and_cz
+              - or: *U120S030_code_and_cz
+            - or: *upgradable_windows
+        costs:
+          - value: 46
+            multiplier: Window Area (ft^2)
+        lifetime: 30      
+      - &triple_vlgain_window
+        option: Windows|Triple, Low-E, Insulated, Argon, VL-Gain
+        apply_logic:
+          and:
+            - or:
+              - or: *U030S023_code_and_cz
+              - or: *U030S025_code_and_cz
+              - or: *U032S025_code_and_cz
+              - or: *U035S025_code_and_cz
+              - or: *U040S025_code_and_cz
+              - or: *U050S025_code_and_cz
+              - or: *U065S025_code_and_cz
+            - or: *upgradable_windows
+        costs:
+          - value: 46
+            multiplier: Window Area (ft^2)
+        lifetime: 30      
+        #15% ACH50 reduction for replacing double pane with triple pane
+      - &triple_replaces_double_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          - or: *double_pane_metal_windows
+        costs: *no_cost
+        lifetime: 30
+      #30% ACH50 reduction for replacing single pane with triple pane
+      - &triple_replaces_single_infiltration_reduction 
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - or: *single_pane_windows
+        costs: *no_cost
+        lifetime: 30
+  - upgrade_name: P1 Exterior low-E storm windows + 1" polyiso + re-siding
+    #Up08
+    options:
+      - *polyiso_1inch
+      - *low-e_storms_on_single_clear_metal
+      - *low-e_storms_on_single_clear_nonmetal
+      - *low-e_storms_on_double_clear_metal
+      - *wall_package_infiltration_reduction
+      - &lowE_storms_replace_clear_storms_package_infiltration_reduction
+        option: Infiltration Reduction|10%
+        apply_logic:
+          and:
+            - not:
+              - and: *upgradable_walls
+            - or: &upgradable_clearstorm_windows
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm 
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
+      - &lowE_storms_new_package_infiltration_reduction
+        option: Infiltration Reduction|15%
+        apply_logic:
+          and:
+            - not: 
+              - and: *upgradable_walls
+            - or: &upgradable_nostorm_windows
+                - Windows|Single, Clear, Non-metal
+                - Windows|Single, Clear, Metal
+                - Windows|Double, Clear, Metal, Air
+        costs: *no_cost
+        lifetime: 30
+      - &polyiso_and_lowE_storms_replacing_clear_storm_infiltration_reduction
+        option: Infiltration Reduction|27.10%
+        apply_logic: 
+          and:
+            - and: *upgradable_walls
+            - or: *upgradable_clearstorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - &polyiso_and_lowE_storms_new_infiltration_reduction
+        option: Infiltration Reduction|31.15%
+        apply_logic: 
+          and:
+            - and: *upgradable_walls
+            - or: *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+  - upgrade_name: P2 Triple pane windows + 1" polyiso + re-siding
+    #Up09
+    options:
+      - *polyiso_1inch
+      - *triple_hgain_window
+      - *triple_lgain_window
+      - *triple_vlgain_window
+      - *wall_package_infiltration_reduction
+      - *window_replaces_single_package_infiltration_reduction
+      - *window_replaces_double_package_infiltration_reduction
+      - *walls_and_replace_single_window_infiltration_reduction
+      - *walls_and_replace_double_window_infiltration_reduction
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+  - upgrade_name: P3 Exterior low-E storm windows + 2" polyiso + re-siding
+    #Up10
+    options:
+      - *polyiso_2inch
+      - *low-e_storms_on_single_clear_metal
+      - *low-e_storms_on_single_clear_nonmetal
+      - *low-e_storms_on_double_clear_metal
+      - *wall_package_infiltration_reduction
+      - *lowE_storms_replace_clear_storms_package_infiltration_reduction
+      - *lowE_storms_new_package_infiltration_reduction
+      - *polyiso_and_lowE_storms_replacing_clear_storm_infiltration_reduction
+      - *polyiso_and_lowE_storms_new_infiltration_reduction
+  - upgrade_name: P4 Triple pane windows + 2" polyiso + re-siding
+    #Up11
+    options:
+      - *polyiso_2inch
+      - *triple_hgain_window
+      - *triple_lgain_window
+      - *triple_vlgain_window
+      - *wall_package_infiltration_reduction
+      - *window_replaces_single_package_infiltration_reduction
+      - *window_replaces_double_package_infiltration_reduction
+      - *walls_and_replace_single_window_infiltration_reduction
+      - *walls_and_replace_double_window_infiltration_reduction
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
