@@ -1,4 +1,5 @@
-## ResStock v2.6.0 (pending)
+## ResStock v3.0.0
+###### December x, 2022 - [Diff](https://github.com/NREL/resstock/compare/v2.5.0...v3.0.0)
 
 Features
 - Update to OpenStudio v3.4.0 ([#863](https://github.com/NREL/resstock/pull/863))
