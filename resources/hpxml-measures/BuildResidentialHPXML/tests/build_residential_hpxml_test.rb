@@ -9,11 +9,11 @@ require 'fileutils'
 
 class BuildResidentialHPXMLTest < MiniTest::Test
   def setup
-    @tests_dir = File.join(File.dirname(__FILE__), 'extra_files')
+    @output_path = File.join(File.dirname(__FILE__), 'extra_files')
   end
 
   def teardown
-    FileUtils.rm_rf(@tests_dir)
+    FileUtils.rm_rf(@output_path)
   end
 
   def test_workflows
@@ -299,7 +299,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
           flunk "Error: Did not successfully generate #{hpxml_file}."
         end
 
-        hpxml_path = File.absolute_path(File.join(@tests_dir, hpxml_file))
+        hpxml_path = File.absolute_path(File.join(@output_path, hpxml_file))
         hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
         hpxml.header.xml_generated_by = 'build_residential_hpxml_test.rb'
         hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
@@ -312,7 +312,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     end
 
     # Check generated HPXML files
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(@tests_dir, 'extra-seasons-building-america.xml')))
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(@output_path, 'extra-seasons-building-america.xml')))
     hvac_control = hpxml.hvac_controls[0]
     assert_equal(10, hvac_control.seasons_heating_begin_month)
     assert_equal(1, hvac_control.seasons_heating_begin_day)
@@ -363,6 +363,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_unit_num_occupants'] = 3
       args['floor_over_foundation_assembly_r'] = 0
       args['floor_over_garage_assembly_r'] = 0
+      args['floor_type'] = HPXML::FloorTypeWoodFrame
       args['foundation_wall_thickness'] = 8.0
       args['foundation_wall_insulation_r'] = 8.9
       args['foundation_wall_insulation_distance_to_top'] = 0.0

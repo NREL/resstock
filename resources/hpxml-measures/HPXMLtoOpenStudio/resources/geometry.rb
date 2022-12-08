@@ -9,10 +9,6 @@ class Geometry
       space = OpenStudio::Model::Space.new(model)
       space.setName(location)
 
-      st = OpenStudio::Model::SpaceType.new(model)
-      st.setStandardsSpaceType(location)
-      space.setSpaceType(st)
-
       space.setThermalZone(thermal_zone)
       spaces[location] = space
     end
@@ -474,46 +470,6 @@ class Geometry
     return UnitConversions.convert(tilts.max, 'rad', 'deg')
   end
 
-  # TODO: Remove this method
-  def self.is_living(space_or_zone)
-    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationLivingSpace)
-  end
-
-  # TODO: Remove this method
-  def self.is_unconditioned_basement(space_or_zone)
-    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationBasementUnconditioned)
-  end
-
-  # TODO: Remove this method
-  def self.is_garage(space_or_zone)
-    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationGarage)
-  end
-
-  def self.space_or_zone_is_of_type(space_or_zone, location)
-    if space_or_zone.is_a? OpenStudio::Model::Space
-      return space_is_of_type(space_or_zone, location)
-    elsif space_or_zone.is_a? OpenStudio::Model::ThermalZone
-      return zone_is_of_type(space_or_zone, location)
-    end
-  end
-
-  def self.space_is_of_type(space, location)
-    unless space.isPlenum
-      if space.spaceType.is_initialized
-        if space.spaceType.get.standardsSpaceType.is_initialized
-          return true if space.spaceType.get.standardsSpaceType.get == location
-        end
-      end
-    end
-    return false
-  end
-
-  def self.zone_is_of_type(zone, location)
-    zone.spaces.each do |space|
-      return space_is_of_type(space, location)
-    end
-  end
-
   def self.apply_occupants(model, runner, hpxml, num_occ, space, schedules_file)
     occ_gain, _hrs_per_day, sens_frac, _lat_frac = Geometry.get_occupancy_default_values()
     activity_per_person = UnitConversions.convert(occ_gain, 'Btu/hr', 'W')
@@ -552,7 +508,6 @@ class Geometry
     occ.setName(Constants.ObjectNameOccupants)
     occ.setSpace(space)
     occ_def.setName(Constants.ObjectNameOccupants)
-    occ_def.setNumberOfPeopleCalculationMethod('People', 1)
     occ_def.setNumberofPeople(num_occ)
     occ_def.setFractionRadiant(occ_rad)
     occ_def.setSensibleHeatFraction(occ_sens)

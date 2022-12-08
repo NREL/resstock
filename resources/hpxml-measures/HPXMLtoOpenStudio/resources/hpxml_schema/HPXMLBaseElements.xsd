@@ -277,19 +277,6 @@
 		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
-	<xs:complexType name="InteriorFinishInfo">
-		<xs:sequence>
-			<xs:element minOccurs="0" name="Type" type="InteriorFinish"/>
-			<xs:element minOccurs="0" name="Thickness" type="LengthMeasurement">
-				<xs:annotation>
-					<xs:documentation>[in]</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element minOccurs="0" name="Color" type="WallAndRoofColor"/>
-			<xs:element ref="extension" minOccurs="0"/>
-		</xs:sequence>
-		<xs:attribute name="dataSource" type="DataSource"/>
-	</xs:complexType>
 	<xs:complexType name="InsulationLayerInfo">
 		<xs:complexContent>
 			<xs:extension base="InsulationLayerInfoBase">
@@ -350,6 +337,19 @@
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="InteriorFinishInfo">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="Type" type="InteriorFinish"/>
+			<xs:element minOccurs="0" name="Thickness" type="LengthMeasurement">
+				<xs:annotation>
+					<xs:documentation>[in]</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="Color" type="WallAndRoofColor"/>
+			<xs:element ref="extension" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
 	<xs:element name="CoolingSystemInfo" type="CoolingSystemInfoType"/>
 	<xs:element name="HeatPumpInfo" type="HeatPumpInfoType"/>
@@ -831,13 +831,8 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="AttachedToRoof" type="LocalReference" maxOccurs="unbounded"/>
-									<xs:element minOccurs="0" name="AttachedToCeiling" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToWall" type="LocalReference" maxOccurs="unbounded"/>
-									<xs:element minOccurs="0" name="AttachedToFloor" type="LocalReference" maxOccurs="unbounded">
-										<xs:annotation>
-											<xs:documentation>DEPRECATION WARNING: AttachedToFloor will be deprecated in the future. Use AttachedToCeiling instead.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
+									<xs:element minOccurs="0" name="AttachedToFloor" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
 										<xs:complexType>
 											<xs:sequence>
@@ -924,7 +919,6 @@
 									</xs:element>
 									<xs:element minOccurs="0" name="AttachedToRoof" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToWall" type="LocalReference" maxOccurs="unbounded"/>
-									<xs:element minOccurs="0" name="AttachedToCeiling" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToFoundationWall" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToFloor" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToSlab" type="LocalReference" maxOccurs="unbounded"/>
@@ -1046,9 +1040,6 @@
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="Wall" maxOccurs="unbounded">
-							<xs:annotation>
-								<xs:documentation>Interior partition surfaces should not be described using the Wall element.</xs:documentation>
-							</xs:annotation>
 							<xs:complexType>
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
@@ -1161,46 +1152,13 @@
 					<xs:attribute name="dataSource" type="DataSource"/>
 				</xs:complexType>
 			</xs:element>
-			<xs:element minOccurs="0" name="Ceilings">
-				<xs:annotation>
-					<xs:documentation>Use Ceilings for horizontal surfaces above living space (e.g., surfaces between living space and attic).</xs:documentation>
-				</xs:annotation>
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="Ceiling" maxOccurs="unbounded" minOccurs="1">
-							<xs:complexType>
-								<xs:sequence>
-									<xs:group ref="SystemInfo"/>
-									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element name="ExteriorAdjacentTo" type="AdjacentTo" minOccurs="0"> </xs:element>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
-									<xs:element minOccurs="0" name="CeilingJoists" type="StudProperties"/>
-									<xs:element minOccurs="0" name="CeilingTrusses" type="StudProperties"/>
-									<xs:element minOccurs="0" name="Area" type="SurfaceArea">
-										<xs:annotation>
-											<xs:documentation>[sq.ft.]</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"> </xs:element>
-									<xs:element minOccurs="0" maxOccurs="1" name="Insulation" type="InsulationInfo"> </xs:element>
-									<xs:element minOccurs="0" ref="extension"/>
-								</xs:sequence>
-								<xs:attribute name="dataSource" type="DataSource"/>
-							</xs:complexType>
-						</xs:element>
-					</xs:sequence>
-					<xs:attribute name="dataSource" type="DataSource"/>
-				</xs:complexType>
-			</xs:element>
 			<xs:element minOccurs="0" name="Floors">
-				<xs:annotation>
-					<xs:documentation>Use Floors for horizontal surfaces below living space (e.g., surfaces between living space and crawlspace/basement/ambient foundations).</xs:documentation>
-				</xs:annotation>
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="Floor" maxOccurs="unbounded" minOccurs="1">
 							<xs:annotation>
-								<xs:documentation>Interior partition surfaces should not be described using the FrameFloor element.</xs:documentation>
+								<xs:documentation>Use the Floor element for all floors/ceilings. For example, living space ceilings/attic floors, floors above foundations, floors under bonus
+									rooms, cantilevered floors, etc.</xs:documentation>
 							</xs:annotation>
 							<xs:complexType>
 								<xs:sequence>
@@ -1208,6 +1166,11 @@
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
 									<xs:element name="ExteriorAdjacentTo" type="AdjacentTo" minOccurs="0"/>
 									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
+									<xs:element minOccurs="0" name="FloorOrCeiling" type="FloorOrCeiling">
+										<xs:annotation>
+											<xs:documentation>From the perspective of the living/conditioned space.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
 									<xs:element minOccurs="0" name="FloorType" type="FloorType"/>
 									<xs:element minOccurs="0" name="FloorJoists" type="StudProperties"/>
 									<xs:element minOccurs="0" name="FloorTrusses" type="StudProperties"/>
@@ -1634,9 +1597,6 @@
 															to.</xs:documentation>
 													</xs:annotation>
 												</xs:element>
-												<xs:element minOccurs="0" name="PreconditioningHeatingSystem" type="HeatingSystemInfoType"/>
-												<xs:element minOccurs="0" name="PreconditioningCoolingSystem" type="CoolingSystemInfoType"/>
-												<xs:element minOccurs="0" name="PreconditioningHeatPump" type="HeatPumpInfoType"/>
 												<xs:element minOccurs="0" ref="extension"/>
 											</xs:sequence>
 											<xs:attribute name="dataSource" type="DataSource"/>
@@ -3811,14 +3771,6 @@
 					<xs:attribute name="dataSource" type="DataSource"/>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="PackagedTerminalAirConditionerHeating">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element minOccurs="0" ref="extension"/>
-					</xs:sequence>
-					<xs:attribute name="dataSource" type="DataSource"/>
-				</xs:complexType>
-			</xs:element>
 			<xs:element name="SolarThermal">
 				<xs:complexType>
 					<xs:sequence>
@@ -3945,14 +3897,15 @@
 					</xs:element>
 					<xs:element name="AnnualCoolingEfficiency" type="CoolingEfficiencyType" minOccurs="0" maxOccurs="unbounded"/>
 					<xs:element minOccurs="0" name="SensibleHeatFraction" type="Fraction"/>
-					<xs:element minOccurs="0" name="AttachedHeatingSystemFuel" type="FuelType"/>
-					<xs:element minOccurs="0" name="AttachedHeatingSystemCapacity" type="Capacity">
+					<xs:element name="RoomCoolingType" type="RoomCoolingType" minOccurs="0"/>
+					<xs:element minOccurs="0" name="IntegratedHeatingSystemFuel" type="FuelType"/>
+					<xs:element minOccurs="0" name="IntegratedHeatingSystemCapacity" type="Capacity">
 						<xs:annotation>
 							<xs:documentation>[Btuh]</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="AttachedHeatingSystemAnnualEfficiency" type="HeatingEfficiencyType" minOccurs="0" maxOccurs="unbounded"/>
-					<xs:element name="AttachedHeatingSystemFractionHeatLoadServed" type="Fraction" minOccurs="0"/>
+					<xs:element name="IntegratedHeatingSystemAnnualEfficiency" type="HeatingEfficiencyType" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="IntegratedHeatingSystemFractionHeatLoadServed" type="Fraction" minOccurs="0"/>
 					<xs:element ref="extension" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
@@ -3984,7 +3937,7 @@
 					<xs:documentation>Ah is computed by multiplying the discharge current (Amps) by the discharge time (hours). kWh is computed by multiplying the power output (kW) by the discharge time (hours).</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-    </xs:sequence>
+		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
 	<xs:complexType name="StandbyLossType">
@@ -4051,6 +4004,7 @@
 			<xs:element maxOccurs="unbounded" minOccurs="0" name="Ducts">
 				<xs:complexType>
 					<xs:sequence>
+						<xs:group ref="SystemInfo"/>
 						<xs:element name="DuctType" type="DuctType" minOccurs="0"/>
 						<xs:element name="DuctMaterial" type="DuctMaterial" minOccurs="0"/>
 						<xs:element minOccurs="0" name="DuctInsulationMaterial" type="InsulationMaterial"/>
@@ -4267,7 +4221,7 @@
 									</xs:element>
 									<xs:element minOccurs="0" name="NumberofConditionedFloorsAboveGrade" type="NumberOfFloorsType">
 										<xs:annotation>
-											<xs:documentation>Number of floors above grade that are heated/cooled including a walkout basement</xs:documentation>
+											<xs:documentation>Number of floors above grade that are heated/cooled</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element name="AverageCeilingHeight" type="LengthMeasurement" minOccurs="0">

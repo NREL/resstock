@@ -11,7 +11,7 @@ jobs:
   run-unit-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.4.0
+      image: docker://nrel/openstudio:3.5.0
     steps:
       - uses: actions/checkout@v2
         with:
@@ -20,22 +20,9 @@ jobs:
       - name: Install software
         run: |
           rm -f Gemfile.lock && bundle install
+          export DEBIAN_FRONTEND=noninteractive
           sudo apt update
-          sudo apt-get install -y wget unzip libxml2-utils python3-lxml python3-pip
-          sudo pip3 install sphinx sphinx-rtd-theme
-
-      - name: XSD validation
-        shell: bash
-        run: |
-          export XSDPATH=HPXMLtoOpenStudio/resources/hpxml_schema/HPXML.xsd
-          for xmlfile in workflow/sample_files/*.xml; do xmllint --schema $XSDPATH $xmlfile --noout; done
-
-      - name: Schematron validation
-        shell: bash
-        run: |
-          export PYTHONIOENCODING=utf8
-          export SCTPATH=HPXMLtoOpenStudio/resources/hpxml_schematron/EPvalidator.xml
-          for xmlfile in workflow/sample_files/*.xml; do XMLPATH=$xmlfile python3 -c "import os; import sys; from lxml import isoschematron, etree; from pathlib import Path; sct = Path(os.environ.get('SCTPATH')).read_text(); sct_doc = etree.fromstring(bytes(sct, encoding='utf-8')); schematron = isoschematron.Schematron(sct_doc, store_report = True); xml_path = os.environ.get('XMLPATH'); xml = Path(xml_path).read_text(); xml_doc = etree.fromstring(bytes(xml, encoding='utf-8')); valid = schematron.validate(xml_doc); (not valid) and print(schematron.validation_report); (not valid) and print(f'{xml_path} fails to validate'); valid and print(f'{xml_path} validates'); (not valid) and sys.exit(1)"; done
+          sudo -E apt-get install -y wget unzip python3-sphinx-rtd-theme
 
       - name: Run measure unit tests
         run: |
@@ -61,7 +48,7 @@ jobs:
   run-workflow-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.4.0
+      image: docker://nrel/openstudio:3.5.0
     steps:
       - uses: actions/checkout@v2
         with:
@@ -90,8 +77,8 @@ jobs:
       - name: Install software and run test
         shell: pwsh
         run: |
-          $env:OS_VERSION="3.4.0"
-          $env:OS_SHA="4bd816f785"
+          $env:OS_VERSION="3.5.0"
+          $env:OS_SHA="7b14ce1588"
           Invoke-WebRequest -OutFile Windows.tar.gz -URI "https://github.com/NREL/OpenStudio/releases/download/v${env:OS_VERSION}/OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows.tar.gz"
           tar -xzf Windows.tar.gz
           & .\OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows\bin\openstudio.exe workflow\run_simulation.rb -x workflow\sample_files\base.xml --hourly ALL --add-component-loads --add-detailed-schedule stochastic

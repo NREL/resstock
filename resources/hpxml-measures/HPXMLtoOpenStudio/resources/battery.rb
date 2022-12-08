@@ -1,7 +1,19 @@
 # frozen_string_literal: true
 
 class Battery
-  def self.apply(model, battery)
+  def self.apply(runner, model, pv_systems, battery, schedules_file)
+    charging_schedule = nil
+    discharging_schedule = nil
+    if not schedules_file.nil?
+      charging_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnBatteryCharging)
+      discharging_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnBatteryDischarging)
+    end
+
+    if pv_systems.empty? && charging_schedule.nil? && discharging_schedule.nil?
+      runner.registerWarning('Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.')
+      return
+    end
+
     obj_name = battery.id
 
     rated_power_output = battery.rated_power_output # W
@@ -40,38 +52,117 @@ class Battery
     battery_surface_area = 0.306 * (nominal_capacity_kwh**(2.0 / 3.0)) # m^2
 
     # Assuming 3/4 of unusable charge is minimum SOC and 1/4 of unusable charge is maximum SOC, based on SAM defaults
-    minimum_storage_state_of_charge_fraction = 0.75 * (1.0 - usable_fraction)
-    maximum_storage_state_of_charge_fraction = 1.0 - 0.25 * (1.0 - usable_fraction)
+    unusable_fraction = 1.0 - usable_fraction
+    minimum_storage_state_of_charge_fraction = 0.75 * unusable_fraction
+    maximum_storage_state_of_charge_fraction = 1.0 - 0.25 * unusable_fraction
+
+    # disable voltage dependency unless lifetime model is requested: this prevents some scenarios where changes to SoC didn't seem to reflect charge rate due to voltage dependency and constant current
+    voltage_dependence = false
+    if battery.lifetime_model == HPXML::BatteryLifetimeModelKandlerSmith
+      voltage_dependence = true
+    end
 
     elcs = OpenStudio::Model::ElectricLoadCenterStorageLiIonNMCBattery.new(model, number_of_cells_in_series, number_of_strings_in_parallel, battery_mass, battery_surface_area)
     elcs.setName("#{obj_name} li ion")
     unless is_outside
-      space = battery.additional_properties.space
-      thermal_zone = space.thermalZone.get
-      elcs.setThermalZone(thermal_zone)
+      elcs.setThermalZone(battery.additional_properties.space.thermalZone.get)
     end
     elcs.setRadiativeFraction(0.9 * frac_sens)
-    elcs.setLifetimeModel(battery.lifetime_model)
+    # elcs.setLifetimeModel(battery.lifetime_model)
+    elcs.setLifetimeModel(HPXML::BatteryLifetimeModelNone)
     elcs.setNumberofCellsinSeries(number_of_cells_in_series)
     elcs.setNumberofStringsinParallel(number_of_strings_in_parallel)
     elcs.setInitialFractionalStateofCharge(0.0)
     elcs.setBatteryMass(battery_mass)
     elcs.setBatterySurfaceArea(battery_surface_area)
     elcs.setDefaultNominalCellVoltage(default_nominal_cell_voltage)
-    elcs.setCellVoltageatEndofNominalZone(default_nominal_cell_voltage)
     elcs.setFullyChargedCellCapacity(default_cell_capacity)
-
-    model.getElectricLoadCenterDistributions.each do |elcd|
-      next unless elcd.inverter.is_initialized
-
-      elcd.setElectricalBussType('DirectCurrentWithInverterDCStorage')
-      elcd.setMinimumStorageStateofChargeFraction(minimum_storage_state_of_charge_fraction)
-      elcd.setMaximumStorageStateofChargeFraction(maximum_storage_state_of_charge_fraction)
-      elcd.setStorageOperationScheme('TrackFacilityElectricDemandStoreExcessOnSite')
-      elcd.setElectricalStorage(elcs)
-      elcd.setDesignStorageControlDischargePower(rated_power_output)
-      elcd.setDesignStorageControlChargePower(rated_power_output)
+    elcs.setCellVoltageatEndofNominalZone(default_nominal_cell_voltage)
+    if not voltage_dependence
+      elcs.setBatteryCellInternalElectricalResistance(0.002) # 2 mOhm/cell, based on OCHRE defaults (which are based on fitting to lab results)
+      # FIXME: if the voltage reported during charge/discharge is different, energy may not balance
+      # elcs.setFullyChargedCellVoltage(default_nominal_cell_voltage)
+      # elcs.setCellVoltageatEndofExponentialZone(default_nominal_cell_voltage)
     end
+    elcs.setFullyChargedCellVoltage(default_nominal_cell_voltage)
+    elcs.setCellVoltageatEndofExponentialZone(default_nominal_cell_voltage)
+
+    elcds = model.getElectricLoadCenterDistributions
+    elcds = elcds.select { |elcd| elcd.inverter.is_initialized } # i.e., not generators
+    if elcds.empty?
+      elcd = OpenStudio::Model::ElectricLoadCenterDistribution.new(model)
+      elcd.setName('Battery elec load center dist')
+      elcd.setElectricalBussType('AlternatingCurrentWithStorage')
+    else
+      elcd = elcds[0] # i.e., pv
+
+      elcd.setElectricalBussType('DirectCurrentWithInverterACStorage')
+      elcd.setStorageOperationScheme('TrackFacilityElectricDemandStoreExcessOnSite')
+    end
+
+    elcd.setMinimumStorageStateofChargeFraction(minimum_storage_state_of_charge_fraction)
+    elcd.setMaximumStorageStateofChargeFraction(maximum_storage_state_of_charge_fraction)
+    elcd.setElectricalStorage(elcs)
+    elcd.setDesignStorageControlDischargePower(rated_power_output)
+    elcd.setDesignStorageControlChargePower(rated_power_output)
+
+    if (not charging_schedule.nil?) && (not discharging_schedule.nil?)
+      elcd.setStorageOperationScheme('TrackChargeDischargeSchedules')
+      elcd.setStorageChargePowerFractionSchedule(charging_schedule)
+      elcd.setStorageDischargePowerFractionSchedule(discharging_schedule)
+
+      elcsc = OpenStudio::Model::ElectricLoadCenterStorageConverter.new(model)
+      elcsc.setName("#{obj_name} li ion converter")
+      elcsc.setSimpleFixedEfficiency(1.0)
+      elcd.setStorageConverter(elcsc)
+    end
+
+    frac_lost = 0.0
+    space = battery.additional_properties.space
+    if space.nil?
+      space = model.getSpaces[0]
+      frac_lost = 1.0
+    end
+
+    # Apply round trip efficiency as EMS program b/c E+ input is not hooked up.
+    # Replace this when the first item in https://github.com/NREL/EnergyPlus/issues/9176 is fixed.
+    charge_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Electric Storage Charge Energy')
+    charge_sensor.setName('charge')
+    charge_sensor.setKeyName(elcs.name.to_s)
+
+    loss_adj_object_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
+    loss_adj_object = OpenStudio::Model::OtherEquipment.new(loss_adj_object_def)
+    obj_name = Constants.ObjectNameBatteryLossesAdjustment(elcs.name)
+    loss_adj_object.setName(obj_name)
+    loss_adj_object.setEndUseSubcategory(obj_name)
+    loss_adj_object.setFuelType(EPlus.fuel_type(HPXML::FuelTypeElectricity))
+    loss_adj_object.setSpace(space)
+    loss_adj_object_def.setName(obj_name)
+    loss_adj_object_def.setDesignLevel(0.01)
+    loss_adj_object_def.setFractionRadiant(0)
+    loss_adj_object_def.setFractionLatent(0)
+    loss_adj_object_def.setFractionLost(frac_lost)
+    loss_adj_object.setSchedule(model.alwaysOnDiscreteSchedule)
+
+    battery_adj_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(loss_adj_object, *EPlus::EMSActuatorOtherEquipmentPower)
+    battery_adj_actuator.setName('battery loss_adj_act')
+
+    battery_losses_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    battery_losses_program.setName('battery_losses')
+    battery_losses_program.addLine("Set losses = -1 * charge * (1 - #{battery.round_trip_efficiency})")
+    battery_losses_program.addLine("Set #{battery_adj_actuator.name} = -1 * losses / ( 3600 * SystemTimeStep )")
+
+    battery_losses_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    battery_losses_pcm.setName('battery_losses')
+    battery_losses_pcm.setCallingPoint('EndOfSystemTimestepBeforeHVACReporting')
+    battery_losses_pcm.addProgram(battery_losses_program)
+
+    battery_losses_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, 'losses')
+    battery_losses_output_var.setName("#{Constants.ObjectNameBatteryLossesAdjustment(elcs.name)} outvar")
+    battery_losses_output_var.setTypeOfDataInVariable('Summed')
+    battery_losses_output_var.setUpdateFrequency('SystemTimestep')
+    battery_losses_output_var.setEMSProgramOrSubroutineName(battery_losses_program)
+    battery_losses_output_var.setUnits('J')
   end
 
   def self.get_battery_default_values()
@@ -79,6 +170,7 @@ class Battery
              lifetime_model: HPXML::BatteryLifetimeModelNone,
              nominal_capacity_kwh: 10.0,
              nominal_voltage: 50.0,
+             round_trip_efficiency: 0.925, # Based on Tesla Powerwall round trip efficiency (new)
              usable_fraction: 0.9 } # Fraction of usable capacity to nominal capacity
   end
 
