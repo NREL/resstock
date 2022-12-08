@@ -1531,7 +1531,11 @@ class Waterheater
       if water_heating_system.fuel_type.nil? # indirect water heater, etc. Assume 2 inch skin insulation
         skin_insulation_t = 2.0 # inch
       elsif water_heating_system.fuel_type != HPXML::FuelTypeElectricity
-        if water_heating_system.energy_factor < 0.7
+        ef = water_heating_system.energy_factor
+        if ef.nil?
+          ef = calc_ef_from_uef(water_heating_system)
+        end
+        if ef < 0.7
           skin_insulation_t = 1.0 # inch
         else
           skin_insulation_t = 2.0 # inch

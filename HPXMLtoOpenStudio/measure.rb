@@ -2245,6 +2245,17 @@ class OSModel
       intgains_dhw_sensors[dhw_sensor] = [offcycle_loss, oncycle_loss, dhw_rtf_sensor]
     end
 
+    # EMS Actuators
+
+    natvent_flow_actuator = nil
+    model.getEnergyManagementSystemActuators.each do |actuator|
+      next unless (actuator.actuatedComponentType == 'Zone Infiltration') && (actuator.actuatedComponentControlType == 'Air Exchange Flow Rate')
+      next unless actuator.name.to_s.start_with? Constants.ObjectNameNaturalVentilation.gsub(' ', '_')
+
+      natvent_flow_actuator = actuator
+      break
+    end
+
     nonsurf_names = ['intgains', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
 
     # EMS program
@@ -2314,17 +2325,47 @@ class OSModel
       program.addLine("Set hr_ducts = hr_ducts + (#{ducts_mix_loss_sensor.name} - #{ducts_mix_gain_sensor.name})")
     end
 
+    if living_zone.thermostatSetpointDualSetpoint.is_initialized
+      thermostat = living_zone.thermostatSetpointDualSetpoint.get
+      htg_sch = thermostat.heatingSetpointTemperatureSchedule.get
+      clg_sch = thermostat.coolingSetpointTemperatureSchedule.get
+    end
+
+    # Sensors
+    tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Mean Air Temperature')
+    tin_sensor.setName("#{Constants.ObjectNameAirflow} tin s")
+    tin_sensor.setKeyName(living_zone.name.to_s)
+
+    if not htg_sch.nil?
+      htg_sp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+      htg_sp_sensor.setName('htg sp s')
+      htg_sp_sensor.setKeyName(htg_sch.name.to_s)
+    end
+
+    if not clg_sch.nil?
+      clg_sp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+      clg_sp_sensor.setName('clg sp s')
+      clg_sp_sensor.setKeyName(clg_sch.name.to_s)
+    end
+
     # EMS program: Heating vs Cooling logic
     program.addLine('Set htg_mode = 0')
     program.addLine('Set clg_mode = 0')
     program.addLine("If (#{liv_load_sensors[:htg].name} > 0)") # Assign hour to heating if heating load
     program.addLine('  Set htg_mode = 1')
-    program.addLine("ElseIf (#{liv_load_sensors[:clg].name} > 0)") # Assign hour to cooling if cooling load
+    program.addLine("ElseIf (#{liv_load_sensors[:clg].name} > 0) || (#{natvent_flow_actuator.name} > 0)") # Assign hour to cooling if cooling load or natural ventilation is operating
     program.addLine('  Set clg_mode = 1')
-    program.addLine("ElseIf (#{@clg_ssn_sensor.name} > 0)") # No load, assign hour to cooling if in cooling season definition (Note: natural ventilation & whole house fan only operate during the cooling season)
-    program.addLine('  Set clg_mode = 1')
-    program.addLine('Else') # No load, assign hour to heating if not in cooling season definition
-    program.addLine('  Set htg_mode = 1')
+    program.addLine('Else') # No load, assign hour to cooling if temperature closer to cooling setpoint, otherwise assign hour to heating
+    if (not htg_sp_sensor.nil?) && (not clg_sp_sensor.nil?)
+      program.addLine("  Set Tmid_setpoint = (#{htg_sp_sensor.name} + #{clg_sp_sensor.name}) / 2") # Average of heating/cooling setpoints
+    else
+      program.addLine("  Set Tmid_setpoint = #{UnitConversions.convert(73.0, 'F', 'C')}") # Assumption when no HVAC system
+    end
+    program.addLine("  If #{tin_sensor.name} > Tmid_setpoint")
+    program.addLine('    Set clg_mode = 1')
+    program.addLine('  Else')
+    program.addLine('    Set htg_mode = 1')
+    program.addLine('  EndIf')
     program.addLine('EndIf')
 
     [:htg, :clg].each do |mode|

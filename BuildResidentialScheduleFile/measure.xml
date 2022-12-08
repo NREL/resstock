@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_schedule_file</name>
   <uid>f770b2db-1a9f-4e99-99a7-7f3161a594b1</uid>
-  <version_id>b9ab9559-30d8-4b1c-9757-8c911f80e937</version_id>
-  <version_modified>20221031T233528Z</version_modified>
+  <version_id>3a88a262-1431-4bb9-a577-cd235aed6b1e</version_id>
+  <version_modified>20221201T013247Z</version_modified>
   <xml_checksum>03F02484</xml_checksum>
   <class_name>BuildResidentialScheduleFile</class_name>
   <display_name>Schedule File Builder</display_name>
@@ -37,6 +37,14 @@
           <display_name>stochastic</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>schedules_column_names</name>
+      <display_name>Schedules: Column Names</display_name>
+      <description>A comma-separated list of the column names to generate. If not provided, defaults to all columns. Possible column names are: occupants, lighting_interior, lighting_exterior, lighting_garage, lighting_exterior_holiday, cooking_range, refrigerator, extra_refrigerator, freezer, dishwasher, clothes_washer, clothes_dryer, ceiling_fan, plug_loads_other, plug_loads_tv, plug_loads_vehicle, plug_loads_well_pump, fuel_loads_grill, fuel_loads_lighting, fuel_loads_fireplace, pool_pump, pool_heater, hot_tub_pump, hot_tub_heater, hot_water_dishwasher, hot_water_clothes_washer, hot_water_fixtures.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>schedules_vacancy_period</name>
@@ -891,10 +899,16 @@
       <checksum>127D96AC</checksum>
     </file>
     <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>AC348B70</checksum>
+    </file>
+    <file>
       <filename>build_residential_schedule_file_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>41CA164F</checksum>
+      <checksum>10DD8842</checksum>
     </file>
     <file>
       <version>
@@ -905,13 +919,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>8FF07C66</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>F2E6EBB8</checksum>
+      <checksum>3D8ADC7F</checksum>
     </file>
   </files>
 </measure>

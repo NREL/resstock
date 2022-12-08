@@ -4965,17 +4965,16 @@ class HPXMLFile
     return if (args[:heating_system_type] == 'none') && (args[:cooling_system_type] == 'none') && (args[:heat_pump_type] == 'none')
 
     # Heating
-    if hpxml.total_fraction_heat_load_served > 0
-
-      if args[:hvac_control_heating_weekday_setpoint].is_initialized && args[:hvac_control_heating_weekend_setpoint].is_initialized
-        if args[:hvac_control_heating_weekday_setpoint].get == args[:hvac_control_heating_weekend_setpoint].get && !args[:hvac_control_heating_weekday_setpoint].get.include?(',')
-          heating_setpoint_temp = Float(args[:hvac_control_heating_weekday_setpoint].get)
-        else
-          weekday_heating_setpoints = args[:hvac_control_heating_weekday_setpoint].get
-          weekend_heating_setpoints = args[:hvac_control_heating_weekend_setpoint].get
-        end
+    if args[:hvac_control_heating_weekday_setpoint].is_initialized && args[:hvac_control_heating_weekend_setpoint].is_initialized
+      if args[:hvac_control_heating_weekday_setpoint].get == args[:hvac_control_heating_weekend_setpoint].get && !args[:hvac_control_heating_weekday_setpoint].get.include?(',')
+        heating_setpoint_temp = Float(args[:hvac_control_heating_weekday_setpoint].get)
+      else
+        weekday_heating_setpoints = args[:hvac_control_heating_weekday_setpoint].get
+        weekend_heating_setpoints = args[:hvac_control_heating_weekend_setpoint].get
       end
+    end
 
+    if hpxml.total_fraction_heat_load_served > 0
       if args[:hvac_control_heating_season_period].is_initialized
         hvac_control_heating_season_period = args[:hvac_control_heating_season_period].get
         if hvac_control_heating_season_period == HPXML::BuildingAmerica
@@ -4994,16 +4993,16 @@ class HPXMLFile
     end
 
     # Cooling
-    if hpxml.total_fraction_cool_load_served > 0
-
-      if args[:hvac_control_cooling_weekday_setpoint].is_initialized && args[:hvac_control_cooling_weekend_setpoint].is_initialized
-        if args[:hvac_control_cooling_weekday_setpoint].get == args[:hvac_control_cooling_weekend_setpoint].get && !args[:hvac_control_cooling_weekday_setpoint].get.include?(',')
-          cooling_setpoint_temp = Float(args[:hvac_control_cooling_weekday_setpoint].get)
-        else
-          weekday_cooling_setpoints = args[:hvac_control_cooling_weekday_setpoint].get
-          weekend_cooling_setpoints = args[:hvac_control_cooling_weekend_setpoint].get
-        end
+    if args[:hvac_control_cooling_weekday_setpoint].is_initialized && args[:hvac_control_cooling_weekend_setpoint].is_initialized
+      if args[:hvac_control_cooling_weekday_setpoint].get == args[:hvac_control_cooling_weekend_setpoint].get && !args[:hvac_control_cooling_weekday_setpoint].get.include?(',')
+        cooling_setpoint_temp = Float(args[:hvac_control_cooling_weekday_setpoint].get)
+      else
+        weekday_cooling_setpoints = args[:hvac_control_cooling_weekday_setpoint].get
+        weekend_cooling_setpoints = args[:hvac_control_cooling_weekend_setpoint].get
       end
+    end
+
+    if hpxml.total_fraction_cool_load_served > 0
 
       if args[:ceiling_fan_cooling_setpoint_temp_offset].is_initialized
         ceiling_fan_cooling_setpoint_temp_offset = args[:ceiling_fan_cooling_setpoint_temp_offset].get

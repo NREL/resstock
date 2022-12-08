@@ -8,6 +8,7 @@ class ScheduleGenerator
   def initialize(runner:,
                  epw_file:,
                  state:,
+                 column_names: nil,
                  random_seed: nil,
                  minutes_per_step:,
                  steps_in_day:,
@@ -21,6 +22,7 @@ class ScheduleGenerator
     @runner = runner
     @epw_file = epw_file
     @state = state
+    @column_names = column_names
     @random_seed = random_seed
     @minutes_per_step = minutes_per_step
     @steps_in_day = steps_in_day
@@ -59,6 +61,16 @@ class ScheduleGenerator
 
   def create(args:)
     initialize_schedules
+
+    if @column_names.nil?
+      @column_names = SchedulesFile.ColumnNames
+    end
+
+    invalid_columns = (@column_names - SchedulesFile.ColumnNames)
+    invalid_columns.each do |invalid_column|
+      @runner.registerError("Invalid column name specified: '#{invalid_column}'.")
+    end
+    return false unless invalid_columns.empty?
 
     success = create_average_schedules
     return false if not success
@@ -963,6 +975,9 @@ class ScheduleGenerator
   end
 
   def export(schedules_path:)
+    (SchedulesFile.ColumnNames - @column_names).each do |col_to_remove|
+      @schedules.delete(col_to_remove)
+    end
     CSV.open(schedules_path, 'w') do |csv|
       csv << @schedules.keys
       rows = @schedules.values.transpose

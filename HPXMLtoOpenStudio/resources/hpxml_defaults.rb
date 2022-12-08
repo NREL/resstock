@@ -1124,7 +1124,7 @@ class HPXMLDefaults
         if heat_pump.compressor_type == HPXML::HVACCompressorTypeSingleStage
           heat_pump.cooling_shr = 0.73
         elsif heat_pump.compressor_type == HPXML::HVACCompressorTypeTwoStage
-          heat_pump.cooling_shr = 0.724
+          heat_pump.cooling_shr = 0.73
         elsif heat_pump.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
           heat_pump.cooling_shr = 0.78
         end
@@ -1133,9 +1133,10 @@ class HPXMLDefaults
         heat_pump.cooling_shr = 0.73
         heat_pump.cooling_shr_isdefaulted = true
       elsif heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir
-        heat_pump.cooling_shr = 0.732
+        heat_pump.cooling_shr = 0.73
         heat_pump.cooling_shr_isdefaulted = true
-      elsif heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpPTHP
+      elsif heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpPTHP ||
+            heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpRoom
         heat_pump.cooling_shr = 0.65
         heat_pump.cooling_shr_isdefaulted = true
       end
@@ -1819,7 +1820,7 @@ class HPXMLDefaults
   end
 
   def self.apply_batteries(hpxml)
-    default_values = Battery.get_battery_default_values()
+    default_values = Battery.get_battery_default_values(hpxml.has_location(HPXML::LocationGarage))
     hpxml.batteries.each do |battery|
       if battery.location.nil?
         battery.location = default_values[:location]
