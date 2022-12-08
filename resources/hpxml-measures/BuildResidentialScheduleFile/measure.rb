@@ -51,6 +51,11 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('smooth')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_column_names', false)
+    arg.setDisplayName('Schedules: Column Names')
+    arg.setDescription("A comma-separated list of the column names to generate. If not provided, defaults to all columns. Possible column names are: #{SchedulesFile.OccupancyColumnNames.join(', ')}.")
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_vacancy_period', false)
     arg.setDisplayName('Schedules: Vacancy Period')
     arg.setDescription('Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".')
@@ -161,6 +166,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     info_msgs << "RandomSeed=#{args[:random_seed]}" if args[:schedules_random_seed].is_initialized
     info_msgs << "GeometryNumOccupants=#{args[:geometry_num_occupants]}"
     info_msgs << "VacancyPeriod=#{args[:schedules_vacancy_period].get}" if args[:schedules_vacancy_period].is_initialized
+    info_msgs << "ColumnNames=#{args[:column_names]}" if args[:schedules_column_names].is_initialized
 
     runner.registerInfo("Created #{args[:schedules_type]} schedule with #{info_msgs.join(', ')}")
 
@@ -188,6 +194,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args[:state] = hpxml.header.state_code if !hpxml.header.state_code.nil?
 
     args[:random_seed] = args[:schedules_random_seed].get if args[:schedules_random_seed].is_initialized
+    args[:column_names] = args[:schedules_column_names].get.split(',').map(&:strip) if args[:schedules_column_names].is_initialized
 
     if hpxml.building_occupancy.number_of_residents.nil?
       args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml.building_construction.number_of_bedrooms)

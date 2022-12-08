@@ -55,7 +55,8 @@ A template OSW that simply runs the HPXMLtoOpenStudio, ReportSimulationOutput, a
 
 | Another example:
 | ``openstudio run -w workflow/template-run-hpxml-with-stochastic-occupancy.osw``
-| This workflow automatically generates and uses a CSV file with stochastic occupancy schedules before running the EnergyPlus simulation.
+| ``openstudio run -w workflow/template-run-hpxml-with-stochastic-occupancy-subset.osw``
+| This workflow automatically generates and uses a CSV file with stochastic occupancy schedules (either with all possible columns or a user-specified subset of columns) before running the EnergyPlus simulation.
 
 | And another example:
 | ``openstudio run -w workflow/template-build-and-run-hpxml-with-stochastic-occupancy.osw``

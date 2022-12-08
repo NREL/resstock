@@ -2272,26 +2272,9 @@ class OSModel
 
       natvent_flow_actuator = actuator
       break
-    end   
+    end
 
-    nonsurf_names = ['intgains', 'lighting', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
-
-    # EMS program: Initialize coasting hours count variable
-    program_init = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-    program_init.setName("initialize_component_load_vars")
-
-    coast_hrs = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "coast_hrs")
-    program_init.addLine("Set #{coast_hrs.name} = 0") 
-    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-    program_calling_manager.setName("#{program_init.name} calling manager")
-    program_calling_manager.setCallingPoint('BeginNewEnvironment')
-    program_calling_manager.addProgram(program_init)
-
-    # Reset after warmup
-    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-    program_calling_manager.setName("#{program_init.name} calling manager")
-    program_calling_manager.setCallingPoint('AfterNewEnvironmentWarmUpIsComplete')
-    program_calling_manager.addProgram(program_init)
+    nonsurf_names = ['intgains', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
 
     # EMS program
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
@@ -2406,7 +2389,6 @@ class OSModel
       clg_sp_sensor.setName('clg sp s')
       clg_sp_sensor.setKeyName(clg_sch.name.to_s)
     end
-
 
     # EMS program: Heating vs Cooling logic
     program.addLine('Set htg_mode = 0')
