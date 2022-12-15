@@ -2274,25 +2274,11 @@ class OSModel
       break
     end
 
-    nonsurf_names = ['intgains', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
+    nonsurf_names = ['intgains', 'lighting', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
 
     # EMS program
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     program.setName(Constants.ObjectNameComponentLoadsProgram)
-
-    # EMS program: Set trend variables
-    surfaces_sensors.keys.each do |k|
-      surf_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "hr_#{k}")
-      trend_var = OpenStudio::Model::EnergyManagementSystemTrendVariable.new(model, surf_var)
-      trend_var.setNumberOfTimestepsToBeLogged(23)
-      trend_var.setName("hr_#{k}_trend")
-    end
-    nonsurf_names.each do |name|
-      nonsurf_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "hr_#{name}")
-      trend_var = OpenStudio::Model::EnergyManagementSystemTrendVariable.new(model, nonsurf_var)
-      trend_var.setNumberOfTimestepsToBeLogged(23)
-      trend_var.setName("hr_#{name}_trend")
-    end
 
     # EMS program: Surfaces
     surfaces_sensors.each do |k, surface_sensors|
