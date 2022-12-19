@@ -195,7 +195,7 @@ For example, hourly schedules can be used with a 10-minute simulation timestep, 
 
 A detailed stochastic occupancy schedule CSV file can also be automatically generated for you (see "Can Be Stochastically Generated" above for applicable columns); see the :ref:`usage_instructions` for the commands.
 Inputs for the stochastic schedule generator are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
-Only the ``occupants`` schedule will be stochastically generated when ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` is set to zero.
+No schedules will be stochastically generated when ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` is set to zero.
 See :ref:`buildingoccupancy` and :ref:`buildingsite` for more information.
 
 .. warning::

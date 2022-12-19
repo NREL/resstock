@@ -140,7 +140,8 @@ class MiscLoads
     if heater_kwh > 0
       if not schedules_file.nil?
         space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: heater_kwh)
-      else
+      end
+      if space_design_level.nil?
         space_design_level = heater_sch.calc_design_level_from_daily_kwh(heater_kwh / 365.0)
         heater_sch = heater_sch.schedule
       end
