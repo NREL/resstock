@@ -1739,7 +1739,7 @@ class OSModel
 
     Airflow.apply(model, runner, weather, spaces, @hpxml, @cfa, @nbeds,
                   @ncfl_ag, duct_systems, airloop_map, @clg_ssn_sensor, @eri_version,
-                  @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file)
+                  @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file, @hpxml.header.vacancy_periods)
   end
 
   def self.create_ducts(model, hvac_distribution, spaces)
