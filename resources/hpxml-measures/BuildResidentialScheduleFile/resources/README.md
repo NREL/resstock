@@ -38,7 +38,7 @@ Each row is for one household, and each column is the duration of one instance o
 These files contain the probability distribution of the event cluster size for different domestic hot water end uses, obtained from the HotWaterEventScheduleGenerator Excel file.
 The first row is the probability of a cluster size of 1 event, second row for probability of cluster size of 2 events and so on.
 
-`schedule_config.yml`
+`schedule_config.json`
 
-This yaml file contains various miscellaneous configurations for the schedule generator, and their meanings and sources are defined within the file.
+This JSON file contains various miscellaneous configurations for the schedule generator, and their meanings and sources are defined within the file.
 

@@ -919,6 +919,8 @@ class HPXML < Object
     def initialize(hpxml_object, *args)
       @emissions_scenarios = EmissionsScenarios.new(hpxml_object)
       @utility_bill_scenarios = UtilityBillScenarios.new(hpxml_object)
+      @vacancy_periods = VacancyPeriods.new(hpxml_object)
+      @power_outage_periods = PowerOutagePeriods.new(hpxml_object)
       super(hpxml_object, *args)
     end
     ATTRS = [:xml_type, :xml_generated_by, :created_date_and_time, :transaction,
@@ -935,6 +937,8 @@ class HPXML < Object
     attr_accessor(*ATTRS)
     attr_reader(:emissions_scenarios)
     attr_reader(:utility_bill_scenarios)
+    attr_reader(:vacancy_periods)
+    attr_reader(:power_outage_periods)
 
     def check_for_errors
       errors = []
@@ -956,6 +960,8 @@ class HPXML < Object
       errors += HPXML::check_dates('Daylight Saving', @dst_begin_month, @dst_begin_day, @dst_end_month, @dst_end_day)
       errors += @emissions_scenarios.check_for_errors
       errors += @utility_bill_scenarios.check_for_errors
+      errors += @vacancy_periods.check_for_errors
+      errors += @power_outage_periods.check_for_errors
 
       return errors
     end
@@ -1020,6 +1026,8 @@ class HPXML < Object
       end
       @emissions_scenarios.to_oga(software_info)
       @utility_bill_scenarios.to_oga(software_info)
+      @vacancy_periods.to_oga(software_info)
+      @power_outage_periods.to_oga(software_info)
 
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
@@ -1093,6 +1101,8 @@ class HPXML < Object
       end
       @emissions_scenarios.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
       @utility_bill_scenarios.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
+      @vacancy_periods.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
+      @power_outage_periods.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
       @building_id = HPXML::get_id(hpxml, 'Building/BuildingID')
       @event_type = XMLHelper.get_value(hpxml, 'Building/ProjectStatus/EventType', :string)
       @state_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/StateCode', :string)
@@ -1326,6 +1336,100 @@ class HPXML < Object
       end
       @pv_monthly_grid_connection_fee_dollars_per_kw = XMLHelper.get_value(utility_bill_scenario, "PVCompensation/MonthlyGridConnectionFee[Units='#{UnitsDollarsPerkW}']/Value", :float)
       @pv_monthly_grid_connection_fee_dollars = XMLHelper.get_value(utility_bill_scenario, "PVCompensation/MonthlyGridConnectionFee[Units='#{UnitsDollars}']/Value", :float)
+    end
+  end
+
+  class VacancyPeriods < BaseArrayElement
+    def add(**kwargs)
+      self << VacancyPeriod.new(@hpxml_object, **kwargs)
+    end
+
+    def from_oga(software_info)
+      return if software_info.nil?
+
+      XMLHelper.get_elements(software_info, 'extension/VacancyPeriods/VacancyPeriod').each do |vacancy_period|
+        self << VacancyPeriod.new(@hpxml_object, vacancy_period)
+      end
+    end
+  end
+
+  class VacancyPeriod < BaseElement
+    ATTRS = [:begin_month, :begin_day, :end_month, :end_day]
+    attr_accessor(*ATTRS)
+
+    def delete
+      @hpxml_object.header.vacancy_periods.delete(self)
+    end
+
+    def check_for_errors
+      errors = []
+      errors += HPXML::check_dates('Vacancy Period', @begin_month, @begin_day, @end_month, @end_day)
+      return errors
+    end
+
+    def to_oga(software_info)
+      vacancy_periods = XMLHelper.create_elements_as_needed(software_info, ['extension', 'VacancyPeriods'])
+      vacancy_period = XMLHelper.add_element(vacancy_periods, 'VacancyPeriod')
+      XMLHelper.add_element(vacancy_period, 'BeginMonth', @begin_month, :integer) unless @begin_month.nil?
+      XMLHelper.add_element(vacancy_period, 'BeginDayOfMonth', @begin_day, :integer) unless @begin_day.nil?
+      XMLHelper.add_element(vacancy_period, 'EndMonth', @end_month, :integer) unless @end_month.nil?
+      XMLHelper.add_element(vacancy_period, 'EndDayOfMonth', @end_day, :integer) unless @end_day.nil?
+    end
+
+    def from_oga(vacancy_period)
+      return if vacancy_period.nil?
+
+      @begin_month = XMLHelper.get_value(vacancy_period, 'BeginMonth', :integer)
+      @begin_day = XMLHelper.get_value(vacancy_period, 'BeginDayOfMonth', :integer)
+      @end_month = XMLHelper.get_value(vacancy_period, 'EndMonth', :integer)
+      @end_day = XMLHelper.get_value(vacancy_period, 'EndDayOfMonth', :integer)
+    end
+  end
+
+  class PowerOutagePeriods < BaseArrayElement
+    def add(**kwargs)
+      self << PowerOutagePeriod.new(@hpxml_object, **kwargs)
+    end
+
+    def from_oga(software_info)
+      return if software_info.nil?
+
+      XMLHelper.get_elements(software_info, 'extension/PowerOutagePeriods/PowerOutagePeriod').each do |power_outage_period|
+        self << PowerOutagePeriod.new(@hpxml_object, power_outage_period)
+      end
+    end
+  end
+
+  class PowerOutagePeriod < BaseElement
+    ATTRS = [:begin_month, :begin_day, :end_month, :end_day]
+    attr_accessor(*ATTRS)
+
+    def delete
+      @hpxml_object.header.power_outage_periods.delete(self)
+    end
+
+    def check_for_errors
+      errors = []
+      errors += HPXML::check_dates('Power Outage Period', @begin_month, @begin_day, @end_month, @end_day)
+      return errors
+    end
+
+    def to_oga(software_info)
+      power_outage_periods = XMLHelper.create_elements_as_needed(software_info, ['extension', 'PowerOutagePeriods'])
+      power_outage_period = XMLHelper.add_element(power_outage_periods, 'PowerOutagePeriod')
+      XMLHelper.add_element(power_outage_period, 'BeginMonth', @begin_month, :integer) unless @begin_month.nil?
+      XMLHelper.add_element(power_outage_period, 'BeginDayOfMonth', @begin_day, :integer) unless @begin_day.nil?
+      XMLHelper.add_element(power_outage_period, 'EndMonth', @end_month, :integer) unless @end_month.nil?
+      XMLHelper.add_element(power_outage_period, 'EndDayOfMonth', @end_day, :integer) unless @end_day.nil?
+    end
+
+    def from_oga(power_outage_period)
+      return if power_outage_period.nil?
+
+      @begin_month = XMLHelper.get_value(power_outage_period, 'BeginMonth', :integer)
+      @begin_day = XMLHelper.get_value(power_outage_period, 'BeginDayOfMonth', :integer)
+      @end_month = XMLHelper.get_value(power_outage_period, 'EndMonth', :integer)
+      @end_day = XMLHelper.get_value(power_outage_period, 'EndDayOfMonth', :integer)
     end
   end
 
@@ -2090,8 +2194,9 @@ class HPXML < Object
     ATTRS = [:id, :interior_adjacent_to, :area, :azimuth, :orientation, :roof_type,
              :roof_color, :solar_absorptance, :emittance, :pitch, :radiant_barrier,
              :insulation_id, :insulation_assembly_r_value, :insulation_cavity_r_value,
-             :insulation_continuous_r_value, :radiant_barrier_grade,
-             :interior_finish_type, :interior_finish_thickness]
+             :insulation_continuous_r_value, :radiant_barrier_grade, :insulation_grade,
+             :interior_finish_type, :interior_finish_thickness, :framing_factor,
+             :framing_size, :framing_spacing]
     attr_accessor(*ATTRS)
 
     def skylights
@@ -2171,6 +2276,12 @@ class HPXML < Object
         XMLHelper.add_element(interior_finish, 'Type', @interior_finish_type, :string, @interior_finish_type_isdefaulted) unless @interior_finish_type.nil?
         XMLHelper.add_element(interior_finish, 'Thickness', @interior_finish_thickness, :float, @interior_finish_thickness_isdefaulted) unless @interior_finish_thickness.nil?
       end
+      if (not @framing_factor.nil?) || (not @framing_size.nil?) || (not @framing_spacing.nil?)
+        rafters = XMLHelper.add_element(roof, 'Rafters')
+        XMLHelper.add_element(rafters, 'Size', @framing_size, :string) unless @framing_size.nil?
+        XMLHelper.add_element(rafters, 'Spacing', @framing_spacing, :float) unless @framing_spacing.nil?
+        XMLHelper.add_element(rafters, 'FramingFactor', @framing_factor, :float) unless @framing_factor.nil?
+      end
       XMLHelper.add_element(roof, 'Pitch', @pitch, :float) unless @pitch.nil?
       XMLHelper.add_element(roof, 'RadiantBarrier', @radiant_barrier, :boolean, @radiant_barrier_isdefaulted) unless @radiant_barrier.nil?
       XMLHelper.add_element(roof, 'RadiantBarrierGrade', @radiant_barrier_grade, :integer, @radiant_barrier_grade_isdefaulted) unless @radiant_barrier_grade.nil?
@@ -2181,6 +2292,7 @@ class HPXML < Object
       else
         XMLHelper.add_attribute(sys_id, 'id', @id + 'Insulation')
       end
+      XMLHelper.add_element(insulation, 'InsulationGrade', @insulation_grade, :integer) unless @insulation_grade.nil?
       XMLHelper.add_element(insulation, 'AssemblyEffectiveRValue', @insulation_assembly_r_value, :float) unless @insulation_assembly_r_value.nil?
       if not @insulation_cavity_r_value.nil?
         layer = XMLHelper.add_element(insulation, 'Layer')
@@ -2211,12 +2323,16 @@ class HPXML < Object
         @interior_finish_type = XMLHelper.get_value(interior_finish, 'Type', :string)
         @interior_finish_thickness = XMLHelper.get_value(interior_finish, 'Thickness', :float)
       end
+      @framing_factor = XMLHelper.get_value(roof, 'Rafters/FramingFactor', :float)
+      @framing_size = XMLHelper.get_value(roof, 'Rafters/Size', :string)
+      @framing_spacing = XMLHelper.get_value(roof, 'Rafters/Spacing', :float)
       @pitch = XMLHelper.get_value(roof, 'Pitch', :float)
       @radiant_barrier = XMLHelper.get_value(roof, 'RadiantBarrier', :boolean)
       @radiant_barrier_grade = XMLHelper.get_value(roof, 'RadiantBarrierGrade', :integer)
       insulation = XMLHelper.get_element(roof, 'Insulation')
       if not insulation.nil?
         @insulation_id = HPXML::get_id(insulation)
+        @insulation_grade = XMLHelper.get_value(insulation, 'InsulationGrade', :integer)
         @insulation_assembly_r_value = XMLHelper.get_value(insulation, 'AssemblyEffectiveRValue', :float)
         @insulation_cavity_r_value = XMLHelper.get_value(insulation, "Layer[InstallationType='cavity']/NominalRValue", :float)
         @insulation_continuous_r_value = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous']/NominalRValue", :float)
@@ -2241,7 +2357,7 @@ class HPXML < Object
   class RimJoist < BaseElement
     ATTRS = [:id, :exterior_adjacent_to, :interior_adjacent_to, :area, :orientation, :azimuth, :siding,
              :color, :solar_absorptance, :emittance, :insulation_id, :insulation_assembly_r_value,
-             :insulation_cavity_r_value, :insulation_continuous_r_value]
+             :insulation_cavity_r_value, :insulation_continuous_r_value, :framing_size]
     attr_accessor(*ATTRS)
 
     def is_exterior
@@ -2318,6 +2434,10 @@ class HPXML < Object
         XMLHelper.add_element(layer, 'InstallationType', 'continuous', :string)
         XMLHelper.add_element(layer, 'NominalRValue', @insulation_continuous_r_value, :float)
       end
+      if not @framing_size.nil?
+        floor_joists = XMLHelper.add_element(rim_joist, 'FloorJoists')
+        XMLHelper.add_element(floor_joists, 'Size', @framing_size, :string) unless @framing_size.nil?
+      end
     end
 
     def from_oga(rim_joist)
@@ -2340,6 +2460,7 @@ class HPXML < Object
         @insulation_cavity_r_value = XMLHelper.get_value(insulation, "Layer[InstallationType='cavity']/NominalRValue", :float)
         @insulation_continuous_r_value = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous']/NominalRValue", :float)
       end
+      @framing_size = XMLHelper.get_value(rim_joist, 'FloorJoists/Size', :string)
     end
   end
 
@@ -2361,7 +2482,8 @@ class HPXML < Object
     ATTRS = [:id, :exterior_adjacent_to, :interior_adjacent_to, :wall_type, :optimum_value_engineering,
              :area, :orientation, :azimuth, :siding, :color, :solar_absorptance, :emittance, :insulation_id,
              :insulation_assembly_r_value, :insulation_cavity_r_value, :insulation_continuous_r_value,
-             :interior_finish_type, :interior_finish_thickness, :attic_wall_type]
+             :interior_finish_type, :interior_finish_thickness, :attic_wall_type, :framing_factor,
+             :framing_size, :framing_spacing, :insulation_grade]
     attr_accessor(*ATTRS)
 
     def windows
@@ -2455,6 +2577,12 @@ class HPXML < Object
       XMLHelper.add_element(wall, 'Area', @area, :float) unless @area.nil?
       XMLHelper.add_element(wall, 'Orientation', @orientation, :string, @orientation_isdefaulted) unless @orientation.nil?
       XMLHelper.add_element(wall, 'Azimuth', @azimuth, :integer, @azimuth_isdefaulted) unless @azimuth.nil?
+      if (not @framing_factor.nil?) || (not @framing_size.nil?) || (not @framing_spacing.nil?)
+        studs = XMLHelper.add_element(wall, 'Studs')
+        XMLHelper.add_element(studs, 'Size', @framing_size, :string) unless @framing_size.nil?
+        XMLHelper.add_element(studs, 'Spacing', @framing_spacing, :float) unless @framing_spacing.nil?
+        XMLHelper.add_element(studs, 'FramingFactor', @framing_factor, :float) unless @framing_factor.nil?
+      end
       XMLHelper.add_element(wall, 'Siding', @siding, :string, @siding_isdefaulted) unless @siding.nil?
       XMLHelper.add_element(wall, 'Color', @color, :string, @color_isdefaulted) unless @color.nil?
       XMLHelper.add_element(wall, 'SolarAbsorptance', @solar_absorptance, :float, @solar_absorptance_isdefaulted) unless @solar_absorptance.nil?
@@ -2471,6 +2599,7 @@ class HPXML < Object
       else
         XMLHelper.add_attribute(sys_id, 'id', @id + 'Insulation')
       end
+      XMLHelper.add_element(insulation, 'InsulationGrade', @insulation_grade, :integer) unless @insulation_grade.nil?
       XMLHelper.add_element(insulation, 'AssemblyEffectiveRValue', @insulation_assembly_r_value, :float) unless @insulation_assembly_r_value.nil?
       if not @insulation_cavity_r_value.nil?
         layer = XMLHelper.add_element(insulation, 'Layer')
@@ -2498,6 +2627,9 @@ class HPXML < Object
       @area = XMLHelper.get_value(wall, 'Area', :float)
       @orientation = XMLHelper.get_value(wall, 'Orientation', :string)
       @azimuth = XMLHelper.get_value(wall, 'Azimuth', :integer)
+      @framing_size = XMLHelper.get_value(wall, 'Studs/Size', :string)
+      @framing_spacing = XMLHelper.get_value(wall, 'Studs/Spacing', :float)
+      @framing_factor = XMLHelper.get_value(wall, 'Studs/FramingFactor', :float)
       @siding = XMLHelper.get_value(wall, 'Siding', :string)
       @color = XMLHelper.get_value(wall, 'Color', :string)
       @solar_absorptance = XMLHelper.get_value(wall, 'SolarAbsorptance', :float)
@@ -2510,6 +2642,7 @@ class HPXML < Object
       insulation = XMLHelper.get_element(wall, 'Insulation')
       if not insulation.nil?
         @insulation_id = HPXML::get_id(insulation)
+        @insulation_grade = XMLHelper.get_value(insulation, 'InsulationGrade', :integer)
         @insulation_assembly_r_value = XMLHelper.get_value(insulation, 'AssemblyEffectiveRValue', :float)
         @insulation_cavity_r_value = XMLHelper.get_value(insulation, "Layer[InstallationType='cavity']/NominalRValue", :float)
         @insulation_continuous_r_value = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous']/NominalRValue", :float)
@@ -2707,7 +2840,8 @@ class HPXML < Object
   class Floor < BaseElement
     ATTRS = [:id, :exterior_adjacent_to, :interior_adjacent_to, :floor_type, :area, :insulation_id,
              :insulation_assembly_r_value, :insulation_cavity_r_value, :insulation_continuous_r_value,
-             :floor_or_ceiling, :interior_finish_type, :interior_finish_thickness]
+             :floor_or_ceiling, :interior_finish_type, :interior_finish_thickness, :insulation_grade,
+             :framing_factor, :framing_size, :framing_spacing]
     attr_accessor(*ATTRS)
 
     def is_ceiling
@@ -2790,6 +2924,12 @@ class HPXML < Object
         floor_type_el = XMLHelper.add_element(floor, 'FloorType')
         XMLHelper.add_element(floor_type_el, @floor_type)
       end
+      if (not @framing_factor.nil?) || (not @framing_size.nil?) || (not @framing_spacing.nil?)
+        joists = XMLHelper.add_element(floor, 'FloorJoists')
+        XMLHelper.add_element(joists, 'Size', @framing_size, :string) unless @framing_size.nil?
+        XMLHelper.add_element(joists, 'Spacing', @framing_spacing, :float) unless @framing_spacing.nil?
+        XMLHelper.add_element(joists, 'FramingFactor', @framing_factor, :float) unless @framing_factor.nil?
+      end
       XMLHelper.add_element(floor, 'Area', @area, :float) unless @area.nil?
       if (not @interior_finish_type.nil?) || (not @interior_finish_thickness.nil?)
         interior_finish = XMLHelper.add_element(floor, 'InteriorFinish')
@@ -2803,6 +2943,7 @@ class HPXML < Object
       else
         XMLHelper.add_attribute(sys_id, 'id', @id + 'Insulation')
       end
+      XMLHelper.add_element(insulation, 'InsulationGrade', @insulation_grade, :integer) unless @insulation_grade.nil?
       XMLHelper.add_element(insulation, 'AssemblyEffectiveRValue', @insulation_assembly_r_value, :float) unless @insulation_assembly_r_value.nil?
       if not @insulation_cavity_r_value.nil?
         layer = XMLHelper.add_element(insulation, 'Layer')
@@ -2824,6 +2965,9 @@ class HPXML < Object
       @interior_adjacent_to = XMLHelper.get_value(floor, 'InteriorAdjacentTo', :string)
       @floor_or_ceiling = XMLHelper.get_value(floor, 'FloorOrCeiling', :string)
       @floor_type = XMLHelper.get_child_name(floor, 'FloorType')
+      @framing_size = XMLHelper.get_value(floor, 'FloorJoists/Size', :string)
+      @framing_spacing = XMLHelper.get_value(floor, 'FloorJoists/Spacing', :float)
+      @framing_factor = XMLHelper.get_value(floor, 'FloorJoists/FramingFactor', :float)
       @area = XMLHelper.get_value(floor, 'Area', :float)
       interior_finish = XMLHelper.get_element(floor, 'InteriorFinish')
       if not interior_finish.nil?
@@ -2833,6 +2977,7 @@ class HPXML < Object
       insulation = XMLHelper.get_element(floor, 'Insulation')
       if not insulation.nil?
         @insulation_id = HPXML::get_id(insulation)
+        @insulation_grade = XMLHelper.get_value(insulation, 'InsulationGrade', :float)
         @insulation_assembly_r_value = XMLHelper.get_value(insulation, 'AssemblyEffectiveRValue', :float)
         @insulation_cavity_r_value = XMLHelper.get_value(insulation, "Layer[InstallationType='cavity']/NominalRValue", :float)
         @insulation_continuous_r_value = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous']/NominalRValue", :float)
