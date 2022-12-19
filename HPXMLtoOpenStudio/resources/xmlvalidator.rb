@@ -62,6 +62,18 @@ class XMLValidator
         end
       end
     end
+    cleanup_openstudio_tmp_dir(validator, schematron_path)
     return errors, warnings
+  end
+
+  def self.cleanup_openstudio_tmp_dir(validator, schema_path)
+    # Workaround for https://github.com/NREL/OpenStudio/issues/4761
+    # Remove this method if the issue is addressed
+    if validator.schemaPath.to_s != schema_path
+      # OpenStudio created a temp dir; delete it now
+      tmp_path = File.dirname(validator.schemaPath.to_s)
+      require 'fileutils'
+      FileUtils.rm_r(tmp_path)
+    end
   end
 end
