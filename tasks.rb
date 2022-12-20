@@ -418,10 +418,12 @@ def create_hpxmls
     'base-pv-generators-battery.xml' => 'base-pv-generators.xml',
     'base-pv-generators-battery-scheduled.xml' => 'base-pv-generators-battery.xml',
     'base-schedules-simple.xml' => 'base.xml',
+    'base-schedules-simple-vacancy.xml' => 'base.xml',
+    'base-schedules-simple-vacancy-year-round.xml' => 'base.xml',
     'base-schedules-detailed-all-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
-    'base-schedules-detailed-occupancy-smooth.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic.xml' => 'base.xml',
-    'base-schedules-detailed-occupancy-stochastic-vacancy.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-stochastic-vacancy.xml' => 'base-schedules-detailed-occupancy-stochastic.xml',
+    'base-schedules-detailed-occupancy-stochastic-vacancy-year-round.xml' => 'base-schedules-detailed-occupancy-stochastic.xml',
     'base-schedules-detailed-occupancy-stochastic-10-mins.xml' => 'base.xml',
     'base-schedules-detailed-setpoints.xml' => 'base.xml',
     'base-schedules-detailed-setpoints-daily-schedules.xml' => 'base.xml',
@@ -435,6 +437,7 @@ def create_hpxmls
     'base-simcontrol-timestep-10-mins-occupancy-stochastic-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
     'base-simcontrol-timestep-10-mins-occupancy-stochastic-60-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
     'base-simcontrol-timestep-30-mins.xml' => 'base.xml',
+    'base-vacancy.xml' => 'base.xml'
   }
 
   puts "Generating #{hpxmls_files.size} HPXML files..."
@@ -2452,28 +2455,27 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['simulation_control_timestep'] = 30
   end
 
+  # Vacancy
+  if ['base-vacancy.xml',
+      'base-schedules-simple-vacancy.xml',
+      'base-schedules-detailed-occupancy-stochastic-vacancy.xml'].include? hpxml_file
+    args['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
+  elsif ['base-schedules-simple-vacancy-year-round.xml',
+         'base-schedules-detailed-occupancy-stochastic-vacancy-year-round.xml'].include? hpxml_file
+    args['schedules_vacancy_period'] = 'Jan 1 - Dec 31'
+  end
+
   # Occupancy Schedules
-  if ['base-schedules-detailed-occupancy-smooth.xml'].include? hpxml_file
+  if ['base-schedules-detailed-occupancy-stochastic.xml',
+      'base-schedules-detailed-occupancy-stochastic-vacancy.xml',
+      'base-schedules-detailed-occupancy-stochastic-vacancy-year-round.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'smooth'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth.csv'
-    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
-  elsif ['base-schedules-detailed-occupancy-stochastic.xml'].include? hpxml_file
-    sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'stochastic'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv'
-    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
-  elsif ['base-schedules-detailed-occupancy-stochastic-vacancy.xml'].include? hpxml_file
-    sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'stochastic'
-    sch_args['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-vacancy.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   elsif ['base-schedules-detailed-occupancy-stochastic-10-mins.xml'].include? hpxml_file
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv'
   elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'stochastic'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   end
@@ -2528,7 +2530,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv, ../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-operating-modes.csv'
   elsif ['base-dhw-tank-model-type-stratified-detailed-occupancy-stochastic.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'stochastic'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
@@ -2684,6 +2685,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
 
   # Logic that can only be applied based on the file name
   if ['base-schedules-simple.xml',
+      'base-schedules-simple-vacancy.xml',
+      'base-schedules-simple-vacancy-year-round.xml',
       'base-misc-loads-large-uncommon.xml',
       'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
     hpxml.building_occupancy.weekday_fractions = '0.061, 0.061, 0.061, 0.061, 0.061, 0.061, 0.061, 0.053, 0.025, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.018, 0.033, 0.054, 0.054, 0.054, 0.061, 0.061, 0.061'
@@ -4241,6 +4244,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
 
   # Logic that can only be applied based on the file name
   if ['base-schedules-simple.xml',
+      'base-schedules-simple-vacancy.xml',
+      'base-schedules-simple-vacancy-year-round.xml',
       'base-misc-loads-large-uncommon.xml',
       'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
     hpxml.water_heating.water_fixtures_weekday_fractions = '0.012, 0.006, 0.004, 0.005, 0.010, 0.034, 0.078, 0.087, 0.080, 0.067, 0.056, 0.047, 0.040, 0.035, 0.033, 0.031, 0.039, 0.051, 0.060, 0.060, 0.055, 0.048, 0.038, 0.026'
@@ -4565,6 +4570,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
 
   # Logic that can only be applied based on the file name
   if ['base-schedules-simple.xml',
+      'base-schedules-simple-vacancy.xml',
+      'base-schedules-simple-vacancy-year-round.xml',
       'base-misc-loads-large-uncommon.xml',
       'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
     hpxml.clothes_washers[0].weekday_fractions = '0.009, 0.007, 0.004, 0.004, 0.007, 0.011, 0.022, 0.049, 0.073, 0.086, 0.084, 0.075, 0.067, 0.060, 0.049, 0.052, 0.050, 0.049, 0.049, 0.049, 0.049, 0.047, 0.032, 0.017'
@@ -4649,6 +4656,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.lighting.holiday_weekday_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
     hpxml.lighting.holiday_weekend_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
   elsif ['base-schedules-simple.xml',
+         'base-schedules-simple-vacancy.xml',
+         'base-schedules-simple-vacancy-year-round.xml',
          'base-misc-loads-large-uncommon.xml',
          'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
     hpxml.lighting.interior_weekday_fractions = '0.124, 0.074, 0.050, 0.050, 0.053, 0.140, 0.330, 0.420, 0.430, 0.424, 0.411, 0.394, 0.382, 0.378, 0.378, 0.379, 0.386, 0.412, 0.484, 0.619, 0.783, 0.880, 0.597, 0.249'
@@ -4668,6 +4677,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
 
   # Logic that can only be applied based on the file name
   if ['base-schedules-simple.xml',
+      'base-schedules-simple-vacancy.xml',
+      'base-schedules-simple-vacancy-year-round.xml',
       'base-misc-loads-large-uncommon.xml',
       'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
     hpxml.plug_loads[0].weekday_fractions = '0.045, 0.019, 0.01, 0.001, 0.001, 0.001, 0.005, 0.009, 0.018, 0.026, 0.032, 0.038, 0.04, 0.041, 0.043, 0.045, 0.05, 0.055, 0.07, 0.085, 0.097, 0.108, 0.089, 0.07'

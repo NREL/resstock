@@ -88,8 +88,8 @@ Annual energy consumption outputs are listed below.
   ====================================  ===========================
   Type                                  Notes
   ====================================  ===========================
-  Energy Use: Total (MBtu)
-  Energy Use: Net (MBtu)                Subtracts any power produced by PV (including any battery storage) or generators.
+  Energy Use: Total (MBtu)              Includes any battery charging/discharging
+  Energy Use: Net (MBtu)                Subtracts any power produced by PV or generators.
   ====================================  ===========================
 
 Annual Energy Consumption by Fuel Use
@@ -100,8 +100,8 @@ Fuel uses are listed below.
    ====================================  ===========================
    Type                                  Notes
    ====================================  ===========================
-   Fuel Use: Electricity: Total (MBtu)
-   Fuel Use: Electricity: Net (MBtu)     Subtracts any power produced by PV (including any battery storage) or generators.
+   Fuel Use: Electricity: Total (MBtu)   Includes any battery charging/discharging
+   Fuel Use: Electricity: Net (MBtu)     Subtracts any power produced by PV or generators.
    Fuel Use: Natural Gas: Total (MBtu)
    Fuel Use: Fuel Oil: Total (MBtu)      Includes "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "kerosene", and "diesel"
    Fuel Use: Propane: Total (MBtu)

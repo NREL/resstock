@@ -142,58 +142,59 @@ Detailed Schedule Inputs
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Detailed schedule inputs allow schedule values for every hour or timestep of the simulation.
-They can be smooth schedules, or they can reflect real-world or stochastic occupancy.
+They can be used to reflect real-world or stochastic occupancy.
 
 Detailed schedule inputs are provided via one or more CSV file that should be referenced in the HPXML file as ``/HPXML/SoftwareInfo/extension/SchedulesFilePath`` elements.
 The column names available in the schedule CSV files are:
 
-  ===============================  =====  ==============================================================================  ===================
-  Column Name                      Units  Description                                                                     Affected by Vacancy
-  ===============================  =====  ==============================================================================  ===================
-  ``occupants``                    frac   Occupant heat gain schedule.                                                    Yes
-  ``lighting_interior``            frac   Interior lighting energy use schedule.                                          Yes
-  ``lighting_exterior``            frac   Exterior lighting energy use schedule.                                          Yes
-  ``lighting_garage``              frac   Garage lighting energy use schedule.                                            Yes
-  ``lighting_exterior_holiday``    frac   Exterior holiday lighting energy use schedule.                                  Yes
-  ``cooking_range``                frac   Cooking range & oven energy use schedule.                                       Yes
-  ``refrigerator``                 frac   Primary refrigerator energy use schedule.                                       No
-  ``extra_refrigerator``           frac   Non-primary refrigerator energy use schedule.                                   No
-  ``freezer``                      frac   Freezer energy use schedule.                                                    No
-  ``dishwasher``                   frac   Dishwasher energy use schedule.                                                 Yes
-  ``clothes_washer``               frac   Clothes washer energy use schedule.                                             Yes
-  ``clothes_dryer``                frac   Clothes dryer energy use schedule.                                              Yes
-  ``ceiling_fan``                  frac   Ceiling fan energy use schedule.                                                Yes
-  ``plug_loads_other``             frac   Other plug load energy use schedule.                                            Yes
-  ``plug_loads_tv``                frac   Television plug load energy use schedule.                                       Yes
-  ``plug_loads_vehicle``           frac   Electric vehicle plug load energy use schedule.                                 Yes
-  ``plug_loads_well_pump``         frac   Well pump plug load energy use schedule.                                        Yes
-  ``fuel_loads_grill``             frac   Grill fuel load energy use schedule.                                            Yes
-  ``fuel_loads_lighting``          frac   Lighting fuel load energy use schedule.                                         Yes
-  ``fuel_loads_fireplace``         frac   Fireplace fuel load energy use schedule.                                        Yes
-  ``pool_pump``                    frac   Pool pump energy use schedule.                                                  No
-  ``pool_heater``                  frac   Pool heater energy use schedule.                                                No
-  ``hot_tub_pump``                 frac   Hot tub pump energy use schedule.                                               No
-  ``hot_tub_heater``               frac   Hot tub heater energy use schedule.                                             No
-  ``hot_water_dishwasher``         frac   Dishwasher hot water use schedule.                                              Yes
-  ``hot_water_clothes_washer``     frac   Clothes washer hot water use schedule.                                          Yes
-  ``hot_water_fixtures``           frac   Fixtures (sinks, showers, baths) hot water use schedule.                        Yes
-  ``heating_setpoint``             F      Thermostat heating setpoint schedule.                                           No
-  ``cooling_setpoint``             F      Thermostat cooling setpoint schedule.                                           No
-  ``water_heater_setpoint``        F      Water heater setpoint schedule.                                                 No
-  ``water_heater_operating_mode``  0/1    Heat pump water heater operating mode schedule. 0=standard, 1=heat pump only.   No
-  ``battery``                      frac   Battery schedule. Positive for charging, negative for discharging.              No
-  ``vacancy``                      0/1    Vacancy schedule. 0=occupied, 1=vacant. Automatically overrides other columns.  N/A
-  ===============================  =====  ==============================================================================  ===================
+  ===============================  =====  ==============================================================================  =================== ===============================
+  Column Name                      Units  Description                                                                     Affected by Vacancy Can Be Stochastically Generated
+  ===============================  =====  ==============================================================================  =================== ===============================
+  ``occupants``                    frac   Occupant heat gain schedule.                                                    Yes                 Yes
+  ``lighting_interior``            frac   Interior lighting energy use schedule.                                          Yes                 Yes
+  ``lighting_exterior``            frac   Exterior lighting energy use schedule.                                          Yes                 Yes
+  ``lighting_garage``              frac   Garage lighting energy use schedule.                                            Yes                 Yes
+  ``lighting_exterior_holiday``    frac   Exterior holiday lighting energy use schedule.                                  Yes                 Yes
+  ``cooking_range``                frac   Cooking range & oven energy use schedule.                                       Yes                 Yes
+  ``refrigerator``                 frac   Primary refrigerator energy use schedule.                                       No                  No
+  ``extra_refrigerator``           frac   Non-primary refrigerator energy use schedule.                                   No                  No
+  ``freezer``                      frac   Freezer energy use schedule.                                                    No                  No
+  ``dishwasher``                   frac   Dishwasher energy use schedule.                                                 Yes                 Yes
+  ``clothes_washer``               frac   Clothes washer energy use schedule.                                             Yes                 Yes
+  ``clothes_dryer``                frac   Clothes dryer energy use schedule.                                              Yes                 Yes
+  ``ceiling_fan``                  frac   Ceiling fan energy use schedule.                                                Yes                 Yes
+  ``plug_loads_other``             frac   Other plug load energy use schedule.                                            Yes                 Yes
+  ``plug_loads_tv``                frac   Television plug load energy use schedule.                                       Yes                 No
+  ``plug_loads_vehicle``           frac   Electric vehicle plug load energy use schedule.                                 Yes                 No
+  ``plug_loads_well_pump``         frac   Well pump plug load energy use schedule.                                        Yes                 No
+  ``fuel_loads_grill``             frac   Grill fuel load energy use schedule.                                            Yes                 No
+  ``fuel_loads_lighting``          frac   Lighting fuel load energy use schedule.                                         Yes                 No
+  ``fuel_loads_fireplace``         frac   Fireplace fuel load energy use schedule.                                        Yes                 No
+  ``pool_pump``                    frac   Pool pump energy use schedule.                                                  No                  No
+  ``pool_heater``                  frac   Pool heater energy use schedule.                                                No                  No
+  ``hot_tub_pump``                 frac   Hot tub pump energy use schedule.                                               No                  No
+  ``hot_tub_heater``               frac   Hot tub heater energy use schedule.                                             No                  No
+  ``hot_water_dishwasher``         frac   Dishwasher hot water use schedule.                                              Yes                 Yes
+  ``hot_water_clothes_washer``     frac   Clothes washer hot water use schedule.                                          Yes                 Yes
+  ``hot_water_fixtures``           frac   Fixtures (sinks, showers, baths) hot water use schedule.                        Yes                 Yes
+  ``heating_setpoint``             F      Thermostat heating setpoint schedule.                                           No                  No
+  ``cooling_setpoint``             F      Thermostat cooling setpoint schedule.                                           No                  No
+  ``water_heater_setpoint``        F      Water heater setpoint schedule.                                                 No                  No
+  ``water_heater_operating_mode``  0/1    Heat pump water heater operating mode schedule. 0=standard, 1=heat pump only.   No                  No
+  ``battery``                      frac   Battery schedule. Positive for charging, negative for discharging.              No                  No
+  ``vacancy``                      0/1    Vacancy schedule. 0=occupied, 1=vacant. Automatically overrides other columns.  N/A                 N/A
+  ===============================  =====  ==============================================================================  =================== ===============================
 
 Columns with units of `frac` must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
+In other words, the amount of energy or hot water used in each simulation timestep is essentially the schedule value divided by the sum of all schedule values in the column, multiplied by the annual energy or hot water use.
 Example schedule CSV files are provided in the ``HPXMLtoOpenStudio/resources/schedule_files`` directory.
 
 The schedule file must have a full year of data even if the simulation is not an entire year.
 Frequency of schedule values do not need to match the simulation timestep.
 For example, hourly schedules can be used with a 10-minute simulation timestep, or 10-minute schedules can be used with an hourly simulation timestep.
 
-A detailed stochastic or smooth occupancy schedule CSV file can also be automatically generated for you; see the :ref:`usage_instructions` for the commands.
-Inputs for the schedule generator are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
+A detailed stochastic occupancy schedule CSV file can also be automatically generated for you (see "Can Be Stochastically Generated" above for applicable columns); see the :ref:`usage_instructions` for the commands.
+Inputs for the stochastic schedule generator are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
 See :ref:`buildingoccupancy` and :ref:`buildingsite` for more information.
 
 .. warning::
@@ -223,14 +224,15 @@ HPXML Emissions Scenarios
 *************************
 
 One or more emissions scenarios can be entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario``.
+If not entered, emissions will not be calculated.
 
-  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ================================  ========  =====  ===========  ========  ========  ========================================================
   Element                           Type      Units  Constraints  Required  Default   Notes
-  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ================================  ========  =====  ===========  ========  ========  ========================================================
   ``Name``                          string                        Yes                 Name of the scenario (which shows up in the output file)
   ``EmissionsType``                 string           See [#]_     Yes                 Type of emissions (e.g., CO2e)
   ``EmissionsFactor``               element          >= 1         See [#]_            Emissions factor(s) for a given fuel type
-  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ================================  ========  =====  ===========  ========  ========  ========================================================
 
   .. [#] EmissionsType can be anything. But if certain values are provided (e.g., "CO2e"), then some emissions factors can be defaulted as described further below.
   .. [#] EmissionsFactor is required for electricity and optional for all non-electric fuel types.
@@ -256,25 +258,25 @@ For each scenario, electricity emissions factors must be entered as an ``/HPXML/
 
 If an electricity schedule file is used, additional information can be entered in the ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
 
-  =================================  ================  =====  ===========  ========  ========  ============================================================
+  =================================  ================  =====  ===========  ========  ========  ==============================================
   Element                            Type              Units  Constraints  Required  Default   Notes
-  =================================  ================  =====  ===========  ========  ========  ============================================================
+  =================================  ================  =====  ===========  ========  ========  ==============================================
   ``NumberofHeaderRows``             integer           #      >= 0         No        0         Number of header rows in the schedule file
   ``ColumnNumber``                   integer           #      >= 1         No        1         Column number of the data in the schedule file
-  =================================  ================  =====  ===========  ========  ========  ============================================================
+  =================================  ================  =====  ===========  ========  ========  ==============================================
 
 Fuel Emissions
 ~~~~~~~~~~~~~~
 
 For each scenario, fuel emissions factors can be optionally entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
 
-  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ================================  ========  =====  ===========  ========  ========  =============================
   Element                           Type      Units  Constraints  Required  Default   Notes
-  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ================================  ========  =====  ===========  ========  ========  =============================
   ``FuelType``                      string           See [#]_     Yes                 Emissions factor fuel type
   ``Units``                         string           See [#]_     Yes                 Emissions factor units
   ``Value``                         double                        Yes                 Emissions factor annual value
-  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ================================  ========  =====  ===========  ========  ========  =============================
 
   .. [#] FuelType choices are "natural gas", "propane", "fuel oil", "coal", "wood", and "wood pellets".
   .. [#] Units choices are "lb/MBtu" and "kg/MBtu".
@@ -303,14 +305,15 @@ HPXML Utility Bill Scenarios
 ****************************
 
 One or more utility bill scenarios can be entered as an ``/HPXML/SoftwareInfo/extension/UtilityBillScenarios/UtilityBillScenario``.
+If not entered, utility bills will not be calculated.
 
-  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ================================  ========  =====  ===========  ========  ========  ========================================================
   Element                           Type      Units  Constraints  Required  Default   Notes
-  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ================================  ========  =====  ===========  ========  ========  ========================================================
   ``Name``                          string                        Yes                 Name of the scenario (which shows up in the output file)
   ``UtilityRate``                   element          >= 0                             Utility rate(s) for a given fuel type
   ``PVCompensation``                element          <= 1                             PV compensation information
-  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ================================  ========  =====  ===========  ========  ========  ========================================================
 
 See :ref:`bill_outputs` for a description of how the calculated utility bills appear in the output files.
 
@@ -324,13 +327,13 @@ Electricity rates can be entered using Simple inputs or Detailed inputs.
 
 For simple utility rate structures, inputs can be entered using a fixed charge and a marginal rate.
 
-  ================================  ========  =======  ===========  ========  ========  ============================================================
+  ================================  ========  =======  ===========  ========  ========  ====================
   Element                           Type      Units    Constraints  Required  Default   Notes
-  ================================  ========  =======  ===========  ========  ========  ============================================================
+  ================================  ========  =======  ===========  ========  ========  ====================
   ``FuelType``                      string             electricity  Yes                 Fuel type
   ``FixedCharge``                   double    $/month               No        12.0      Monthly fixed charge
   ``MarginalRate``                  double    $/kWh                 No        See [#]_  Marginal flat rate
-  ================================  ========  =======  ===========  ========  ========  ============================================================
+  ================================  ========  =======  ===========  ========  ========  ====================
 
   .. [#] If MarginalRate not provided, defaults to state, regional, or national average based on EIA data that can be found at ``ReportUtilityBills/resources/Data/UtilityRates/Average_retail_price_of_electricity.csv``.
 
@@ -338,12 +341,12 @@ For simple utility rate structures, inputs can be entered using a fixed charge a
 
 For detailed utility rate structures, inputs can be entered using a tariff JSON file.
 
-  ================================  ========  =======  ===========  ========  ========  ============================================================
+  ================================  ========  =======  ===========  ========  ========  =============================
   Element                           Type      Units    Constraints  Required  Default   Notes
-  ================================  ========  =======  ===========  ========  ========  ============================================================
+  ================================  ========  =======  ===========  ========  ========  =============================
   ``FuelType``                      string             electricity  Yes                 Fuel type
   ``TariffFilePath``                string                          Yes                 Path to tariff JSON file [#]_
-  ================================  ========  =======  ===========  ========  ========  ============================================================
+  ================================  ========  =======  ===========  ========  ========  =============================
 
   .. [#] TariffFilePath must point to a JSON file with utility rate structure information.
          Tariff files can describe flat, tiered, time-of-use, tiered time-of-use, or real-time pricing rates.
@@ -357,13 +360,13 @@ Fuel Rates
 
 For each scenario, fuel rates can be optionally entered as an ``/HPXML/SoftwareInfo/extension/UtilityBillScenarios/UtilityBillScenario/UtilityRate``.
 
-  ================================  ========  ========  ===========  ========  ========  ============================================================
+  ================================  ========  ========  ===========  ========  ========  ====================
   Element                           Type      Units     Constraints  Required  Default   Notes
-  ================================  ========  ========  ===========  ========  ========  ============================================================
+  ================================  ========  ========  ===========  ========  ========  ====================
   ``FuelType``                      string              See [#]_     Yes                 Fuel type
   ``FixedCharge``                   double    $/month                No        See [#]_  Monthly fixed charge
   ``MarginalRate``                  double    See [#]_               No        See [#]_  Marginal flat rate
-  ================================  ========  ========  ===========  ========  ========  ============================================================
+  ================================  ========  ========  ===========  ========  ========  ====================
 
   .. [#] FuelType choices are "natural gas", "propane", "fuel oil", "coal", "wood", and "wood pellets".
   .. [#] FixedCharge defaults to $12/month for natural gas and $0/month for other fuels.
@@ -409,15 +412,32 @@ If the PV compensation type is net-metering, additional information can be enter
 
 If the PV compensation type is feed-in tariff, additional information can be entered in ``/HPXML/SoftwareInfo/extension/UtilityBillScenarios/UtilityBillScenario/PVCompensation/CompensationType/FeedInTariff``.
 
-  ============================  ========  =======  ===========  ========  ==============  =============================================================
+  ============================  ========  =======  ===========  ========  ==============  ========================
   Element                       Type      Units    Constraints  Required  Default         Notes
-  ============================  ========  =======  ===========  ========  ==============  =============================================================
+  ============================  ========  =======  ===========  ========  ==============  ========================
   ``FeedInTariffRate``          double    $/kWh                 No        0.12            Feed-in tariff rate [#]_
-  ============================  ========  =======  ===========  ========  ==============  =============================================================
+  ============================  ========  =======  ===========  ========  ==============  ========================
 
   .. [#] FeedInTariffRate applies to full (not excess) PV production.
          Some utilities/regions may have a feed-in tariff policy where compensation occurs for excess PV production (i.e., PV-generated electricity sent to the grid that is not immediately consumed by the building), rather than full PV production.
          OpenStudio-HPXML is currently unable to calculate utility bills for such a feed-in tariff policy.
+
+HPXML Vacancy Periods
+*********************
+
+One or more vacancy periods can be entered as an ``/HPXML/SoftwareInfo/extension/VacancyPeriods/VacancyPeriod``.
+If not entered, occupant vacancies will not be modeled.
+
+  ====================================  ========  =======  =============  ========  =======  ===========
+  Element                               Type      Units    Constraints    Required  Default  Description
+  ====================================  ========  =======  =============  ========  =======  ===========
+  ``BeginMonth``                        integer            1 - 12         Yes                Begin month
+  ``BeginDayOfMonth``                   integer            1 - 31         Yes                Begin day
+  ``EndMonth``                          integer            1 - 12         Yes                End month
+  ``EndDayOfMonth``                     integer            1 - 31         Yes                End day
+  ====================================  ========  =======  =============  ========  =======  ===========
+
+See the "Affected By Vacancy" column in :ref:`detailedschedules` for a list of all schedules that are affected by vacancy.
 
 .. _buildingsite:
 
@@ -425,7 +445,6 @@ HPXML Building Site
 -------------------
 
 Building site information can be entered in ``/HPXML/Building/Site``.
-
 
   =======================================  ========  =====  ===========  ========  ========  ===============
   Element                                  Type      Units  Constraints  Required  Default   Description
@@ -1344,7 +1363,7 @@ If a central air conditioner is specified, additional information is entered in 
   ``DistributionSystem``                                            idref   See [#]_     Yes                               ID of attached distribution system
   ``AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value``  double  Btu/Wh or #  > 0          Yes                  Rated efficiency [#]_
   ``CoolingCapacity``                                               double  Btu/hr       >= 0         No        autosized  Cooling output capacity
-  ``SensibleHeatFraction``                                          double  frac         0 - 1        No                   Sensible heat fraction
+  ``SensibleHeatFraction``                                          double  frac         0 - 1        No        See [#]_   Sensible heat fraction
   ``CompressorType``                                                string               See [#]_     No        See [#]_   Type of compressor
   ``extension/FanPowerWattsPerCFM``                                 double  W/cfm        >= 0         No        See [#]_   Blower fan efficiency at maximum fan speed [#]_
   ``extension/AirflowDefectRatio``                                  double  frac         -0.9 - 9     No        0.0        Deviation between design/installed airflows [#]_
@@ -1353,6 +1372,7 @@ If a central air conditioner is specified, additional information is entered in 
 
   .. [#] HVACDistribution type must be AirDistribution (type: "regular velocity") or DSE.
   .. [#] If SEER2 provided, converted to SEER using ANSI/RESNET/ICC 301-2022 Addendum C, where SEER = SEER2 / 0.95 (assumed to be a split system).
+  .. [#] If not provided, defaults to 0.73 for single/two stage and 0.78 for variable speed.
   .. [#] CompressorType choices are "single stage", "two stage", or "variable speed".
   .. [#] If CompressorType not provided, defaults to "single stage" if SEER <= 15, else "two stage" if SEER <= 21, else "variable speed".
   .. [#] If FanPowerWattsPerCFM not provided, defaults to using attached furnace W/cfm if available, else 0.5 W/cfm if SEER <= 13.5, else 0.375 W/cfm.
@@ -1373,7 +1393,7 @@ If a room air conditioner is specified, additional information is entered in ``C
   ==================================================================  ======  ======  ===========  ========  =========  ============================================
   ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``      double  Btu/Wh  > 0          Yes                  Rated efficiency
   ``CoolingCapacity``                                                 double  Btu/hr  >= 0         No        autosized  Cooling output capacity
-  ``SensibleHeatFraction``                                            double  frac    0 - 1        No                   Sensible heat fraction
+  ``SensibleHeatFraction``                                            double  frac    0 - 1        No        0.65       Sensible heat fraction
   ``IntegratedHeatingSystemFuel``                                     string          See [#]_     No        <none>     Fuel type of integrated heater
   ==================================================================  ======  ======  ===========  ========  =========  ============================================
 
@@ -1402,7 +1422,7 @@ If a PTAC is specified, additional information is entered in ``CoolingSystem``.
   ==================================================================  ======  ======  ===========  ========  =========  ==========================================
   ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``      double  Btu/Wh  > 0          Yes                  Rated efficiency
   ``CoolingCapacity``                                                 double  Btu/hr  >= 0         No        autosized  Cooling output capacity
-  ``SensibleHeatFraction``                                            double  frac    0 - 1        No                   Sensible heat fraction
+  ``SensibleHeatFraction``                                            double  frac    0 - 1        No        0.65       Sensible heat fraction
   ``IntegratedHeatingSystemFuel``                                     string          See [#]_     No        <none>     Fuel type of integrated heater
   ==================================================================  ======  ======  ===========  ========  =========  ==========================================
 
@@ -1446,7 +1466,7 @@ If a mini-split air conditioner is specified, additional information is entered 
   ``DistributionSystem``                                            idref             See [#]_     No                   ID of attached distribution system
   ``AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value``  double    Btu/Wh  > 0          Yes                  Rated cooling efficiency [#]_
   ``CoolingCapacity``                                               double    Btu/hr  >= 0         No        autosized  Cooling output capacity
-  ``SensibleHeatFraction``                                          double    frac    0 - 1        No                   Sensible heat fraction
+  ``SensibleHeatFraction``                                          double    frac    0 - 1        No        0.73       Sensible heat fraction
   ``extension/FanPowerWattsPerCFM``                                 double    W/cfm   >= 0         No        See [#]_   Blower fan efficiency at maximum fan speed
   ``extension/AirflowDefectRatio``                                  double    frac    -0.9 - 9     No        0.0        Deviation between design/installed airflows [#]_
   ``extension/ChargeDefectRatio``                                   double    frac    -0.9 - 9     No        0.0        Deviation between design/installed charges [#]_
@@ -1588,7 +1608,7 @@ If an air-to-air heat pump is specified, additional information is entered in ``
   ``HeatingCapacity``                                               double  Btu/hr   >= 0                      No        autosized  Heating output capacity (excluding any backup heating)
   ``HeatingCapacity17F``                                            double  Btu/hr   >= 0, <= HeatingCapacity  No                   Heating output capacity at 17F, if available
   ``CoolingCapacity``                                               double  Btu/hr   >= 0                      No        autosized  Cooling output capacity
-  ``CoolingSensibleHeatFraction``                                   double  frac     0 - 1                     No                   Sensible heat fraction
+  ``CoolingSensibleHeatFraction``                                   double  frac     0 - 1                     No        See [#]_   Sensible heat fraction
   ``FractionHeatLoadServed``                                        double  frac     0 - 1 [#]_                Yes                  Fraction of heating load served
   ``FractionCoolLoadServed``                                        double  frac     0 - 1 [#]_                Yes                  Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value``  double  Btu/Wh   > 0                       Yes                  Rated cooling efficiency [#]_
@@ -1601,6 +1621,7 @@ If an air-to-air heat pump is specified, additional information is entered in ``
   .. [#] HVACDistribution type must be AirDistribution (type: "regular velocity") or DSE.
   .. [#] CompressorType choices are "single stage", "two stage", or "variable speed".
   .. [#] If CompressorType not provided, defaults to "single stage" if SEER <= 15, else "two stage" if SEER <= 21, else "variable speed".
+  .. [#] If not provided, defaults to 0.73 for single/two stage and 0.78 for variable speed.
   .. [#] The sum of all ``FractionHeatLoadServed`` (across all HVAC systems) must be less than or equal to 1.
   .. [#] The sum of all ``FractionCoolLoadServed`` (across all HVAC systems) must be less than or equal to 1.
   .. [#] If SEER2 provided, converted to SEER using ANSI/RESNET/ICC 301-2022 Addendum C, where SEER = SEER2 / 0.95 (assumed to be a split system).
@@ -1624,7 +1645,7 @@ If a mini-split heat pump is specified, additional information is entered in ``H
   ``HeatingCapacity``                                               double    Btu/hr  >= 0                      No        autosized  Heating output capacity (excluding any backup heating)
   ``HeatingCapacity17F``                                            double    Btu/hr  >= 0, <= HeatingCapacity  No                   Heating output capacity at 17F, if available
   ``CoolingCapacity``                                               double    Btu/hr  >= 0                      No        autosized  Cooling output capacity
-  ``CoolingSensibleHeatFraction``                                   double    frac    0 - 1                     No                   Sensible heat fraction
+  ``CoolingSensibleHeatFraction``                                   double    frac    0 - 1                     No        0.73       Sensible heat fraction
   ``FractionHeatLoadServed``                                        double    frac    0 - 1 [#]_                Yes                  Fraction of heating load served
   ``FractionCoolLoadServed``                                        double    frac    0 - 1 [#]_                Yes                  Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value``  double    Btu/Wh  > 0                       Yes                  Rated cooling efficiency [#]_
@@ -1663,7 +1684,7 @@ If a packaged terminal heat pump is specified, additional information is entered
   ===============================================================  ========  ======  ===========  ========  =========  ==============================================
   ``HeatingCapacity``                                              double    Btu/hr  >= 0         No        autosized  Heating output capacity (excluding any backup heating)
   ``CoolingCapacity``                                              double    Btu/hr  >= 0         No        autosized  Cooling output capacity
-  ``CoolingSensibleHeatFraction``                                  double    frac    0 - 1        No                   Sensible heat fraction
+  ``CoolingSensibleHeatFraction``                                  double    frac    0 - 1        No        0.65       Sensible heat fraction
   ``FractionHeatLoadServed``                                       double    frac    0 - 1 [#]_   Yes                  Fraction of heating load served
   ``FractionCoolLoadServed``                                       double    frac    0 - 1 [#]_   Yes                  Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``   double    Btu/Wh  > 0          Yes                  Rated cooling efficiency
@@ -1685,7 +1706,7 @@ If a room air conditioner with reverse cycle is specified, additional informatio
   ===============================================================  ========  ======  ===========  ========  =========  ==============================================
   ``HeatingCapacity``                                              double    Btu/hr  >= 0         No        autosized  Heating output capacity (excluding any backup heating)
   ``CoolingCapacity``                                              double    Btu/hr  >= 0         No        autosized  Cooling output capacity
-  ``CoolingSensibleHeatFraction``                                  double    frac    0 - 1        No                   Sensible heat fraction
+  ``CoolingSensibleHeatFraction``                                  double    frac    0 - 1        No        0.65       Sensible heat fraction
   ``FractionHeatLoadServed``                                       double    frac    0 - 1 [#]_   Yes                  Fraction of heating load served
   ``FractionCoolLoadServed``                                       double    frac    0 - 1 [#]_   Yes                  Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``   double    Btu/Wh  > 0          Yes                  Rated cooling efficiency
@@ -1707,7 +1728,7 @@ If a ground-to-air heat pump is specified, additional information is entered in 
   ``DistributionSystem``                           idref             See [#]_     Yes                  ID of attached distribution system
   ``HeatingCapacity``                              double    Btu/hr  >= 0         No        autosized  Heating output capacity (excluding any backup heating)
   ``CoolingCapacity``                              double    Btu/hr  >= 0         No        autosized  Cooling output capacity
-  ``CoolingSensibleHeatFraction``                  double    frac    0 - 1        No                   Sensible heat fraction
+  ``CoolingSensibleHeatFraction``                  double    frac    0 - 1        No        0.73       Sensible heat fraction
   ``FractionHeatLoadServed``                       double    frac    0 - 1 [#]_   Yes                  Fraction of heating load served
   ``FractionCoolLoadServed``                       double    frac    0 - 1 [#]_   Yes                  Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="EER"]/Value``   double    Btu/Wh  > 0          Yes                  Rated cooling efficiency
@@ -2568,7 +2589,7 @@ If not entered, the simulation will not include batteries.
   Element                                               Type     Units      Constraints              Required  Default   Notes
   ====================================================  =======  =========  =======================  ========  ========  ============================================
   ``SystemIdentifier``                                  id                                           Yes                 Unique identifier
-  ``Location``                                          string              See [#]_                 No        outside   Location
+  ``Location``                                          string              See [#]_                 No        See [#]_  Location
   ``BatteryType``                                       string              See [#]_                 Yes                 Battery type
   ``NominalCapacity[Units="kWh" or Units="Ah"]/Value``  double   kWh or Ah  >= 0                     No        See [#]_  Nominal (total) capacity
   ``UsableCapacity[Units="kWh" or Units="Ah"]/Value``   double   kWh or Ah  >= 0, < NominalCapacity  No        See [#]_  Usable capacity
@@ -2578,6 +2599,7 @@ If not entered, the simulation will not include batteries.
   ====================================================  =======  =========  =======================  ========  ========  ============================================
 
   .. [#] Location choices are "living space", "basement - conditioned", "basement - unconditioned", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic - vented", "attic - unvented", "garage", or "outside".
+  .. [#] If Location not provided, defaults to "garage" if a garage is present, otherwise "outside".
   .. [#] BatteryType only choice is "Li-ion".
   .. [#] If NominalCapacity not provided, defaults to UsableCapacity / 0.9 if UsableCapacity provided, else (RatedPowerOutput / 1000) / 0.5 if RatedPowerOutput provided, else 10 kWh.
   .. [#] If UsableCapacity not provided, defaults to 0.9 * NominalCapacity.
