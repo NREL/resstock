@@ -625,7 +625,6 @@ class UpgradeCostsTest < MiniTest::Test
   private
 
   def _run_osw(model, osw)
-    cdir = File.expand_path('.')
     measures = {}
 
     osw_hash = JSON.parse(File.read(osw))
@@ -634,8 +633,12 @@ class UpgradeCostsTest < MiniTest::Test
       measures[step['measure_dir_name']] = [step['arguments']]
     end
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+
     # Apply measure
+    cdir = File.expand_path('.')
     success = apply_measures(measures_dir, measures, runner, model)
+    Dir.chdir(cdir) # we need this because of Dir.chdir in HPXMLtoOS
+
     # Report warnings/errors
     runner.result.stepWarnings.each do |s|
       puts "Warning: #{s}"
@@ -645,7 +648,6 @@ class UpgradeCostsTest < MiniTest::Test
     end
 
     assert(success)
-    Dir.chdir(cdir) # we need this because of Dir.chdir in HPXMLtoOS
   end
 
   def _upgrade_osw(osw)
