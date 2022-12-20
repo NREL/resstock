@@ -1116,7 +1116,7 @@ class HVAC
       end
       hp_ap.heat_cops = calc_cops_heating_2speed(heat_pump.heating_efficiency_hspf, hp_ap.heat_c_d, hp_ap.heat_capacity_ratios, hp_ap.heat_fan_speed_ratios, hp_ap.fan_power_rated, hp_ap.heat_eir_ft_spec, hp_ap.heat_cap_ft_spec)
     elsif hp_ap.num_speeds == 4
-      # From Carrier heat pump lab testing
+      # From manufacturers data
       hp_ap.heat_rated_airflow_rate = 296.9 # cfm/ton
       hp_ap.heat_capacity_ratios = [0.33, 0.56, 1.0, 1.17]
       hp_ap.heat_fan_speed_ratios = [0.63, 0.76, 1.0, 1.19]
