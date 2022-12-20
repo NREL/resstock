@@ -625,6 +625,7 @@ class UpgradeCostsTest < MiniTest::Test
   private
 
   def _run_osw(model, osw)
+    cdir = File.expand_path('.')
     measures = {}
 
     osw_hash = JSON.parse(File.read(osw))
@@ -644,6 +645,7 @@ class UpgradeCostsTest < MiniTest::Test
     end
 
     assert(success)
+    Dir.chdir(cdir) # we need this because of Dir.chdir in HPXMLtoOS
   end
 
   def _upgrade_osw(osw)
@@ -670,14 +672,12 @@ class UpgradeCostsTest < MiniTest::Test
 
     puts "\nTesting #{osw_file}..."
     this_dir = File.dirname(__FILE__)
-
     values = { 'report_hpxml_output' => {} }
 
     # Existing
     model = OpenStudio::Model::Model.new
     osw = File.absolute_path("#{this_dir}/#{osw_file}")
     _run_osw(model, osw)
-
     hpxml_path = File.join(this_dir, 'in.xml')
     hpxml_in = HPXML.new(hpxml_path: hpxml_path)
 
