@@ -1,0 +1,63 @@
+{
+  "run_directory": "run",
+  "measure_paths": [
+    ".."
+  ],
+  "steps": [
+    {
+      "arguments": {
+        "hpxml_path": "../../sample_files/base.xml",
+        "output_csv_path": "stochastic.csv",
+        "hpxml_output_path": "../built-stochastic-schedules.xml",
+        "schedules_column_names": "cooking_range, dishwasher, hot_water_dishwasher, clothes_washer, hot_water_clothes_washer, clothes_dryer, hot_water_fixtures"
+      },
+      "measure_dir_name": "BuildResidentialScheduleFile"
+    },
+    {
+      "arguments": {
+        "hpxml_path": "../built-stochastic-schedules.xml",
+        "output_dir": "..",
+        "debug": false,
+        "add_component_loads": false,
+        "skip_validation": false
+      },
+      "measure_dir_name": "HPXMLtoOpenStudio"
+    },
+    {
+      "arguments": {
+        "output_format": "csv",
+        "timeseries_frequency": "none",
+        "include_timeseries_total_consumptions": false,
+        "include_timeseries_fuel_consumptions": false,
+        "include_timeseries_end_use_consumptions": false,
+        "include_timeseries_emissions": false,
+        "include_timeseries_emission_fuels": false,
+        "include_timeseries_emission_end_uses": false,
+        "include_timeseries_hot_water_uses": false,
+        "include_timeseries_total_loads": false,
+        "include_timeseries_component_loads": false,
+        "include_timeseries_unmet_hours": false,
+        "include_timeseries_zone_temperatures": false,
+        "include_timeseries_airflows": false,
+        "include_timeseries_weather": false,
+        "timeseries_timestamp_convention": "start",
+        "add_timeseries_dst_column": false,
+        "add_timeseries_utc_column": false,
+        "user_output_variables": "",
+        "generate_eri_outputs": false
+      },
+      "measure_dir_name": "ReportSimulationOutput"
+    },
+    {
+      "arguments": {
+        "output_format": "csv"
+      },
+      "measure_dir_name": "ReportUtilityBills"
+    }
+  ],
+  "run_options": {
+    "fast": true,
+    "skip_expand_objects": true,
+    "skip_energyplus_preprocess": true
+  }
+}
