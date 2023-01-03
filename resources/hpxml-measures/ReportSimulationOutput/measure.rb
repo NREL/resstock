@@ -313,6 +313,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
     if has_electricity_storage
       result << OpenStudio::IdfObject.load('Output:Meter,ElectricStorage:ElectricityProduced,runperiod;').get # Used for error checking
+      if include_timeseries_fuel_consumptions
+        result << OpenStudio::IdfObject.load("Output:Meter,ElectricStorage:ElectricityProduced,#{timeseries_frequency};").get
+      end
     end
 
     # End Use/Hot Water Use/Ideal Load outputs
@@ -545,8 +548,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     if timeseries_frequency != 'none'
       add_dst_column = (add_timeseries_dst_column.is_initialized ? add_timeseries_dst_column.get : false)
       add_utc_column = (add_timeseries_utc_column.is_initialized ? add_timeseries_utc_column.get : false)
-      @timestamps, timestamps_dst, timestamps_utc = OutputMethods.get_timestamps(@msgpackDataTimeseries, @hpxml, use_timestamp_start_convention,
-                                                                                 add_dst_column, add_utc_column, use_dview_format, timeseries_frequency)
+      @timestamps, timestamps_dst, timestamps_utc = get_timestamps(@msgpackDataTimeseries, @hpxml, use_timestamp_start_convention,
+                                                                   add_dst_column, add_utc_column, use_dview_format, timeseries_frequency)
     end
 
     # Retrieve outputs
@@ -607,6 +610,68 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     return true
   end
 
+  def get_timestamps(msgpackData, hpxml, use_timestamp_start_convention, add_dst_column = false, add_utc_column = false,
+                     use_dview_format = false, timeseries_frequency = nil)
+    return if msgpackData.nil?
+
+    ep_timestamps = msgpackData['Rows'].map { |r| r.keys[0] }
+
+    if add_dst_column || use_dview_format
+      dst_start_ts = Time.utc(hpxml.header.sim_calendar_year, hpxml.header.dst_begin_month, hpxml.header.dst_begin_day, 2)
+      dst_end_ts = Time.utc(hpxml.header.sim_calendar_year, hpxml.header.dst_end_month, hpxml.header.dst_end_day, 1)
+    end
+    if add_utc_column
+      utc_offset = hpxml.header.time_zone_utc_offset
+      utc_offset *= 3600 # seconds
+    end
+
+    timestamps = []
+    timestamps_dst = [] if add_dst_column || use_dview_format
+    timestamps_utc = [] if add_utc_column
+    year = hpxml.header.sim_calendar_year
+    ep_timestamps.each do |ep_timestamp|
+      month_day, hour_minute = ep_timestamp.split(' ')
+      month, day = month_day.split('/').map(&:to_i)
+      hour, minute, _ = hour_minute.split(':').map(&:to_i)
+
+      # Convert from EnergyPlus default (end-of-timestep) to start-of-timestep convention
+      if use_timestamp_start_convention
+        if timeseries_frequency == 'timestep'
+          ts_offset = hpxml.header.timestep * 60 # seconds
+        elsif timeseries_frequency == 'hourly'
+          ts_offset = 60 * 60 # seconds
+        elsif timeseries_frequency == 'daily'
+          ts_offset = 60 * 60 * 24 # seconds
+        elsif timeseries_frequency == 'monthly'
+          ts_offset = Constants.NumDaysInMonths(year)[month - 1] * 60 * 60 * 24 # seconds
+        else
+          fail 'Unexpected timeseries_frequency/'
+        end
+      end
+
+      ts = Time.utc(year, month, day, hour, minute)
+      ts -= ts_offset unless ts_offset.nil?
+
+      timestamps << ts.iso8601.delete('Z')
+
+      if add_dst_column || use_dview_format
+        if (ts >= dst_start_ts) && (ts < dst_end_ts)
+          ts_dst = ts + 3600 # 1 hr shift forward
+        else
+          ts_dst = ts
+        end
+        timestamps_dst << ts_dst.iso8601.delete('Z')
+      end
+
+      if add_utc_column
+        ts_utc = ts - utc_offset
+        timestamps_utc << ts_utc.iso8601
+      end
+    end
+
+    return timestamps, timestamps_dst, timestamps_utc
+  end
+
   def get_outputs(runner, timeseries_frequency,
                   include_timeseries_total_consumptions,
                   include_timeseries_fuel_consumptions,
@@ -640,12 +705,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     # Fuel Uses
-    @fuels.each do |_fuel_type, fuel|
+    @fuels.each do |fuel_type, fuel|
       fuel.annual_output = get_report_meter_data_annual(fuel.meters)
+      fuel.annual_output -= get_report_meter_data_annual(['ElectricStorage:ElectricityProduced']) if fuel_type == FT::Elec # We add Electric Storage onto the annual Electricity fuel meter
 
       next unless include_timeseries_fuel_consumptions
 
       fuel.timeseries_output = get_report_meter_data_timeseries(fuel.meters, UnitConversions.convert(1.0, 'J', fuel.timeseries_units), 0, timeseries_frequency)
+      fuel.timeseries_output = fuel.timeseries_output.zip(get_report_meter_data_timeseries(['ElectricStorage:ElectricityProduced'], UnitConversions.convert(1.0, 'J', fuel.timeseries_units), 0, timeseries_frequency)).map { |x, y| x - y } if fuel_type == FT::Elec # We add Electric Storage onto the timeseries Electricity fuel meter
     end
 
     # Peak Electricity Consumption
@@ -1834,7 +1901,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         # Apply daylight savings
         if timeseries_frequency == 'timestep' || timeseries_frequency == 'hourly'
           if @hpxml.header.dst_enabled
-            dst_start_ix, dst_end_ix = OutputMethods.get_dst_start_end_indexes(@timestamps, timestamps_dst)
+            dst_start_ix, dst_end_ix = get_dst_start_end_indexes(@timestamps, timestamps_dst)
             dst_end_ix.downto(dst_start_ix + 1) do |i|
               data[i + 1] = data[i]
             end
@@ -1874,6 +1941,19 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     runner.registerInfo("Wrote timeseries output results to #{timeseries_output_path}.")
   end
 
+  def get_dst_start_end_indexes(timestamps, timestamps_dst)
+    dst_start_ix = nil
+    dst_end_ix = nil
+    timestamps.zip(timestamps_dst).each_with_index do |ts, i|
+      dst_start_ix = i if ts[0] != ts[1] && dst_start_ix.nil?
+      dst_end_ix = i if ts[0] == ts[1] && dst_end_ix.nil? && !dst_start_ix.nil?
+    end
+
+    dst_end_ix = timestamps.size - 1 if dst_end_ix.nil? # run period ends before DST ends
+
+    return dst_start_ix, dst_end_ix
+  end
+
   def get_report_meter_data_annual(meter_names, unit_conv = UnitConversions.convert(1.0, 'J', 'MBtu'))
     return 0.0 if meter_names.empty?
 
@@ -1903,7 +1983,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   def get_report_meter_data_timeseries(meter_names, unit_conv, unit_adder, timeseries_frequency)
     return [0.0] * @timestamps.size if meter_names.empty?
 
-    msgpack_timeseries_name = OutputMethods.msgpack_frequency_map[timeseries_frequency]
+    msgpack_timeseries_name = { 'timestep' => 'TimeStep',
+                                'hourly' => 'Hourly',
+                                'daily' => 'Daily',
+                                'monthly' => 'Monthly' }[timeseries_frequency]
     cols = @msgpackData['MeterData'][msgpack_timeseries_name]['Cols']
     rows = @msgpackData['MeterData'][msgpack_timeseries_name]['Rows']
     indexes = cols.each_index.select { |i| meter_names.include? cols[i]['Variable'] }

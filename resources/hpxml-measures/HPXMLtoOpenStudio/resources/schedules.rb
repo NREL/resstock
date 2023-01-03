@@ -5,7 +5,7 @@ class HourlyByMonthSchedule
   # weekday_month_by_hour_values must be a 12-element array of 24-element arrays of numbers.
   # weekend_month_by_hour_values must be a 12-element array of 24-element arrays of numbers.
   def initialize(model, sch_name, weekday_month_by_hour_values, weekend_month_by_hour_values,
-                 schedule_type_limits_name = nil, normalize_values = true)
+                 schedule_type_limits_name = nil, normalize_values = true, vacancy_periods: nil)
     @model = model
     @year = model.getYearDescription.assumedYear
     @sch_name = sch_name
@@ -13,6 +13,7 @@ class HourlyByMonthSchedule
     @weekday_month_by_hour_values = validate_values(weekday_month_by_hour_values, 12, 24)
     @weekend_month_by_hour_values = validate_values(weekend_month_by_hour_values, 12, 24)
     @schedule_type_limits_name = schedule_type_limits_name
+    @vacancy_periods = vacancy_periods
 
     if normalize_values
       @maxval = calc_max_val()
@@ -159,6 +160,8 @@ class HourlyByMonthSchedule
       prev_wknd_vals = wknd_vals
     end
 
+    Schedule.set_vacancy_periods(schedule, @sch_name, @vacancy_periods, @year)
+
     Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
 
     return schedule
@@ -170,7 +173,7 @@ class HourlyByDaySchedule
   # weekday_day_by_hour_values must be a 365-element array of 24-element arrays of numbers.
   # weekend_day_by_hour_values must be a 365-element array of 24-element arrays of numbers.
   def initialize(model, sch_name, weekday_day_by_hour_values, weekend_day_by_hour_values,
-                 schedule_type_limits_name = nil, normalize_values = true)
+                 schedule_type_limits_name = nil, normalize_values = true, vacancy_periods: nil)
     @model = model
     @year = model.getYearDescription.assumedYear
     @sch_name = sch_name
@@ -179,6 +182,7 @@ class HourlyByDaySchedule
     @weekday_day_by_hour_values = validate_values(weekday_day_by_hour_values, @num_days, 24)
     @weekend_day_by_hour_values = validate_values(weekend_day_by_hour_values, @num_days, 24)
     @schedule_type_limits_name = schedule_type_limits_name
+    @vacancy_periods = vacancy_periods
 
     if normalize_values
       @maxval = calc_max_val()
@@ -322,6 +326,8 @@ class HourlyByDaySchedule
       prev_wknd_vals = wknd_vals
     end
 
+    Schedule.set_vacancy_periods(schedule, @sch_name, @vacancy_periods, @year)
+
     Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
 
     return schedule
@@ -335,7 +341,7 @@ class MonthWeekdayWeekendSchedule
   # monthly_values can either be a comma-separated string of 12 numbers or a 12-element array of numbers.
   def initialize(model, sch_name, weekday_hourly_values, weekend_hourly_values, monthly_values,
                  schedule_type_limits_name = nil, normalize_values = true, begin_month = 1,
-                 begin_day = 1, end_month = 12, end_day = 31)
+                 begin_day = 1, end_month = 12, end_day = 31, vacancy_periods: nil)
     @model = model
     @year = model.getYearDescription.assumedYear
     @sch_name = sch_name
@@ -348,6 +354,7 @@ class MonthWeekdayWeekendSchedule
     @begin_day = begin_day
     @end_month = end_month
     @end_day = end_day
+    @vacancy_periods = vacancy_periods
 
     if normalize_values
       @weekday_hourly_values = normalize_sum_to_one(@weekday_hourly_values)
@@ -571,6 +578,8 @@ class MonthWeekdayWeekendSchedule
       end
     end
 
+    Schedule.set_vacancy_periods(schedule, @sch_name, @vacancy_periods, @year)
+
     Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
 
     return schedule
@@ -588,6 +597,10 @@ class Schedule
 
   def self.weekend_name
     return 'weekend'
+  end
+
+  def self.vacancy_name
+    return 'vacancy'
   end
 
   # return [Double] The total number of full load hours for this schedule.
@@ -720,6 +733,28 @@ class Schedule
   def self.set_weekend_rule(rule)
     rule.setApplySaturday(true)
     rule.setApplySunday(true)
+  end
+
+  def self.set_vacancy_periods(schedule, sch_name, vacancy_periods, year)
+    return if vacancy_periods.nil?
+
+    # Add vacancy rule(s), will override previous rules
+    vacancy_periods.each_with_index do |vp, i|
+      vac_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+      vac_rule.setName(sch_name + " #{Schedule.vacancy_name} ruleset#{i}")
+      day_s = Schedule.get_day_num_from_month_day(year, vp.begin_month, vp.begin_day)
+      day_e = Schedule.get_day_num_from_month_day(year, vp.end_month, vp.end_day)
+      date_s = OpenStudio::Date::fromDayOfYear(day_s, year)
+      date_e = OpenStudio::Date::fromDayOfYear(day_e, year)
+
+      vac = vac_rule.daySchedule
+      vac.setName(sch_name + " #{Schedule.vacancy_name}#{i}")
+      vac.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0.0)
+      Schedule.set_weekday_rule(vac_rule)
+      Schedule.set_weekend_rule(vac_rule)
+      vac_rule.setStartDate(date_s)
+      vac_rule.setEndDate(date_e)
+    end
   end
 
   def self.OccupantsWeekdayFractions
@@ -1110,16 +1145,6 @@ class Schedule
 
     return begin_month, begin_day, end_month, end_day
   end
-
-  def self.schedules_file_includes_col_name(schedules_file, col_name)
-    schedules_file_includes_col_name = false
-    if not schedules_file.nil?
-      if schedules_file.schedules.keys.include?(col_name)
-        schedules_file_includes_col_name = true
-      end
-    end
-    return schedules_file_includes_col_name
-  end
 end
 
 class SchedulesFile
@@ -1163,18 +1188,20 @@ class SchedulesFile
 
   def initialize(runner: nil,
                  model: nil,
-                 schedules_paths:)
+                 schedules_paths:,
+                 year:,
+                 vacancy_periods: [])
     return if schedules_paths.empty?
 
     @runner = runner
     @model = model
     @schedules_paths = schedules_paths
+    @year = year
 
     import()
     battery_schedules
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
-
-    set_vacancy
+    set_vacancy(vacancy_periods)
     convert_setpoints
 
     tmpdir = Dir.tmpdir
@@ -1195,7 +1222,16 @@ class SchedulesFile
     return false
   end
 
+  def includes_col_name(col_name)
+    if @schedules.keys.include?(col_name)
+      return true
+    end
+
+    return false
+  end
+
   def import()
+    num_hrs_in_year = Constants.NumHoursInYear(@year)
     @schedules = {}
     @schedules_paths.each do |schedules_path|
       columns = CSV.read(schedules_path).transpose
@@ -1213,23 +1249,6 @@ class SchedulesFile
         if @schedules.keys.include? col_name
           fail "Schedule column name '#{col_name}' is duplicated. [context: #{schedules_path}]"
         end
-
-        @schedules[col_name] = values
-      end
-    end
-  end
-
-  def validate_schedules(year:)
-    @year = year
-    num_hrs_in_year = Constants.NumHoursInYear(@year)
-
-    @schedules_paths.each do |schedules_path|
-      columns = CSV.read(schedules_path).transpose
-      columns.each do |col|
-        col_name = col[0]
-        values = col[1..-1].reject { |v| v.nil? }
-        values = values.map { |v| Float(v) }
-        schedule_length = values.length
 
         if max_value_one[col_name]
           if values.max > 1
@@ -1257,9 +1276,11 @@ class SchedulesFile
 
         valid_minutes_per_item = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]
         valid_num_rows = valid_minutes_per_item.map { |min_per_item| (60.0 * num_hrs_in_year / min_per_item).to_i }
-        unless valid_num_rows.include? schedule_length
-          fail "Schedule has invalid number of rows (#{schedule_length}) for column '#{col_name}'. Must be one of: #{valid_num_rows.reverse.join(', ')}. [context: #{@schedules_path}]"
+        unless valid_num_rows.include? values.length
+          fail "Schedule has invalid number of rows (#{values.length}) for column '#{col_name}'. Must be one of: #{valid_num_rows.reverse.join(', ')}. [context: #{@schedules_path}]"
         end
+
+        @schedules[col_name] = values
       end
     end
   end
@@ -1327,12 +1348,12 @@ class SchedulesFile
   # the equivalent number of hours in the year, if the schedule was at full load (1.0)
   def annual_equivalent_full_load_hrs(col_name:,
                                       schedules: nil)
-    if @schedules[col_name].nil?
-      return
-    end
-
     if schedules.nil?
       schedules = @schedules # the schedules before vacancy is applied
+    end
+
+    if schedules[col_name].nil?
+      return
     end
 
     num_hrs_in_year = Constants.NumHoursInYear(@year)
@@ -1419,14 +1440,35 @@ class SchedulesFile
     end
   end
 
-  def set_vacancy
-    return unless @tmp_schedules.keys.include? ColumnVacancy
+  def create_column_values_from_periods(col_name, periods)
+    # Create a column of zeroes or ones for, e.g., vacancy periods or power outage periods
+    n_steps = @tmp_schedules[@tmp_schedules.keys[0]].length
+    steps_in_day = n_steps / 365
+
+    if @tmp_schedules[col_name].nil?
+      @tmp_schedules[col_name] = Array.new(n_steps, 0)
+    end
+
+    periods.each do |period|
+      start_day_num = Schedule.get_day_num_from_month_day(@year, period.begin_month, period.begin_day)
+      end_day_num = Schedule.get_day_num_from_month_day(@year, period.end_month, period.end_day)
+
+      if end_day_num >= start_day_num
+        @tmp_schedules[col_name].fill(1.0, (start_day_num - 1) * steps_in_day, (end_day_num - start_day_num + 1) * steps_in_day) # Fill between start/end days
+      else # Wrap around year
+        @tmp_schedules[col_name].fill(1.0, (start_day_num - 1) * steps_in_day) # Fill between start day and end of year
+        @tmp_schedules[col_name].fill(1.0, 0, end_day_num * steps_in_day) # Fill between start of year and end day
+      end
+    end
+  end
+
+  def set_vacancy(vacancy_periods)
+    create_column_values_from_periods(ColumnVacancy, vacancy_periods)
     return if @tmp_schedules[ColumnVacancy].all? { |i| i == 0 }
 
     @tmp_schedules[ColumnVacancy].each_with_index do |_ts, i|
       @tmp_schedules.keys.each do |col_name|
-        next if col_name == ColumnVacancy
-        next unless affected_by_vacancy[col_name] # skip those unaffected by vacancy
+        next unless SchedulesFile.affected_by_vacancy[col_name] # skip those unaffected by vacancy
 
         @tmp_schedules[col_name][i] *= (1.0 - @tmp_schedules[ColumnVacancy][i])
       end
@@ -1534,7 +1576,7 @@ class SchedulesFile
     ]
   end
 
-  def affected_by_vacancy
+  def self.affected_by_vacancy
     affected_by_vacancy = {}
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
@@ -1546,7 +1588,10 @@ class SchedulesFile
                     ColumnPoolHeater,
                     ColumnHotTubPump,
                     ColumnHotTubHeater,
-                    ColumnSleeping] + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames + SchedulesFile.BatteryColumnNames).include? column_name
+                    ColumnSleeping] +
+                    SchedulesFile.HVACSetpointColumnNames +
+                    SchedulesFile.WaterHeaterColumnNames +
+                    SchedulesFile.BatteryColumnNames).include? column_name
 
       affected_by_vacancy[column_name] = false
     end

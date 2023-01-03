@@ -1,7 +1,7 @@
 ## ResStock v2.6.0 (pending)
 
 Features
-- Update to OpenStudio v3.4.0 ([#863](https://github.com/NREL/resstock/pull/863))
+- Update to OpenStudio v3.5.0 ([#1006](https://github.com/NREL/resstock/pull/1006))
 - Add a new "Floor Area, Foundation (ft^2)" cost multiplier ([#870](https://github.com/NREL/resstock/pull/870))
 - Add a new "Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)" cost multiplier for handling incremental costs of adding attic insulation ([#842](https://github.com/NREL/resstock/pull/842))
 - Allow air leakage % reduction upgrades (e.g., 25%), and add a new "Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)" cost multiplier for handling incremental costs of such upgrades ([#840](https://github.com/NREL/resstock/pull/840))
@@ -19,8 +19,6 @@ Features
 - Add ability to calculate simple utility bills for various scenarios ([#984](https://github.com/NREL/resstock/pull/984))
 - Modeled floor area based on AHS 2021 and AHS 2019 ([#978](https://github.com/NREL/resstock/pull/978))
 - Add area median income ([#1004](https://github.com/NREL/resstock/pull/1004))
-- Update to OpenStudio v3.5.0 ([#1006](https://github.com/NREL/resstock/pull/1006))
-- Update to OpenStudio-HPXML v1.5.0 ([#1007](https://github.com/NREL/resstock/pull/1007))
 
 Fixes
 - Clean up option names for natural ventilation and hot water distribution ([#828](https://github.com/NREL/resstock/pull/828))
