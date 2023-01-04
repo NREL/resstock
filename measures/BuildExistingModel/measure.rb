@@ -575,10 +575,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     epw_path = Location.get_epw_path(hpxml, hpxml_path)
-    weather = WeatherProcess.new(epw_path: epw_path)
-    register_value(runner, 'weather_file_city', weather.header.City)
-    register_value(runner, 'weather_file_latitude', "#{weather.header.Latitude}")
-    register_value(runner, 'weather_file_longitude', "#{weather.header.Longitude}")
+    epw_file = OpenStudio::EpwFile.new(epw_path)
+    register_value(runner, 'weather_file_city', epw_file.city)
+    register_value(runner, 'weather_file_latitude', epw_file.latitude)
+    register_value(runner, 'weather_file_longitude', epw_file.longitude)
 
     # Determine weight
     if args['number_of_buildings_represented'].is_initialized
