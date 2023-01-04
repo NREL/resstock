@@ -13,7 +13,7 @@ jobs:
     container:
       image: docker://nrel/openstudio:3.5.1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
@@ -44,7 +44,7 @@ jobs:
     container:
       image: docker://nrel/openstudio:3.5.1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
@@ -69,7 +69,7 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
@@ -135,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
@@ -160,7 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
@@ -170,7 +170,7 @@ jobs:
           path: test/base_results
           name: base_results
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -241,7 +241,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
