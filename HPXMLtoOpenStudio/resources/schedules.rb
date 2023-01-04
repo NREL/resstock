@@ -1319,7 +1319,8 @@ class SchedulesFile
   end
 
   def create_schedule_file(col_name:,
-                           rows_to_skip: 1)
+                           rows_to_skip: 1,
+                           schedule_type_limits_name: nil)
     @model.getScheduleFiles.each do |schedule_file|
       next if schedule_file.name.to_s != col_name
 
@@ -1341,6 +1342,8 @@ class SchedulesFile
     schedule_file.setRowstoSkipatTop(rows_to_skip)
     schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)
     schedule_file.setMinutesperItem(min_per_item.to_i)
+
+    Schedule.set_schedule_type_limits(@model, schedule_file, schedule_type_limits_name)
 
     return schedule_file
   end
@@ -1374,6 +1377,8 @@ class SchedulesFile
     end
 
     ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    return 0 if ann_equiv_full_load_hrs == 0
+
     design_level = annual_kwh * 1000.0 / ann_equiv_full_load_hrs # W
 
     return design_level
@@ -1401,6 +1406,8 @@ class SchedulesFile
     end
 
     full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    return 0 if full_load_hrs == 0
+
     num_days_in_year = Constants.NumDaysInYear(@year)
     daily_full_load_hrs = full_load_hrs / num_days_in_year
     design_level = UnitConversions.convert(daily_kwh / daily_full_load_hrs, 'kW', 'W')
@@ -1416,6 +1423,8 @@ class SchedulesFile
     end
 
     ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    return 0 if ann_equiv_full_load_hrs == 0
+
     num_days_in_year = Constants.NumDaysInYear(@year)
     daily_full_load_hrs = ann_equiv_full_load_hrs / num_days_in_year
     peak_flow = daily_water / daily_full_load_hrs # gallons_per_hour

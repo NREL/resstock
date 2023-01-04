@@ -124,7 +124,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
       return false unless hpxml.errors.empty?
 
-      epw_path, cache_path = process_weather(hpxml, runner, model, hpxml_path)
+      epw_path, cache_path = process_weather(hpxml, runner, hpxml_path)
 
       if debug
         epw_output_path = File.join(output_dir, 'in.epw')
@@ -141,7 +141,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def process_weather(hpxml, runner, model, hpxml_path)
+  def process_weather(hpxml, runner, hpxml_path)
     epw_path = Location.get_epw_path(hpxml, hpxml_path)
 
     cache_path = epw_path.gsub('.epw', '-cache.csv')
@@ -150,9 +150,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       begin
         File.open(cache_path, 'wb') do |file|
           runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
-          epw_file = OpenStudio::EpwFile.new(epw_path)
-          OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
-          weather = WeatherProcess.new(model, runner)
+          weather = WeatherProcess.new(epw_path: epw_path)
           weather.dump_to_csv(file)
         end
       rescue SystemCallError
@@ -194,7 +192,7 @@ class OSModel
     # Init
 
     check_file_references(hpxml_path)
-    weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
+    weather, epw_file = Location.apply_weather_file(model, epw_path, cache_path)
     @schedules_file = SchedulesFile.new(runner: runner, model: model,
                                         schedules_paths: @hpxml.header.schedules_filepaths,
                                         year: Location.get_sim_calendar_year(@hpxml.header.sim_calendar_year, epw_file),
@@ -337,6 +335,16 @@ class OSModel
     # Now that we've written in.xml, ensure that no capacities/airflows
     # are zero in order to prevent potential E+ errors.
     HVAC.ensure_nonzero_sizing_values(@hpxml)
+
+    # Handle zero occupants when operational calculation
+    occ_calc_type = @hpxml.header.occupancy_calculation_type
+    noccs = @hpxml.building_occupancy.number_of_residents
+    if occ_calc_type == HPXML::OccupancyCalculationTypeOperational && noccs == 0
+      @hpxml.header.vacancy_periods.add(begin_month: @hpxml.header.sim_begin_month,
+                                        begin_day: @hpxml.header.sim_begin_day,
+                                        end_month: @hpxml.header.sim_end_month,
+                                        end_day: @hpxml.header.sim_end_day)
+    end
   end
 
   def self.add_simulation_params(model)
@@ -1729,7 +1737,7 @@ class OSModel
 
     Airflow.apply(model, runner, weather, spaces, @hpxml, @cfa, @nbeds,
                   @ncfl_ag, duct_systems, airloop_map, @clg_ssn_sensor, @eri_version,
-                  @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file)
+                  @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file, @hpxml.header.vacancy_periods)
   end
 
   def self.create_ducts(model, hvac_distribution, spaces)

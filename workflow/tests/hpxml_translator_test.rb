@@ -1077,7 +1077,7 @@ class HPXMLTest < MiniTest::Test
 
     # Lighting
     ltg_energy = results.select { |k, _v| k.include? 'End Use: Electricity: Lighting' }.values.sum(0.0)
-    if not hpxml_path.include?('vacancy-year-round')
+    if not (hpxml_path.include?('vacancy-year-round') || hpxml_path.include?('residents-0'))
       assert_equal(hpxml.lighting_groups.size > 0, ltg_energy > 0)
     else
       assert_operator(hpxml.lighting_groups.size, :>, 0)
