@@ -105,6 +105,12 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     hpxml = HPXML.new(hpxml_path: hpxml_path)
 
+    # exit if number of occupants is zero
+    if hpxml.building_occupancy.number_of_residents == 0
+      runner.registerInfo('Number of occupants set to zero; skipping generation of stochastic schedules.')
+      return true
+    end
+
     # create EpwFile object
     epw_path = Location.get_epw_path(hpxml, hpxml_path)
     epw_file = OpenStudio::EpwFile.new(epw_path)
