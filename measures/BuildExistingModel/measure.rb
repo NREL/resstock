@@ -567,7 +567,15 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Report some additional location and model characteristics
-    weather = WeatherProcess.new(model, runner)
+    if File.exist?(hpxml_path)
+      hpxml = HPXML.new(hpxml_path: hpxml_path)
+    else
+      runner.registerWarning("BuildExistingModel measure could not find '#{hpxml_path}'.")
+      return true
+    end
+
+    epw_path = Location.get_epw_path(hpxml, hpxml_path)
+    weather = WeatherProcess.new(epw_path: epw_path)
     register_value(runner, 'weather_file_city', weather.header.City)
     register_value(runner, 'weather_file_latitude', "#{weather.header.Latitude}")
     register_value(runner, 'weather_file_longitude', "#{weather.header.Longitude}")
