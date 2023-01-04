@@ -8,7 +8,7 @@ Setup
 
 To get started:
 
-#. Download `OpenStudio 3.4.0 <https://github.com/NREL/OpenStudio/releases/tag/v3.4.0>`_ and install the Command Line Interface/EnergyPlus components, or use the `nrel/openstudio docker image <https://hub.docker.com/r/nrel/openstudio>`_.
+#. Download `OpenStudio 3.5.0 <https://github.com/NREL/OpenStudio/releases/tag/v3.5.0>`_ and install the Command Line Interface/EnergyPlus/C++ API components, or use the `nrel/openstudio docker image <https://hub.docker.com/r/nrel/openstudio>`_.
 #. Download the `latest release <https://github.com/NREL/OpenStudio-HPXML/releases>`_.
 
 Running
@@ -37,7 +37,7 @@ You can also request generation of timeseries output CSV/JSON/MessagePack files 
 | ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --monthly fuels --monthly temperatures --output-format json``
 
 | You can also add a detailed schedule as part of the simulation by using:
-| ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --add-detailed-schedule stochastic``
+| ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --add-stochastic-schedules``
 | This run includes the automatic generation of a CSV file with stochastic occupancy schedules that are used in the EnergyPlus simulation.
 
 Run ``openstudio workflow/run_simulation.rb -h`` to see all available commands/arguments.
@@ -55,7 +55,8 @@ A template OSW that simply runs the HPXMLtoOpenStudio, ReportSimulationOutput, a
 
 | Another example:
 | ``openstudio run -w workflow/template-run-hpxml-with-stochastic-occupancy.osw``
-| This workflow automatically generates and uses a CSV file with stochastic occupancy schedules before running the EnergyPlus simulation.
+| ``openstudio run -w workflow/template-run-hpxml-with-stochastic-occupancy-subset.osw``
+| This workflow automatically generates and uses a CSV file with stochastic occupancy schedules (either with all possible columns or a user-specified subset of columns) before running the EnergyPlus simulation.
 
 | And another example:
 | ``openstudio run -w workflow/template-build-and-run-hpxml-with-stochastic-occupancy.osw``

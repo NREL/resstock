@@ -129,7 +129,9 @@ class ApplyUpgradeTest < MiniTest::Test
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
     # Apply measure
+    cdir = File.expand_path('.')
     success = apply_measures(measures_dir, measures, runner, model)
+    Dir.chdir(cdir) # we need this because of Dir.chdir in HPXMLtoOS
 
     # Report warnings/errors
     runner.result.stepWarnings.each do |s|

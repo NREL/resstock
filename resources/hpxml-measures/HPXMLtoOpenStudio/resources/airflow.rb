@@ -169,18 +169,18 @@ class Airflow
     end
 
     sla = nil
-    infil_measurements.each do |infil_measurement|
-      if (infil_measurement.unit_of_measure == HPXML::UnitsACHNatural) && infil_measurement.house_pressure.nil?
-        nach = infil_measurement.air_leakage
-        sla = get_infiltration_SLA_from_ACH(nach, infil_height, weather)
-      elsif (infil_measurement.unit_of_measure == HPXML::UnitsACH) && (infil_measurement.house_pressure == 50)
-        ach50 = infil_measurement.air_leakage
-        sla = get_infiltration_SLA_from_ACH50(ach50, 0.65, cfa, infil_volume)
-      elsif (infil_measurement.unit_of_measure == HPXML::UnitsCFM) && (infil_measurement.house_pressure == 50)
-        ach50 = infil_measurement.air_leakage * 60.0 / infil_volume
-        sla = get_infiltration_SLA_from_ACH50(ach50, 0.65, cfa, infil_volume)
+    infil_measurements.each do |measurement|
+      if [HPXML::UnitsACH, HPXML::UnitsCFM].include?(measurement.unit_of_measure) && !measurement.house_pressure.nil?
+        if measurement.unit_of_measure == HPXML::UnitsACH
+          ach50 = Airflow.calc_air_leakage_at_diff_pressure(0.65, measurement.air_leakage, measurement.house_pressure, 50.0)
+        elsif measurement.unit_of_measure == HPXML::UnitsCFM
+          achXX = measurement.air_leakage * 60.0 / infil_volume # Convert CFM to ACH
+          ach50 = Airflow.calc_air_leakage_at_diff_pressure(0.65, achXX, measurement.house_pressure, 50.0)
+        end
+        sla = Airflow.get_infiltration_SLA_from_ACH50(ach50, 0.65, cfa, infil_volume)
+      elsif measurement.unit_of_measure == HPXML::UnitsACHNatural
+        sla = Airflow.get_infiltration_SLA_from_ACH(measurement.air_leakage, infil_height, weather)
       end
-      break unless ach50.nil?
     end
 
     nl = get_infiltration_NL_from_SLA(sla, infil_height)
@@ -342,7 +342,7 @@ class Airflow
     whf_equip_def.setName(Constants.ObjectNameWholeHouseFan)
     whf_equip = OpenStudio::Model::ElectricEquipment.new(whf_equip_def)
     whf_equip.setName(Constants.ObjectNameWholeHouseFan)
-    whf_equip.setSpace(@living_space)
+    whf_equip.setSpace(@living_space) # no heat gain, so assign the equipment to an arbitrary space
     whf_equip_def.setFractionRadiant(0)
     whf_equip_def.setFractionLatent(0)
     whf_equip_def.setFractionLost(1)
@@ -1235,7 +1235,7 @@ class Airflow
     equip_def.setName(obj_name)
     equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
     equip.setName(obj_name)
-    equip.setSpace(@living_space)
+    equip.setSpace(@living_space) # no heat gain, so assign the equipment to an arbitrary space
     equip_def.setDesignLevel(vent_object.fan_power * vent_object.quantity)
     equip_def.setFractionRadiant(0)
     equip_def.setFractionLatent(0)
