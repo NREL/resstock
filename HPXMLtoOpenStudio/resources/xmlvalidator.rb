@@ -73,7 +73,10 @@ class XMLValidator
       # OpenStudio created a temp dir; delete it now
       tmp_path = File.dirname(validator.schemaPath.to_s)
       require 'fileutils'
-      FileUtils.rm_r(tmp_path)
+      begin
+        FileUtils.rm_r(tmp_path)
+      rescue
+      end
     end
   end
 end
