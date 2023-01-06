@@ -63,6 +63,10 @@ class TestTools < MiniTest::Test
         buildstockbatch_extras -= ['report_utility_bills.bills_2_fuel_oil_total_usd']
         buildstockbatch_extras -= ['report_utility_bills.bills_2_propane_energy_usd']
         buildstockbatch_extras -= ['report_utility_bills.bills_2_propane_total_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_3_fuel_oil_energy_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_3_fuel_oil_total_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_3_propane_energy_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_3_propane_total_usd']
       end
       puts "#{project}_upgrades, buildstockbatch - run_analysis: #{buildstockbatch_extras}" if !buildstockbatch_extras.empty?
 
