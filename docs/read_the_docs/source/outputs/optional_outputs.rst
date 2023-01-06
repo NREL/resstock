@@ -34,7 +34,7 @@ See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedo
 
 See the OpenStudio-HPXML Workflow Outputs section on `Annual Emissions <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-emissions>`_ for more information about annual emissions.
 
-For the example below, the "LRMER_MidCase_15" emissions scenario was requested.
+For the example below, the "LRMER_MidCase_15" (CO2e) emissions scenario was requested.
 See the list of available emissions scenario choices at https://github.com/NREL/resstock/tree/develop/resources/data/cambium.
 
 .. csv-table::
@@ -47,6 +47,8 @@ Optional utility bill outputs include annual fixed and marginal costs (total, by
 See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``utility_bills`` section) for more information on how to request utility bill outputs by scenario.
 
 See the OpenStudio-HPXML Workflow Outputs section on `Utility Bill Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#utility-bill-outputs>`_ for more information about utility bill outputs.
+
+For the example below, the "Bills", "Bills2", and "Bill3" utility bills scenarios were requested.
 
 .. csv-table::
    :file: ../../../../test/base_results/outputs/utility_bills.csv
