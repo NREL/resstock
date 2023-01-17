@@ -11,9 +11,9 @@ jobs:
   run-unit-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.5.0
+      image: docker://nrel/openstudio:3.5.1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
@@ -23,6 +23,15 @@ jobs:
           export DEBIAN_FRONTEND=noninteractive
           sudo apt update
           sudo -E apt-get install -y wget unzip python3-sphinx-rtd-theme
+
+      - name: Check HPXMLs
+        shell: bash
+        run: |
+          echo "Regenerating HPXML files..."
+          openstudio tasks.rb update_hpxmls
+          echo "Checking for HPXML differences..."
+          git config --global --add safe.directory $(realpath .)
+          git diff --exit-code --ignore-cr-at-eol *.xml
 
       - name: Run measure unit tests
         run: |
@@ -48,9 +57,9 @@ jobs:
   run-workflow-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.5.0
+      image: docker://nrel/openstudio:3.5.1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
@@ -71,14 +80,14 @@ jobs:
   run-windows-tests:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
       - name: Install software and run test
         shell: pwsh
         run: |
-          $env:OS_VERSION="3.5.0"
-          $env:OS_SHA="7b14ce1588"
+          $env:OS_VERSION="3.5.1"
+          $env:OS_SHA="22e1db7be5"
           Invoke-WebRequest -OutFile Windows.tar.gz -URI "https://github.com/NREL/OpenStudio/releases/download/v${env:OS_VERSION}/OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows.tar.gz"
           tar -xzf Windows.tar.gz
           & .\OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows\bin\openstudio.exe workflow\run_simulation.rb -x workflow\sample_files\base.xml --hourly ALL --add-component-loads --add-stochastic-schedules
@@ -88,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [run-workflow-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
@@ -98,7 +107,7 @@ jobs:
           path: workflow/tests/base_results
           name: base_results
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -140,7 +149,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [run-workflow-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 

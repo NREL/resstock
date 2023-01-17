@@ -71,6 +71,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_power_outage_period', false)
+    arg.setDisplayName('Schedules: Power Outage Period')
+    arg.setDescription('Specifies the power outage period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (hours can be 0 through 23).')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('schedules_power_outage_window_natvent_availability', false)
+    arg.setDisplayName('Schedules: Power Outage Period Window Natural Ventilation Availability')
+    arg.setDescription('Whether natural ventilation is available during the outage period (i.e., always available or always unavailable).')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', false)
     arg.setDisplayName('Simulation Control: Timestep')
     arg.setUnits('min')
@@ -3075,10 +3085,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       runner.registerError("Could not find EPW file at '#{epw_path}'.")
       return false
     end
-    epw_file = OpenStudio::EpwFile.new(epw_path)
 
     # Create HPXML file
-    hpxml_doc = HPXMLFile.create(runner, model, args, epw_file)
+    hpxml_doc = HPXMLFile.create(runner, model, args, epw_path)
     if not hpxml_doc
       runner.registerError('Unsuccessful creation of HPXML file.')
       return false
@@ -3311,10 +3320,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 end
 
 class HPXMLFile
-  def self.create(runner, model, args, epw_file)
+  def self.create(runner, model, args, epw_path)
+    epw_file = OpenStudio::EpwFile.new(epw_path)
     if (args[:hvac_control_heating_season_period].to_s == HPXML::BuildingAmerica) || (args[:hvac_control_cooling_season_period].to_s == HPXML::BuildingAmerica) || (args[:apply_defaults].is_initialized && args[:apply_defaults].get)
-      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
-      weather = WeatherProcess.new(model, runner)
+      weather = WeatherProcess.new(epw_path: epw_path)
     end
 
     success = create_geometry_envelope(runner, model, args)
@@ -3486,6 +3495,19 @@ class HPXMLFile
     if args[:schedules_vacancy_period].is_initialized
       begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:schedules_vacancy_period].get)
       hpxml.header.vacancy_periods.add(begin_month: begin_month, begin_day: begin_day, end_month: end_month, end_day: end_day)
+    end
+    if args[:schedules_power_outage_period].is_initialized
+      begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Schedule.parse_date_time_range(args[:schedules_power_outage_period].get)
+
+      natvent = nil
+      if args[:schedules_power_outage_window_natvent_availability].is_initialized
+        natvent = false
+        if args[:schedules_power_outage_window_natvent_availability].get
+          natvent = true
+        end
+      end
+
+      hpxml.header.power_outage_periods.add(begin_month: begin_month, begin_day: begin_day, begin_hour: begin_hour, end_month: end_month, end_day: end_day, end_hour: end_hour, natvent: natvent)
     end
 
     if args[:software_info_program_used].is_initialized

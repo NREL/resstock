@@ -262,6 +262,23 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(info_msgs.any? { |info_msg| info_msg.include?("GeometryNumOccupants=#{Float(Integer(num_occupants))}") })
   end
 
+  def test_zero_occupants
+    num_occupants = 0.0
+
+    hpxml = _create_hpxml('base.xml')
+    hpxml.building_occupancy.number_of_residents = num_occupants
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-stochastic.csv'))
+    _model, _hpxml, result = _test_measure()
+
+    info_msgs = result.info.map { |x| x.logMessage }
+    assert(1, info_msgs.size)
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Number of occupants set to zero; skipping generation of stochastic schedules.') })
+    assert(!File.exist?(@args_hash['output_csv_path']))
+    assert_empty(hpxml.header.schedules_filepaths)
+  end
+
   def _test_measure(expect_fail: false)
     # create an instance of the measure
     measure = BuildResidentialScheduleFile.new

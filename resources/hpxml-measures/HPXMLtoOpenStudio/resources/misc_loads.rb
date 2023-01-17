@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class MiscLoads
-  def self.apply_plug(model, runner, plug_load, obj_name, living_space, apply_ashrae140_assumptions, schedules_file, vacancy_periods)
+  def self.apply_plug(model, runner, plug_load, obj_name, living_space, apply_ashrae140_assumptions, schedules_file, vacancy_periods, power_outage_periods)
     kwh = 0
     if not plug_load.nil?
       kwh = plug_load.kWh_per_year * plug_load.usage_multiplier
@@ -26,7 +26,8 @@ class MiscLoads
     end
     if sch.nil?
       col_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[col_name]
-      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: col_vacancy_periods)
+      col_power_outage_periods = power_outage_periods if SchedulesFile.affected_by_outage[col_name]
+      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: col_vacancy_periods, power_outage_periods: col_power_outage_periods)
       space_design_level = sch.calc_design_level_from_daily_kwh(kwh / 365.0)
       sch = sch.schedule
     else
@@ -59,7 +60,7 @@ class MiscLoads
     mel.setSchedule(sch)
   end
 
-  def self.apply_fuel(model, runner, fuel_load, obj_name, living_space, schedules_file, vacancy_periods)
+  def self.apply_fuel(model, runner, fuel_load, obj_name, living_space, schedules_file, vacancy_periods, power_outage_periods)
     therm = 0
 
     if not fuel_load.nil?
@@ -80,7 +81,8 @@ class MiscLoads
       end
       if sch.nil?
         col_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[col_name]
-        sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', fuel_load.weekday_fractions, fuel_load.weekend_fractions, fuel_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: col_vacancy_periods)
+        col_power_outage_periods = power_outage_periods if SchedulesFile.affected_by_outage[col_name]
+        sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', fuel_load.weekday_fractions, fuel_load.weekend_fractions, fuel_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: col_vacancy_periods, power_outage_periods: col_power_outage_periods)
         space_design_level = sch.calc_design_level_from_daily_therm(therm / 365.0)
         sch = sch.schedule
       else
@@ -110,7 +112,7 @@ class MiscLoads
     mfl.setSchedule(sch)
   end
 
-  def self.apply_pool_or_hot_tub_heater(runner, model, pool_or_hot_tub, obj_name, living_space, schedules_file, vacancy_periods)
+  def self.apply_pool_or_hot_tub_heater(runner, model, pool_or_hot_tub, obj_name, living_space, schedules_file, vacancy_periods, power_outage_periods)
     return if pool_or_hot_tub.heater_type == HPXML::TypeNone
 
     heater_kwh = 0
@@ -124,7 +126,8 @@ class MiscLoads
     end
     if heater_sch.nil?
       col_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[col_name]
-      heater_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.heater_weekday_fractions, pool_or_hot_tub.heater_weekend_fractions, pool_or_hot_tub.heater_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: col_vacancy_periods)
+      col_power_outage_periods = power_outage_periods if SchedulesFile.affected_by_outage[col_name]
+      heater_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.heater_weekday_fractions, pool_or_hot_tub.heater_weekend_fractions, pool_or_hot_tub.heater_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: col_vacancy_periods, power_outage_periods: col_power_outage_periods)
     else
       runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !pool_or_hot_tub.heater_weekday_fractions.nil?
       runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !pool_or_hot_tub.heater_weekend_fractions.nil?
@@ -183,7 +186,7 @@ class MiscLoads
     end
   end
 
-  def self.apply_pool_or_hot_tub_pump(runner, model, pool_or_hot_tub, obj_name, living_space, schedules_file, vacancy_periods)
+  def self.apply_pool_or_hot_tub_pump(runner, model, pool_or_hot_tub, obj_name, living_space, schedules_file, vacancy_periods, power_outage_periods)
     pump_kwh = 0
 
     # Create schedule
@@ -194,7 +197,8 @@ class MiscLoads
     end
     if pump_sch.nil?
       col_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[col_name]
-      pump_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.pump_weekday_fractions, pool_or_hot_tub.pump_weekend_fractions, pool_or_hot_tub.pump_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: col_vacancy_periods)
+      col_power_outage_periods = power_outage_periods if SchedulesFile.affected_by_outage[col_name]
+      pump_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.pump_weekday_fractions, pool_or_hot_tub.pump_weekend_fractions, pool_or_hot_tub.pump_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: col_vacancy_periods, power_outage_periods: col_power_outage_periods)
     else
       runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !pool_or_hot_tub.pump_weekday_fractions.nil?
       runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !pool_or_hot_tub.pump_weekend_fractions.nil?

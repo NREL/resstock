@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Lighting
-  def self.apply(runner, model, epw_file, spaces, lighting_groups, lighting, eri_version, schedules_file, cfa, vacancy_periods)
+  def self.apply(runner, model, epw_file, spaces, lighting_groups, lighting, eri_version, schedules_file, cfa, vacancy_periods, power_outage_periods)
     fractions = {}
     lighting_groups.each do |lg|
       fractions[[lg.location, lg.lighting_type]] = lg.fraction_of_units_in_location
@@ -42,11 +42,12 @@ class Lighting
       end
       if interior_sch.nil?
         interior_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[interior_col_name]
+        interior_power_outage_periods = power_outage_periods if SchedulesFile.affected_by_outage[interior_col_name]
         if not lighting.interior_weekday_fractions.nil?
-          interior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameInteriorLighting + ' schedule', lighting.interior_weekday_fractions, lighting.interior_weekend_fractions, lighting.interior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: interior_vacancy_periods)
+          interior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameInteriorLighting + ' schedule', lighting.interior_weekday_fractions, lighting.interior_weekend_fractions, lighting.interior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: interior_vacancy_periods, power_outage_periods: interior_power_outage_periods)
         else
           lighting_sch = get_schedule(epw_file)
-          interior_sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, Constants.ScheduleTypeLimitsFraction, vacancy_periods: interior_vacancy_periods)
+          interior_sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, Constants.ScheduleTypeLimitsFraction, vacancy_periods: interior_vacancy_periods, power_outage_periods: interior_power_outage_periods)
         end
 
         if lighting.interior_weekday_fractions.nil?
@@ -87,7 +88,8 @@ class Lighting
       end
       if garage_sch.nil?
         garage_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[garage_col_name]
-        garage_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameGarageLighting + ' schedule', lighting.garage_weekday_fractions, lighting.garage_weekend_fractions, lighting.garage_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: garage_vacancy_periods)
+        garage_power_outage_periods = power_outage_periods if SchedulesFile.affected_by_outage[garage_col_name]
+        garage_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameGarageLighting + ' schedule', lighting.garage_weekday_fractions, lighting.garage_weekend_fractions, lighting.garage_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: garage_vacancy_periods, power_outage_periods: garage_power_outage_periods)
         design_level = garage_sch.calc_design_level_from_daily_kwh(grg_kwh / 365.0)
         garage_sch = garage_sch.schedule
       else
@@ -121,7 +123,8 @@ class Lighting
       end
       if exterior_sch.nil?
         exterior_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[exterior_col_name]
-        exterior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameExteriorLighting + ' schedule', lighting.exterior_weekday_fractions, lighting.exterior_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: exterior_vacancy_periods)
+        exterior_power_outage_periods = power_outage_periods if SchedulesFile.affected_by_outage[exterior_col_name]
+        exterior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameExteriorLighting + ' schedule', lighting.exterior_weekday_fractions, lighting.exterior_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, vacancy_periods: exterior_vacancy_periods, power_outage_periods: exterior_power_outage_periods)
         design_level = exterior_sch.calc_design_level_from_daily_kwh(ext_kwh / 365.0)
         exterior_sch = exterior_sch.schedule
       else
@@ -151,7 +154,8 @@ class Lighting
       end
       if exterior_holiday_sch.nil?
         exterior_holiday_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[exterior_holiday_col_name]
-        exterior_holiday_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameLightingExteriorHoliday + ' schedule', lighting.holiday_weekday_fractions, lighting.holiday_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, true, lighting.holiday_period_begin_month, lighting.holiday_period_begin_day, lighting.holiday_period_end_month, lighting.holiday_period_end_day, vacancy_periods: exterior_holiday_vacancy_periods)
+        exterior_holiday_power_outage_periods = power_outage_periods if SchedulesFile.affected_by_outage[exterior_holiday_col_name]
+        exterior_holiday_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameLightingExteriorHoliday + ' schedule', lighting.holiday_weekday_fractions, lighting.holiday_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, true, lighting.holiday_period_begin_month, lighting.holiday_period_begin_day, lighting.holiday_period_end_month, lighting.holiday_period_end_day, vacancy_periods: exterior_holiday_vacancy_periods, power_outage_periods: exterior_holiday_power_outage_periods)
         design_level = exterior_holiday_sch.calc_design_level_from_daily_kwh(lighting.holiday_kwh_per_day)
         exterior_holiday_sch = exterior_holiday_sch.schedule
       else

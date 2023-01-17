@@ -1,11 +1,49 @@
 # frozen_string_literal: true
 
+# Annual constant schedule
+class ScheduleRulesetConstant
+  def initialize(model, sch_name, val = 1.0, schedule_type_limits_name = nil, vacancy_periods: nil, power_outage_periods: nil)
+    @model = model
+    @year = model.getYearDescription.assumedYear
+    @sch_name = sch_name
+    @val = val
+    @schedule = nil
+    @schedule_type_limits_name = schedule_type_limits_name
+    @vacancy_periods = vacancy_periods
+    @power_outage_periods = power_outage_periods
+
+    @schedule = create_schedule()
+  end
+
+  def schedule
+    return @schedule
+  end
+
+  private
+
+  def create_schedule()
+    schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
+    schedule.setName(@sch_name)
+
+    default_day_sch = schedule.defaultDaySchedule
+    default_day_sch.clearValues
+    default_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), @val)
+
+    Schedule.set_vacancy_periods(schedule, @sch_name, @vacancy_periods, @year)
+    Schedule.set_power_outage_periods(schedule, @sch_name, @power_outage_periods, @year)
+
+    Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
+
+    return schedule
+  end
+end
+
 # Annual schedule defined by 12 24-hour values for weekdays and weekends.
 class HourlyByMonthSchedule
   # weekday_month_by_hour_values must be a 12-element array of 24-element arrays of numbers.
   # weekend_month_by_hour_values must be a 12-element array of 24-element arrays of numbers.
   def initialize(model, sch_name, weekday_month_by_hour_values, weekend_month_by_hour_values,
-                 schedule_type_limits_name = nil, normalize_values = true, vacancy_periods: nil)
+                 schedule_type_limits_name = nil, normalize_values = true, vacancy_periods: nil, power_outage_periods: nil)
     @model = model
     @year = model.getYearDescription.assumedYear
     @sch_name = sch_name
@@ -14,6 +52,7 @@ class HourlyByMonthSchedule
     @weekend_month_by_hour_values = validate_values(weekend_month_by_hour_values, 12, 24)
     @schedule_type_limits_name = schedule_type_limits_name
     @vacancy_periods = vacancy_periods
+    @power_outage_periods = power_outage_periods
 
     if normalize_values
       @maxval = calc_max_val()
@@ -161,6 +200,7 @@ class HourlyByMonthSchedule
     end
 
     Schedule.set_vacancy_periods(schedule, @sch_name, @vacancy_periods, @year)
+    Schedule.set_power_outage_periods(schedule, @sch_name, @power_outage_periods, @year)
 
     Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
 
@@ -341,7 +381,7 @@ class MonthWeekdayWeekendSchedule
   # monthly_values can either be a comma-separated string of 12 numbers or a 12-element array of numbers.
   def initialize(model, sch_name, weekday_hourly_values, weekend_hourly_values, monthly_values,
                  schedule_type_limits_name = nil, normalize_values = true, begin_month = 1,
-                 begin_day = 1, end_month = 12, end_day = 31, vacancy_periods: nil)
+                 begin_day = 1, end_month = 12, end_day = 31, vacancy_periods: nil, power_outage_periods: nil)
     @model = model
     @year = model.getYearDescription.assumedYear
     @sch_name = sch_name
@@ -355,6 +395,7 @@ class MonthWeekdayWeekendSchedule
     @end_month = end_month
     @end_day = end_day
     @vacancy_periods = vacancy_periods
+    @power_outage_periods = power_outage_periods
 
     if normalize_values
       @weekday_hourly_values = normalize_sum_to_one(@weekday_hourly_values)
@@ -579,6 +620,7 @@ class MonthWeekdayWeekendSchedule
     end
 
     Schedule.set_vacancy_periods(schedule, @sch_name, @vacancy_periods, @year)
+    Schedule.set_power_outage_periods(schedule, @sch_name, @power_outage_periods, @year)
 
     Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
 
@@ -601,6 +643,10 @@ class Schedule
 
   def self.vacancy_name
     return 'vacancy'
+  end
+
+  def self.outage_name
+    return 'outage'
   end
 
   # return [Double] The total number of full load hours for this schedule.
@@ -754,6 +800,88 @@ class Schedule
       Schedule.set_weekend_rule(vac_rule)
       vac_rule.setStartDate(date_s)
       vac_rule.setEndDate(date_e)
+    end
+  end
+
+  def self.set_power_outage_periods(schedule, sch_name, power_outage_periods, year)
+    return if power_outage_periods.nil?
+
+    # Add power outage rule(s), will override previous rules
+    power_outage_periods.each_with_index do |op, i|
+      value = 0.0
+
+      # Temperature of tank < 2C indicates of possibility of freeze.
+      value = 2.0 if sch_name.include?('WH Setpoint Temp') || sch_name.include?("#{Constants.ObjectNameWaterHeater} Setpoint")
+
+      next if sch_name.include?(Constants.ObjectNameNaturalVentilation) && op.natvent.nil?
+
+      value = 1.0 if sch_name.include?(Constants.ObjectNameNaturalVentilation) && op.natvent
+
+      day_s = Schedule.get_day_num_from_month_day(year, op.begin_month, op.begin_day)
+      day_e = Schedule.get_day_num_from_month_day(year, op.end_month, op.end_day)
+
+      date_s = OpenStudio::Date::fromDayOfYear(day_s, year)
+      date_e = OpenStudio::Date::fromDayOfYear(day_e, year)
+
+      if (not op.begin_hour.nil?) && (not op.end_hour.nil?)
+        begin_day_schedule = schedule.getDaySchedules(date_s, date_s)[0]
+        end_day_schedule = schedule.getDaySchedules(date_e, date_e)[0]
+
+        outage_days = day_e - day_s
+        if outage_days == 0 # outage is less than one calendar day (need one outage rule)
+          out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_e)
+          Schedule.set_outage_values(out, begin_day_schedule, op.begin_hour, op.end_hour, value)
+        elsif outage_days == 1 # outage is exactly two calendar days (need two outage rules)
+          # first day
+          out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_s)
+          Schedule.set_outage_values(out, begin_day_schedule, op.begin_hour, 23, value)
+
+          # last day
+          out = Schedule.create_outage_rule(schedule, sch_name, i, date_e, date_e)
+          Schedule.set_outage_values(out, end_day_schedule, 0, op.end_hour, value)
+        else # outage is more than two calendar days (need three outage rules)
+          # first day
+          out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_s)
+          Schedule.set_outage_values(out, begin_day_schedule, op.begin_hour, 23, value)
+
+          # last day
+          out = Schedule.create_outage_rule(schedule, sch_name, i, date_e, date_e)
+          Schedule.set_outage_values(out, end_day_schedule, 0, op.end_hour, value)
+
+          # all other days
+          date_s = OpenStudio::Date::fromDayOfYear(day_s + 1, year)
+          date_e = OpenStudio::Date::fromDayOfYear(day_e - 1, year)
+          out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_e)
+          out.addValue(OpenStudio::Time.new(0, 24, 0, 0), value)
+        end
+
+      else # much simpler if hours of the day aren't specified
+        out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_e)
+        out.addValue(OpenStudio::Time.new(0, 24, 0, 0), value)
+      end
+    end
+  end
+
+  def self.create_outage_rule(schedule, sch_name, i, date_s, date_e)
+    out_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+    out_rule.setName(sch_name + " #{Schedule.outage_name} ruleset#{i}")
+    out_sch = out_rule.daySchedule
+    out_sch.setName(sch_name + " #{Schedule.outage_name}#{i}")
+    out_rule.setStartDate(date_s)
+    out_rule.setEndDate(date_e)
+    Schedule.set_weekday_rule(out_rule)
+    Schedule.set_weekend_rule(out_rule)
+    return out_sch
+  end
+
+  def self.set_outage_values(out, day_schedule, begin_hour, end_hour, value)
+    (0..23).each do |h|
+      time = OpenStudio::Time.new(0, h + 1, 0, 0)
+      if (h < begin_hour) || (h > end_hour)
+        out.addValue(time, day_schedule.getValue(time))
+      else
+        out.addValue(time, value)
+      end
     end
   end
 
@@ -1129,6 +1257,37 @@ class Schedule
     return begin_month, begin_day, end_month, end_day
   end
 
+  def self.parse_date_time_range(date_time_range)
+    begin_end_dates = date_time_range.split('-').map { |v| v.strip }
+    if begin_end_dates.size != 2
+      fail "Invalid date format specified for '#{date_time_range}'."
+    end
+
+    begin_values = begin_end_dates[0].split(' ').map { |v| v.strip }
+    end_values = begin_end_dates[1].split(' ').map { |v| v.strip }
+
+    if (begin_values.size > 3) || (end_values.size > 3)
+      fail "Invalid date format specified for '#{date_time_range}'."
+    end
+
+    require 'date'
+    begin_month = Date::ABBR_MONTHNAMES.index(begin_values[0].capitalize)
+    end_month = Date::ABBR_MONTHNAMES.index(end_values[0].capitalize)
+    begin_day = begin_values[1].to_i
+    end_day = end_values[1].to_i
+    if begin_values.size == 3
+      begin_hour = begin_values[2].to_i
+    end
+    if end_values.size == 3
+      end_hour = end_values[2].to_i
+    end
+    if begin_month.nil? || end_month.nil? || begin_day == 0 || end_day == 0
+      fail "Invalid date format specified for '#{date_time_range}'."
+    end
+
+    return begin_month, begin_day, begin_hour, end_month, end_day, end_hour
+  end
+
   def self.get_begin_and_end_dates_from_monthly_array(months, year)
     if months[0] == 1 && months[11] == 1 # Wrap around year
       begin_month = 12 - months.reverse.index(0) + 1
@@ -1177,6 +1336,7 @@ class SchedulesFile
   ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
   ColumnHotWaterFixtures = 'hot_water_fixtures'
   ColumnVacancy = 'vacancy'
+  ColumnOutage = 'outage'
   ColumnSleeping = 'sleeping'
   ColumnHeatingSetpoint = 'heating_setpoint'
   ColumnCoolingSetpoint = 'cooling_setpoint'
@@ -1190,7 +1350,8 @@ class SchedulesFile
                  model: nil,
                  schedules_paths:,
                  year:,
-                 vacancy_periods: [])
+                 vacancy_periods: [],
+                 power_outage_periods: [])
     return if schedules_paths.empty?
 
     @runner = runner
@@ -1202,6 +1363,7 @@ class SchedulesFile
     battery_schedules
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_vacancy(vacancy_periods)
+    set_power_outage(power_outage_periods)
     convert_setpoints
 
     tmpdir = Dir.tmpdir
@@ -1319,7 +1481,8 @@ class SchedulesFile
   end
 
   def create_schedule_file(col_name:,
-                           rows_to_skip: 1)
+                           rows_to_skip: 1,
+                           schedule_type_limits_name: nil)
     @model.getScheduleFiles.each do |schedule_file|
       next if schedule_file.name.to_s != col_name
 
@@ -1341,6 +1504,8 @@ class SchedulesFile
     schedule_file.setRowstoSkipatTop(rows_to_skip)
     schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)
     schedule_file.setMinutesperItem(min_per_item.to_i)
+
+    Schedule.set_schedule_type_limits(@model, schedule_file, schedule_type_limits_name)
 
     return schedule_file
   end
@@ -1374,6 +1539,8 @@ class SchedulesFile
     end
 
     ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    return 0 if ann_equiv_full_load_hrs == 0
+
     design_level = annual_kwh * 1000.0 / ann_equiv_full_load_hrs # W
 
     return design_level
@@ -1401,6 +1568,8 @@ class SchedulesFile
     end
 
     full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    return 0 if full_load_hrs == 0
+
     num_days_in_year = Constants.NumDaysInYear(@year)
     daily_full_load_hrs = full_load_hrs / num_days_in_year
     design_level = UnitConversions.convert(daily_kwh / daily_full_load_hrs, 'kW', 'W')
@@ -1416,6 +1585,8 @@ class SchedulesFile
     end
 
     ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    return 0 if ann_equiv_full_load_hrs == 0
+
     num_days_in_year = Constants.NumDaysInYear(@year)
     daily_full_load_hrs = ann_equiv_full_load_hrs / num_days_in_year
     peak_flow = daily_water / daily_full_load_hrs # gallons_per_hour
@@ -1443,7 +1614,9 @@ class SchedulesFile
   def create_column_values_from_periods(col_name, periods)
     # Create a column of zeroes or ones for, e.g., vacancy periods or power outage periods
     n_steps = @tmp_schedules[@tmp_schedules.keys[0]].length
-    steps_in_day = n_steps / 365
+    num_days_in_year = Constants.NumDaysInYear(@year)
+    steps_in_day = n_steps / num_days_in_year
+    steps_in_hour = steps_in_day / 24
 
     if @tmp_schedules[col_name].nil?
       @tmp_schedules[col_name] = Array.new(n_steps, 0)
@@ -1453,11 +1626,19 @@ class SchedulesFile
       start_day_num = Schedule.get_day_num_from_month_day(@year, period.begin_month, period.begin_day)
       end_day_num = Schedule.get_day_num_from_month_day(@year, period.end_month, period.end_day)
 
+      begin_hour = 0
+      end_hour = 24
+
+      if col_name == ColumnOutage
+        begin_hour = period.begin_hour if not period.begin_hour.nil?
+        end_hour = period.end_hour if not period.end_hour.nil?
+      end
+
       if end_day_num >= start_day_num
-        @tmp_schedules[col_name].fill(1.0, (start_day_num - 1) * steps_in_day, (end_day_num - start_day_num + 1) * steps_in_day) # Fill between start/end days
+        @tmp_schedules[col_name].fill(1.0, (start_day_num - 1) * steps_in_day + (begin_hour * steps_in_hour), (end_day_num - start_day_num + 1) * steps_in_day - ((24 - end_hour) * steps_in_hour)) # Fill between start/end days
       else # Wrap around year
-        @tmp_schedules[col_name].fill(1.0, (start_day_num - 1) * steps_in_day) # Fill between start day and end of year
-        @tmp_schedules[col_name].fill(1.0, 0, end_day_num * steps_in_day) # Fill between start of year and end day
+        @tmp_schedules[col_name].fill(1.0, (start_day_num - 1) * steps_in_day + (begin_hour * steps_in_hour)) # Fill between start day and end of year
+        @tmp_schedules[col_name].fill(1.0, 0, end_day_num * steps_in_day - ((24 - end_hour) * steps_in_hour)) # Fill between start of year and end day
       end
     end
   end
@@ -1471,6 +1652,24 @@ class SchedulesFile
         next unless SchedulesFile.affected_by_vacancy[col_name] # skip those unaffected by vacancy
 
         @tmp_schedules[col_name][i] *= (1.0 - @tmp_schedules[ColumnVacancy][i])
+      end
+    end
+  end
+
+  def set_power_outage(power_outage_periods)
+    create_column_values_from_periods(ColumnOutage, power_outage_periods)
+    return if @tmp_schedules[ColumnOutage].all? { |i| i == 0 }
+
+    @tmp_schedules[ColumnOutage].each_with_index do |_ts, i|
+      @tmp_schedules.keys.each do |col_name|
+        # Temperature of tank < 2C indicates of possibility of freeze.
+        if col_name == ColumnWaterHeaterSetpoint
+          @tmp_schedules[col_name][i] = UnitConversions.convert(2.0, 'C', 'F') if @tmp_schedules[ColumnOutage][i] == 1.0
+        end
+
+        next unless SchedulesFile.affected_by_outage[col_name] # skip those unaffected by outage
+
+        @tmp_schedules[col_name][i] *= (1.0 - @tmp_schedules[ColumnOutage][i])
       end
     end
   end
@@ -1596,6 +1795,22 @@ class SchedulesFile
       affected_by_vacancy[column_name] = false
     end
     return affected_by_vacancy
+  end
+
+  def self.affected_by_outage
+    affected_by_outage = {}
+    column_names = SchedulesFile.ColumnNames
+    column_names.each do |column_name|
+      affected_by_outage[column_name] = true
+      next unless ([ColumnOccupants,
+                    ColumnSleeping] +
+                    SchedulesFile.HVACSetpointColumnNames +
+                    SchedulesFile.WaterHeaterColumnNames +
+                    SchedulesFile.BatteryColumnNames).include? column_name
+
+      affected_by_outage[column_name] = false
+    end
+    return affected_by_outage
   end
 
   def max_value_one
