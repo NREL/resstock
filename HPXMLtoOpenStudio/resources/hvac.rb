@@ -3,7 +3,7 @@
 class HVAC
   def self.apply_air_source_hvac_systems(model, cooling_system, heating_system,
                                          sequential_cool_load_fracs, sequential_heat_load_fracs,
-                                         control_zone)
+                                         control_zone, power_outage_periods)
     is_heatpump = false
     if not cooling_system.nil?
       if cooling_system.is_a? HPXML::HeatPump
@@ -162,7 +162,7 @@ class HVAC
     end
 
     # Air Loop
-    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, [htg_cfm.to_f, clg_cfm.to_f].max)
+    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, [htg_cfm.to_f, clg_cfm.to_f].max, power_outage_periods)
 
     apply_installation_quality(model, heating_system, cooling_system, air_loop_unitary, htg_coil, clg_coil, control_zone)
 
@@ -170,7 +170,7 @@ class HVAC
   end
 
   def self.apply_evaporative_cooler(model, cooling_system,
-                                    sequential_cool_load_fracs, control_zone)
+                                    sequential_cool_load_fracs, control_zone, power_outage_periods)
 
     obj_name = Constants.ObjectNameEvaporativeCooler
 
@@ -188,7 +188,7 @@ class HVAC
     evap_cooler.additionalProperties.setFeature('HPXML_ID', cooling_system.id) # Used by reporting measure
 
     # Air Loop
-    air_loop = create_air_loop(model, obj_name, evap_cooler, control_zone, [0], sequential_cool_load_fracs, clg_cfm)
+    air_loop = create_air_loop(model, obj_name, evap_cooler, control_zone, [0], sequential_cool_load_fracs, clg_cfm, power_outage_periods)
 
     # Fan
     fan_watts_per_cfm = [2.79 * clg_cfm**-0.29, 0.6].min # W/cfm; fit of efficacy to air flow from the CEC listed equipment
@@ -221,7 +221,7 @@ class HVAC
 
   def self.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
                                          sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                         control_zone, ground_conductivity)
+                                         control_zone, ground_conductivity, power_outage_periods)
 
     obj_name = Constants.ObjectNameGroundSourceHeatPump
 
@@ -379,7 +379,7 @@ class HVAC
     end
 
     # Air Loop
-    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, [htg_cfm, clg_cfm].max)
+    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, [htg_cfm, clg_cfm].max, power_outage_periods)
 
     # HVAC Installation Quality
     apply_installation_quality(model, heat_pump, heat_pump, air_loop_unitary, htg_coil, clg_coil, control_zone)
@@ -389,7 +389,7 @@ class HVAC
 
   def self.apply_water_loop_to_air_heat_pump(model, heat_pump,
                                              sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                             control_zone)
+                                             control_zone, power_outage_periods)
     if heat_pump.fraction_cool_load_served > 0
       # WLHPs connected to chillers or cooling towers should have already been converted to
       # central air conditioners
@@ -428,13 +428,13 @@ class HVAC
     air_loop_unitary = create_air_loop_unitary_system(model, obj_name, fan, htg_coil, clg_coil, htg_supp_coil, htg_cfm, nil, hp_ap.supp_max_temp)
 
     # Air Loop
-    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, htg_cfm)
+    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, htg_cfm, power_outage_periods)
 
     return air_loop
   end
 
   def self.apply_boiler(model, runner, heating_system,
-                        sequential_heat_load_fracs, control_zone)
+                        sequential_heat_load_fracs, control_zone, power_outage_periods)
     obj_name = Constants.ObjectNameBoiler
     is_condensing = false # FUTURE: Expose as input; default based on AFUE
     oat_reset_enabled = false
@@ -608,14 +608,14 @@ class HVAC
       disaggregate_fan_or_pump(model, pump, zone_hvac, nil, nil, heating_system)
     end
 
-    control_zone.setSequentialHeatingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, sequential_heat_load_fracs))
+    control_zone.setSequentialHeatingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, sequential_heat_load_fracs, power_outage_periods))
     control_zone.setSequentialCoolingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, [0]))
 
     return zone_hvac
   end
 
   def self.apply_electric_baseboard(model, heating_system,
-                                    sequential_heat_load_fracs, control_zone)
+                                    sequential_heat_load_fracs, control_zone, power_outage_periods)
 
     obj_name = Constants.ObjectNameElectricBaseboard
 
@@ -627,12 +627,12 @@ class HVAC
     zone_hvac.addToThermalZone(control_zone)
     zone_hvac.additionalProperties.setFeature('HPXML_ID', heating_system.id) # Used by reporting measure
 
-    control_zone.setSequentialHeatingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, sequential_heat_load_fracs))
+    control_zone.setSequentialHeatingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, sequential_heat_load_fracs, power_outage_periods))
     control_zone.setSequentialCoolingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, [0]))
   end
 
   def self.apply_unit_heater(model, heating_system,
-                             sequential_heat_load_fracs, control_zone)
+                             sequential_heat_load_fracs, control_zone, power_outage_periods)
 
     obj_name = Constants.ObjectNameUnitHeater
 
@@ -664,12 +664,12 @@ class HVAC
     unitary_system.setControllingZoneorThermostatLocation(control_zone)
     unitary_system.addToThermalZone(control_zone)
 
-    control_zone.setSequentialHeatingFractionSchedule(unitary_system, get_sequential_load_schedule(model, sequential_heat_load_fracs))
+    control_zone.setSequentialHeatingFractionSchedule(unitary_system, get_sequential_load_schedule(model, sequential_heat_load_fracs, power_outage_periods))
     control_zone.setSequentialCoolingFractionSchedule(unitary_system, get_sequential_load_schedule(model, [0]))
   end
 
   def self.apply_ideal_air_loads(model, obj_name, sequential_cool_load_fracs,
-                                 sequential_heat_load_fracs, control_zone)
+                                 sequential_heat_load_fracs, control_zone, power_outage_periods)
 
     # Ideal Air System
     ideal_air = OpenStudio::Model::ZoneHVACIdealLoadsAirSystem.new(model)
@@ -694,11 +694,11 @@ class HVAC
     ideal_air.setHumidificationControlType('None')
     ideal_air.addToThermalZone(control_zone)
 
-    control_zone.setSequentialCoolingFractionSchedule(ideal_air, get_sequential_load_schedule(model, sequential_cool_load_fracs))
-    control_zone.setSequentialHeatingFractionSchedule(ideal_air, get_sequential_load_schedule(model, sequential_heat_load_fracs))
+    control_zone.setSequentialCoolingFractionSchedule(ideal_air, get_sequential_load_schedule(model, sequential_cool_load_fracs, power_outage_periods))
+    control_zone.setSequentialHeatingFractionSchedule(ideal_air, get_sequential_load_schedule(model, sequential_heat_load_fracs, power_outage_periods))
   end
 
-  def self.apply_dehumidifiers(model, dehumidifiers, living_space)
+  def self.apply_dehumidifiers(model, dehumidifiers, living_space, power_outage_periods)
     dehumidifier_id = dehumidifiers[0].id # Syncs with the ReportSimulationOutput measure, which only looks at first dehumidifier ID
 
     if dehumidifiers.map { |d| d.rh_setpoint }.uniq.size > 1
@@ -744,10 +744,17 @@ class HVAC
     humidistat.setDehumidifyingRelativeHumiditySetpointSchedule(relative_humidity_setpoint_sch)
     control_zone.setZoneControlHumidistat(humidistat)
 
+    # Availability Schedule
+    avail_sch = model.alwaysOnDiscreteSchedule
+    if not power_outage_periods.empty?
+      avail_sch = ScheduleRulesetConstant.new(model, obj_name + ' schedule', 1.0, Constants.ScheduleTypeLimitsFraction, power_outage_periods: power_outage_periods)
+      avail_sch = avail_sch.schedule
+    end
+
     # Dehumidifier
     zone_hvac = OpenStudio::Model::ZoneHVACDehumidifierDX.new(model, capacity_curve, energy_factor_curve, part_load_frac_curve)
     zone_hvac.setName(obj_name)
-    zone_hvac.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
+    zone_hvac.setAvailabilitySchedule(avail_sch)
     zone_hvac.setRatedWaterRemoval(UnitConversions.convert(total_capacity, 'pint', 'L'))
     zone_hvac.setRatedEnergyFactor(avg_energy_factor / total_fraction_served)
     zone_hvac.setRatedAirFlowRate(UnitConversions.convert(air_flow_rate, 'cfm', 'm^3/s'))
@@ -761,7 +768,7 @@ class HVAC
     end
   end
 
-  def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, living_space, schedules_file, vacancy_periods)
+  def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, living_space, schedules_file, vacancy_periods, power_outage_periods)
     obj_name = Constants.ObjectNameCeilingFan
     medium_cfm = 3000.0 # From ANSI 301-2019
     hrs_per_day = 10.5 # From ANSI 301-2019
@@ -779,11 +786,12 @@ class HVAC
     end
     if ceiling_fan_sch.nil?
       ceiling_fan_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[ceiling_fan_col_name]
+      ceiling_fan_power_outage_periods = power_outage_periods if SchedulesFile.affected_by_outage[ceiling_fan_col_name]
       annual_kwh *= ceiling_fan.monthly_multipliers.split(',').map(&:to_f).sum(0.0) / 12.0
       weekday_sch = ceiling_fan.weekday_fractions
       weekend_sch = ceiling_fan.weekend_fractions
       monthly_sch = ceiling_fan.monthly_multipliers
-      ceiling_fan_sch_obj = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction, vacancy_periods: ceiling_fan_vacancy_periods)
+      ceiling_fan_sch_obj = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction, vacancy_periods: ceiling_fan_vacancy_periods, power_outage_periods: ceiling_fan_power_outage_periods)
       ceiling_fan_design_level = ceiling_fan_sch_obj.calc_design_level_from_daily_kwh(annual_kwh / 365.0)
       ceiling_fan_sch = ceiling_fan_sch_obj.schedule
     else
@@ -1674,7 +1682,7 @@ class HVAC
     return air_loop_unitary
   end
 
-  def self.create_air_loop(model, obj_name, system, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, airflow_cfm)
+  def self.create_air_loop(model, obj_name, system, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, airflow_cfm, power_outage_periods)
     air_loop = OpenStudio::Model::AirLoopHVAC.new(model)
     air_loop.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
     air_loop.setName(obj_name + ' airloop')
@@ -1695,8 +1703,8 @@ class HVAC
     air_terminal.setName(obj_name + ' terminal')
     air_loop.multiAddBranchForZone(control_zone, air_terminal)
 
-    control_zone.setSequentialHeatingFractionSchedule(air_terminal, get_sequential_load_schedule(model, sequential_heat_load_fracs))
-    control_zone.setSequentialCoolingFractionSchedule(air_terminal, get_sequential_load_schedule(model, sequential_cool_load_fracs))
+    control_zone.setSequentialHeatingFractionSchedule(air_terminal, get_sequential_load_schedule(model, sequential_heat_load_fracs, power_outage_periods))
+    control_zone.setSequentialCoolingFractionSchedule(air_terminal, get_sequential_load_schedule(model, sequential_cool_load_fracs, power_outage_periods))
 
     return air_loop
   end
@@ -3552,17 +3560,22 @@ class HVAC
     return sequential_load_fracs
   end
 
-  def self.get_sequential_load_schedule(model, fractions)
+  def self.get_sequential_load_schedule(model, fractions, power_outage_periods = [])
     values = fractions.map { |f| f > 1 ? 1.0 : f.round(5) }
 
-    if values.uniq.length == 1
+    if values.uniq.length == 1 && power_outage_periods.empty?
       s = OpenStudio::Model::ScheduleConstant.new(model)
       s.setValue(values[0])
     else
       s = Schedule.create_ruleset_from_daily_season(model, values)
     end
 
-    s.setName('Sequential Fraction Schedule')
+    sch_name = 'Sequential Fraction Schedule'
+    s.setName(sch_name)
+
+    year = model.getYearDescription.assumedYear
+    Schedule.set_power_outage_periods(s, sch_name, power_outage_periods, year)
+
     Schedule.set_schedule_type_limits(model, s, Constants.ScheduleTypeLimitsFraction)
     return s
   end

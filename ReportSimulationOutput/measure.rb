@@ -142,6 +142,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue('start')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('timeseries_num_decimal_places', false)
+    arg.setDisplayName('Generate Timeseries Output: Number of Decimal Places')
+    arg.setDescription('Allows overriding the default number of decimal places for timeseries output.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('add_timeseries_dst_column', false)
     arg.setDisplayName('Generate Timeseries Output: Add TimeDST Column')
     arg.setDescription('Optionally add, in addition to the default local standard Time column, a local clock TimeDST column. Requires that daylight saving time is enabled.')
@@ -509,6 +514,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     generate_eri_outputs = generate_eri_outputs.is_initialized ? generate_eri_outputs.get : false
     annual_output_file_name = runner.getOptionalStringArgumentValue('annual_output_file_name', user_arguments)
     timeseries_output_file_name = runner.getOptionalStringArgumentValue('timeseries_output_file_name', user_arguments)
+    timeseries_num_decimal_places = runner.getOptionalIntegerArgumentValue('timeseries_num_decimal_places', user_arguments)
+    timeseries_num_decimal_places = timeseries_num_decimal_places.is_initialized ? Integer(timeseries_num_decimal_places.get) : nil
 
     output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
 
@@ -588,6 +595,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     report_timeseries_output_results(runner, outputs, output_format,
                                      timeseries_output_path,
                                      timeseries_frequency,
+                                     timeseries_num_decimal_places,
                                      include_timeseries_total_consumptions,
                                      include_timeseries_fuel_consumptions,
                                      include_timeseries_end_use_consumptions,
@@ -1699,6 +1707,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   def report_timeseries_output_results(runner, outputs, output_format,
                                        timeseries_output_path,
                                        timeseries_frequency,
+                                       timeseries_num_decimal_places,
                                        include_timeseries_total_consumptions,
                                        include_timeseries_fuel_consumptions,
                                        include_timeseries_end_use_consumptions,
@@ -1723,14 +1732,18 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       fail "Unexpected timeseries_frequency: #{timeseries_frequency}."
     end
 
-    # Set rounding precision for timeseries (e.g., hourly) outputs.
-    # Note: Make sure to round outputs with sufficient resolution for the worst case -- i.e., 1 minute date instead of hourly data.
-    n_digits = 2 # Default for hourly (or longer) data
-    if timeseries_frequency == 'timestep'
-      if @hpxml.header.timestep <= 2 # 2-minute timesteps or shorter; add two decimal places
-        n_digits += 2
-      elsif @hpxml.header.timestep <= 15 # 15-minute timesteps or shorter; add one decimal place
-        n_digits += 1
+    if not timeseries_num_decimal_places.nil?
+      n_digits = timeseries_num_decimal_places
+    else
+      # Set rounding precision for timeseries (e.g., hourly) outputs.
+      # Note: Make sure to round outputs with sufficient resolution for the worst case -- i.e., 1 minute date instead of hourly data.
+      n_digits = 3 # Default for hourly (or longer) data
+      if timeseries_frequency == 'timestep'
+        if @hpxml.header.timestep <= 2 # 2-minute timesteps or shorter; add two decimal places
+          n_digits += 2
+        elsif @hpxml.header.timestep <= 15 # 15-minute timesteps or shorter; add one decimal place
+          n_digits += 1
+        end
       end
     end
 
