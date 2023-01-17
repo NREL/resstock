@@ -126,8 +126,9 @@ class IRAAnalysis:
             with open(file_path, newline="") as f:
                 reader = csv.reader(f)
                 columns = next(reader)  # gets the first line
-                if "in.area_median_income" not in columns:
-                    add_ami_column_to_file(file_path)  # modify file in-place
+                # TODO: recalculate AMI; overwrite for first run
+                #if "in.area_median_income" not in columns:
+                add_ami_column_to_file(file_path)  # modify file in-place
 
     @staticmethod
     def get_groupby_cols_with_coarsening(groupby_cols, coarsening_map=None):
@@ -246,6 +247,18 @@ class IRAAnalysis:
         )
         return df
 
+    @staticmethod
+    def remap_city(df):
+        df["urban"] = df["in.city"].map(
+            {
+                # TODO: remap urban nominators, figure out logic
+                "SomeLogicGoesHere": "urban",
+                "In another census Place": "non-urban",
+                "Not in a census Place": "non-urban"
+            }
+        )
+        return df
+    
     def remap_columns(self, df):
         df = self.remap_building_type(df)
         df = self.remap_federal_poverty(df)
@@ -944,8 +957,6 @@ class IRAAnalysis:
 ###### main ######
 
 # calculated unit count, rep unit count, savings by fuel, carbon saving
-# TODO: bills calc (here), upgrade costs (in another script pull from results on AWS)
-
 
 def main(euss_dir):
 
@@ -953,32 +964,43 @@ def main(euss_dir):
     emission_type = (
         "lrmer_low_re_cost_25_2025_start"  # <---- least controversial approach
     )
+    # TODO: Verify groupby columns before running
     groupby_cols = [
         "in.state",
+        "in.county", # New column
+        #"in.city", # Need to remap this before integration; mimick AMI remap
         "in.heating_fuel",
         "building_type",
         "in.tenure",
         "AMI",  # "AMI", "FPL"
+        #"in.building_america_climate_zone",# BA Climate Zone, may need to remap?
     ]
 
+    # TODO:  turn coarsening off
     coarsening_map = {"in.state": "in.ashrae_iecc_climate_zone_2004_2_a_split"}
 
     # Initialize
     IRA = IRAAnalysis(euss_dir, groupby_cols, coarsening_map, emission_type)
 
     # Pre-process:
+    # TODO: need metadata for AMI
     IRA.add_ami_to_euss_files()
 
     ## Set control variables
+    # TODOO: set as false
     coarsening = True  # <--- # whether to use coarsening_map
     as_percentage = True  # <--- # whether to calculate savings as pct
 
+    # TODO: only coarsening
     print(f"coarsening = {coarsening}")
     print(f"as_percentage = {as_percentage}")
 
+    # TODO: use baseline and those functions to calc the average
     # Do calculations
     # get baseline consumption
     # IRA.get_baseline_consumption(0, "baseline_consumption", coarsening=coarsening)
+
+    # TODO: may not even want savings; may only want energy usage; see baseline function
 
     # [1] Basic enclosure: all (pkg 1)
     IRA.get_savings_total(
@@ -1148,7 +1170,8 @@ if __name__ == "__main__":
         euss_dir = sys.argv[1]
     elif len(sys.argv) == 1:
         # set working directory if no path is provided
-        euss_dir = Path("/Volumes/Lixi_Liu/euss")  # ADJUST to your own default
+        euss_dir = Path("/Users/kstenger/Documents/c. IRA_Estimation/EUSS data/data")  
+        # TODO: ADJUST to your own default
     else:
         print(
             """
@@ -1159,4 +1182,4 @@ if __name__ == "__main__":
         sys.exit(1)
 
     main(euss_dir)
-    main_goal_achievement(euss_dir)
+    #main_goal_achievement(euss_dir) # Not using this calcuation
