@@ -1404,6 +1404,13 @@ class HPXML < Object
     ATTRS = [:begin_month, :begin_day, :begin_hour, :end_month, :end_day, :end_hour, :natvent]
     attr_accessor(*ATTRS)
 
+    def year_round?
+      return true if @begin_month == 1 && @begin_day == 1 && (@begin_hour == 0 || @begin_hour.nil?) && @end_month == 12 && @end_day == 31 && @end_hour.nil?
+      return true if @begin_month == 1 && @begin_day == 1 && (@begin_hour == 0 || @begin_hour.nil?) && @end_month == 1 && @end_day == 1 && @end_hour == 0
+
+      return false
+    end
+
     def delete
       @hpxml_object.header.power_outage_periods.delete(self)
     end
