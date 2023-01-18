@@ -11,9 +11,9 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.5.0
+      image: docker://nrel/openstudio:3.5.1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
@@ -42,9 +42,9 @@ jobs:
   analysis-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.5.0
+      image: docker://nrel/openstudio:3.5.1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
@@ -69,13 +69,13 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
       - name: Run buildstockbatch
         run: |
-          pip install git+https://github.com/NREL/buildstockbatch.git@v2022.12.0
+          pip install git+https://github.com/NREL/buildstockbatch.git@os351
           
           buildstock_docker project_national/national_baseline.yml
           buildstock_docker project_testing/testing_baseline.yml
@@ -135,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
@@ -160,7 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
@@ -241,7 +241,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
