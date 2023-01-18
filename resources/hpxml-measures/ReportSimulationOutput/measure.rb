@@ -1208,7 +1208,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     # Check if simulation successful
     all_total = @fuels.values.map { |x| x.annual_output.to_f }.sum(0.0)
     all_total += @ideal_system_loads.values.map { |x| x.annual_output.to_f }.sum(0.0)
-    if all_total == 0
+    if all_total == 0 && (not @hpxml.header.power_outage_periods.any? { |op| op.year_round? })
       runner.registerError('Simulation unsuccessful.')
       return false
     elsif all_total.infinite?
@@ -1764,6 +1764,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       total_energy_data = []
       [TE::Total, TE::Net].each do |energy_type|
         next if (energy_type == TE::Net) && (outputs[:elec_prod_timeseries].sum(0.0) == 0)
+        next if @totals[energy_type].timeseries_output.empty?
 
         total_energy_data << [@totals[energy_type].name, @totals[energy_type].timeseries_units] + @totals[energy_type].timeseries_output.map { |v| v.round(n_digits) }
       end
