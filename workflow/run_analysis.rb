@@ -174,6 +174,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
       'include_timeseries_hot_water_uses' => false,
       'include_timeseries_total_loads' => true,
       'include_timeseries_component_loads' => false,
+      'include_timeseries_unmet_hours' => false,
       'include_timeseries_zone_temperatures' => false,
       'include_timeseries_airflows' => false,
       'include_timeseries_weather' => false,
