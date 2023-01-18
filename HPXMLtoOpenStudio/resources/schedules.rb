@@ -820,41 +820,65 @@ class Schedule
       day_s = Schedule.get_day_num_from_month_day(year, op.begin_month, op.begin_day)
       day_e = Schedule.get_day_num_from_month_day(year, op.end_month, op.end_day)
 
+      op_begin_hour = op.begin_hour
+      op_end_hour = op.end_hour
+      if op_end_hour == 0
+        op_end_hour = 24
+        day_e -= 1
+        day_e = Constants.NumDaysInYear(year) if day_e == 0
+      end
+
       date_s = OpenStudio::Date::fromDayOfYear(day_s, year)
       date_e = OpenStudio::Date::fromDayOfYear(day_e, year)
 
-      if (not op.begin_hour.nil?) && (not op.end_hour.nil?)
+      if (not op_begin_hour.nil?) && (not op_end_hour.nil?)
         begin_day_schedule = schedule.getDaySchedules(date_s, date_s)[0]
         end_day_schedule = schedule.getDaySchedules(date_e, date_e)[0]
 
         outage_days = day_e - day_s
-        if outage_days == 0 # outage is less than one calendar day (need one outage rule)
+        if outage_days == 0 # outage is less than 1 calendar day (need 1 outage rule)
           out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_e)
-          Schedule.set_outage_values(out, begin_day_schedule, op.begin_hour, op.end_hour, value)
-        elsif outage_days == 1 # outage is exactly two calendar days (need two outage rules)
-          # first day
-          out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_s)
-          Schedule.set_outage_values(out, begin_day_schedule, op.begin_hour, 23, value)
+          Schedule.set_outage_values(out, begin_day_schedule, op_begin_hour, op_end_hour, value)
+        else # outage is at least 2 calendar days
+          if op_begin_hour == 0 && op_end_hour == 24 # 1 outage rule
+            out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_e)
+            out.addValue(OpenStudio::Time.new(0, 24, 0, 0), value)
+          elsif (op_begin_hour == 0 && op_end_hour != 24) || (op_begin_hour != 0 && op_end_hour == 24) # 2 outage rules
+            if op_begin_hour == 0 && op_end_hour != 24
+              # last day
+              out = Schedule.create_outage_rule(schedule, sch_name, i, date_e, date_e)
+              Schedule.set_outage_values(out, end_day_schedule, 0, op_end_hour, value)
 
-          # last day
-          out = Schedule.create_outage_rule(schedule, sch_name, i, date_e, date_e)
-          Schedule.set_outage_values(out, end_day_schedule, 0, op.end_hour, value)
-        else # outage is more than two calendar days (need three outage rules)
-          # first day
-          out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_s)
-          Schedule.set_outage_values(out, begin_day_schedule, op.begin_hour, 23, value)
+              # all other days
+              date_e = OpenStudio::Date::fromDayOfYear(day_e - 1, year)
+              out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_e)
+              out.addValue(OpenStudio::Time.new(0, 24, 0, 0), value)
+            elsif op_begin_hour != 0 && op_end_hour == 24
+              # first day
+              out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_s)
+              Schedule.set_outage_values(out, begin_day_schedule, op_begin_hour, 24, value)
 
-          # last day
-          out = Schedule.create_outage_rule(schedule, sch_name, i, date_e, date_e)
-          Schedule.set_outage_values(out, end_day_schedule, 0, op.end_hour, value)
+              # all other days
+              date_s = OpenStudio::Date::fromDayOfYear(day_s + 1, year)
+              out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_e)
+              out.addValue(OpenStudio::Time.new(0, 24, 0, 0), value)
+            end
+          else # 3 outage rules
+            # first day
+            out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_s)
+            Schedule.set_outage_values(out, begin_day_schedule, op_begin_hour, 24, value)
 
-          # all other days
-          date_s = OpenStudio::Date::fromDayOfYear(day_s + 1, year)
-          date_e = OpenStudio::Date::fromDayOfYear(day_e - 1, year)
-          out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_e)
-          out.addValue(OpenStudio::Time.new(0, 24, 0, 0), value)
+            # all other days
+            date_s = OpenStudio::Date::fromDayOfYear(day_s + 1, year)
+            date_e = OpenStudio::Date::fromDayOfYear(day_e - 1, year)
+            out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_e)
+            out.addValue(OpenStudio::Time.new(0, 24, 0, 0), value)
+
+            # last day
+            out = Schedule.create_outage_rule(schedule, sch_name, i, date_e, date_e)
+            Schedule.set_outage_values(out, end_day_schedule, 0, op_end_hour, value)
+          end
         end
-
       else # much simpler if hours of the day aren't specified
         out = Schedule.create_outage_rule(schedule, sch_name, i, date_s, date_e)
         out.addValue(OpenStudio::Time.new(0, 24, 0, 0), value)
@@ -877,7 +901,7 @@ class Schedule
   def self.set_outage_values(out, day_schedule, begin_hour, end_hour, value)
     (0..23).each do |h|
       time = OpenStudio::Time.new(0, h + 1, 0, 0)
-      if (h < begin_hour) || (h > end_hour)
+      if (h < begin_hour) || (h >= end_hour)
         out.addValue(time, day_schedule.getValue(time))
       else
         out.addValue(time, value)
@@ -1634,11 +1658,17 @@ class SchedulesFile
         end_hour = period.end_hour if not period.end_hour.nil?
       end
 
+      if end_hour == 0
+        end_hour = 24
+        end_day_num -= 1
+        end_day_num = num_days_in_year if end_day_num == 0
+      end
+
       if end_day_num >= start_day_num
-        @tmp_schedules[col_name].fill(1.0, (start_day_num - 1) * steps_in_day + (begin_hour * steps_in_hour), (end_day_num - start_day_num + 1) * steps_in_day - ((24 - end_hour) * steps_in_hour)) # Fill between start/end days
+        @tmp_schedules[col_name].fill(1.0, (start_day_num - 1) * steps_in_day + (begin_hour * steps_in_hour), (end_day_num - start_day_num + 1) * steps_in_day - ((24 - end_hour + begin_hour) * steps_in_hour)) # Fill between start/end days
       else # Wrap around year
         @tmp_schedules[col_name].fill(1.0, (start_day_num - 1) * steps_in_day + (begin_hour * steps_in_hour)) # Fill between start day and end of year
-        @tmp_schedules[col_name].fill(1.0, 0, end_day_num * steps_in_day - ((24 - end_hour) * steps_in_hour)) # Fill between start of year and end day
+        @tmp_schedules[col_name].fill(1.0, 0, (end_day_num - 1) * steps_in_day + (end_hour * steps_in_hour)) # Fill between start of year and end day
       end
     end
   end
