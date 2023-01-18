@@ -11,6 +11,8 @@ Technology improvements are gradiented by 10 options
 More information can be found here:
 https://oedi-data-lake.s3.amazonaws.com/nrel-pds-building-stock/end-use-load-profiles-for-us-building-stock/2022/EUSS_ResRound1_Technical_Documentation.pdf
 
+Need to run resStock estimation environment
+
 Created by: Lixi.Liu@nrel.gov
 Modified by: Katelyn.Stenger@nrel.gov
 Created on: Oct 4, 2022
@@ -99,7 +101,7 @@ class IRAAnalysis:
     @staticmethod
     def validate_output_directory(output_dir):
         if output_dir is None:
-            output_dir = Path(__file__).resolve().parent / "output_by_technology"
+            output_dir = Path(__file__).resolve().parent / "output_rollup"
         else:
             output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -126,7 +128,7 @@ class IRAAnalysis:
             with open(file_path, newline="") as f:
                 reader = csv.reader(f)
                 columns = next(reader)  # gets the first line
-                # TODO: Overwrite for first run
+                # NOTE: Overwriting for first run
                 #if "in.area_median_income" not in columns:
                 add_ami_column_to_file(file_path)  # modify file in-place
 
@@ -964,32 +966,30 @@ def main(euss_dir):
     emission_type = (
         "lrmer_low_re_cost_25_2025_start"  # <---- least controversial approach
     )
-    # TODO: Verify groupby columns before running
+
     groupby_cols = [
         "in.state",
         "in.county", # New column
-        #"in.city", # Need to remap this before integration; mimick AMI remap
+        #"in.city", # TODO: Need to remap this before integration; mimick AMI remap
         "in.heating_fuel",
         "building_type",
         "in.tenure",
         "AMI",  # "AMI", "FPL"
-        #"in.building_america_climate_zone",# BA Climate Zone, may need to remap?
+        "in.building_america_climate_zone", # TODO: BA Climate Zone, may need to remap?
     ]
 
-    # TODO:  turn coarsening off
     coarsening_map = {"in.state": "in.ashrae_iecc_climate_zone_2004_2_a_split"}
 
     # Initialize
     IRA = IRAAnalysis(euss_dir, groupby_cols, coarsening_map, emission_type)
 
     # Pre-process:
-    # TODO: need metadata for AMI
     IRA.add_ami_to_euss_files()
 
     ## Set control variables
-    # TODOO: set as false
-    coarsening = True  # <--- # whether to use coarsening_map
-    as_percentage = True  # <--- # whether to calculate savings as pct
+    # TODO: set as false
+    coarsening = False # <--- # whether to use coarsening_map
+    as_percentage = False  # <--- # whether to calculate savings as pct
 
     # TODO: only coarsening
     print(f"coarsening = {coarsening}")
@@ -998,170 +998,91 @@ def main(euss_dir):
     # TODO: use baseline and those functions to calc the average
     # Do calculations
     # get baseline consumption
-    # IRA.get_baseline_consumption(0, "baseline_consumption", coarsening=coarsening)
+    IRA.get_baseline_consumption(0, 
+    "baseline_consumption", coarsening=coarsening)
 
     # TODO: may not even want savings; may only want energy usage; see baseline function
 
     # [1] Basic enclosure: all (pkg 1)
-    IRA.get_savings_total(
-        1, "basic_enclosure_upgrade", as_percentage=as_percentage, coarsening=coarsening
+    IRA.get_baseline_consumption(
+        1, "basic_enclosure_upgrade", coarsening=coarsening
     )
 
     # [2] Enhanced enclosure: all (pkg 2)
-    IRA.get_savings_total(
+    IRA.get_baseline_consumption(
         2,
         "enhanced_enclosure_upgrade",
-        as_percentage=as_percentage,
         coarsening=coarsening,
     )
 
     # [3] Heat pump – min eff: all (pkg 3)
-    IRA.get_savings_total(
+    IRA.get_baseline_consumption(
         3,
         "heat_pump_min_eff_with_electric_backup",
-        as_percentage=as_percentage,
         coarsening=coarsening,
     )
 
     # [4] Heat pump – high eff: all (pkg 4)
-    IRA.get_savings_total(
+    IRA.get_baseline_consumption(
         4,
         "heat_pump_high_eff_with_electric_backup",
-        as_percentage=as_percentage,
         coarsening=coarsening,
     )
 
     # [5] Heat pump – min eff + existing backup: all (pkg 5)
-    IRA.get_savings_total(
+    IRA.get_baseline_consumption(
         5,
         "heat_pump_min_eff_with_existing_backup",
-        as_percentage=as_percentage,
         coarsening=coarsening,
     )
 
     # [6] Heat pump – high eff + basic enclosure: Heating & Cooling (pkg 9)
-    IRA.get_savings_heating_and_cooling(
+    IRA.get_baseline_consumption(
         9,
         "heat_pump_high_eff_with_basic_enclosure",
-        as_percentage=as_percentage,
         coarsening=coarsening,
     )
 
     # [7] Heat pump – high eff + enhanced enclosure: Heating & Cooling (pkg 10)
-    IRA.get_savings_heating_and_cooling(
+    IRA.get_baseline_consumption(
         10,
         "heat_pump_high_eff_with_enhanced_enclosure",
-        as_percentage=as_percentage,
         coarsening=coarsening,
     )
 
     # [8] Heat pump water heater: all (pkg 6)
-    IRA.get_savings_total(
-        6, "heat_pump_water_heater", as_percentage=as_percentage, coarsening=coarsening
+    IRA.get_baseline_consumption(
+        6, "heat_pump_water_heater",
+        coarsening=coarsening
     )
 
     # [9] Electric dryer: Clothes dryer (pkg 7)
-    IRA.get_savings_dryer(
-        7, "electric_clothes_dryer", as_percentage=as_percentage, coarsening=coarsening
+    IRA.get_baseline_consumption(
+        7, "electric_clothes_dryer",
+        coarsening=coarsening,
     )
 
     # [10] Heat pump dryer: Clothes dryer (pkg 8, 9, 10)
-    IRA.get_savings_dryer(
+    IRA.get_baseline_consumption(
         [8, 9, 10],
         "heat_pump_clothes_dryer",
-        as_percentage=as_percentage,
         coarsening=coarsening,
     )
 
     # [11] Electric cooking: Cooking (pkg 7)
-    IRA.get_savings_cooking(
-        7, "electric_cooking", as_percentage=as_percentage, coarsening=coarsening
+    IRA.get_baseline_consumption(
+        7, "electric_cooking", 
+        coarsening=coarsening
     )
 
     # [12] Induction cooking: Cooking (pkg 8, 9, 10)
-    IRA.get_savings_cooking(
+    IRA.get_baseline_consumption(
         [8, 9, 10],
         "induction_cooking",
-        as_percentage=as_percentage,
         coarsening=coarsening,
     )
 
     #####################################
-
-
-def main_goal_achievement(euss_dir):
-
-    ### Upgrade settings
-    emission_type = (
-        "lrmer_low_re_cost_25_2025_start"  # <---- least controversial approach
-    )
-    groupby_cols = [
-        "in.state",
-        "in.heating_fuel",
-        "building_type",
-    ]
-    coarsening_map = None
-
-    # Initialize
-    IRA = IRAAnalysis(euss_dir, groupby_cols, coarsening_map, emission_type)
-
-    # Pre-process:
-    IRA.add_ami_to_euss_files()
-
-    # Do calculations
-    # [1] Basic enclosure: all (pkg 1)
-    IRA.get_segment_fraction_above_targets(
-        1, "basic_enclosure_upgrade", end_use="total"
-    )
-
-    # [2] Enhanced enclosure: all (pkg 2)
-    IRA.get_segment_fraction_above_targets(
-        2, "enhanced_enclosure_upgrade", end_use="total"
-    )
-
-    # [3] Heat pump – min eff: all (pkg 3)
-    IRA.get_segment_fraction_above_targets(
-        3, "heat_pump_min_eff_with_electric_backup", end_use="total"
-    )
-
-    # [4] Heat pump – high eff: all (pkg 4)
-    IRA.get_segment_fraction_above_targets(
-        4, "heat_pump_high_eff_with_electric_backup", end_use="total"
-    )
-
-    # [5] Heat pump – min eff + existing backup: all (pkg 5)
-    IRA.get_segment_fraction_above_targets(
-        5, "heat_pump_min_eff_with_existing_backup", end_use="total"
-    )
-
-    # [6] Heat pump – high eff + basic enclosure: Heating & Cooling (pkg 9)
-    IRA.get_segment_fraction_above_targets(
-        9, "heat_pump_high_eff_with_basic_enclosure", end_use="heat_cool"
-    )
-
-    # [7] Heat pump – high eff + enhanced enclosure: Heating & Cooling (pkg 10)
-    IRA.get_segment_fraction_above_targets(
-        10, "heat_pump_high_eff_with_enhanced_enclosure", end_use="heat_cool"
-    )
-
-    # [8] Heat pump water heater: all (pkg 6)
-    IRA.get_segment_fraction_above_targets(6, "heat_pump_water_heater", end_use="total")
-
-    # [9] Electric dryer: Clothes dryer (pkg 7)
-    IRA.get_segment_fraction_above_targets(7, "electric_clothes_dryer", end_use="dryer")
-
-    # [10] Heat pump dryer: Clothes dryer (pkg 8, 9, 10)
-    IRA.get_segment_fraction_above_targets(
-        [8, 9, 10], "heat_pump_clothes_dryer", end_use="dryer"
-    )
-
-    # [11] Electric cooking: Cooking (pkg 7)
-    IRA.get_segment_fraction_above_targets(7, "electric_cooking", end_use="cooking")
-
-    # [12] Induction cooking: Cooking (pkg 8, 9, 10)
-    IRA.get_segment_fraction_above_targets(
-        [8, 9, 10], "induction_cooking", end_use="cooking"
-    )
 
 
 if __name__ == "__main__":
@@ -1171,7 +1092,7 @@ if __name__ == "__main__":
     elif len(sys.argv) == 1:
         # set working directory if no path is provided
         euss_dir = Path("/Users/kstenger/Documents/c. IRA_Estimation/EUSS data/data")  
-        # TODO: ADJUST to your own default
+        # NOTE: ADJUST to your own default
     else:
         print(
             """
@@ -1182,4 +1103,3 @@ if __name__ == "__main__":
         sys.exit(1)
 
     main(euss_dir)
-    #main_goal_achievement(euss_dir) # Not using this calcuation
