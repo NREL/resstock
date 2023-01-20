@@ -136,7 +136,7 @@ def map_ami_by_income_limits_by_county(df):
     income_limits_df.set_index("county_gis", inplace=True)
 
     max_occupants = 8
-    bin_edges = POM.load_bin_edges()
+    bin_edges, _ = POM.load_area_median_income_bins()
 
     def get_pivoted_income_limits_df(income_limits_df):
         """Reformat income limit table"""
