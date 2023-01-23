@@ -251,20 +251,19 @@ class IRAAnalysis:
 
     @staticmethod
     def remap_city(df):
-        df["urban"] = df["in.city"].map(
-            {
-                # TODO: remap urban nominators, figure out logic
-                "SomeLogicGoesHere": "urban",
-                "In another census Place": "non-urban",
-                "Not in a census Place": "non-urban"
-            }
-        )
+        # if (df['in.city'] == 'In another census Place' or 'Not in a census Place'):
+        #     df['urban'] == 'non-urban'
+        # else:
+        #     df['urban'] == 'urban'
+        #df["urban"] = lambda x: "non-urban" if x == "In another census Place" or "Not in a census Place" else "urban"
+        df['city'] = df['in.city'].apply(lambda x: 'non-urban' if x == ('In another census Place' or 'Not in a census Place') else 'urban')
         return df
     
     def remap_columns(self, df):
         df = self.remap_building_type(df)
         df = self.remap_federal_poverty(df)
         df = self.remap_area_median_income(df)
+        df = self.remap_city(df)
         return df
 
     @staticmethod
@@ -970,12 +969,13 @@ def main(euss_dir):
     groupby_cols = [
         "in.state",
         "in.county", # New column
-        #"in.city", # TODO: Need to remap this before integration; mimick AMI remap
+        "in.vintage", 
+        "city", # TODO: Need to remap this before integration; mimick AMI remap
         "in.heating_fuel",
         "building_type",
         "in.tenure",
         "AMI",  # "AMI", "FPL"
-        "in.building_america_climate_zone", # TODO: BA Climate Zone, may need to remap?
+        "in.building_america_climate_zone", # BA Climate Zone
     ]
 
     coarsening_map = {"in.state": "in.ashrae_iecc_climate_zone_2004_2_a_split"}
