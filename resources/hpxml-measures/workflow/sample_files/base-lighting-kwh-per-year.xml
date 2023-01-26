@@ -11,9 +11,8 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
-      <SchedulesFilePath>../../HPXMLtoOpenStudio/resources/schedule_files/battery.csv</SchedulesFilePath>
       <AdditionalProperties>
-        <ParentHPXMLFile>base-pv-generators-battery.xml</ParentHPXMLFile>
+        <ParentHPXMLFile>base.xml</ParentHPXMLFile>
       </AdditionalProperties>
       <UtilityBillScenarios>
         <UtilityBillScenario>
@@ -435,66 +434,6 @@
             <LowFlow>false</LowFlow>
           </WaterFixture>
         </WaterHeating>
-        <Photovoltaics>
-          <PVSystem>
-            <SystemIdentifier id='PVSystem1'/>
-            <Location>roof</Location>
-            <ModuleType>standard</ModuleType>
-            <Tracking>fixed</Tracking>
-            <ArrayAzimuth>180</ArrayAzimuth>
-            <ArrayTilt>20.0</ArrayTilt>
-            <MaxPowerOutput>4000.0</MaxPowerOutput>
-            <SystemLossesFraction>0.14</SystemLossesFraction>
-            <AttachedToInverter idref='Inverter1'/>
-          </PVSystem>
-          <PVSystem>
-            <SystemIdentifier id='PVSystem2'/>
-            <Location>roof</Location>
-            <ModuleType>premium</ModuleType>
-            <Tracking>fixed</Tracking>
-            <ArrayAzimuth>90</ArrayAzimuth>
-            <ArrayTilt>20.0</ArrayTilt>
-            <MaxPowerOutput>1500.0</MaxPowerOutput>
-            <SystemLossesFraction>0.14</SystemLossesFraction>
-            <AttachedToInverter idref='Inverter1'/>
-          </PVSystem>
-          <Inverter>
-            <SystemIdentifier id='Inverter1'/>
-            <InverterEfficiency>0.96</InverterEfficiency>
-          </Inverter>
-        </Photovoltaics>
-        <Batteries>
-          <Battery>
-            <SystemIdentifier id='Battery1'/>
-            <Location>outside</Location>
-            <BatteryType>Li-ion</BatteryType>
-            <NominalCapacity>
-              <Units>kWh</Units>
-              <Value>20.0</Value>
-            </NominalCapacity>
-            <UsableCapacity>
-              <Units>kWh</Units>
-              <Value>18.0</Value>
-            </UsableCapacity>
-            <RatedPowerOutput>6000.0</RatedPowerOutput>
-          </Battery>
-        </Batteries>
-        <extension>
-          <Generators>
-            <Generator>
-              <SystemIdentifier id='Generator1'/>
-              <FuelType>natural gas</FuelType>
-              <AnnualConsumptionkBtu>8500.0</AnnualConsumptionkBtu>
-              <AnnualOutputkWh>500.0</AnnualOutputkWh>
-            </Generator>
-            <Generator>
-              <SystemIdentifier id='Generator2'/>
-              <FuelType>fuel oil</FuelType>
-              <AnnualConsumptionkBtu>8500.0</AnnualConsumptionkBtu>
-              <AnnualOutputkWh>500.0</AnnualOutputkWh>
-            </Generator>
-          </Generators>
-        </extension>
       </Systems>
       <Appliances>
         <ClothesWasher>
@@ -547,74 +486,26 @@
         <LightingGroup>
           <SystemIdentifier id='LightingGroup1'/>
           <Location>interior</Location>
-          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
-          <LightingType>
-            <CompactFluorescent/>
-          </LightingType>
+          <Load>
+            <Units>kWh/year</Units>
+            <Value>1500.0</Value>
+          </Load>
         </LightingGroup>
         <LightingGroup>
           <SystemIdentifier id='LightingGroup2'/>
           <Location>exterior</Location>
-          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
-          <LightingType>
-            <CompactFluorescent/>
-          </LightingType>
+          <Load>
+            <Units>kWh/year</Units>
+            <Value>150.0</Value>
+          </Load>
         </LightingGroup>
         <LightingGroup>
           <SystemIdentifier id='LightingGroup3'/>
           <Location>garage</Location>
-          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
-          <LightingType>
-            <CompactFluorescent/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup4'/>
-          <Location>interior</Location>
-          <FractionofUnitsInLocation>0.1</FractionofUnitsInLocation>
-          <LightingType>
-            <FluorescentTube/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup5'/>
-          <Location>exterior</Location>
-          <FractionofUnitsInLocation>0.1</FractionofUnitsInLocation>
-          <LightingType>
-            <FluorescentTube/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup6'/>
-          <Location>garage</Location>
-          <FractionofUnitsInLocation>0.1</FractionofUnitsInLocation>
-          <LightingType>
-            <FluorescentTube/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup7'/>
-          <Location>interior</Location>
-          <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
-          <LightingType>
-            <LightEmittingDiode/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup8'/>
-          <Location>exterior</Location>
-          <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
-          <LightingType>
-            <LightEmittingDiode/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup9'/>
-          <Location>garage</Location>
-          <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
-          <LightingType>
-            <LightEmittingDiode/>
-          </LightingType>
+          <Load>
+            <Units>kWh/year</Units>
+            <Value>0.0</Value>
+          </Load>
         </LightingGroup>
       </Lighting>
       <MiscLoads>

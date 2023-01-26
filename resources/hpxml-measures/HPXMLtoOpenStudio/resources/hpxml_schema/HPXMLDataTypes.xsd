@@ -4815,6 +4815,22 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="InverterType_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="central inverter"/>
+			<xs:enumeration value="string inverter"/>
+			<xs:enumeration value="multi-string inverter"/>
+			<xs:enumeration value="micro inverter"/>
+			<xs:enumeration value="other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="InverterType">
+		<xs:simpleContent>
+			<xs:extension base="InverterType_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="FloorOrCeiling_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="floor"/>

@@ -212,7 +212,7 @@ def create_hpxmls
     'base-hvac-air-to-air-heat-pump-1-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-cooling-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-heating-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
-    'base-hvac-air-to-air-heat-pump-1-speed-backup-lockout-temperature.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-seer2-hspf2.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-2-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed.xml' => 'base.xml',
@@ -264,6 +264,7 @@ def create_hpxmls
     'base-hvac-autosize-mini-split-heat-pump-ducted-sizing-methodology-hers.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-autosize-mini-split-heat-pump-ducted-sizing-methodology-maxload.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-autosize-mini-split-heat-pump-ductless-backup-stove.xml' => 'base-hvac-mini-split-heat-pump-ductless-backup-stove.xml',
+    'base-hvac-autosize-mini-split-heat-pump-ductless-backup-baseboard.xml' => 'base-hvac-mini-split-heat-pump-ductless-backup-baseboard.xml',
     'base-hvac-autosize-mini-split-air-conditioner-only-ducted.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'base-hvac-autosize-ptac.xml' => 'base-hvac-ptac.xml',
     'base-hvac-autosize-ptac-with-heating.xml' => 'base-hvac-ptac-with-heating-electricity.xml',
@@ -291,7 +292,7 @@ def create_hpxmls
     'base-hvac-central-ac-plus-air-to-air-heat-pump-heating.xml' => 'base-hvac-central-ac-only-1-speed.xml',
     'base-hvac-dse.xml' => 'base.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
-    'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-lockout-temperatures.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
     'base-hvac-dual-fuel-mini-split-heat-pump-ducted.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
@@ -338,6 +339,7 @@ def create_hpxmls
     'base-hvac-mini-split-heat-pump-ducted-heating-only.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-mini-split-heat-pump-ductless.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-mini-split-heat-pump-ductless-backup-stove.xml' => 'base-hvac-mini-split-heat-pump-ductless.xml',
+    'base-hvac-mini-split-heat-pump-ductless-backup-baseboard.xml' => 'base-hvac-mini-split-heat-pump-ductless.xml',
     'base-hvac-multiple.xml' => 'base.xml',
     'base-hvac-none.xml' => 'base-location-honolulu-hi.xml',
     'base-hvac-portable-heater-gas-only.xml' => 'base.xml',
@@ -362,6 +364,8 @@ def create_hpxmls
     'base-hvac-wall-furnace-elec-only.xml' => 'base.xml',
     'base-lighting-ceiling-fans.xml' => 'base.xml',
     'base-lighting-holiday.xml' => 'base.xml',
+    'base-lighting-kwh-per-year.xml' => 'base.xml',
+    'base-lighting-mixed.xml' => 'base.xml',
     'base-lighting-none.xml' => 'base.xml',
     'base-location-AMY-2012.xml' => 'base.xml',
     'base-location-baltimore-md.xml' => 'base-foundation-unvented-crawlspace.xml',
@@ -528,6 +532,7 @@ def create_hpxmls
       schema_path = File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
       errors, _ = XMLValidator.validate_against_schema(hpxml_path, schema_path)
       if errors.size > 0
+        puts errors.to_s
         puts "\nError: Did not successfully validate #{hpxml_file}."
         exit!
       end
@@ -1732,7 +1737,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   elsif ['base-hvac-air-to-air-heat-pump-1-speed-heating-only.xml'].include? hpxml_file
     args['heat_pump_cooling_capacity'] = 0.0
     args['heat_pump_fraction_cool_load_served'] = 0
-  elsif ['base-hvac-air-to-air-heat-pump-1-speed-backup-lockout-temperature.xml'].include? hpxml_file
+  elsif ['base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml'].include? hpxml_file
     args['hvac_control_heating_weekday_setpoint'] = '64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64'
     args['hvac_control_heating_weekend_setpoint'] = '64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64'
     args['heat_pump_backup_heating_lockout_temp'] = 35.0
@@ -1765,7 +1770,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heating_system_2_heating_efficiency'] = 0.8
     args['heating_system_2_heating_capacity'] = 60000.0
   elsif ['base-hvac-air-to-air-heat-pump-var-speed-backup-boiler-switchover-temperature.xml'].include? hpxml_file
-    args['heat_pump_backup_heating_switchover_temp'] = 25
+    args['heat_pump_backup_heating_switchover_temp'] = 30.0
   elsif hpxml_file.include? 'autosize'
     args.delete('heating_system_heating_capacity')
     args.delete('heating_system_2_heating_capacity')
@@ -1831,20 +1836,20 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heat_pump_heating_efficiency'] = 7.7
     args['heat_pump_backup_fuel'] = HPXML::FuelTypeNaturalGas
     args['heat_pump_backup_heating_efficiency'] = 0.95
-    args['heat_pump_backup_heating_switchover_temp'] = 25
-  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml'].include? hpxml_file
-    args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
-    args['heat_pump_backup_heating_efficiency'] = 1.0
+    args['heat_pump_backup_heating_switchover_temp'] = 30.0
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-lockout-temperatures.xml'].include? hpxml_file
+    args.delete('heat_pump_backup_heating_switchover_temp')
+    args['heat_pump_backup_heating_lockout_temp'] = 45.0
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.xml',
          'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml'].include? hpxml_file
     args['heat_pump_backup_fuel'] = HPXML::FuelTypeNaturalGas
     args['heat_pump_backup_heating_efficiency'] = 0.95
-    args['heat_pump_backup_heating_switchover_temp'] = 25
+    args['heat_pump_backup_heating_switchover_temp'] = 30.0
   elsif ['base-hvac-dual-fuel-mini-split-heat-pump-ducted.xml'].include? hpxml_file
     args['heat_pump_heating_capacity'] = 36000.0
     args['heat_pump_backup_fuel'] = HPXML::FuelTypeNaturalGas
     args['heat_pump_backup_heating_efficiency'] = 0.95
-    args['heat_pump_backup_heating_switchover_temp'] = 25
+    args['heat_pump_backup_heating_switchover_temp'] = 30.0
   elsif ['base-hvac-ducts-leakage-cfm50.xml'].include? hpxml_file
     args['ducts_leakage_units'] = HPXML::UnitsCFM50
     args['ducts_supply_leakage_to_outside_value'] = 100
@@ -1992,6 +1997,15 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heating_system_2_type'] = HPXML::HVACTypeStove
     args['heating_system_2_fuel'] = HPXML::FuelTypeOil
     args['heating_system_2_heating_efficiency'] = 0.6
+    args['heating_system_2_heating_capacity'] = 60000.0
+  elsif ['base-hvac-mini-split-heat-pump-ductless-backup-baseboard.xml'].include? hpxml_file
+    args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
+    args['heat_pump_heating_capacity'] = 18000.0
+    args['heat_pump_cooling_capacity'] = 18000.0
+    args['heat_pump_heating_capacity_17_f'] = args['heat_pump_heating_capacity'] * 0.6
+    args['heating_system_2_type'] = HPXML::HVACTypeElectricResistance
+    args['heating_system_2_fuel'] = HPXML::FuelTypeElectricity
+    args['heating_system_2_heating_efficiency'] = 1.0
     args['heating_system_2_heating_capacity'] = 60000.0
   elsif ['base-hvac-none.xml'].include? hpxml_file
     args['heating_system_type'] = 'none'
@@ -3966,9 +3980,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
         hpxml.heating_systems[i].fraction_heat_load_served = 0.35
       end
     end
-  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml'].include? hpxml_file
-    hpxml.heat_pumps[0].backup_heating_efficiency_afue = hpxml.heat_pumps[0].backup_heating_efficiency_percent
-    hpxml.heat_pumps[0].backup_heating_efficiency_percent = nil
   elsif ['base-enclosure-2stories.xml',
          'base-enclosure-2stories-garage.xml',
          'base-hvac-ducts-area-fractions.xml'].include? hpxml_file
@@ -4676,6 +4687,28 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.lighting.garage_weekday_fractions = '0.046, 0.046, 0.046, 0.046, 0.046, 0.037, 0.035, 0.034, 0.033, 0.028, 0.022, 0.015, 0.012, 0.011, 0.011, 0.012, 0.019, 0.037, 0.049, 0.065, 0.091, 0.105, 0.091, 0.063'
     hpxml.lighting.garage_weekend_fractions = '0.046, 0.046, 0.045, 0.045, 0.046, 0.045, 0.044, 0.041, 0.036, 0.03, 0.024, 0.016, 0.012, 0.011, 0.011, 0.012, 0.019, 0.038, 0.048, 0.06, 0.083, 0.098, 0.085, 0.059'
     hpxml.lighting.garage_monthly_multipliers = '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
+  elsif ['base-lighting-kwh-per-year.xml'].include? hpxml_file
+    ltg_kwhs_per_year = { HPXML::LocationInterior => 1500,
+                          HPXML::LocationExterior => 150,
+                          HPXML::LocationGarage => 0 }
+    hpxml.lighting_groups.clear
+    ltg_kwhs_per_year.each do |location, kwh_per_year|
+      hpxml.lighting_groups.add(id: "LightingGroup#{hpxml.lighting_groups.size + 1}",
+                                location: location,
+                                kwh_per_year: kwh_per_year)
+    end
+  elsif ['base-lighting-mixed.xml'].include? hpxml_file
+    hpxml.lighting_groups.each do |lg|
+      next unless lg.location == HPXML::LocationExterior
+
+      lg.delete
+    end
+    hpxml.lighting_groups.each_with_index do |lg, i|
+      lg.id = "LightingGroup#{i + 1}"
+    end
+    hpxml.lighting_groups.add(id: "LightingGroup#{hpxml.lighting_groups.size + 1}",
+                              location: HPXML::LocationExterior,
+                              kwh_per_year: 150)
   end
 
   # --------------- #

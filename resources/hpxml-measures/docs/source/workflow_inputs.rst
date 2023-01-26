@@ -2169,7 +2169,7 @@ If not entered, the simulation will not include kitchen/bathroom fans.
   =============================================================================================  =======  =======  ===========  ========  ========  =============================
   Element                                                                                        Type     Units    Constraints  Required  Default   Notes
   =============================================================================================  =======  =======  ===========  ========  ========  =============================
-  ``Quantity``                                                                                   integer           >= 0         No        See [#]_  Number of identical fans
+  ``Count``                                                                                      integer           >= 0         No        See [#]_  Number of identical fans
   ``RatedFlowRate`` or ``TestedFlowRate`` or ``CalculatedFlowRate`` or ``DeliveredVentilation``  double   cfm      >= 0         No        See [#]_  Flow rate to outside [#]_
   ``HoursInOperation``                                                                           double   hrs/day  0 - 24       No        See [#]_  Hours per day of operation
   ``FanLocation``                                                                                string            See [#]_     Yes                 Location of the fan
@@ -2177,7 +2177,7 @@ If not entered, the simulation will not include kitchen/bathroom fans.
   ``extension/StartHour``                                                                        integer           0 - 23       No        See [#]_  Daily start hour of operation
   =============================================================================================  =======  =======  ===========  ========  ========  =============================
 
-  .. [#] If Quantity not provided, defaults to 1 for kitchen fans and NumberofBathrooms for bath fans based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+  .. [#] If Count not provided, defaults to 1 for kitchen fans and NumberofBathrooms for bath fans based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
   .. [#] If flow rate not provided, defaults to 100 cfm for kitchen fans and 50 cfm for bath fans based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
   .. [#] If the kitchen range fan is a recirculating fan, the flow rate should be described as zero.
   .. [#] If HoursInOperation not provided, defaults to 1 based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
@@ -2575,8 +2575,8 @@ Many of the inputs are adopted from the `PVWatts model <https://pvwatts.nrel.gov
   ``ArrayAzimuth`` or ``ArrayOrientation``                 integer or string  deg or direction  0 - 359 or See [#]_  Yes                 Direction panels face (clockwise from North)
   ``ArrayTilt``                                            double             deg               0 - 90               Yes                 Tilt relative to horizontal
   ``MaxPowerOutput``                                       double             W                 >= 0                 Yes                 Peak power
-  ``InverterEfficiency``                                   double             frac              0 - 1 [#]_           No        0.96      Inverter efficiency
   ``SystemLossesFraction`` or ``YearModulesManufactured``  double or integer  frac or #         0 - 1 or > 1600      No        0.14      System losses [#]_
+  ``AttachedToInverter``                                   idref                                See [#]_             Yes                 ID of attached inverter
   ``extension/NumberofBedroomsServed``                     integer                              > 1                  See [#]_            Number of bedrooms served
   =======================================================  =================  ================  ===================  ========  ========  ============================================
   
@@ -2584,12 +2584,23 @@ Many of the inputs are adopted from the `PVWatts model <https://pvwatts.nrel.gov
   .. [#] ModuleType choices are "standard", "premium", or "thin film".
   .. [#] Tracking choices are "fixed", "1-axis", "1-axis backtracked", or "2-axis".
   .. [#] ArrayOrientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north"
-  .. [#] For homes with multiple PV arrays, all InverterEfficiency elements must have the same value.
   .. [#] System losses due to soiling, shading, snow, mismatch, wiring, degradation, etc.
          If YearModulesManufactured provided but not SystemLossesFraction, system losses calculated as:
          SystemLossesFraction = 1.0 - (1.0 - 0.14) * (1.0 - (1.0 - 0.995^(CurrentYear - YearModulesManufactured))).
+  .. [#] AttachedToInverter must reference an ``Inverter``.
   .. [#] NumberofBedroomsServed only required if IsSharedSystem is true, in which case it must be > NumberofBedrooms.
          PV generation will be apportioned to the dwelling unit using its number of bedrooms divided by the total number of bedrooms served by the PV system.
+
+In addition, an inverter must be entered as a ``/HPXML/Building/BuildingDetails/Systems/Photovoltaics/Inverter``.
+
+  =======================================================  =================  ================  ===================  ========  ========  ============================================
+  Element                                                  Type               Units             Constraints          Required  Default   Notes
+  =======================================================  =================  ================  ===================  ========  ========  ============================================
+  ``SystemIdentifier``                                     id                                                        Yes                 Unique identifier
+  ``InverterEfficiency``                                   double             frac              0 - 1 [#]_           No        0.96      Inverter efficiency
+  =======================================================  =================  ================  ===================  ========  ========  ============================================
+
+  .. [#] For homes with multiple inverters, all InverterEfficiency elements must have the same value.
 
 HPXML Batteries
 ***************
@@ -2924,19 +2935,16 @@ Lighting and ceiling fans are entered in ``/HPXML/Building/BuildingDetails/Light
 HPXML Lighting
 **************
 
-Nine ``/HPXML/Building/BuildingDetails/Lighting/LightingGroup`` elements must be provided, each of which is the combination of:
+Lighting can be specified with lighting type fractions or annual energy consumption values.
 
-- ``LightingType``: 'LightEmittingDiode', 'CompactFluorescent', and 'FluorescentTube'
-- ``Location``: 'interior', 'garage', and 'exterior'
-
-Information is entered in each ``LightingGroup``.
+If specifying **lighting type fractions**, nine ``/HPXML/Building/BuildingDetails/Lighting/LightingGroup`` elements must be provided using every combination of ``LightingType`` and ``Location``:
 
   =============================  =======  ======  ===========  ========  =======  ===========================================================================
   Element                        Type     Units   Constraints  Required  Default  Notes
   =============================  =======  ======  ===========  ========  =======  ===========================================================================
   ``SystemIdentifier``           id                            Yes                Unique identifier
   ``LightingType``               element          1 [#]_       Yes                Lighting type
-  ``Location``                   string           See [#]_     Yes                See [#]_
+  ``Location``                   string           See [#]_     Yes                Lighting location [#]_
   ``FractionofUnitsInLocation``  double   frac    0 - 1 [#]_   Yes                Fraction of light fixtures in the location with the specified lighting type
   =============================  =======  ======  ===========  ========  =======  ===========================================================================
 
@@ -2946,7 +2954,22 @@ Information is entered in each ``LightingGroup``.
   .. [#] The sum of FractionofUnitsInLocation for a given Location (e.g., interior) must be less than or equal to 1.
          If the fractions sum to less than 1, the remainder is assumed to be incandescent lighting.
 
-Additional information is entered in ``Lighting``.
+  Interior, exterior, and garage lighting energy use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+
+If specifying **annual energy consumption** instead, three ``/HPXML/Building/BuildingDetails/Lighting/LightingGroup`` elements must be provided using every ``Location``:
+
+  ================================  =======  ======  ===========  ========  ========  ===========================================================================
+  Element                           Type     Units   Constraints  Required  Default   Notes
+  ================================  =======  ======  ===========  ========  ========  ===========================================================================
+  ``SystemIdentifier``              id                            Yes                 Unique identifier
+  ``Location``                      string           See [#]_     Yes                 Lighting location [#]_
+  ``Load[Units="kWh/year"]/Value``  double   kWh/yr  >= 0         Yes                 Lighting energy use
+  ================================  =======  ======  ===========  ========  ========  ===========================================================================
+
+  .. [#] Location choices are "interior", "garage", or "exterior".
+  .. [#] Garage lighting is ignored if the building has no garage specified elsewhere.
+
+With either lighting specification, additional information can be entered in ``Lighting``.
 
   ================================================  =======  ======  ===========  ========  ========  ===============================================
   Element                                           Type     Units   Constraints  Required  Default   Notes
@@ -2987,8 +3010,6 @@ If exterior holiday lighting is specified, additional information is entered in 
   .. [#] If Value not provided, defaults to 1.1 for single-family detached and 0.55 for others.
   .. [#] If WeekdayScheduleFractions not provided (and :ref:`detailedschedules` not used), defaults to "0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019".
 
-Interior, exterior, and garage lighting energy use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
-
 HPXML Ceiling Fans
 ******************
 
@@ -3000,14 +3021,14 @@ If not entered, the simulation will not include a ceiling fan.
   =========================================  =======  =======  ===========  ========  ========  ==============================
   ``SystemIdentifier``                       id                             Yes                 Unique identifier
   ``Airflow[FanSpeed="medium"]/Efficiency``  double   cfm/W    > 0          No        See [#]_  Efficiency at medium speed
-  ``Quantity``                               integer           > 0          No        See [#]_  Number of similar ceiling fans
+  ``Count``                                  integer           > 0          No        See [#]_  Number of similar ceiling fans
   ``extension/WeekdayScheduleFractions``     array                          No        See [#]_  24 comma-separated weekday fractions
   ``extension/WeekendScheduleFractions``     array                          No                  24 comma-separated weekend fractions
   ``extension/MonthlyScheduleMultipliers``   array                          No        See [#]_  12 comma-separated monthly multipliers
   =========================================  =======  =======  ===========  ========  ========  ==============================
 
   .. [#] If Efficiency not provided, defaults to 3000 / 42.6 based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
-  .. [#] If Quantity not provided, defaults to NumberofBedrooms + 1 based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+  .. [#] If Count not provided, defaults to NumberofBedrooms + 1 based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figure 23 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.057, 0.057, 0.057, 0.057, 0.057, 0.057, 0.057, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.057, 0.057, 0.057, 0.057, 0.057, 0.057".
   .. [#] If MonthlyScheduleMultipliers not provided (and :ref:`detailedschedules` not used), defaults based on monthly average outdoor temperatures per `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_
 

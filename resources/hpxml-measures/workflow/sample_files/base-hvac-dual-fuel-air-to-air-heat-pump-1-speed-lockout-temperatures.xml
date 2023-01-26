@@ -11,9 +11,8 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
-      <SchedulesFilePath>../../HPXMLtoOpenStudio/resources/schedule_files/battery.csv</SchedulesFilePath>
       <AdditionalProperties>
-        <ParentHPXMLFile>base-pv-generators-battery.xml</ParentHPXMLFile>
+        <ParentHPXMLFile>base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml</ParentHPXMLFile>
       </AdditionalProperties>
       <UtilityBillScenarios>
         <UtilityBillScenario>
@@ -325,37 +324,38 @@
         <HVAC>
           <HVACPlant>
             <PrimarySystems>
-              <PrimaryHeatingSystem idref='HeatingSystem1'/>
-              <PrimaryCoolingSystem idref='CoolingSystem1'/>
+              <PrimaryHeatingSystem idref='HeatPump1'/>
+              <PrimaryCoolingSystem idref='HeatPump1'/>
             </PrimarySystems>
-            <HeatingSystem>
-              <SystemIdentifier id='HeatingSystem1'/>
+            <HeatPump>
+              <SystemIdentifier id='HeatPump1'/>
               <DistributionSystem idref='HVACDistribution1'/>
-              <HeatingSystemType>
-                <Furnace/>
-              </HeatingSystemType>
-              <HeatingSystemFuel>natural gas</HeatingSystemFuel>
+              <HeatPumpType>air-to-air</HeatPumpType>
+              <HeatPumpFuel>electricity</HeatPumpFuel>
               <HeatingCapacity>36000.0</HeatingCapacity>
-              <AnnualHeatingEfficiency>
-                <Units>AFUE</Units>
-                <Value>0.92</Value>
-              </AnnualHeatingEfficiency>
-              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
-            </HeatingSystem>
-            <CoolingSystem>
-              <SystemIdentifier id='CoolingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <CoolingSystemType>central air conditioner</CoolingSystemType>
-              <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>24000.0</CoolingCapacity>
+              <HeatingCapacity17F>21600.0</HeatingCapacity17F>
+              <CoolingCapacity>36000.0</CoolingCapacity>
               <CompressorType>single stage</CompressorType>
+              <CoolingSensibleHeatFraction>0.73</CoolingSensibleHeatFraction>
+              <BackupType>integrated</BackupType>
+              <BackupSystemFuel>natural gas</BackupSystemFuel>
+              <BackupAnnualHeatingEfficiency>
+                <Units>AFUE</Units>
+                <Value>0.95</Value>
+              </BackupAnnualHeatingEfficiency>
+              <BackupHeatingCapacity>36000.0</BackupHeatingCapacity>
+              <BackupHeatingLockoutTemperature>45.0</BackupHeatingLockoutTemperature>
+              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
                 <Units>SEER</Units>
                 <Value>13.0</Value>
               </AnnualCoolingEfficiency>
-              <SensibleHeatFraction>0.73</SensibleHeatFraction>
-            </CoolingSystem>
+              <AnnualHeatingEfficiency>
+                <Units>HSPF</Units>
+                <Value>7.7</Value>
+              </AnnualHeatingEfficiency>
+            </HeatPump>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
@@ -435,66 +435,6 @@
             <LowFlow>false</LowFlow>
           </WaterFixture>
         </WaterHeating>
-        <Photovoltaics>
-          <PVSystem>
-            <SystemIdentifier id='PVSystem1'/>
-            <Location>roof</Location>
-            <ModuleType>standard</ModuleType>
-            <Tracking>fixed</Tracking>
-            <ArrayAzimuth>180</ArrayAzimuth>
-            <ArrayTilt>20.0</ArrayTilt>
-            <MaxPowerOutput>4000.0</MaxPowerOutput>
-            <SystemLossesFraction>0.14</SystemLossesFraction>
-            <AttachedToInverter idref='Inverter1'/>
-          </PVSystem>
-          <PVSystem>
-            <SystemIdentifier id='PVSystem2'/>
-            <Location>roof</Location>
-            <ModuleType>premium</ModuleType>
-            <Tracking>fixed</Tracking>
-            <ArrayAzimuth>90</ArrayAzimuth>
-            <ArrayTilt>20.0</ArrayTilt>
-            <MaxPowerOutput>1500.0</MaxPowerOutput>
-            <SystemLossesFraction>0.14</SystemLossesFraction>
-            <AttachedToInverter idref='Inverter1'/>
-          </PVSystem>
-          <Inverter>
-            <SystemIdentifier id='Inverter1'/>
-            <InverterEfficiency>0.96</InverterEfficiency>
-          </Inverter>
-        </Photovoltaics>
-        <Batteries>
-          <Battery>
-            <SystemIdentifier id='Battery1'/>
-            <Location>outside</Location>
-            <BatteryType>Li-ion</BatteryType>
-            <NominalCapacity>
-              <Units>kWh</Units>
-              <Value>20.0</Value>
-            </NominalCapacity>
-            <UsableCapacity>
-              <Units>kWh</Units>
-              <Value>18.0</Value>
-            </UsableCapacity>
-            <RatedPowerOutput>6000.0</RatedPowerOutput>
-          </Battery>
-        </Batteries>
-        <extension>
-          <Generators>
-            <Generator>
-              <SystemIdentifier id='Generator1'/>
-              <FuelType>natural gas</FuelType>
-              <AnnualConsumptionkBtu>8500.0</AnnualConsumptionkBtu>
-              <AnnualOutputkWh>500.0</AnnualOutputkWh>
-            </Generator>
-            <Generator>
-              <SystemIdentifier id='Generator2'/>
-              <FuelType>fuel oil</FuelType>
-              <AnnualConsumptionkBtu>8500.0</AnnualConsumptionkBtu>
-              <AnnualOutputkWh>500.0</AnnualOutputkWh>
-            </Generator>
-          </Generators>
-        </extension>
       </Systems>
       <Appliances>
         <ClothesWasher>

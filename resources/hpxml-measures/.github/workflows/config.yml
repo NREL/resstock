@@ -38,7 +38,7 @@ jobs:
           bundle exec rake test_measures
 
       - name: Store code coverage
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: coverage
           name: coverage
@@ -49,7 +49,7 @@ jobs:
           make html SPHINXOPTS="-W --keep-going -n"
 
       - name: Save Docs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: documentation
           path: docs/_build/html/
@@ -72,7 +72,7 @@ jobs:
           bundle exec rake test_workflow
 
       - name: Store results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: workflow/tests/results
           name: results
@@ -102,7 +102,7 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
 
       - name: Store base results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: workflow/tests/base_results
           name: base_results
@@ -112,14 +112,14 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Download base results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: |
             base_results
           name: base_results
 
       - name: Download feature results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: |
             results
@@ -140,7 +140,7 @@ jobs:
           python workflow/tests/compare.py -a visualize
 
       - name: Store comparisons
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: workflow/tests/comparisons
           name: comparisons
@@ -154,7 +154,7 @@ jobs:
           ref: ${{ github.head_ref }}
 
       - name: Download feature results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: |
             results

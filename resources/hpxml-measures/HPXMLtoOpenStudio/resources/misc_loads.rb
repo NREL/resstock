@@ -4,7 +4,7 @@ class MiscLoads
   def self.apply_plug(model, runner, plug_load, obj_name, living_space, apply_ashrae140_assumptions, schedules_file, vacancy_periods)
     kwh = 0
     if not plug_load.nil?
-      kwh = plug_load.kWh_per_year * plug_load.usage_multiplier
+      kwh = plug_load.kwh_per_year * plug_load.usage_multiplier
     end
 
     return if kwh <= 0

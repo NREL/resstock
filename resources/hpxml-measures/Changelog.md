@@ -1,6 +1,10 @@
 ## OpenStudio-HPXML v1.6.0
 
 __New Features__
+- Updates to newer proposed HPXML v4.0:
+  - **Breaking change**: Replaces `VentilationFan/Quantity` and `CeilingFan/Quantity` with `Count`.
+  - **Breaking change**: Replaces `PVSystem/InverterEfficiency` with `PVSystem/AttachedToInverter` and `Inverter/InverterEfficiency`.
+- LightingGroups can now be specified using kWh/year annual consumption values as an alternative to fractions of different lighting types.
 - Allows modeling one or more occupant vacancy periods (`VacancyPeriods` in the HPXML file).
 - ReportSimulationOutput measure: Allows specifying the number of decimal places for timeseries output.
 
