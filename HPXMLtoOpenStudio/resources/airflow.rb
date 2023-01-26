@@ -1236,7 +1236,7 @@ class Airflow
     equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
     equip.setName(obj_name)
     equip.setSpace(@living_space) # no heat gain, so assign the equipment to an arbitrary space
-    equip_def.setDesignLevel(vent_object.fan_power * vent_object.quantity)
+    equip_def.setDesignLevel(vent_object.fan_power * vent_object.count)
     equip_def.setFractionRadiant(0)
     equip_def.setFractionLatent(0)
     equip_def.setFractionLost(1)
@@ -1536,7 +1536,7 @@ class Airflow
       next unless @cooking_range_in_cond_space
 
       # Infiltration impact
-      infil_program.addLine("Set Qrange = Qrange + #{UnitConversions.convert(vent_kitchen.flow_rate * vent_kitchen.quantity, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
+      infil_program.addLine("Set Qrange = Qrange + #{UnitConversions.convert(vent_kitchen.flow_rate * vent_kitchen.count, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
 
     infil_program.addLine('Set Qbath = 0')
@@ -1544,7 +1544,7 @@ class Airflow
       # Electricity impact
       obj_sch_sensor = apply_local_ventilation(model, vent_bath, Constants.ObjectNameMechanicalVentilationBathFan, index, vacancy_periods)
       # Infiltration impact
-      infil_program.addLine("Set Qbath = Qbath + #{UnitConversions.convert(vent_bath.flow_rate * vent_bath.quantity, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
+      infil_program.addLine("Set Qbath = Qbath + #{UnitConversions.convert(vent_bath.flow_rate * vent_bath.count, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
 
     infil_program.addLine('Set Qdryer = 0')
