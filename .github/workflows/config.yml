@@ -34,7 +34,7 @@ jobs:
           bundle exec rake unit_tests:measure_tests
 
       - name: Upload feature samples
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: resources/buildstock.csv
           name: samples
@@ -57,7 +57,7 @@ jobs:
           bundle exec rake workflow:analysis_tests
 
       - name: Upload run_analysis.rb results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: |
             project_national/results-Baseline.csv
@@ -107,7 +107,7 @@ jobs:
           python test/util.py
 
       - name: Upload integration results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: |
             baseline
@@ -115,14 +115,14 @@ jobs:
           name: results
 
       - name: Upload output files
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: |
             outputs
           name: outputs
 
       - name: Upload buildstockbatch results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: |
             project_national/national_baseline/results_csvs/results_up00.csv
@@ -140,13 +140,13 @@ jobs:
           ref: ${{ github.head_ref }}
 
       - name: Download buildstockbatch results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: buildstockbatch
           name: buildstockbatch
 
       - name: Download run_analysis results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: run_analysis
           name: run_analysis
@@ -165,7 +165,7 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
 
       - name: Upload base results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: test/base_results
           name: base_results
@@ -175,19 +175,19 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Download base results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: base_results
           name: base_results
 
       - name: Download feature samples
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: samples
           name: samples
 
       - name: Download feature results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: results
           name: results
@@ -232,7 +232,7 @@ jobs:
           python test/compare.py -a timeseries -b base_results/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
 
       - name: Upload comparisons
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: test/base_results/comparisons
           name: comparisons
@@ -252,19 +252,19 @@ jobs:
           sudo pip3 install sphinx sphinx-rtd-theme
 
       - name: Download feature samples
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: samples
           name: samples
 
       - name: Download feature results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: results
           name: results
 
       - name: Download output files
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: outputs
           name: outputs
@@ -296,7 +296,7 @@ jobs:
           make html SPHINXOPTS="-W --keep-going -n"
 
       - name: Save Docs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: documentation
           path: docs/read_the_docs/_build/html/
