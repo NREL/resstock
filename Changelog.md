@@ -9,6 +9,9 @@ __New Features__
 - ReportSimulationOutput measure:
   - Allows specifying the number of decimal places for timeseries output.
   - Msgpack outputs are no longer rounded (since there is no file size penalty to storing full precision).
+- **Breaking change**: Updates component loads outputs:
+  - Replaces `Windows` and `Skylights` with `Windows Conduction`, `Windows Solar`, `Skylights Conduction`, and `Skylights Solar`.
+  - Disaggregates `Lighting` from `Internal Gains`.
 
 __Bugfixes__
 - Fixes error if calculating utility bills for an all-electric home with a detailed JSON utility rate.

@@ -1983,7 +1983,6 @@ class OSModel
     objects_already_processed = []
 
     # EMS Sensors: Surfaces, SubSurfaces, InternalMass
-
     surfaces_sensors = { walls: [],
                          rim_joists: [],
                          foundation_walls: [],
@@ -1991,9 +1990,11 @@ class OSModel
                          slabs: [],
                          ceilings: [],
                          roofs: [],
-                         windows: [],
+                         windows_conduction: [],
+                         windows_solar: [],
                          doors: [],
-                         skylights: [],
+                         skylights_conduction: [],
+                         skylights_solar: [],
                          internal_mass: [] }
 
     # Output diagnostics needed for some output variables used below
@@ -2013,18 +2014,14 @@ class OSModel
       surface_type = surface_type.get
 
       s.subSurfaces.each do |ss|
-        key = { 'Window' => :windows,
+        # Conduction (windows, skylights, doors)
+        key = { 'Window' => :windows_conduction,
                 'Door' => :doors,
-                'Skylight' => :skylights }[surface_type]
+                'Skylight' => :skylights_conduction }[surface_type]
         fail "Unexpected subsurface for component loads: '#{ss.name}'." if key.nil?
 
         if (surface_type == 'Window') || (surface_type == 'Skylight')
-          vars = { 'Surface Window Transmitted Solar Radiation Energy' => 'ss_trans_in',
-                   'Surface Window Shortwave from Zone Back Out Window Heat Transfer Rate' => 'ss_back_out',
-                   'Surface Window Total Glazing Layers Absorbed Shortwave Radiation Rate' => 'ss_sw_abs',
-                   'Surface Window Total Glazing Layers Absorbed Solar Radiation Energy' => 'ss_sol_abs',
-                   'Surface Inside Face Initial Transmitted Diffuse Transmitted Out Window Solar Radiation Rate' => 'ss_trans_out',
-                   'Surface Inside Face Convection Heat Gain Energy' => 'ss_conv',
+          vars = { 'Surface Inside Face Convection Heat Gain Energy' => 'ss_conv',
                    'Surface Inside Face Internal Gains Radiation Heat Gain Energy' => 'ss_ig',
                    'Surface Inside Face Net Surface Thermal Radiation Heat Gain Energy' => 'ss_surf' }
         else
@@ -2034,6 +2031,25 @@ class OSModel
                    'Surface Inside Face Internal Gains Radiation Heat Gain Energy' => 'ss_ig',
                    'Surface Inside Face Net Surface Thermal Radiation Heat Gain Energy' => 'ss_surf' }
         end
+
+        vars.each do |var, name|
+          surfaces_sensors[key] << []
+          sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
+          sensor.setName(name)
+          sensor.setKeyName(ss.name.to_s)
+          surfaces_sensors[key][-1] << sensor
+        end
+
+        # Solar (windows, skylights)
+        next unless (surface_type == 'Window') || (surface_type == 'Skylight')
+
+        key = { 'Window' => :windows_solar,
+                'Skylight' => :skylights_solar }[surface_type]
+        vars = { 'Surface Window Transmitted Solar Radiation Energy' => 'ss_trans_in',
+                 'Surface Window Shortwave from Zone Back Out Window Heat Transfer Rate' => 'ss_back_out',
+                 'Surface Window Total Glazing Layers Absorbed Shortwave Radiation Rate' => 'ss_sw_abs',
+                 'Surface Window Total Glazing Layers Absorbed Solar Radiation Energy' => 'ss_sol_abs',
+                 'Surface Inside Face Initial Transmitted Diffuse Transmitted Out Window Solar Radiation Rate' => 'ss_trans_out' }
 
         surfaces_sensors[key] << []
         vars.each do |var, name|
@@ -2136,7 +2152,6 @@ class OSModel
     end
 
     # EMS Sensors: Ducts
-
     ducts_sensors = []
     ducts_mix_gain_sensor = nil
     ducts_mix_loss_sensor = nil
@@ -2180,8 +2195,24 @@ class OSModel
       end
     end
 
-    # EMS Sensors: Internal Gains
+    # EMS Sensors: Lighting
+    lightings_sensors = []
+    lightings_sensors << []
+    model.getLightss.sort.each do |e|
+      next unless e.space.get.thermalZone.get.name.to_s == living_zone.name.to_s
 
+      lightings_sensors << []
+      { 'Lights Convective Heating Energy' => 'ig_lgt_conv',
+        'Lights Radiant Heating Energy' => 'ig_lgt_rad',
+        'Lights Visible Radiation Heating Energy' => 'ig_lgt_vis' }.each do |var, name|
+        intgains_lights_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
+        intgains_lights_sensor.setName(name)
+        intgains_lights_sensor.setKeyName(e.name.to_s)
+        lightings_sensors[-1] << intgains_lights_sensor
+      end
+    end
+
+    # EMS Sensors: Internal Gains
     intgains_sensors = []
 
     model.getElectricEquipments.sort.each do |o|
@@ -2209,20 +2240,6 @@ class OSModel
         intgains_other_equip_sensor.setName(name)
         intgains_other_equip_sensor.setKeyName(o.name.to_s)
         intgains_sensors[-1] << intgains_other_equip_sensor
-      end
-    end
-
-    model.getLightss.sort.each do |e|
-      next unless e.space.get.thermalZone.get.name.to_s == living_zone.name.to_s
-
-      intgains_sensors << []
-      { 'Lights Convective Heating Energy' => 'ig_lgt_conv',
-        'Lights Radiant Heating Energy' => 'ig_lgt_rad',
-        'Lights Visible Radiation Heating Energy' => 'ig_lgt_vis' }.each do |var, name|
-        intgains_lights_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
-        intgains_lights_sensor.setName(name)
-        intgains_lights_sensor.setKeyName(e.name.to_s)
-        intgains_sensors[-1] << intgains_lights_sensor
       end
     end
 
@@ -2268,7 +2285,7 @@ class OSModel
       intgains_dhw_sensors[dhw_sensor] = [offcycle_loss, oncycle_loss, dhw_rtf_sensor]
     end
 
-    nonsurf_names = ['intgains', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
+    nonsurf_names = ['intgains', 'lighting', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
 
     # EMS program
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
@@ -2291,6 +2308,16 @@ class OSModel
         end
         program.addLine(s) if sensors.size > 0
       end
+    end
+
+    # EMS program: Lighting
+    program.addLine('Set hr_lighting = 0')
+    lightings_sensors.each do |lighting_sensors|
+      s = 'Set hr_lighting = hr_lighting'
+      lighting_sensors.each do |sensor|
+        s += " - #{sensor.name}"
+      end
+      program.addLine(s) if lighting_sensors.size > 0
     end
 
     # EMS program: Internal gains

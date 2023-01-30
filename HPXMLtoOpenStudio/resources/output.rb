@@ -84,8 +84,10 @@ class CLT
   RimJoists = 'Rim Joists'
   FoundationWalls = 'Foundation Walls'
   Doors = 'Doors'
-  Windows = 'Windows'
-  Skylights = 'Skylights'
+  WindowsConduction = 'Windows Conduction'
+  WindowsSolar = 'Windows Solar'
+  SkylightsConduction = 'Skylights Conduction'
+  SkylightsSolar = 'Skylights Solar'
   Floors = 'Floors'
   Slabs = 'Slabs'
   InternalMass = 'Internal Mass'
@@ -95,6 +97,7 @@ class CLT
   WholeHouseFan = 'Whole House Fan'
   Ducts = 'Ducts'
   InternalGains = 'Internal Gains'
+  Lighting = 'Lighting'
 end
 
 class UHT
