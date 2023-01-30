@@ -131,6 +131,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Names of utility bill scenarios. If multiple scenarios, use a comma-separated list. If multiple scenarios, use a comma-separated list.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_electricity_filepaths', false)
+    arg.setDisplayName('Utility Bills: Electricity File Paths')
+    arg.setDescription('Electricity tariff file specified as an absolute/relative path to a file with utility rate structure information. Tariff file must be formatted to OpenEI API version 7. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_simple_filepaths', false)
     arg.setDisplayName('Utility Bills: Simple Filepaths')
     arg.setDescription('Relative paths of simple utility rates. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. File names must contain State in the name.')

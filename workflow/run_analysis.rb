@@ -140,6 +140,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
     if workflow_args.keys.include?('utility_bills')
       utility_bills = workflow_args['utility_bills']
       bld_exist_model_args['utility_bill_scenario_names'] = utility_bills.collect { |s| s['scenario_name'] }.join(',')
+      bld_exist_model_args['utility_bill_electricity_filepaths'] = utility_bills.collect { |s| s['electricity_tariff_filepath'] }.join(',')
       bld_exist_model_args['utility_bill_simple_filepaths'] = utility_bills.collect { |s| s['simple_filepath'] }.join(',')
       bld_exist_model_args['utility_bill_electricity_fixed_charges'] = utility_bills.collect { |s| s['elec_fixed_charge'] }.join(',')
       bld_exist_model_args['utility_bill_electricity_marginal_rates'] = utility_bills.collect { |s| s['elec_marginal_rate'] }.join(',')
