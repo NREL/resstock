@@ -6,7 +6,9 @@ __New Features__
   - **Breaking change**: Replaces `PVSystem/InverterEfficiency` with `PVSystem/AttachedToInverter` and `Inverter/InverterEfficiency`.
 - LightingGroups can now be specified using kWh/year annual consumption values as an alternative to fractions of different lighting types.
 - Allows modeling one or more occupant vacancy periods (`VacancyPeriods` in the HPXML file).
-- ReportSimulationOutput measure: Allows specifying the number of decimal places for timeseries output.
+- ReportSimulationOutput measure:
+  - Allows specifying the number of decimal places for timeseries output.
+  - Msgpack outputs are no longer rounded (since there is no file size penalty to storing full precision).
 
 __Bugfixes__
 - Fixes error if calculating utility bills for an all-electric home with a detailed JSON utility rate.

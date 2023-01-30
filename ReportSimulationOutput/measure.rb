@@ -144,7 +144,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('timeseries_num_decimal_places', false)
     arg.setDisplayName('Generate Timeseries Output: Number of Decimal Places')
-    arg.setDescription('Allows overriding the default number of decimal places for timeseries output.')
+    arg.setDescription('Allows overriding the default number of decimal places for timeseries output. Does not apply if output format is msgpack, where no rounding is performed because there is no file size penalty to storing full precision.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('add_timeseries_dst_column', false)
@@ -580,14 +580,19 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     # Set rounding precision for run period (e.g., annual) outputs.
-    # Note: Make sure to round outputs with sufficient resolution for the worst case -- i.e., 1 day instead of a full year.
-    runperiod_n_digits = 3 # Default for annual (or near-annual) data
-    sim_n_days = (Schedule.get_day_num_from_month_day(2000, @hpxml.header.sim_end_month, @hpxml.header.sim_end_day) -
-                  Schedule.get_day_num_from_month_day(2000, @hpxml.header.sim_begin_month, @hpxml.header.sim_begin_day))
-    if sim_n_days <= 10 # 10 days or less; add two decimal places
-      runperiod_n_digits += 2
-    elsif sim_n_days <= 100 # 100 days or less; add one decimal place
-      runperiod_n_digits += 1
+    if output_format == 'msgpack'
+      # No need to round; no file size penalty to storing full precision
+      runperiod_n_digits = 100
+    else
+      # Note: Make sure to round outputs with sufficient resolution for the worst case -- i.e., 1 day instead of a full year.
+      runperiod_n_digits = 3 # Default for annual (or near-annual) data
+      sim_n_days = (Schedule.get_day_num_from_month_day(2000, @hpxml.header.sim_end_month, @hpxml.header.sim_end_day) -
+                    Schedule.get_day_num_from_month_day(2000, @hpxml.header.sim_begin_month, @hpxml.header.sim_begin_day))
+      if sim_n_days <= 10 # 10 days or less; add two decimal places
+        runperiod_n_digits += 2
+      elsif sim_n_days <= 100 # 100 days or less; add one decimal place
+        runperiod_n_digits += 1
+      end
     end
 
     # Write/report results
@@ -1732,7 +1737,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       fail "Unexpected timeseries_frequency: #{timeseries_frequency}."
     end
 
-    if not timeseries_num_decimal_places.nil?
+    if output_format == 'msgpack'
+      # No need to round; no file size penalty to storing full precision
+      n_digits = 100
+    elsif not timeseries_num_decimal_places.nil?
       n_digits = timeseries_num_decimal_places
     else
       # Set rounding precision for timeseries (e.g., hourly) outputs.
