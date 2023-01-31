@@ -127,8 +127,8 @@ class IRAAnalysis:
                 reader = csv.reader(f)
                 columns = next(reader)  # gets the first line
                 # TODO: Overwrite for first run
-                #if "in.area_median_income" not in columns:
-                add_ami_column_to_file(file_path)  # modify file in-place
+                if "in.area_median_income" not in columns:
+                    add_ami_column_to_file(file_path)  # modify file in-place
 
     @staticmethod
     def get_groupby_cols_with_coarsening(groupby_cols, coarsening_map=None):
@@ -360,7 +360,12 @@ class IRAAnalysis:
                 filename = f"upgrade{pkg:02d}_metadata_and_annual_results.csv"
                 df = pd.read_csv(self.euss_dir / filename, low_memory=False)
                 DF.append(self.remap_columns(df))
-            return pd.concat(DF, axis=0).reset_index(drop=True)
+            DF = pd.concat(DF, axis=0).reset_index(drop=True)
+
+            # adjust weight by number of package
+            DF["weight"] /= len(pkgs)
+
+            return DF
 
         raise ValueError(f"Invalid input pkgs={pkgs}")
 
@@ -456,9 +461,12 @@ class IRAAnalysis:
 
         return DF2
 
-    def _replace_savings_cols_as_percentage(
+    def _replace_savings_cols_as_percentage_old(
         self, df, energy_saving_cols, total_emission_saving_col
     ):
+        """ 
+        This is an older method that calculates the baseline as post-upgrade baseline + saving 
+        """
         dfi = df.copy()
 
         # get baseline energy
@@ -493,6 +501,88 @@ class IRAAnalysis:
         dfi[total_emission_saving_col] /= baseline_emission
 
         return dfi
+
+
+    def _replace_savings_cols_as_percentage(
+        self, df, energy_saving_cols, total_emission_saving_col
+    ):
+        """ This is a newer method that uses original baseline """
+        dfi = df.copy()
+
+        df_baseline = self.load_results(0)
+        df_baseline = dfi[["bldg_id"]].merge(df_baseline, how="left", on="bldg_id").reindex_like(dfi)
+
+        # get baseline energy
+        energy_cols = self.get_energy_cols(end_use="total")
+        total_emission_col = self.get_emission_cols(
+            emission_type=self.emission_type, output="total_fuel"
+        )
+
+        assert (
+            len(energy_saving_cols)
+            == len(energy_cols)
+        ), f"mismatch:\nenergy_saving_cols={energy_saving_cols}\nenergy_cols={energy_cols}"
+
+        # calculate percent savings
+        for saving_col, total_col in zip(
+            energy_saving_cols+[total_emission_saving_col], 
+            energy_cols+[total_emission_col]
+            ):
+            dfi[saving_col] /= df_baseline[total_col]
+
+            # QC
+            n_na = len(dfi[dfi[total_col].isna()])
+            assert n_na == 0, f" Pct saving col={saving_col} has {n_na} NA values"
+
+        return dfi
+
+
+    def _replace_total_cols_with_baseline(
+        self, df, energy_saving_cols, total_emission_saving_col, post_upgrade=True
+    ):
+        """ 
+        This is a helper func to get total consumption from 
+            - baseline (post_upgrade=False) or 
+            - post-upgrade (post_upgrade=True) = baseline - tech saving
+
+            This only impacts the total cols, such that they may not add up to sum(end uses) 
+            in the dataframe afterward
+
+        Returns:
+            updated df, energy_cols and total_emission_col that have been updated
+        """
+
+        dfi = df.copy()
+
+        df_baseline = self.load_results(0)
+        df_baseline = dfi[["bldg_id"]].merge(df_baseline, how="left", on="bldg_id")
+        df_baseline.index = dfi.index
+
+        # get baseline energy
+        energy_cols = self.get_energy_cols(end_use="total")
+        total_emission_col = self.get_emission_cols(
+            emission_type=self.emission_type, output="total_fuel"
+        )
+
+        assert (
+            len(energy_saving_cols)
+            == len(energy_cols)
+        ), f"mismatch:\nenergy_saving_cols={energy_saving_cols}\nenergy_cols={energy_cols}"
+
+        # calculate percent savings
+        for saving_col, total_col in zip(
+            energy_saving_cols+[total_emission_saving_col], 
+            energy_cols+[total_emission_col]
+            ):
+            # baseline total - saving = post-upgrade total
+            dfi[total_col] = df_baseline[total_col] - dfi[saving_col]
+
+            # QC
+            n_na = len(dfi[dfi[total_col].isna()])
+            assert n_na == 0, f"Col={total_col} after upgrade={pkg} has {n_na} NA values"
+
+        return dfi, energy_cols, total_emission_col
+
 
     def validate_percent_savings(self, DF):
         fraction_cols = [col for col in DF.columns if col.endswith("fraction")]
