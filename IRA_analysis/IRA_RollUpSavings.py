@@ -129,8 +129,8 @@ class IRAAnalysis:
                 reader = csv.reader(f)
                 columns = next(reader)  # gets the first line
                 # NOTE: Overwriting for first run
-                #if "in.area_median_income" not in columns:
-                add_ami_column_to_file(file_path)  # modify file in-place
+                if "in.area_median_income" not in columns:
+                    add_ami_column_to_file(file_path)  # modify file in-place
 
     @staticmethod
     def get_groupby_cols_with_coarsening(groupby_cols, coarsening_map=None):
@@ -361,7 +361,12 @@ class IRAAnalysis:
                 filename = f"upgrade{pkg:02d}_metadata_and_annual_results.csv"
                 df = pd.read_csv(self.euss_dir / filename, low_memory=False)
                 DF.append(self.remap_columns(df))
-            return pd.concat(DF, axis=0).reset_index(drop=True)
+            DF = pd.concat(DF, axis=0).reset_index(drop=True)
+
+            # adjust weight by number of package
+            DF["weight"] /= len(pkgs)
+
+            return DF
 
         raise ValueError(f"Invalid input pkgs={pkgs}")
 
@@ -611,6 +616,7 @@ class IRAAnalysis:
             emission_saving_cols,
         )
 
+
         if as_percentage:
             dfi = self._replace_savings_cols_as_percentage(
                 dfi, energy_saving_cols_enduse, total_emission_saving_col
@@ -733,54 +739,96 @@ class IRAAnalysis:
         self, pkg, pkg_name, as_percentage=False, coarsening=True, return_df=False
     ):
         print(
-            f"\n> Calculating total conumsption with dryer upgrade..."
+            f"\n> Calculating total consumption with dryer upgrade..."
         )
-        df = self.load_results(pkg)
 
-        # Get consumption of dryer for upgrade
+        # [1] Get savings from technology, keep at bldg_id level
+        df = self.load_results(pkg)
+        
         cond = (df["applicability"] == True) & (df["in.vacancy_status"] == "Occupied")
         cond &= ~df["upgrade.clothes_dryer"].isna()
         df = df.loc[cond]
         enduse = "clothes_dryer"
-        # The total energy of the dryer for the year
-        df_upgrade_dryer = self._get_consumption_dataframe_for_an_enduse(
-            df, enduse, as_percentage=as_percentage, coarsening=coarsening
-        )
-        """
-        ### Lixi - this commented section is where I am getting stuck. 
-        # Get baseline consumption
-        dfb = self.load_results(0)
-        # filter to tech
-        cond = dfb["in.vacancy_status"] == "Occupied"
-        dfb = dfb.loc[cond]
 
-        # metric columns
+        ## This is the first part of _get_savings_dataframe_for_an_enduse()
+        energy_saving_cols_enduse = self.get_energy_savings_cols(
+            end_use=enduse, output="by_fuel"
+        )
+        energy_saving_cols_total = self.get_energy_savings_cols(
+            end_use="total", output="by_fuel"
+        )
+        emission_saving_cols = self.get_emission_savings_cols(
+            emission_type=self.emission_type, output="by_fuel"
+        )
+        (
+            dfi,
+            energy_saving_cols_enduse,
+            total_emission_saving_col,
+        ) = self._create_new_cols_for_enduse_(
+            df,
+            enduse,
+            energy_saving_cols_enduse,
+            energy_saving_cols_total,
+            emission_saving_cols,
+        )
+
+        # [2] Get baseline and match it to dfi (at bldg_id level)
+        df_baseline = self.load_results(0)
+        df_baseline = dfi[["bldg_id"]].merge(df_baseline, how="left", on="bldg_id")
+        df_baseline.index = dfi.index
+
+        # [3] Get post-upgrade total = baseline - savings = [2] - [1]
         energy_cols = self.get_energy_cols(end_use="total")
         total_emission_col = self.get_emission_cols(
             emission_type=self.emission_type, output="total_fuel"
         )
+        assert (
+            len(energy_saving_cols_enduse)
+            == len(energy_cols)
+        ), f"mismatch:\nenergy_saving_cols={energy_saving_cols_enduse}\nenergy_cols={energy_cols}"
 
-        # Get baseline dryer consumption 
-        dfb_dryer = self._get_consumption_dataframe_for_an_enduse(
-            dfb, enduse, as_percentage=as_percentage, coarsening=coarsening
-        )
+        # calculate total energy and GHG after technology upgrade
+        # by updating dfi's total metric cols (note: total != sum(end uses) in dfi after this)
+        for saving_col, total_col in zip(
+            energy_saving_cols_enduse+[total_emission_saving_col], 
+            energy_cols+[total_emission_col]
+            ):
+            # baseline total - saving = upgraded total
+            dfi[total_col] = df_baseline[total_col] - dfi[saving_col]
 
-        # TODO: Baseline Consumption - Baseline Dryer + Upgrade Dryer
-        # for energy and emissions cols
-        # Set index to building id
-        #df = dfb - dfb_dryer + df_upgrade_dryer
+            # QC
+            n_na = len(dfi[dfi[total_col].isna()])
+            assert n_na == 0, f"Col={total_col} after upgrade={pkg} has {n_na} NA values"
 
-        # Then send df to create mean dataframe
+
+        # [4] send df to create mean dataframe
         coarsening_map = self.coarsening_map if coarsening else None
         DF = self._get_mean_dataframe_with_coarsening(
-            df,
+            dfi,
             self.groupby_cols,
             energy_cols,
             total_emission_col,
             coarsening_map=coarsening_map,
         )
 
-        """
+        # ---- This section is for QC only and can be deleted. ----
+        # For QC: you can breakpoint at the end of this section and 
+        # check the post-upgrade total (DF above) with pre-upgrade baseline (DF_baseline) and saving (DF_saving)
+        # DF ~= DF_baseline - DF_saving
+        df_baseline["weight"] /= len(pkg)
+        DF_baseline = self._get_mean_dataframe_with_coarsening(
+            df_baseline,
+            self.groupby_cols,
+            energy_cols,
+            total_emission_col,
+            coarsening_map=coarsening_map,
+        )
+
+        DF_saving = self._get_savings_dataframe_for_an_enduse(
+            df, enduse, as_percentage=as_percentage, coarsening=coarsening
+        )
+
+        # ---- End of QC section that can be deleted. ----
 
         # save to file
         self.save_to_file(DF, pkg_name, as_percentage=as_percentage)
@@ -1324,7 +1372,7 @@ def main(euss_dir):
     # TODO: Check columns and dependent functions, still not working; getting savings or portion of energy consumed
     # [10] Heat pump dryer: Clothes dryer, using (pkg 8) for run though pkg 9 & 10 have them
     IRA.get_consumption_dryer(
-        [8],
+        [8, 9, 10],
         "heat_pump_clothes_dryer",
         coarsening=coarsening,
     )
