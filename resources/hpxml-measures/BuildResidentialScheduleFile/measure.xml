@@ -3,13 +3,13 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_schedule_file</name>
   <uid>f770b2db-1a9f-4e99-99a7-7f3161a594b1</uid>
-  <version_id>b9ab9559-30d8-4b1c-9757-8c911f80e937</version_id>
-  <version_modified>20221031T233528Z</version_modified>
+  <version_id>2e7e9dee-6b6d-423e-a2a2-082bb3c606dc</version_id>
+  <version_modified>20230110T190141Z</version_modified>
   <xml_checksum>03F02484</xml_checksum>
   <class_name>BuildResidentialScheduleFile</class_name>
   <display_name>Schedule File Builder</display_name>
   <description>Builds a residential schedule file.</description>
-  <modeler_description>Generates a CSV of schedules at the specified file path, and inserts the CSV schedule file path into the output HPXML file (or overwrites it if one already exists). Schedules corresponding to 'smooth' are average (e.g., Building America). Schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.</modeler_description>
+  <modeler_description>Generates a CSV of schedules at the specified file path, and inserts the CSV schedule file path into the output HPXML file (or overwrites it if one already exists). Stochastic schedules are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.</modeler_description>
   <arguments>
     <argument>
       <name>hpxml_path</name>
@@ -20,28 +20,9 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>schedules_type</name>
-      <display_name>Schedules: Type</display_name>
-      <description>The type of occupant-related schedules to use.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>smooth</default_value>
-      <choices>
-        <choice>
-          <value>smooth</value>
-          <display_name>smooth</display_name>
-        </choice>
-        <choice>
-          <value>stochastic</value>
-          <display_name>stochastic</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>schedules_vacancy_period</name>
-      <display_name>Schedules: Vacancy Period</display_name>
-      <description>Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".</description>
+      <name>schedules_column_names</name>
+      <display_name>Schedules: Column Names</display_name>
+      <description>A comma-separated list of the column names to generate. If not provided, defaults to all columns. Possible column names are: occupants, lighting_interior, lighting_exterior, lighting_garage, lighting_exterior_holiday, cooking_range, dishwasher, clothes_washer, clothes_dryer, ceiling_fan, plug_loads_other, hot_water_dishwasher, hot_water_clothes_washer, hot_water_fixtures.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -888,13 +869,19 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>resource</usage_type>
-      <checksum>127D96AC</checksum>
+      <checksum>AAB89065</checksum>
     </file>
     <file>
       <filename>build_residential_schedule_file_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>41CA164F</checksum>
+      <checksum>580F9B46</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DAE98658</checksum>
     </file>
     <file>
       <version>
@@ -905,13 +892,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>8FF07C66</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>F2E6EBB8</checksum>
+      <checksum>94C38C85</checksum>
     </file>
   </files>
 </measure>

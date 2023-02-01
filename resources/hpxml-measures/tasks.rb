@@ -98,6 +98,8 @@ def create_hpxmls
     'base-bldgtype-single-family-attached-2stories.xml' => 'base-bldgtype-single-family-attached.xml',
     'base-bldgtype-single-family-attached-atticroof-cathedral.xml' => 'base-bldgtype-single-family-attached-2stories.xml',
     'base-calctype-operational.xml' => 'base.xml',
+    'base-calctype-operational-residents-0.xml' => 'base.xml',
+    'base-calctype-operational-residents-0-runperiod-1-month.xml' => 'base-calctype-operational-residents-0.xml',
     'base-calctype-operational-misc-defaults.xml' => 'base-misc-defaults.xml',
     'base-calctype-operational-misc-loads-large-uncommon.xml' => 'base-misc-loads-large-uncommon.xml',
     'base-calctype-operational-misc-loads-large-uncommon2.xml' => 'base-misc-loads-large-uncommon2.xml',
@@ -210,7 +212,7 @@ def create_hpxmls
     'base-hvac-air-to-air-heat-pump-1-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-cooling-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-heating-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
-    'base-hvac-air-to-air-heat-pump-1-speed-backup-lockout-temperature.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-seer2-hspf2.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-2-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed.xml' => 'base.xml',
@@ -262,6 +264,7 @@ def create_hpxmls
     'base-hvac-autosize-mini-split-heat-pump-ducted-sizing-methodology-hers.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-autosize-mini-split-heat-pump-ducted-sizing-methodology-maxload.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-autosize-mini-split-heat-pump-ductless-backup-stove.xml' => 'base-hvac-mini-split-heat-pump-ductless-backup-stove.xml',
+    'base-hvac-autosize-mini-split-heat-pump-ductless-backup-baseboard.xml' => 'base-hvac-mini-split-heat-pump-ductless-backup-baseboard.xml',
     'base-hvac-autosize-mini-split-air-conditioner-only-ducted.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'base-hvac-autosize-ptac.xml' => 'base-hvac-ptac.xml',
     'base-hvac-autosize-ptac-with-heating.xml' => 'base-hvac-ptac-with-heating-electricity.xml',
@@ -289,7 +292,7 @@ def create_hpxmls
     'base-hvac-central-ac-plus-air-to-air-heat-pump-heating.xml' => 'base-hvac-central-ac-only-1-speed.xml',
     'base-hvac-dse.xml' => 'base.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
-    'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-lockout-temperatures.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
     'base-hvac-dual-fuel-mini-split-heat-pump-ducted.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
@@ -336,6 +339,7 @@ def create_hpxmls
     'base-hvac-mini-split-heat-pump-ducted-heating-only.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-mini-split-heat-pump-ductless.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-mini-split-heat-pump-ductless-backup-stove.xml' => 'base-hvac-mini-split-heat-pump-ductless.xml',
+    'base-hvac-mini-split-heat-pump-ductless-backup-baseboard.xml' => 'base-hvac-mini-split-heat-pump-ductless.xml',
     'base-hvac-multiple.xml' => 'base.xml',
     'base-hvac-none.xml' => 'base-location-honolulu-hi.xml',
     'base-hvac-portable-heater-gas-only.xml' => 'base.xml',
@@ -360,6 +364,8 @@ def create_hpxmls
     'base-hvac-wall-furnace-elec-only.xml' => 'base.xml',
     'base-lighting-ceiling-fans.xml' => 'base.xml',
     'base-lighting-holiday.xml' => 'base.xml',
+    'base-lighting-kwh-per-year.xml' => 'base.xml',
+    'base-lighting-mixed.xml' => 'base.xml',
     'base-lighting-none.xml' => 'base.xml',
     'base-location-AMY-2012.xml' => 'base.xml',
     'base-location-baltimore-md.xml' => 'base-foundation-unvented-crawlspace.xml',
@@ -418,10 +424,12 @@ def create_hpxmls
     'base-pv-generators-battery.xml' => 'base-pv-generators.xml',
     'base-pv-generators-battery-scheduled.xml' => 'base-pv-generators-battery.xml',
     'base-schedules-simple.xml' => 'base.xml',
+    'base-schedules-simple-vacancy.xml' => 'base.xml',
+    'base-schedules-simple-vacancy-year-round.xml' => 'base.xml',
     'base-schedules-detailed-all-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
-    'base-schedules-detailed-occupancy-smooth.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic.xml' => 'base.xml',
-    'base-schedules-detailed-occupancy-stochastic-vacancy.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-stochastic-vacancy.xml' => 'base-schedules-detailed-occupancy-stochastic.xml',
+    'base-schedules-detailed-occupancy-stochastic-vacancy-year-round.xml' => 'base-schedules-detailed-occupancy-stochastic.xml',
     'base-schedules-detailed-occupancy-stochastic-10-mins.xml' => 'base.xml',
     'base-schedules-detailed-setpoints.xml' => 'base.xml',
     'base-schedules-detailed-setpoints-daily-schedules.xml' => 'base.xml',
@@ -435,6 +443,7 @@ def create_hpxmls
     'base-simcontrol-timestep-10-mins-occupancy-stochastic-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
     'base-simcontrol-timestep-10-mins-occupancy-stochastic-60-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
     'base-simcontrol-timestep-30-mins.xml' => 'base.xml',
+    'base-vacancy.xml' => 'base.xml'
   }
 
   puts "Generating #{hpxmls_files.size} HPXML files..."
@@ -523,6 +532,7 @@ def create_hpxmls
       schema_path = File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
       errors, _ = XMLValidator.validate_against_schema(hpxml_path, schema_path)
       if errors.size > 0
+        puts errors.to_s
         puts "\nError: Did not successfully validate #{hpxml_file}."
         exit!
       end
@@ -1376,6 +1386,11 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   elsif ['base-calctype-operational-misc-defaults.xml'].include? hpxml_file
     args['occupancy_calculation_type'] = HPXML::OccupancyCalculationTypeOperational
     args['geometry_unit_num_occupants'] = 5
+  elsif ['base-calctype-operational-residents-0.xml'].include? hpxml_file
+    args['occupancy_calculation_type'] = HPXML::OccupancyCalculationTypeOperational
+    args['geometry_unit_num_occupants'] = 0
+  elsif ['base-calctype-operational-residents-0-runperiod-1-month.xml'].include? hpxml_file
+    args['simulation_control_run_period'] = 'Feb 1 - Feb 28'
   end
 
   # DHW
@@ -1722,7 +1737,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   elsif ['base-hvac-air-to-air-heat-pump-1-speed-heating-only.xml'].include? hpxml_file
     args['heat_pump_cooling_capacity'] = 0.0
     args['heat_pump_fraction_cool_load_served'] = 0
-  elsif ['base-hvac-air-to-air-heat-pump-1-speed-backup-lockout-temperature.xml'].include? hpxml_file
+  elsif ['base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml'].include? hpxml_file
     args['hvac_control_heating_weekday_setpoint'] = '64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64'
     args['hvac_control_heating_weekend_setpoint'] = '64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64'
     args['heat_pump_backup_heating_lockout_temp'] = 35.0
@@ -1755,7 +1770,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heating_system_2_heating_efficiency'] = 0.8
     args['heating_system_2_heating_capacity'] = 60000.0
   elsif ['base-hvac-air-to-air-heat-pump-var-speed-backup-boiler-switchover-temperature.xml'].include? hpxml_file
-    args['heat_pump_backup_heating_switchover_temp'] = 25
+    args['heat_pump_backup_heating_switchover_temp'] = 30.0
   elsif hpxml_file.include? 'autosize'
     args.delete('heating_system_heating_capacity')
     args.delete('heating_system_2_heating_capacity')
@@ -1821,20 +1836,20 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heat_pump_heating_efficiency'] = 7.7
     args['heat_pump_backup_fuel'] = HPXML::FuelTypeNaturalGas
     args['heat_pump_backup_heating_efficiency'] = 0.95
-    args['heat_pump_backup_heating_switchover_temp'] = 25
-  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml'].include? hpxml_file
-    args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
-    args['heat_pump_backup_heating_efficiency'] = 1.0
+    args['heat_pump_backup_heating_switchover_temp'] = 30.0
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-lockout-temperatures.xml'].include? hpxml_file
+    args.delete('heat_pump_backup_heating_switchover_temp')
+    args['heat_pump_backup_heating_lockout_temp'] = 45.0
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.xml',
          'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml'].include? hpxml_file
     args['heat_pump_backup_fuel'] = HPXML::FuelTypeNaturalGas
     args['heat_pump_backup_heating_efficiency'] = 0.95
-    args['heat_pump_backup_heating_switchover_temp'] = 25
+    args['heat_pump_backup_heating_switchover_temp'] = 30.0
   elsif ['base-hvac-dual-fuel-mini-split-heat-pump-ducted.xml'].include? hpxml_file
     args['heat_pump_heating_capacity'] = 36000.0
     args['heat_pump_backup_fuel'] = HPXML::FuelTypeNaturalGas
     args['heat_pump_backup_heating_efficiency'] = 0.95
-    args['heat_pump_backup_heating_switchover_temp'] = 25
+    args['heat_pump_backup_heating_switchover_temp'] = 30.0
   elsif ['base-hvac-ducts-leakage-cfm50.xml'].include? hpxml_file
     args['ducts_leakage_units'] = HPXML::UnitsCFM50
     args['ducts_supply_leakage_to_outside_value'] = 100
@@ -1982,6 +1997,15 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heating_system_2_type'] = HPXML::HVACTypeStove
     args['heating_system_2_fuel'] = HPXML::FuelTypeOil
     args['heating_system_2_heating_efficiency'] = 0.6
+    args['heating_system_2_heating_capacity'] = 60000.0
+  elsif ['base-hvac-mini-split-heat-pump-ductless-backup-baseboard.xml'].include? hpxml_file
+    args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
+    args['heat_pump_heating_capacity'] = 18000.0
+    args['heat_pump_cooling_capacity'] = 18000.0
+    args['heat_pump_heating_capacity_17_f'] = args['heat_pump_heating_capacity'] * 0.6
+    args['heating_system_2_type'] = HPXML::HVACTypeElectricResistance
+    args['heating_system_2_fuel'] = HPXML::FuelTypeElectricity
+    args['heating_system_2_heating_efficiency'] = 1.0
     args['heating_system_2_heating_capacity'] = 60000.0
   elsif ['base-hvac-none.xml'].include? hpxml_file
     args['heating_system_type'] = 'none'
@@ -2452,28 +2476,27 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['simulation_control_timestep'] = 30
   end
 
+  # Vacancy
+  if ['base-vacancy.xml',
+      'base-schedules-simple-vacancy.xml',
+      'base-schedules-detailed-occupancy-stochastic-vacancy.xml'].include? hpxml_file
+    args['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
+  elsif ['base-schedules-simple-vacancy-year-round.xml',
+         'base-schedules-detailed-occupancy-stochastic-vacancy-year-round.xml'].include? hpxml_file
+    args['schedules_vacancy_period'] = 'Jan 1 - Dec 31'
+  end
+
   # Occupancy Schedules
-  if ['base-schedules-detailed-occupancy-smooth.xml'].include? hpxml_file
+  if ['base-schedules-detailed-occupancy-stochastic.xml',
+      'base-schedules-detailed-occupancy-stochastic-vacancy.xml',
+      'base-schedules-detailed-occupancy-stochastic-vacancy-year-round.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'smooth'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth.csv'
-    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
-  elsif ['base-schedules-detailed-occupancy-stochastic.xml'].include? hpxml_file
-    sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'stochastic'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv'
-    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
-  elsif ['base-schedules-detailed-occupancy-stochastic-vacancy.xml'].include? hpxml_file
-    sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'stochastic'
-    sch_args['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-vacancy.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   elsif ['base-schedules-detailed-occupancy-stochastic-10-mins.xml'].include? hpxml_file
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv'
   elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'stochastic'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   end
@@ -2528,7 +2551,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv, ../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-operating-modes.csv'
   elsif ['base-dhw-tank-model-type-stratified-detailed-occupancy-stochastic.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'stochastic'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
@@ -2684,6 +2706,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
 
   # Logic that can only be applied based on the file name
   if ['base-schedules-simple.xml',
+      'base-schedules-simple-vacancy.xml',
+      'base-schedules-simple-vacancy-year-round.xml',
       'base-misc-loads-large-uncommon.xml',
       'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
     hpxml.building_occupancy.weekday_fractions = '0.061, 0.061, 0.061, 0.061, 0.061, 0.061, 0.061, 0.053, 0.025, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.018, 0.033, 0.054, 0.054, 0.054, 0.061, 0.061, 0.061'
@@ -3956,9 +3980,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
         hpxml.heating_systems[i].fraction_heat_load_served = 0.35
       end
     end
-  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml'].include? hpxml_file
-    hpxml.heat_pumps[0].backup_heating_efficiency_afue = hpxml.heat_pumps[0].backup_heating_efficiency_percent
-    hpxml.heat_pumps[0].backup_heating_efficiency_percent = nil
   elsif ['base-enclosure-2stories.xml',
          'base-enclosure-2stories-garage.xml',
          'base-hvac-ducts-area-fractions.xml'].include? hpxml_file
@@ -4241,6 +4262,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
 
   # Logic that can only be applied based on the file name
   if ['base-schedules-simple.xml',
+      'base-schedules-simple-vacancy.xml',
+      'base-schedules-simple-vacancy-year-round.xml',
       'base-misc-loads-large-uncommon.xml',
       'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
     hpxml.water_heating.water_fixtures_weekday_fractions = '0.012, 0.006, 0.004, 0.005, 0.010, 0.034, 0.078, 0.087, 0.080, 0.067, 0.056, 0.047, 0.040, 0.035, 0.033, 0.031, 0.039, 0.051, 0.060, 0.060, 0.055, 0.048, 0.038, 0.026'
@@ -4565,6 +4588,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
 
   # Logic that can only be applied based on the file name
   if ['base-schedules-simple.xml',
+      'base-schedules-simple-vacancy.xml',
+      'base-schedules-simple-vacancy-year-round.xml',
       'base-misc-loads-large-uncommon.xml',
       'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
     hpxml.clothes_washers[0].weekday_fractions = '0.009, 0.007, 0.004, 0.004, 0.007, 0.011, 0.022, 0.049, 0.073, 0.086, 0.084, 0.075, 0.067, 0.060, 0.049, 0.052, 0.050, 0.049, 0.049, 0.049, 0.049, 0.047, 0.032, 0.017'
@@ -4649,6 +4674,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.lighting.holiday_weekday_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
     hpxml.lighting.holiday_weekend_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
   elsif ['base-schedules-simple.xml',
+         'base-schedules-simple-vacancy.xml',
+         'base-schedules-simple-vacancy-year-round.xml',
          'base-misc-loads-large-uncommon.xml',
          'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
     hpxml.lighting.interior_weekday_fractions = '0.124, 0.074, 0.050, 0.050, 0.053, 0.140, 0.330, 0.420, 0.430, 0.424, 0.411, 0.394, 0.382, 0.378, 0.378, 0.379, 0.386, 0.412, 0.484, 0.619, 0.783, 0.880, 0.597, 0.249'
@@ -4660,6 +4687,28 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.lighting.garage_weekday_fractions = '0.046, 0.046, 0.046, 0.046, 0.046, 0.037, 0.035, 0.034, 0.033, 0.028, 0.022, 0.015, 0.012, 0.011, 0.011, 0.012, 0.019, 0.037, 0.049, 0.065, 0.091, 0.105, 0.091, 0.063'
     hpxml.lighting.garage_weekend_fractions = '0.046, 0.046, 0.045, 0.045, 0.046, 0.045, 0.044, 0.041, 0.036, 0.03, 0.024, 0.016, 0.012, 0.011, 0.011, 0.012, 0.019, 0.038, 0.048, 0.06, 0.083, 0.098, 0.085, 0.059'
     hpxml.lighting.garage_monthly_multipliers = '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
+  elsif ['base-lighting-kwh-per-year.xml'].include? hpxml_file
+    ltg_kwhs_per_year = { HPXML::LocationInterior => 1500,
+                          HPXML::LocationExterior => 150,
+                          HPXML::LocationGarage => 0 }
+    hpxml.lighting_groups.clear
+    ltg_kwhs_per_year.each do |location, kwh_per_year|
+      hpxml.lighting_groups.add(id: "LightingGroup#{hpxml.lighting_groups.size + 1}",
+                                location: location,
+                                kwh_per_year: kwh_per_year)
+    end
+  elsif ['base-lighting-mixed.xml'].include? hpxml_file
+    hpxml.lighting_groups.each do |lg|
+      next unless lg.location == HPXML::LocationExterior
+
+      lg.delete
+    end
+    hpxml.lighting_groups.each_with_index do |lg, i|
+      lg.id = "LightingGroup#{i + 1}"
+    end
+    hpxml.lighting_groups.add(id: "LightingGroup#{hpxml.lighting_groups.size + 1}",
+                              location: HPXML::LocationExterior,
+                              kwh_per_year: 150)
   end
 
   # --------------- #
@@ -4668,6 +4717,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
 
   # Logic that can only be applied based on the file name
   if ['base-schedules-simple.xml',
+      'base-schedules-simple-vacancy.xml',
+      'base-schedules-simple-vacancy-year-round.xml',
       'base-misc-loads-large-uncommon.xml',
       'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
     hpxml.plug_loads[0].weekday_fractions = '0.045, 0.019, 0.01, 0.001, 0.001, 0.001, 0.005, 0.009, 0.018, 0.026, 0.032, 0.038, 0.04, 0.041, 0.043, 0.045, 0.05, 0.055, 0.07, 0.085, 0.097, 0.108, 0.089, 0.07'
@@ -4865,7 +4916,7 @@ if ARGV[0].to_sym == :update_measures
           'Style/SelfAssignment',
           'Style/StringLiterals',
           'Style/StringLiteralsInInterpolation']
-  commands = ["\"require 'rubocop/rake_task'\"",
+  commands = ["\"require 'rubocop/rake_task' \"",
               "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--auto-correct', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
               '"Rake.application[:rubocop].invoke"']
   command = "#{OpenStudio.getOpenStudioCLI} -e #{commands.join(' -e ')}"
@@ -4926,22 +4977,19 @@ if ARGV[0].to_sym == :update_hpxmls
   ENV['HOMEDRIVE'] = 'C:\\' if !ENV['HOMEDRIVE'].nil? && ENV['HOMEDRIVE'].start_with?('U:')
 
   # Create sample/test HPXMLs
+  OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
   create_hpxmls()
 end
 
 if ARGV[0].to_sym == :cache_weather
   OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
-  runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
   puts 'Creating cache *.csv for weather files...'
 
   Dir['weather/*.epw'].each do |epw|
     next if File.exist? epw.gsub('.epw', '.cache')
 
     puts "Processing #{epw}..."
-    model = OpenStudio::Model::Model.new
-    epw_file = OpenStudio::EpwFile.new(epw)
-    OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file).get
-    weather = WeatherProcess.new(model, runner)
+    weather = WeatherProcess.new(epw_path: epw)
     File.open(epw.gsub('.epw', '-cache.csv'), 'wb') do |file|
       weather.dump_to_csv(file)
     end

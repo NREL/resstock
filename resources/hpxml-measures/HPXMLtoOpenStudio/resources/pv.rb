@@ -20,7 +20,7 @@ class PV
 
       ipvwatts = OpenStudio::Model::ElectricLoadCenterInverterPVWatts.new(model)
       ipvwatts.setName('PVSystem inverter')
-      ipvwatts.setInverterEfficiency(pv_system.inverter_efficiency)
+      ipvwatts.setInverterEfficiency(pv_system.inverter.inverter_efficiency)
 
       elcd.setInverter(ipvwatts)
     else

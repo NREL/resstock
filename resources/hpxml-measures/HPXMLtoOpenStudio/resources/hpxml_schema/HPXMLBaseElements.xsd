@@ -359,7 +359,7 @@
 			<xs:group ref="SystemInfo"/>
 			<xs:element minOccurs="0" ref="ConnectedDevice"/>
 			<xs:element minOccurs="0" ref="AttachedToSpace"/>
-			<xs:element name="NumberofUnits" type="IntegerGreaterThanOrEqualToZero" minOccurs="0"/>
+			<xs:element name="Count" type="IntegerGreaterThanOrEqualToZero" minOccurs="0"/>
 			<xs:element name="Manufacturer" type="Manufacturer" minOccurs="0"/>
 			<xs:element name="ModelNumber" type="Model" minOccurs="0"/>
 			<xs:element minOccurs="0" name="AHRINumber" type="HPXMLString"/>
@@ -410,7 +410,6 @@
 	<xs:complexType name="ClothesWasherInfoType">
 		<xs:complexContent>
 			<xs:extension base="ApplianceTypeSummaryInfo">
-
 				<xs:sequence>
 					<xs:choice minOccurs="0">
 						<xs:element name="AttachedToWaterHeatingSystem" type="LocalReference"/>
@@ -477,11 +476,9 @@
 					</xs:element>
 					<xs:element ref="extension" minOccurs="0"/>
 				</xs:sequence>
-
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
-
 	<xs:complexType name="DishwasherInfoType">
 		<xs:complexContent>
 			<xs:extension base="ApplianceTypeSummaryInfo">
@@ -1319,7 +1316,7 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" name="AttachedToWall" type="LocalReference"/>
-									<xs:element minOccurs="0" name="Quantity" type="IntegerGreaterThanZero"/>
+									<xs:element minOccurs="0" name="Count" type="IntegerGreaterThanZero"/>
 									<xs:element minOccurs="0" name="Area" type="SurfaceArea">
 										<xs:annotation>
 											<xs:documentation>[sq.ft.] Total door surface area for this group of doors</xs:documentation>
@@ -1469,7 +1466,7 @@
 												<xs:element minOccurs="0" ref="ConnectedDevice"/>
 												<xs:element minOccurs="0" name="Manufacturer" type="HPXMLString"/>
 												<xs:element minOccurs="0" name="SerialNumber" type="HPXMLString"/>
-												<xs:element minOccurs="0" name="Quantity" type="IntegerGreaterThanZero">
+												<xs:element minOccurs="0" name="Count" type="IntegerGreaterThanZero">
 													<xs:annotation>
 														<xs:documentation>Number of similar ventilation fans (e.g., bath fans).</xs:documentation>
 													</xs:annotation>
@@ -1636,11 +1633,6 @@
 							<xs:complexType>
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
-									<xs:element minOccurs="0" name="HotWaterDistributionSystem" type="LocalReference" maxOccurs="1">
-										<xs:annotation>
-											<xs:documentation>The hot water distribution system served by this water heating system.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
 									<xs:element minOccurs="0" ref="ConnectedDevice"/>
 									<xs:element minOccurs="0" ref="AttachedToZone"/>
 									<xs:element minOccurs="0" name="AttachedToCAZ" type="LocalReference"/>
@@ -1829,7 +1821,7 @@
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" name="AttachedToWaterHeatingSystem" type="LocalReference">
 										<xs:annotation>
-											<xs:documentation>DEPRECATED. This will be removed in v4.0. Use WaterHeatingSystem/HotWaterDistributionSystem instead.</xs:documentation>
+											<xs:documentation>The water heating system that this distribution system serves.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="SystemType">
@@ -1911,7 +1903,7 @@
 										<xs:element name="AttachedToHotWaterDistribution" type="LocalReference"/>
 									</xs:choice>
 									<xs:element minOccurs="1" name="WaterFixtureType" type="WaterFixtureType"/>
-									<xs:element minOccurs="0" name="Quantity" type="IntegerGreaterThanZero">
+									<xs:element minOccurs="0" name="Count" type="IntegerGreaterThanZero">
 										<xs:annotation>
 											<xs:documentation>Number of similar water fixtures.</xs:documentation>
 										</xs:annotation>
@@ -2007,15 +1999,7 @@
 											<xs:documentation>[gal]</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:choice minOccurs="0">
-										<xs:element name="AttachedToWaterHeatingSystem" type="LocalReference"/>
-										<xs:element name="AttachedToHotWaterDistribution" type="LocalReference"/>
-									</xs:choice>
-									<xs:element minOccurs="0" name="ConnectedTo" type="LocalReference">
-										<xs:annotation>
-											<xs:documentation>DEPRECATED. This will be removed in v4.0. Use AttachedToWaterHeatingSystem or AttachedToHotWaterDistribution instead.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
+									<xs:element minOccurs="0" name="ConnectedTo" type="LocalReference"/>
 									<xs:element minOccurs="0" name="SolarFraction" type="SolarFraction">
 										<xs:annotation>
 											<xs:documentation>The Solar Fraction is the portion of the total conventional hot water heating load (delivered energy and tank standby losses). The higher
@@ -2079,14 +2063,12 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="NumberOfPanels" type="IntegerGreaterThanZero"/>
-									<xs:element minOccurs="0" name="InverterEfficiency" type="Fraction"/>
 									<xs:element minOccurs="0" name="SystemLossesFraction" type="Fraction">
 										<xs:annotation>
 											<xs:documentation>System losses can be due to soiling, shading, snow, mismatch, wiring, electrical connections, light-induced degradation, nameplate rating
 												inaccuracies, age, and availability.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="YearInverterManufactured" type="Year"/>
 									<xs:element minOccurs="0" name="YearModulesManufactured" type="Year"/>
 									<xs:element minOccurs="0" name="YearInstalled" type="Year"/>
 									<xs:element minOccurs="0" name="AnnualOutput" type="RatedAnnualkWh">
@@ -2101,9 +2083,22 @@
 												http://www.nrel.gov/analysis/tech_lcoe.html.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
+									<xs:element minOccurs="0" name="AttachedToInverter" type="LocalReference"/>
 									<xs:element ref="extension" minOccurs="0"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
+							</xs:complexType>
+						</xs:element>
+						<xs:element maxOccurs="unbounded" minOccurs="0" name="Inverter">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:group ref="SystemInfo"/>
+									<xs:element minOccurs="0" name="InverterType" type="InverterType"/>
+									<xs:element minOccurs="0" name="InverterEfficiency" type="Fraction"/>
+									<xs:element minOccurs="0" name="YearInverterManufactured" type="Year"/>
+									<xs:element minOccurs="0" name="YearInstalled" type="Year"/>
+									<xs:element ref="extension" minOccurs="0"/>
+								</xs:sequence>
 							</xs:complexType>
 						</xs:element>
 					</xs:sequence>
@@ -2183,7 +2178,7 @@
 							<xs:complexType>
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
-									<xs:element minOccurs="0" name="NumberofUnits" type="IntegerGreaterThanOrEqualToZero"/>
+									<xs:element minOccurs="0" name="Count" type="IntegerGreaterThanOrEqualToZero"/>
 									<xs:element minOccurs="0" name="Manufacturer" type="Manufacturer"/>
 									<xs:element maxOccurs="1" minOccurs="0" name="ModelNumber" type="Model"/>
 									<xs:element minOccurs="0" name="SerialNumber" type="HPXMLString"/>
@@ -2314,7 +2309,7 @@
 						</xs:element>
 						<xs:element minOccurs="0" ref="AttachedToSpace"/>
 						<xs:element minOccurs="0" name="Location" type="LightingLocation"/>
-						<xs:element name="NumberofUnits" type="HPXMLInteger" minOccurs="0"/>
+						<xs:element name="Count" type="HPXMLInteger" minOccurs="0"/>
 						<xs:element minOccurs="0" name="FractionofUnitsInLocation" type="Fraction">
 							<xs:annotation>
 								<xs:documentation>The fraction of lighting units in the specified Location, where all the fractions for the Location sum to 1. If a Location is not specified, fractions
@@ -2349,6 +2344,15 @@
 							<xs:annotation>
 								<xs:documentation>[sq.ft.]</xs:documentation>
 							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="Load">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="Units" type="PlugLoadUnits"/>
+									<xs:element name="Value" type="HPXMLDouble"/>
+								</xs:sequence>
+								<xs:attribute name="dataSource" type="DataSource"/>
+							</xs:complexType>
 						</xs:element>
 						<xs:element ref="extension" minOccurs="0"/>
 					</xs:sequence>
@@ -2409,7 +2413,7 @@
 							</xs:complexType>
 						</xs:element>
 						<xs:element minOccurs="0" name="ThirdPartyCertification" type="ApplianceThirdPartyCertifications" maxOccurs="unbounded"/>
-						<xs:element minOccurs="0" name="Quantity" type="IntegerGreaterThanZero">
+						<xs:element minOccurs="0" name="Count" type="IntegerGreaterThanZero">
 							<xs:annotation>
 								<xs:documentation>Number of similar ceiling fans.</xs:documentation>
 							</xs:annotation>
@@ -3626,11 +3630,6 @@
 			<xs:element minOccurs="0" name="IsSharedSystem" type="HPXMLBoolean">
 				<xs:annotation>
 					<xs:documentation>Does the system serve multiple building/dwelling units?</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element minOccurs="0" name="IsVentilationPreconditioningSystem" type="HPXMLBoolean">
-				<xs:annotation>
-					<xs:documentation>Does the system only provide preconditioning for mechanical ventilation?</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element minOccurs="0" name="NumberofUnitsServed" type="HPXMLInteger"/>
@@ -5028,7 +5027,7 @@
 					<xs:documentation>[sq.ft.] Total window surface area for this group of windows</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element minOccurs="0" name="Quantity" type="IntegerGreaterThanZero">
+			<xs:element minOccurs="0" name="Count" type="IntegerGreaterThanZero">
 				<xs:annotation>
 					<xs:documentation>Number of windows in the group</xs:documentation>
 				</xs:annotation>

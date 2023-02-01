@@ -127,7 +127,7 @@ class Battery
     # Apply round trip efficiency as EMS program b/c E+ input is not hooked up.
     # Replace this when the first item in https://github.com/NREL/EnergyPlus/issues/9176 is fixed.
     charge_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Electric Storage Charge Energy')
-    charge_sensor.setName('charge')
+    charge_sensor.setName('battery_charge')
     charge_sensor.setKeyName(elcs.name.to_s)
 
     loss_adj_object_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
@@ -149,7 +149,7 @@ class Battery
 
     battery_losses_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     battery_losses_program.setName('battery_losses')
-    battery_losses_program.addLine("Set losses = -1 * charge * (1 - #{battery.round_trip_efficiency})")
+    battery_losses_program.addLine("Set losses = -1 * #{charge_sensor.name} * (1 - #{battery.round_trip_efficiency})")
     battery_losses_program.addLine("Set #{battery_adj_actuator.name} = -1 * losses / ( 3600 * SystemTimeStep )")
 
     battery_losses_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
@@ -165,8 +165,13 @@ class Battery
     battery_losses_output_var.setUnits('J')
   end
 
-  def self.get_battery_default_values()
-    return { location: HPXML::LocationOutside,
+  def self.get_battery_default_values(has_garage = false)
+    if has_garage
+      location = HPXML::LocationGarage
+    else
+      location = HPXML::LocationOutside
+    end
+    return { location: location,
              lifetime_model: HPXML::BatteryLifetimeModelNone,
              nominal_capacity_kwh: 10.0,
              nominal_voltage: 50.0,

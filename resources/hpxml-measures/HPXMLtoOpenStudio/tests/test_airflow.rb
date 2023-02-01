@@ -339,11 +339,11 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
 
     # Get HPXML values
     bath_fan = hpxml.ventilation_fans.select { |f| f.used_for_local_ventilation && f.fan_location == HPXML::LocationBath }[0]
-    bath_fan_cfm = bath_fan.flow_rate * bath_fan.quantity
-    bath_fan_power = bath_fan.fan_power * bath_fan.quantity
+    bath_fan_cfm = bath_fan.flow_rate * bath_fan.count
+    bath_fan_power = bath_fan.fan_power * bath_fan.count
     kitchen_fan = hpxml.ventilation_fans.select { |f| f.used_for_local_ventilation && f.fan_location == HPXML::LocationKitchen }[0]
-    kitchen_fan_cfm = kitchen_fan.flow_rate * (kitchen_fan.quantity.nil? ? 1 : kitchen_fan.quantity)
-    kitchen_fan_power = kitchen_fan.fan_power * (kitchen_fan.quantity.nil? ? 1 : kitchen_fan.quantity)
+    kitchen_fan_cfm = kitchen_fan.flow_rate * (kitchen_fan.count.nil? ? 1 : kitchen_fan.count)
+    kitchen_fan_power = kitchen_fan.fan_power * (kitchen_fan.count.nil? ? 1 : kitchen_fan.count)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -387,8 +387,8 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
 
     local_fans = vent_fans.select { |f| f.used_for_local_ventilation }
     bath_fans = local_fans.select { |f| f.fan_location == HPXML::LocationBath }
-    bath_fan_cfm = bath_fans.map { |bath_fan| bath_fan.flow_rate * bath_fan.quantity }.sum(0.0)
-    bath_fan_power = bath_fans.map { |bath_fan| bath_fan.fan_power * bath_fan.quantity }.sum(0.0)
+    bath_fan_cfm = bath_fans.map { |bath_fan| bath_fan.flow_rate * bath_fan.count }.sum(0.0)
+    bath_fan_power = bath_fans.map { |bath_fan| bath_fan.fan_power * bath_fan.count }.sum(0.0)
     kitchen_fans = local_fans.select { |f| f.fan_location == HPXML::LocationKitchen }
     kitchen_fan_cfm = kitchen_fans.map { |kitchen_fan| kitchen_fan.flow_rate }.sum(0.0)
     kitchen_fan_power = kitchen_fans.map { |kitchen_fan| kitchen_fan.fan_power }.sum(0.0)

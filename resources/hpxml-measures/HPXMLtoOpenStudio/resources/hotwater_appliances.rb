@@ -2,7 +2,8 @@
 
 class HotWaterAndAppliances
   def self.apply(model, runner, hpxml, weather, spaces, hot_water_distribution,
-                 solar_thermal_system, eri_version, schedules_file, plantloop_map)
+                 solar_thermal_system, eri_version, schedules_file, plantloop_map,
+                 vacancy_periods)
 
     @runner = runner
     cfa = hpxml.building_construction.conditioned_floor_area
@@ -44,27 +45,29 @@ class HotWaterAndAppliances
       cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer, clothes_washer.additional_properties.space.nil?)
 
       # Create schedule
-      power_cw_schedule = nil
+      cw_power_schedule = nil
+      cw_col_name = SchedulesFile::ColumnClothesWasher
       if not schedules_file.nil?
-        cw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: SchedulesFile::ColumnClothesWasher, daily_kwh: cw_annual_kwh / 365.0)
-        power_cw_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnClothesWasher)
+        cw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: cw_col_name, daily_kwh: cw_annual_kwh / 365.0)
+        cw_power_schedule = schedules_file.create_schedule_file(col_name: cw_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
-      if power_cw_schedule.nil?
+      if cw_power_schedule.nil?
+        cw_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[cw_col_name]
         cw_weekday_sch = clothes_washer.weekday_fractions
         cw_weekend_sch = clothes_washer.weekend_fractions
         cw_monthly_sch = clothes_washer.monthly_multipliers
-        cw_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameClothesWasher, cw_weekday_sch, cw_weekend_sch, cw_monthly_sch, Constants.ScheduleTypeLimitsFraction)
+        cw_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameClothesWasher, cw_weekday_sch, cw_weekend_sch, cw_monthly_sch, Constants.ScheduleTypeLimitsFraction, vacancy_periods: cw_vacancy_periods)
         cw_design_level_w = cw_schedule_obj.calc_design_level_from_daily_kwh(cw_annual_kwh / 365.0)
-        power_cw_schedule = cw_schedule_obj.schedule
+        cw_power_schedule = cw_schedule_obj.schedule
       else
-        runner.registerWarning("Both '#{SchedulesFile::ColumnClothesWasher}' schedule file and weekday fractions provided; the latter will be ignored.") if !clothes_washer.weekday_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnClothesWasher}' schedule file and weekend fractions provided; the latter will be ignored.") if !clothes_washer.weekend_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnClothesWasher}' schedule file and monthly multipliers provided; the latter will be ignored.") if !clothes_washer.monthly_multipliers.nil?
+        runner.registerWarning("Both '#{cw_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !clothes_washer.weekday_fractions.nil?
+        runner.registerWarning("Both '#{cw_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !clothes_washer.weekend_fractions.nil?
+        runner.registerWarning("Both '#{cw_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !clothes_washer.monthly_multipliers.nil?
       end
 
       cw_space = clothes_washer.additional_properties.space
       cw_space = living_space if cw_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
-      add_electric_equipment(model, Constants.ObjectNameClothesWasher, cw_space, cw_design_level_w, cw_frac_sens, cw_frac_lat, power_cw_schedule)
+      add_electric_equipment(model, Constants.ObjectNameClothesWasher, cw_space, cw_design_level_w, cw_frac_sens, cw_frac_lat, cw_power_schedule)
     end
 
     # Clothes dryer energy
@@ -73,23 +76,25 @@ class HotWaterAndAppliances
 
       # Create schedule
       cd_schedule = nil
+      cd_col_name = SchedulesFile::ColumnClothesDryer
       if not schedules_file.nil?
-        cd_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: SchedulesFile::ColumnClothesDryer, annual_kwh: cd_annual_kwh)
-        cd_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: SchedulesFile::ColumnClothesDryer, annual_therm: cd_annual_therm)
-        cd_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnClothesDryer)
+        cd_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cd_col_name, annual_kwh: cd_annual_kwh)
+        cd_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: cd_col_name, annual_therm: cd_annual_therm)
+        cd_schedule = schedules_file.create_schedule_file(col_name: cd_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if cd_schedule.nil?
+        cd_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[cd_col_name]
         cd_weekday_sch = clothes_dryer.weekday_fractions
         cd_weekend_sch = clothes_dryer.weekend_fractions
         cd_monthly_sch = clothes_dryer.monthly_multipliers
-        cd_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameClothesDryer, cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, Constants.ScheduleTypeLimitsFraction)
+        cd_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameClothesDryer, cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, Constants.ScheduleTypeLimitsFraction, vacancy_periods: cd_vacancy_periods)
         cd_design_level_e = cd_schedule_obj.calc_design_level_from_daily_kwh(cd_annual_kwh / 365.0)
         cd_design_level_f = cd_schedule_obj.calc_design_level_from_daily_therm(cd_annual_therm / 365.0)
         cd_schedule = cd_schedule_obj.schedule
       else
-        runner.registerWarning("Both '#{SchedulesFile::ColumnClothesDryer}' schedule file and weekday fractions provided; the latter will be ignored.") if !clothes_dryer.weekday_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnClothesDryer}' schedule file and weekend fractions provided; the latter will be ignored.") if !clothes_dryer.weekend_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnClothesDryer}' schedule file and monthly multipliers provided; the latter will be ignored.") if !clothes_dryer.monthly_multipliers.nil?
+        runner.registerWarning("Both '#{cd_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !clothes_dryer.weekday_fractions.nil?
+        runner.registerWarning("Both '#{cd_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !clothes_dryer.weekend_fractions.nil?
+        runner.registerWarning("Both '#{cd_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !clothes_dryer.monthly_multipliers.nil?
       end
 
       cd_space = clothes_dryer.additional_properties.space
@@ -103,27 +108,29 @@ class HotWaterAndAppliances
       dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher, dishwasher.additional_properties.space.nil?)
 
       # Create schedule
-      power_dw_schedule = nil
+      dw_power_schedule = nil
+      dw_col_name = SchedulesFile::ColumnDishwasher
       if not schedules_file.nil?
-        dw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: SchedulesFile::ColumnDishwasher, daily_kwh: dw_annual_kwh / 365.0)
-        power_dw_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnDishwasher)
+        dw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: dw_col_name, daily_kwh: dw_annual_kwh / 365.0)
+        dw_power_schedule = schedules_file.create_schedule_file(col_name: dw_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
-      if power_dw_schedule.nil?
+      if dw_power_schedule.nil?
+        dw_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[dw_col_name]
         dw_weekday_sch = dishwasher.weekday_fractions
         dw_weekend_sch = dishwasher.weekend_fractions
         dw_monthly_sch = dishwasher.monthly_multipliers
-        dw_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameDishwasher, dw_weekday_sch, dw_weekend_sch, dw_monthly_sch, Constants.ScheduleTypeLimitsFraction)
+        dw_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameDishwasher, dw_weekday_sch, dw_weekend_sch, dw_monthly_sch, Constants.ScheduleTypeLimitsFraction, vacancy_periods: dw_vacancy_periods)
         dw_design_level_w = dw_schedule_obj.calc_design_level_from_daily_kwh(dw_annual_kwh / 365.0)
-        power_dw_schedule = dw_schedule_obj.schedule
+        dw_power_schedule = dw_schedule_obj.schedule
       else
-        runner.registerWarning("Both '#{SchedulesFile::ColumnDishwasher}' schedule file and weekday fractions provided; the latter will be ignored.") if !dishwasher.weekday_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnDishwasher}' schedule file and weekend fractions provided; the latter will be ignored.") if !dishwasher.weekend_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnDishwasher}' schedule file and monthly multipliers provided; the latter will be ignored.") if !dishwasher.monthly_multipliers.nil?
+        runner.registerWarning("Both '#{dw_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !dishwasher.weekday_fractions.nil?
+        runner.registerWarning("Both '#{dw_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !dishwasher.weekend_fractions.nil?
+        runner.registerWarning("Both '#{dw_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !dishwasher.monthly_multipliers.nil?
       end
 
       dw_space = dishwasher.additional_properties.space
       dw_space = living_space if dw_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
-      add_electric_equipment(model, Constants.ObjectNameDishwasher, dw_space, dw_design_level_w, dw_frac_sens, dw_frac_lat, power_dw_schedule)
+      add_electric_equipment(model, Constants.ObjectNameDishwasher, dw_space, dw_design_level_w, dw_frac_sens, dw_frac_lat, dw_power_schedule)
     end
 
     # Refrigerator(s) energy
@@ -132,16 +139,17 @@ class HotWaterAndAppliances
 
       # Create schedule
       fridge_schedule = nil
+      fridge_col_name = refrigerator.primary_indicator ? SchedulesFile::ColumnRefrigerator : SchedulesFile::ColumnExtraRefrigerator
       if not schedules_file.nil?
-        fridge_col_name = refrigerator.primary_indicator ? SchedulesFile::ColumnRefrigerator : SchedulesFile::ColumnExtraRefrigerator
         fridge_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: fridge_col_name, annual_kwh: rf_annual_kwh)
-        fridge_schedule = schedules_file.create_schedule_file(col_name: fridge_col_name)
+        fridge_schedule = schedules_file.create_schedule_file(col_name: fridge_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if fridge_schedule.nil?
+        fridge_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[fridge_col_name]
         fridge_weekday_sch = refrigerator.weekday_fractions
         fridge_weekend_sch = refrigerator.weekend_fractions
         fridge_monthly_sch = refrigerator.monthly_multipliers
-        fridge_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameRefrigerator, fridge_weekday_sch, fridge_weekend_sch, fridge_monthly_sch, Constants.ScheduleTypeLimitsFraction)
+        fridge_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameRefrigerator, fridge_weekday_sch, fridge_weekend_sch, fridge_monthly_sch, Constants.ScheduleTypeLimitsFraction, vacancy_periods: fridge_vacancy_periods)
         fridge_design_level = fridge_schedule_obj.calc_design_level_from_daily_kwh(rf_annual_kwh / 365.0)
         fridge_schedule = fridge_schedule_obj.schedule
       else
@@ -161,21 +169,23 @@ class HotWaterAndAppliances
 
       # Create schedule
       freezer_schedule = nil
+      freezer_col_name = SchedulesFile::ColumnFreezer
       if not schedules_file.nil?
-        freezer_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: SchedulesFile::ColumnFreezer, annual_kwh: fz_annual_kwh)
-        freezer_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnFreezer)
+        freezer_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: freezer_col_name, annual_kwh: fz_annual_kwh)
+        freezer_schedule = schedules_file.create_schedule_file(col_name: freezer_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if freezer_schedule.nil?
+        freezer_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[freezer_col_name]
         freezer_weekday_sch = freezer.weekday_fractions
         freezer_weekend_sch = freezer.weekend_fractions
         freezer_monthly_sch = freezer.monthly_multipliers
-        freezer_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameFreezer, freezer_weekday_sch, freezer_weekend_sch, freezer_monthly_sch, Constants.ScheduleTypeLimitsFraction)
+        freezer_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameFreezer, freezer_weekday_sch, freezer_weekend_sch, freezer_monthly_sch, Constants.ScheduleTypeLimitsFraction, vacancy_periods: freezer_vacancy_periods)
         freezer_design_level = freezer_schedule_obj.calc_design_level_from_daily_kwh(fz_annual_kwh / 365.0)
         freezer_schedule = freezer_schedule_obj.schedule
       else
-        runner.registerWarning("Both '#{SchedulesFile::ColumnFreezer}' schedule file and weekday fractions provided; the latter will be ignored.") if !freezer.weekday_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnFreezer}' schedule file and weekend fractions provided; the latter will be ignored.") if !freezer.weekend_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnFreezer}' schedule file and monthly multipliers provided; the latter will be ignored.") if !freezer.monthly_multipliers.nil?
+        runner.registerWarning("Both '#{freezer_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !freezer.weekday_fractions.nil?
+        runner.registerWarning("Both '#{freezer_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !freezer.weekend_fractions.nil?
+        runner.registerWarning("Both '#{freezer_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !freezer.monthly_multipliers.nil?
       end
 
       fz_space = freezer.additional_properties.space
@@ -189,23 +199,25 @@ class HotWaterAndAppliances
 
       # Create schedule
       cook_schedule = nil
+      cook_col_name = SchedulesFile::ColumnCookingRange
       if not schedules_file.nil?
-        cook_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: SchedulesFile::ColumnCookingRange, annual_kwh: cook_annual_kwh)
-        cook_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: SchedulesFile::ColumnCookingRange, annual_therm: cook_annual_therm)
-        cook_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnCookingRange)
+        cook_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cook_col_name, annual_kwh: cook_annual_kwh)
+        cook_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: cook_col_name, annual_therm: cook_annual_therm)
+        cook_schedule = schedules_file.create_schedule_file(col_name: cook_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if cook_schedule.nil?
+        cook_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[cook_col_name]
         cook_weekday_sch = cooking_range.weekday_fractions
         cook_weekend_sch = cooking_range.weekend_fractions
         cook_monthly_sch = cooking_range.monthly_multipliers
-        cook_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameCookingRange, cook_weekday_sch, cook_weekend_sch, cook_monthly_sch, Constants.ScheduleTypeLimitsFraction)
+        cook_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameCookingRange, cook_weekday_sch, cook_weekend_sch, cook_monthly_sch, Constants.ScheduleTypeLimitsFraction, vacancy_periods: cook_vacancy_periods)
         cook_design_level_e = cook_schedule_obj.calc_design_level_from_daily_kwh(cook_annual_kwh / 365.0)
         cook_design_level_f = cook_schedule_obj.calc_design_level_from_daily_therm(cook_annual_therm / 365.0)
         cook_schedule = cook_schedule_obj.schedule
       else
-        runner.registerWarning("Both '#{SchedulesFile::ColumnCookingRange}' schedule file and weekday fractions provided; the latter will be ignored.") if !cooking_range.weekday_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnCookingRange}' schedule file and weekend fractions provided; the latter will be ignored.") if !cooking_range.weekend_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnCookingRange}' schedule file and monthly multipliers provided; the latter will be ignored.") if !cooking_range.monthly_multipliers.nil?
+        runner.registerWarning("Both '#{cook_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !cooking_range.weekday_fractions.nil?
+        runner.registerWarning("Both '#{cook_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !cooking_range.weekend_fractions.nil?
+        runner.registerWarning("Both '#{cook_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !cooking_range.monthly_multipliers.nil?
       end
 
       cook_space = cooking_range.additional_properties.space
@@ -250,19 +262,21 @@ class HotWaterAndAppliances
 
       # Create schedule
       fixtures_schedule = nil
+      fixtures_col_name = SchedulesFile::ColumnHotWaterFixtures
       if not schedules_file.nil?
-        fixtures_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnHotWaterFixtures)
+        fixtures_schedule = schedules_file.create_schedule_file(col_name: fixtures_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if fixtures_schedule.nil?
+        fixtures_vacancy_periods = vacancy_periods if SchedulesFile.affected_by_vacancy[fixtures_col_name]
         fixtures_weekday_sch = hpxml.water_heating.water_fixtures_weekday_fractions
         fixtures_weekend_sch = hpxml.water_heating.water_fixtures_weekend_fractions
         fixtures_monthly_sch = hpxml.water_heating.water_fixtures_monthly_multipliers
-        fixtures_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameFixtures, fixtures_weekday_sch, fixtures_weekend_sch, fixtures_monthly_sch, Constants.ScheduleTypeLimitsFraction)
+        fixtures_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameFixtures, fixtures_weekday_sch, fixtures_weekend_sch, fixtures_monthly_sch, Constants.ScheduleTypeLimitsFraction, vacancy_periods: fixtures_vacancy_periods)
         fixtures_schedule = fixtures_schedule_obj.schedule
       else
-        runner.registerWarning("Both '#{SchedulesFile::ColumnHotWaterFixtures}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml.water_heating.water_fixtures_weekday_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnHotWaterFixtures}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml.water_heating.water_fixtures_weekend_fractions.nil?
-        runner.registerWarning("Both '#{SchedulesFile::ColumnHotWaterFixtures}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml.water_heating.water_fixtures_monthly_multipliers.nil?
+        runner.registerWarning("Both '#{fixtures_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml.water_heating.water_fixtures_weekday_fractions.nil?
+        runner.registerWarning("Both '#{fixtures_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml.water_heating.water_fixtures_weekend_fractions.nil?
+        runner.registerWarning("Both '#{fixtures_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml.water_heating.water_fixtures_monthly_multipliers.nil?
       end
     end
 
@@ -322,7 +336,7 @@ class HotWaterAndAppliances
           water_cw_schedule = nil
           if not schedules_file.nil?
             cw_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: SchedulesFile::ColumnHotWaterClothesWasher, daily_water: cw_gpd)
-            water_cw_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnHotWaterClothesWasher)
+            water_cw_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnHotWaterClothesWasher, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
           end
           if water_cw_schedule.nil?
             cw_peak_flow = cw_schedule_obj.calc_design_level_from_daily_gpm(cw_gpd)
@@ -349,7 +363,7 @@ class HotWaterAndAppliances
       water_dw_schedule = nil
       if not schedules_file.nil?
         dw_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: SchedulesFile::ColumnHotWaterDishwasher, daily_water: dw_gpd)
-        water_dw_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnHotWaterDishwasher)
+        water_dw_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnHotWaterDishwasher, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if water_dw_schedule.nil?
         dw_peak_flow = dw_schedule_obj.calc_design_level_from_daily_gpm(dw_gpd)
@@ -795,8 +809,6 @@ class HotWaterAndAppliances
   end
 
   def self.add_water_use_equipment(model, obj_name, peak_flow, schedule, water_use_connections, mw_temp_schedule = nil)
-    return if peak_flow == 0.0
-
     wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
     wu = OpenStudio::Model::WaterUseEquipment.new(wu_def)
     wu.setName(obj_name)
@@ -932,6 +944,10 @@ class HotWaterAndAppliances
   end
 
   def self.get_fixtures_gpd(eri_version, nbeds, fixtures_all_low_flow, daily_mw_fractions, fixtures_usage_multiplier = 1.0)
+    if nbeds < 0.0
+      return 0.0
+    end
+
     if Constants.ERIVersions.index(eri_version) < Constants.ERIVersions.index('2014A')
       hw_gpd = 30.0 + 10.0 * nbeds # Table 4.2.2(1) Service water heating systems
       # Convert to mixed water gpd
@@ -943,6 +959,7 @@ class HotWaterAndAppliances
     # Amendment on Domestic Hot Water (DHW) Systems
     ref_f_gpd = 14.6 + 10.0 * nbeds # Eq. 4.2-2 (refFgpd)
     f_eff = get_fixtures_effectiveness(fixtures_all_low_flow)
+
     return f_eff * ref_f_gpd * fixtures_usage_multiplier
   end
 
@@ -955,7 +972,7 @@ class HotWaterAndAppliances
 
   def self.get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, hot_water_distribution,
                               fixtures_all_low_flow, fixtures_usage_multiplier = 1.0)
-    if Constants.ERIVersions.index(eri_version) <= Constants.ERIVersions.index('2014')
+    if (Constants.ERIVersions.index(eri_version) <= Constants.ERIVersions.index('2014')) || (nbeds < 0.0)
       return 0.0
     end
 

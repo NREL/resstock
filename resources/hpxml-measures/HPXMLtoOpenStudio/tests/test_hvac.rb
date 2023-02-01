@@ -481,7 +481,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
   def test_air_to_air_heat_pump_1_speed_backup_lockout_temperature
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-air-to-air-heat-pump-1-speed-backup-lockout-temperature.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Get HPXML values
