@@ -533,7 +533,7 @@ class RunOSWs
 end
 
 class Version
-  ResStock_Version = '2.6.0-beta' # Version of ResStock
+  ResStock_Version = '3.0.0' # Version of ResStock
   BuildStockBatch_Version = '2023.1.0' # Minimum required version of BuildStockBatch
 
   def self.check_buildstockbatch_version
