@@ -429,6 +429,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     if args['utility_bill_scenario_names'].is_initialized
       utility_bill_scenario_names = args['utility_bill_scenario_names'].get.split(',').map(&:strip)
 
+      utility_bill_electricity_filepaths = args['utility_bill_electricity_filepaths'].get.split(',').map(&:strip)
+      if utility_bill_electricity_filepaths.empty?
+        utility_bill_electricity_filepaths = [nil] * utility_bill_scenario_names.size
+      end
+
       utility_bill_simple_filepaths = args['utility_bill_simple_filepaths'].get.split(',').map(&:strip)
       if utility_bill_simple_filepaths.empty?
         utility_bill_simple_filepaths = [nil] * utility_bill_scenario_names.size
@@ -484,7 +489,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         utility_bill_wood_marginal_rates = [nil] * utility_bill_scenario_names.size
       end
 
-      utility_bill_scenarios = utility_bill_scenario_names.zip(utility_bill_simple_filepaths,
+      utility_bill_scenarios = utility_bill_scenario_names.zip(utility_bill_electricity_filepaths,
+                                                               utility_bill_simple_filepaths,
                                                                utility_bill_electricity_fixed_charges,
                                                                utility_bill_electricity_marginal_rates,
                                                                utility_bill_natural_gas_fixed_charges,
@@ -496,6 +502,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
                                                                utility_bill_wood_fixed_charges,
                                                                utility_bill_wood_marginal_rates)
 
+      utility_bill_electricity_filepaths = []
       utility_bill_electricity_fixed_charges = []
       utility_bill_electricity_marginal_rates = []
       utility_bill_natural_gas_fixed_charges = []
@@ -507,7 +514,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       utility_bill_wood_fixed_charges = []
       utility_bill_wood_marginal_rates = []
       utility_bill_scenarios.each do |utility_bill_scenario|
-        _name, simple_filepath, electricity_fixed_charge, electricity_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate = utility_bill_scenario
+        _name, detail_filepath, simple_filepath, electricity_fixed_charge, electricity_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate = utility_bill_scenario
 
         if !simple_filepath.nil? && !simple_filepath.empty?
           simple_filepath = File.join(resources_dir, simple_filepath)
@@ -545,6 +552,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
           utility_bill_wood_fixed_charges << utility_rate['wood_fixed_charge']
           utility_bill_wood_marginal_rates << utility_rate['wood_marginal_rate']
         else
+          if !detail_filepath.nil? && !detail_filepath.empty?
+            detail_filepath = File.join(resources_dir, detail_filepath)
+            if !File.exist?(detail_filepath)
+              runner.registerError("Utility bill scenario file '#{detail_filepath}' does not exist.")
+              return false
+            end
+          end
+          utility_bill_electricity_filepaths << detail_filepath
           utility_bill_electricity_fixed_charges << electricity_fixed_charge
           utility_bill_electricity_marginal_rates << electricity_marginal_rate
           utility_bill_natural_gas_fixed_charges << natural_gas_fixed_charge
@@ -561,6 +576,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       utility_bill_scenario_names = utility_bill_scenario_names.join(',')
       measures['BuildResidentialHPXML'][0]['utility_bill_scenario_names'] = utility_bill_scenario_names
       register_value(runner, 'utility_bill_scenario_names', utility_bill_scenario_names)
+
+      utility_bill_electricity_filepaths = utility_bill_electricity_filepaths.join(',')
+      measures['BuildResidentialHPXML'][0]['utility_bill_electricity_filepaths'] = utility_bill_electricity_filepaths
+      register_value(runner, 'utility_bill_electricity_filepaths', utility_bill_electricity_filepaths)
 
       utility_bill_electricity_fixed_charges = utility_bill_electricity_fixed_charges.join(',')
       measures['BuildResidentialHPXML'][0]['utility_bill_electricity_fixed_charges'] = utility_bill_electricity_fixed_charges
