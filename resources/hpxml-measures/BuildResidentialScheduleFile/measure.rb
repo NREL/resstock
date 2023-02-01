@@ -46,11 +46,6 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     arg.setDescription("A comma-separated list of the column names to generate. If not provided, defaults to all columns. Possible column names are: #{ScheduleGenerator.export_columns.join(', ')}.")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_vacancy_period', false)
-    arg.setDisplayName('Schedules: Vacancy Period')
-    arg.setDescription('Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_random_seed', false)
     arg.setDisplayName('Schedules: Random Seed')
     arg.setUnits('#')
@@ -104,6 +99,12 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args[:hpxml_output_path] = hpxml_output_path
 
     hpxml = HPXML.new(hpxml_path: hpxml_path)
+
+    # exit if number of occupants is zero
+    if hpxml.building_occupancy.number_of_residents == 0
+      runner.registerInfo('Number of occupants set to zero; skipping generation of stochastic schedules.')
+      return true
+    end
 
     # create EpwFile object
     epw_path = Location.get_epw_path(hpxml, hpxml_path)

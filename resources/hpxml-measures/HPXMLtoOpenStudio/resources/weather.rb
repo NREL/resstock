@@ -22,7 +22,7 @@ class WeatherDesign
 end
 
 class WeatherProcess
-  def initialize(model, runner, csv_path = nil)
+  def initialize(epw_path: nil, csv_path: nil, runner: nil)
     @header = WeatherHeader.new
     @data = WeatherData.new
     @design = WeatherDesign.new
@@ -31,8 +31,6 @@ class WeatherProcess
       load_from_csv(csv_path)
       return
     end
-
-    epw_path = get_epw_path(model)
 
     if not File.exist?(epw_path)
       fail "Cannot find weather file at #{epw_path}."
@@ -99,25 +97,6 @@ class WeatherProcess
   attr_accessor(:header, :data, :design)
 
   private
-
-  def get_epw_path(model)
-    if model.weatherFile.is_initialized
-
-      wf = model.weatherFile.get
-      # Sometimes path is available, sometimes just url. Should be improved in OS 2.0.
-      if wf.path.is_initialized
-        epw_path = wf.path.get.to_s
-      else
-        epw_path = wf.url.to_s.sub('file:///', '').sub('file://', '').sub('file:', '')
-      end
-      if not File.exist? epw_path
-        epw_path = File.absolute_path(File.join(File.dirname(__FILE__), epw_path))
-      end
-      return epw_path
-    end
-
-    fail 'Model has not been assigned a weather file.'
-  end
 
   def process_epw(runner, epw_file)
     # Header info:
@@ -209,7 +188,9 @@ class WeatherProcess
     @data.WSF = calc_ashrae_622_wsf(rowdata)
 
     if not epwHasDesignData
-      runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
+      if not runner.nil?
+        runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
+      end
       calc_design_info(rowdata)
       @design.DailyTemperatureRange = @data.MonthlyAvgDailyHighDrybulbs[7] - @data.MonthlyAvgDailyLowDrybulbs[7]
     end

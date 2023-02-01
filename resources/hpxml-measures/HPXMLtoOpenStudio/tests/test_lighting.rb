@@ -36,12 +36,10 @@ class HPXMLtoOpenStudioLightingTest < MiniTest::Test
     model, _hpxml = _test_measure(args_hash)
 
     # Check interior lighting
-    int_kwh_yr = get_kwh_per_year(model, Constants.ObjectNameInteriorLighting)
-    assert_in_delta(1322, int_kwh_yr, 1.0)
+    assert_in_delta(1322, get_kwh_per_year(model, Constants.ObjectNameInteriorLighting), 1.0)
 
     # Check exterior lighting
-    ext_kwh_yr = get_kwh_per_year(model, Constants.ObjectNameExteriorLighting)
-    assert_in_delta(98, ext_kwh_yr, 1.0)
+    assert_in_delta(98, get_kwh_per_year(model, Constants.ObjectNameExteriorLighting), 1.0)
   end
 
   def test_lighting_garage
@@ -50,16 +48,13 @@ class HPXMLtoOpenStudioLightingTest < MiniTest::Test
     model, _hpxml = _test_measure(args_hash)
 
     # Check interior lighting
-    int_kwh_yr = get_kwh_per_year(model, Constants.ObjectNameInteriorLighting)
-    assert_in_delta(1544, int_kwh_yr, 1.0)
+    assert_in_delta(1544, get_kwh_per_year(model, Constants.ObjectNameInteriorLighting), 1.0)
 
     # Check garage lighting
-    grg_kwh_yr = get_kwh_per_year(model, Constants.ObjectNameGarageLighting)
-    assert_in_delta(42, grg_kwh_yr, 1.0)
+    assert_in_delta(42, get_kwh_per_year(model, Constants.ObjectNameGarageLighting), 1.0)
 
     # Check exterior lighting
-    ext_kwh_yr = get_kwh_per_year(model, Constants.ObjectNameExteriorLighting)
-    assert_in_delta(109, ext_kwh_yr, 1.0)
+    assert_in_delta(109, get_kwh_per_year(model, Constants.ObjectNameExteriorLighting), 1.0)
   end
 
   def test_exterior_holiday_lighting
@@ -72,12 +67,25 @@ class HPXMLtoOpenStudioLightingTest < MiniTest::Test
 
       if hpxml_name == 'base-lighting-holiday.xml'
         # Check exterior holiday lighting
-        ext_holiday_kwh_yr = get_kwh_per_year(model, Constants.ObjectNameLightingExteriorHoliday)
-        assert_in_delta(58.3, ext_holiday_kwh_yr, 1.0)
+        assert_in_delta(58.3, get_kwh_per_year(model, Constants.ObjectNameLightingExteriorHoliday), 1.0)
       else
         assert_equal(false, hpxml.lighting.holiday_exists)
       end
     end
+  end
+
+  def test_lighting_kwh_per_year
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-lighting-kwh-per-year.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Check interior lighting
+    int_kwh_yr = hpxml.lighting_groups.select { |lg| lg.location == HPXML::LocationInterior }.map { |lg| lg.kwh_per_year }[0]
+    assert_in_delta(int_kwh_yr, get_kwh_per_year(model, Constants.ObjectNameInteriorLighting), 1.0)
+
+    # Check exterior lighting
+    ext_kwh_yr = hpxml.lighting_groups.select { |lg| lg.location == HPXML::LocationExterior }.map { |lg| lg.kwh_per_year }[0]
+    assert_in_delta(ext_kwh_yr, get_kwh_per_year(model, Constants.ObjectNameExteriorLighting), 1.0)
   end
 
   def _test_measure(args_hash)
