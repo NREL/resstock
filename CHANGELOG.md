@@ -1,5 +1,5 @@
 ## ResStock v3.0.0
-###### February 1, 2023 - [Diff](https://github.com/NREL/resstock/compare/v2.5.0...v3.0.0)
+###### February 2, 2023 - [Diff](https://github.com/NREL/resstock/compare/v2.5.0...v3.0.0)
 
 Features
 - Transition to using the HPXML-based workflow ([#443](https://github.com/NREL/resstock/pull/443))
