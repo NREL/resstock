@@ -13,6 +13,14 @@ For the first option, go to the `releases page <https://github.com/NREL/resstock
 
 For the second option, you will need to have `Git <https://git-scm.com>`_ or some other Git-based tool installed. Cloning the ResStock repository gives you access to the ``develop`` branch of ResStock. The ``develop`` branch is under active development.
 
+.. note::
+
+  If you are planning to perform large-scale runs on ResStock (greater than 1000 simulations) or analyze timeseries data, you will need to use :ref:`buildstockbatch <buildstockbatch>` to run and manage batch simulations of ResStock.
+  Buildstockbatch can be run locally via Docker, on AWS, or on an HPC like NREL’s Eagle.
+  Installation instructions can be found in buildstockbatch’s `installation documentation <https://buildstockbatch.readthedocs.io/en/latest/installation.html>`_.
+
+  If you are planning to perform small-scale runs of ResStock (1000 simulations or fewer), you can use the Docker-less option of running locally via :ref:`run_analysis.rb <run_analysis>`.
+
 Install OpenStudio
 ------------------
 

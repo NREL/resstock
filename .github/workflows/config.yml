@@ -11,56 +11,40 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.3.0
+      image: docker://nrel/openstudio:3.5.1
     steps:
-      - name: Show environment
-        run: |
-          bundle -v
-          ruby -v
-
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Install gems
+      - name: Install gems and software
         run: |
           rm -f Gemfile.lock && bundle install
 
-      - name: Regenerate test osms
+      - name: Run integrity checks for all projects
         run: |
-          rake test:regenerate_osms
+          bundle exec rake unit_tests:project_integrity_checks
 
-      - name: Run all unit tests
+      - name: Run all integrity check unit tests
         run: |
-          rake test:unit_tests
+          bundle exec rake unit_tests:integrity_check_tests
 
-      - name: Run all project tests
+      - name: Run all measure tests
         run: |
-          rake test:project_tests
+          bundle exec rake unit_tests:measure_tests
 
       - name: Upload feature samples
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: resources/buildstock.csv
           name: samples
 
-      - name: Upload schedules
-        uses: actions/upload-artifact@v2
-        with:
-          path: resources/measures/ResidentialScheduleGenerator/tests/output/test_sweep_building_ids_and_num_occupants
-          name: schedules
-
   analysis-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.3.0
+      image: docker://nrel/openstudio:3.5.1
     steps:
-      - name: Show environment
-        run: |
-          bundle -v
-          ruby -v
-
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
@@ -70,23 +54,28 @@ jobs:
 
       - name: Run run_analysis.rb
         run: |
-          rake test:analysis_tests
+          bundle exec rake workflow:analysis_tests
+
+      - name: Upload run_analysis.rb results
+        uses: actions/upload-artifact@v3
+        with:
+          path: |
+            project_national/results-Baseline.csv
+            project_testing/results-Baseline.csv
+            project_national/results-AllUpgrades.csv
+            project_testing/results-AllUpgrades.csv
+          name: run_analysis
 
   integration-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Show environment
-        run: |
-          ruby -v
-          python -v
-
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
       - name: Run buildstockbatch
         run: |
-          pip install git+https://github.com/NREL/buildstockbatch.git@v0.21
+          pip install git+https://github.com/NREL/buildstockbatch.git@v2023.01.0
           
           buildstock_docker project_national/national_baseline.yml
           buildstock_docker project_testing/testing_baseline.yml
@@ -94,11 +83,7 @@ jobs:
           buildstock_docker project_national/national_upgrades.yml
           buildstock_docker project_testing/testing_upgrades.yml
 
-      - name: Run tests
-        run: |
-          ruby test/test_bsb_analysis.rb
-
-      - name: Process results
+      - name: Unzip results
         run: |
           gunzip -v project_national/national_baseline/results_csvs/*.csv.gz
           gunzip -v project_testing/testing_baseline/results_csvs/*.csv.gz
@@ -111,62 +96,104 @@ jobs:
           
           tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output
           tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output
-          
+
+      - name: Run tests
+        run: |
+          ruby test/test_bsb_analysis.rb
+
+      - name: Process results
+        run: |
           pip install pandas
           python test/util.py
 
       - name: Upload integration results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: |
             baseline
             upgrades
           name: results
 
+      - name: Upload output files
+        uses: actions/upload-artifact@v3
+        with:
+          path: |
+            outputs
+          name: outputs
+
+      - name: Upload buildstockbatch results
+        uses: actions/upload-artifact@v3
+        with:
+          path: |
+            project_national/national_baseline/results_csvs/results_up00.csv
+            project_testing/testing_baseline/results_csvs/results_up00.csv
+            project_national/national_upgrades/results_csvs/results_up14.csv
+            project_testing/testing_upgrades/results_csvs/results_up14.csv
+          name: buildstockbatch
+
+  compare-tools:
+    runs-on: ubuntu-latest
+    needs: [unit-tests, analysis-tests, integration-tests]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Download buildstockbatch results
+        uses: actions/download-artifact@v3
+        with:
+          path: buildstockbatch
+          name: buildstockbatch
+
+      - name: Download run_analysis results
+        uses: actions/download-artifact@v3
+        with:
+          path: run_analysis
+          name: run_analysis
+
+      - name: Run tests
+        run: |
+          ruby test/test_tools.rb
+
   compare-results:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - name: Show environment
-        run: |
-          ruby -v
-          python -v
-
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
-      - name: Upload base samples and results
-        uses: actions/upload-artifact@v2
+      - name: Upload base results
+        uses: actions/upload-artifact@v3
         with:
           path: test/base_results
-          name: base
+          name: base_results
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Download base samples and results
-        uses: actions/download-artifact@v2
+      - name: Download base results
+        uses: actions/download-artifact@v3
         with:
-          path: base
-          name: base
+          path: base_results
+          name: base_results
 
       - name: Download feature samples
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: samples
           name: samples
 
       - name: Download feature results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: results
           name: results
 
       - name: Compare samples and results
-        run: |
+        run: |          
           pip install numpy
           pip install pandas
           pip install plotly
@@ -178,34 +205,34 @@ jobs:
           
           mkdir test/base_results/comparisons/baseline/annual
           
-          python test/compare.py -a samples -b base/baseline/annual -f samples -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a samples -b base_results/baseline/annual -f samples -e test/base_results/comparisons/baseline/annual
+                    
+          python test/compare.py -a results -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a results -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
           
-          python test/compare.py -a results -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          
-          python test/compare.py -a visualize -dc geometry_building_type_recs -x results_output_building_type.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc geometry_foundation_type -x results_output_foundation_type.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc census_region -x results_output_cr.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc geometry_building_type_recs -ac census_region -af sum -x results_output_cr_sum.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.geometry_foundation_type -x results_output_foundation_type.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.census_region -x results_output_cr.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.census_region -af sum -x results_output_cr_sum.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
           
           mkdir test/base_results/comparisons/baseline/timeseries
-          
-          python test/compare.py -a timeseries -b base/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
+                    
+          python test/compare.py -a timeseries -b base_results/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
           
           mkdir test/base_results/comparisons/upgrades
           
           mkdir test/base_results/comparisons/upgrades/annual
+                    
+          python test/compare.py -a results -b base_results/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
           
-          python test/compare.py -a results -b base/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
-          
-          python test/compare.py -a visualize -b base/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
+          python test/compare.py -a visualize -x results_output.html -b base_results/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
           
           mkdir test/base_results/comparisons/upgrades/timeseries
-          
-          python test/compare.py -a timeseries -b base/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
+                    
+          python test/compare.py -a timeseries -b base_results/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
 
       - name: Upload comparisons
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: test/base_results/comparisons
           name: comparisons
@@ -214,21 +241,33 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Install gems and software
+        run: |
+          sudo apt update
+          sudo apt-get install -y wget unzip libxml2-utils python3-lxml python3-pip
+          sudo pip3 install sphinx sphinx-rtd-theme
+
       - name: Download feature samples
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: samples
           name: samples
 
       - name: Download feature results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: results
           name: results
+
+      - name: Download output files
+        uses: actions/download-artifact@v3
+        with:
+          path: outputs
+          name: outputs
 
       - name: Commit latest results
         shell: bash        
@@ -240,6 +279,7 @@ jobs:
           cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
           cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
           cp -r results/upgrades/timeseries/results*.csv test/base_results/upgrades/timeseries
+          cp -r outputs/*.csv test/base_results/outputs
           git add test/base_results
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
@@ -249,3 +289,14 @@ jobs:
             echo "Pushing to branch: $branch_name"
             git push -u origin $branch_name
           fi
+
+      - name: Build documentation
+        run: |
+          cd docs/read_the_docs
+          make html SPHINXOPTS="-W --keep-going -n"
+
+      - name: Save Docs
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: docs/read_the_docs/_build/html/

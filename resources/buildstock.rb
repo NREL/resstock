@@ -1,7 +1,16 @@
 # frozen_string_literal: true
 
+require 'openstudio'
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), 'hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), 'hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
+end
+require File.join(resources_path, 'meta_measure')
+
 require 'csv'
-require "#{File.dirname(__FILE__)}/meta_measure"
 
 class TsvFile
   def initialize(full_path, runner)
@@ -81,7 +90,7 @@ class TsvFile
       next if row[0].start_with? "\#"
 
       row_key_values = {}
-      @dependency_cols.each do |dep, dep_col|
+      @dependency_cols.keys.each do |dep|
         row_key_values[dep] = row[@dependency_cols[dep]]
       end
       key_s = hash_to_string(row_key_values)
@@ -138,7 +147,7 @@ class TsvFile
     end
 
     # Sum of values within 2% of 100%?
-    sum_rowvals = rowvals.values.sum()
+    sum_rowvals = rowvals.values.reduce(:+)
     if (sum_rowvals < 0.98) || (sum_rowvals > 1.02)
       register_error("Values in #{@filename} incorrectly sum to #{sum_rowvals}.", @runner)
     end
@@ -153,7 +162,7 @@ class TsvFile
     # Find appropriate value
     rowsum = 0
     n_options = @option_cols.size
-    @option_cols.each_with_index do |(option_name, option_col), index|
+    @option_cols.keys.each_with_index do |option_name, index|
       rowsum += rowvals[option_name]
       next unless (rowsum >= sample_value) || ((index == n_options - 1) && (rowsum + 0.00001 >= sample_value))
 
@@ -207,6 +216,7 @@ def get_combination_hashes(tsvfiles, dependencies)
   depval_array = []
   dependencies.each do |dep|
     depval_array << tsvfiles[dep].option_cols.keys
+    depval_array[-1].delete('Void') # Dependency will never have Void option
   end
 
   if depval_array.size == 0
@@ -352,6 +362,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   option_apply_logic.split('||').each do |or_segment|
     or_segment.split('&&').each do |segment|
       segment.strip!
+      segment.delete!("'")
 
       # Handle presence of open parentheses
       rindex = segment.rindex('(')
@@ -384,6 +395,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
       else
         segment_existing_option = get_value_from_runner(runner, segment_parameter)
       end
+      segment_existing_option.delete!("'")
 
       ruby_eval_str += segment_open + "'" + segment_existing_option + segment_equality + segment_option + "'" + segment_close + ' and '
     end
@@ -420,24 +432,7 @@ class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.add_simulation_output_report(osw)
-    json = JSON.parse(File.read(osw), symbolize_names: true)
-    measures = []
-    json[:steps].each do |measure|
-      measures << measure[:measure_dir_name]
-    end
-
-    unless measures.include? 'SimulationOutputReport'
-      simulation_output_report = { measure_dir_name: 'SimulationOutputReport' }
-      json[:steps] << simulation_output_report
-    end
-
-    File.open(osw, 'w') do |f|
-      f.write(JSON.pretty_generate(json))
-    end
-  end
-
-  def self.run_and_check(in_osw, parent_dir, cli_output, measures_only = false)
+  def self.run(in_osw, parent_dir, cli_output, upgrade, measures, reporting_measures, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" run"
@@ -446,86 +441,47 @@ class RunOSWs
 
     cli_output += `#{command}`
 
-    result_characteristics = {}
     result_output = {}
 
     out = File.join(parent_dir, 'out.osw')
     out = JSON.parse(File.read(File.expand_path(out)))
+    started_at = out['started_at']
+    completed_at = out['completed_at']
     completed_status = out['completed_status']
 
-    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
+    results = File.join(parent_dir, 'run/results.json')
 
-    return completed_status, result_characteristics, result_output, cli_output if measures_only || !File.exist?(data_point_out)
+    return started_at, completed_at, completed_status, result_output, cli_output if measures_only || !File.exist?(results)
 
-    rows = JSON.parse(File.read(File.expand_path(data_point_out)))
-    if rows.keys.include? 'BuildExistingModel'
-      result_characteristics = get_build_existing_model(result_characteristics, rows)
-    end
-    if rows.keys.include? 'ApplyUpgrade'
-      result_output = get_apply_upgrade(result_output, rows)
-    end
-    if rows.keys.include? 'SimulationOutputReport'
-      result_output = get_simulation_output_report(result_output, rows)
-    end
-    if rows.keys.include? 'LoadComponentsReport'
-      result_output = get_load_components_report(result_output, rows)
-    end
-    if rows.keys.include? 'QOIReport'
-      result_output = get_qoi_report(result_output, rows)
-    end
+    rows = {}
+    old_rows = JSON.parse(File.read(File.expand_path(results)))
+    old_rows.each do |measure, values|
+      rows[measure] = {}
+      values.each do |arg, val|
+        next if measure == 'BuildExistingModel' && arg == 'building_id'
 
-    return completed_status, result_characteristics, result_output, cli_output
-  end
-
-  def self.get_build_existing_model(result, rows)
-    result = result.merge(rows['BuildExistingModel'])
-    result.delete('applicable')
-    return result
-  end
-
-  def self.get_apply_upgrade(result, rows)
-    if rows.keys.include?('ApplyUpgrade')
-      result = result.merge(rows['ApplyUpgrade'])
-      result.delete('applicable')
-    end
-    return result
-  end
-
-  def self.get_simulation_output_report(result, rows)
-    rows['SimulationOutputReport'].each do |k, v|
-      begin
-        rows['SimulationOutputReport'][k] = v.round(1)
-      rescue NoMethodError
+        rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
       end
     end
-    result = result.merge(rows['SimulationOutputReport'])
-    result.delete('applicable')
-    result.delete('upgrade_name')
-    result.delete('upgrade_cost_usd')
-    return result
+
+    result_output = get_measure_results(rows, result_output, 'BuildExistingModel') if !upgrade
+    result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
+    measures.each do |measure|
+      result_output = get_measure_results(rows, result_output, measure)
+    end
+    result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
+    result_output = get_measure_results(rows, result_output, 'ReportUtilityBills')
+    result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
+    reporting_measures.each do |reporting_measure|
+      result_output = get_measure_results(rows, result_output, reporting_measure)
+    end
+
+    return started_at, completed_at, completed_status, result_output, cli_output
   end
 
-  def self.get_load_components_report(result, rows)
-    rows['LoadComponentsReport'].each do |k, v|
-      begin
-        rows['LoadComponentsReport'][k] = v.round(1)
-      rescue NoMethodError
-      end
-    end
-    result = result.merge(rows['LoadComponentsReport'])
-    result.delete('applicable')
-    return result
-  end
-
-  def self.get_qoi_report(result, rows)
-    rows['QOIReport'].each do |k, v|
-      begin
-        rows['QOIReport'][k] = v.round(1)
-      rescue NoMethodError
-      end
-    end
-    rows['QOIReport'].each do |k, v|
-      result["qoi_#{k}"] = v unless k == 'applicable'
+  def self.get_measure_results(rows, result, measure)
+    if rows.keys.include?(measure)
+      result = result.merge(rows[measure])
     end
     return result
   end
@@ -539,18 +495,19 @@ class RunOSWs
     column_headers = []
     results.each do |result|
       result.keys.each do |col|
-        next if col == 'building_id'
-
         column_headers << col unless column_headers.include?(col)
       end
     end
     column_headers = column_headers.sort
-    column_headers.delete('job_id')
-    column_headers.insert(1, 'job_id')
+
+    ['completed_status', 'completed_at', 'started_at', 'job_id', 'building_id'].each do |col|
+      column_headers.delete(col)
+      column_headers.insert(0, col)
+    end
 
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
-      results.sort_by { |h| h['OSW'] }.each do |result|
+      results.sort_by { |h| h['building_id'] }.each do |result|
         csv_row = []
         column_headers.each do |column_header|
           csv_row << result[column_header]
@@ -571,6 +528,20 @@ class RunOSWs
       break if not Dir.exist?(path)
 
       sleep(0.01)
+    end
+  end
+end
+
+class Version
+  ResStock_Version = '3.0.0' # Version of ResStock
+  BuildStockBatch_Version = '2023.1.0' # Minimum required version of BuildStockBatch
+
+  def self.check_buildstockbatch_version
+    if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed
+      bsb_version = ENV['BUILDSTOCKBATCH_VERSION']
+      if bsb_version < BuildStockBatch_Version
+        fail "BuildStockBatch version #{BuildStockBatch_Version} or above is required. Found version: #{bsb_version}"
+      end
     end
   end
 end

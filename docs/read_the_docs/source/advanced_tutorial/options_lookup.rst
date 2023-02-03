@@ -15,7 +15,12 @@ You do not have a row in ``options_lookup.tsv`` for a particular option that is 
 
 An example of this error is given below:
 
-.. image:: ../images/advanced_tutorial/could_not_find_parameter_and_option.png
+.. code:: bash
+
+  $ openstudio tasks.rb integrity_check_testing
+  ...
+  Error executing argv: ["integrity_check_testing"]
+  Error: ERROR: Could not find parameter 'Insulation Wall' and option 'Wood Stud, Uninsulated' in C:/OpenStudio/resstock/test/../resources/options_lookup.tsv.
 
 .. _required-argument-not-provided:
 
@@ -26,4 +31,9 @@ For the particular option that is sampled, your corresponding measure is missing
 
 An example of this error is given below:
 
-.. image:: ../images/advanced_tutorial/required_argument_not_provided.png
+.. code:: bash
+
+  $ openstudio tasks.rb integrity_check_testing
+  ...
+  Error executing argv: ["integrity_check_testing"]
+  Error: ERROR: Required argument 'wall_assembly_r' not provided in C:/OpenStudio/resstock/test/../resources/options_lookup.tsv for measure 'ResStockArguments'.

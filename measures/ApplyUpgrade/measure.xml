@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>apply_upgrade</name>
   <uid>33f1654c-f734-43d1-b35d-9d2856e41b5a</uid>
-  <version_id>ac247a70-b6fe-4ef0-96a3-b4955824065e</version_id>
-  <version_modified>20220127T162843Z</version_modified>
+  <version_id>30a03e58-aaf7-4479-bbb1-9fda9283b2b7</version_id>
+  <version_modified>20230104T191300Z</version_modified>
   <xml_checksum>9339BE01</xml_checksum>
   <class_name>ApplyUpgrade</class_name>
   <display_name>Apply Upgrade</display_name>
@@ -79,12 +79,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -103,16 +115,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -159,12 +191,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -183,16 +227,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -264,12 +328,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -288,16 +364,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -344,12 +440,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -368,16 +476,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -449,12 +577,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -473,16 +613,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -529,12 +689,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -553,16 +725,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -634,12 +826,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -658,16 +862,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -714,12 +938,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -738,16 +974,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -819,12 +1075,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -843,16 +1111,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -899,12 +1187,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -923,16 +1223,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -1004,12 +1324,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -1028,16 +1360,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -1084,12 +1436,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -1108,16 +1472,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -1189,12 +1573,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -1213,16 +1609,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -1269,12 +1685,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -1293,16 +1721,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -1374,12 +1822,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -1398,16 +1858,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -1454,12 +1934,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -1478,16 +1970,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -1559,12 +2071,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -1583,16 +2107,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -1639,12 +2183,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -1663,16 +2219,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -1744,12 +2320,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -1768,16 +2356,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -1824,12 +2432,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -1848,16 +2468,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -1929,12 +2569,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -1953,16 +2605,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -2009,12 +2681,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -2033,16 +2717,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -2114,12 +2818,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -2138,16 +2854,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -2194,12 +2930,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -2218,16 +2966,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -2299,12 +3067,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -2323,16 +3103,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -2379,12 +3179,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -2403,16 +3215,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -2484,12 +3316,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -2508,16 +3352,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -2564,12 +3428,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -2588,16 +3464,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -2669,12 +3565,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -2693,16 +3601,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -2749,12 +3677,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -2773,16 +3713,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -2854,12 +3814,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -2878,16 +3850,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -2934,12 +3926,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -2958,16 +3962,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -3039,12 +4063,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -3063,16 +4099,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -3119,12 +4175,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -3143,16 +4211,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -3224,12 +4312,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -3248,16 +4348,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -3304,12 +4424,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -3328,16 +4460,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -3409,12 +4561,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -3433,16 +4597,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -3489,12 +4673,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -3513,16 +4709,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -3594,12 +4810,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -3618,16 +4846,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -3674,12 +4922,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -3698,16 +4958,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -3779,12 +5059,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -3803,16 +5095,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -3859,12 +5171,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -3883,16 +5207,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -3964,12 +5308,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -3988,16 +5344,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -4044,12 +5420,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -4068,16 +5456,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -4149,12 +5557,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -4173,16 +5593,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -4229,12 +5669,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -4253,16 +5705,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -4334,12 +5806,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -4358,16 +5842,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -4414,12 +5918,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -4438,16 +5954,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -4519,12 +6055,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -4543,16 +6091,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -4599,12 +6167,24 @@
           <display_name>Floor Area, Conditioned (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Floor Area, Attic (ft^2)</value>
-          <display_name>Floor Area, Attic (ft^2)</display_name>
+          <value>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</value>
+          <display_name>Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)</display_name>
         </choice>
         <choice>
           <value>Floor Area, Lighting (ft^2)</value>
           <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Foundation (ft^2)</value>
+          <display_name>Floor Area, Foundation (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</value>
+          <display_name>Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)</display_name>
         </choice>
         <choice>
           <value>Roof Area (ft^2)</value>
@@ -4623,16 +6203,36 @@
           <display_name>Duct Unconditioned Surface Area (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Heating System (kBtu/h)</value>
-          <display_name>Size, Heating System (kBtu/h)</display_name>
+          <value>Rim Joist Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Rim Joist Area, Above-Grade, Exterior (ft^2)</display_name>
         </choice>
         <choice>
-          <value>Size, Cooling System (kBtu/h)</value>
-          <display_name>Size, Cooling System (kBtu/h)</display_name>
+          <value>Slab Perimeter, Exposed, Conditioned (ft)</value>
+          <display_name>Slab Perimeter, Exposed, Conditioned (ft)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Primary (kBtu/h)</value>
+          <display_name>Size, Heating System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System Secondary (kBtu/h)</value>
+          <display_name>Size, Heating System Secondary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System Primary (kBtu/h)</value>
+          <display_name>Size, Cooling System Primary (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heat Pump Backup Primary (kBtu/h)</value>
+          <display_name>Size, Heat Pump Backup Primary (kBtu/h)</display_name>
         </choice>
         <choice>
           <value>Size, Water Heater (gal)</value>
           <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+        <choice>
+          <value>Flow Rate, Mechanical Ventilation (cfm)</value>
+          <display_name>Flow Rate, Mechanical Ventilation (cfm)</display_name>
         </choice>
       </choices>
     </argument>
@@ -4722,6 +6322,18 @@
   </attributes>
   <files>
     <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F595D17B</checksum>
+    </file>
+    <file>
+      <filename>apply_upgrade_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>672FDD8F</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.9.0</identifier>
@@ -4730,7 +6342,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>15D83B34</checksum>
+      <checksum>E8B729A9</checksum>
     </file>
   </files>
 </measure>

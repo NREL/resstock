@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# see the URL below for information on how to write OpenStudio measures
+# http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
+
 # start the measure
 class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
   # define the name that a user will see, this method may be deprecated as
@@ -8,8 +11,18 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
     'Server Directory Cleanup'
   end
 
+  # human readable description
+  def description
+    return 'Optionally removes a significant portion of the saved results from each run, helping to alleviate memory problems.'
+  end
+
+  # human readable description of modeling approach
+  def modeler_description
+    return ''
+  end
+
   # define the arguments that the user will input
-  def arguments(model)
+  def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_in_osm', true)
@@ -77,18 +90,13 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_sql', true)
-    arg.setDisplayName('Retain eplusout.sql')
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_msgpack', true)
+    arg.setDisplayName('Retain eplusout.msgpack')
     arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplustbl_htm', true)
     arg.setDisplayName('Retain eplustbl.htm')
-    arg.setDefaultValue(false)
-    args << arg
-
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_sqlite_err', true)
-    arg.setDisplayName('Retain sqlite.err.')
     arg.setDefaultValue(false)
     args << arg
 
@@ -110,6 +118,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
     arg.setDisplayName('Debug Mode?')
     arg.setDescription('If true, retain all files.')
+    arg.setDefaultValue(false)
     args << arg
 
     return args
@@ -144,18 +153,15 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
     eplusout_mtd = runner.getBoolArgumentValue('retain_eplusout_mtd', user_arguments)
     eplusout_rdd = runner.getBoolArgumentValue('retain_eplusout_rdd', user_arguments)
     eplusout_shd = runner.getBoolArgumentValue('retain_eplusout_shd', user_arguments)
-    eplusout_sql = runner.getBoolArgumentValue('retain_eplusout_sql', user_arguments)
+    eplusout_msgpack = runner.getBoolArgumentValue('retain_eplusout_msgpack', user_arguments)
     eplustbl_htm = runner.getBoolArgumentValue('retain_eplustbl_htm', user_arguments)
-    sqlite_err = runner.getBoolArgumentValue('retain_sqlite_err', user_arguments)
     stdout_energyplus = runner.getBoolArgumentValue('retain_stdout_energyplus', user_arguments)
     stdout_expandobject = runner.getBoolArgumentValue('retain_stdout_expandobject', user_arguments)
     schedules_csv = runner.getBoolArgumentValue('retain_schedules_csv', user_arguments)
-    debug = runner.getOptionalBoolArgumentValue('debug', user_arguments)
+    debug = runner.getBoolArgumentValue('debug', user_arguments)
 
-    if debug.is_initialized
-      if debug.get
-        in_osm = in_idf = pre_process_idf = eplusout_audit = eplusout_bnd = eplusout_eio = eplusout_end = eplusout_err = eplusout_eso = eplusout_mdd = eplusout_mtd = eplusout_rdd = eplusout_shd = eplusout_sql = eplusout_htm = sqlite_err = stdout_energyplus = stdout_expandobject = schedules_csv = true
-      end
+    if debug
+      in_osm = in_idf = pre_process_idf = eplusout_audit = eplusout_bnd = eplusout_eio = eplusout_end = eplusout_err = eplusout_eso = eplusout_mdd = eplusout_mtd = eplusout_rdd = eplusout_shd = eplusout_msgpack = stdout_energyplus = stdout_expandobject = schedules_csv = true
     end
 
     Dir.glob('./../in.osm').each do |f|
@@ -210,16 +216,12 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
       File.delete(f) unless eplusout_shd
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
-    Dir.glob('./../eplusout.sql').each do |f|
-      File.delete(f) unless eplusout_sql
+    Dir.glob('./../eplusout*.msgpack').each do |f|
+      File.delete(f) unless eplusout_msgpack
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
     Dir.glob('./../eplustbl.htm').each do |f|
       File.delete(f) unless eplustbl_htm
-      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
-    end
-    Dir.glob('./../sqlite.err').each do |f|
-      File.delete(f) unless sqlite_err
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
     Dir.glob('./../stdout-energyplus').each do |f|

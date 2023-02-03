@@ -1,4 +1,6 @@
 schema_version: '0.3'
+os_version: 3.5.1
+os_sha: 22e1db7be5
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 output_directory: national_upgrades
@@ -8,25 +10,34 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 1
+    n_datapoints: 5
 
 workflow_generator:
-  type: residential_default
+  type: residential_hpxml
   args:
-    residential_simulation_controls:
-      timesteps_per_hr: 1
-      begin_month: 1
-      begin_day_of_month: 1
-      end_month: 12
-      end_day_of_month: 31
-      calendar_year: 2007
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
 
-    simulation_output:
-      include_enduse_subcategories: true
+    emissions:
+      - scenario_name: LRMER_MidCase_15
+        type: CO2e
+        elec_folder: data/cambium/LRMER_MidCase_15
 
-    timeseries_csv_export:
-      reporting_frequency: Hourly
-      include_enduse_subcategories: true
+    utility_bills:
+      - scenario_name: Bills
+
+    simulation_output_report:
+      timeseries_frequency: hourly
+      include_timeseries_total_consumptions: true
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_total_loads: false
 
     reporting_measures:
       - measure_dir_name: QOIReport
@@ -54,14 +65,69 @@ upgrades:
           - value: 2.21
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
-      - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
+
+  - upgrade_name: Sheathing
+    options:
+      - option: Insulation Sheathing|R-5
+        costs:
+          - value: 2.01
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+
+  - upgrade_name: Foundation Type
+    options:
+      - option: Geometry Foundation Type|Unvented Crawlspace
+        apply_logic:
+          and:
+            - Geometry Foundation Type|Vented Crawlspace
+            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+                - Geometry Building Level MF|None
+                - Geometry Building Level MF|Bottom
+        costs:
+          - value: 0.84
+            multiplier: Floor Area, Foundation (ft^2)
+        lifetime: 999
+      - option: Insulation Foundation Wall|Wall R-10, Exterior
+        apply_logic:
+          and:
+            - Geometry Foundation Type|Vented Crawlspace
+            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+                - Geometry Building Level MF|None
+                - Geometry Building Level MF|Bottom
+        costs:
+          - value: 1.05
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 999
+
+  - upgrade_name: Rim Joists
+    options:
+      - option: Insulation Rim Joist|R-13, Interior
+        costs:
+          - value: 3.11
+            multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 999
+
+  - upgrade_name: Ceilings
+    options:
+      - option: Insulation Ceiling|R-60
+        apply_logic:
+          or:
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|Uninsulated
+        costs:
+          - value: 0.11
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
+        lifetime: 999
 
   - upgrade_name: Air Leakage
     options:
-      - option: Infiltration|3 ACH50
+      - option: Infiltration Reduction|25%
         costs:
-          - value: 3.55
-            multiplier: Floor Area, Conditioned (ft^2)
+          - value: 1.50
+            multiplier: Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)
         lifetime: 999
 
   - upgrade_name: Refrigerator
@@ -88,8 +154,20 @@ upgrades:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         costs:
           - value: 50.0
-            multiplier: Size, Heating System (kBtu/h)
+            multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
+      - option: HVAC Cooling Efficiency|Heat Pump
+
+  - upgrade_name: MSHP
+    options:
+      - option: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF, Ducted
+        apply_logic:
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 30
+      - option: HVAC Cooling Efficiency|Heat Pump
 
   - upgrade_name: HPWH
     options:
@@ -111,14 +189,6 @@ upgrades:
       - option: PV Orientation|South
 
   - upgrade_name: All Upgrades
-    package_apply_logic:
-      or:
-        - County|AZ, Maricopa County
-        - County|CA, Los Angeles County
-        - County|GA, Fulton County
-        - County|IL, Cook County
-        - County|TX, Harris County
-        - County|WA, King County
     options:
       - option: Windows|Triple, Low-E, Non-metal, Air, L-Gain
         costs:
@@ -130,11 +200,52 @@ upgrades:
           - value: 2.21
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
-      - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
-      - option: Infiltration|3 ACH50
+      - option: Insulation Sheathing|R-5
         costs:
-          - value: 3.55
-            multiplier: Floor Area, Conditioned (ft^2)
+          - value: 2.01
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Geometry Foundation Type|Unvented Crawlspace
+        apply_logic:
+          and:
+            - Geometry Foundation Type|Vented Crawlspace
+            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+                - Geometry Building Level MF|None
+                - Geometry Building Level MF|Bottom
+        costs:
+          - value: 0.84
+            multiplier: Floor Area, Foundation (ft^2)
+        lifetime: 999
+      - option: Insulation Foundation Wall|Wall R-10, Exterior
+        apply_logic:
+          and:
+            - Geometry Foundation Type|Vented Crawlspace
+            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+                - Geometry Building Level MF|None
+                - Geometry Building Level MF|Bottom
+        costs:
+          - value: 1.05
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 999
+      - option: Insulation Rim Joist|R-13, Interior
+        costs:
+          - value: 3.11
+            multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 999
+      - option: Insulation Ceiling|R-60
+        apply_logic:
+          or:
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|Uninsulated
+        costs:
+          - value: 0.11
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
+        lifetime: 999
+      - option: Infiltration Reduction|25%
+        costs:
+          - value: 1.50
+            multiplier: Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)
         lifetime: 999
       - option: Refrigerator|EF 21.9, 100% Usage
         costs:
@@ -152,8 +263,9 @@ upgrades:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         costs:
           - value: 50.0
-            multiplier: Size, Heating System (kBtu/h)
+            multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
+      - option: HVAC Cooling Efficiency|Heat Pump
       - option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
         costs:
           - value: 100.0

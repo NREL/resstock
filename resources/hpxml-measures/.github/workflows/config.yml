@@ -1,0 +1,177 @@
+name: ci
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    types: [ synchronize, opened ]
+  workflow_dispatch:
+
+jobs:
+  run-unit-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://nrel/openstudio:3.5.1
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install software
+        run: |
+          rm -f Gemfile.lock && bundle install
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt update
+          sudo -E apt-get install -y wget unzip python3-sphinx-rtd-theme
+
+      - name: Check HPXMLs
+        shell: bash
+        run: |
+          echo "Regenerating HPXML files..."
+          openstudio tasks.rb update_hpxmls
+          echo "Checking for HPXML differences..."
+          git config --global --add safe.directory $(realpath .)
+          git diff --exit-code --ignore-cr-at-eol *.xml
+
+      - name: Run measure unit tests
+        run: |
+          bundle exec rake test_measures
+
+      - name: Store code coverage
+        uses: actions/upload-artifact@v3
+        with:
+          path: coverage
+          name: coverage
+
+      - name: Build documentation
+        run: |
+          cd docs
+          make html SPHINXOPTS="-W --keep-going -n"
+
+      - name: Save Docs
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: docs/_build/html/
+
+  run-workflow-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://nrel/openstudio:3.5.1
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install software
+        run: |
+          rm -f Gemfile.lock && bundle install
+
+      - name: Run workflow tests
+        run: |
+          bundle exec rake test_workflow
+
+      - name: Store results
+        uses: actions/upload-artifact@v3
+        with:
+          path: workflow/tests/results
+          name: results
+
+  run-windows-tests:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Install software and run test
+        shell: pwsh
+        run: |
+          $env:OS_VERSION="3.5.1"
+          $env:OS_SHA="22e1db7be5"
+          Invoke-WebRequest -OutFile Windows.tar.gz -URI "https://github.com/NREL/OpenStudio/releases/download/v${env:OS_VERSION}/OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows.tar.gz"
+          tar -xzf Windows.tar.gz
+          & .\OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows\bin\openstudio.exe workflow\run_simulation.rb -x workflow\sample_files\base.xml --hourly ALL --add-component-loads --add-stochastic-schedules
+
+  compare-results:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: [run-workflow-tests]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Store base results
+        uses: actions/upload-artifact@v3
+        with:
+          path: workflow/tests/base_results
+          name: base_results
+
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Download base results
+        uses: actions/download-artifact@v3
+        with:
+          path: |
+            base_results
+          name: base_results
+
+      - name: Download feature results
+        uses: actions/download-artifact@v3
+        with:
+          path: |
+            results
+          name: results
+
+      - name: Compare results
+        run: |
+          cp -r base_results/results*.csv workflow/tests/base_results
+          mkdir workflow/tests/results
+          cp -r results/results* workflow/tests/results
+          
+          pip install numpy
+          pip install pandas
+          pip install plotly
+          pip install kaleido
+          
+          python workflow/tests/compare.py -a results
+          python workflow/tests/compare.py -a visualize
+
+      - name: Store comparisons
+        uses: actions/upload-artifact@v3
+        with:
+          path: workflow/tests/comparisons
+          name: comparisons
+
+  update-results:
+    runs-on: ubuntu-latest
+    needs: [run-workflow-tests]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Download feature results
+        uses: actions/download-artifact@v3
+        with:
+          path: |
+            results
+          name: results
+
+      - name: Commit latest results
+        shell: bash        
+        run: |
+          branch_name="${{ github.head_ref }}"
+          git pull origin $branch_name
+          cp -r results/results* workflow/tests/base_results
+          git add workflow/tests/base_results
+          git status
+          if [[ $(git diff --cached --exit-code) ]]; then
+            git config --global user.email "github-action@users.noreply.github.com"
+            git config --global user.name "GitHub Action"
+            git commit -m "Latest results."
+            echo "Pushing to branch: $branch_name"
+            git push -u origin $branch_name
+          fi
