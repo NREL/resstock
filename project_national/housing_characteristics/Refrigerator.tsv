@@ -1,9 +1,11 @@
-Dependency=Geometry Building Type RECS	Option=EF 6.7, 100% Usage	Option=EF 10.2, 100% Usage	Option=EF 10.5, 100% Usage	Option=EF 15.9, 100% Usage	Option=EF 17.6, 100% Usage	Option=EF 19.9, 100% Usage	Option=None	sampling_probability
-Mobile Home	0.054273	0.00869	0.035322	0.195062	0.617901	0.088753	0	0.0627558
-Multi-Family with 2 - 4 Units	0.030439	0.005122	0.041124	0.212894	0.642879	0.067543	0	0.079939
-Multi-Family with 5+ Units	0.032757	0.005397	0.033313	0.179132	0.681388	0.065999	0.002014	0.183868
-Single-Family Attached	0.03536	0.00551	0.035532	0.187268	0.623666	0.111545	0.001119	0.0583947
-Single-Family Detached	0.028144	0.004337	0.03708	0.180561	0.606475	0.141354	0.002049	0.615043
-# Created by: sources\recs\2009\tsv_maker.py
-# Source: Constructed using U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
-# Source: Age of refrigerator converted to efficiency levels using ENERGY STAR shipment-weighted efficiencies by year.
+Dependency=Geometry Building Type RECS	Option=EF 6.7	Option=EF 10.2	Option=EF 10.5	Option=EF 15.9	Option=EF 17.6	Option=EF 19.9	Option=None	source_count	source_weight	sampling_probability
+Mobile Home	0.0278277	0.00473332	0.0125492	0.0758589	0.704829	0.136957	0.0372444	962	6.82099e+06	0.0624897
+Multi-Family with 2 - 4 Units	0.0156098	0.00261344	0.00734283	0.0757258	0.7459	0.115082	0.0377256	975	9.28472e+06	0.0799763
+Multi-Family with 5+ Units	0.017964	0.00301384	0.00842239	0.0783063	0.760786	0.106802	0.0247052	2348	2.26708e+07	0.184227
+Single-Family Attached	0.0233086	0.00383614	0.0105907	0.0840065	0.733666	0.129569	0.0150233	1669	7.38766e+06	0.0585642
+Single-Family Detached	0.0291248	0.00424686	0.0124839	0.0918766	0.722252	0.13297	0.00704564	11949	7.66333e+07	0.614743
+# Created by: sources\recs\recs2020\tsv_maker.py
+# Source: Constructed using U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+# Source: Age of refrigerator converted to efficiency levels using ENERGYSTAR shipment-weighted efficiencies by year data from Home Energy Score: http://hes-documentation.lbl.gov/. Check the comments in: HES-Refrigerator_Age_vs_Efficiency.tsv
+# Assumption: The current year is assumed to be 2020 (previously, it was 2016)
+# Assumption: Previously, for each year, the EF values were rounded to the nearest EF level, and then the distribution of EF levels were calculated for the age bins. Currently, each year has its own distribution and then we average out the distributions to get the distribution for the age bins. EF for all years are weighted equally when calculating the average distribution for the age bins.
