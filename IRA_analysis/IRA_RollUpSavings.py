@@ -101,7 +101,7 @@ class IRAAnalysis:
     @staticmethod
     def validate_output_directory(output_dir):
         if output_dir is None:
-            output_dir = Path(__file__).resolve().parent / "output_dryer_test"
+            output_dir = Path(__file__).resolve().parent / "output_dryer_and_cooking_test_1"
         else:
             output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -559,7 +559,9 @@ class IRAAnalysis:
         emission_cols_new = []
         dfi = df.copy()
         for enduse_col, total_col, emission_col in zip(
-            energy_cols_enduse, energy_cols_total, emission_cols
+            energy_cols_enduse, 
+            energy_cols_total, 
+            emission_cols,
         ):
             print(f" {enduse_col}")
             if not enduse_col in dfi.columns:
@@ -586,60 +588,6 @@ class IRAAnalysis:
 
         return dfi, energy_cols_enduse, total_emission_col
 
-
-    def _get_consumption_dataframe_for_an_enduse(
-        self, df, enduse, as_percentage=False, coarsening=True
-    ):
-        """ 
-        Calculates the consumption of a specific end use
-        """
-        energy_saving_cols_enduse = self.get_energy_cols(
-            end_use=enduse, output="by_fuel"
-        )
-        energy_saving_cols_total = self.get_energy_cols(
-            end_use="total", output="by_fuel"
-        )
-        emission_saving_cols = self.get_emission_cols(
-            emission_type=self.emission_type, output="by_fuel"
-        )
-
-        # Individual dryer consumption after upgrade
-        (
-            dfi,
-            energy_saving_cols_enduse,
-            total_emission_saving_col,
-        ) = self._create_consumption_new_cols_for_enduse_(
-            df,
-            enduse,
-            energy_saving_cols_enduse,
-            energy_saving_cols_total,
-            emission_saving_cols,
-        )
-
-
-        if as_percentage:
-            dfi = self._replace_savings_cols_as_percentage(
-                dfi, energy_saving_cols_enduse, total_emission_saving_col
-            )
-        
-        # get mean savings
-        coarsening_map = self.coarsening_map if coarsening else None
-        DF = self._get_mean_dataframe_with_coarsening(
-            dfi,
-            self.groupby_cols,
-            energy_saving_cols_enduse,
-            total_emission_saving_col,
-            as_percentage=as_percentage,
-            coarsening_map=coarsening_map,
-        )
-
-        if as_percentage:
-            self.validate_percent_savings(DF)
-
-        return DF
-
-
-    
     def _get_savings_dataframe_for_an_enduse(
         self, df, enduse, as_percentage=False, coarsening=True
     ):
@@ -815,18 +763,18 @@ class IRAAnalysis:
         # For QC: you can breakpoint at the end of this section and 
         # check the post-upgrade total (DF above) with pre-upgrade baseline (DF_baseline) and saving (DF_saving)
         # DF ~= DF_baseline - DF_saving
-        df_baseline["weight"] /= len(pkg)
-        DF_baseline = self._get_mean_dataframe_with_coarsening(
-            df_baseline,
-            self.groupby_cols,
-            energy_cols,
-            total_emission_col,
-            coarsening_map=coarsening_map,
-        )
+        # df_baseline["weight"] /= len(pkg)
+        # DF_baseline = self._get_mean_dataframe_with_coarsening(
+        #     df_baseline,
+        #     self.groupby_cols,
+        #     energy_cols,
+        #     total_emission_col,
+        #     coarsening_map=coarsening_map,
+        # )
 
-        DF_saving = self._get_savings_dataframe_for_an_enduse(
-            df, enduse, as_percentage=as_percentage, coarsening=coarsening
-        )
+        # DF_saving = self._get_savings_dataframe_for_an_enduse(
+        #     df, enduse, as_percentage=as_percentage, coarsening=coarsening
+        # )
 
         # ---- End of QC section that can be deleted. ----
 
@@ -858,6 +806,89 @@ class IRAAnalysis:
         if return_df:
             return DF
 
+    
+
+    def get_consumption_cooking(
+        self, pkg, pkg_name, as_percentage=False, coarsening=True, return_df=False
+    ):
+        print(
+            f"\n> Calculating total consumption with cooking upgrade..."
+        )
+        df = self.load_results(pkg)
+
+        # [1] Get savings from technology, keep at bldg_id level
+        cond = (df["applicability"] == True) & (df["in.vacancy_status"] == "Occupied")
+        cond &= ~df["upgrade.cooking_range"].isna()
+        df = df.loc[cond]
+        enduse = "range_oven"
+
+        ## This is the first part of _get_savings_dataframe_for_an_enduse()
+        energy_saving_cols_enduse = self.get_energy_savings_cols(
+            end_use=enduse, output="by_fuel"
+        )
+        energy_saving_cols_total = self.get_energy_savings_cols(
+            end_use="total", output="by_fuel"
+        )
+        emission_saving_cols = self.get_emission_savings_cols(
+            emission_type=self.emission_type, output="by_fuel"
+        )
+        
+        (
+            dfi,
+            energy_saving_cols_enduse,
+            total_emission_saving_col,
+        ) = self._create_new_cols_for_enduse_(
+            df,
+            enduse,
+            energy_saving_cols_enduse,
+            energy_saving_cols_total,
+            emission_saving_cols,
+        )
+
+        # [2] Get baseline and match it to dfi (at bldg_id level)
+        df_baseline = self.load_results(0)
+        df_baseline = dfi[["bldg_id"]].merge(df_baseline, how="left", on="bldg_id")
+        df_baseline.index = dfi.index
+
+        # [3] Get post-upgrade total = baseline - savings = [2] - [1]
+        energy_cols = self.get_energy_cols(end_use="total")
+        total_emission_col = self.get_emission_cols(
+            emission_type=self.emission_type, output="total_fuel"
+        )
+        assert (
+            len(energy_saving_cols_enduse)
+            == len(energy_cols)
+        ), f"mismatch:\nenergy_saving_cols={energy_saving_cols_enduse}\nenergy_cols={energy_cols}"
+
+        # calculate total energy and GHG after technology upgrade
+        # by updating dfi's total metric cols (note: total != sum(end uses) in dfi after this)
+        for saving_col, total_col in zip(
+            energy_saving_cols_enduse+[total_emission_saving_col], 
+            energy_cols+[total_emission_col]
+            ):
+            # baseline total - saving = upgraded total
+            dfi[total_col] = df_baseline[total_col] - dfi[saving_col]
+
+            # QC
+            n_na = len(dfi[dfi[total_col].isna()])
+            assert n_na == 0, f"Col={total_col} after upgrade={pkg} has {n_na} NA values"
+
+        # [4] send df to create mean dataframe
+        coarsening_map = self.coarsening_map if coarsening else None
+        DF = self._get_mean_dataframe_with_coarsening(
+            dfi,
+            self.groupby_cols,
+            energy_cols,
+            total_emission_col,
+            coarsening_map=coarsening_map,
+        )
+
+        # save to file
+        self.save_to_file(DF, pkg_name, as_percentage=as_percentage)
+        if return_df:
+            return DF
+
+    
     def get_savings_cooking(
         self, pkg, pkg_name, as_percentage=False, coarsening=True, return_df=False
     ):
@@ -1066,9 +1097,9 @@ class IRAAnalysis:
             f"\n> Calculating heat/cool consumption for [[ {pkg_name} ]] from upgrade {pkg}..."
         )
         print(f"  by removing from total consumption: water_heating, dryer, cooking...")
+        
+        # [1] Get savings from technology, keep at bldg_id level
         df = self.load_results(pkg)
-
-        # filter to tech
         cond = (df["applicability"] == True) & (df["in.vacancy_status"] == "Occupied")
         cond &= ~(
             df["upgrade.hvac_cooling_efficiency"].isna()
@@ -1076,29 +1107,50 @@ class IRAAnalysis:
         )
         df = df.loc[cond]
 
+        # [1] Get savings dataframe at bldg_id level
         (
             dfi,
-            energy_cols_new,
-            total_emission_col,
-        ) = self._create_consumption_cols_for_heating_and_cooling_(df)
-        if as_percentage:
-            dfi = self._replace_savings_cols_as_percentage(
-                dfi, energy_cols_new, total_emission_col
-            )
+            energy_savings_cols,
+            emission_savings_col,
+        ) = self._create_new_cols_for_heating_and_cooling_(df)
 
-        # get mean savings
+        # [2] Get baseline and match it to dfi (at bldg_id level)
+        df_baseline = self.load_results(0)
+        df_baseline = dfi[["bldg_id"]].merge(df_baseline, how="left", on="bldg_id")
+        df_baseline.index = dfi.index
+
+        # [3] Get post-upgrade total = baseline - savings = [2] - [1]
+        energy_cols = self.get_energy_cols(end_use="total")
+        total_emission_col = self.get_emission_cols(
+            emission_type=self.emission_type, output="total_fuel"
+        )
+        assert (
+            len(energy_savings_cols)
+            == len(energy_cols)
+        ), f"mismatch:\nenergy_saving_cols={energy_savings_cols}\nenergy_cols={energy_cols}"
+
+        # calculate total energy and GHG after technology upgrade
+        # by updating dfi's total metric cols (note: total != sum(end uses) in dfi after this)
+        for saving_col, total_col in zip(
+            energy_savings_cols+[emission_savings_col],
+            energy_cols+[total_emission_col]
+            ):
+            # baseline total - saving = upgraded total
+            dfi[total_col] = df_baseline[total_col] - dfi[saving_col]
+
+            # QC
+            n_na = len(dfi[dfi[total_col].isna()])
+            assert n_na == 0, f"Col={total_col} after upgrade={pkg} has {n_na} NA values"
+
+        # [4] send df to create mean dataframe
         coarsening_map = self.coarsening_map if coarsening else None
         DF = self._get_mean_dataframe_with_coarsening(
             dfi,
             self.groupby_cols,
-            energy_cols_new,
+            energy_cols,
             total_emission_col,
-            as_percentage=as_percentage,
             coarsening_map=coarsening_map,
         )
-
-        if as_percentage:
-            self.validate_percent_savings(DF)
 
         # save to file
         self.save_to_file(DF, pkg_name, as_percentage=as_percentage)
@@ -1303,9 +1355,9 @@ def main(euss_dir):
     print(f"coarsening = {coarsening}")
     print(f"as_percentage = {as_percentage}")
 
-    # # get baseline consumption
-    # IRA.get_baseline_consumption(0, 
-    # "baseline_consumption", coarsening=coarsening)
+    # get baseline consumption
+    IRA.get_baseline_consumption(0, 
+    "baseline_consumption", coarsening=coarsening)
 
     # # [1] Basic enclosure: all (pkg 1)
     # IRA.get_baseline_consumption(
@@ -1340,7 +1392,7 @@ def main(euss_dir):
     #     coarsening=coarsening,
     # )
 
-    # #NOTE: revised and dependencies checked, seems to work
+    # #NOTE: revised approach and seems to when compared to individual technologies
     # # [6] Heat pump – high eff + basic enclosure: Heating & Cooling (pkg 9)
     # IRA.get_consumption_heating_and_cooling(
     #     9,
@@ -1348,7 +1400,7 @@ def main(euss_dir):
     #     coarsening=coarsening,
     # )
 
-    # #NOTE: revised and dependencies checked, seems to work
+    # #NOTE: revised approach and seems to when compared to individual technologies
     # # [7] Heat pump – high eff + enhanced enclosure: Heating & Cooling (pkg 10)
     # IRA.get_consumption_heating_and_cooling(
     #     10,
@@ -1362,35 +1414,35 @@ def main(euss_dir):
     #     coarsening=coarsening
     # )
 
-    # TODO: Check columns and dependent functions; not working; getting savings or portion of energy consumed
+    # NOTE: returns 16% energy savings (as much as heat pump with basic enclosure)
     # [9] Electric dryer: Clothes dryer (pkg 7)
     IRA.get_consumption_dryer(
         7, "electric_clothes_dryer",
         coarsening=coarsening,
     )
 
-    # TODO: Check columns and dependent functions, still not working; getting savings or portion of energy consumed
+    # NOTE: returns 0% energy savings, should be something
     # [10] Heat pump dryer: Clothes dryer, using (pkg 8) for run though pkg 9 & 10 have them
     IRA.get_consumption_dryer(
-        [8, 9, 10],
+        [8,9,10],
         "heat_pump_clothes_dryer",
         coarsening=coarsening,
     )
 
-    # TODO: recalc using get_savings_cooking
-    # # [11] Electric cooking: Cooking (pkg 7)
-    # IRA.get_baseline_consumption(
-    #     7, "electric_cooking", 
-    #     coarsening=coarsening
-    # )
+    # NOTE: returns 17% energy savings (as much as heat pump with basic enclosure)
+    # [11] Electric cooking: Cooking (pkg 7)
+    IRA.get_consumption_cooking(
+        7, "electric_cooking", 
+        coarsening=coarsening
+    )
 
-    # TODO: recalc using get savings_cooking
+    # NOTE: returns 0% energy savings, should be something
     # [12] Induction cooking: Cooking using (pkg 8) for run though pkg 9 & 10 have them
-    # IRA.get_baseline_consumption(
-    #     [8],
-    #     "induction_cooking",
-    #     coarsening=coarsening,
-    # )
+    IRA.get_consumption_cooking(
+        [8,9,10],
+        "induction_cooking",
+        coarsening=coarsening,
+    )
 
     #####################################
 
