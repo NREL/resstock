@@ -101,7 +101,7 @@ class IRAAnalysis:
     @staticmethod
     def validate_output_directory(output_dir):
         if output_dir is None:
-            output_dir = Path(__file__).resolve().parent / "output_dryer_and_cooking_test_1"
+            output_dir = Path(__file__).resolve().parent / "output_baseline"
         else:
             output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -512,7 +512,7 @@ class IRAAnalysis:
 
     def save_to_file(self, DF, pkg_name, as_percentage=False):
         DF = self.simplify_column_names(DF)
-        output_file = f"mean_savings-{pkg_name}.csv"
+        output_file = f"mean_energy_use_{pkg_name}.csv"
         if as_percentage:
             output_file = f"mean_pct_savings-{pkg_name}.csv"
         DF.to_csv(self.output_dir / output_file)
@@ -759,11 +759,12 @@ class IRAAnalysis:
             coarsening_map=coarsening_map,
         )
 
-        # ---- This section is for QC only and can be deleted. ----
-        # For QC: you can breakpoint at the end of this section and 
-        # check the post-upgrade total (DF above) with pre-upgrade baseline (DF_baseline) and saving (DF_saving)
-        # DF ~= DF_baseline - DF_saving
-        # df_baseline["weight"] /= len(pkg)
+        # # ---- This section is for QC only and can be deleted. ----
+        # # For QC: you can breakpoint at the end of this section and 
+        # # check the post-upgrade total (DF above) with pre-upgrade baseline (DF_baseline) and saving (DF_saving)
+        # # DF ~= DF_baseline - DF_saving
+        # npkg = 1 if not isinstance(pkg, list) else len(pkg)
+        # df_baseline["weight"] /= npkg
         # DF_baseline = self._get_mean_dataframe_with_coarsening(
         #     df_baseline,
         #     self.groupby_cols,
@@ -775,6 +776,8 @@ class IRAAnalysis:
         # DF_saving = self._get_savings_dataframe_for_an_enduse(
         #     df, enduse, as_percentage=as_percentage, coarsening=coarsening
         # )
+        # breakpoint()
+
 
         # ---- End of QC section that can be deleted. ----
 
@@ -883,6 +886,25 @@ class IRAAnalysis:
             coarsening_map=coarsening_map,
         )
 
+        # # ---- This section is for QC only and can be deleted. ----
+        # # For QC: you can breakpoint at the end of this section and 
+        # # check the post-upgrade total (DF above) with pre-upgrade baseline (DF_baseline) and saving (DF_saving)
+        # # DF ~= DF_baseline - DF_saving
+        # npkg = 1 if not isinstance(pkg, list) else len(pkg)
+        # df_baseline["weight"] /= npkg
+        # DF_baseline = self._get_mean_dataframe_with_coarsening(
+        #     df_baseline,
+        #     self.groupby_cols,
+        #     energy_cols,
+        #     total_emission_col,
+        #     coarsening_map=coarsening_map,
+        # )
+
+        # DF_saving = self._get_savings_dataframe_for_an_enduse(
+        #     df, enduse, as_percentage=as_percentage, coarsening=coarsening
+        # )
+        # breakpoint()
+        
         # save to file
         self.save_to_file(DF, pkg_name, as_percentage=as_percentage)
         if return_df:
@@ -1392,7 +1414,7 @@ def main(euss_dir):
     #     coarsening=coarsening,
     # )
 
-    # #NOTE: revised approach and seems to when compared to individual technologies
+    # #NOTE: revised approach 
     # # [6] Heat pump – high eff + basic enclosure: Heating & Cooling (pkg 9)
     # IRA.get_consumption_heating_and_cooling(
     #     9,
@@ -1400,7 +1422,7 @@ def main(euss_dir):
     #     coarsening=coarsening,
     # )
 
-    # #NOTE: revised approach and seems to when compared to individual technologies
+    # #NOTE: revised approach
     # # [7] Heat pump – high eff + enhanced enclosure: Heating & Cooling (pkg 10)
     # IRA.get_consumption_heating_and_cooling(
     #     10,
@@ -1414,35 +1436,37 @@ def main(euss_dir):
     #     coarsening=coarsening
     # )
 
-    # NOTE: returns 16% energy savings (as much as heat pump with basic enclosure)
-    # [9] Electric dryer: Clothes dryer (pkg 7)
-    IRA.get_consumption_dryer(
-        7, "electric_clothes_dryer",
-        coarsening=coarsening,
-    )
+    # # NOTE: revised approach
+    # # [9] Electric dryer: Clothes dryer (pkg 7)
+    # IRA.get_consumption_dryer(
+    #     7, "electric_clothes_dryer",
+    #     coarsening=coarsening,
+    # )
 
-    # NOTE: returns 0% energy savings, should be something
-    # [10] Heat pump dryer: Clothes dryer, using (pkg 8) for run though pkg 9 & 10 have them
-    IRA.get_consumption_dryer(
-        [8,9,10],
-        "heat_pump_clothes_dryer",
-        coarsening=coarsening,
-    )
+    # # NOTE: revised approach
+    # # [10] Heat pump dryer: Clothes dryer, using (pkg 8) for run though pkg 9 & 10 have them
+    # IRA.get_consumption_dryer(
+    #     [8,9,10],
+    #     "heat_pump_clothes_dryer",
+    #     coarsening=coarsening,
+    # )
 
-    # NOTE: returns 17% energy savings (as much as heat pump with basic enclosure)
-    # [11] Electric cooking: Cooking (pkg 7)
-    IRA.get_consumption_cooking(
-        7, "electric_cooking", 
-        coarsening=coarsening
-    )
+    # # NOTE: revised approach
+    # # Seems unlikely and a systematic error
+    # # [11] Electric cooking: Cooking (pkg 7)
+    # IRA.get_consumption_cooking(
+    #     7, "electric_cooking", 
+    #     coarsening=coarsening
+    # )
 
-    # NOTE: returns 0% energy savings, should be something
-    # [12] Induction cooking: Cooking using (pkg 8) for run though pkg 9 & 10 have them
-    IRA.get_consumption_cooking(
-        [8,9,10],
-        "induction_cooking",
-        coarsening=coarsening,
-    )
+    # # NOTE: revised approach
+    # # [12] Induction cooking: Cooking using (pkg 8) for run though pkg 9 & 10 have them
+    # IRA.get_consumption_cooking(
+    #     [8,9,10],
+    #     "induction_cooking",
+    #     coarsening=coarsening,
+    # )
+
 
     #####################################
 
