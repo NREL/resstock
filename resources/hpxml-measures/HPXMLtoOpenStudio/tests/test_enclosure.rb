@@ -13,13 +13,10 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
     @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')
     @tmp_hpxml_path = File.join(@sample_files_path, 'tmp.xml')
-    @tmp_output_path = File.join(@sample_files_path, 'tmp_output')
-    FileUtils.mkdir_p(@tmp_output_path)
   end
 
   def teardown
     File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
-    FileUtils.rm_rf(@tmp_output_path)
   end
 
   def test_roofs
@@ -743,6 +740,94 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
       actual_temp = UnitConversions.convert(model.getFoundationKivas[0].initialIndoorAirTemperature.get, 'C', 'F')
       assert_in_delta(expected_temp, actual_temp, 0.1)
+    end
+  end
+
+  def test_collapse_surfaces
+    def split_surfaces(surfaces, should_collapse_surfaces)
+      surf_class = surfaces[0].class
+      for n in 1..surfaces.size
+        surfaces[n - 1].area /= 9.0
+        surfaces[n - 1].exposed_perimeter /= 9.0 if surf_class == HPXML::Slab
+        for i in 2..9
+          surfaces << surfaces[n - 1].dup
+          surfaces[-1].id += "_#{i}"
+          next if should_collapse_surfaces
+
+          # Change a property to a unique value so that it won't collapse
+          # with other properties of the same surface type.
+          if [HPXML::Roof, HPXML::Wall, HPXML::RimJoist, HPXML::Floor].include? surf_class
+            surfaces[-1].insulation_assembly_r_value += 0.01 * i
+          elsif [HPXML::FoundationWall].include? surf_class
+            surfaces[-1].insulation_exterior_r_value += 0.01 * i
+          elsif [HPXML::Slab].include? surf_class
+            if i < 4
+              surfaces[-1].perimeter_insulation_depth += 0.01 * i
+            else
+              surfaces[-1].perimeter_insulation_r_value += 0.01 * i
+            end
+          elsif [HPXML::Window, HPXML::Skylight].include? surf_class
+            if i < 3
+              surfaces[-1].ufactor += 0.01 * i
+            elsif i < 6
+              surfaces[-1].interior_shading_factor_summer -= 0.02 * i
+            else
+              surfaces[-1].interior_shading_factor_winter -= 0.01 * i
+              if surf_class == HPXML::Window
+                surfaces[-1].fraction_operable = 1.0 - surfaces[-1].fraction_operable
+              end
+            end
+          elsif [HPXML::Door].include? surf_class
+            surfaces[-1].r_value += 0.01 * i
+          else
+            fail 'Unexpected surface type.'
+          end
+        end
+      end
+      surfaces << surfaces[-1].dup
+      surfaces[-1].id += '_tiny'
+      surfaces[-1].area = 0.05
+      surfaces[-1].exposed_perimeter = 0.05 if surf_class == HPXML::Slab
+    end
+
+    def get_num_surfaces_by_type(hpxml)
+      return { roofs: hpxml.roofs.size,
+               walls: hpxml.walls.size,
+               rim_joists: hpxml.rim_joists.size,
+               foundation_walls: hpxml.foundation_walls.size,
+               floors: hpxml.floors.size,
+               slabs: hpxml.slabs.size,
+               windows: hpxml.windows.size,
+               skylights: hpxml.skylights.size,
+               doors: hpxml.doors.size }
+    end
+
+    [true, false].each do |should_collapse_surfaces|
+      hpxml = _create_hpxml('base-enclosure-skylights.xml')
+
+      orig_num_surfaces_by_type = get_num_surfaces_by_type(hpxml)
+
+      split_surfaces(hpxml.roofs, should_collapse_surfaces)
+      split_surfaces(hpxml.rim_joists, should_collapse_surfaces)
+      split_surfaces(hpxml.walls, should_collapse_surfaces)
+      split_surfaces(hpxml.foundation_walls, should_collapse_surfaces)
+      split_surfaces(hpxml.floors, should_collapse_surfaces)
+      split_surfaces(hpxml.slabs, should_collapse_surfaces)
+      split_surfaces(hpxml.windows, should_collapse_surfaces)
+      split_surfaces(hpxml.skylights, should_collapse_surfaces)
+      split_surfaces(hpxml.doors, should_collapse_surfaces)
+
+      split_num_surfaces_by_type = get_num_surfaces_by_type(hpxml)
+      hpxml.collapse_enclosure_surfaces()
+      final_num_surfaces_by_type = get_num_surfaces_by_type(hpxml)
+
+      for surf_type in orig_num_surfaces_by_type.keys
+        if should_collapse_surfaces
+          assert_equal(orig_num_surfaces_by_type[surf_type], final_num_surfaces_by_type[surf_type])
+        else
+          assert_equal(split_num_surfaces_by_type[surf_type] - 1, final_num_surfaces_by_type[surf_type])
+        end
+      end
     end
   end
 
