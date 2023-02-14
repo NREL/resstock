@@ -14,9 +14,6 @@ data_dir = Path(__file__).resolve().parent / "data"
 
 
 resstock_geo = "PUMA"  # name of geography in resstock <--- "PUMA", County and PUMA"
-geography = (
-    "puma_tsv"  # col name in spatial_tract_lookup <-- "puma_tsv", "county_and_puma"
-)
 
 if resstock_geo == "PUMA":
     geography = ["puma_tsv", "nhgis_2010_puma_gisjoin"]
@@ -90,7 +87,7 @@ tract_aia["nhgis_2010_tract_gisjoin"] = tract_aia["nhgis_2010_tract_gisjoin"].re
     }
 )
 # Can't find geography change for "G3600530940103": Oneida city, Madison County, NY
-# http://www.usa.com/NY053940103.html --> small HU count, so okay to remove
+# http://www.usa.com/NY053940103.html --> small (11) HU count, so okay to remove
 tract_aia = tract_aia[
     tract_aia["nhgis_2010_tract_gisjoin"] != "G3600530940103"
 ].reset_index(drop=True)
