@@ -2162,7 +2162,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.water_heating_systems[0].operating_mode = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_heat_pump_water_heater_values(hpxml_default, [HPXML::WaterHeaterOperatingModeStandard])
+    _test_default_heat_pump_water_heater_values(hpxml_default, [HPXML::WaterHeaterOperatingModeHybridAuto])
   end
 
   def test_indirect_water_heaters
