@@ -1,0 +1,391 @@
+schema_version: '0.3'
+buildstock_directory: ./ # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /lustre/eaglefs/projects/scout/geb-potential/v2.5_runs/test_250_ee_dr_appl
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+
+# To run with ResStock v2.5.0 (last release before HPXML)
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 250 #250000
+    # logic:
+    #   - Geometry Building Type RECS|Single-Family Detached
+    # resample: true
+
+baseline:
+  n_buildings_represented: 81221016 
+
+workflow_generator:
+  type: residential_default
+  args:
+    residential_simulation_controls:
+      timesteps_per_hr: 6
+      begin_month: 1
+      begin_day_of_month: 1
+      end_month: 12
+      end_day_of_month: 31
+      calendar_year: 2006 #2006 starts on Sunday, 2007 starts on Monday
+
+    simulation_output:
+      include_enduse_subcategories: true
+
+    timeseries_csv_export:
+      reporting_frequency: Hourly
+      include_enduse_subcategories: true
+
+    # reporting_measures:
+      # - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: true
+      retain_schedules_csv: false
+  
+eagle:
+  account: scout
+  n_jobs: 20 #1000
+  minutes_per_sim: 4
+  sampling:
+    time: 20
+  postprocessing:
+    time: 300 #1439
+    n_workers: 1 #10
+  
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: nrel-scout
+      prefix: geb-potential/FY22_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: geb_potential
+      max_crawling_time: 3000 #seconds to wait for the crawler to complete before aborting it
+
+upgrades:
+  ##up16 - package 3d - Appliance EE + DR
+  - upgrade_name: package 3d appliance EE+DR
+    options: 
+      #Best LEDs
+      - option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|20% LED
+      # Best Refrigerator
+      - option: Refrigerator|EF 21.9, 95% Usage
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6, 95% Usage
+            - Refrigerator|EF 15.9, 95% Usage
+            - Refrigerator|EF 10.5, 95% Usage
+            - Refrigerator|EF 10.2, 95% Usage
+            - Refrigerator|EF 6.7, 95% Usage
+      - option: Refrigerator|EF 21.9, 100% Usage
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6, 100% Usage
+            - Refrigerator|EF 15.9, 100% Usage
+            - Refrigerator|EF 10.5, 100% Usage
+            - Refrigerator|EF 10.2, 100% Usage
+            - Refrigerator|EF 6.7, 100% Usage
+      - option: Refrigerator|EF 21.9, 105% Usage
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6, 105% Usage
+            - Refrigerator|EF 15.9, 105% Usage
+            - Refrigerator|EF 10.5, 105% Usage
+            - Refrigerator|EF 10.2, 105% Usage
+            - Refrigerator|EF 6.7, 105% Usage
+
+      # Best clothes washer
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      
+      # Best clothes dryer
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 100% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      
+      # Best dishwasher
+      - option: Dishwasher|144 Rated kWh, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|144 Rated kWh, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|144 Rated kWh, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 11
+      
+      #Best pool pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+      #Best electronics
+      - option: Plug Load Shed|25%
+
+      # Appliance DR measures
+      - option: Appliance DR Apply|Yes
+
+      # Water heater DR
+      - option: Water Heater DR Apply|Yes - Tank
+        apply_logic:
+          - Water Heater Type|Tank
+          - Water Heater Fuel|Electricity
+      - option: Water Heater DR Apply|Yes - HP
+        apply_logic:
+          - Water Heater Type|Heat Pump
+          - Water Heater Fuel|Electricity
+
+      # HPWH upgrade + DR schedule
+      - option: Water Heater 80 gal HP + DR upgrade|Tampa_1
+        apply_logic: 
+          - and:
+            - Location City|Tampa_1
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Tampa_2
+        apply_logic: 
+          - and:
+            - Location City|Tampa_2
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Tucson
+        apply_logic: 
+          - and:
+            - Location City|Tucson
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Atlanta_1
+        apply_logic: 
+          - and:
+            - Location City|Atlanta_1
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Atlanta_2
+        apply_logic: 
+          - and:
+            - Location City|Atlanta_2
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Midland_1
+        apply_logic: 
+          - and:
+            - Location City|Midland_1
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Midland_2
+        apply_logic: 
+          - and:
+            - Location City|Midland_2
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|San Diego
+        apply_logic: 
+          - and:
+            - Location City|San Diego
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|New York_1
+        apply_logic: 
+          - and:
+            - Location City|New York_1
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|New York_2
+        apply_logic: 
+          - and:
+            - Location City|New York_2
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Albuquerque_1
+        apply_logic: 
+          - and:
+            - Location City|Albuquerque_1
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Albuquerque_2
+        apply_logic: 
+          - and:
+            - Location City|Albuquerque_2
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Seattle_1
+        apply_logic: 
+          - and:
+            - Location City|Seattle_1
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Seattle_2
+        apply_logic: 
+          - and:
+            - Location City|Seattle_2
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Buffalo_1
+        apply_logic: 
+          - and:
+            - Location City|Buffalo_1
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Buffalo_2
+        apply_logic: 
+          - and:
+            - Location City|Buffalo_2
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Denver_1
+        apply_logic: 
+          - and:
+            - Location City|Denver_1
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Denver_2
+        apply_logic: 
+          - and:
+            - Location City|Denver_2
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Port Angeles
+        apply_logic: 
+          - and:
+            - Location City|Port Angeles
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Rochester_1
+        apply_logic: 
+          - and:
+            - Location City|Rochester_1
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Rochester_2
+        apply_logic: 
+          - and:
+            - Location City|Rochester_2
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Great Falls_1
+        apply_logic: 
+          - and:
+            - Location City|Great Falls_1
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|Great Falls_2
+        apply_logic: 
+          - and:
+            - Location City|Great Falls_2
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|International Falls_1
+        apply_logic: 
+          - and:
+            - Location City|International Falls_1
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+      - option: Water Heater 80 gal HP + DR upgrade|International Falls_2
+        apply_logic: 
+          - and:
+            - Location City|International Falls_2
+            or:
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Premium
+
+
