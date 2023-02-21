@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: ./ # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /lustre/eaglefs/projects/scout/geb-potential/v2.5_runs/test_250_ee_dr_appl
+output_directory: /lustre/eaglefs/projects/scout/geb-potential/v2.5_runs/test_2500_ee_dr_appl_2
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 # To run with ResStock v2.5.0 (last release before HPXML)
@@ -9,7 +9,7 @@ weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 250 #250000
+    n_datapoints: 2500 #250000
     # logic:
     #   - Geometry Building Type RECS|Single-Family Detached
     # resample: true
@@ -202,190 +202,165 @@ upgrades:
       - option: Appliance DR Apply|Yes
 
       # Water heater DR
-      - option: Water Heater DR Apply|Yes - Tank
-        apply_logic:
-          - Water Heater Type|Tank
-          - Water Heater Fuel|Electricity
-      - option: Water Heater DR Apply|Yes - HP
-        apply_logic:
-          - Water Heater Type|Heat Pump
-          - Water Heater Fuel|Electricity
+      # - option: Water Heater DR Apply|Yes - Tank
+      #   apply_logic:
+      #     - Water Heater Type|Tank
+      #     - Water Heater Fuel|Electricity
+      # - option: Water Heater DR Apply|Yes - HP
+      #   apply_logic:
+      #     - Water Heater Type|Heat Pump
+      #     - Water Heater Fuel|Electricity
 
       # HPWH upgrade + DR schedule
-      - option: Water Heater 80 gal HP + DR upgrade|Tampa_1
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Tampa_1
         apply_logic: 
           and:
             - Location City|Tampa_1
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Tampa_2
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Tampa_2
         apply_logic: 
           and:
             - Location City|Tampa_2
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Tucson
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Tucson
         apply_logic: 
           and:
             - Location City|Tucson
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Atlanta_1
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Atlanta_1
         apply_logic: 
           and:
             - Location City|Atlanta_1
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Atlanta_2
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Atlanta_2
         apply_logic: 
           and:
             - Location City|Atlanta_2
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Midland_1
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Midland_1
         apply_logic: 
           and:
             - Location City|Midland_1
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Midland_2
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Midland_2
         apply_logic: 
           and:
             - Location City|Midland_2
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|San Diego
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - San Diego
         apply_logic: 
           and:
             - Location City|San Diego
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|New York_1
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - New York_1
         apply_logic: 
           and:
             - Location City|New York_1
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|New York_2
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - New York_2
         apply_logic: 
           and:
             - Location City|New York_2
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Albuquerque_1
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Albuquerque_1
         apply_logic: 
           and:
             - Location City|Albuquerque_1
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Albuquerque_2
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Albuquerque_2
         apply_logic: 
           and:
             - Location City|Albuquerque_2
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Seattle_1
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Seattle_1
         apply_logic: 
           and:
             - Location City|Seattle_1
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Seattle_2
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Seattle_2
         apply_logic: 
           and:
             - Location City|Seattle_2
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Buffalo_1
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Buffalo_1
         apply_logic: 
           and:
             - Location City|Buffalo_1
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Buffalo_2
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Buffalo_2
         apply_logic: 
           and:
             - Location City|Buffalo_2
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Denver_1
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Denver_1
         apply_logic: 
           and:
             - Location City|Denver_1
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Denver_2
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Denver_2
         apply_logic: 
           and:
             - Location City|Denver_2
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Port Angeles
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Port Angeles
         apply_logic: 
           and:
             - Location City|Port Angeles
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Rochester_1
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Rochester_1
         apply_logic: 
           and:
             - Location City|Rochester_1
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Rochester_2
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Rochester_2
         apply_logic: 
           and:
             - Location City|Rochester_2
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Great Falls_1
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Great Falls_1
         apply_logic: 
           and:
             - Location City|Great Falls_1
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|Great Falls_2
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - Great Falls_2
         apply_logic: 
           and:
             - Location City|Great Falls_2
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|International Falls_1
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - International Falls_1
         apply_logic: 
           and:
             - Location City|International Falls_1
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
-      - option: Water Heater 80 gal HP + DR upgrade|International Falls_2
+              - Water Heater Fuel|Electricity
+      - option: Water Heater Efficiency|HPWH 80 gal, DR - International Falls_2
         apply_logic: 
           and:
             - Location City|International Falls_2
             - or:
-              - Water Heater Efficiency|Electric Standard
-              - Water Heater Efficiency|Electric Premium
+              - Water Heater Fuel|Electricity
 
 
