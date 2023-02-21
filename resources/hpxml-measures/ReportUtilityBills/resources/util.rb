@@ -573,8 +573,9 @@ def process_usurdb(filepath, export_zip: true)
     # ignore rates with negative "rate" value
     next if rate['energyratestructure'].collect { |r| r.collect { |s| s['rate'] >= 0 } }.flatten.any? { |t| !t }
 
-    # ignore rates with a "sell" key
-    next if rate['energyratestructure'].collect { |r| r.collect { |s| s.keys } }.flatten.uniq.include?('sell')
+    # JH: I don't know why "sell" key should be ignored. SMUD includes it for Net Metering rate info, which is fine.
+    # # ignore rates with a "sell" key
+    # next if rate['energyratestructure'].collect { |r| r.collect { |s| s.keys } }.flatten.uniq.include?('sell')
 
     # set rate units to 'kWh'
     rate['energyratestructure'].collect { |r| r.collect { |s| s['unit'] = 'kWh' } }
