@@ -147,43 +147,43 @@ They can be used to reflect real-world or stochastic occupancy.
 Detailed schedule inputs are provided via one or more CSV file that should be referenced in the HPXML file as ``/HPXML/SoftwareInfo/extension/SchedulesFilePath`` elements.
 The column names available in the schedule CSV files are:
 
-  ===============================  =====  ==============================================================================  =================== ===============================
-  Column Name                      Units  Description                                                                     Affected by Vacancy Can Be Stochastically Generated
-  ===============================  =====  ==============================================================================  =================== ===============================
-  ``occupants``                    frac   Occupant heat gain schedule.                                                    Yes                 Yes
-  ``lighting_interior``            frac   Interior lighting energy use schedule.                                          Yes                 Yes
-  ``lighting_exterior``            frac   Exterior lighting energy use schedule.                                          Yes                 Yes
-  ``lighting_garage``              frac   Garage lighting energy use schedule.                                            Yes                 Yes
-  ``lighting_exterior_holiday``    frac   Exterior holiday lighting energy use schedule.                                  Yes                 Yes
-  ``cooking_range``                frac   Cooking range & oven energy use schedule.                                       Yes                 Yes
-  ``refrigerator``                 frac   Primary refrigerator energy use schedule.                                       No                  No
-  ``extra_refrigerator``           frac   Non-primary refrigerator energy use schedule.                                   No                  No
-  ``freezer``                      frac   Freezer energy use schedule.                                                    No                  No
-  ``dishwasher``                   frac   Dishwasher energy use schedule.                                                 Yes                 Yes
-  ``clothes_washer``               frac   Clothes washer energy use schedule.                                             Yes                 Yes
-  ``clothes_dryer``                frac   Clothes dryer energy use schedule.                                              Yes                 Yes
-  ``ceiling_fan``                  frac   Ceiling fan energy use schedule.                                                Yes                 Yes
-  ``plug_loads_other``             frac   Other plug load energy use schedule.                                            Yes                 Yes
-  ``plug_loads_tv``                frac   Television plug load energy use schedule.                                       Yes                 No
-  ``plug_loads_vehicle``           frac   Electric vehicle plug load energy use schedule.                                 Yes                 No
-  ``plug_loads_well_pump``         frac   Well pump plug load energy use schedule.                                        Yes                 No
-  ``fuel_loads_grill``             frac   Grill fuel load energy use schedule.                                            Yes                 No
-  ``fuel_loads_lighting``          frac   Lighting fuel load energy use schedule.                                         Yes                 No
-  ``fuel_loads_fireplace``         frac   Fireplace fuel load energy use schedule.                                        Yes                 No
-  ``pool_pump``                    frac   Pool pump energy use schedule.                                                  No                  No
-  ``pool_heater``                  frac   Pool heater energy use schedule.                                                No                  No
-  ``hot_tub_pump``                 frac   Hot tub pump energy use schedule.                                               No                  No
-  ``hot_tub_heater``               frac   Hot tub heater energy use schedule.                                             No                  No
-  ``hot_water_dishwasher``         frac   Dishwasher hot water use schedule.                                              Yes                 Yes
-  ``hot_water_clothes_washer``     frac   Clothes washer hot water use schedule.                                          Yes                 Yes
-  ``hot_water_fixtures``           frac   Fixtures (sinks, showers, baths) hot water use schedule.                        Yes                 Yes
-  ``heating_setpoint``             F      Thermostat heating setpoint schedule.                                           No                  No
-  ``cooling_setpoint``             F      Thermostat cooling setpoint schedule.                                           No                  No
-  ``water_heater_setpoint``        F      Water heater setpoint schedule.                                                 No                  No
-  ``water_heater_operating_mode``  0/1    Heat pump water heater operating mode schedule. 0=standard, 1=heat pump only.   No                  No
-  ``battery``                      frac   Battery schedule. Positive for charging, negative for discharging.              No                  No
-  ``vacancy``                      0/1    Vacancy schedule. 0=occupied, 1=vacant. Automatically overrides other columns.  N/A                 N/A
-  ===============================  =====  ==============================================================================  =================== ===============================
+  ===============================  =====  ==============================================================================  ===============================
+  Column Name                      Units  Description                                                                     Can Be Stochastically Generated
+  ===============================  =====  ==============================================================================  ===============================
+  ``occupants``                    frac   Occupant heat gain schedule.                                                    Yes
+  ``lighting_interior``            frac   Interior lighting energy use schedule.                                          Yes
+  ``lighting_exterior``            frac   Exterior lighting energy use schedule.                                          Yes
+  ``lighting_garage``              frac   Garage lighting energy use schedule.                                            Yes
+  ``lighting_exterior_holiday``    frac   Exterior holiday lighting energy use schedule.                                  Yes
+  ``cooking_range``                frac   Cooking range & oven energy use schedule.                                       Yes
+  ``refrigerator``                 frac   Primary refrigerator energy use schedule.                                       No
+  ``extra_refrigerator``           frac   Non-primary refrigerator energy use schedule.                                   No
+  ``freezer``                      frac   Freezer energy use schedule.                                                    No
+  ``dishwasher``                   frac   Dishwasher energy use schedule.                                                 Yes
+  ``clothes_washer``               frac   Clothes washer energy use schedule.                                             Yes
+  ``clothes_dryer``                frac   Clothes dryer energy use schedule.                                              Yes
+  ``ceiling_fan``                  frac   Ceiling fan energy use schedule.                                                Yes
+  ``plug_loads_other``             frac   Other plug load energy use schedule.                                            Yes
+  ``plug_loads_tv``                frac   Television plug load energy use schedule.                                       No
+  ``plug_loads_vehicle``           frac   Electric vehicle plug load energy use schedule.                                 No
+  ``plug_loads_well_pump``         frac   Well pump plug load energy use schedule.                                        No
+  ``fuel_loads_grill``             frac   Grill fuel load energy use schedule.                                            No
+  ``fuel_loads_lighting``          frac   Lighting fuel load energy use schedule.                                         No
+  ``fuel_loads_fireplace``         frac   Fireplace fuel load energy use schedule.                                        No
+  ``pool_pump``                    frac   Pool pump energy use schedule.                                                  No
+  ``pool_heater``                  frac   Pool heater energy use schedule.                                                No
+  ``hot_tub_pump``                 frac   Hot tub pump energy use schedule.                                               No
+  ``hot_tub_heater``               frac   Hot tub heater energy use schedule.                                             No
+  ``hot_water_dishwasher``         frac   Dishwasher hot water use schedule.                                              Yes
+  ``hot_water_clothes_washer``     frac   Clothes washer hot water use schedule.                                          Yes
+  ``hot_water_fixtures``           frac   Fixtures (sinks, showers, baths) hot water use schedule.                        Yes
+  ``heating_setpoint``             F      Thermostat heating setpoint schedule.                                           No
+  ``cooling_setpoint``             F      Thermostat cooling setpoint schedule.                                           No
+  ``water_heater_setpoint``        F      Water heater setpoint schedule.                                                 No
+  ``water_heater_operating_mode``  0/1    Heat pump water heater operating mode schedule. 0=standard, 1=heat pump only.   No
+  ``battery``                      frac   Battery schedule. Positive for charging, negative for discharging.              No
+  ``vacancy``                      0/1    Vacancy schedule. 0=occupied, 1=vacant. Automatically overrides other columns.  N/A
+  ===============================  =====  ==============================================================================  ===============================
 
 Columns with units of `frac` must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
 In other words, the amount of energy or hot water used in each simulation timestep is essentially the schedule value divided by the sum of all schedule values in the column, multiplied by the annual energy or hot water use.
@@ -437,7 +437,19 @@ If not entered, occupant vacancies will not be modeled.
   ``EndDayOfMonth``                     integer            1 - 31         Yes                End day
   ====================================  ========  =======  =============  ========  =======  ===========
 
-See the "Affected By Vacancy" column in :ref:`detailedschedules` for a list of all schedules that are affected by vacancy.
+Schedules from the following categories are affected by vacancy:
+
+- Occupancy
+- Lighting
+- Ceiling Fans
+- Cooking Range/Oven
+- Dishwasher
+- Clothes Washer
+- Clothes Dryer
+- Plug Loads
+- Fuel Loads
+- Hot Water
+- Local Ventilation Fans
 
 .. _buildingsite:
 
@@ -622,19 +634,70 @@ Building air leakage is entered in ``/HPXML/Building/BuildingDetails/Enclosure/A
   Element                               Type    Units  Constraints  Required   Default                    Notes
   ====================================  ======  =====  ===========  =========  =========================  ===============================================
   ``SystemIdentifier``                  id                          Yes                                   Unique identifier
-  ``BuildingAirLeakage/UnitofMeasure``  string         See [#]_     Yes                                   Units for air leakage
-  ``HousePressure``                     double  Pa     > 0          See [#]_                              House pressure with respect to outside [#]_
-  ``BuildingAirLeakage/AirLeakage``     double         > 0          Yes                                   Value for air leakage
   ``InfiltrationVolume``                double  ft3    > 0          No         ConditionedBuildingVolume  Volume associated with infiltration measurement
   ``InfiltrationHeight``                double  ft     > 0          No         See [#]_                   Height associated with infiltration measurement [#]_
   ====================================  ======  =====  ===========  =========  =========================  ===============================================
 
-  .. [#] UnitofMeasure choices are "ACH" (air changes per hour at user-specified pressure), "CFM" (cubic feet per minute at user-specified pressure), or "ACHnatural" (natural air changes per hour).
-  .. [#] HousePressure only required if BuildingAirLeakage/UnitofMeasure is not "ACHnatural".
-  .. [#] HousePressure typical value is 50 Pa.
   .. [#] If InfiltrationHeight not provided, it is inferred from other inputs (e.g., conditioned floor area, number of conditioned floors above-grade, above-grade foundation wall height, etc.).
   .. [#] InfiltrationHeight is defined as the vertical distance between the lowest and highest above-grade points within the pressure boundary, per ASHRAE 62.2.
 
+In addition, one of the following air leakage types must also be defined:
+
+- :ref:`infil_ach_cfm`
+- :ref:`infil_natural_ach_cfm`
+- :ref:`infil_ela`
+
+.. _infil_ach_cfm:
+
+ACH or CFM
+~~~~~~~~~~
+
+If entering air leakage as ACH or CFM at a user-specific pressure, additional information is entered in ``/HPXML/Building/BuildingDetails/Enclosure/AirInfiltration/AirInfiltrationMeasurement``.
+For example, ACH50 (ACH at 50 Pascals) is a commonly obtained value from a blower door measurement.
+
+  ====================================  ======  =====  ===========  =========  =======  ===============================================
+  Element                               Type    Units  Constraints  Required   Default  Notes
+  ====================================  ======  =====  ===========  =========  =======  ===============================================
+  ``BuildingAirLeakage/UnitofMeasure``  string         See [#]_     Yes                 Units for air leakage
+  ``HousePressure``                     double  Pa     > 0          Yes                 House pressure with respect to outside [#]_
+  ``BuildingAirLeakage/AirLeakage``     double         > 0          Yes                 Value for air leakage
+  ====================================  ======  =====  ===========  =========  =======  ===============================================
+
+  .. [#] UnitofMeasure choices are "ACH" or "CFM".
+  .. [#] HousePressure typical value is 50 Pa.
+
+.. _infil_natural_ach_cfm:
+
+Natural ACH or CFM
+~~~~~~~~~~~~~~~~~~
+
+If entering air leakage as natural ACH or CFM, additional information is entered in ``/HPXML/Building/BuildingDetails/Enclosure/AirInfiltration/AirInfiltrationMeasurement``.
+Natural ACH or CFM represents the annual average infiltration that a building will see.
+
+  ====================================  ======  =====  ===========  =========  =======  =================================
+  Element                               Type    Units  Constraints  Required   Default  Notes
+  ====================================  ======  =====  ===========  =========  =======  =================================
+  ``BuildingAirLeakage/UnitofMeasure``  string         See [#]_     Yes                 Units for air leakage
+  ``BuildingAirLeakage/AirLeakage``     double         > 0          Yes                 Value for air leakage
+  ====================================  ======  =====  ===========  =========  =======  =================================
+
+  .. [#] UnitofMeasure choices are "ACHnatural" or "CFMnatural".
+
+.. _infil_ela:
+
+Effective Leakage Area
+~~~~~~~~~~~~~~~~~~~~~~
+
+If entering air leakage as Effective Leakage Area (ELA), additional information is entered in ``/HPXML/Building/BuildingDetails/Enclosure/AirInfiltration/AirInfiltrationMeasurement``.
+Effective Leakage Area is defined as the area of a special nozzle-shaped hole (similar to the inlet of a blower door fan) that would leak the same amount of air as the building does at a pressure difference of 4 Pascals.
+Note that ELA is different than Equivalent Leakage Area (EqLA), which involves a sharp-edged hole at a pressure difference of 10 Pascals.
+
+  ====================================  ======  =======  ===========  =========  =========================  ===============================================
+  Element                               Type    Units    Constraints  Required   Default                    Notes
+  ====================================  ======  =======  ===========  =========  =========================  ===============================================
+  ``EffectiveLeakageArea``              double  sq. in.  >= 0         Yes                                   Effective leakage area value
+  ====================================  ======  =======  ===========  =========  =========================  ===============================================
+  
 HPXML Attics
 ************
 
@@ -1558,43 +1621,6 @@ Each heat pump is entered as an ``/HPXML/Building/BuildingDetails/Systems/HVAC/H
          Use "integrated" if the heat pump's distribution system and blower fan power applies to the backup heating (e.g., built-in electric strip heat or an integrated backup furnace, i.e., a dual-fuel heat pump).
          Use "separate" if the backup system has its own distribution system (e.g., electric baseboard or a boiler).
 
-If a backup type of "integrated" is provided, additional information is entered in ``HeatPump``.
-
-  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
-  Element                                                                        Type      Units   Constraints  Required  Default    Notes
-  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
-  ``BackupSystemFuel``                                                           string            See [#]_     Yes                  Integrated backup heating fuel type
-  ``BackupAnnualHeatingEfficiency[Units="Percent" or Units="AFUE"]/Value``       double    frac    0 - 1        Yes                  Integrated backup heating efficiency
-  ``BackupHeatingCapacity``                                                      double    Btu/hr  >= 0         No        autosized  Integrated backup heating output capacity
-  ``BackupHeatingSwitchoverTemperature`` or ``BackupHeatingLockoutTemperature``  double    F                    No        See [#]_   Integrated backup heating switchover/lockout temperature [#]_
-  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
-
-  .. [#] BackupSystemFuel choices are "electricity", "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "wood", or "wood pellets".
-  .. [#] BackupHeatingLockoutTemperature defaults to 40 deg-F if neither BackupHeatingSwitchoverTemperature nor BackupHeatingLockoutTemperature are provided.
-  .. [#] Provide BackupHeatingSwitchoverTemperature for a situation where there is a discrete outdoor temperature when the heat pump stops operating and the backup heating system starts operating.
-         Alternatively, provide BackupHeatingLockoutTemperature for a situation where the backup heating is disabled above a certain temperature in order to prevent backup heating operation during, e.g., a thermostat heating setback recovery event.
-         If neither provided, the backup heating system will operate as needed for hours when the heat pump has insufficient capacity.
-
-If a backup type of "separate" is provided, additional information is entered in ``HeatPump``.
-
-  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
-  Element                                                                        Type      Units   Constraints  Required  Default    Notes
-  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
-  ``BackupSystem``                                                               idref             See [#]_     Yes                  ID of separate backup heating system 
-  ``BackupHeatingSwitchoverTemperature``                                         double    F                    No        <none>     Separate backup heating system switchover temperature [#]_
-  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
-  
-  .. [#] BackupSystem must reference a ``HeatingSystem``.
-  .. [#] Provide BackupHeatingSwitchoverTemperature for a situation where there is a discrete outdoor temperature when the heat pump stops operating and the backup heating system starts operating.
-         If not provided, the backup heating system will operate as needed for hours when the heat pump has insufficient capacity.
-
-  .. note::
-
-    Due to how the separate backup heating system is modeled in EnergyPlus, there are a few restrictions:
-
-    - The conditioned space cannot be partially heated (i.e., the sum of all ``FractionHeatLoadServed`` must be 1).
-    - There cannot be multiple backup heating systems.
-
 Air-to-Air Heat Pump
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -1604,10 +1630,11 @@ If an air-to-air heat pump is specified, additional information is entered in ``
   Element                                                           Type    Units    Constraints               Required  Default    Notes
   ================================================================  ======  =======  ========================  ========  =========  =================================================
   ``DistributionSystem``                                            idref            See [#]_                  Yes                  ID of attached distribution system
-  ``CompressorType``                                                string           See [#]_                  No        See [#]_   Type of compressor
   ``HeatingCapacity``                                               double  Btu/hr   >= 0                      No        autosized  Heating output capacity (excluding any backup heating)
   ``HeatingCapacity17F``                                            double  Btu/hr   >= 0, <= HeatingCapacity  No                   Heating output capacity at 17F, if available
   ``CoolingCapacity``                                               double  Btu/hr   >= 0                      No        autosized  Cooling output capacity
+  ``CompressorType``                                                string           See [#]_                  No        See [#]_   Type of compressor
+  ``CompressorLockoutTemperature``                                  double  F                                  No        See [#]_   Minimum outdoor temperature for compressor operation
   ``CoolingSensibleHeatFraction``                                   double  frac     0 - 1                     No        See [#]_   Sensible heat fraction
   ``FractionHeatLoadServed``                                        double  frac     0 - 1 [#]_                Yes                  Fraction of heating load served
   ``FractionCoolLoadServed``                                        double  frac     0 - 1 [#]_                Yes                  Fraction of cooling load served
@@ -1621,6 +1648,7 @@ If an air-to-air heat pump is specified, additional information is entered in ``
   .. [#] HVACDistribution type must be AirDistribution (type: "regular velocity") or DSE.
   .. [#] CompressorType choices are "single stage", "two stage", or "variable speed".
   .. [#] If CompressorType not provided, defaults to "single stage" if SEER <= 15, else "two stage" if SEER <= 21, else "variable speed".
+  .. [#] If CompressorLockoutTemperature not provided, defaults to 25F if fossil fuel backup otherwise 0F.
   .. [#] If not provided, defaults to 0.73 for single/two stage and 0.78 for variable speed.
   .. [#] The sum of all ``FractionHeatLoadServed`` (across all HVAC systems) must be less than or equal to 1.
   .. [#] The sum of all ``FractionCoolLoadServed`` (across all HVAC systems) must be less than or equal to 1.
@@ -1645,6 +1673,7 @@ If a mini-split heat pump is specified, additional information is entered in ``H
   ``HeatingCapacity``                                               double    Btu/hr  >= 0                      No        autosized  Heating output capacity (excluding any backup heating)
   ``HeatingCapacity17F``                                            double    Btu/hr  >= 0, <= HeatingCapacity  No                   Heating output capacity at 17F, if available
   ``CoolingCapacity``                                               double    Btu/hr  >= 0                      No        autosized  Cooling output capacity
+  ``CompressorLockoutTemperature``                                  double    F                                 No        See [#]_   Minimum outdoor temperature for compressor operation
   ``CoolingSensibleHeatFraction``                                   double    frac    0 - 1                     No        0.73       Sensible heat fraction
   ``FractionHeatLoadServed``                                        double    frac    0 - 1 [#]_                Yes                  Fraction of heating load served
   ``FractionCoolLoadServed``                                        double    frac    0 - 1 [#]_                Yes                  Fraction of cooling load served
@@ -1656,6 +1685,7 @@ If a mini-split heat pump is specified, additional information is entered in ``H
   ================================================================  ========  ======  ========================  ========  =========  ==============================================
 
   .. [#] If provided, HVACDistribution type must be AirDistribution (type: "regular velocity") or DSE.
+  .. [#] If CompressorLockoutTemperature not provided, defaults to 25F if fossil fuel backup otherwise -20F.
   .. [#] The sum of all ``FractionHeatLoadServed`` (across all HVAC systems) must be less than or equal to 1.
   .. [#] The sum of all ``FractionCoolLoadServed`` (across all HVAC systems) must be less than or equal to 1.
   .. [#] If SEER2 provided, converted to SEER using ANSI/RESNET/ICC 301-2022 Addendum C, where SEER = SEER2 / 0.95 if ducted and SEER = SEER2 if ductless.
@@ -1684,6 +1714,7 @@ If a packaged terminal heat pump is specified, additional information is entered
   ===============================================================  ========  ======  ===========  ========  =========  ==============================================
   ``HeatingCapacity``                                              double    Btu/hr  >= 0         No        autosized  Heating output capacity (excluding any backup heating)
   ``CoolingCapacity``                                              double    Btu/hr  >= 0         No        autosized  Cooling output capacity
+  ``CompressorLockoutTemperature``                                 double    F                    No        See [#]_   Minimum outdoor temperature for compressor operation
   ``CoolingSensibleHeatFraction``                                  double    frac    0 - 1        No        0.65       Sensible heat fraction
   ``FractionHeatLoadServed``                                       double    frac    0 - 1 [#]_   Yes                  Fraction of heating load served
   ``FractionCoolLoadServed``                                       double    frac    0 - 1 [#]_   Yes                  Fraction of cooling load served
@@ -1691,6 +1722,7 @@ If a packaged terminal heat pump is specified, additional information is entered
   ``AnnualHeatingEfficiency[Units="COP"]/Value``                   double    Btu/Wh  > 0          Yes                  Rated heating efficiency
   ===============================================================  ========  ======  ===========  ========  =========  ==============================================
 
+  .. [#] If CompressorLockoutTemperature not provided, defaults to 25F if fossil fuel backup otherwise 0F.
   .. [#] The sum of all ``FractionHeatLoadServed`` (across all HVAC systems) must be less than or equal to 1.
   .. [#] The sum of all ``FractionCoolLoadServed`` (across all HVAC systems) must be less than or equal to 1.
 
@@ -1706,6 +1738,7 @@ If a room air conditioner with reverse cycle is specified, additional informatio
   ===============================================================  ========  ======  ===========  ========  =========  ==============================================
   ``HeatingCapacity``                                              double    Btu/hr  >= 0         No        autosized  Heating output capacity (excluding any backup heating)
   ``CoolingCapacity``                                              double    Btu/hr  >= 0         No        autosized  Cooling output capacity
+  ``CompressorLockoutTemperature``                                 double    F                    No        See [#]_   Minimum outdoor temperature for compressor operation
   ``CoolingSensibleHeatFraction``                                  double    frac    0 - 1        No        0.65       Sensible heat fraction
   ``FractionHeatLoadServed``                                       double    frac    0 - 1 [#]_   Yes                  Fraction of heating load served
   ``FractionCoolLoadServed``                                       double    frac    0 - 1 [#]_   Yes                  Fraction of cooling load served
@@ -1713,6 +1746,7 @@ If a room air conditioner with reverse cycle is specified, additional informatio
   ``AnnualHeatingEfficiency[Units="COP"]/Value``                   double    Btu/Wh  > 0          Yes                  Rated heating efficiency
   ===============================================================  ========  ======  ===========  ========  =========  ==============================================
 
+  .. [#] If CompressorLockoutTemperature not provided, defaults to 25F if fossil fuel backup otherwise 0F.
   .. [#] The sum of all ``FractionHeatLoadServed`` (across all HVAC systems) must be less than or equal to 1.
   .. [#] The sum of all ``FractionCoolLoadServed`` (across all HVAC systems) must be less than or equal to 1.
 
@@ -1783,6 +1817,59 @@ If a water-loop-to-air heat pump is specified, additional information is entered
 .. note::
 
   If a water loop heat pump is specified, there must be at least one shared heating system (i.e., :ref:`hvac_heating_boiler`) and/or one shared cooling system (i.e., :ref:`hvac_cooling_chiller` or :ref:`hvac_cooling_tower`) specified with water loop distribution.
+
+Backup
+~~~~~~
+
+If a backup type ("integrated" or "separate") is provided, additional information  is entered in ``HeatPump``.
+
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+  Element                                                                        Type      Units   Constraints  Required  Default    Notes
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+  ``BackupHeatingSwitchoverTemperature`` or ``CompressorLockoutTemperature``     double    F                    No        See [#]_   Minimum outdoor temperature for compressor operation
+  ``BackupHeatingSwitchoverTemperature`` or ``BackupHeatingLockoutTemperature``  double    F       See [#]_     No        See [#]_   Maximum outdoor temperature for backup operation
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+
+  .. [#] If neither BackupHeatingSwitchoverTemperature nor CompressorLockoutTemperature provided, CompressorLockoutTemperature defaults as described above for individual heat pump types.
+  .. [#] If both BackupHeatingLockoutTemperature and CompressorLockoutTemperature provided, BackupHeatingLockoutTemperature must be greater than CompressorLockoutTemperature.
+  .. [#] If neither BackupHeatingSwitchoverTemperature nor BackupHeatingLockoutTemperature provided, BackupHeatingLockoutTemperature defaults to 40F for electric backup and 50F for fossil fuel backup.
+
+  .. note::
+
+    Provide ``BackupHeatingSwitchoverTemperature`` for a situation where there is a discrete outdoor temperature below which the heat pump stops operating and above which the backup heating system stops operating.
+
+    Alternatively, provide A) ``CompressorLockoutTemperature`` to specify the outdoor temperature below which the heat pump stops operating and/or B) ``BackupHeatingLockoutTemperature`` to specify the outdoor temperature above which the heat pump backup system stops operating.
+    If both are provided, the compressor and backup system can both operate between the two temperatures (e.g., simultaneous operation or cycling).
+    If both are provided using the same temperature, it is equivalent to using ``BackupHeatingSwitchoverTemperature``.
+
+If a backup type of "integrated" is provided, additional information is entered in ``HeatPump``.
+
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+  Element                                                                        Type      Units   Constraints  Required  Default    Notes
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+  ``BackupSystemFuel``                                                           string            See [#]_     Yes                  Integrated backup heating fuel type
+  ``BackupAnnualHeatingEfficiency[Units="Percent" or Units="AFUE"]/Value``       double    frac    0 - 1        Yes                  Integrated backup heating efficiency
+  ``BackupHeatingCapacity``                                                      double    Btu/hr  >= 0         No        autosized  Integrated backup heating output capacity
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+
+  .. [#] BackupSystemFuel choices are "electricity", "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "wood", or "wood pellets".
+
+If a backup type of "separate" is provided, additional information is entered in ``HeatPump``.
+
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+  Element                                                                        Type      Units   Constraints  Required  Default    Notes
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+  ``BackupSystem``                                                               idref             See [#]_     Yes                  ID of separate backup heating system 
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+  
+  .. [#] BackupSystem must reference a ``HeatingSystem``.
+
+  .. note::
+
+    Due to how the separate backup heating system is modeled in EnergyPlus, there are a few restrictions:
+
+    - The conditioned space cannot be partially heated (i.e., the sum of all ``FractionHeatLoadServed`` must be 1).
+    - There cannot be multiple backup heating systems.
 
 .. _hvac_control:
 
@@ -2062,8 +2149,10 @@ If a heat recovery ventilator system is specified, additional information is ent
   ========================================================================  ======  =====  ===========  ========  =======  =======================================
   Element                                                                   Type    Units  Constraints  Required  Default  Notes
   ========================================================================  ======  =====  ===========  ========  =======  =======================================
-  ``SensibleRecoveryEfficiency`` or ``AdjustedSensibleRecoveryEfficiency``  double  frac   0 - 1        Yes                (Adjusted) Sensible recovery efficiency
+  ``AdjustedSensibleRecoveryEfficiency`` or ``SensibleRecoveryEfficiency``  double  frac   0 - 1        Yes                (Adjusted) Sensible recovery efficiency [#]_
   ========================================================================  ======  =====  ===========  ========  =======  =======================================
+
+  .. [#] Providing AdjustedSensibleRecoveryEfficiency (ASRE) is preferable to SensibleRecoveryEfficiency (SRE).
 
 **Energy Recovery Ventilator**
 
@@ -2072,9 +2161,12 @@ If an energy recovery ventilator system is specified, additional information is 
   ========================================================================  ======  =====  ===========  ========  =======  =======================================
   Element                                                                   Type    Units  Constraints  Required  Default  Notes
   ========================================================================  ======  =====  ===========  ========  =======  =======================================
-  ``TotalRecoveryEfficiency`` or ``AdjustedTotalRecoveryEfficiency``        double  frac   0 - 1        Yes                (Adjusted) Total recovery efficiency
-  ``SensibleRecoveryEfficiency`` or ``AdjustedSensibleRecoveryEfficiency``  double  frac   0 - 1        Yes                (Adjusted) Sensible recovery efficiency
+  ``AdjustedTotalRecoveryEfficiency`` or ``TotalRecoveryEfficiency``        double  frac   0 - 1        Yes                (Adjusted) Total recovery efficiency [#]_
+  ``AdjustedSensibleRecoveryEfficiency`` or ``SensibleRecoveryEfficiency``  double  frac   0 - 1        Yes                (Adjusted) Sensible recovery efficiency [#]_
   ========================================================================  ======  =====  ===========  ========  =======  =======================================
+
+  .. [#] Providing AdjustedTotalRecoveryEfficiency (ATRE) is preferable to TotalRecoveryEfficiency (TRE).
+  .. [#] Providing AdjustedSensibleRecoveryEfficiency (ASRE) is preferable to SensibleRecoveryEfficiency (SRE).
 
 **Central Fan Integrated Supply**
 
@@ -2157,7 +2249,7 @@ If not entered, the simulation will not include kitchen/bathroom fans.
   =============================================================================================  =======  =======  ===========  ========  ========  =============================
   Element                                                                                        Type     Units    Constraints  Required  Default   Notes
   =============================================================================================  =======  =======  ===========  ========  ========  =============================
-  ``Quantity``                                                                                   integer           >= 0         No        See [#]_  Number of identical fans
+  ``Count``                                                                                      integer           >= 0         No        See [#]_  Number of identical fans
   ``RatedFlowRate`` or ``TestedFlowRate`` or ``CalculatedFlowRate`` or ``DeliveredVentilation``  double   cfm      >= 0         No        See [#]_  Flow rate to outside [#]_
   ``HoursInOperation``                                                                           double   hrs/day  0 - 24       No        See [#]_  Hours per day of operation
   ``FanLocation``                                                                                string            See [#]_     Yes                 Location of the fan
@@ -2165,7 +2257,7 @@ If not entered, the simulation will not include kitchen/bathroom fans.
   ``extension/StartHour``                                                                        integer           0 - 23       No        See [#]_  Daily start hour of operation
   =============================================================================================  =======  =======  ===========  ========  ========  =============================
 
-  .. [#] If Quantity not provided, defaults to 1 for kitchen fans and NumberofBathrooms for bath fans based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+  .. [#] If Count not provided, defaults to 1 for kitchen fans and NumberofBathrooms for bath fans based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
   .. [#] If flow rate not provided, defaults to 100 cfm for kitchen fans and 50 cfm for bath fans based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
   .. [#] If the kitchen range fan is a recirculating fan, the flow rate should be described as zero.
   .. [#] If HoursInOperation not provided, defaults to 1 based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
@@ -2563,8 +2655,8 @@ Many of the inputs are adopted from the `PVWatts model <https://pvwatts.nrel.gov
   ``ArrayAzimuth`` or ``ArrayOrientation``                 integer or string  deg or direction  0 - 359 or See [#]_  Yes                 Direction panels face (clockwise from North)
   ``ArrayTilt``                                            double             deg               0 - 90               Yes                 Tilt relative to horizontal
   ``MaxPowerOutput``                                       double             W                 >= 0                 Yes                 Peak power
-  ``InverterEfficiency``                                   double             frac              0 - 1 [#]_           No        0.96      Inverter efficiency
   ``SystemLossesFraction`` or ``YearModulesManufactured``  double or integer  frac or #         0 - 1 or > 1600      No        0.14      System losses [#]_
+  ``AttachedToInverter``                                   idref                                See [#]_             Yes                 ID of attached inverter
   ``extension/NumberofBedroomsServed``                     integer                              > 1                  See [#]_            Number of bedrooms served
   =======================================================  =================  ================  ===================  ========  ========  ============================================
   
@@ -2572,12 +2664,23 @@ Many of the inputs are adopted from the `PVWatts model <https://pvwatts.nrel.gov
   .. [#] ModuleType choices are "standard", "premium", or "thin film".
   .. [#] Tracking choices are "fixed", "1-axis", "1-axis backtracked", or "2-axis".
   .. [#] ArrayOrientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north"
-  .. [#] For homes with multiple PV arrays, all InverterEfficiency elements must have the same value.
   .. [#] System losses due to soiling, shading, snow, mismatch, wiring, degradation, etc.
          If YearModulesManufactured provided but not SystemLossesFraction, system losses calculated as:
          SystemLossesFraction = 1.0 - (1.0 - 0.14) * (1.0 - (1.0 - 0.995^(CurrentYear - YearModulesManufactured))).
+  .. [#] AttachedToInverter must reference an ``Inverter``.
   .. [#] NumberofBedroomsServed only required if IsSharedSystem is true, in which case it must be > NumberofBedrooms.
          PV generation will be apportioned to the dwelling unit using its number of bedrooms divided by the total number of bedrooms served by the PV system.
+
+In addition, an inverter must be entered as a ``/HPXML/Building/BuildingDetails/Systems/Photovoltaics/Inverter``.
+
+  =======================================================  =================  ================  ===================  ========  ========  ============================================
+  Element                                                  Type               Units             Constraints          Required  Default   Notes
+  =======================================================  =================  ================  ===================  ========  ========  ============================================
+  ``SystemIdentifier``                                     id                                                        Yes                 Unique identifier
+  ``InverterEfficiency``                                   double             frac              0 - 1 [#]_           No        0.96      Inverter efficiency
+  =======================================================  =================  ================  ===================  ========  ========  ============================================
+
+  .. [#] For homes with multiple inverters, all InverterEfficiency elements must have the same value.
 
 HPXML Batteries
 ***************
@@ -2912,19 +3015,16 @@ Lighting and ceiling fans are entered in ``/HPXML/Building/BuildingDetails/Light
 HPXML Lighting
 **************
 
-Nine ``/HPXML/Building/BuildingDetails/Lighting/LightingGroup`` elements must be provided, each of which is the combination of:
+Lighting can be specified with lighting type fractions or annual energy consumption values.
 
-- ``LightingType``: 'LightEmittingDiode', 'CompactFluorescent', and 'FluorescentTube'
-- ``Location``: 'interior', 'garage', and 'exterior'
-
-Information is entered in each ``LightingGroup``.
+If specifying **lighting type fractions**, nine ``/HPXML/Building/BuildingDetails/Lighting/LightingGroup`` elements must be provided using every combination of ``LightingType`` and ``Location``:
 
   =============================  =======  ======  ===========  ========  =======  ===========================================================================
   Element                        Type     Units   Constraints  Required  Default  Notes
   =============================  =======  ======  ===========  ========  =======  ===========================================================================
   ``SystemIdentifier``           id                            Yes                Unique identifier
   ``LightingType``               element          1 [#]_       Yes                Lighting type
-  ``Location``                   string           See [#]_     Yes                See [#]_
+  ``Location``                   string           See [#]_     Yes                Lighting location [#]_
   ``FractionofUnitsInLocation``  double   frac    0 - 1 [#]_   Yes                Fraction of light fixtures in the location with the specified lighting type
   =============================  =======  ======  ===========  ========  =======  ===========================================================================
 
@@ -2934,7 +3034,22 @@ Information is entered in each ``LightingGroup``.
   .. [#] The sum of FractionofUnitsInLocation for a given Location (e.g., interior) must be less than or equal to 1.
          If the fractions sum to less than 1, the remainder is assumed to be incandescent lighting.
 
-Additional information is entered in ``Lighting``.
+  Interior, exterior, and garage lighting energy use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+
+If specifying **annual energy consumption** instead, three ``/HPXML/Building/BuildingDetails/Lighting/LightingGroup`` elements must be provided using every ``Location``:
+
+  ================================  =======  ======  ===========  ========  ========  ===========================================================================
+  Element                           Type     Units   Constraints  Required  Default   Notes
+  ================================  =======  ======  ===========  ========  ========  ===========================================================================
+  ``SystemIdentifier``              id                            Yes                 Unique identifier
+  ``Location``                      string           See [#]_     Yes                 Lighting location [#]_
+  ``Load[Units="kWh/year"]/Value``  double   kWh/yr  >= 0         Yes                 Lighting energy use
+  ================================  =======  ======  ===========  ========  ========  ===========================================================================
+
+  .. [#] Location choices are "interior", "garage", or "exterior".
+  .. [#] Garage lighting is ignored if the building has no garage specified elsewhere.
+
+With either lighting specification, additional information can be entered in ``Lighting``.
 
   ================================================  =======  ======  ===========  ========  ========  ===============================================
   Element                                           Type     Units   Constraints  Required  Default   Notes
@@ -2975,8 +3090,6 @@ If exterior holiday lighting is specified, additional information is entered in 
   .. [#] If Value not provided, defaults to 1.1 for single-family detached and 0.55 for others.
   .. [#] If WeekdayScheduleFractions not provided (and :ref:`detailedschedules` not used), defaults to "0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019".
 
-Interior, exterior, and garage lighting energy use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
-
 HPXML Ceiling Fans
 ******************
 
@@ -2988,14 +3101,14 @@ If not entered, the simulation will not include a ceiling fan.
   =========================================  =======  =======  ===========  ========  ========  ==============================
   ``SystemIdentifier``                       id                             Yes                 Unique identifier
   ``Airflow[FanSpeed="medium"]/Efficiency``  double   cfm/W    > 0          No        See [#]_  Efficiency at medium speed
-  ``Quantity``                               integer           > 0          No        See [#]_  Number of similar ceiling fans
+  ``Count``                                  integer           > 0          No        See [#]_  Number of similar ceiling fans
   ``extension/WeekdayScheduleFractions``     array                          No        See [#]_  24 comma-separated weekday fractions
   ``extension/WeekendScheduleFractions``     array                          No                  24 comma-separated weekend fractions
   ``extension/MonthlyScheduleMultipliers``   array                          No        See [#]_  12 comma-separated monthly multipliers
   =========================================  =======  =======  ===========  ========  ========  ==============================
 
   .. [#] If Efficiency not provided, defaults to 3000 / 42.6 based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
-  .. [#] If Quantity not provided, defaults to NumberofBedrooms + 1 based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+  .. [#] If Count not provided, defaults to NumberofBedrooms + 1 based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figure 23 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.057, 0.057, 0.057, 0.057, 0.057, 0.057, 0.057, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.057, 0.057, 0.057, 0.057, 0.057, 0.057".
   .. [#] If MonthlyScheduleMultipliers not provided (and :ref:`detailedschedules` not used), defaults based on monthly average outdoor temperatures per `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_
 

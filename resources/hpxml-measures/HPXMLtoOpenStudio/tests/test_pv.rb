@@ -43,7 +43,7 @@ class HPXMLtoOpenStudioPVTest < MiniTest::Test
       assert_equal('FixedRoofMounted', generator.arrayType)
 
       # Check inverter
-      assert_equal(pv_system.inverter_efficiency, inverter.inverterEfficiency)
+      assert_equal(pv_system.inverter.inverter_efficiency, inverter.inverterEfficiency)
     end
   end
 
@@ -65,7 +65,7 @@ class HPXMLtoOpenStudioPVTest < MiniTest::Test
       assert_equal('FixedOpenRack', generator.arrayType)
 
       # Check inverter
-      assert_equal(pv_system.inverter_efficiency, inverter.inverterEfficiency)
+      assert_equal(pv_system.inverter.inverter_efficiency, inverter.inverterEfficiency)
     end
   end
 

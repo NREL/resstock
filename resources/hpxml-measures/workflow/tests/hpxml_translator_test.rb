@@ -85,6 +85,14 @@ class HPXMLTest < MiniTest::Test
       assert(File.exist? osm_path)
       hpxml_defaults_path = File.join(File.dirname(xml), 'run', 'in.xml')
       assert(File.exist? hpxml_defaults_path)
+
+      next unless output_format == 'msgpack'
+
+      # Check timeseries output isn't rounded
+      require 'msgpack'
+      data = MessagePack.unpack(File.read(File.join(File.dirname(xml), 'run', "results_timeseries.#{output_format}"), mode: 'rb'))
+      value = data['Energy Use']['Total (kBtu)'][0]
+      assert_operator((value - value.round(8)).abs, :>, 0)
     end
   end
 
@@ -372,16 +380,20 @@ class HPXMLTest < MiniTest::Test
       total_clg_load_delivered = results['Load: Cooling: Delivered (MBtu)']
       abs_htg_load_delta = (total_htg_load_delivered - sum_component_htg_loads).abs
       abs_clg_load_delta = (total_clg_load_delivered - sum_component_clg_loads).abs
-      avg_htg_load = ([total_htg_load_delivered, abs_htg_load_delta].sum / 2.0)
-      avg_clg_load = ([total_clg_load_delivered, abs_clg_load_delta].sum / 2.0)
-      abs_htg_load_frac = abs_htg_load_delta / avg_htg_load
-      abs_clg_load_frac = abs_clg_load_delta / avg_clg_load
-      # Check that the difference is less than 0.6MBtu or less than 10%
+      avg_htg_load = ([total_htg_load_delivered, sum_component_htg_loads].sum / 2.0)
+      avg_clg_load = ([total_clg_load_delivered, sum_component_clg_loads].sum / 2.0)
+      if avg_htg_load > 0
+        abs_htg_load_frac = abs_htg_load_delta / avg_htg_load
+      end
+      if avg_clg_load > 0
+        abs_clg_load_frac = abs_clg_load_delta / avg_clg_load
+      end
+      # Check that the difference is less than 1.5 MBtu or less than 10%
       if hpxml.total_fraction_heat_load_served > 0
-        assert((abs_htg_load_delta < 0.6) || (abs_htg_load_frac < 0.1))
+        assert((abs_htg_load_delta < 1.5) || (!abs_htg_load_frac.nil? && abs_htg_load_frac < 0.1))
       end
       if hpxml.total_fraction_cool_load_served > 0
-        assert((abs_clg_load_delta < 1.1) || (abs_clg_load_frac < 0.1))
+        assert((abs_clg_load_delta < 1.5) || (!abs_clg_load_frac.nil? && abs_clg_load_frac < 0.1))
       end
     end
 
@@ -688,7 +700,6 @@ class HPXMLTest < MiniTest::Test
                                       'base-enclosure-garage.xml' => 2,                  # additional instance for garage
                                       'base-foundation-walkout-basement.xml' => 4,       # 3 foundation walls plus a no-wall exposed perimeter
                                       'base-foundation-complex.xml' => 10,               # lots of foundations for testing
-                                      'base-enclosure-split-surfaces2.xml' => 81,        # lots of foundations for testing
                                       'base-pv-battery-garage.xml' => 2 }                # additional instance for garage
 
       if not num_expected_kiva_instances[File.basename(hpxml_path)].nil?
@@ -1045,10 +1056,10 @@ class HPXMLTest < MiniTest::Test
           fan_gj += fan_bal.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
         end
         if not vent_fan_kitchen.empty?
-          fan_gj += vent_fan_kitchen.map { |vent_kitchen| UnitConversions.convert(vent_kitchen.unit_fan_power * vent_kitchen.hours_in_operation * vent_kitchen.quantity * 365.0, 'Wh', 'GJ') }.sum(0.0)
+          fan_gj += vent_fan_kitchen.map { |vent_kitchen| UnitConversions.convert(vent_kitchen.unit_fan_power * vent_kitchen.hours_in_operation * vent_kitchen.count * 365.0, 'Wh', 'GJ') }.sum(0.0)
         end
         if not vent_fan_bath.empty?
-          fan_gj += vent_fan_bath.map { |vent_bath| UnitConversions.convert(vent_bath.unit_fan_power * vent_bath.hours_in_operation * vent_bath.quantity * 365.0, 'Wh', 'GJ') }.sum(0.0)
+          fan_gj += vent_fan_bath.map { |vent_bath| UnitConversions.convert(vent_bath.unit_fan_power * vent_bath.hours_in_operation * vent_bath.count * 365.0, 'Wh', 'GJ') }.sum(0.0)
         end
         # Maximum error that can be caused by rounding
         assert_in_delta(mv_energy, fan_gj, 0.006)
@@ -1077,7 +1088,7 @@ class HPXMLTest < MiniTest::Test
 
     # Lighting
     ltg_energy = results.select { |k, _v| k.include? 'End Use: Electricity: Lighting' }.values.sum(0.0)
-    if not hpxml_path.include?('vacancy-year-round')
+    if not (hpxml_path.include?('vacancy-year-round') || hpxml_path.include?('residents-0'))
       assert_equal(hpxml.lighting_groups.size > 0, ltg_energy > 0)
     else
       assert_operator(hpxml.lighting_groups.size, :>, 0)

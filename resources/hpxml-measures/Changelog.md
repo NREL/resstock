@@ -1,11 +1,28 @@
 ## OpenStudio-HPXML v1.6.0
 
 __New Features__
+- Updates to newer proposed HPXML v4.0:
+  - **Breaking change**: Replaces `VentilationFan/Quantity` and `CeilingFan/Quantity` with `Count`.
+  - **Breaking change**: Replaces `PVSystem/InverterEfficiency` with `PVSystem/AttachedToInverter` and `Inverter/InverterEfficiency`.
+- Heat pump enhancements:
+  - Allows `CompressorLockoutTemperature` as an optional input to control the minimum temperature the compressor can operate at.
+  - Updates defaults for `CompressorLockoutTemperature` and `BackupHeatingLockoutTemperature`.
+  - Provides a warning if `BackupHeatingSwitchoverTemperature` or `BackupHeatingLockoutTemperature` are low and may cause unmet hours.
+- LightingGroups can now be specified using kWh/year annual consumption values as an alternative to fractions of different lighting types.
+- Allows building air leakage to be specified using CFMnatural or EffectiveLeakageArea.
 - Allows modeling one or more occupant vacancy periods (`VacancyPeriods` in the HPXML file).
+- ReportSimulationOutput measure:
+  - Allows specifying the number of decimal places for timeseries output.
+  - Msgpack outputs are no longer rounded (since there is no file size penalty to storing full precision).
+- **Breaking change**: Updates component loads outputs:
+  - Replaces `Windows` and `Skylights` with `Windows Conduction`, `Windows Solar`, `Skylights Conduction`, and `Skylights Solar`.
+  - Disaggregates `Lighting` from `Internal Gains`.
 
 __Bugfixes__
+- Fixes `BackupHeatingSwitchoverTemperature` for a heat pump w/ *separate* backup system; now correctly ceases backup operation above this temperature.
 - Fixes error if calculating utility bills for an all-electric home with a detailed JSON utility rate.
 - BuildResidentialScheduleFile measure now excludes columns for end uses that are not stochastically generated.
+- Fixes operational calculation when the number of residents is set to zero.
 
 ## OpenStudio-HPXML v1.5.1
 
