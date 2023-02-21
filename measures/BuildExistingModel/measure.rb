@@ -514,20 +514,20 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
           rows = CSV.read(simple_filepath, headers: true)
           utility_rates = rows.map { |d| d.to_hash }
           parameter = utility_rates[0].keys[0]
-          parameter2 = parameter[1..-1] # FIXME: why is there a blank character in front?
 
-          if !bldg_data.keys.include?(parameter2)
-            runner.registerError("Utility bill scenario(s) were specified, but could not find #{parameter2}.")
+          if !bldg_data.keys.include?(parameter)
+            runner.registerError("Utility bill scenario(s) were specified, but could not find #{parameter}.")
             return false
           end
 
-          utility_rates = utility_rates.select { |r| r[parameter] == bldg_data[parameter2] }
+          utility_rates = utility_rates.select { |r| r[parameter] == bldg_data[parameter] }
 
           if utility_rates.size != 1
-            runner.registerError("Could not find #{parameter2}=#{bldg_data[parameter2]} in #{simple_filepath}.")
-            return false
+            runner.registerWarning("Could not find #{parameter}=#{bldg_data[parameter]} in #{simple_filepath}.")
+            utility_rate = Hash[rows.headers.map { |x| [x, nil] }]
+          else
+            utility_rate = utility_rates[0]
           end
-          utility_rate = utility_rates[0]
 
           utility_bill_electricity_fixed_charges << utility_rate['electricity_fixed_charge']
           utility_bill_electricity_marginal_rates << utility_rate['electricity_marginal_rate']
