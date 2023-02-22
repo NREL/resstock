@@ -1,7 +1,7 @@
 ## ResStock v3.1.0 (pending)
 
 Features
-- 
+- Add ability to calculate simple utility bills based on a user-specified CSV file of utility rates ([#1012](https://github.com/NREL/resstock/pull/1012))
 
 Fixes
 - 
