@@ -74,7 +74,7 @@ if ARGV[0].to_sym == :update_measures
           'Style/SelfAssignment',
           'Style/StringLiterals',
           'Style/StringLiteralsInInterpolation']
-  commands = ["\"require 'rubocop/rake_task'\"",
+  commands = ["\"require 'rubocop/rake_task' \"",
               "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--auto-correct', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
               '"Rake.application[:rubocop].invoke"']
   command = "#{OpenStudio.getOpenStudioCLI} -e #{commands.join(' -e ')}"

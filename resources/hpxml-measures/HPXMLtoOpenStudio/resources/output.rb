@@ -84,8 +84,10 @@ class CLT
   RimJoists = 'Rim Joists'
   FoundationWalls = 'Foundation Walls'
   Doors = 'Doors'
-  Windows = 'Windows'
-  Skylights = 'Skylights'
+  WindowsConduction = 'Windows Conduction'
+  WindowsSolar = 'Windows Solar'
+  SkylightsConduction = 'Skylights Conduction'
+  SkylightsSolar = 'Skylights Solar'
   Floors = 'Floors'
   Slabs = 'Slabs'
   InternalMass = 'Internal Mass'
@@ -95,6 +97,7 @@ class CLT
   WholeHouseFan = 'Whole House Fan'
   Ducts = 'Ducts'
   InternalGains = 'Internal Gains'
+  Lighting = 'Lighting'
 end
 
 class UHT
@@ -137,96 +140,4 @@ class WT
   WindSpeed = 'Wind Speed'
   DiffuseSolar = 'Diffuse Solar Radiation'
   DirectSolar = 'Direct Solar Radiation'
-end
-
-class OutputMethods
-  def self.get_timestamps(msgpackData, hpxml, use_timestamp_start_convention, add_dst_column = false, add_utc_column = false,
-                          use_dview_format = false, timeseries_frequency = nil)
-    return if msgpackData.nil?
-
-    if msgpackData.keys.include? 'MeterData'
-      # Get data for ReportUtilityBills measure
-      ep_timestamps = msgpackData['MeterData']['Monthly']['Rows'].map { |r| r.keys[0] }
-    else
-      # Get data for other reporting measures
-      ep_timestamps = msgpackData['Rows'].map { |r| r.keys[0] }
-    end
-
-    if add_dst_column || use_dview_format
-      dst_start_ts = Time.utc(hpxml.header.sim_calendar_year, hpxml.header.dst_begin_month, hpxml.header.dst_begin_day, 2)
-      dst_end_ts = Time.utc(hpxml.header.sim_calendar_year, hpxml.header.dst_end_month, hpxml.header.dst_end_day, 1)
-    end
-    if add_utc_column
-      utc_offset = hpxml.header.time_zone_utc_offset
-      utc_offset *= 3600 # seconds
-    end
-
-    timestamps = []
-    timestamps_dst = [] if add_dst_column || use_dview_format
-    timestamps_utc = [] if add_utc_column
-    year = hpxml.header.sim_calendar_year
-    ep_timestamps.each do |ep_timestamp|
-      month_day, hour_minute = ep_timestamp.split(' ')
-      month, day = month_day.split('/').map(&:to_i)
-      hour, minute, _ = hour_minute.split(':').map(&:to_i)
-
-      # Convert from EnergyPlus default (end-of-timestep) to start-of-timestep convention
-      if use_timestamp_start_convention
-        if timeseries_frequency == 'timestep'
-          ts_offset = hpxml.header.timestep * 60 # seconds
-        elsif timeseries_frequency == 'hourly'
-          ts_offset = 60 * 60 # seconds
-        elsif timeseries_frequency == 'daily'
-          ts_offset = 60 * 60 * 24 # seconds
-        elsif timeseries_frequency == 'monthly'
-          ts_offset = Constants.NumDaysInMonths(year)[month - 1] * 60 * 60 * 24 # seconds
-        else
-          fail 'Unexpected timeseries_frequency/'
-        end
-      end
-
-      ts = Time.utc(year, month, day, hour, minute)
-      ts -= ts_offset unless ts_offset.nil?
-
-      timestamps << ts.iso8601.delete('Z')
-
-      if add_dst_column || use_dview_format
-        if (ts >= dst_start_ts) && (ts < dst_end_ts)
-          ts_dst = ts + 3600 # 1 hr shift forward
-        else
-          ts_dst = ts
-        end
-        timestamps_dst << ts_dst.iso8601.delete('Z')
-      end
-
-      if add_utc_column
-        ts_utc = ts - utc_offset
-        timestamps_utc << ts_utc.iso8601
-      end
-    end
-
-    return timestamps, timestamps_dst, timestamps_utc
-  end
-
-  def self.msgpack_frequency_map
-    return {
-      'timestep' => 'TimeStep',
-      'hourly' => 'Hourly',
-      'daily' => 'Daily',
-      'monthly' => 'Monthly',
-    }
-  end
-
-  def self.get_dst_start_end_indexes(timestamps, timestamps_dst)
-    dst_start_ix = nil
-    dst_end_ix = nil
-    timestamps.zip(timestamps_dst).each_with_index do |ts, i|
-      dst_start_ix = i if ts[0] != ts[1] && dst_start_ix.nil?
-      dst_end_ix = i if ts[0] == ts[1] && dst_end_ix.nil? && !dst_start_ix.nil?
-    end
-
-    dst_end_ix = timestamps.size - 1 if dst_end_ix.nil? # run period ends before DST ends
-
-    return dst_start_ix, dst_end_ix
-  end
 end

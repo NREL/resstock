@@ -10,7 +10,7 @@ PR Reviewer: Verify each has been completed.
 
 - [ ] Schematron validator (`EPvalidator.xml`) has been updated
 - [ ] Sample files have been added/updated (via `tasks.rb`)
-- [ ] Unit tests have been added/updated (e.g., `HPXMLtoOpenStudio/tests`)
+- [ ] Tests have been added/updated (e.g., `HPXMLtoOpenStudio/tests` and/or `workflow/tests/hpxml_translator_test.rb`)
 - [ ] Documentation has been updated
 - [ ] Changelog has been updated
 - [ ] `openstudio tasks.rb update_measures` has been run

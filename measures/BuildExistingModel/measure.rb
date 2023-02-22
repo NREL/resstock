@@ -333,11 +333,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
 
-      if ['schedules_type', 'schedules_vacancy_period'].include?(step_value.name)
-        measures['BuildResidentialScheduleFile'][0][step_value.name] = value
-      else
-        measures['BuildResidentialHPXML'][0][step_value.name] = value
-      end
+      measures['BuildResidentialHPXML'][0][step_value.name] = value
     end
 
     # Set additional properties
@@ -571,10 +567,18 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Report some additional location and model characteristics
-    weather = WeatherProcess.new(model, runner)
-    register_value(runner, 'weather_file_city', weather.header.City)
-    register_value(runner, 'weather_file_latitude', "#{weather.header.Latitude}")
-    register_value(runner, 'weather_file_longitude', "#{weather.header.Longitude}")
+    if File.exist?(hpxml_path)
+      hpxml = HPXML.new(hpxml_path: hpxml_path)
+    else
+      runner.registerWarning("BuildExistingModel measure could not find '#{hpxml_path}'.")
+      return true
+    end
+
+    epw_path = Location.get_epw_path(hpxml, hpxml_path)
+    epw_file = OpenStudio::EpwFile.new(epw_path)
+    register_value(runner, 'weather_file_city', epw_file.city)
+    register_value(runner, 'weather_file_latitude', epw_file.latitude)
+    register_value(runner, 'weather_file_longitude', epw_file.longitude)
 
     # Determine weight
     if args['number_of_buildings_represented'].is_initialized
