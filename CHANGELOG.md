@@ -1,3 +1,11 @@
+## ResStock v3.1.0 (pending)
+
+Features
+- 
+
+Fixes
+- 
+
 ## ResStock v3.0.0
 ###### February 3, 2023 - [Diff](https://github.com/NREL/resstock/compare/v2.5.0...v3.0.0)
 

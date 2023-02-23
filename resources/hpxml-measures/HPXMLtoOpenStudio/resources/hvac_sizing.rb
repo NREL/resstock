@@ -975,23 +975,7 @@ class HVACSizing
     Heating and Cooling Loads: Infiltration & Ventilation
     '''
 
-    # FUTURE: Consolidate code w/ airflow.rb
-    infil_volume = @hpxml.air_infiltration_measurements.select { |i| !i.infiltration_volume.nil? }[0].infiltration_volume
-    infil_height = @hpxml.air_infiltration_measurements.select { |i| !i.infiltration_height.nil? }[0].infiltration_height
-    sla = nil
-    @hpxml.air_infiltration_measurements.each do |measurement|
-      if [HPXML::UnitsACH, HPXML::UnitsCFM].include?(measurement.unit_of_measure) && !measurement.house_pressure.nil?
-        if measurement.unit_of_measure == HPXML::UnitsACH
-          ach50 = Airflow.calc_air_leakage_at_diff_pressure(0.65, measurement.air_leakage, measurement.house_pressure, 50.0)
-        elsif measurement.unit_of_measure == HPXML::UnitsCFM
-          achXX = measurement.air_leakage * 60.0 / infil_volume # Convert CFM to ACH
-          ach50 = Airflow.calc_air_leakage_at_diff_pressure(0.65, achXX, measurement.house_pressure, 50.0)
-        end
-        sla = Airflow.get_infiltration_SLA_from_ACH50(ach50, 0.65, @cfa, infil_volume)
-      elsif measurement.unit_of_measure == HPXML::UnitsACHNatural
-        sla = Airflow.get_infiltration_SLA_from_ACH(measurement.air_leakage, infil_height, weather)
-      end
-    end
+    sla, _ach50, _nach, _volume, _height = Airflow.get_values_from_air_infiltration_measurements(@hpxml.air_infiltration_measurements, @cfa, weather)
     ela = sla * @cfa
 
     ncfl_ag = @hpxml.building_construction.number_of_conditioned_floors_above_grade
@@ -1962,13 +1946,13 @@ class HVACSizing
       capacity_ratio = 1.0
     end
 
-    if (not hvac.SwitchoverTemperature.nil?) && (hvac.SwitchoverTemperature > weather.design.HeatingDrybulb)
-      # Calculate the heating load at the switchover temperature to limit uninitialized capacity
-      switchover_weather = Marshal.load(Marshal.dump(weather))
-      switchover_weather.design.HeatingDrybulb = hvac.SwitchoverTemperature
-      _switchover_bldg_design_loads, switchover_all_hvac_sizing_values = calculate(switchover_weather, @hpxml, @cfa, @nbeds, [hvac.hvac_system])
+    if (not hvac.MinCompressorTemperature.nil?) && (hvac.MinCompressorTemperature > weather.design.HeatingDrybulb)
+      # Calculate the heating load at the minimum compressor temperature to limit uninitialized capacity
+      alternate_weather = Marshal.load(Marshal.dump(weather))
+      alternate_weather.design.HeatingDrybulb = hvac.MinCompressorTemperature
+      _switchover_bldg_design_loads, switchover_all_hvac_sizing_values = calculate(alternate_weather, @hpxml, @cfa, @nbeds, [hvac.hvac_system])
       heating_load = switchover_all_hvac_sizing_values[hvac.hvac_system].Heat_Load
-      heating_db = switchover_weather.design.HeatingDrybulb
+      heating_db = alternate_weather.design.HeatingDrybulb
     else
       heating_load = hvac_sizing_values.Heat_Load
       heating_db = weather.design.HeatingDrybulb
@@ -2352,7 +2336,11 @@ class HVACSizing
 
       # HP Switchover Temperature
       if hpxml_hvac.is_a?(HPXML::HeatPump)
-        hvac.SwitchoverTemperature = hpxml_hvac.backup_heating_switchover_temp
+        if not hpxml_hvac.backup_heating_switchover_temp.nil?
+          hvac.MinCompressorTemperature = hpxml_hvac.backup_heating_switchover_temp
+        elsif not hpxml_hvac.compressor_lockout_temp.nil?
+          hvac.MinCompressorTemperature = hpxml_hvac.compressor_lockout_temp
+        end
       end
 
       # Number of speeds
@@ -3436,7 +3424,7 @@ class HVACInfo
                 :SHRRated, :CapacityRatioCooling, :CapacityRatioHeating,
                 :OverSizeLimit, :OverSizeDelta, :hvac_system,
                 :HeatingEIR, :CoolingEIR, :SizingSpeed, :HeatingCOP,
-                :GSHP_SpacingType, :EvapCoolerEffectiveness, :SwitchoverTemperature, :LeavingAirTemp,
+                :GSHP_SpacingType, :EvapCoolerEffectiveness, :MinCompressorTemperature, :LeavingAirTemp,
                 :HeatingLoadFraction, :CoolingLoadFraction, :SupplyAirTemp, :BackupSupplyAirTemp,
                 :GSHP_design_chw, :GSHP_design_delta_t, :GSHP_design_hw, :GSHP_bore_d,
                 :GSHP_pipe_od, :GSHP_pipe_id, :GSHP_pipe_cond, :GSHP_grout_k, :HasIntegratedHeating)
