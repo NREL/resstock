@@ -4744,13 +4744,15 @@ def process_utility_rate_csv(filepath)
   num_rates_actual = process_usurdb(filepath, export_zip: false)
 
   if num_rates_actual == 0
-    abort 'No rate file created!'
+    puts 'No rate file created!'
+    # strangely, openstudio exits with 256 with the following
+    exit!(1)
   end
 
   puts "#{num_rates_actual} rate file[s] created."
   puts 'Completed.'
 
-  exit!
+  exit!(0)
 end
 
 command_list = [:update_measures, :update_hpxmls, :cache_weather, :create_release_zips, :download_utility_rates, :process_utility_rate_csv]
