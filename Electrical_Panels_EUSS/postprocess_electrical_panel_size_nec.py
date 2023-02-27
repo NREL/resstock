@@ -1,15 +1,17 @@
 """
-Electrical Panel Project: Estimate panel capacity using NEC (What Year)
-Standard method (DF=0.75 for fixed)
-Optimal method (DF=0.4 for fixed)
+Electrical Panel Project: Estimate panel capacity using NEC (2023)
+Standard method: 220 Part III. Feeder and Service Load Calculations
+Optional method: 220 Part IV. Optional Feeder and Service Load Calculations
 
 NEC panel capacity = min. main circuit breaker size (A)
 
 By: Lixi.Liu@nrel.gov
-Date: 02/08/2023
+Date: 02/01/2023
 
 -----------------
-At a power factor of 1, kW = kVA
+kW = kVA * PF, kW: working power, kVA: apparent power, PF: power factor
+For inductive load, use PF = 0.8 (except cooking per 220.55, PF=1)
+
 Continous load := max current continues for 3+ hrs
 Branch circuit rating for continous load >= 1.25 x nameplate rating
 
@@ -41,13 +43,15 @@ Electrical circuit voltage =
     - Demand factor depends on special appliance
 
 EV charger:
-    - Level 1 (slow): 1.2kW @ 120V (no special circuit)
+    - Level 1 (slow): 1.2kW @ 120V (no special circuit) - receptacle plugs
     - Level 2 (fast): 6.2-19.2kW (7.6kW avg) @ 240V (likely dedicated circuit)
+        -> same as 240V appliance plugs
+        -> 80% of installed chargers are Level 2 (Market share in residential)
     Demand factor: CONTINUOUS load, may have its own section in newer NEC
 
 TODO: Attached or Detached garage can have up to 1 branch of 120V, 20A
 
-120V service line can provide up to 1.8kW, beyond that appliance needs to go to 240V
+120V service branch can provide up to 1.8kW, beyond that appliance needs to go to 240V
 
 [2] OPTIMAL method overview:
 
@@ -59,8 +63,16 @@ import numpy as np
 import math
 import sys
 
-# --- funcs ---
+# --- lookup ---
+geometry_unit_aspect_ratio = {
+    "Single-Family Detached": 1.8,
+    "Single-Family Attached": 0.5556,
+    "Multi-Family with 2 - 4 Units": 0.5556,
+    "Multi-Family with 5+ Units": 0.5556,
+    "Mobile Home": 1.8,
+} #  = front_back_length / left_right_width #TODO: check to see if it gets recalculated
 
+# --- funcs ---
 
 def apply_demand_factor_to_general_load(x):
     """
@@ -77,10 +89,27 @@ def apply_demand_factor_to_general_load(x):
 
 
 def _general_load_lighting(row):
-    """General Lighting & Receptacle Loads. NEC 220-3(b)
-    Not including open porches, garages, unused or unfinished spaces not adaptable for future use
+    """General Lighting & Receptacle Loads. NEC 220.41
+    Motors < 1/8HP and connected to lighting circuit is covered by lighting load
+
+    Args:
+        row : row of Pd.DataFrame()
+        by_perimeter: bool
+            Whether calculation is based on 
     """
-    return 3 * row["upgrade_costs.floor_area_conditioned_ft_2"]
+    floor_area = row["upgrade_costs.floor_area_conditioned_ft_2"]
+    min_unit_load = 3 * floor_area
+
+    # calculate based on perimeter of footprint with receptables at every 6-feet
+    aspect_ratio = geometry_unit_aspect_ratio[row["build_existing_model.geometry_building_type_recs"]]
+    fb_length = math.sqrt(floor_area * aspect_ratio)
+    lr_width = floor_area / fb_length
+    n_receptables = 2*(fb_length+lr_width) // 6
+
+    receptable_load = n_receptables * 20*120 # 20-Amp @ 120V
+    # TODO: add other potential unit loads
+
+    return min_unit_load
 
 
 def _general_load_kitchen(row, n=2):
@@ -580,7 +609,7 @@ def main(filename: str = None):
     new_columns = [x for x in df.columns if x not in df_columns]
     print(df.loc[cond, ["building_id"] + new_columns])
 
-    # --- [2] NEC - OPTIMAL METHOD ----
+    # --- [2] NEC - OPTIONAL METHOD ----
 
     # --- save to file ---
     output_filename = filename.parent / (filename.stem + "__panels" + filename.suffix)
