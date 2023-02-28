@@ -595,7 +595,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                               'erv-atre-low' => ['Adjusted total recovery efficiency should typically be at least half of the adjusted sensible recovery efficiency.'],
                               'erv-tre-low' => ['Total recovery efficiency should typically be at least half of the sensible recovery efficiency.'],
                               'garage-ventilation' => ['Ventilation fans for the garage are not currently modeled.'],
-                              'integrated-heating-efficiency-low' => ['Percent efficiency should typically be greater than or equal to 0.6.'],
+                              'integrated-heating-efficiency-low' => ['Percent efficiency should typically be greater than or equal to 0.5.'],
                               'heat-pump-low-backup-switchover-temp' => ['BackupHeatingSwitchoverTemperature is below 30 deg-F; this may result in significant unmet hours if the heat pump does not have sufficient capacity.'],
                               'heat-pump-low-backup-lockout-temp' => ['BackupHeatingLockoutTemperature is below 30 deg-F; this may result in significant unmet hours if the heat pump does not have sufficient capacity.'],
                               'hvac-dse-low' => ['Heating DSE should typically be greater than or equal to 0.5.',
@@ -620,12 +620,12 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                                         'Backup heating capacity should typically be greater than or equal to 1000 Btu/hr.',
                                                         'Backup heating capacity should typically be greater than or equal to 1000 Btu/hr.'],
                               'hvac-efficiencies-low' => ['Percent efficiency should typically be greater than or equal to 0.95.',
-                                                          'AFUE should typically be greater than or equal to 0.6.',
-                                                          'AFUE should typically be greater than or equal to 0.6.',
-                                                          'AFUE should typically be greater than or equal to 0.6.',
-                                                          'AFUE should typically be greater than or equal to 0.6.',
-                                                          'AFUE should typically be greater than or equal to 0.6.',
-                                                          'Percent efficiency should typically be greater than or equal to 0.6.',
+                                                          'AFUE should typically be greater than or equal to 0.5.',
+                                                          'AFUE should typically be greater than or equal to 0.5.',
+                                                          'AFUE should typically be greater than or equal to 0.5.',
+                                                          'AFUE should typically be greater than or equal to 0.5.',
+                                                          'AFUE should typically be greater than or equal to 0.5.',
+                                                          'Percent efficiency should typically be greater than or equal to 0.5.',
                                                           'SEER should typically be greater than or equal to 8.',
                                                           'EER should typically be greater than or equal to 8.',
                                                           'SEER should typically be greater than or equal to 8.',
@@ -682,7 +682,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                    used_for_garage_ventilation: true)
       elsif ['integrated-heating-efficiency-low'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-ptac-with-heating-electricity.xml'))
-        hpxml.cooling_systems[0].integrated_heating_system_efficiency_percent = 0.5
+        hpxml.cooling_systems[0].integrated_heating_system_efficiency_percent = 0.4
       elsif ['heat-pump-low-backup-switchover-temp'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml'))
         hpxml.heat_pumps[0].backup_heating_switchover_temp = 25.0

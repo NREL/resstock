@@ -113,7 +113,7 @@ class Airflow
       break
     end
 
-    _sla, living_ach50, nach, infil_volume, infil_height = get_values_from_air_infiltration_measurements(hpxml.air_infiltration_measurements, cfa, weather)
+    _sla, living_ach50, nach, infil_volume, infil_height = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
     if @apply_ashrae140_assumptions
       living_const_ach = nach
       living_ach50 = nil
@@ -178,11 +178,14 @@ class Airflow
     fail 'Unexpected error.'
   end
 
-  def self.get_values_from_air_infiltration_measurements(infil_measurements, cfa, weather)
-    measurement = get_infiltration_measurement_of_interest(infil_measurements)
+  def self.get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
+    measurement = get_infiltration_measurement_of_interest(hpxml.air_infiltration_measurements)
 
     volume = measurement.infiltration_volume
     height = measurement.infiltration_height
+    if height.nil?
+      height = hpxml.inferred_infiltration_height(volume)
+    end
 
     sla, ach50, nach = nil
     if [HPXML::UnitsACH, HPXML::UnitsCFM].include?(measurement.unit_of_measure)
@@ -212,7 +215,7 @@ class Airflow
     return sla, ach50, nach, volume, height
   end
 
-  def self.get_default_mech_vent_flow_rate(hpxml, vent_fan, infil_measurements, weather, cfa, nbeds)
+  def self.get_default_mech_vent_flow_rate(hpxml, vent_fan, weather, cfa, nbeds)
     # Calculates Qfan cfm requirement per ASHRAE 62.2-2019
     infil_a_ext = 1.0
     if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include? hpxml.building_construction.residential_facility_type
@@ -220,7 +223,7 @@ class Airflow
       infil_a_ext = ext_cb_area / tot_cb_area
     end
 
-    sla, _ach50, _nach, _volume, height = get_values_from_air_infiltration_measurements(infil_measurements, cfa, weather)
+    sla, _ach50, _nach, _volume, height = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
 
     nl = get_infiltration_NL_from_SLA(sla, height)
     q_inf = nl * weather.data.WSF * cfa / 7.3 # Effective annual average infiltration rate, cfm, eq. 4.5a
