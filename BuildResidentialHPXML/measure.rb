@@ -1839,12 +1839,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     water_heater_operating_mode_choices = OpenStudio::StringVector.new
-    water_heater_operating_mode_choices << HPXML::WaterHeaterOperatingModeStandard
+    water_heater_operating_mode_choices << HPXML::WaterHeaterOperatingModeHybridAuto
     water_heater_operating_mode_choices << HPXML::WaterHeaterOperatingModeHeatPumpOnly
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_operating_mode', water_heater_operating_mode_choices, false)
     arg.setDisplayName('Water Heater: Operating Mode')
-    arg.setDescription("The water heater operating mode. The '#{HPXML::WaterHeaterOperatingModeHeatPumpOnly}' option only uses the heat pump, while '#{HPXML::WaterHeaterOperatingModeStandard}' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to #{HPXML::WaterHeaterTypeHeatPump}. If not provided, the OS-HPXML default is used.")
+    arg.setDescription("The water heater operating mode. The '#{HPXML::WaterHeaterOperatingModeHeatPumpOnly}' option only uses the heat pump, while '#{HPXML::WaterHeaterOperatingModeHybridAuto}' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to #{HPXML::WaterHeaterTypeHeatPump}. If not provided, the OS-HPXML default is used.")
     args << arg
 
     hot_water_distribution_system_type_choices = OpenStudio::StringVector.new
@@ -3012,7 +3012,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('apply_defaults', false)
     arg.setDisplayName('Apply Default Values?')
-    arg.setDescription('If true, applies OS-HPXML default values to the HPXML output file.')
+    arg.setDescription('If true, applies OS-HPXML default values to the HPXML output file. Setting to true will also force validation of the HPXML output file before applying OS-HPXML default values.')
     arg.setDefaultValue(false)
     args << arg
 
@@ -3388,7 +3388,7 @@ class HPXMLFile
     end
 
     # Check for errors in the HPXML object
-    if args[:apply_validation].is_initialized && args[:apply_validation].get
+    if (args[:apply_defaults].is_initialized && args[:apply_defaults].get) || (args[:apply_validation].is_initialized && args[:apply_validation].get)
       errors = hpxml.check_for_errors()
       if errors.size > 0
         fail "ERROR: Invalid HPXML object produced.\n#{errors}"
