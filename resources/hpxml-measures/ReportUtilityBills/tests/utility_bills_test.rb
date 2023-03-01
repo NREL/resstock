@@ -1011,6 +1011,7 @@ class ReportUtilityBillsTest < MiniTest::Test
     require 'zip'
     require 'tempfile'
 
+    @hpxml.pv_systems.each { |pv_system| pv_system.max_power_output = 1000.0 / @hpxml.pv_systems.size }
     @hpxml.header.utility_bill_scenarios.each do |utility_bill_scenario|
       Zip.on_exists_proc = true
       Zip::File.open(File.join(File.dirname(__FILE__), '../resources/detailed_rates/openei_rates.zip')) do |zip_file|
@@ -1026,7 +1027,7 @@ class ReportUtilityBillsTest < MiniTest::Test
 
             utility_bill_scenario.elec_tariff_filepath = tmp_path
             File.delete(@bills_csv) if File.exist? @bills_csv
-            actual_bills = _bill_calcs(@fuels_pv_none_detailed, @hpxml.header, [], utility_bill_scenario)
+            actual_bills = _bill_calcs(@fuels_pv_1kw_detailed, @hpxml.header, @hpxml.pv_systems, utility_bill_scenario)
             if !File.exist?(@bills_csv)
               puts entry.name
               assert(false)
