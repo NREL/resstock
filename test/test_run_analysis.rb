@@ -39,6 +39,17 @@ class TestRunAnalysis < MiniTest::Test
     assert_equal(expected_order, actual_order)
   end
 
+  def _assert_and_puts(output, msg, expect_error = true)
+    includes = output.include?(msg)
+    if !includes && expect_error
+      puts output
+      assert(includes)
+    elsif includes && !expect_error
+      puts output
+      assert(!includes)
+    end
+  end
+
   def test_version
     @command += ' -v'
 
@@ -53,7 +64,7 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Error: YML file does not exist at 'test/yml_bad_value/testing_baseline.yml'."))
+    _assert_and_puts(cli_output, "Error: YML file does not exist at 'test/yml_bad_value/testing_baseline.yml'.")
   end
 
   def test_errors_bad_value
@@ -62,11 +73,11 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert(cli_output.include?('Failures detected for: 1, 2.'))
+    _assert_and_puts(cli_output, 'Failures detected for: 1, 2.')
 
     cli_output_log = File.read(File.join(@testing_baseline, 'cli_output.log'))
-    assert(cli_output_log.include?('ERROR'))
-    assert(cli_output_log.include?('Run Period End Day of Month (32) must be one of'))
+    _assert_and_puts(cli_output_log, 'ERROR')
+    _assert_and_puts(cli_output_log, 'Run Period End Day of Month (32) must be one of')
   end
 
   def test_errors_already_exists
@@ -76,7 +87,7 @@ class TestRunAnalysis < MiniTest::Test
     `#{@command}`
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Output directory 'testing_baseline' already exists."))
+    _assert_and_puts(cli_output, "Error: Output directory 'testing_baseline' already exists.")
   end
 
   def test_errors_downselect_resample
@@ -85,7 +96,7 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Not supporting residential_quota_downselect's 'resample' at this time."))
+    _assert_and_puts(cli_output, "Error: Not supporting residential_quota_downselect's 'resample' at this time.")
   end
 
   def test_errors_weather_files
@@ -96,7 +107,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Must include 'weather_files_url' or 'weather_files_path' in yml."))
+    _assert_and_puts(cli_output, "Error: Must include 'weather_files_url' or 'weather_files_path' in yml.")
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
   end
 
@@ -106,7 +117,7 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Sampler type 'residential_quota_downsampler' is invalid or not supported."))
+    _assert_and_puts(cli_output, "Error: Sampler type 'residential_quota_downsampler' is invalid or not supported.")
   end
 
   def test_errors_missing_key
@@ -115,27 +126,27 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Both 'build_existing_model' and 'simulation_output_report' must be included in yml."))
+    _assert_and_puts(cli_output, "Error: Both 'build_existing_model' and 'simulation_output_report' must be included in yml.")
   end
 
   def test_errors_precomputed_outdated_missing_parameter
     yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_missing.yml'
     @command += yml
 
-    cli_output = `#{@command}` # rubocop:disable Lint/UselessAssignment
+    `#{@command}`
     cli_output = File.read(File.join(@testing_baseline, 'cli_output.log'))
 
-    assert(cli_output.include?('Mismatch between buildstock.csv and options_lookup.tsv. Missing parameters: HVAC Cooling Partial Space Conditioning.'))
+    _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Missing parameters: HVAC Cooling Partial Space Conditioning.')
   end
 
   def test_errors_precomputed_outdated_extra_parameter
     yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_extra.yml'
     @command += yml
 
-    cli_output = `#{@command}` # rubocop:disable Lint/UselessAssignment
+    `#{@command}` # rubocop:disable Lint/UselessAssignment
     cli_output = File.read(File.join(@testing_baseline, 'cli_output.log'))
 
-    assert(cli_output.include?('Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: Extra Parameter.'))
+    _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: Extra Parameter.')
   end
 
   def test_measures_only
@@ -226,10 +237,7 @@ class TestRunAnalysis < MiniTest::Test
     cli_output_log = File.join(@testing_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
-    if cli_output.include?('ERROR')
-      puts cli_output
-      assert(!cli_output.include?('ERROR'))
-    end
+    _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     results_baseline = File.join(@testing_baseline, 'results-Baseline.csv')
@@ -262,10 +270,7 @@ class TestRunAnalysis < MiniTest::Test
     cli_output_log = File.join(@national_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
-    if cli_output.include?('ERROR')
-      puts cli_output
-      assert(!cli_output.include?('ERROR'))
-    end
+    _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@national_baseline, 'national_baseline-Baseline.osw'))
     results_baseline = File.join(@national_baseline, 'results-Baseline.csv')
@@ -299,10 +304,7 @@ class TestRunAnalysis < MiniTest::Test
     cli_output_log = File.join(@testing_upgrades, 'cli_output.log')
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
-    if cli_output.include?('ERROR')
-      puts cli_output
-      assert(!cli_output.include?('ERROR'))
-    end
+    _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Baseline.osw'))
     results_baseline = File.join(@testing_upgrades, 'results-Baseline.csv')
@@ -355,10 +357,7 @@ class TestRunAnalysis < MiniTest::Test
     cli_output_log = File.join(@national_upgrades, 'cli_output.log')
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
-    if cli_output.include?('ERROR')
-      puts cli_output
-      assert(!cli_output.include?('ERROR'))
-    end
+    _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Baseline.osw'))
     results_baseline = File.join(@national_upgrades, 'results-Baseline.csv')
