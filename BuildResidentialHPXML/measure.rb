@@ -3362,35 +3362,32 @@ class HPXMLFile
       s.area = s.area.round(1)
     end
 
-    # Check for errors in the HPXML object
-    if args[:apply_validation]
-      errors = hpxml.check_for_errors()
-      if errors.size > 0
-        fail "ERROR: Invalid HPXML object produced.\n#{errors}"
-      end
-    end
-
     hpxml_doc = hpxml.to_oga()
     XMLHelper.write_file(hpxml_doc, hpxml_path)
 
-    if args[:apply_validation] || args[:apply_defaults]
-
+    if args[:apply_validation]
       # Check for invalid HPXML file
-      if not validate_hpxml(runner, hpxml_path, hpxml_doc)
+      if not validate_hpxml(runner, hpxml, hpxml_doc, hpxml_path)
         return false
       end
+    end
 
-      if args[:apply_defaults]
-        eri_version = Constants.ERIVersions[-1]
-        HPXMLDefaults.apply(runner, hpxml, eri_version, weather, epw_file: epw_file)
-        hpxml_doc = hpxml.to_oga()
-      end
+    if args[:apply_defaults]
+      eri_version = Constants.ERIVersions[-1]
+      HPXMLDefaults.apply(runner, hpxml, eri_version, weather, epw_file: epw_file)
+      hpxml_doc = hpxml.to_oga()
     end
 
     return hpxml_doc
   end
 
-  def self.validate_hpxml(runner, hpxml_path, hpxml_doc)
+  def self.validate_hpxml(runner, hpxml, hpxml_doc, hpxml_path)
+    # Check for errors in the HPXML object
+    errors = hpxml.check_for_errors()
+    if errors.size > 0
+      fail "ERROR: Invalid HPXML object produced.\n#{errors}"
+    end
+
     is_valid = true
 
     # Validate input HPXML against schema
