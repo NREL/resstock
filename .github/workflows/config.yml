@@ -104,6 +104,13 @@ jobs:
           tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output
           tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output
 
+      - name: Upload national baseline
+        uses: actions/upload-artifact@v3
+        with:
+          path: |
+            project_national/national_baseline
+          name: national_baseline
+
       - name: Run tests
         run: |
           ruby test/test_bsb_analysis.rb
