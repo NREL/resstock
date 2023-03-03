@@ -169,14 +169,25 @@ def apply_demand_factor_to_general_load(x):
 def _general_load_lighting(row):
     """General Lighting & Receptacle Loads. NEC 220.41
     Accounts for motors < 1/8HP and connected to lighting circuit is covered by lighting load
-    Dwelling footprint area must include garage
+    Dwelling footprint area MUST include garage
 
     Args:
         row : row of Pd.DataFrame()
         by_perimeter: bool
             Whether calculation is based on 
     """
-    floor_area = row["upgrade_costs.floor_area_conditioned_ft_2"] #TODO: Add garage area to these calculations
+    garage_depth = 24 # ft
+    match row["build_existing_model.geometry_garage"]:
+        case "1 Car":
+            garage_width = 12
+        case "2 Car":
+            garage_width = 24
+        case "3 Car":
+            garage_width = 36
+        case "None":
+            garage_width = 0
+    
+    floor_area = row["upgrade_costs.floor_area_conditioned_ft_2"] + garage_width*garage_depth
     min_unit_load = 3 * floor_area
 
     # calculate based on perimeter of footprint with receptables at every 6-feet
@@ -626,7 +637,7 @@ def optional_space_cond_load(row):
     else:
         sep_controlled_heaters = 0
 
-    continous_heat = 0 # TODO: Determine if we would like to include continuous heat and how to estimate it
+    continous_heat = 0 # TODO: Determine if we would like to include continuous heat and how to estimate it (NEC 220.82(C)(6) 
     
     space_cond_loads = [
         AC_load , # 100% of AC load (use cooling system primary btu)
