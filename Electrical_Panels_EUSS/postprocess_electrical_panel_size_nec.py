@@ -766,8 +766,40 @@ def main(filename: str = None):
     df.to_csv(output_filename, index=False)
     print(f"File output to: {output_filename}")
 
-if __name__ == "__main__":
+    # Plot histogram 
+    
+    #std_m_dist = pd.DataFrame.hist(data = df, column = "std_m_nec_electrical_panel_amp")
+    
+    #mytype = type(df["std_m_nec_electrical_panel_amp"])
+    
+    #opt_m_dist = pd.DataFrame.hist(data = df, column ="opt_m_nec_electrical_panel_amp")
+    #plt.show()
 
+    plt.figure(1)
+    std_m_sizes = pd.Series.tolist(df.std_m_nec_electrical_panel_amp)
+    plt.bar(*np.unique(std_m_sizes,return_counts = True), width = 10)
+    plt.xlabel('Capacity of Panel (A)')
+    plt.ylabel('Percentage of Panels (%)')
+    plt.title('Standard Method')
+    plt.xlim([0,400])
+    plt.ylim([0,50])
+    
+    plt.figure(2)
+    opt_m_sizes = pd.Series.tolist(df.opt_m_nec_electrical_panel_amp)
+    plt.bar(*np.unique(opt_m_sizes,return_counts = True), width = 10)
+    plt.xlabel('Capacity of Panel (A)')
+    plt.ylabel('Percentage of Panels (%)')
+    plt.title('Optional Method')
+    plt.xlim([0,400])
+    plt.ylim([0,50])
+
+    plt.show()
+
+
+
+    
+
+if __name__ == "__main__":
     if len(sys.argv) == 2:
         filename = sys.argv[1]
         print(f"Applying NEC panel calculation to {filename}...")
@@ -791,3 +823,4 @@ if __name__ == "__main__":
         sys.exit(1)
 
     main(filename)
+
