@@ -8,15 +8,21 @@ NEC panel capacity = min. main circuit breaker size (A)
 By: Lixi.Liu@nrel.gov
 Date: 02/01/2023
 
+Updated: Ilan.Upfal@nrel.gov
+Date: 3/3/2023
+
 -----------------
-kW = kVA * PF, kW: working power, kVA: apparent power, PF: power factor
+kW = kVA * PF, kW: working (active) power, kVA: apparent (active + reactive) power, PF: power factor
 For inductive load, use PF = 0.8 (except cooking per 220.55, PF=1)
 
 Continous load := max current continues for 3+ hrs
 Branch circuit rating for continous load >= 1.25 x nameplate rating
 
 -----------------
-[1] STANDARD method overview:
+
+STANDARD LOAD CALCULATION METHOD:
+
+Overview:
 Total Demand Load = General Load + Fixed Load + Special Load
 Total Amperage = Total Demand / Circuit Voltage
 
@@ -28,13 +34,13 @@ Electrical circuit voltage =
     - lighting/recepticles + kitchen general + laundry general
     - Includes bathroom exhaust fans, most ceiling fans
     - Tiered demand factors for total General Load
-* Fixed (fastened-in-place) Appliances: 
+* Fixed (fastened-in-place) Appliance Load: 
     - Water heater, dishwasher, garbage disposal, garbage compactor, 
     - Attic fan, central vacumm systems, microwave ...
     - At least 1/4 HP (500W), permanently fastened in place
     - ALWAYS exclude 3 special appliances: dryer, range, space heating & cooling 
     - Demand factor for total Fixed Load based on # of >=500W fixed appliances
-* Special Appliances:
+* Special Appliance Load:
     - Clothes dryer, 
     - Range/oven,
     - Larger of space heating or cooling, 
@@ -42,19 +48,91 @@ Electrical circuit voltage =
     - Hot tub (1.5-6kW + 1.5kW water pump), pool heater (~3kW), pool pump (0.75-1HP), well pump (0.5-5HP)
     - Demand factor depends on special appliance
 
-EV charger:
-    - Level 1 (slow): 1.2kW @ 120V (no special circuit) - receptacle plugs
-    - Level 2 (fast): 6.2-19.2kW (7.6kW avg) @ 240V (likely dedicated circuit)
-        -> same as 240V appliance plugs
-        -> 80% of installed chargers are Level 2 (Market share in residential)
-    Demand factor: CONTINUOUS load, may have its own section in newer NEC
+Detailed description:
+1. General Lighting and Receptacle Load (NEC 220.41):
+    *general lighting:
+        accounts for:
+            - general-use receptacle outlets of 20 A including dedicated branch circuits for bathrooms, countertops, work surfaces and garages
+            - outdoor receptacle outlets
+            - lighting outlets
+            - motors less than 1/8 hp and connected to lighting circuit
+        floor area is defined as:
+            - outside dimensions of dwelling unit
+            - excludes "open porches or unfinished areas not adaptable for future use as a habitable room or occupiable space"
+            - includes garage as of 2023
+        general lighting load = 3 VA/ft^2
 
-TODO: Attached or Detached garage can have up to 1 branch of 120V, 20A
+    *small appliance circuit load (NEC 220.52)
+        small-appliance circuit load (NEC 220.52 (A))
+            - 1500 VA per 2-wire small-appliance circuit
+            - minimum of 2 small-appliance circuits per dwelling (NEC 210.11 (C)(1))
+        laundry circuit load (NEC 220.52 (B))
+            - 1500 VA per 2-wire small-appliance circuit
+            - minimum of 1 laundry circuit per dwelling (NEC 210.11 (C)(1))
 
-120V service branch can provide up to 1.8kW, beyond that appliance needs to go to 240V
+    *demand factor (NEC 220.45)
+        - Up to 3,000 VA @ 100%
+        - 3,000 VA to 120,000 VA @ 35%
+        - Over 120,000 VA @ 25%
 
-[2] OPTIMAL method overview:
+2. Special loads:
+    *electric cooking appliances (NEC 220.55)
+        applies to:
+            - cooking appliances which are fastened in place and rated above 1750 W
+        home with single cooking appliance: (Table 220.55)
+            - for 1 appliance rated @ 12 kW or less: demand load = 8 kW or nameplate rating
+            - for 1 appliance rated over 12 kW: add 5% onto 8 kW per additional kW over 8 kW
+        home with multiple cooking appliances: (Table 220.55)
+            - if all same rating: same as above
+            - if different ratings: group by less than 3 1/2 and over 3 1/2 and apply relevant demand factors
 
+    *dryer (NEC 220.54)
+        Load is either 5 kW (VA) or nameplate rating whichever is greater for each dryer
+        DF of 100% for first 4 dryers, 85% for 5th, 75% for 6th ...
+    
+    *space heating and air-conditioning
+        omit the smaller of the heating and cooling loads (NEC 220.60)
+        space heating (220.51)
+            - applies to fixed space heating
+            - 100% of connected load
+        air-conditioning equipment (NEC 220.50 (B))
+            - use full load
+
+    *electric vehicle supply equipment (NEC 220.57)
+        - 7200 W or nameplate rating whichever is larger
+        - continuous load
+        - Level 1 (slow): 1.2kW @ 120V (no special circuit) - receptacle plugs
+        - Level 2 (fast): 6.2-19.2kW (7.6kW avg) @ 240V (likely dedicated circuit)
+            -> same as 240V appliance plugs
+            -> 80% of installed chargers are Level 2 (Market share in residential)
+
+    *add 25% of largest motor load not already included (NEC 440.33)
+    
+3. Appliance load (NEC 220.53)
+    applies to:
+        - fastened in place appliances
+        - 1/4 hp or greater, or 500 W or greater
+    apply a demand factor of 75% if 4 or more
+    125% for continuous loads
+
+OPTIONAL METHOD: (NEC 220.82)
+    applies to dwellings with min 100 A service
+    first 10 kVA at 100% and reminader at 40% of sum of:
+        - 3 VA/ft^2 for outside dimensions of dwelling not including garage, unfinished porches, unused or unfinished spaces
+        - 1500 VA per laundry and small appliance branch
+        - nameplate rating of:
+            - fastened in place appliances, permanently connected or on specific circuit
+            - ranges, wall-mounted ovens, counter-mounted cooking units
+            - clothes dryers not connected to laundry circuit
+            - water heaters
+            - all permanenty connected motors not listed in this section
+    and largest of:
+        - 100% of nameplate of A\C
+        - 100% of nameplate of heat pump with no supplemental heating
+        - 100% of nameplate of heat pump compressor and 65% of supplemental electric heat for central space-heating system unless they are prevented from running simultaneously
+        - 65% of nameplate rating of electric space heating if less than four seperately controlled units
+        - 40% of nameplate rating of electric space heat if more than four seperately controlled units 
+        - 100% of nameplate rating of electric thermal storage or other heating sustme which is expected to run continuously at max load
 """
 
 import pandas as pd
@@ -62,7 +140,7 @@ from pathlib import Path
 import numpy as np
 import math
 import sys
-import matplotlib.pyplot as plots
+import matplotlib.pyplot as plt
 
 # --- lookup ---
 geometry_unit_aspect_ratio = {
