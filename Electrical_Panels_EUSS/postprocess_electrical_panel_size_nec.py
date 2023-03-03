@@ -169,14 +169,15 @@ def apply_demand_factor_to_general_load(x):
 
 def _general_load_lighting(row):
     """General Lighting & Receptacle Loads. NEC 220.41
-    Motors < 1/8HP and connected to lighting circuit is covered by lighting load
-
+    Accounts for motors < 1/8HP and connected to lighting circuit is covered by lighting load
+    Dwelling footprint area must include garage
+    
     Args:
         row : row of Pd.DataFrame()
         by_perimeter: bool
             Whether calculation is based on 
     """
-    floor_area = row["upgrade_costs.floor_area_conditioned_ft_2"]
+    floor_area = row["upgrade_costs.floor_area_conditioned_ft_2"] #TODO: Add garage area to these calculations
     min_unit_load = 3 * floor_area
 
     # calculate based on perimeter of footprint with receptables at every 6-feet
