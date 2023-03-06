@@ -186,6 +186,9 @@ def _general_load_lighting(row):
             garage_width = 36
         case "None":
             garage_width = 0
+        case _:
+            garage_width = np.nan
+            print("Error determine garage area")
     
     floor_area = row["upgrade_costs.floor_area_conditioned_ft_2"] + garage_width*garage_depth
     min_unit_load = 3 * floor_area
@@ -768,13 +771,7 @@ def main(filename: str = None):
 
     # Plot histogram 
     
-    #std_m_dist = pd.DataFrame.hist(data = df, column = "std_m_nec_electrical_panel_amp")
-    
-    #mytype = type(df["std_m_nec_electrical_panel_amp"])
-    
-    #opt_m_dist = pd.DataFrame.hist(data = df, column ="opt_m_nec_electrical_panel_amp")
-    #plt.show()
-
+    """
     plt.figure(1)
     std_m_sizes = pd.Series.tolist(df.std_m_nec_electrical_panel_amp)
     plt.bar(*np.unique(std_m_sizes,return_counts = True), width = 10)
@@ -794,11 +791,7 @@ def main(filename: str = None):
     plt.ylim([0,50])
 
     plt.show()
-
-
-
-    
-
+"""
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         filename = sys.argv[1]
@@ -824,3 +817,26 @@ if __name__ == "__main__":
 
     main(filename)
 
+# TEST CASES
+
+# test apply_demand_factor_to_general_load
+
+a = apply_demand_factor_to_general_load(1000)
+b = apply_demand_factor_to_general_load(10000)
+c = apply_demand_factor_to_general_load(13000)
+
+assert a == 1000
+assert b == 3000 + 0.35*7000
+assert c == 3000 + 10000*.35
+
+# test _general_load_lighting
+test1 = {
+    "upgrade_costs.floor_area_conditioned_ft_2": [2000],
+    "build_existing_model.geometry_garage": ["2 Car"],
+    "build_existing_model.geometry_building_type_recs": ["Single-Family Detached"]
+    }
+df_test1 = pd.DataFrame(test1)
+
+out1 = df_test1.apply(lambda x: _general_load_lighting(x), axis=1)
+
+assert out1[0] == 3*(2000 + 24*24)
