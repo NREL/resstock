@@ -229,11 +229,12 @@ def _general_load_kitchen(row, n=2):
     if n == "auto":
         n = 2  # start with min requirement
         # TODO: can expand based on building_type, vintage, and floor_area
+        """
         if (row["build_existing_model.misc_extra_refrigerator"] != "None") or (
             row["build_existing_model.misc_freezer"] != "None"
         ):
-            n += 2  # 2 additional branches added for misc refrigeration (outside kitchen)
-
+            n += 2  # 2 additional branches added for misc refrigeration (outside kitchen) #TODO: This is incorrect, small appliance branch circuits can only supply loads in the kitchen
+        """
     if n < 2:
         raise ValueError(
             f"n={n}, at least 2 small appliance/kitchen branch circuit for General Load"
@@ -259,12 +260,12 @@ def _general_load_laundry(row, n=1):
 
     if n < 1:
         raise ValueError(f"n={n}, at least 1 laundry branch circuit for General Load")
-
+    """
     if (row["build_existing_model.clothes_washer_presence"] == "Yes") or (
         row["build_existing_model.clothes_dryer"] != "None"
     ):
-        return n * 1500
-    return 0
+        return n * 1500 """ # This is incorrect, code requires 1 laundry branch circuit regardless of dryer type
+    return n* 1500
 
 def general_load_total(row, n_kit=2, n_ldr=1):
     """Total general load, has tiered demand factors
@@ -854,7 +855,31 @@ out2 = df_test2.apply(lambda x: _optional_load_lighting(x), axis=1)
 
 assert out2[0] == 3*(2000)
 
-#test min_amperage_main_breaker(x):
+# test _general_load_kitchen
+test3 = {
+    "build_existing_model.misc_extra_refrigerator": ["None"],
+    "build_existing_model.misc_freezer": ["EF 12, National Average"],
+    "completed_status": ["Success"]
+}
+
+df_test3 = pd.DataFrame(test3)
+
+out3 = df_test3.apply(lambda x: _general_load_kitchen(x), axis=1)
+
+assert out3[0] == 3000
+
+# test _general_load_laundry
+test4 = {
+    "completed_status": ["Success"]
+}
+
+df_test4 = pd.DataFrame(test4)
+
+out4 = df_test4.apply(lambda x: _general_load_laundry(x), axis=1)
+
+assert out4[0] == 1500
+
+# test min_amperage_main_breaker(x):
 assert min_amperage_main_breaker(120) == 125
 # assert min_amperage_main_breaker(770) == 800 # commented to avoid false warning
 assert min_amperage_main_breaker(90) == 100
