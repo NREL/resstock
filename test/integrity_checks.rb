@@ -143,6 +143,30 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   r = RunSampling.new
   output_file = r.run(project_dir_name, 10000, "#{project_dir_name}.csv", housing_characteristics_dir, lookup_file)
 
+  check_buildstock(output_file, lookup_csv_data, lookup_file)
+
+  if File.exist?(output_file)
+    if project_dir_name == 'project_national'
+      FileUtils.mv(output_file, output_file.gsub(project_dir_name, 'buildstock'))
+    else
+      File.delete(output_file) # Clean up
+    end
+  end
+
+  # Unused TSVs?
+  err = ''
+  Dir[File.join(project_dir_name, housing_characteristics_dir, '*.tsv')].each do |tsvpath|
+    parameter_name = File.basename(tsvpath, '.*')
+    if not parameter_names.include? parameter_name
+      err += "ERROR: TSV file #{tsvpath} not used in options_lookup.tsv.\n"
+    end
+  end
+  if not err.empty?
+    raise err
+  end
+end
+
+def check_buildstock(output_file, lookup_csv_data, lookup_file)
   # Cache {parameter => options}
   parameters_options = {}
   CSV.foreach(output_file, headers: true).each do |row|
@@ -190,26 +214,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
       err += "ERROR: Duplicate measure argument assignment(s) across [\"#{param_names}\"] parameters. #{measure_name} => \"#{arg_name}\" already assigned.\n"
     end
   end
-  if not err.empty?
-    raise err
-  end
 
-  if File.exist?(output_file)
-    if project_dir_name == 'project_national'
-      FileUtils.mv(output_file, output_file.gsub(project_dir_name, 'buildstock'))
-    else
-      File.delete(output_file) # Clean up
-    end
-  end
-
-  # Unused TSVs?
-  err = ''
-  Dir[File.join(project_dir_name, housing_characteristics_dir, '*.tsv')].each do |tsvpath|
-    parameter_name = File.basename(tsvpath, '.*')
-    if not parameter_names.include? parameter_name
-      err += "ERROR: TSV file #{tsvpath} not used in options_lookup.tsv.\n"
-    end
-  end
   if not err.empty?
     raise err
   end
