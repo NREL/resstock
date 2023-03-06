@@ -861,23 +861,58 @@ test3 = {
     "build_existing_model.misc_freezer": ["EF 12, National Average"],
     "completed_status": ["Success"]
 }
-
 df_test3 = pd.DataFrame(test3)
-
 out3 = df_test3.apply(lambda x: _general_load_kitchen(x), axis=1)
-
 assert out3[0] == 3000
 
 # test _general_load_laundry
 test4 = {
     "completed_status": ["Success"]
 }
-
 df_test4 = pd.DataFrame(test4)
-
 out4 = df_test4.apply(lambda x: _general_load_laundry(x), axis=1)
-
 assert out4[0] == 1500
+
+# test _fixed_load_water_heater
+
+test5 = {
+    "completed_status": ["Success"],
+    "build_existing_model.water_heater_in_unit": ["Yes"],
+    "build_existing_model.water_heater_fuel": ["Electricity"],
+    "build_existing_model.water_heater_efficiency": ["Electric Tankless"]
+    }    
+df_test5 = pd.DataFrame(test5)
+out5 = df_test5.apply(lambda x: _fixed_load_water_heater(x),axis=1)
+assert out5[0] == 27000
+
+test6 = {
+    "completed_status": ["Success"],
+    "build_existing_model.water_heater_in_unit": ["Yes"],
+    "build_existing_model.water_heater_fuel": ["Electricity"],
+    "build_existing_model.water_heater_efficiency": ["Electric Standard"]
+    }    
+df_test6 = pd.DataFrame(test6)
+out6 = df_test6.apply(lambda x: _fixed_load_water_heater(x),axis=1)
+assert out6[0] == 4500
+
+test7 = {
+    "completed_status": ["Success"],
+    "build_existing_model.water_heater_in_unit": ["Yes"],
+    "build_existing_model.water_heater_fuel": ["Natural Gas"],
+    "build_existing_model.water_heater_efficiency": ["Natural Gas Standard"]
+    }    
+df_test7 = pd.DataFrame(test7)
+out7 = df_test7.apply(lambda x: _fixed_load_water_heater(x),axis=1)
+assert out7[0] == 0
+
+# test _fixed_load_dishwasher
+test8 = {
+    "completed_status": ["Success"],
+    "build_existing_model.dishwasher": ["290 Rated kWh, 80% Usage"]
+}
+df_test8 = pd.DataFrame(test8)
+out8 = df_test8.apply(lambda x: _fixed_load_dishwasher(x),axis=1)
+assert out8[0] == 15*120
 
 # test min_amperage_main_breaker(x):
 assert min_amperage_main_breaker(120) == 125
