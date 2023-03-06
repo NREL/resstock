@@ -367,6 +367,34 @@ def _fixed_load_garbage_compactor(row):
 
     return 0
 
+def _fixed_load_hot_tub_spa(row): # Not a continuous load, but some inconsistency on this
+    """
+    Hot tub (1.5-6kW + 1.5kW water pump)
+    """
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    if row["build_existing_model.misc_hot_tub_spa"] == "Electric":
+        return 4500  # or 8000 (2HP)
+    return 0
+
+def _fixed_load_well_pump(row): # Not a continuous load
+    """NEC 680
+    Well pump (0.5-5HP)
+    1HP = 746W
+    """
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    # TODO: verify
+    if row["build_existing_model.misc_well_pump"] == "National Average":
+        return 0.127 * 746  # based on usage multiplier in options_lookup #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
+    if row["build_existing_model.misc_well_pump"] == "Typical Efficiency":
+        return 1 * 746  # based on usage multiplier in options_lookup #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
+    if row["build_existing_model.misc_well_pump"] == "High Efficiency":
+        return 0.67 * 746  # based on usage multiplier in options_lookup #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
+    return 0
+
 def fixed_load_total(row):
     """Fastened-In-Place Appliances. NEC 220-17
     Use nameplate rating. Do not include electric ranges, clothes dryers, space-heating or A/C equipment
@@ -383,6 +411,8 @@ def fixed_load_total(row):
             _fixed_load_dishwasher(row),
             _fixed_load_garbage_disposal(row),
             _fixed_load_garbage_compactor(row),
+            _fixed_load_hot_tub_spa(row),
+            _fixed_load_well_pump(row),
         ]
     )
 
@@ -506,21 +536,10 @@ def _special_load_motor(row):
         cooling_motor,
         _fixed_load_garbage_disposal(row),
         _special_load_pool_pump(row),
-        _special_load_well_pump(row),
+        _fixed_load_well_pump(row),
     )
 
     return 0.25 * motor_size
-
-def _special_load_hot_tub_spa(row): # Not a continuous load, but some inconsistency on this
-    """
-    Hot tub (1.5-6kW + 1.5kW water pump)
-    """
-    if row["completed_status"] != "Success":
-        return np.nan
-
-    if row["build_existing_model.misc_hot_tub_spa"] == "Electric":
-        return 4500  # or 8000 (2HP)
-    return 0
 
 def _special_load_pool_heater(row): # This is a continuous load so 125% factor must be applied
     """NEC 680.9
@@ -543,26 +562,9 @@ def _special_load_pool_pump(row):
         return np.nan
 
     if row["build_existing_model.misc_pool_pump"] == "1.0 HP Pump":
-        return 1 * 746 #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
+        return 1.25* 1 * 746 #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
     if row["build_existing_model.misc_pool_pump"] == "0.75 HP Pump":
-        return 0.75 * 746 #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
-    return 0
-
-def _special_load_well_pump(row): # Not a continuous load
-    """NEC 680
-    Well pump (0.5-5HP)
-    1HP = 746W
-    """
-    if row["completed_status"] != "Success":
-        return np.nan
-
-    # TODO: verify
-    if row["build_existing_model.misc_well_pump"] == "National Average":
-        return 0.127 * 746  # based on usage multiplier in options_lookup #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
-    if row["build_existing_model.misc_well_pump"] == "Typical Efficiency":
-        return 1 * 746  # based on usage multiplier in options_lookup #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
-    if row["build_existing_model.misc_well_pump"] == "High Efficiency":
-        return 0.67 * 746  # based on usage multiplier in options_lookup #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
+        return 1.25 * 0.75 * 746 #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
     return 0
 
 def special_load_total(row):
@@ -576,10 +578,9 @@ def special_load_total(row):
             _special_load_electric_range(row),
             space_cond_load,
             _special_load_motor(row),
-            _special_load_hot_tub_spa(row),
             _special_load_pool_heater(row),
             _special_load_pool_pump(row),
-            _special_load_well_pump(row),
+            EVSE_load(row)
         ]
     )
     return special_loads
@@ -600,15 +601,16 @@ def optional_general_load(row, n_kit=2, n_ldr=1):
         _fixed_load_garbage_disposal(row),
         _fixed_load_garbage_compactor(row),
         _special_load_electric_range(row),
-        _special_load_hot_tub_spa(row),
-        _special_load_well_pump(row)
+        _fixed_load_hot_tub_spa(row),
+        _fixed_load_well_pump(row)
     ]
     return apply_opt_demand_factor(sum(general_loads))
 
 def optional_continuous_load(row):
     continuous_loads = [
-         _special_load_pool_heater(row),
-        _special_load_pool_pump(row)
+        _special_load_pool_heater(row),
+        _special_load_pool_pump(row),
+        EVSE_load(row)
     ]
     return(sum(continuous_loads))
 
@@ -652,7 +654,7 @@ def optional_space_cond_load(row):
     return(max(space_cond_loads))
 
 def EVSE_load(row):
-    if row["building_existing_model.electric_vehicle"] == "None":
+    if row["build_existing_model.electric_vehicle"] == "None":
         EV_load = 0
     else: 
         EV_load = 1.25*7200 # TODO: Insert EV charger load, NEC code says use max of nameplate rating and 7200 W, add 1.25 factor since continuous load
@@ -765,12 +767,11 @@ def main(filename: str = None):
     new_columns = [x for x in df.columns if x not in df_columns]
     print(df.loc[cond, ["building_id"] + new_columns])
     # --- save to file ---
-    output_filename = filename.parent / (filename.stem + "__panels4" + filename.suffix)
+    output_filename = filename.parent / (filename.stem + "__panels5" + filename.suffix)
     df.to_csv(output_filename, index=False)
     print(f"File output to: {output_filename}")
 
-    # Plot histogram 
-    
+    # Plot histograms:  
     """
     plt.figure(1)
     std_m_sizes = pd.Series.tolist(df.std_m_nec_electrical_panel_amp)
@@ -840,3 +841,21 @@ df_test1 = pd.DataFrame(test1)
 out1 = df_test1.apply(lambda x: _general_load_lighting(x), axis=1)
 
 assert out1[0] == 3*(2000 + 24*24)
+
+#test _optional_load_lighting
+test2 = {
+    "upgrade_costs.floor_area_conditioned_ft_2": [2000],
+    "build_existing_model.geometry_garage": ["2 Car"],
+    "build_existing_model.geometry_building_type_recs": ["Single-Family Detached"]
+    }
+df_test2 = pd.DataFrame(test2)
+
+out2 = df_test2.apply(lambda x: _optional_load_lighting(x), axis=1)
+
+assert out2[0] == 3*(2000)
+
+#test min_amperage_main_breaker(x):
+assert min_amperage_main_breaker(120) == 125
+# assert min_amperage_main_breaker(770) == 800 # commented to avoid false warning
+assert min_amperage_main_breaker(90) == 100
+
