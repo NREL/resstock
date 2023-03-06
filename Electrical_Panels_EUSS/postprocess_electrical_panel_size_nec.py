@@ -688,7 +688,8 @@ def min_amperage_main_breaker(x):
     if pd.isnull(x):
         return np.nan
 
-    standard_sizes = np.array([40, 70, 100, 125, 150, 200, 225, 300, 400, 600])
+    #standard_sizes = np.array([40, 70, 100, 125, 150, 200, 225, 300, 400, 600])
+    standard_sizes = np.array([100, 125, 150, 200, 225, 300, 400, 600]) # it is not permitted to size service below 100 A (NEC 230.79(C))
     factors = standard_sizes / x
 
     cond = standard_sizes[factors >= 1]
@@ -773,7 +774,7 @@ def main(filename: str = None):
     print(f"File output to: {output_filename}")
 
     # Plot histograms:  
-    """
+    """"""
     plt.figure(1)
     std_m_sizes = pd.Series.tolist(df.std_m_nec_electrical_panel_amp)
     plt.bar(*np.unique(std_m_sizes,return_counts = True), width = 10)
@@ -781,7 +782,7 @@ def main(filename: str = None):
     plt.ylabel('Percentage of Panels (%)')
     plt.title('Standard Method')
     plt.xlim([0,400])
-    plt.ylim([0,50])
+    plt.ylim([0,70])
     
     plt.figure(2)
     opt_m_sizes = pd.Series.tolist(df.opt_m_nec_electrical_panel_amp)
@@ -790,10 +791,10 @@ def main(filename: str = None):
     plt.ylabel('Percentage of Panels (%)')
     plt.title('Optional Method')
     plt.xlim([0,400])
-    plt.ylim([0,50])
+    plt.ylim([0,70])
 
     plt.show()
-"""
+""""""
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         filename = sys.argv[1]
