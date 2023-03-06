@@ -143,7 +143,7 @@ class TestRunAnalysis < MiniTest::Test
     yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_extra.yml'
     @command += yml
 
-    `#{@command}` # rubocop:disable Lint/UselessAssignment
+    `#{@command}`
     cli_output = File.read(File.join(@testing_baseline, 'cli_output.log'))
 
     _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: Extra Parameter.')
