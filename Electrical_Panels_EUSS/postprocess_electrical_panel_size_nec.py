@@ -267,6 +267,24 @@ def _general_load_laundry(row, n=1):
         return n * 1500 """ # This is incorrect, code requires 1 laundry branch circuit regardless of dryer type
     return n* 1500
 
+def _optional_load_laundry(row,n=1):
+    """Clothes Dryers. NEC 220-18
+    Use 5000 watts or nameplate rating whichever is larger (in another version, use DF=1 for # appliance <=4)
+    240V, 22/24/30A breaker (vented), 30/40A (ventless heat pump), 30A (ventless electric)
+    """
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    if "Electric" not in row["build_existing_model.clothes_dryer"]:
+        return 0
+
+    if "Ventless" in row["build_existing_model.clothes_dryer"]:
+        rating = 30 * 240
+    else:
+        rating = 24 * 240
+    rating += 2500 # washer rating
+    return max(5000, rating)
+
 def general_load_total(row, n_kit=2, n_ldr=1):
     """Total general load, has tiered demand factors
         General load: 15-20A breaker / branch, 120V
@@ -596,14 +614,14 @@ def optional_general_load(row, n_kit=2, n_ldr=1):
     general_loads = [
         _optional_load_lighting(row),
         _general_load_kitchen(row, n=n_kit),
-        _general_load_laundry(row, n=n_ldr),
         _fixed_load_water_heater(row),
         _fixed_load_dishwasher(row),
         _fixed_load_garbage_disposal(row),
         _fixed_load_garbage_compactor(row),
         _special_load_electric_range(row),
         _fixed_load_hot_tub_spa(row),
-        _fixed_load_well_pump(row)
+        _fixed_load_well_pump(row),
+        _optional_load_laundry(row,n=1)
     ]
     return apply_opt_demand_factor(sum(general_loads))
 
@@ -914,6 +932,19 @@ test8 = {
 df_test8 = pd.DataFrame(test8)
 out8 = df_test8.apply(lambda x: _fixed_load_dishwasher(x),axis=1)
 assert out8[0] == 15*120
+
+#test _fixed_garbage_disposal
+test9 = {
+    "completed_status": ["Success"],
+    "build_existing_model.vintage": ["2000-09"],
+    "build_existing_model.geometry_floor_area": ["750-999"]
+}
+df_test9 = pd.DataFrame(test9)
+out9 = df_test9.apply(lambda x: _fixed_load_garbage_disposal(x),axis=1)
+assert out9[0] == 800
+
+# test apply_opt_demand_factor
+assert apply_opt_demand_factor(12000) == 10000 + .4*2000
 
 # test min_amperage_main_breaker(x):
 assert min_amperage_main_breaker(120) == 125
