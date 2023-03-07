@@ -23,6 +23,7 @@ class Constants
             'heat_pump_charge_defect_ratio',
             'misc_plug_loads_television_annual_kwh',
             'misc_plug_loads_television_usage_multiplier',
+            'water_heater_num_units_served',
             'pv_system_num_bedrooms_served',
             'occupancy_calculation_type']
   end
