@@ -1,10 +1,11 @@
 """
-Postprocess in.area_median_income to EUSS Round 1 results (2022-09-16) (applicable to baseline and 10 packages)
+Postprocess build_existing_model.area_median_income to EUSS Round 1 summary results (2022-09-16) (applicable to baseline and 10 packages)
 
 This script requires resstock-estimation conda env and access to resstock-estimation GitHub repo
 
 Author: lixi.liu@nrel.gov 
 Date: 2022-10-06
+Updated: 2023-02-20
 """
 from pathlib import Path
 import sys
@@ -50,25 +51,19 @@ def process_ami_lookup(geography):
         ~ami_lookup[deps + [income_col]].isna().any(axis=1)
     ].reset_index(drop=True)[deps + [income_col]]
 
-    if geography == "PUMA":
-        # map puma to version in EUSS
-        puma_file_full_path = data_dir / "spatial_puma_lookup.csv"
-        if puma_file_full_path.exists():
-            puma_map = pd.read_csv(puma_file_full_path)
-        else:
-            puma_map = pd.read_parquet(data_dir / "spatial_block_lookup_table.parquet")
-            puma_map = puma_map[
-                ["puma_tsv", "nhgis_2010_puma_gisjoin"]
-            ].drop_duplicates()
-            puma_map.to_csv(puma_file_full_path, index=False)
-
-        ami_lookup[geography] = ami_lookup[geography].map(
-            puma_map.set_index("puma_tsv")["nhgis_2010_puma_gisjoin"]
-        )
-
     ami_lookup = ami_lookup.rename(columns={income_col: "rep_income"})
 
     return ami_lookup, deps
+
+
+def get_county_map():
+    county_map = pd.read_parquet(data_dir / "spatial_block_lookup_table.parquet")
+    county_map = (
+        county_map[["nhgis_2010_county_gisjoin", "county_name"]]
+        .drop_duplicates()
+        .set_index(["county_name"])["nhgis_2010_county_gisjoin"]
+    )
+    return county_map
 
 
 def get_median_from_bin(value_bin, lower_multiplier=0.9, upper_multipler=1.1):
@@ -81,26 +76,32 @@ def get_median_from_bin(value_bin, lower_multiplier=0.9, upper_multipler=1.1):
 
 
 def assign_representative_income(df):
-    non_geo_cols = ["in.occupants", "in.federal_poverty_level", "in.income"]
+    non_geo_cols = [
+        "build_existing_model.occupants",
+        "build_existing_model.federal_poverty_level",
+        "build_existing_model.income",
+    ]
     geographies = [
         "County and PUMA",
         "PUMA",
         "State",
         "Census Division",
         "Census Region",
-        ]
-    geo_cols = ["in." + geo.lower().replace(" ", "_") for geo in geographies]
-    df_section = df[geo_cols+non_geo_cols].copy()
+    ]
+    geo_cols = [
+        "build_existing_model." + geo.lower().replace(" ", "_") for geo in geographies
+    ]
+    df_section = df[geo_cols + non_geo_cols].copy()
     geographies += ["National"]
 
     # map rep income by increasingly large geographic resolution
     for idx in range(len(geographies)):
         geography = geographies[idx]
         ami_lookup, deps = process_ami_lookup(geography)
-        if idx == len(geographies)-1:
+        if idx == len(geographies) - 1:
             keys = non_geo_cols
         else:
-            keys = [geo_cols[idx]]+non_geo_cols
+            keys = [geo_cols[idx]] + non_geo_cols
 
         if idx == 0:
             # map value by County and PUMA
@@ -121,10 +122,14 @@ def assign_representative_income(df):
                 )
             )
             if len(df_section[df_section["rep_income"].isna()]) == 0:
-                print(f"Highest resolution used for mapping representative income: {geography}")
+                print(
+                    f"Highest resolution used for mapping representative income: {geography}"
+                )
                 break
 
-    assert len(df_section[df_section["rep_income"].isna()]) == 0, df_section[df_section["rep_income"].isna()]
+    assert len(df_section[df_section["rep_income"].isna()]) == 0, df_section[
+        df_section["rep_income"].isna()
+    ]
 
     df["rep_income"] = df_section["rep_income"]
 
@@ -133,7 +138,9 @@ def assign_representative_income(df):
 
 def map_ami_by_income_limits_by_county(df):
     income_limits_df = pd.read_csv(data_dir / "fy2019_hud_income_limits_by_county.csv")
-    income_limits_df.set_index("county_gis", inplace=True)
+    income_limits_df.set_index(["county_gis"], inplace=True)
+
+    county_map = get_county_map()
 
     max_occupants = 8
     bin_edges, _ = POM.load_area_median_income_bins()
@@ -174,12 +181,18 @@ def map_ami_by_income_limits_by_county(df):
             return factor
         return 1
 
-    location_col = "in.county"
+    location_col = "build_existing_model.county"
     income_col = "rep_income"
     occupant_col = "rep_occupants"
-    output_col = "in.area_median_income"
+    output_col = "build_existing_model.area_median_income"
 
     df_section = df[[location_col, income_col, occupant_col]].copy()
+
+    df_section[location_col] = df_section[location_col].map(county_map)
+    # QC
+    na_map = df_section[df_section[location_col].isna()]
+    assert len(na_map) == 0, f"Mapping county name to GIS code incomplete:\n{na_map}"
+
     df_section["extrapolation_factor"] = df[occupant_col].map(
         get_extrapolation_factor_from_8occupants
     )
@@ -197,9 +210,7 @@ def map_ami_by_income_limits_by_county(df):
     # update income limits to actual occupant number
     # using extrapolation_factor, round to nearest 50
     df_income_limit[bin_edges] = (
-        df_income_limit[bin_edges].mul(
-            df_income_limit["extrapolation_factor"], axis=0
-        )
+        df_income_limit[bin_edges].mul(df_income_limit["extrapolation_factor"], axis=0)
         / 50
     ).round() * 50
     conds = df_income_limit[[income_col]].values < df_income_limit[bin_edges].values
@@ -219,19 +230,27 @@ def map_ami_by_income_limits_by_county(df):
 
 def assign_representative_occupants(df):
     """representative value for 10+ is 11 according to 2019_5yrs_PUMS data in resstock-estimation"""
-    df["rep_occupants"] = df["in.occupants"].replace("10+", "11").astype(int)
+    df["rep_occupants"] = (
+        df["build_existing_model.occupants"].replace("10+", "11").astype(int)
+    )
 
     return df
 
 
-def read_file(file_path: Path):
+def read_file(file_path: Path, valid_only=True):
     file_type = file_path.suffix
     if file_type == ".csv":
-        return pd.read_csv(file_path, low_memory=False)
+        df = pd.read_csv(file_path, low_memory=False)
     elif file_type == ".parquet":
-        return pd.read_parquet(file_path)
+        df = pd.read_parquet(file_path)
     else:
         raise ValueError(f"file_type={file_type} not supported")
+
+    if valid_only:
+        print("Retaining successfully simulated building_id only.")
+        df = df.loc[df["completed_status"] == "Success"].reset_index(drop=True)
+
+        return df
 
 
 def write_to_file(df, file_path: Path):
@@ -251,22 +270,16 @@ def add_ami_column_to_file(file_path):
         "=============================================================================="
     )
     print(
-        "This script is for use on ResStock results postprocessed for Sightglass only. "
+        "This script is for use on ResStock summary files, such as results_up00.parquet "
     )
-    print("Such as End Use Load Profile Round 1 results uploaded to OEDI (2022-09-16)")
     print(
-        """
-        https://data.openei.org/s3_viewer?bucket=oedi-data-lake&prefix=nrel-pds-building-
-        stock%2Fend-use-load-profiles-for-us-building-stock%2F2022%2Fresstock_amy2018_
-        release_1%2Fmetadata_and_annual_results%2Fnational%2Fcsv%2F
-        """
+        "The file expected has columns with prefixes such as: 'build_existing_model.', 'report_simulation_output.'"
     )
-    print("The file expected has columns with prefixes such as: 'in.', 'out.'")
     print("")
     print(
         "This script requires resstock-estimation conda env and access to resstock-estimation GitHub repo"
     )
-    print("to add 'in.area_median_income' column to file:")
+    print("to add 'build_existing_model.area_median_income' column to file:")
     print(
         f"""
         {file_path}
@@ -276,14 +289,19 @@ def add_ami_column_to_file(file_path):
         "=============================================================================="
     )
     file_path = Path(file_path)
-    df = read_file(file_path)
-    df = assign_representative_income(df)
-    df = assign_representative_occupants(df)
-    df = map_ami_by_income_limits_by_county(df)
+    df = read_file(file_path, valid_only=True)
+    if len([col for col in df.columns if "build_existing_model." in col]) > 0:
+        df = assign_representative_income(df)
+        df = assign_representative_occupants(df)
+        df = map_ami_by_income_limits_by_county(df)
 
-    cols_to_drop = {"pct_ami", "rep_occupants"}
-    cols_to_drop = list(cols_to_drop.intersection(set(df.columns)))
-    df = df.drop(columns=cols_to_drop)
+        cols_to_drop = {"pct_ami", "rep_occupants"}
+        cols_to_drop = list(cols_to_drop.intersection(set(df.columns)))
+        df = df.drop(columns=cols_to_drop)
+    else:
+        print(f"file={file_path} is not a results_up00 file, no AMI added.")
+
+    df = df.sort_values(by=["building_id"])
     write_to_file(df, file_path)
 
 
