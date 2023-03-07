@@ -1,7 +1,7 @@
 ## ResStock v3.1.0 (pending)
 
 Features
-- Ability to check buildstock csv against an options lookup as a command line utility ([#]())
+- Ability to check buildstock csv against an options lookup as a command line utility ([#1042](https://github.com/NREL/resstock/pull/1042))
 
 Fixes
 - 
