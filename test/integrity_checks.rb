@@ -143,7 +143,8 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   r = RunSampling.new
   output_file = r.run(project_dir_name, 10000, "#{project_dir_name}.csv", housing_characteristics_dir, lookup_file)
 
-  check_buildstock(output_file, lookup_csv_data, lookup_file)
+  # Check outfile
+  check_buildstock(output_file, lookup_file, lookup_csv_data)
 
   if File.exist?(output_file)
     if project_dir_name == 'project_national'
@@ -161,60 +162,6 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
       err += "ERROR: TSV file #{tsvpath} not used in options_lookup.tsv.\n"
     end
   end
-  if not err.empty?
-    raise err
-  end
-end
-
-def check_buildstock(output_file, lookup_csv_data, lookup_file)
-  # Cache {parameter => options}
-  parameters_options = {}
-  CSV.foreach(output_file, headers: true).each do |row|
-    row.each do |parameter_name, option_name|
-      next if parameter_name == 'Building'
-
-      unless parameters_options.keys.include? parameter_name
-        parameters_options[parameter_name] = []
-      end
-
-      unless parameters_options[parameter_name].include? option_name
-        parameters_options[parameter_name] << option_name
-      end
-    end
-  end
-
-  # Cache {parameter => {option => {measure => {arg => value}}}}
-  parameters_options_measure_args = {}
-  parameters_options.each do |parameter_name, option_names|
-    parameters_options_measure_args[parameter_name] = get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file)
-  end
-
-  # Check that measure arguments aren't getting overwritten
-  err = ''
-  CSV.foreach(output_file, headers: true).each do |row|
-    args_map = {}
-    row.each do |parameter_name, option_name|
-      next if parameter_name == 'Building'
-
-      parameters_options_measure_args[parameter_name][option_name].each do |measure_name, args|
-        args.keys.each do |arg|
-          args_map[[measure_name, arg]] = [] if args_map[[measure_name, arg]].nil?
-          args_map[[measure_name, arg]] << parameter_name
-        end
-      end
-    end
-    args_map.each do |k, v|
-      next unless v.size > 1
-
-      param_names = v.join('", "')
-      measure_name = k[0]
-      arg_name = k[1]
-      next if err.include?(param_names) && err.include?(measure_name) && err.include?(arg_name)
-
-      err += "ERROR: Duplicate measure argument assignment(s) across [\"#{param_names}\"] parameters. #{measure_name} => \"#{arg_name}\" already assigned.\n"
-    end
-  end
-
   if not err.empty?
     raise err
   end
@@ -323,6 +270,64 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
     all_measure_args.shuffle.each do |measure_args|
       validate_measure_args(measure_instance_args, measure_args, lookup_file, measure_subdir, nil)
     end
+  end
+end
+
+def check_buildstock(output_file, lookup_file, lookup_csv_data = nil)
+  require 'csv'
+
+  lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a if lookup_csv_data.nil?
+
+  # Cache {parameter => options}
+  parameters_options = {}
+  CSV.foreach(output_file, headers: true).each do |row|
+    row.each do |parameter_name, option_name|
+      next if parameter_name == 'Building'
+
+      unless parameters_options.keys.include? parameter_name
+        parameters_options[parameter_name] = []
+      end
+
+      unless parameters_options[parameter_name].include? option_name
+        parameters_options[parameter_name] << option_name
+      end
+    end
+  end
+
+  # Cache {parameter => {option => {measure => {arg => value}}}}
+  parameters_options_measure_args = {}
+  parameters_options.each do |parameter_name, option_names|
+    parameters_options_measure_args[parameter_name] = get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file)
+  end
+
+  # Check that measure arguments aren't getting overwritten
+  err = ''
+  CSV.foreach(output_file, headers: true).each do |row|
+    args_map = {}
+    row.each do |parameter_name, option_name|
+      next if parameter_name == 'Building'
+
+      parameters_options_measure_args[parameter_name][option_name].each do |measure_name, args|
+        args.keys.each do |arg|
+          args_map[[measure_name, arg]] = [] if args_map[[measure_name, arg]].nil?
+          args_map[[measure_name, arg]] << parameter_name
+        end
+      end
+    end
+    args_map.each do |k, v|
+      next unless v.size > 1
+
+      param_names = v.join('", "')
+      measure_name = k[0]
+      arg_name = k[1]
+      next if err.include?(param_names) && err.include?(measure_name) && err.include?(arg_name)
+
+      err += "ERROR: Duplicate measure argument assignment(s) across [\"#{param_names}\"] parameters. #{measure_name} => \"#{arg_name}\" already assigned.\n"
+    end
+  end
+
+  if not err.empty?
+    raise err
   end
 end
 
