@@ -302,10 +302,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('water_heater_in_unit', true)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('water_heater_in_unit', false)
     arg.setDisplayName('Water Heater: In Unit')
     arg.setDescription('Whether the water heater is in unit.')
-    arg.setDefaultValue(true)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_rated_cfm_per_ton', false)
@@ -451,10 +450,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Water Heater
-    if args['water_heater_in_unit']
-      args['water_heater_num_units_served'] = 1
-    else
+    if args['water_heater_in_unit'].is_initialized && !args['water_heater_in_unit'].get
       args['water_heater_num_units_served'] = Integer(args['geometry_building_num_units'].to_s)
+    else
+      args['water_heater_num_units_served'] = 1
     end
 
     # PV
