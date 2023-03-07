@@ -302,6 +302,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('water_heater_in_unit', true)
+    arg.setDisplayName('Water Heater: In Unit')
+    arg.setDescription('Whether the water heater is in unit.')
+    arg.setDefaultValue(true)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_rated_cfm_per_ton', false)
     arg.setDisplayName('Heating System: Rated CFM Per Ton')
     arg.setUnits('cfm/ton')
@@ -442,6 +448,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       elsif [HPXML::ResidentialTypeApartment].include?(args['geometry_unit_type'])
         args['misc_plug_loads_other_annual_kwh'] = 875.22 + 184.11 * args['geometry_unit_num_occupants'] + 0.38 * args['geometry_unit_cfa'] # RECS 2015
       end
+    end
+
+    # Water Heater
+    if args['water_heater_in_unit']
+      args['water_heater_num_units_served'] = 1
+    else
+      args['water_heater_num_units_served'] = Integer(args['geometry_building_num_units'].to_s)
     end
 
     # PV
