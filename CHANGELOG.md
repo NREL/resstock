@@ -1,7 +1,7 @@
 ## ResStock v3.1.0 (pending)
 
 Features
-- 
+- Include battery modeling capabilities for project_testing ([#1009](https://github.com/NREL/resstock/pull/1009))
 
 Fixes
 - 
