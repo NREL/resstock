@@ -3,6 +3,7 @@
 Features
 - Ability to check buildstock csv against an options lookup as a command line utility ([#1042](https://github.com/NREL/resstock/pull/1042))
 - Include battery modeling capabilities for project_testing ([#1009](https://github.com/NREL/resstock/pull/1009))
+- Update ResStockArguments for assigning shared water heaters based on what is sampled from Water Heater In Unit.tsv ([#1045](https://github.com/NREL/resstock/pull/1045))
 
 Fixes
 - 
