@@ -62,8 +62,7 @@ def expected_baseline_contents(testing)
     'existing.osw',
     'existing.xml',
     'in.osm',
-    'in.idf',
-    'schedules.csv'
+    'in.idf'
   ] if testing
   return contents
 end

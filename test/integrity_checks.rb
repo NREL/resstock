@@ -26,7 +26,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
 
     parameter_names << parameter_name
   end
-  j=1
+  j = 1
   n_params = parameter_names.length
   while parameters_processed.size != parameter_names.size
 
