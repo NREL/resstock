@@ -185,6 +185,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   model = OpenStudio::Model::Model.new
 
   # Gather all options/arguments
+  all_errors = []
   lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
   parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data)
   parameter_names.each do |parameter_name|
@@ -194,7 +195,8 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
     option_names = get_options_for_parameter_from_options_lookup_tsv(lookup_csv_data, parameter_name)
-    options_measure_args = get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file, nil)
+    options_measure_args, errors = get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file)
+    all_errors += errors
     option_names.each do |option_name|
       check_for_illegal_chars(option_name, 'option')
 
@@ -222,6 +224,10 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
         measures[measure_subdir][parameter_name][option_name] = args_hash
       end
     end
+  end
+
+  if not all_errors.empty?
+    raise all_errors.map { |e| "ERROR: #{e}" }.join("\n")
   end
 
   measures.keys.each do |measure_subdir|
@@ -295,9 +301,15 @@ def check_buildstock(output_file, lookup_file, lookup_csv_data = nil)
   end
 
   # Cache {parameter => {option => {measure => {arg => value}}}}
+  all_errors = []
   parameters_options_measure_args = {}
   parameters_options.each do |parameter_name, option_names|
-    parameters_options_measure_args[parameter_name] = get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file)
+    parameters_options_measure_args[parameter_name], errors = get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file)
+    all_errors += errors
+  end
+
+  if not all_errors.empty?
+    raise all_errors.map { |e| "ERROR: #{e}" }.join("\n")
   end
 
   # Check that measure arguments aren't getting overwritten
