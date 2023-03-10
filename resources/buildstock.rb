@@ -286,7 +286,7 @@ def get_value_from_runner(runner, key_lookup, error_if_missing = true)
   end
 end
 
-def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file)
+def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file, runner = nil)
   found_options = {}
   options_measure_args = {}
   option_names.each do |option_name|
@@ -329,9 +329,13 @@ def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_
   end
   errors = []
   option_names.each do |option_name|
-    if not found_options[option_name]
-      msg = "Could not find parameter '#{parameter_name}' and option '#{option_name}' in #{lookup_file}."
+    next unless not found_options[option_name]
+
+    msg = "Could not find parameter '#{parameter_name}' and option '#{option_name}' in #{lookup_file}."
+    if runner.nil?
       errors << msg
+    else
+      register_error(msg, runner)
     end
   end
 
