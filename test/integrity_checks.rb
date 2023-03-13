@@ -282,11 +282,16 @@ end
 def check_buildstock(output_file, lookup_file, lookup_csv_data = nil)
   require 'csv'
 
+  puts "Opening #{lookup_file}..."
   lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a if lookup_csv_data.nil?
 
   # Cache {parameter => options}
+  puts "Reading #{output_file}..."
   parameters_options = {}
-  CSV.foreach(output_file, headers: true).each do |row|
+  csv = CSV.foreach(output_file, headers: true)
+  raise 'ERROR: Missing the Building column.' if !csv.first.include?('Building')
+
+  csv.each do |row|
     row.each do |parameter_name, option_name|
       next if parameter_name == 'Building'
 
@@ -301,6 +306,7 @@ def check_buildstock(output_file, lookup_file, lookup_csv_data = nil)
   end
 
   # Cache {parameter => {option => {measure => {arg => value}}}}
+  puts 'Checking parameters/options...'
   all_errors = []
   parameters_options_measure_args = {}
   parameters_options.each do |parameter_name, option_names|
@@ -313,6 +319,7 @@ def check_buildstock(output_file, lookup_file, lookup_csv_data = nil)
   end
 
   # Check that measure arguments aren't getting overwritten
+  puts 'Checking for argument duplication...'
   err = ''
   CSV.foreach(output_file, headers: true).each do |row|
     args_map = {}

@@ -38,7 +38,6 @@ begin
   check_buildstock(outfile, lookup_file)
 rescue Exception => e
   puts e.message
+else
+  puts "Checking took: #{((Time.now - t0) / 60.0).round(1)} minutes."
 end
-t1 = Time.now
-
-puts "Checking took: #{((t1 - t0) / 60.0).round(1)} minutes."
