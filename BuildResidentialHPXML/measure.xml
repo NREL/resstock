@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>69c5d704-9fef-4705-9338-a3ad8210af52</version_id>
-  <version_modified>20230207T013302Z</version_modified>
+  <version_id>a052c3d8-5816-4da4-9e8e-c49239c7f6f8</version_id>
+  <version_modified>20230310T230924Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -64,10 +64,40 @@
     <argument>
       <name>schedules_vacancy_period</name>
       <display_name>Schedules: Vacancy Period</display_name>
-      <description>Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".</description>
+      <description>Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_power_outage_period</name>
+      <display_name>Schedules: Power Outage Period</display_name>
+      <description>Specifies the power outage period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_power_outage_window_natvent_availability</name>
+      <display_name>Schedules: Power Outage Period Window Natural Ventilation Availability</display_name>
+      <description>The availability of the natural ventilation schedule during the outage period.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>regular schedule</value>
+          <display_name>regular schedule</display_name>
+        </choice>
+        <choice>
+          <value>always available</value>
+          <display_name>always available</display_name>
+        </choice>
+        <choice>
+          <value>always unavailable</value>
+          <display_name>always unavailable</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>simulation_control_timestep</name>
@@ -1688,7 +1718,7 @@
     <argument>
       <name>window_interior_shading_winter</name>
       <display_name>Windows: Winter Interior Shading</display_name>
-      <description>Interior shading multiplier for the heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.</description>
+      <description>Interior shading multiplier for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
@@ -1697,7 +1727,7 @@
     <argument>
       <name>window_interior_shading_summer</name>
       <display_name>Windows: Summer Interior Shading</display_name>
-      <description>Interior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.</description>
+      <description>Interior shading multiplier for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
@@ -1706,7 +1736,7 @@
     <argument>
       <name>window_exterior_shading_winter</name>
       <display_name>Windows: Winter Exterior Shading</display_name>
-      <description>Exterior shading multiplier for the heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.</description>
+      <description>Exterior shading multiplier for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
@@ -1715,7 +1745,7 @@
     <argument>
       <name>window_exterior_shading_summer</name>
       <display_name>Windows: Summer Exterior Shading</display_name>
-      <description>Exterior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.</description>
+      <description>Exterior shading multiplier for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
@@ -2132,6 +2162,15 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>heating_system_pilot_light</name>
+      <display_name>Heating System: Pilot Light</display_name>
+      <description>The fuel usage of the pilot light. Applies only to Furnace, WallFurnace, FloorFurnace, Stove, Boiler, and Fireplace with non-electric fuel type. If not provided, assumes no pilot light.</description>
+      <type>Double</type>
+      <units>Btuh</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heating_system_airflow_defect_ratio</name>
@@ -3833,14 +3872,14 @@
     <argument>
       <name>water_heater_operating_mode</name>
       <display_name>Water Heater: Operating Mode</display_name>
-      <description>The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'standard' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to heat pump water heater. If not provided, the OS-HPXML default is used.</description>
+      <description>The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'hybrid/auto' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to heat pump water heater. If not provided, the OS-HPXML default is used.</description>
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>standard</value>
-          <display_name>standard</display_name>
+          <value>hybrid/auto</value>
+          <display_name>hybrid/auto</display_name>
         </choice>
         <choice>
           <value>heat pump only</value>
@@ -5631,7 +5670,7 @@
     <argument>
       <name>ceiling_fan_cooling_setpoint_temp_offset</name>
       <display_name>Ceiling Fan: Cooling Setpoint Temperature Offset</display_name>
-      <description>The setpoint temperature offset during cooling season for the ceiling fan(s). Only applies if ceiling fan quantity is greater than zero. If not provided, the OS-HPXML default is used.</description>
+      <description>The cooling setpoint temperature offset during months when the ceiling fans are operating. Only applies if ceiling fan quantity is greater than zero. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>deg-F</units>
       <required>false</required>
@@ -6468,7 +6507,7 @@
     <argument>
       <name>apply_defaults</name>
       <display_name>Apply Default Values?</display_name>
-      <description>If true, applies OS-HPXML default values to the HPXML output file.</description>
+      <description>If true, applies OS-HPXML default values to the HPXML output file. Setting to true will also force validation of the HPXML output file before applying OS-HPXML default values.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -6527,7 +6566,7 @@
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>B16976B9</checksum>
+      <checksum>B1DB9680</checksum>
     </file>
     <file>
       <version>
@@ -6538,7 +6577,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>92F3436B</checksum>
+      <checksum>3DC9D959</checksum>
     </file>
   </files>
 </measure>
