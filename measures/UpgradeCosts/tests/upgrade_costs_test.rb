@@ -524,7 +524,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Foundation (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 0.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
-      'Door Area (ft^2)' => 20.0, # door is in the corridor
+      'Door Area (ft^2)' => 0.0, # door is in the corridor
       'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
       'Size, Heating System Primary (kBtu/h)' => 100.0,
       'Size, Heating System Secondary (kBtu/h)' => 0.0,
@@ -552,7 +552,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Foundation (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 0.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
-      'Door Area (ft^2)' => 20.0, # door is in the corridor
+      'Door Area (ft^2)' => 0.0, # door is in the corridor
       'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
       'Size, Heating System Primary (kBtu/h)' => 100.0,
       'Size, Heating System Secondary (kBtu/h)' => 0.0,
@@ -580,7 +580,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Foundation (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 0.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
-      'Door Area (ft^2)' => 20.0, # door is in the corridor
+      'Door Area (ft^2)' => 0.0, # door is in the corridor
       'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
       'Size, Heating System Primary (kBtu/h)' => 60.0,
       'Size, Heating System Secondary (kBtu/h)' => 0.0,
@@ -608,7 +608,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Foundation (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 500.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
-      'Door Area (ft^2)' => 20.0, # door is in the corridor
+      'Door Area (ft^2)' => 0.0, # door is in the corridor
       'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
       'Size, Heating System Primary (kBtu/h)' => 100.0,
       'Size, Heating System Secondary (kBtu/h)' => 0.0,
