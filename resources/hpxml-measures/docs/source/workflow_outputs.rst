@@ -225,7 +225,6 @@ Annual Emissions
 ~~~~~~~~~~~~~~~~
 
 Results for each emissions scenario defined in the HPXML file are listed as shown below.
-Note that rows below with values of zero will be excluded.
 
    =======================================================================  ==================================================================
    Type                                                                     Notes
@@ -284,12 +283,12 @@ Peak Building Electricity
 
 Peak building electricity outputs are listed below.
 
-   ==================================  =========================================================
+   ==================================  =============================================================
    Type                                Notes
-   ==================================  =========================================================
-   Peak Electricity: Winter Total (W)  Winter season defined by operation of the heating system.
-   Peak Electricity: Summer Total (W)  Summer season defined by operation of the cooling system.
-   ==================================  =========================================================
+   ==================================  =============================================================
+   Peak Electricity: Winter Total (W)  Maximum value in Dec/Jan/Feb (or Jun/Jul/Aug in the southern hemisphere)
+   Peak Electricity: Summer Total (W)  Maximum value in Jun/Jul/Aug (or Dec/Jan/Feb in the southern hemisphere)
+   ==================================  =============================================================
 
 Peak Building Loads
 ~~~~~~~~~~~~~~~~~~~
@@ -468,7 +467,6 @@ OpenStudio-HPXML can optionally generate a utility bills output file.
 The utility bills output file is called ``results_bills.csv`` (or ``results_bills.json`` or ``results_bills.msgpack``) and located in the run directory.
 
 Results for each utility bill scenario defined in the HPXML file are listed as shown below.
-Note that rows below with values of zero will be excluded.
 
    =============================================  ====================
    Type                                           Notes
