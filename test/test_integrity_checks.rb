@@ -200,7 +200,7 @@ class TestResStockErrors < MiniTest::Test
     assert(cli_output.include?('Checking took:'))
   end
 
-  def test_buildstock_csv_bad_parameter
+  def test_buildstock_csv_bad_parameters
     begin
       outfile = File.join(File.dirname(__FILE__), '..', 'test/tests_buildstock_csvs/buildstock_csv_bad_parameter/buildstock.csv')
       lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
@@ -208,12 +208,14 @@ class TestResStockErrors < MiniTest::Test
     rescue Exception => e
       puts e.message
       assert(e.message.include? "ERROR: Could not find parameter 'Location2' and option 'AL_Birmingham.Muni.AP.722280' in")
+      assert(e.message.include? "ERROR: Could not find parameter 'Location3' and option 'AL_Birmingham.Muni.AP.722280' in")
+      assert(e.message.include? "ERROR: Could not find parameter 'Location4' and option 'AL_Birmingham.Muni.AP.722280' in")
     else
       flunk "Should have caused an error but didn't."
     end
   end
 
-  def test_buildstock_csv_bad_option
+  def test_buildstock_csv_bad_options
     begin
       outfile = File.join(File.dirname(__FILE__), '..', 'test/tests_buildstock_csvs/buildstock_csv_bad_option/buildstock.csv')
       lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
@@ -221,6 +223,8 @@ class TestResStockErrors < MiniTest::Test
     rescue Exception => e
       puts e.message
       assert(e.message.include? "ERROR: Could not find parameter 'Vintage' and option '<1940s' in")
+      assert(e.message.include? "ERROR: Could not find parameter 'Vintage' and option '1940ss' in")
+      assert(e.message.include? "ERROR: Could not find parameter 'Vintage' and option '<1950s' in")
     else
       flunk "Should have caused an error but didn't."
     end
