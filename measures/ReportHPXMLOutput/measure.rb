@@ -257,7 +257,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
       end
     elsif bldg_type == BO::EnclosureDoorArea
       hpxml.doors.each do |door|
-        next unless door.is_exterior
+        next unless door.is_thermal_boundary
 
         bldg_output += door.area
       end
