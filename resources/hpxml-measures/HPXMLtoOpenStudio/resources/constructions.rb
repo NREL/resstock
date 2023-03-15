@@ -1618,7 +1618,7 @@ class Constructions
   end
 
   def self.apply_window_skylight_shading(model, window_or_skylight, index, shading_vertices, parent_surface, sub_surface, shading_group,
-                                         shading_schedules, shading_ems, name, cooling_season)
+                                         shading_schedules, shading_ems, name, latitude)
     sf_summer = window_or_skylight.interior_shading_factor_summer * window_or_skylight.exterior_shading_factor_summer
     sf_winter = window_or_skylight.interior_shading_factor_winter * window_or_skylight.exterior_shading_factor_winter
     if (sf_summer < 1.0) || (sf_winter < 1.0)
@@ -1634,7 +1634,11 @@ class Constructions
       shading_surface.additionalProperties.setFeature('ParentSurface', parent_surface.name.to_s)
 
       # Create transmittance schedule for heating/cooling seasons
-      trans_values = cooling_season.map { |c| c == 1 ? sf_summer : sf_winter }
+      summer_season = [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0] # May 1 - Sep 30
+      if latitude < 0 # southern hemisphere
+        summer_season = summer_season.rotate(6)
+      end
+      trans_values = summer_season.map { |c| c == 1 ? sf_summer : sf_winter }
       if shading_schedules[trans_values].nil?
         sch_name = "trans schedule winter=#{sf_winter} summer=#{sf_summer}"
         if trans_values.uniq.size == 1
