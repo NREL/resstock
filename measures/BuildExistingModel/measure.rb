@@ -271,7 +271,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Check buildstock.csv doesn't have extra parameters
-    extras = bldg_data.keys - parameters_ordered - ['Building']
+    extras = bldg_data.keys - parameters_ordered - ['Building', 'sample_weight']
     if !extras.empty?
       runner.registerError("Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: #{extras.join(', ')}.")
       return false
@@ -600,8 +600,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       register_value(runner, 'weight', weight.to_s)
     end
 
-    if args['sample_weight'].is_initialized
-      register_value(runner, 'weight', args['sample_weight'].get.to_s)
+    sample_weight = args['sample_weight'].is_initialized ? args['sample_weight'].get : nil
+    if bldg_data.keys.include?('sample_weight')
+      sample_weight = bldg_data['sample_weight']
+      register_value(runner, 'sample_weight', sample_weight.to_s)
+    end
+
+    if !sample_weight.nil?
+      register_value(runner, 'weight', sample_weight.to_s)
     end
 
     return true
