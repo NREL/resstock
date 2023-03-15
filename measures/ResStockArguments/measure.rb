@@ -451,7 +451,21 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Water Heater
     if args['water_heater_in_unit'].is_initialized && !args['water_heater_in_unit'].get
-      args['water_heater_num_units_served'] = Integer(args['geometry_building_num_units'].to_s)
+      n_du = Integer(args['geometry_building_num_units'].to_s)
+      has_uncond_bsmnt = false
+      if args['geometry_foundation_type'] == HPXML::FoundationTypeBasementUnconditioned
+        has_uncond_bsmnt = true
+      end
+      cfa = args['geometry_unit_cfa'] * n_du # building cfa
+      ncfl = args['geometry_num_floors_above_grade']
+
+      args['water_heater_num_units_served'] = n_du
+      if args['hot_water_distribution_system_type'] == HPXML::DHWDistTypeStandard
+        args['hot_water_distribution_standard_piping_length'] = HotWaterAndAppliances.get_default_std_pipe_length(has_uncond_bsmnt, cfa, ncfl)
+      elsif args['hot_water_distribution_system_type'] == HPXML::DHWDistTypeRecirc
+        args['hot_water_distribution_recirc_piping_length'] = HotWaterAndAppliances.get_default_recirc_loop_length(HotWaterAndAppliances.get_default_std_pipe_length(has_uncond_bsmnt, cfa, ncfl))
+        args['hot_water_distribution_recirc_branch_piping_length'] = HotWaterAndAppliances.get_default_recirc_branch_loop_length()
+      end
     else
       args['water_heater_num_units_served'] = 1
     end
