@@ -50,10 +50,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.occupancy_calculation_type = HPXML::OccupancyCalculationTypeOperational
     hpxml.header.temperature_capacitance_multiplier = 1.5
     hpxml.header.natvent_days_per_week = 7
+    hpxml.header.vacancy_periods.add(begin_month: 1, begin_day: 1, begin_hour: 1, end_month: 12, end_day: 31, end_hour: 2)
+    hpxml.header.power_outage_periods.add(begin_month: 1, begin_day: 1, begin_hour: 3, end_month: 12, end_day: 31, end_hour: 4, natvent_availability: HPXML::ScheduleUnavailable)
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, 2009, false, 3, 3, 10, 10, HPXML::HeatPumpSizingMaxLoad,
-                                true, 'CA', -8, HPXML::OccupancyCalculationTypeOperational, 1.5, 7)
+                                true, 'CA', -8, HPXML::OccupancyCalculationTypeOperational, 1.5, 7,
+                                1, 2, 3, 4, HPXML::ScheduleUnavailable)
 
     # Test defaults - DST not in weather file
     hpxml.header.timestep = nil
@@ -74,10 +77,16 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.occupancy_calculation_type = nil
     hpxml.header.temperature_capacitance_multiplier = nil
     hpxml.header.natvent_days_per_week = nil
+    hpxml.header.vacancy_periods[-1].begin_hour = nil
+    hpxml.header.vacancy_periods[-1].end_hour = nil
+    hpxml.header.power_outage_periods[-1].begin_hour = nil
+    hpxml.header.power_outage_periods[-1].end_hour = nil
+    hpxml.header.power_outage_periods[-1].natvent_availability = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, HPXML::HeatPumpSizingHERS,
-                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3)
+                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
+                                0, 24, 0, 24, HPXML::ScheduleRegular)
 
     # Test defaults - DST in weather file
     hpxml = _create_hpxml('base-location-AMY-2012.xml')
@@ -101,14 +110,16 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, nil,
-                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3)
+                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
+                                nil, nil, nil, nil, nil)
 
     # Test defaults - calendar year override by AMY year
     hpxml.header.sim_calendar_year = 2020
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, nil,
-                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3)
+                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
+                                nil, nil, nil, nil, nil)
 
     # Test defaults - invalid state code
     hpxml = _create_hpxml('base-location-capetown-zaf.xml')
@@ -132,7 +143,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, nil,
-                                false, nil, 2, HPXML::OccupancyCalculationTypeAsset, 1.0, 3)
+                                false, nil, 2, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
+                                nil, nil, nil, nil, nil)
   end
 
   def test_emissions_factors
@@ -1158,17 +1170,26 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.heating_systems[0].fan_watts_per_cfm = 0.66
     hpxml.heating_systems[0].airflow_defect_ratio = -0.22
     hpxml.heating_systems[0].heating_capacity = 12345
+    hpxml.heating_systems[0].pilot_light = true
+    hpxml.heating_systems[0].pilot_light_btuh = 999
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_furnace_values(hpxml_default.heating_systems[0], 0.66, -0.22, 12345)
+    _test_default_furnace_values(hpxml_default.heating_systems[0], 0.66, -0.22, 12345, true, 999)
 
     # Test defaults
     hpxml.heating_systems[0].fan_watts_per_cfm = nil
     hpxml.heating_systems[0].airflow_defect_ratio = nil
     hpxml.heating_systems[0].heating_capacity = nil
+    hpxml.heating_systems[0].pilot_light_btuh = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_furnace_values(hpxml_default.heating_systems[0], 0.375, 0, nil)
+    _test_default_furnace_values(hpxml_default.heating_systems[0], 0.375, 0, nil, true, 500)
+
+    # Test defaults w/o pilot
+    hpxml.heating_systems[0].pilot_light = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_furnace_values(hpxml_default.heating_systems[0], 0.375, 0, nil, false, nil)
 
     # Test defaults w/ gravity distribution system
     hpxml = _create_hpxml('base-hvac-furnace-gas-only.xml')
@@ -1178,7 +1199,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.heating_systems[0].heating_capacity = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_furnace_values(hpxml_default.heating_systems[0], 0.0, 0, nil)
+    _test_default_furnace_values(hpxml_default.heating_systems[0], 0.0, 0, nil, false, nil)
   end
 
   def test_wall_furnaces
@@ -1196,6 +1217,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_wall_furnace_values(hpxml_default.heating_systems[0], 0, nil)
+
+    # Test defaults w/o pilot
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_wall_furnace_values(hpxml_default.heating_systems[0], 0, nil)
   end
 
   def test_floor_furnaces
@@ -1203,15 +1229,24 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml = _create_hpxml('base-hvac-floor-furnace-propane-only.xml')
     hpxml.heating_systems[0].fan_watts = 22
     hpxml.heating_systems[0].heating_capacity = 12345
+    hpxml.heating_systems[0].pilot_light = true
+    hpxml.heating_systems[0].pilot_light_btuh = 999
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 22, 12345)
+    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 22, 12345, true, 999)
 
     # Test defaults
     hpxml.heating_systems[0].fan_watts = nil
+    hpxml.heating_systems[0].pilot_light_btuh = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 0, nil)
+    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 0, nil, true, 500)
+
+    # Test defaults w/o pilot
+    hpxml.heating_systems[0].pilot_light = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 0, nil, false, nil)
   end
 
   def test_boilers
@@ -1219,16 +1254,19 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml = _create_hpxml('base-hvac-boiler-gas-only.xml')
     hpxml.heating_systems[0].electric_auxiliary_energy = 99.9
     hpxml.heating_systems[0].heating_capacity = 12345
+    hpxml.heating_systems[0].pilot_light = true
+    hpxml.heating_systems[0].pilot_light_btuh = 999
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_boiler_values(hpxml_default.heating_systems[0], 99.9, 12345)
+    _test_default_boiler_values(hpxml_default.heating_systems[0], 99.9, 12345, true, 999)
 
     # Test defaults w/ in-unit boiler
     hpxml.heating_systems[0].electric_auxiliary_energy = nil
     hpxml.heating_systems[0].heating_capacity = nil
+    hpxml.heating_systems[0].pilot_light_btuh = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_boiler_values(hpxml_default.heating_systems[0], 170.0, nil)
+    _test_default_boiler_values(hpxml_default.heating_systems[0], 170.0, nil, true, 500)
 
     # Test inputs not overridden by defaults (shared boiler)
     hpxml = _create_hpxml('base-bldgtype-multifamily-shared-boiler-only-baseboard.xml')
@@ -1236,13 +1274,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.heating_systems[0].electric_auxiliary_energy = 99.9
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_boiler_values(hpxml_default.heating_systems[0], 99.9, nil)
-
-    # Test defaults w/ shared boiler
-    hpxml.heating_systems[0].electric_auxiliary_energy = nil
-    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
-    hpxml_default = _test_measure()
-    _test_default_boiler_values(hpxml_default.heating_systems[0], 220.0, nil)
+    _test_default_boiler_values(hpxml_default.heating_systems[0], 99.9, nil, false, nil)
   end
 
   def test_stoves
@@ -1250,16 +1282,25 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml = _create_hpxml('base-hvac-stove-oil-only.xml')
     hpxml.heating_systems[0].fan_watts = 22
     hpxml.heating_systems[0].heating_capacity = 12345
+    hpxml.heating_systems[0].pilot_light = true
+    hpxml.heating_systems[0].pilot_light_btuh = 999
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_stove_values(hpxml_default.heating_systems[0], 22, 12345)
+    _test_default_stove_values(hpxml_default.heating_systems[0], 22, 12345, true, 999)
 
     # Test defaults
     hpxml.heating_systems[0].fan_watts = nil
     hpxml.heating_systems[0].heating_capacity = nil
+    hpxml.heating_systems[0].pilot_light_btuh = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_stove_values(hpxml_default.heating_systems[0], 40, nil)
+    _test_default_stove_values(hpxml_default.heating_systems[0], 40, nil, true, 500)
+
+    # Test defaults w/o pilot
+    hpxml.heating_systems[0].pilot_light = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_stove_values(hpxml_default.heating_systems[0], 40, nil, false, nil)
   end
 
   def test_portable_heaters
@@ -1301,16 +1342,25 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml = _create_hpxml('base-hvac-fireplace-wood-only.xml')
     hpxml.heating_systems[0].fan_watts = 22
     hpxml.heating_systems[0].heating_capacity = 12345
+    hpxml.heating_systems[0].pilot_light = true
+    hpxml.heating_systems[0].pilot_light_btuh = 999
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_fireplace_values(hpxml_default.heating_systems[0], 22, 12345)
+    _test_default_fireplace_values(hpxml_default.heating_systems[0], 22, 12345, true, 999)
 
     # Test defaults
     hpxml.heating_systems[0].fan_watts = nil
     hpxml.heating_systems[0].heating_capacity = nil
+    hpxml.heating_systems[0].pilot_light_btuh = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_fireplace_values(hpxml_default.heating_systems[0], 0, nil)
+    _test_default_fireplace_values(hpxml_default.heating_systems[0], 0, nil, true, 500)
+
+    # Test defaults w/o pilot
+    hpxml.heating_systems[0].pilot_light = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_fireplace_values(hpxml_default.heating_systems[0], 0, nil, false, nil)
   end
 
   def test_air_source_heat_pumps
@@ -2162,7 +2212,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.water_heating_systems[0].operating_mode = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_heat_pump_water_heater_values(hpxml_default, [HPXML::WaterHeaterOperatingModeStandard])
+    _test_default_heat_pump_water_heater_values(hpxml_default, [HPXML::WaterHeaterOperatingModeHybridAuto])
   end
 
   def test_indirect_water_heaters
@@ -3192,7 +3242,9 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   def _test_default_header_values(hpxml, tstep, sim_begin_month, sim_begin_day, sim_end_month, sim_end_day, sim_calendar_year,
                                   dst_enabled, dst_begin_month, dst_begin_day, dst_end_month, dst_end_day, heat_pump_sizing_methodology,
                                   allow_increased_fixed_capacities, state_code, time_zone_utc_offset, occupancy_calculation_type,
-                                  temperature_capacitance_multiplier, natvent_days_per_week)
+                                  temperature_capacitance_multiplier, natvent_days_per_week,
+                                  vacancy_period_begin_hour, vacancy_period_end_hour,
+                                  power_outage_period_begin_hour, power_outage_period_end_hour, power_outage_period_natvent_availability)
     assert_equal(tstep, hpxml.header.timestep)
     assert_equal(sim_begin_month, hpxml.header.sim_begin_month)
     assert_equal(sim_begin_day, hpxml.header.sim_begin_day)
@@ -3219,6 +3271,19 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(occupancy_calculation_type, hpxml.header.occupancy_calculation_type)
     assert_equal(temperature_capacitance_multiplier, hpxml.header.temperature_capacitance_multiplier)
     assert_equal(natvent_days_per_week, hpxml.header.natvent_days_per_week)
+    if vacancy_period_begin_hour.nil? && vacancy_period_end_hour.nil?
+      assert_equal(0, hpxml.header.vacancy_periods.size)
+    else
+      assert_equal(vacancy_period_begin_hour, hpxml.header.vacancy_periods[-1].begin_hour)
+      assert_equal(vacancy_period_end_hour, hpxml.header.vacancy_periods[-1].end_hour)
+    end
+    if power_outage_period_begin_hour.nil? && power_outage_period_end_hour.nil? && power_outage_period_natvent_availability.nil?
+      assert_equal(0, hpxml.header.power_outage_periods.size)
+    else
+      assert_equal(power_outage_period_begin_hour, hpxml.header.power_outage_periods[-1].begin_hour)
+      assert_equal(power_outage_period_end_hour, hpxml.header.power_outage_periods[-1].end_hour)
+      assert_equal(power_outage_period_natvent_availability, hpxml.header.power_outage_periods[-1].natvent_availability)
+    end
   end
 
   def _test_default_emissions_values(scenario, elec_schedule_number_of_header_rows, elec_schedule_column_number,
@@ -3616,13 +3681,20 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_furnace_values(heating_system, fan_watts_per_cfm, airflow_defect_ratio, heating_capacity)
+  def _test_default_furnace_values(heating_system, fan_watts_per_cfm, airflow_defect_ratio, heating_capacity,
+                                   pilot_light, pilot_light_btuh)
     assert_equal(fan_watts_per_cfm, heating_system.fan_watts_per_cfm)
     assert_equal(airflow_defect_ratio, heating_system.airflow_defect_ratio)
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
       assert_equal(heating_system.heating_capacity, heating_capacity)
+    end
+    assert_equal(heating_system.pilot_light, pilot_light)
+    if pilot_light_btuh.nil?
+      assert_nil(heating_system.pilot_light_btuh)
+    else
+      assert_equal(heating_system.pilot_light_btuh, pilot_light_btuh)
     end
   end
 
@@ -3635,30 +3707,48 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_floor_furnace_values(heating_system, fan_watts, heating_capacity)
+  def _test_default_floor_furnace_values(heating_system, fan_watts, heating_capacity, pilot_light, pilot_light_btuh)
     assert_equal(fan_watts, heating_system.fan_watts)
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
       assert_equal(heating_system.heating_capacity, heating_capacity)
     end
+    assert_equal(heating_system.pilot_light, pilot_light)
+    if pilot_light_btuh.nil?
+      assert_nil(heating_system.pilot_light_btuh)
+    else
+      assert_equal(heating_system.pilot_light_btuh, pilot_light_btuh)
+    end
   end
 
-  def _test_default_boiler_values(heating_system, eae, heating_capacity)
+  def _test_default_boiler_values(heating_system, eae, heating_capacity, pilot_light, pilot_light_btuh)
     assert_equal(eae, heating_system.electric_auxiliary_energy)
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
       assert_equal(heating_system.heating_capacity, heating_capacity)
     end
+    assert_equal(heating_system.pilot_light, pilot_light)
+    if pilot_light_btuh.nil?
+      assert_nil(heating_system.pilot_light_btuh)
+    else
+      assert_equal(heating_system.pilot_light_btuh, pilot_light_btuh)
+    end
   end
 
-  def _test_default_stove_values(heating_system, fan_watts, heating_capacity)
+  def _test_default_stove_values(heating_system, fan_watts, heating_capacity, pilot_light, pilot_light_btuh)
     assert_equal(fan_watts, heating_system.fan_watts)
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
       assert_equal(heating_system.heating_capacity, heating_capacity)
+    end
+    assert_equal(heating_system.pilot_light, pilot_light)
+    if pilot_light_btuh.nil?
+      assert_nil(heating_system.pilot_light_btuh)
+    else
+      assert_equal(heating_system.pilot_light_btuh, pilot_light_btuh)
     end
   end
 
@@ -3680,12 +3770,18 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_fireplace_values(heating_system, fan_watts, heating_capacity)
+  def _test_default_fireplace_values(heating_system, fan_watts, heating_capacity, pilot_light, pilot_light_btuh)
     assert_equal(fan_watts, heating_system.fan_watts)
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
       assert_equal(heating_system.heating_capacity, heating_capacity)
+    end
+    assert_equal(heating_system.pilot_light, pilot_light)
+    if pilot_light_btuh.nil?
+      assert_nil(heating_system.pilot_light_btuh)
+    else
+      assert_equal(heating_system.pilot_light_btuh, pilot_light_btuh)
     end
   end
 

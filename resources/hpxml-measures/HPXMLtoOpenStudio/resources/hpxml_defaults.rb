@@ -48,7 +48,7 @@ class HPXMLDefaults
     apply_hvac(runner, hpxml, weather, convert_shared_systems)
     apply_hvac_control(hpxml, schedules_file)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
-    apply_ventilation_fans(hpxml, infil_measurement, weather, cfa, nbeds)
+    apply_ventilation_fans(hpxml, weather, cfa, nbeds)
     apply_water_heaters(hpxml, nbeds, eri_version, schedules_file)
     apply_hot_water_distribution(hpxml, cfa, ncfl, has_uncond_bsmnt)
     apply_water_fixtures(hpxml, schedules_file)
@@ -204,6 +204,32 @@ class HPXMLDefaults
     if hpxml.header.natvent_days_per_week.nil?
       hpxml.header.natvent_days_per_week = 3
       hpxml.header.natvent_days_per_week_isdefaulted = true
+    end
+
+    hpxml.header.vacancy_periods.each do |vacancy_period|
+      if vacancy_period.begin_hour.nil?
+        vacancy_period.begin_hour = 0
+        vacancy_period.begin_hour_isdefaulted = true
+      end
+      if vacancy_period.end_hour.nil?
+        vacancy_period.end_hour = 24
+        vacancy_period.end_hour_isdefaulted = true
+      end
+    end
+
+    hpxml.header.power_outage_periods.each do |power_outage_period|
+      if power_outage_period.begin_hour.nil?
+        power_outage_period.begin_hour = 0
+        power_outage_period.begin_hour_isdefaulted = true
+      end
+      if power_outage_period.end_hour.nil?
+        power_outage_period.end_hour = 24
+        power_outage_period.end_hour_isdefaulted = true
+      end
+      if power_outage_period.natvent_availability.nil?
+        power_outage_period.natvent_availability = HPXML::ScheduleRegular
+        power_outage_period.natvent_availability_isdefaulted = true
+      end
     end
   end
 
@@ -1295,6 +1321,25 @@ class HPXMLDefaults
       end
     end
 
+    # Pilot Light
+    hpxml.heating_systems.each do |heating_system|
+      next unless [HPXML::HVACTypeFurnace,
+                   HPXML::HVACTypeWallFurnace,
+                   HPXML::HVACTypeFloorFurnace,
+                   HPXML::HVACTypeFireplace,
+                   HPXML::HVACTypeStove,
+                   HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
+
+      if heating_system.pilot_light.nil?
+        heating_system.pilot_light = false
+        heating_system.pilot_light_isdefaulted = true
+      end
+      if heating_system.pilot_light && heating_system.pilot_light_btuh.nil?
+        heating_system.pilot_light_btuh = 500.0
+        heating_system.pilot_light_btuh_isdefaulted = true
+      end
+    end
+
     # Detailed HVAC performance
     hpxml.cooling_systems.each do |cooling_system|
       clg_ap = cooling_system.additional_properties
@@ -1541,7 +1586,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_ventilation_fans(hpxml, infil_measurement, weather, cfa, nbeds)
+  def self.apply_ventilation_fans(hpxml, weather, cfa, nbeds)
     # Default mech vent systems
     hpxml.ventilation_fans.each do |vent_fan|
       next unless vent_fan.used_for_whole_building_ventilation
@@ -1559,7 +1604,7 @@ class HPXMLDefaults
           fail 'Defaulting flow rates for multiple mechanical ventilation systems is currently not supported.'
         end
 
-        vent_fan.rated_flow_rate = Airflow.get_default_mech_vent_flow_rate(hpxml, vent_fan, [infil_measurement], weather, cfa, nbeds).round(1)
+        vent_fan.rated_flow_rate = Airflow.get_default_mech_vent_flow_rate(hpxml, vent_fan, weather, cfa, nbeds).round(1)
         vent_fan.rated_flow_rate_isdefaulted = true
       end
       if vent_fan.fan_power.nil?
@@ -1692,7 +1737,7 @@ class HPXMLDefaults
       if (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump)
         schedules_file_includes_water_heater_operating_mode = (schedules_file.nil? ? false : schedules_file.includes_col_name(SchedulesFile::ColumnWaterHeaterOperatingMode))
         if water_heating_system.operating_mode.nil? && !schedules_file_includes_water_heater_operating_mode
-          water_heating_system.operating_mode = HPXML::WaterHeaterOperatingModeStandard
+          water_heating_system.operating_mode = HPXML::WaterHeaterOperatingModeHybridAuto
           water_heating_system.operating_mode_isdefaulted = true
         end
       end
