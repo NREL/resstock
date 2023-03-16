@@ -14,6 +14,8 @@ Date: 3/3/2023
 -----------------
 kW = kVA * PF, kW: working (active) power, kVA: apparent (active + reactive) power, PF: power factor
 For inductive load, use PF = 0.8 (except cooking per 220.55, PF=1)
+Reactive power is phantom in that there may be current draw or voltage drop but no power is actually dissipated
+(Inductors and capacitors have this behavior)
 
 Continous load := max current continues for 3+ hrs
 Branch circuit rating for continous load >= 1.25 x nameplate rating
@@ -139,8 +141,10 @@ import pandas as pd
 from pathlib import Path
 import numpy as np
 import math
+import argparse
 import sys
 import matplotlib.pyplot as plt
+from scipy.stats import gaussian_kde
 
 # --- lookup ---
 geometry_unit_aspect_ratio = {
@@ -187,8 +191,7 @@ def _general_load_lighting(row):
         case "None":
             garage_width = 0
         case _:
-            garage_width = np.nan
-            print("Error determine garage area")
+            garage_width = 0
     
     floor_area = row["upgrade_costs.floor_area_conditioned_ft_2"] + garage_width*garage_depth
     min_unit_load = 3 * floor_area
@@ -514,7 +517,7 @@ def _special_load_space_conditioning(row):
     else:
         heating_load = 0
 
-    if row["build_existing_model.hvac_heating_type"].startswith("Ducted"):
+    if row["build_existing_model.hvac_has_ducts"] == "Yes":
         heating_load += 3 * 115  # 3A x 115V (air-handler motor) TODO: Check this value
 
     cooling_load = (
@@ -523,7 +526,7 @@ def _special_load_space_conditioning(row):
     cooling_motor = cooling_load
     cooling_is_window_unit = True
     if row["build_existing_model.hvac_cooling_type"] == "Central AC" or (
-        row["build_existing_model.hvac_heating_type"].startswith("Ducted")
+        row["build_existing_model.hvac_has_ducts"] == "Yes"
         and row["build_existing_model.hvac_cooling_type"] == "Heat Pump"
     ):
         cooling_load += (
@@ -568,7 +571,7 @@ def _special_load_pool_heater(row): # This is a continuous load so 125% factor m
     if row["completed_status"] != "Success":
         return np.nan
 
-    if row["build_existing_model.misc_pool_heater"].startswith("Electric"):
+    if isinstance(row["build_existing_model.misc_pool_heater"], str) and row["build_existing_model.misc_pool_heater"].startswith("Electric"):
         return 3000 * 1.25
     return 0
 
@@ -637,7 +640,7 @@ def optional_space_cond_load(row):
     AC_load = row["upgrade_costs.size_cooling_system_primary_k_btu_h"] * 293.07103866
 
     if row["build_existing_model.hvac_cooling_type"] == "Central AC" or (
-        row["build_existing_model.hvac_heating_type"].startswith("Ducted")
+        row["build_existing_model.hvac_has_ducts"] == "Yes"
         and row["build_existing_model.hvac_cooling_type"] == "Heat Pump"
     ):
         AC_load += (3 * 115 + 460)  # 3A x 115V (condenser fan motor) + 460 (blower motor) TODO: Check this value
@@ -650,7 +653,7 @@ def optional_space_cond_load(row):
         ) * 293.07103866
     else:
         heating_load = 0
-    if row["build_existing_model.hvac_heating_type"].startswith("Ducted"):
+    if row["build_existing_model.hvac_has_ducts"] == "Yes":
         heating_load += 3 * 115  # 3A x 115V (air-handler motor)
     
     if row["build_existing_model.hvac_has_zonal_electric_heating"] == "Yes":
@@ -706,7 +709,6 @@ def min_amperage_main_breaker(x):
     if pd.isnull(x):
         return np.nan
 
-    #standard_sizes = np.array([40, 70, 100, 125, 150, 200, 225, 300, 400, 600])
     standard_sizes = np.array([100, 125, 150, 200, 225, 300, 400, 600]) # it is not permitted to size service below 100 A (NEC 230.79(C))
     factors = standard_sizes / x
 
@@ -720,7 +722,93 @@ def min_amperage_main_breaker(x):
 
     return cond[0]
 
-def main(filename: str = None):
+def plot_output(df, output_dir=None):
+    print(f"Plots output to: {output_dir}")
+    metric = "std_m_nec_electrical_panel_amp"
+    title = "NEC panel amperage - standard method"
+    _plot_amperage_histogram(df, metric, title=title, output_dir=output_dir)
+
+    metric = "opt_m_nec_electrical_panel_amp"
+    title = "NEC panel amperage - optional method"
+    _plot_amperage_histogram(df, metric, title=title, output_dir=output_dir)
+
+    x_metric = "std_m_nec_electrical_panel_amp"
+    y_metric = "opt_m_nec_electrical_panel_amp"
+    title = "Standard vs. optional method"
+    _plot_scatter(df, x_metric, y_metric, title=title, output_dir=output_dir)
+
+    x_metric = "std_m_nec_electrical_panel_amp"
+    y_metric = "peak_amp"
+    title = "Standard method vs. simulated peak"
+    _plot_scatter(df, x_metric, y_metric, title=title, output_dir=output_dir)
+
+    x_metric = "opt_m_nec_electrical_panel_amp"
+    y_metric = "peak_amp"
+    title = "Optional method vs. simulated peak"
+    _plot_scatter(df, x_metric, y_metric, title=title, output_dir=output_dir)
+
+def _plot_amperage_histogram(df, metric, title=None, output_dir=None):
+    fig, ax = plt.subplots()
+    panel_sizes = pd.Series.tolist(df[metric])
+    bars = ax.bar(*np.unique(panel_sizes, return_counts = True), width = 10)
+    ax.set_xlabel('Capacity of Panel (A)')
+    ax.set_ylabel('Count of Panels')
+
+    for bar in bars:
+        h = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2.0, h,
+                f"{h:.0f}", ha="center", va="bottom")
+
+    if title is not None:
+        ax.set_title(title)
+    if output_dir is not None:
+        fig.savefig(output_dir / f"histogram_{metric}.png", dpi=400, bbox_inches="tight")
+
+def _plot_scatter(df, x_metric, y_metric, title=None, output_dir=None):
+    fig, ax = plt.subplots()
+    df = df[[x_metric, y_metric]].dropna(how="any")
+    x, y = df[x_metric], df[y_metric]
+
+    # point density (can be very time intensive)
+    if len(x)<= 100000:
+        xy = np.vstack([x,y])
+        z = gaussian_kde(xy)(xy)
+        ax.scatter(x, y, c=z)
+    else:
+        ax.scatter(x, y)
+    ax.set_xlabel(x_metric)
+    ax.set_ylabel(y_metric)
+
+    # y=x line
+    lxy = np.array([
+        min(x.min(), y.min()), 
+        max(x.max(), y.max())
+        ])
+    ax.plot(lxy, lxy, ls="-", c="gray")
+
+    # calculate % above and at or below x=y
+    frac = y/x
+    frac_above = len(frac[frac>1]) / len(frac)
+    frac_at_below = 1-frac_above
+    ax.text(0.05, 0.95, f"above line:\n{frac_above*100:.1f}%", ha="left", va="top", transform = ax.transAxes)
+    ax.text(0.95, 0.05, f"at/below line:\n{frac_at_below*100:.1f}%", ha="right", va="bottom", transform = ax.transAxes)
+
+    title_ext = f"(n = {len(x)})"
+    if title is not None:
+        title += f" {title_ext}"
+    else:
+        title = title_ext
+    ax.set_title(title)
+    if output_dir is not None:
+        fig.savefig(output_dir / f"scatter_{y_metric}_by_{x_metric}.png", dpi=400, bbox_inches="tight")
+
+def main(filename: str = None, plot_only=False):
+    """ 
+    Main execution
+    Args :
+        filename : input ResStock results file
+        plot_only : if true, directly make plots from expected output file
+    """
     if filename is None:
         filename = (
             Path(__file__).resolve().parent
@@ -730,6 +818,18 @@ def main(filename: str = None):
     else:
         filename = Path(filename)
 
+    output_filename = filename.parent / (filename.stem + "__panels5" + filename.suffix)
+
+    output_dir = filename.parent / "plots"
+    output_dir.mkdir(parents=True, exist_ok=True) 
+
+    if plot_only:
+        if not output_filename.exists():
+            raise FileNotFoundError(f"Cannot create plots, output_filename not found: {output_filename}")
+        df = pd.read_csv(output_filename, low_memory=False)
+        plot_output(df, output_dir)
+        sys.exit()
+        
     df = pd.read_csv(filename, low_memory=False)
     df_columns = df.columns
 
@@ -751,23 +851,6 @@ def main(filename: str = None):
         lambda x: min_amperage_main_breaker(x)
     )
 
-    ### compare
-    df["peak_amp"] = (
-        df[
-            [
-                "report_simulation_output.peak_electricity_summer_total_w",
-                "report_simulation_output.peak_electricity_winter_total_w",
-            ]
-        ].max(axis=1)
-        / 240
-    )
-
-    df["std_m_amp_pct_delta"] = np.nan
-    cond = df["peak_amp"] > df["std_m_nec_electrical_panel_amp"]
-    df.loc[cond, "std_m_amp_pct_delta"] = (
-        df["peak_amp"] - df["std_m_nec_electrical_panel_amp"]
-    ) / df["std_m_nec_electrical_panel_amp"]
-
     # --- [2] NEC - OPTIONAL METHOD ----
     # Sum _general_load_lighting, _general_load_kitchen and _general_load_laundry, _fixed_load_total, _special_load_electric_range
     #  _special_load_hot_tub_spa, _special_load_pool_heater, _special_load_pool_pump, _special_load_well_pump
@@ -784,56 +867,57 @@ def main(filename: str = None):
     )
     df["opt_m_nec_electrical_panel_amp"] = df["opt_m_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
     
+    # --- compare with simulated peak ---
+    df["peak_amp"] = (
+        df[
+            [
+                "report_simulation_output.peak_electricity_summer_total_w",
+                "report_simulation_output.peak_electricity_winter_total_w",
+            ]
+        ].max(axis=1)
+        / 240
+    )
+
+    df["std_m_amp_pct_delta"] = np.nan
+    cond = df["peak_amp"] > df["std_m_nec_electrical_panel_amp"]
+    df.loc[cond, "std_m_amp_pct_delta"] = (
+        df["peak_amp"] - df["std_m_nec_electrical_panel_amp"]
+    ) / df["std_m_nec_electrical_panel_amp"]
+
+    df["opt_m_amp_pct_delta"] = np.nan
+    cond = df["peak_amp"] > df["opt_m_nec_electrical_panel_amp"]
+    df.loc[cond, "opt_m_amp_pct_delta"] = (
+        df["peak_amp"] - df["opt_m_nec_electrical_panel_amp"]
+    ) / df["opt_m_nec_electrical_panel_amp"]
+
     new_columns = [x for x in df.columns if x not in df_columns]
     print(df.loc[cond, ["building_id"] + new_columns])
+
     # --- save to file ---
     output_filename = filename.parent / (filename.stem + "__panels5" + filename.suffix)
     df.to_csv(output_filename, index=False)
     print(f"File output to: {output_filename}")
 
-    # Plot histograms:  
-    """"""
-    plt.figure(1)
-    std_m_sizes = pd.Series.tolist(df.std_m_nec_electrical_panel_amp)
-    plt.bar(*np.unique(std_m_sizes,return_counts = True), width = 10)
-    plt.xlabel('Capacity of Panel (A)')
-    plt.ylabel('Percentage of Panels (%)')
-    plt.title('Standard Method')
-    plt.xlim([0,400])
-    plt.ylim([0,70])
-    
-    plt.figure(2)
-    opt_m_sizes = pd.Series.tolist(df.opt_m_nec_electrical_panel_amp)
-    plt.bar(*np.unique(opt_m_sizes,return_counts = True), width = 10)
-    plt.xlabel('Capacity of Panel (A)')
-    plt.ylabel('Percentage of Panels (%)')
-    plt.title('Optional Method')
-    plt.xlim([0,400])
-    plt.ylim([0,70])
+    # --- plot ---
+    plot_output(df, output_dir)
 
-    plt.show()
-""""""
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        filename = sys.argv[1]
-        print(f"Applying NEC panel calculation to {filename}...")
-
-    elif len(sys.argv) == 1:
-        filename = None
-        print(
-            "<path_to_results_00.csv> is not specified, NEC panel calculation will be applied to "
-            "default file: test_data/euss1_2018_results_up00_100.csv"
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "filename",
+        action="store",
+        default=None,
+        nargs="?",
+        help="Path to ResStock result file, e.g., results_up00.csv, "
+        "defaults to test data: test_data/euss1_2018_results_up00_100.csv"
         )
+    parser.add_argument(
+        "-p",
+        "--plot_only",
+        action="store_true",
+        default=False,
+        help="Make plots only based on expected output file",
+    )
 
-    else:
-        print(
-            """
-            Usage: python postprocess_electrical_panel_size_nec.py [optional <path_to_results_00.csv>]
-
-            Code-minimum electrical panel amperage per National Electrical Code can be estimated 
-            using ResStock summary result csv file only.
-            """
-        )
-        sys.exit(1)
-
-    main(filename)
+    args = parser.parse_args()
+    main(args.filename, plot_only=args.plot_only)
