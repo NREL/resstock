@@ -36,10 +36,10 @@ report_simulation_outputs = ['color_index']
 # simulation_outputs = []
 # component_loads = []
 # emissions = []
-# report_utility_bills = []
-# upgrade_costs = []
+report_utility_bills = []
+upgrade_costs = []
 # cost_multipliers = []
-# qoi_reports = []
+qoi_reports = []
 
 for col in df.columns.values:
   if any([col_exclusion in col for col_exclusion in col_exclusions]):
@@ -56,26 +56,26 @@ for col in df.columns.values:
         # component_loads.append(col)
       # else:
         # simulation_outputs.append(col)
-  # elif col.startswith('report_utility_bills'):
-    # report_utility_bills.append(col)
-  # elif col.startswith('upgrade_costs'):
-    # upgrade_costs.append(col)
+  elif col.startswith('report_utility_bills'):
+    report_utility_bills.append(col)
+  elif col.startswith('upgrade_costs'):
+    upgrade_costs.append(col)
     # if 'debug' in col or 'upgrade_cost_usd' in col:
       # pass # nop
     # else:
       # cost_multipliers.append(col)
-  # elif col.startswith('qoi_report'):
-    # qoi_reports.append(col)
+  elif col.startswith('qoi_report'):
+    qoi_reports.append(col)
 
 build_existing_models = sorted(build_existing_models)
 report_simulation_outputs = sorted(report_simulation_outputs)
 # simulation_outputs = sorted(simulation_outputs)
 # component_loads = sorted(component_loads)
 # emissions = sorted(emissions)
-# report_utility_bills = sorted(report_utility_bills)
-# upgrade_costs = sorted(upgrade_costs)
+report_utility_bills = sorted(report_utility_bills)
+upgrade_costs = sorted(upgrade_costs)
 # cost_multipliers = sorted(cost_multipliers)
-# qoi_reports = sorted(qoi_reports)
+qoi_reports = sorted(qoi_reports)
 
 # Annual
 
