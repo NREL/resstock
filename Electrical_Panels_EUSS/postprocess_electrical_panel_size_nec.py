@@ -143,8 +143,8 @@ import numpy as np
 import math
 import argparse
 import sys
-import matplotlib.pyplot as plt
-from scipy.stats import gaussian_kde
+
+from plotting_functions import plot_output
 
 # --- lookup ---
 geometry_unit_aspect_ratio = {
@@ -270,7 +270,7 @@ def _general_load_laundry(row, n=1):
         return n * 1500 """ # This is incorrect, code requires 1 laundry branch circuit regardless of dryer type
     return n* 1500
 
-def _optional_load_laundry(row,n=1):
+def _optional_load_laundry(row):
     """Clothes Dryers. NEC 220-18
     Use 5000 watts or nameplate rating whichever is larger (in another version, use DF=1 for # appliance <=4)
     240V, 22/24/30A breaker (vented), 30/40A (ventless heat pump), 30A (ventless electric)
@@ -278,7 +278,7 @@ def _optional_load_laundry(row,n=1):
     if row["completed_status"] != "Success":
         return np.nan
 
-    if "Electric" not in row["build_existing_model.clothes_dryer"]:
+    if "Electric" not in row["build_existing_model.clothes_dryer"] or row["build_existing_model.clothes_dryer"] == "None":
         return 0
 
     if "Ventless" in row["build_existing_model.clothes_dryer"]:
@@ -451,7 +451,7 @@ def _special_load_electric_dryer(row):
     if row["completed_status"] != "Success":
         return np.nan
 
-    if "Electric" not in row["build_existing_model.clothes_dryer"]:
+    if "Electric" not in row["build_existing_model.clothes_dryer"] or row["build_existing_model.clothes_dryer"] == "None":
         return 0
 
     if "Ventless" in row["build_existing_model.clothes_dryer"]:
@@ -465,7 +465,7 @@ def _special_load_electric_range(row): # Assuming a single electric range (combi
     if row["completed_status"] != "Success":
         return np.nan
 
-    if "Electric" not in row["build_existing_model.cooking_range"]:
+    if "Electric" not in row["build_existing_model.cooking_range"] or row["build_existing_model.cooking_range"]=="None":
         range_power = 0
 
     if "Induction" in row["build_existing_model.cooking_range"]:
@@ -571,7 +571,7 @@ def _special_load_pool_heater(row): # This is a continuous load so 125% factor m
     if row["completed_status"] != "Success":
         return np.nan
 
-    if isinstance(row["build_existing_model.misc_pool_heater"], str) and row["build_existing_model.misc_pool_heater"].startswith("Electric"):
+    if isinstance(row["build_existing_model.misc_pool_heater"], str) and "Electric" in row["build_existing_model.misc_pool_heater"]:
         return 3000 * 1.25
     return 0
 
@@ -613,7 +613,7 @@ def apply_opt_demand_factor(x):
         0.4 * max(0, x - 10000)
     )
 
-def optional_general_load(row, n_kit=2, n_ldr=1):
+def optional_general_load(row, n_kit=2):
     general_loads = [
         _optional_load_lighting(row),
         _general_load_kitchen(row, n=n_kit),
@@ -624,7 +624,7 @@ def optional_general_load(row, n_kit=2, n_ldr=1):
         _special_load_electric_range(row),
         _fixed_load_hot_tub_spa(row),
         _fixed_load_well_pump(row),
-        _optional_load_laundry(row,n=1)
+        _optional_load_laundry(row)
     ]
     return apply_opt_demand_factor(sum(general_loads))
 
@@ -722,86 +722,6 @@ def min_amperage_main_breaker(x):
 
     return cond[0]
 
-def plot_output(df, output_dir=None):
-    print(f"Plots output to: {output_dir}")
-    metric = "std_m_nec_electrical_panel_amp"
-    title = "NEC panel amperage - standard method"
-    _plot_amperage_histogram(df, metric, title=title, output_dir=output_dir)
-
-    metric = "opt_m_nec_electrical_panel_amp"
-    title = "NEC panel amperage - optional method"
-    _plot_amperage_histogram(df, metric, title=title, output_dir=output_dir)
-
-    x_metric = "std_m_nec_electrical_panel_amp"
-    y_metric = "opt_m_nec_electrical_panel_amp"
-    title = "Standard vs. optional method"
-    _plot_scatter(df, x_metric, y_metric, title=title, output_dir=output_dir)
-
-    x_metric = "std_m_nec_electrical_panel_amp"
-    y_metric = "peak_amp"
-    title = "Standard method vs. simulated peak"
-    _plot_scatter(df, x_metric, y_metric, title=title, output_dir=output_dir)
-
-    x_metric = "opt_m_nec_electrical_panel_amp"
-    y_metric = "peak_amp"
-    title = "Optional method vs. simulated peak"
-    _plot_scatter(df, x_metric, y_metric, title=title, output_dir=output_dir)
-
-def _plot_amperage_histogram(df, metric, title=None, output_dir=None):
-    fig, ax = plt.subplots()
-    panel_sizes = pd.Series.tolist(df[metric])
-    bars = ax.bar(*np.unique(panel_sizes, return_counts = True), width = 10)
-    ax.set_xlabel('Capacity of Panel (A)')
-    ax.set_ylabel('Count of Panels')
-
-    for bar in bars:
-        h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2.0, h,
-                f"{h:.0f}", ha="center", va="bottom")
-
-    if title is not None:
-        ax.set_title(title)
-    if output_dir is not None:
-        fig.savefig(output_dir / f"histogram_{metric}.png", dpi=400, bbox_inches="tight")
-
-def _plot_scatter(df, x_metric, y_metric, title=None, output_dir=None):
-    fig, ax = plt.subplots()
-    df = df[[x_metric, y_metric]].dropna(how="any")
-    x, y = df[x_metric], df[y_metric]
-
-    # point density (can be very time intensive)
-    if len(x)<= 100000:
-        xy = np.vstack([x,y])
-        z = gaussian_kde(xy)(xy)
-        ax.scatter(x, y, c=z)
-    else:
-        ax.scatter(x, y)
-    ax.set_xlabel(x_metric)
-    ax.set_ylabel(y_metric)
-
-    # y=x line
-    lxy = np.array([
-        min(x.min(), y.min()), 
-        max(x.max(), y.max())
-        ])
-    ax.plot(lxy, lxy, ls="-", c="gray")
-
-    # calculate % above and at or below x=y
-    frac = y/x
-    frac_above = len(frac[frac>1]) / len(frac)
-    frac_at_below = 1-frac_above
-    ax.text(0.05, 0.95, f"above line:\n{frac_above*100:.1f}%", ha="left", va="top", transform = ax.transAxes)
-    ax.text(0.95, 0.05, f"at/below line:\n{frac_at_below*100:.1f}%", ha="right", va="bottom", transform = ax.transAxes)
-
-    title_ext = f"(n = {len(x)})"
-    if title is not None:
-        title += f" {title_ext}"
-    else:
-        title = title_ext
-    ax.set_title(title)
-    if output_dir is not None:
-        fig.savefig(output_dir / f"scatter_{y_metric}_by_{x_metric}.png", dpi=400, bbox_inches="tight")
-
 def main(filename: str = None, plot_only=False):
     """ 
     Main execution
@@ -855,7 +775,7 @@ def main(filename: str = None, plot_only=False):
     # Sum _general_load_lighting, _general_load_kitchen and _general_load_laundry, _fixed_load_total, _special_load_electric_range
     #  _special_load_hot_tub_spa, _special_load_pool_heater, _special_load_pool_pump, _special_load_well_pump
    
-    df["opt_m_demand_load_general_VA"] = df.apply(lambda x: optional_general_load(x), axis=1) # 100 / 40 for 10/10+ kVA demand factor function
+    df["opt_m_demand_load_general_VA"] = df.apply(lambda x: optional_general_load(x, n_kit="auto"), axis=1) # 100 / 40 for 10/10+ kVA demand factor function
     df["opt_m_demand_load_space_cond_VA"] = df.apply(lambda x: optional_space_cond_load(x), axis=1) # compute space conditioning load
     df["opt_m_demand_load_continuous_VA"] = df.apply(lambda x: optional_continuous_load(x), axis=1) #continuous loads
 
