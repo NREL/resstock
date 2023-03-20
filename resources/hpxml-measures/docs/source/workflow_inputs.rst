@@ -183,6 +183,7 @@ The column names available in the schedule CSV files are:
   ``water_heater_operating_mode``  0/1    Heat pump water heater operating mode schedule. 0=hyrbid/auto, 1=heat pump only.   No
   ``battery``                      frac   Battery schedule. Positive for charging, negative for discharging.                 No
   ``vacancy``                      0/1    Vacancy schedule. 0=occupied, 1=vacant. Automatically overrides other columns.     N/A
+  ``outage``                       0/1    Power outage schedule. 0=power. 1=nopower. Automatically overrides other columns.  N/A
   ===============================  =====  =================================================================================  ===============================
 
 Columns with units of `frac` must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
@@ -427,29 +428,50 @@ HPXML Vacancy Periods
 
 One or more vacancy periods can be entered as an ``/HPXML/SoftwareInfo/extension/VacancyPeriods/VacancyPeriod``.
 If not entered, occupant vacancies will not be modeled.
+Natural ventilation is always unavailable during a vacancy period.
 
-  ====================================  ========  =======  =============  ========  =======  ===========
-  Element                               Type      Units    Constraints    Required  Default  Description
-  ====================================  ========  =======  =============  ========  =======  ===========
-  ``BeginMonth``                        integer            1 - 12         Yes                Begin month
-  ``BeginDayOfMonth``                   integer            1 - 31         Yes                Begin day
-  ``EndMonth``                          integer            1 - 12         Yes                End month
-  ``EndDayOfMonth``                     integer            1 - 31         Yes                End day
-  ====================================  ========  =======  =============  ========  =======  ===========
+  ====================================  ========  =======  =============  ========  ========  ===========
+  Element                               Type      Units    Constraints    Required  Default   Description
+  ====================================  ========  =======  =============  ========  ========  ===========
+  ``BeginMonth``                        integer            1 - 12         Yes                 Begin month
+  ``BeginDayOfMonth``                   integer            1 - 31         Yes                 Begin day
+  ``BeginHourOfDay``                    integer            0 - 23         No        0         Begin hour
+  ``EndMonth``                          integer            1 - 12         Yes                 End month
+  ``EndDayOfMonth``                     integer            1 - 31         Yes                 End day
+  ``EndHourOfDay``                      integer            1 - 24         No        24        End hour
+  ====================================  ========  =======  =============  ========  ========  ===========
 
-Schedules from the following categories are affected by vacancy:
+See the "Affected By Vacancy" column in the table below to understand which components are affected by vacancy periods.
 
-- Occupancy
-- Lighting
-- Ceiling Fans
-- Cooking Range/Oven
-- Dishwasher
-- Clothes Washer
-- Clothes Dryer
-- Plug Loads
-- Fuel Loads
-- Hot Water
-- Local Ventilation Fans
+.. csv-table::
+   :file: ../../HPXMLtoOpenStudio/resources/data/schedules_affected.csv
+   :header-rows: 1
+
+HPXML Power Outage Periods
+**************************
+
+One or more power outage periods can be entered as an ``/HPXML/SoftwareInfo/extension/PowerOutagePeriods/PowerOutagePeriod``.
+If not entered, power outages will not be modeled.
+
+  ====================================  ========  =======  =============  ========  ================  ===========
+  Element                               Type      Units    Constraints    Required  Default           Description
+  ====================================  ========  =======  =============  ========  ================  ===========
+  ``BeginMonth``                        integer            1 - 12         Yes                         Begin month
+  ``BeginDayOfMonth``                   integer            1 - 31         Yes                         Begin day
+  ``BeginHourOfDay``                    integer            0 - 23         No        0                 Begin hour
+  ``EndMonth``                          integer            1 - 12         Yes                         End month
+  ``EndDayOfMonth``                     integer            1 - 31         Yes                         End day
+  ``EndHourOfDay``                      integer            1 - 24         No        24                End hour
+  ``NaturalVentilation``                string             See [#]_       No        regular schedule  Natural ventilation availability during the power outage period
+  ====================================  ========  =======  =============  ========  ================  ===========
+
+  .. [#] NaturalVentilation choices are "regular schedule", "always available", or "always unavailable".
+
+See the "Affected By Outage" column in the table above to understand which components are affected by power outage periods.
+
+.. warning::
+
+  It is not possible to eliminate all desired end uses (e.g. crankcase/defrost energy, water heater parasitics) in EnergyPlus during a power outage.
 
 .. _buildingsite:
 
@@ -1012,7 +1034,7 @@ Each window or glass door area is entered as an ``/HPXML/Building/BuildingDetail
   ``Azimuth`` or ``Orientation``                integer or string  deg or direction  0 - 359 or See [#]_  Yes                  Direction (clockwise from North)
   ``UFactor`` and/or ``GlassLayers``            double or string   Btu/F-ft2-hr      > 0 or See [#]_      Yes                  Full-assembly NFRC U-factor or glass layers description
   ``SHGC`` and/or ``GlassLayers``               double or string                     0 - 1                Yes                  Full-assembly NFRC solar heat gain coefficient or glass layers description
-  ``ExteriorShading/SummerShadingCoefficient``  double             frac              0 - 1                No        1.00       Exterior summer shading coefficient (1=transparent, 0=opaque)
+  ``ExteriorShading/SummerShadingCoefficient``  double             frac              0 - 1                No        1.00       Exterior summer shading coefficient (1=transparent, 0=opaque) [#]_
   ``ExteriorShading/WinterShadingCoefficient``  double             frac              0 - 1                No        1.00       Exterior winter shading coefficient (1=transparent, 0=opaque)
   ``InteriorShading/SummerShadingCoefficient``  double             frac              0 - 1                No        0.70 [#]_  Interior summer shading coefficient (1=transparent, 0=opaque)
   ``InteriorShading/WinterShadingCoefficient``  double             frac              0 - 1                No        0.85 [#]_  Interior winter shading coefficient (1=transparent, 0=opaque)
@@ -1024,6 +1046,8 @@ Each window or glass door area is entered as an ``/HPXML/Building/BuildingDetail
 
   .. [#] Orientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north".
   .. [#] GlassLayers choices are "single-pane", "double-pane", "triple-pane", or "glass block".
+  .. [#] Summer season defined as May 1 - Sep 30 in the northern hemisphere and Nov 1 - Mar 31 in the southern hemisphere.
+         Winter season defined as the remainder of the year.
   .. [#] InteriorShading/SummerShadingCoefficient default value indicates 30% reduction in solar heat gain, based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
   .. [#] InteriorShading/WinterShadingCoefficient default value indicates 15% reduction in solar heat gain, based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
   .. [#] GlassType choices are "clear" or "low-e".
@@ -1120,7 +1144,7 @@ Each skylight is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Skyli
   ``Azimuth`` or ``Orientation``                integer or string  deg or direction  0 - 359 or See [#]_  Yes                  Direction (clockwise from North)
   ``UFactor`` and/or ``GlassLayers``            double or string   Btu/F-ft2-hr      > 0 or See [#]_      Yes                  Full-assembly NFRC U-factor or glass layers description
   ``SHGC`` and/or ``GlassLayers``               double or string                     0 - 1                Yes                  Full-assembly NFRC solar heat gain coefficient or glass layers description
-  ``ExteriorShading/SummerShadingCoefficient``  double             frac              0 - 1                No        1.00       Exterior summer shading coefficient (1=transparent, 0=opaque)
+  ``ExteriorShading/SummerShadingCoefficient``  double             frac              0 - 1                No        1.00       Exterior summer shading coefficient (1=transparent, 0=opaque) [#]_
   ``ExteriorShading/WinterShadingCoefficient``  double             frac              0 - 1                No        1.00       Exterior winter shading coefficient (1=transparent, 0=opaque)
   ``InteriorShading/SummerShadingCoefficient``  double             frac              0 - 1                No        1.00       Interior summer shading coefficient (1=transparent, 0=opaque)
   ``InteriorShading/WinterShadingCoefficient``  double             frac              0 - 1                No        1.00       Interior winter shading coefficient (1=transparent, 0=opaque)
@@ -1130,6 +1154,8 @@ Each skylight is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Skyli
 
   .. [#] Orientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north"
   .. [#] GlassLayers choices are "single-pane", "double-pane", or "triple-pane".
+  .. [#] Summer season defined as May 1 - Sep 30 in the northern hemisphere and Nov 1 - Mar 31 in the southern hemisphere.
+         Winter season defined as the remainder of the year.
   .. [#] GlassType choices are "clear" or "low-e".
          The ``UFactor`` and ``SHGC`` of the skylight will be adjusted depending on the ``GlassType``, based on correlations derived using `data reported by PNNL <https://labhomes.pnnl.gov/documents/PNNL_24444_Thermal_and_Optical_Properties_Low-E_Storm_Windows_Panels.pdf>`_. 
          - **clear storm windows**: U-factor = U-factor of base window - (0.6435 * U-factor of base window - 0.1533); SHGC = 0.9 * SHGC of base window
@@ -1281,14 +1307,16 @@ Furnace
 
 If a furnace is specified, additional information is entered in ``HeatingSystem``.
 
-  ===============================================  ======  =========  ===========  ========  ========  ================================================
-  Element                                          Type    Units      Constraints  Required  Default   Notes
-  ===============================================  ======  =========  ===========  ========  ========  ================================================
-  ``DistributionSystem``                           idref   See [#]_                Yes                 ID of attached distribution system
-  ``AnnualHeatingEfficiency[Units="AFUE"]/Value``  double  frac       0 - 1        Yes                 Rated efficiency
-  ``extension/FanPowerWattsPerCFM``                double  W/cfm      >= 0         No        See [#]_  Blower fan efficiency at maximum fan speed [#]_
-  ``extension/AirflowDefectRatio``                 double  frac       -0.9 - 9     No        0.0       Deviation between design/installed airflows [#]_
-  ===============================================  ======  =========  ===========  ========  ========  ================================================
+  ======================================================  =======  =========  ===========  ========  ========  ================================================
+  Element                                                 Type     Units      Constraints  Required  Default   Notes
+  ======================================================  =======  =========  ===========  ========  ========  ================================================
+  ``DistributionSystem``                                  idref    See [#]_                Yes                 ID of attached distribution system
+  ``HeatingSystemType/Furnace/PilotLight``                boolean                          No        false     Presence of standing pilot light (older systems)
+  ``HeatingSystemType/Furnace/extension/PilotLightBtuh``  double   Btu/hr     >= 0         No        500       Pilot light burn rate
+  ``AnnualHeatingEfficiency[Units="AFUE"]/Value``         double   frac       0 - 1        Yes                 Rated efficiency
+  ``extension/FanPowerWattsPerCFM``                       double   W/cfm      >= 0         No        See [#]_  Blower fan efficiency at maximum fan speed [#]_
+  ``extension/AirflowDefectRatio``                        double   frac       -0.9 - 9     No        0.0       Deviation between design/installed airflows [#]_
+  ======================================================  =======  =========  ===========  ========  ========  ================================================
 
   .. [#] HVACDistribution type must be AirDistribution (type: "regular velocity" or "gravity") or DSE.
   .. [#] If FanPowerWattsPerCFM not provided, defaulted to 0 W/cfm if gravity distribution system, else 0.5 W/cfm if AFUE <= 0.9, else 0.375 W/cfm.
@@ -1296,17 +1324,33 @@ If a furnace is specified, additional information is entered in ``HeatingSystem`
   .. [#] AirflowDefectRatio is defined as (InstalledAirflow - DesignAirflow) / DesignAirflow; a value of zero means no airflow defect.
          See ANSI/RESNET/ACCA 310-2020 Standard for Grading the Installation of HVAC Systems for more information.
 
-Wall/Floor Furnace
-~~~~~~~~~~~~~~~~~~
+Wall Furnace
+~~~~~~~~~~~~
 
-If a wall furnace or floor furnace is specified, additional information is entered in ``HeatingSystem``.
+If a wall furnace is specified, additional information is entered in ``HeatingSystem``.
 
-  ===============================================  ======  =====  ===========  ========  ========  ================
-  Element                                          Type    Units  Constraints  Required  Default   Notes
-  ===============================================  ======  =====  ===========  ========  ========  ================
-  ``AnnualHeatingEfficiency[Units="AFUE"]/Value``  double  frac   0 - 1        Yes                 Rated efficiency
-  ``extension/FanPowerWatts``                      double  W      >= 0         No        0         Fan power
-  ===============================================  ======  =====  ===========  ========  ========  ================
+  ==========================================================  =======  ======  ===========  ========  ========  ================
+  Element                                                     Type     Units   Constraints  Required  Default   Notes
+  ==========================================================  =======  ======  ===========  ========  ========  ================
+  ``HeatingSystemType/WallFurnace/PilotLight``                boolean                       No        false     Presence of standing pilot light (older systems)
+  ``HeatingSystemType/WallFurnace/extension/PilotLightBtuh``  double   Btu/hr  >= 0         No        500       Pilot light burn rate
+  ``AnnualHeatingEfficiency[Units="AFUE"]/Value``             double   frac    0 - 1        Yes                 Rated efficiency
+  ``extension/FanPowerWatts``                                 double   W       >= 0         No        0         Fan power
+  ==========================================================  =======  ======  ===========  ========  ========  ================
+
+Floor Furnace
+~~~~~~~~~~~~~
+
+If a floor furnace is specified, additional information is entered in ``HeatingSystem``.
+
+  ===========================================================  =======  ======  ===========  ========  ========  ================
+  Element                                                      Type     Units   Constraints  Required  Default   Notes
+  ===========================================================  =======  ======  ===========  ========  ========  ================
+  ``HeatingSystemType/FloorFurnace/PilotLight``                boolean                       No        false     Presence of standing pilot light (older systems)
+  ``HeatingSystemType/FloorFurnace/extension/PilotLightBtuh``  double   Btu/hr  >= 0         No        500       Pilot light burn rate
+  ``AnnualHeatingEfficiency[Units="AFUE"]/Value``              double   frac    0 - 1        Yes                 Rated efficiency
+  ``extension/FanPowerWatts``                                  double   W       >= 0         No        0         Fan power
+  ===========================================================  =======  ======  ===========  ========  ========  ================
 
 .. _hvac_heating_boiler:
 
@@ -1315,13 +1359,15 @@ Boiler
 
 If a boiler is specified, additional information is entered in ``HeatingSystem``.
 
-  ===============================================  =======  =========  ===========  ========  ========  =========================================
-  Element                                          Type     Units      Constraints  Required  Default   Notes
-  ===============================================  =======  =========  ===========  ========  ========  =========================================
-  ``IsSharedSystem``                               boolean             No           false               Whether it serves multiple dwelling units
-  ``DistributionSystem``                           idref    See [#]_   Yes                              ID of attached distribution system
-  ``AnnualHeatingEfficiency[Units="AFUE"]/Value``  double   frac       0 - 1        Yes                 Rated efficiency
-  ===============================================  =======  =========  ===========  ========  ========  =========================================
+  =====================================================  =======  =========  ===========  ========  ========  =========================================
+  Element                                                Type     Units      Constraints  Required  Default   Notes
+  =====================================================  =======  =========  ===========  ========  ========  =========================================
+  ``IsSharedSystem``                                     boolean             No           false               Whether it serves multiple dwelling units
+  ``HeatingSystemType/Boiler/PilotLight``                boolean                          No        false     Presence of standing pilot light (older systems)
+  ``HeatingSystemType/Boiler/extension/PilotLightBtuh``  double   Btu/hr     >= 0         No        500       Pilot light burn rate
+  ``DistributionSystem``                                 idref    See [#]_   Yes                              ID of attached distribution system
+  ``AnnualHeatingEfficiency[Units="AFUE"]/Value``        double   frac       0 - 1        Yes                 Rated efficiency
+  =====================================================  =======  =========  ===========  ========  ========  =========================================
 
   .. [#] For in-unit boilers, HVACDistribution type must be HydronicDistribution (type: "radiator", "baseboard", "radiant floor", or "radiant ceiling") or DSE.
          For shared boilers, HVACDistribution type must be HydronicDistribution (type: "radiator", "baseboard", "radiant floor", "radiant ceiling", or "water loop") or AirDistribution (type: "fan coil").
@@ -1364,12 +1410,14 @@ Stove
 
 If a stove is specified, additional information is entered in ``HeatingSystem``.
 
-  ==================================================  ======  =====  ===========  ========  =========  ===================
-  Element                                             Type    Units  Constraints  Required  Default    Notes
-  ==================================================  ======  =====  ===========  ========  =========  ===================
-  ``AnnualHeatingEfficiency[Units="Percent"]/Value``  double  frac   0 - 1        Yes                  Efficiency
-  ``extension/FanPowerWatts``                         double  W      >= 0         No        40         Fan power
-  ==================================================  ======  =====  ===========  ========  =========  ===================
+  ====================================================  =======  ======  ===========  ========  =========  ===================
+  Element                                               Type     Units   Constraints  Required  Default    Notes
+  ====================================================  =======  ======  ===========  ========  =========  ===================
+  ``HeatingSystemType/Stove/PilotLight``                boolean                       No        false      Presence of standing pilot light (older systems)
+  ``HeatingSystemType/Stove/extension/PilotLightBtuh``  double   Btu/hr  >= 0         No        500        Pilot light burn rate
+  ``AnnualHeatingEfficiency[Units="Percent"]/Value``    double   frac    0 - 1        Yes                  Efficiency
+  ``extension/FanPowerWatts``                           double   W       >= 0         No        40         Fan power
+  ====================================================  =======  ======  ===========  ========  =========  ===================
 
 Portable/Fixed Heater
 ~~~~~~~~~~~~~~~~~~~~~
@@ -1388,12 +1436,14 @@ Fireplace
 
 If a fireplace is specified, additional information is entered in ``HeatingSystem``.
 
-  ==================================================  ======  =====  ===========  ========  =========  ===================
-  Element                                             Type    Units  Constraints  Required  Default    Notes
-  ==================================================  ======  =====  ===========  ========  =========  ===================
-  ``AnnualHeatingEfficiency[Units="Percent"]/Value``  double  frac   0 - 1        Yes                  Efficiency
-  ``extension/FanPowerWatts``                         double  W      >= 0         No        0          Fan power
-  ==================================================  ======  =====  ===========  ========  =========  ===================
+  ========================================================  =======  ======  ===========  ========  =========  ===================
+  Element                                                   Type     Units   Constraints  Required  Default    Notes
+  ========================================================  =======  ======  ===========  ========  =========  ===================
+  ``HeatingSystemType/Fireplace/PilotLight``                boolean                       No        false      Presence of standing pilot light (older systems)
+  ``HeatingSystemType/Fireplace/extension/PilotLightBtuh``  double   Btu/hr  >= 0         No        500        Pilot light burn rate
+  ``AnnualHeatingEfficiency[Units="Percent"]/Value``        double   frac    0 - 1        Yes                  Efficiency
+  ``extension/FanPowerWatts``                               double   W       >= 0         No        0          Fan power
+  ========================================================  =======  ======  ===========  ========  =========  ===================
 
 .. _hvac_cooling:
 
@@ -3116,7 +3166,7 @@ Ceiling fan energy use is calculated per the Energy Rating Rated Home in `ANSI/R
 
 .. note::
 
-  A reduced cooling setpoint can be specified for summer months when ceiling fans are operating.
+  A reduced cooling setpoint can be specified for months when ceiling fans are operating.
   See :ref:`hvac_control` for more information.
 
 HPXML Pools & Hot Tubs

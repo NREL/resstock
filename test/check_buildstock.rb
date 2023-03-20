@@ -10,6 +10,7 @@ require_relative 'integrity_checks'
 options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename(__FILE__)} -o outfile -l lookup_file\n e.g., #{File.basename(__FILE__)} -o /path/to/buildstock.csv -l /path/to/options_lookup.tsv"
+  opts.banner += "\nThe appropriate options_lookup.tsv to check against is the one that will be used in the ResStock analysis."
 
   opts.on('-o', '--output <STRING>', 'Output file name') do |t|
     options[:outfile] = t
@@ -33,7 +34,10 @@ outfile = options[:outfile]
 lookup_file = options[:lookup_file]
 
 t0 = Time.now
-check_buildstock(outfile, lookup_file)
-t1 = Time.now
-
-puts "Checking took: #{((t1 - t0) / 60.0).round(1)} minutes."
+begin
+  check_buildstock(outfile, lookup_file)
+rescue Exception => e
+  puts e.message
+else
+  puts "Checking took: #{((Time.now - t0) / 60.0).round(1)} minutes."
+end

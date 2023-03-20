@@ -185,6 +185,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'invalid-number-of-bedrooms-served' => ['Expected extension/NumberofBedroomsServed to be greater than ../../../BuildingSummary/BuildingConstruction/NumberofBedrooms [context: /HPXML/Building/BuildingDetails/Systems/Photovoltaics/PVSystem[IsSharedSystem="true"], id: "PVSystem1"]'],
                             'invalid-number-of-conditioned-floors' => ['Expected NumberofConditionedFloors to be greater than or equal to NumberofConditionedFloorsAboveGrade [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]'],
                             'invalid-number-of-units-served' => ['Expected NumberofUnitsServed to be greater than 1 [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[IsSharedSystem="true"], id: "WaterHeatingSystem1"]'],
+                            'invalid-pilot-light-heating-system' => ['Expected 1 element(s) for xpath: ../../HeatingSystemFuel[text()!="electricity"]'],
                             'invalid-shared-vent-in-unit-flowrate' => ['Expected RatedFlowRate to be greater than extension/InUnitFlowRate [context: /HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForWholeBuildingVentilation="true" and IsSharedSystem="true"], id: "VentilationFan1"]'],
                             'invalid-timestep' => ['Expected Timestep to be 60, 30, 20, 15, 12, 10, 6, 5, 4, 3, 2, or 1'],
                             'invalid-timezone-utcoffset-low' => ["Element 'UTCOffset': [facet 'minInclusive'] The value '-13.0' is less than the minimum value allowed ('-12')."],
@@ -481,6 +482,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['invalid-number-of-units-served'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-water-heater.xml'))
         hpxml.water_heating_systems[0].number_of_units_served = 1
+      elsif ['invalid-pilot-light-heating-system'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-floor-furnace-propane-only-pilot-light.xml'))
+        hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
       elsif ['invalid-shared-vent-in-unit-flowrate'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-mechvent.xml'))
         hpxml.ventilation_fans[0].rated_flow_rate = 80

@@ -1034,7 +1034,7 @@ class ReportUtilityBillsTest < MiniTest::Test
             end
             if entry.name.include? 'North Slope Borough Power Light - Aged or Handicappedseniors over 60'
               # No cost if < 600 kWh/month, which is the case for PV_None.csv
-              assert_nil(actual_bills['Test: Electricity: Total (USD)'])
+              assert_equal(0, actual_bills['Test: Electricity: Total (USD)'])
             else
               assert_operator(actual_bills['Test: Electricity: Total (USD)'], :>, 0)
             end

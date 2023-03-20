@@ -302,7 +302,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         end
 
         hpxml_path = File.absolute_path(File.join(@output_path, hpxml_file))
-        hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
+        hpxml = HPXML.new(hpxml_path: hpxml_path)
         hpxml.header.xml_generated_by = 'build_residential_hpxml_test.rb'
         hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
 

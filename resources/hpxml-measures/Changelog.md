@@ -11,10 +11,16 @@ __New Features__
   - Provides a warning if `BackupHeatingSwitchoverTemperature` or `BackupHeatingLockoutTemperature` are low and may cause unmet hours.
 - LightingGroups can now be specified using kWh/year annual consumption values as an alternative to fractions of different lighting types.
 - Allows building air leakage to be specified using CFMnatural or EffectiveLeakageArea.
-- Allows modeling one or more occupant vacancy periods (`VacancyPeriods` in the HPXML file).
+- Allows modeling a pilot light for non-electric heating systems (furnaces, stoves, boilers, and fireplaces).
+- Window shading seasons now based on calendar dates (e.g., summer: May 1-Sep 30 in northern hemisphere) instead of monthly outdoor temperatures.
+- Allows modeling one or more occupant vacancy periods (`VacancyPeriods`) and power outage periods (`PowerOutagePeriods`) in the HPXML file.
 - ReportSimulationOutput measure:
+  - Peak summer/winter electricity outputs are now based on Jun/July/Aug and Dec/Jan/Feb months, not HVAC heating/cooling operation.
+  - Annual emissions outputs now include all fuel/end uses, even if zero.
   - Allows specifying the number of decimal places for timeseries output.
   - Msgpack outputs are no longer rounded (since there is no file size penalty to storing full precision).
+- ReportUtilityBills measure:
+  - Utility bill outputs now include all fuels, even if zero.
 - **Breaking change**: Updates component loads outputs:
   - Replaces `Windows` and `Skylights` with `Windows Conduction`, `Windows Solar`, `Skylights Conduction`, and `Skylights Solar`.
   - Disaggregates `Lighting` from `Internal Gains`.

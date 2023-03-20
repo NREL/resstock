@@ -388,23 +388,108 @@ class ReportSimulationOutputTest < MiniTest::Test
     emission_scenarios.each do |scenario|
       cols += ["Emissions: #{scenario}: Total (lb)",
                "Emissions: #{scenario}: Electricity: Total (lb)",
+               "Emissions: #{scenario}: Electricity: Heating (lb)",
+               "Emissions: #{scenario}: Electricity: Heating Heat Pump Backup (lb)",
                "Emissions: #{scenario}: Electricity: Heating Fans/Pumps (lb)",
                "Emissions: #{scenario}: Electricity: Cooling (lb)",
                "Emissions: #{scenario}: Electricity: Cooling Fans/Pumps (lb)",
                "Emissions: #{scenario}: Electricity: Hot Water (lb)",
+               "Emissions: #{scenario}: Electricity: Hot Water Recirc Pump (lb)",
+               "Emissions: #{scenario}: Electricity: Hot Water Solar Thermal Pump (lb)",
                "Emissions: #{scenario}: Electricity: Lighting Interior (lb)",
+               "Emissions: #{scenario}: Electricity: Lighting Garage (lb)",
                "Emissions: #{scenario}: Electricity: Lighting Exterior (lb)",
+               "Emissions: #{scenario}: Electricity: Mech Vent (lb)",
+               "Emissions: #{scenario}: Electricity: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Electricity: Mech Vent Precooling (lb)",
+               "Emissions: #{scenario}: Electricity: Whole House Fan (lb)",
                "Emissions: #{scenario}: Electricity: Refrigerator (lb)",
+               "Emissions: #{scenario}: Electricity: Freezer (lb)",
+               "Emissions: #{scenario}: Electricity: Dehumidifier (lb)",
                "Emissions: #{scenario}: Electricity: Dishwasher (lb)",
                "Emissions: #{scenario}: Electricity: Clothes Washer (lb)",
                "Emissions: #{scenario}: Electricity: Clothes Dryer (lb)",
                "Emissions: #{scenario}: Electricity: Range/Oven (lb)",
+               "Emissions: #{scenario}: Electricity: Ceiling Fan (lb)",
                "Emissions: #{scenario}: Electricity: Television (lb)",
                "Emissions: #{scenario}: Electricity: Plug Loads (lb)",
+               "Emissions: #{scenario}: Electricity: Electric Vehicle Charging (lb)",
+               "Emissions: #{scenario}: Electricity: Well Pump (lb)",
+               "Emissions: #{scenario}: Electricity: Pool Heater (lb)",
+               "Emissions: #{scenario}: Electricity: Pool Pump (lb)",
+               "Emissions: #{scenario}: Electricity: Hot Tub Heater (lb)",
+               "Emissions: #{scenario}: Electricity: Hot Tub Pump (lb)",
                "Emissions: #{scenario}: Electricity: PV (lb)",
+               "Emissions: #{scenario}: Electricity: Generator (lb)",
                "Emissions: #{scenario}: Electricity: Battery (lb)",
                "Emissions: #{scenario}: Natural Gas: Total (lb)",
-               "Emissions: #{scenario}: Natural Gas: Heating (lb)"]
+               "Emissions: #{scenario}: Natural Gas: Heating (lb)",
+               "Emissions: #{scenario}: Natural Gas: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Natural Gas: Hot Water (lb)",
+               "Emissions: #{scenario}: Natural Gas: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Natural Gas: Range/Oven (lb)",
+               "Emissions: #{scenario}: Natural Gas: Pool Heater (lb)",
+               "Emissions: #{scenario}: Natural Gas: Hot Tub Heater (lb)",
+               "Emissions: #{scenario}: Natural Gas: Grill (lb)",
+               "Emissions: #{scenario}: Natural Gas: Lighting (lb)",
+               "Emissions: #{scenario}: Natural Gas: Fireplace (lb)",
+               "Emissions: #{scenario}: Natural Gas: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Natural Gas: Generator (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Total (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Heating (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Hot Water (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Range/Oven (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Grill (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Lighting (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Fireplace (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Generator (lb)",
+               "Emissions: #{scenario}: Propane: Total (lb)",
+               "Emissions: #{scenario}: Propane: Heating (lb)",
+               "Emissions: #{scenario}: Propane: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Propane: Hot Water (lb)",
+               "Emissions: #{scenario}: Propane: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Propane: Range/Oven (lb)",
+               "Emissions: #{scenario}: Propane: Grill (lb)",
+               "Emissions: #{scenario}: Propane: Lighting (lb)",
+               "Emissions: #{scenario}: Propane: Fireplace (lb)",
+               "Emissions: #{scenario}: Propane: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Propane: Generator (lb)",
+               "Emissions: #{scenario}: Wood Cord: Total (lb)",
+               "Emissions: #{scenario}: Wood Cord: Heating (lb)",
+               "Emissions: #{scenario}: Wood Cord: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Wood Cord: Hot Water (lb)",
+               "Emissions: #{scenario}: Wood Cord: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Wood Cord: Range/Oven (lb)",
+               "Emissions: #{scenario}: Wood Cord: Grill (lb)",
+               "Emissions: #{scenario}: Wood Cord: Lighting (lb)",
+               "Emissions: #{scenario}: Wood Cord: Fireplace (lb)",
+               "Emissions: #{scenario}: Wood Cord: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Wood Cord: Generator (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Total (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Heating (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Hot Water (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Range/Oven (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Grill (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Lighting (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Fireplace (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Generator (lb)",
+               "Emissions: #{scenario}: Coal: Total (lb)",
+               "Emissions: #{scenario}: Coal: Heating (lb)",
+               "Emissions: #{scenario}: Coal: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Coal: Hot Water (lb)",
+               "Emissions: #{scenario}: Coal: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Coal: Range/Oven (lb)",
+               "Emissions: #{scenario}: Coal: Grill (lb)",
+               "Emissions: #{scenario}: Coal: Lighting (lb)",
+               "Emissions: #{scenario}: Coal: Fireplace (lb)",
+               "Emissions: #{scenario}: Coal: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Coal: Generator (lb)"]
     end
     return cols
   end
@@ -640,7 +725,7 @@ class ReportSimulationOutputTest < MiniTest::Test
   end
 
   def test_timeseries_hourly_enduses_vacancy
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-vacancy.xml'),
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-vacancy.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_end_use_consumptions' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -656,6 +741,66 @@ class ReportSimulationOutputTest < MiniTest::Test
     _check_for_zero_timeseries_values(timeseries_csv, ['End Use: Electricity: Plug Loads'], 0, 31 * 24 - 1) # Jan
     _check_for_zero_timeseries_values(timeseries_csv, ['End Use: Electricity: Plug Loads'], (31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30) * 24 + 1, -1) # Dec
     _check_for_nonzero_timeseries_values(timeseries_csv, ['End Use: Electricity: Refrigerator'])
+  end
+
+  def test_timeseries_hourly_enduses_power_outage
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_end_use_consumptions' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsEndUses
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    _check_for_zero_timeseries_values(timeseries_csv, ['End Use: Electricity: Plug Loads'], (31 + 28 + 31 + 30 + 31 + 30) * 24 + 4, (31 + 28 + 31 + 30 + 31 + 30 + 31) * 24 - 12) # Jul
+  end
+
+  def test_timeseries_hourly_enduses_power_outage_natvent_availability
+    energy_use_total_col = 'Energy Use: Total'
+    temperature_living_space_col = 'Temperature: Living Space'
+
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_total_consumptions' => true,
+                  'include_timeseries_zone_temperatures' => true }
+    _annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(timeseries_csv))
+    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_living_space_col])
+    schedule_regular_total = values[energy_use_total_col].sum(0.0)
+    schedule_regular_temp = values[temperature_living_space_col].sum(0.0) / values[temperature_living_space_col].size
+
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage-natvent-available.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_total_consumptions' => true,
+                  'include_timeseries_zone_temperatures' => true }
+    _annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(timeseries_csv))
+    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_living_space_col])
+    schedule_available_total = values[energy_use_total_col].sum(0.0)
+    schedule_available_temp = values[temperature_living_space_col].sum(0.0) / values[temperature_living_space_col].size
+
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage-natvent-unavailable.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_total_consumptions' => true,
+                  'include_timeseries_zone_temperatures' => true }
+    _annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(timeseries_csv))
+    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_living_space_col])
+    schedule_unavailable_total = values[energy_use_total_col].sum(0.0)
+    schedule_unavailable_temp = values[temperature_living_space_col].sum(0.0) / values[temperature_living_space_col].size
+
+    assert_operator(schedule_regular_total, :>, schedule_available_total)
+    assert_operator(schedule_available_total, :<, schedule_unavailable_total)
+    assert_operator(schedule_unavailable_total, :<, schedule_regular_total)
+
+    assert_operator(schedule_regular_temp, :>, schedule_available_temp)
+    assert_operator(schedule_available_temp, :<, schedule_unavailable_temp)
+    assert_operator(schedule_unavailable_temp, :>, schedule_regular_temp)
   end
 
   def test_timeseries_hourly_hotwateruses
@@ -1339,7 +1484,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     return steps.uniq.size
   end
 
-  def _check_for_nonzero_avg_timeseries_value(timeseries_csv, timeseries_cols)
+  def _get_values(timeseries_csv, timeseries_cols)
     values = {}
     timeseries_cols.each do |col|
       values[col] = []
@@ -1353,6 +1498,12 @@ class ReportSimulationOutputTest < MiniTest::Test
         values[col] << Float(row[col])
       end
     end
+    return values
+  end
+
+  def _check_for_nonzero_avg_timeseries_value(timeseries_csv, timeseries_cols)
+    values = _get_values(timeseries_csv, timeseries_cols)
+
     timeseries_cols.each do |col|
       avg_value = values[col].sum(0.0) / values[col].size
       assert_operator(avg_value, :!=, 0)
@@ -1360,19 +1511,8 @@ class ReportSimulationOutputTest < MiniTest::Test
   end
 
   def _check_for_zero_timeseries_values(timeseries_csv, timeseries_cols, start_ix, end_ix)
-    values = {}
-    timeseries_cols.each do |col|
-      values[col] = []
-    end
-    CSV.foreach(timeseries_csv, headers: true) do |row|
-      next if row['Time'].nil?
+    values = _get_values(timeseries_csv, timeseries_cols)
 
-      timeseries_cols.each do |col|
-        fail "Unexpected column: #{col}." if row[col].nil?
-
-        values[col] << Float(row[col])
-      end
-    end
     timeseries_cols.each do |col|
       has_only_zero_timeseries_values = values[col][start_ix..end_ix].all? { |x| x == 0 }
       assert(has_only_zero_timeseries_values)
@@ -1381,19 +1521,7 @@ class ReportSimulationOutputTest < MiniTest::Test
 
   def _check_for_nonzero_timeseries_values(timeseries_csv, timeseries_cols)
     # check that every day has non zero values for baseload equipment (e.g., refrigerator)
-    values = {}
-    timeseries_cols.each do |col|
-      values[col] = []
-    end
-    CSV.foreach(timeseries_csv, headers: true) do |row|
-      next if row['Time'].nil?
-
-      timeseries_cols.each do |col|
-        fail "Unexpected column: #{col}." if row[col].nil?
-
-        values[col] << Float(row[col])
-      end
-    end
+    values = _get_values(timeseries_csv, timeseries_cols)
 
     timeseries_cols.each do |col|
       has_no_zero_timeseries_value = !values[col].include?(0.0)

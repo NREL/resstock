@@ -205,6 +205,32 @@ class HPXMLDefaults
       hpxml.header.natvent_days_per_week = 3
       hpxml.header.natvent_days_per_week_isdefaulted = true
     end
+
+    hpxml.header.vacancy_periods.each do |vacancy_period|
+      if vacancy_period.begin_hour.nil?
+        vacancy_period.begin_hour = 0
+        vacancy_period.begin_hour_isdefaulted = true
+      end
+      if vacancy_period.end_hour.nil?
+        vacancy_period.end_hour = 24
+        vacancy_period.end_hour_isdefaulted = true
+      end
+    end
+
+    hpxml.header.power_outage_periods.each do |power_outage_period|
+      if power_outage_period.begin_hour.nil?
+        power_outage_period.begin_hour = 0
+        power_outage_period.begin_hour_isdefaulted = true
+      end
+      if power_outage_period.end_hour.nil?
+        power_outage_period.end_hour = 24
+        power_outage_period.end_hour_isdefaulted = true
+      end
+      if power_outage_period.natvent_availability.nil?
+        power_outage_period.natvent_availability = HPXML::ScheduleRegular
+        power_outage_period.natvent_availability_isdefaulted = true
+      end
+    end
   end
 
   def self.apply_emissions_scenarios(hpxml, has_fuel)
@@ -1292,6 +1318,25 @@ class HPXMLDefaults
           heat_pump.fan_watts_per_cfm = mini_split_ductless_watts_per_cfm
         end
         heat_pump.fan_watts_per_cfm_isdefaulted = true
+      end
+    end
+
+    # Pilot Light
+    hpxml.heating_systems.each do |heating_system|
+      next unless [HPXML::HVACTypeFurnace,
+                   HPXML::HVACTypeWallFurnace,
+                   HPXML::HVACTypeFloorFurnace,
+                   HPXML::HVACTypeFireplace,
+                   HPXML::HVACTypeStove,
+                   HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
+
+      if heating_system.pilot_light.nil?
+        heating_system.pilot_light = false
+        heating_system.pilot_light_isdefaulted = true
+      end
+      if heating_system.pilot_light && heating_system.pilot_light_btuh.nil?
+        heating_system.pilot_light_btuh = 500.0
+        heating_system.pilot_light_btuh_isdefaulted = true
       end
     end
 

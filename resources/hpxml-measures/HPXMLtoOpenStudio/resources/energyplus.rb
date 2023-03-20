@@ -9,6 +9,7 @@ class EPlus
   EMSActuatorFanPressureRise = 'Fan', 'Fan Pressure Rise'
   EMSActuatorFanTotalEfficiency = 'Fan', 'Fan Total Efficiency'
   EMSActuatorScheduleConstantValue = 'Schedule:Constant', 'Schedule Value'
+  EMSActuatorScheduleYearValue = 'Schedule:Year', 'Schedule Value'
   EMSActuatorScheduleFileValue = 'Schedule:File', 'Schedule Value'
   EMSActuatorSurfaceViewFactorToGround = 'Surface', 'View Factor To Ground'
   EMSActuatorZoneInfiltrationFlowRate = 'Zone Infiltration', 'Air Exchange Flow Rate'
