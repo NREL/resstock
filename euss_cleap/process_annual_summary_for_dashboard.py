@@ -12,7 +12,6 @@ More information can be found here:
 https://oedi-data-lake.s3.amazonaws.com/nrel-pds-building-stock/end-use-load-profiles-for-us-building-stock/2022/EUSS_ResRound1_Technical_Documentation.pdf
 
 Created by: Lixi.Liu@nrel.gov
-Modified by: Katelyn.Stenger@nrel.gov
 Created on: Oct 4, 2022
 """
 
@@ -441,6 +440,8 @@ class SavingsExtraction:
                 for eu in end_uses:
                     if eu == "range_oven":
                         eu = "cooking_range"
+                    if eu == "hot_water":
+                        eu = "water_heater_efficiency"
                     if eu in option:
                         cost_col = col.replace("name", "cost_usd")
                         assert cost_col in dfu.columns, f"{cost_col} not in dfu columns"
@@ -546,10 +547,15 @@ class SavingsExtraction:
             dfb = dfb.loc[cond].reset_index(drop=True)
 
         # check number of bldgs that ONLY have the end_uses upgraded
-        cond = dfu[name_cols_else].fillna("").sum(axis=1)  # replace None with ""
-        cond = cond == ""  # where all cols are None
+        if len(name_cols_else)==0:
+            # no other columns, so all have the end_uses upgraded
+            n_applied = len(dfu)
+        else:
+            cond = dfu[name_cols_else].fillna("").sum(axis=1)  # replace None with ""
+            cond = cond == ""  # where all cols are None
+            n_applied = cond.sum()
         print(
-            f"* upgrade costs | {cond.sum()} / {len(dfu)} have upgrade for {end_uses} only"
+            f"* upgrade costs | {n_applied} / {len(dfu)} have upgrade for {end_uses} only"
         )
 
         # calculate
