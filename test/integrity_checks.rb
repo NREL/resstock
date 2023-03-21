@@ -294,6 +294,7 @@ def check_buildstock(output_file, lookup_file, lookup_csv_data = nil)
   csv.each do |row|
     row.each do |parameter_name, option_name|
       next if parameter_name == 'Building'
+      next if parameter_name == 'sample_weight'
 
       unless parameters_options.keys.include? parameter_name
         parameters_options[parameter_name] = []
@@ -325,6 +326,7 @@ def check_buildstock(output_file, lookup_file, lookup_csv_data = nil)
     args_map = {}
     row.each do |parameter_name, option_name|
       next if parameter_name == 'Building'
+      next if parameter_name == 'sample_weight'
 
       parameters_options_measure_args[parameter_name][option_name].each do |measure_name, args|
         args.keys.each do |arg|
