@@ -35,11 +35,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The building unit number (between 1 and the number of samples).')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('number_of_buildings_represented', false)
-    arg.setDisplayName('Number of Buildings Represented')
-    arg.setDescription('The total number of buildings represented by the existing building models.')
-    args << arg
-
     arg = OpenStudio::Ruleset::OSArgument.makeDoubleArgument('sample_weight', false)
     arg.setDisplayName('Sample Weight of Simulation')
     arg.setDescription('Number of buildings this simulation represents.')
@@ -580,34 +575,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     register_value(runner, 'weather_file_latitude', epw_file.latitude)
     register_value(runner, 'weather_file_longitude', epw_file.longitude)
 
-    # Determine weight
-    if args['number_of_buildings_represented'].is_initialized
-      total_samples = nil
-      runner.analysis[:analysis][:problem][:workflow].each do |wf|
-        next if wf[:name] != 'build_existing_model'
-
-        wf[:variables].each do |v|
-          next if v[:argument][:name] != 'building_id'
-
-          total_samples = v[:maximum].to_f
-        end
-      end
-      if total_samples.nil?
-        runner.registerError('Could not retrieve value for number_of_buildings_represented.')
-        return false
-      end
-      weight = args['number_of_buildings_represented'].get / total_samples
-      register_value(runner, 'weight', weight.to_s)
-    end
-
-    sample_weight = args['sample_weight'].is_initialized ? args['sample_weight'].get : nil
     if bldg_data.keys.include?('sample_weight')
       sample_weight = bldg_data['sample_weight']
       register_value(runner, 'sample_weight', sample_weight.to_s)
-    end
-
-    if !sample_weight.nil?
-      register_value(runner, 'weight', sample_weight.to_s)
     end
 
     return true
