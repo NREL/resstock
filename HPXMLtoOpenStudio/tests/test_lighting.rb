@@ -27,7 +27,7 @@ class HPXMLtoOpenStudioLightingTest < MiniTest::Test
       kwh_yr = UnitConversions.convert(hrs * ltg.exteriorLightsDefinition.designLevel * ltg.multiplier, 'Wh', 'kWh')
       return kwh_yr
     end
-    return
+    return 0.0
   end
 
   def test_lighting
@@ -86,6 +86,21 @@ class HPXMLtoOpenStudioLightingTest < MiniTest::Test
     # Check exterior lighting
     ext_kwh_yr = hpxml.lighting_groups.select { |lg| lg.location == HPXML::LocationExterior }.map { |lg| lg.kwh_per_year }[0]
     assert_in_delta(ext_kwh_yr, get_kwh_per_year(model, Constants.ObjectNameExteriorLighting), 1.0)
+  end
+
+  def test_lighting_none
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-lighting-none.xml'))
+    model, _hpxml = _test_measure(args_hash)
+
+    # Check interior lighting
+    assert_equal(0.0, get_kwh_per_year(model, Constants.ObjectNameInteriorLighting))
+
+    # Check garage lighting
+    assert_equal(0.0, get_kwh_per_year(model, Constants.ObjectNameGarageLighting))
+
+    # Check exterior lighting
+    assert_equal(0.0, get_kwh_per_year(model, Constants.ObjectNameExteriorLighting))
   end
 
   def _test_measure(args_hash)

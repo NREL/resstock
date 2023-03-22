@@ -11,25 +11,14 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
-      <SchedulesFilePath>../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv</SchedulesFilePath>
       <AdditionalProperties>
-        <ParentHPXMLFile>base-schedules-detailed-occupancy-stochastic.xml</ParentHPXMLFile>
+        <ParentHPXMLFile>base-lighting-none.xml</ParentHPXMLFile>
       </AdditionalProperties>
       <UtilityBillScenarios>
         <UtilityBillScenario>
           <Name>Bills</Name>
         </UtilityBillScenario>
       </UtilityBillScenarios>
-      <PowerOutagePeriods>
-        <PowerOutagePeriod>
-          <BeginMonth>12</BeginMonth>
-          <BeginDayOfMonth>1</BeginDayOfMonth>
-          <BeginHourOfDay>5</BeginHourOfDay>
-          <EndMonth>1</EndMonth>
-          <EndDayOfMonth>31</EndDayOfMonth>
-          <EndHourOfDay>14</EndHourOfDay>
-        </PowerOutagePeriod>
-      </PowerOutagePeriods>
     </extension>
   </SoftwareInfo>
   <Building>
@@ -371,6 +360,9 @@
             <SystemIdentifier id='HVACControl1'/>
             <SetpointTempHeatingSeason>68.0</SetpointTempHeatingSeason>
             <SetpointTempCoolingSeason>78.0</SetpointTempCoolingSeason>
+            <extension>
+              <CeilingFanSetpointTempCoolingSeasonOffset>0.5</CeilingFanSetpointTempCoolingSeasonOffset>
+            </extension>
           </HVACControl>
           <HVACDistribution>
             <SystemIdentifier id='HVACDistribution1'/>
@@ -494,54 +486,14 @@
         </Oven>
       </Appliances>
       <Lighting>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup1'/>
-          <Location>interior</Location>
-          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
-          <LightingType>
-            <CompactFluorescent/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup2'/>
-          <Location>interior</Location>
-          <FractionofUnitsInLocation>0.1</FractionofUnitsInLocation>
-          <LightingType>
-            <FluorescentTube/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup3'/>
-          <Location>interior</Location>
-          <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
-          <LightingType>
-            <LightEmittingDiode/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup4'/>
-          <Location>exterior</Location>
-          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
-          <LightingType>
-            <CompactFluorescent/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup5'/>
-          <Location>exterior</Location>
-          <FractionofUnitsInLocation>0.1</FractionofUnitsInLocation>
-          <LightingType>
-            <FluorescentTube/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup6'/>
-          <Location>exterior</Location>
-          <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
-          <LightingType>
-            <LightEmittingDiode/>
-          </LightingType>
-        </LightingGroup>
+        <CeilingFan>
+          <SystemIdentifier id='CeilingFan1'/>
+          <Airflow>
+            <FanSpeed>medium</FanSpeed>
+            <Efficiency>100.0</Efficiency>
+          </Airflow>
+          <Count>4</Count>
+        </CeilingFan>
       </Lighting>
       <MiscLoads>
         <PlugLoad>

@@ -15,6 +15,7 @@ class Lighting
       end
     end
 
+    # Calculate interior lighting kWh/yr
     int_kwh = kwhs_per_year[HPXML::LocationInterior]
     if int_kwh.nil?
       int_kwh = calc_interior_energy(eri_version, cfa,
@@ -23,7 +24,9 @@ class Lighting
                                      fractions[[HPXML::LocationInterior, HPXML::LightingTypeLED]],
                                      lighting.interior_usage_multiplier)
     end
+    int_kwh = 0.0 if int_kwh.nil?
 
+    # Calculate exterior lighting kWh/yr
     ext_kwh = kwhs_per_year[HPXML::LocationExterior]
     if ext_kwh.nil?
       ext_kwh = calc_exterior_energy(eri_version, cfa,
@@ -32,7 +35,9 @@ class Lighting
                                      fractions[[HPXML::LocationExterior, HPXML::LightingTypeLED]],
                                      lighting.exterior_usage_multiplier)
     end
+    ext_kwh = 0.0 if ext_kwh.nil?
 
+    # Calculate garage lighting kWh/yr
     grg_kwh = kwhs_per_year[HPXML::LocationGarage]
     if grg_kwh.nil?
       gfa = 0 # Garage floor area
@@ -46,12 +51,9 @@ class Lighting
                                    fractions[[HPXML::LocationGarage, HPXML::LightingTypeLED]],
                                    lighting.garage_usage_multiplier)
     end
+    grg_kwh = 0.0 if grg_kwh.nil?
 
-    if int_kwh.nil? || ext_kwh.nil? || grg_kwh.nil?
-      return
-    end
-
-    # Add lighting to each conditioned space
+    # Add lighting to conditioned space
     if int_kwh > 0
 
       # Create schedule
@@ -96,7 +98,7 @@ class Lighting
       ltg.setSchedule(interior_sch)
     end
 
-    # Add lighting to each garage space
+    # Add lighting to garage space
     if grg_kwh > 0
 
       # Create schedule
@@ -131,6 +133,7 @@ class Lighting
       ltg.setSchedule(garage_sch)
     end
 
+    # Add exterior lighting
     if ext_kwh > 0
 
       # Create schedule
@@ -161,6 +164,7 @@ class Lighting
       ltg.setSchedule(exterior_sch)
     end
 
+    # Add exterior holiday lighting
     if not lighting.holiday_kwh_per_day.nil?
 
       # Create schedule
