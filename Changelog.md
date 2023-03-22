@@ -9,6 +9,7 @@ __New Features__
   - Allows `CompressorLockoutTemperature` as an optional input to control the minimum temperature the compressor can operate at.
   - Updates defaults for `CompressorLockoutTemperature` and `BackupHeatingLockoutTemperature`.
   - Provides a warning if `BackupHeatingSwitchoverTemperature` or `BackupHeatingLockoutTemperature` are low and may cause unmet hours.
+- **Breaking change**: Infiltration for SFA/MF dwelling units must include `TypeOfInfiltrationTest` ("compartmentalization test" or "guarded test").
 - LightingGroups can now be specified using kWh/year annual consumption values as an alternative to fractions of different lighting types.
 - LightingGroups for interior, exterior, and garage are no longer required; if not provided, these lighting uses will not be modeled.
 - Allows building air leakage to be specified using CFMnatural or EffectiveLeakageArea.
@@ -32,6 +33,7 @@ __Bugfixes__
 - BuildResidentialScheduleFile measure now excludes columns for end uses that are not stochastically generated.
 - Fixes operational calculation when the number of residents is set to zero.
 - Fixes possible utility bill calculation error for a home with PV using a detailed electric utility rate.
+- Fixes defaulted mechanical ventilation flow rate for SFA/MF buildings, with respect to infiltration credit.
 
 ## OpenStudio-HPXML v1.5.1
 

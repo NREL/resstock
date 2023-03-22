@@ -649,25 +649,31 @@ Also note that wall and roof surfaces do not require an azimuth/orientation to b
 Rather, only the windows/skylights themselves require an azimuth/orientation. 
 Thus, software tools can choose to use a single wall (or roof) surface to represent multiple wall (or roof) surfaces for the entire building if all their other properties (construction type, interior/exterior adjacency, etc.) are identical.
 
+.. _air_infiltration:
+
 HPXML Air Infiltration
 **********************
 
 Building air leakage is entered in ``/HPXML/Building/BuildingDetails/Enclosure/AirInfiltration/AirInfiltrationMeasurement``.
 
-  ====================================  ======  =====  ===========  =========  =========================  ===============================================
-  Element                               Type    Units  Constraints  Required   Default                    Notes
-  ====================================  ======  =====  ===========  =========  =========================  ===============================================
-  ``SystemIdentifier``                  id                          Yes                                   Unique identifier
-  ``InfiltrationVolume``                double  ft3    > 0          No         ConditionedBuildingVolume  Volume associated with infiltration measurement
-  ``InfiltrationHeight``                double  ft     > 0          No         See [#]_                   Height associated with infiltration measurement [#]_
-  ====================================  ======  =====  ===========  =========  =========================  ===============================================
+  =====================================  ======  =====  ===========  =========  =========================  ===============================================
+  Element                                Type    Units  Constraints  Required   Default                    Notes
+  =====================================  ======  =====  ===========  =========  =========================  ===============================================
+  ``SystemIdentifier``                   id                          Yes                                   Unique identifier
+  ``TypeOfInfiltrationTest``             string         See [#]_     See [#]_                              Type of multifamily infiltration test
+  ``InfiltrationVolume``                 double  ft3    > 0          No         ConditionedBuildingVolume  Volume associated with infiltration measurement
+  ``InfiltrationHeight``                 double  ft     > 0          No         See [#]_                   Height associated with infiltration measurement [#]_
+  ``extension/Aext``                     double  frac   > 0          No         See [#]_                   Exterior area ratio for SFA/MF compartmentalization test
+  =====================================  ======  =====  ===========  =========  =========================  ===============================================
 
+  .. [#] TypeOfInfiltrationTest choices are "compartmentalization test" or "guarded test".
+  .. [#] TypeOfInfiltrationTest required if single-family attached or apartment unit.
+         Use "compartmentalization test" if the provided infiltration value represents the total infiltration to the dwelling unit, in which case it will be adjusted by ``extension/Aext``.
+         Use "guarded test" if the provided infiltration value represents the infiltration to the dwelling unit from outside only.
   .. [#] If InfiltrationHeight not provided, it is inferred from other inputs (e.g., conditioned floor area, number of conditioned floors above-grade, above-grade foundation wall height, etc.).
   .. [#] InfiltrationHeight is defined as the vertical distance between the lowest and highest above-grade points within the pressure boundary, per ASHRAE 62.2.
-
-.. note::
-
-  For attached and multifamily dwelling units, the provided infiltration rate should exclude air exchange from, e.g., adjacent dwelling units.
+  .. [#] If Aext not provided and TypeOfInfiltrationTest is "compartmentalization test", defaults for single-family attached and apartment units to the ratio of exterior (adjacent to outside) envelope surface area to total (adjacent to outside, other dwelling units, or other MF space) envelope surface area, as defined by `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_ and `ASHRAE 62.2-2019 <https://www.techstreet.com/ashrae/standards/ashrae-62-2-2019?product_id=2087691>`_.
+         If single-family detached or TypeOfInfiltrationTest is "guarded test", Aext is 1.
 
 In addition, one of the following air leakage types must also be defined:
 
@@ -2204,7 +2210,7 @@ If not entered, the simulation will not include mechanical ventilation.
          | Qfan = required mechanical ventilation rate (cfm)
          | Qtot = total required ventilation rate (cfm) = 0.03 * ConditionedFloorArea + 7.5*(NumberofBedrooms + 1)
          | Qinf = infiltration rate (cfm)
-         | Aext = 1 for single-family detached, otherwise ratio of exterior envelope surface area not attached to garages or other dwelling units to total envelope surface area
+         | Aext = 1 if single-family detached or TypeOfInfiltrationTest is "guarded test", otherwise ratio of SFA/MF exterior envelope surface area to total envelope surface area as described in :ref:`air_infiltration`
          | Φ = 1 for balanced ventilation systems, and Qinf/Qtot otherwise
   .. [#] For a central fan integrated supply system, the flow rate should equal the amount of outdoor air provided to the distribution system, not the total airflow through the distribution system.
   .. [#] HoursInOperation is optional unless the VentilationFan refers to the supplemental fan of a CFIS system, in which case it is not allowed.

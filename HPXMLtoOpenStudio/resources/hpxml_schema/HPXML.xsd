@@ -231,7 +231,7 @@
 			<xs:element minOccurs="0" name="InsulationCondition" type="InsulationCondition"/>
 			<xs:element minOccurs="0" name="AssemblyEffectiveRValue" type="AssemblyRValue">
 				<xs:annotation>
-					<xs:documentation>This should indicate the effective R-value of the complete assembly including any air films or other treatments.</xs:documentation>
+					<xs:documentation>This should indicate the effective R-value of the complete assembly including any air films or other treatments. For below-grade surfaces adjacent to ground, it should not include the insulating effect of the ground.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element minOccurs="0" name="MisalignedInsulation" type="HPXMLBoolean"/>
@@ -1082,11 +1082,6 @@
 									<xs:element minOccurs="0" name="Emittance" type="Emittance"/>
 									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"/>
 									<xs:element minOccurs="0" maxOccurs="1" name="Insulation" type="InsulationInfo"/>
-									<xs:element minOccurs="0" name="Vented" type="HPXMLBoolean">
-										<xs:annotation>
-											<xs:documentation>Indicates whether the walls are vented or not. For example, the walls of a mobile home may be intentionally ventilated to remove accumulated moisture by having corrugated metal siding open at the bottom to provide space for air to flow between the exterior and interior wall materials.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
 										<xs:complexType>
 											<xs:sequence>
@@ -1193,6 +1188,11 @@
 									</xs:element>
 									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"/>
 									<xs:element minOccurs="0" maxOccurs="1" name="Insulation" type="InsulationInfo"/>
+									<xs:element minOccurs="0" name="MobileHomeBellyOrWing" type="MobileHomeBellyOrWing">
+										<xs:annotation>
+											<xs:documentation>Indicate whether the floor section is a mobile home belly or wing section. Omit if not applicable. For a mobile home, if the foundation type is a belly and wing, ExteriorAdjacentTo should be set to 'outside'.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -1305,6 +1305,11 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="AttachedToRoof" type="LocalReference"/>
+									<xs:element minOccurs="0" name="AttachedToFloor" type="LocalReference">
+										<xs:annotation>
+											<xs:documentation>For a skylight that includes a shaft or a sun tunnel, reference the attic floor that it penetrates.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
 										<xs:complexType>
 											<xs:sequence>
@@ -1342,11 +1347,7 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="Orientation" type="OrientationType"/>
-									<xs:element minOccurs="0" name="DoorType" type="DoorType">
-										<xs:annotation>
-											<xs:documentation>DEPRECATION WARNING: The "storm" choice will be deprecated in the future; use the StormDoor element instead.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
+									<xs:element minOccurs="0" name="DoorType" type="DoorType"/>
 									<xs:element name="DoorMaterial" type="DoorMaterial" minOccurs="0"/>
 									<xs:element minOccurs="0" name="WeatherStripping" type="HPXMLBoolean"/>
 									<xs:element name="StormDoor" type="HPXMLBoolean" minOccurs="0"/>
@@ -1428,12 +1429,12 @@
 											<xs:documentation>[sq.ft.] Conditioned floor area that this distribution system serves.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="AnnualHeatingDistributionSystemEfficiency" type="Fraction">
+									<xs:element minOccurs="0" name="AnnualHeatingDistributionSystemEfficiency" type="FractionExcludingZero">
 										<xs:annotation>
 											<xs:documentation>For software that does not calculate an annual distribution system efficiency (DSE) for heating, the DSE may be approximated by equation 3.4.i in ANSI/BPI-2400-S-2012: Standard Practice for Standardized Qualification of Whole-House Energy Savings, Predictions by Calibration to Energy Use History. Enter values as a fractional number between 0 and 1, i.e. 80% = 0.8</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="AnnualCoolingDistributionSystemEfficiency" type="Fraction">
+									<xs:element minOccurs="0" name="AnnualCoolingDistributionSystemEfficiency" type="FractionExcludingZero">
 										<xs:annotation>
 											<xs:documentation>For software that does not calculate an annual distribution system efficiency (DSE) for cooling, the DSE may be approximated by equation 3.4.i in ANSI/BPI-2400-S-2012: Standard Practice for Standardized Qualification of Whole-House Energy Savings, Predictions by Calibration to Energy Use History. Enter values as a fractional number between 0 and 1, i.e. 80% = 0.8</xs:documentation>
 										</xs:annotation>
@@ -1563,7 +1564,7 @@
 														<xs:documentation>[sones] as tested in field</xs:documentation>
 													</xs:annotation>
 												</xs:element>
-												<xs:element minOccurs="0" name="TotalRecoveryEfficiency" type="Fraction">
+												<xs:element minOccurs="0" name="TotalRecoveryEfficiency" type="FractionExcludingZero">
 													<xs:annotation>
 														<xs:documentation>The net total energy (sensible plus latent, also called enthalpy) recovered by the supply airstream adjusted by electric
 															consumption, case heat loss or heat gain, air leakage and airflow mass imbalance between the two airstreams, as a percent of the potential
@@ -1571,7 +1572,7 @@
 															(hvi.org).</xs:documentation>
 													</xs:annotation>
 												</xs:element>
-												<xs:element minOccurs="0" name="SensibleRecoveryEfficiency" type="Fraction">
+												<xs:element minOccurs="0" name="SensibleRecoveryEfficiency" type="FractionExcludingZero">
 													<xs:annotation>
 														<xs:documentation>The net sensible energy recovered by the supply airstream as adjusted by electric consumption, case heat loss or heat gain,
 															air leakage, airflow mass imbalance between the two airstreams and the energy used for defrost (when running the Very Low Temperature Test),
@@ -1579,7 +1580,7 @@
 															the Home Ventilating Institute (hvi.org).</xs:documentation>
 													</xs:annotation>
 												</xs:element>
-												<xs:element minOccurs="0" name="AdjustedTotalRecoveryEfficiency" type="Fraction">
+												<xs:element minOccurs="0" name="AdjustedTotalRecoveryEfficiency" type="FractionExcludingZero">
 													<xs:annotation>
 														<xs:documentation>The net total energy (sensible plus latent, also called enthalpy) recovered by the supply airstream adjusted by case heat loss
 															or heat gain, air leakage and airflow mass imbalance between the two airstreams, as a percent of the potential total energy that could be
@@ -1588,7 +1589,7 @@
 															Ventilating Institute (hvi.org).</xs:documentation>
 													</xs:annotation>
 												</xs:element>
-												<xs:element minOccurs="0" name="AdjustedSensibleRecoveryEfficiency" type="Fraction">
+												<xs:element minOccurs="0" name="AdjustedSensibleRecoveryEfficiency" type="FractionExcludingZero">
 													<xs:annotation>
 														<xs:documentation>The net sensible energy recovered by the supply airstream as adjusted by case heat loss or heat gain, air leakage, airflow
 															mass imbalance between the two airstreams and the energy used for defrost (when running the Very Low Temperature Test), as a percent of the
@@ -1899,7 +1900,7 @@
 											<xs:sequence>
 												<xs:element minOccurs="0" name="FacilitiesConnected" type="DrainWaterHeatRecoveryFacilitiesConnected"/>
 												<xs:element minOccurs="0" name="EqualFlow" type="HPXMLBoolean"/>
-												<xs:element minOccurs="0" name="Efficiency" type="Fraction">
+												<xs:element minOccurs="0" name="Efficiency" type="FractionExcludingZero">
 													<xs:annotation>
 														<xs:documentation>Efficiency percent expressed as a fraction from 0-1.</xs:documentation>
 													</xs:annotation>
@@ -2114,7 +2115,7 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" name="InverterType" type="InverterType"/>
-									<xs:element minOccurs="0" name="InverterEfficiency" type="Fraction"/>
+									<xs:element minOccurs="0" name="InverterEfficiency" type="FractionExcludingZero"/>
 									<xs:element minOccurs="0" name="YearInverterManufactured" type="Year"/>
 									<xs:element minOccurs="0" name="YearInstalled" type="Year"/>
 									<xs:element ref="extension" minOccurs="0"/>
@@ -2176,7 +2177,7 @@
 												with a 0.2C discharge current.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="RoundTripEfficiency" type="Fraction">
+									<xs:element minOccurs="0" name="RoundTripEfficiency" type="FractionExcludingZero">
 										<xs:annotation>
 											<xs:documentation>Not all the power that is used to charge the battery is available during discharge. Round trip efficiency is the ratio of the energy put
 												in to the energy retrieved from storage.</xs:documentation>
@@ -3642,11 +3643,6 @@
 				</xs:complexType>
 			</xs:element>
 			<xs:element minOccurs="0" name="HVACMaintenance" type="HVACMaintenance"/>
-			<xs:element minOccurs="0" name="IsPackagedSystem" type="HPXMLBoolean">
-				<xs:annotation>
-					<xs:documentation>Is the system a packaged system?</xs:documentation>
-				</xs:annotation>
-			</xs:element>
 			<xs:element minOccurs="0" name="IsSharedSystem" type="HPXMLBoolean">
 				<xs:annotation>
 					<xs:documentation>Does the system serve multiple building/dwelling units?</xs:documentation>
@@ -3684,6 +3680,13 @@
 							<xs:documentation>The average annual auxiliary electrical energy consumption for, e.g., a gas furnace or boiler, in kilowatt-hours per year. Published in the AHRI
 								Consumer&#8217;s Directory of Certified Efficiency Ratings.</xs:documentation>
 						</xs:annotation>
+					</xs:element>
+					<xs:element minOccurs="0" name="HeatingDetailedPerformanceData">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element maxOccurs="unbounded" name="PerformanceDataPoint" type="HeatingPerformanceDataPoint"> </xs:element>
+							</xs:sequence>
+						</xs:complexType>
 					</xs:element>
 					<xs:element ref="extension" minOccurs="0"/>
 				</xs:sequence>
@@ -3891,6 +3894,20 @@
 					</xs:element>
 					<xs:element name="AnnualCoolingEfficiency" type="CoolingEfficiencyType" minOccurs="0" maxOccurs="unbounded"/>
 					<xs:element name="AnnualHeatingEfficiency" minOccurs="0" type="HeatingEfficiencyType" maxOccurs="unbounded"/>
+					<xs:element minOccurs="0" name="CoolingDetailedPerformanceData">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element maxOccurs="unbounded" name="PerformanceDataPoint" type="CoolingPerformanceDataPoint"> </xs:element>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
+					<xs:element minOccurs="0" name="HeatingDetailedPerformanceData">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element maxOccurs="unbounded" name="PerformanceDataPoint" type="HeatingPerformanceDataPoint"> </xs:element>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
 					<xs:element minOccurs="0" ref="extension"/>
 				</xs:sequence>
 			</xs:extension>
@@ -3916,6 +3933,13 @@
 					</xs:element>
 					<xs:element name="AnnualCoolingEfficiency" type="CoolingEfficiencyType" minOccurs="0" maxOccurs="unbounded"/>
 					<xs:element minOccurs="0" name="SensibleHeatFraction" type="Fraction"/>
+					<xs:element minOccurs="0" name="CoolingDetailedPerformanceData">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element maxOccurs="unbounded" name="PerformanceDataPoint" type="CoolingPerformanceDataPoint"> </xs:element>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
 					<xs:element name="RoomCoolingType" type="RoomCoolingType" minOccurs="0"/>
 					<xs:element minOccurs="0" name="IntegratedHeatingSystemFuel" type="FuelType"/>
 					<xs:element minOccurs="0" name="IntegratedHeatingSystemCapacity" type="Capacity">
@@ -5327,6 +5351,11 @@
 			<xs:element minOccurs="0" name="WindConditions" type="WindConditions"/>
 			<xs:element name="TypeOfInfiltrationMeasurement" type="TypeofInfiltrationMeasurement" minOccurs="0"/>
 			<xs:element name="TypeOfBlowerDoorTest" type="TypeofBlowerDoorTest" minOccurs="0"/>
+			<xs:element minOccurs="0" name="TypeOfInfiltrationTest" type="TypeOfInfiltrationTest">
+				<xs:annotation>
+					<xs:documentation>Applies to single-family attached and multifamily. Whole building tests measure the infiltration through the total exterior envelope of the building. Compartmentalization tests measure the infiltration for a single dwelling unit through both exterior (adjacent to outside) and interior/shared (adjacent to other spaces/units) surfaces. Guarded tests measure the infiltration for a single dwelling unit through only exterior (adjacent to outside) surfaces.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:element name="HousePressure" type="HousePressure" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>[Pa] with respect to outside</xs:documentation>
@@ -5450,6 +5479,24 @@
 			<xs:element name="RubbleStone">
 				<xs:complexType>
 					<xs:sequence>
+						<xs:element minOccurs="0" ref="extension"/>
+					</xs:sequence>
+					<xs:attribute name="dataSource" type="DataSource"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="BellyAndWing">
+				<xs:annotation>
+					<xs:documentation>The floor is supported on a pair of I-beams spanning across the length of the mobile home. The floor wing is the part of the floor outside the supports, and the floor belly is the part between the supports. The floor wing and belly sections are protected from outside elements including water, wind, and rodents using a wrap attached to the underside of floor joists, and may contain insulation. Use separate Floor elements to describe the floor insulation above the belly and wing sections respsectively.
+</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs="0" name="SkirtPresent" type="HPXMLBoolean"/>
+						<xs:element minOccurs="0" name="BellyWrapCondition" type="MobileHomeBellyWrapCondition">
+							<xs:annotation>
+								<xs:documentation>Use the 'none' choice for cases where the belly wrap is functionally missing even if pieces of the wrap are still present. </xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element minOccurs="0" ref="extension"/>
 					</xs:sequence>
 					<xs:attribute name="dataSource" type="DataSource"/>
@@ -6152,6 +6199,77 @@
 		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
+	<xs:complexType name="CoolingPerformanceDataPoint">
+		<xs:sequence>
+			<xs:element maxOccurs="unbounded" minOccurs="0" ref="ExternalResource"/>
+			<xs:element name="OutdoorTemperature" type="Temperature" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>[F] drybulb</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="IndoorTemperature" type="Temperature">
+				<xs:annotation>
+					<xs:documentation>[F] drybulb</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="IndoorWetbulbTemperature" type="Temperature">
+				<xs:annotation>
+					<xs:documentation>[F] wetbulb</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="Capacity" type="Capacity">
+				<xs:annotation>
+					<xs:documentation>[Btuh] output capacity</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="CapacityFractionOfNominal" type="FractionGreaterThanOne">
+				<xs:annotation>
+					<xs:documentation>Fraction of the nominal output capacity</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="CapacityDescription" type="CapacityDescription"/>
+			<xs:element minOccurs="0" name="Efficiency" type="CoolingEfficiencyType">
+				<xs:annotation>
+					<xs:documentation/>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="extension" type="extensionType"/>
+		</xs:sequence>
+		<xs:attribute name="dataSource" type="DataSource"/>
+	</xs:complexType>
+	<xs:complexType name="HeatingPerformanceDataPoint">
+		<xs:sequence>
+			<xs:element maxOccurs="unbounded" minOccurs="0" ref="ExternalResource"/>
+			<xs:element name="OutdoorTemperature" type="Temperature" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>[F] drybulb</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="IndoorTemperature" type="Temperature">
+				<xs:annotation>
+					<xs:documentation>[F] drybulb</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="Capacity" type="Capacity">
+				<xs:annotation>
+					<xs:documentation>[Btuh] output capacity</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="CapacityFractionOfNominal" type="FractionGreaterThanOne">
+				<xs:annotation>
+					<xs:documentation>Fraction of the nominal output capacity</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="CapacityDescription" type="CapacityDescription"/>
+			<xs:element minOccurs="0" name="Efficiency" type="HeatingEfficiencyType">
+				<xs:annotation>
+					<xs:documentation/>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="extension" type="extensionType"/>
+		</xs:sequence>
+		<xs:attribute name="dataSource" type="DataSource"/>
+	</xs:complexType>
 <xs:simpleType name="DataSource">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="user"/>
@@ -6546,6 +6664,21 @@
 	<xs:complexType name="HousePressure">
 		<xs:simpleContent>
 			<xs:extension base="HousePressure_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="TypeOfInfiltrationTest_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="whole building test"/>
+			<xs:enumeration value="compartmentalization test"/>
+			<xs:enumeration value="guarded test"/>
+			<xs:enumeration value="other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="TypeOfInfiltrationTest">
+		<xs:simpleContent>
+			<xs:extension base="TypeOfInfiltrationTest_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -8119,6 +8252,7 @@
 			<xs:enumeration value="crawlspace - unconditioned"/>
 			<xs:enumeration value="crawlspace - unvented"/>
 			<xs:enumeration value="crawlspace - vented"/>
+			<xs:enumeration value="mobile home belly"/>
 			<xs:enumeration value="exterior wall"/>
 			<xs:enumeration value="garage"/>
 			<xs:enumeration value="garage - conditioned"/>
@@ -9452,6 +9586,19 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="FractionExcludingZero_simple">
+		<xs:restriction base="xs:double">
+			<xs:minExclusive value="0"/>
+			<xs:maxInclusive value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="FractionExcludingZero">
+		<xs:simpleContent>
+			<xs:extension base="FractionExcludingZero_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="FractionGreaterThanOne_simple">
 		<xs:annotation>
 			<xs:documentation>A fraction that can be greater than one (ie 110%)</xs:documentation>
@@ -9504,6 +9651,35 @@
 	<xs:complexType name="FoundationThermalBoundary">
 		<xs:simpleContent>
 			<xs:extension base="FoundationThermalBoundary_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="MobileHomeBellyWrapCondition_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="good"/>
+			<xs:enumeration value="fair"/>
+			<xs:enumeration value="poor"/>
+			<xs:enumeration value="none"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="MobileHomeBellyWrapCondition">
+		<xs:simpleContent>
+			<xs:extension base="MobileHomeBellyWrapCondition_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="MobileHomeBellyOrWing_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="belly"/>
+			<xs:enumeration value="wing"/>
+			<xs:enumeration value="other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="MobileHomeBellyOrWing">
+		<xs:simpleContent>
+			<xs:extension base="MobileHomeBellyOrWing_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -11011,6 +11187,21 @@
 	<xs:complexType name="AdditionalRuntimeOperatingMode">
 		<xs:simpleContent>
 			<xs:extension base="AdditionalRuntimeOperatingModeType_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="CapacityDescription_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="minimum"/>
+			<xs:enumeration value="intermediate"/>
+			<xs:enumeration value="nominal"/>
+			<xs:enumeration value="maximum"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="CapacityDescription">
+		<xs:simpleContent>
+			<xs:extension base="CapacityDescription_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
