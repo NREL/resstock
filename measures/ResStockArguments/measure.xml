@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>b7ce3066-ca7e-4669-b1a0-502e6347f8f7</version_id>
-  <version_modified>20221031T170331Z</version_modified>
+  <version_id>8ac26dc9-c889-4762-80b0-291b15b2b7fb</version_id>
+  <version_modified>20230322T211237Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -14,6 +14,27 @@
     <argument>
       <name>schedules_filepaths</name>
       <display_name>schedules_filepaths</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_vacancy_period</name>
+      <display_name>schedules_vacancy_period</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_power_outage_period</name>
+      <display_name>schedules_power_outage_period</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_power_outage_window_natvent_availability</name>
+      <display_name>schedules_power_outage_window_natvent_availability</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -536,6 +557,33 @@
       <default_value>28.1</default_value>
     </argument>
     <argument>
+      <name>floor_type</name>
+      <display_name>Floor: Type</display_name>
+      <description>The type of floors.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>WoodFrame</default_value>
+      <choices>
+        <choice>
+          <value>WoodFrame</value>
+          <display_name>WoodFrame</display_name>
+        </choice>
+        <choice>
+          <value>StructuralInsulatedPanel</value>
+          <display_name>StructuralInsulatedPanel</display_name>
+        </choice>
+        <choice>
+          <value>SolidConcrete</value>
+          <display_name>SolidConcrete</display_name>
+        </choice>
+        <choice>
+          <value>SteelFrame</value>
+          <display_name>SteelFrame</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>foundation_wall_type</name>
       <display_name>foundation_wall_type</display_name>
       <type>String</type>
@@ -761,8 +809,8 @@
           <display_name>LogWall</display_name>
         </choice>
         <choice>
-          <value>StructurallyInsulatedPanel</value>
-          <display_name>StructurallyInsulatedPanel</display_name>
+          <value>StructuralInsulatedPanel</value>
+          <display_name>StructuralInsulatedPanel</display_name>
         </choice>
         <choice>
           <value>SolidConcrete</value>
@@ -1195,6 +1243,14 @@
           <value>ACHnatural</value>
           <display_name>ACHnatural</display_name>
         </choice>
+        <choice>
+          <value>CFMnatural</value>
+          <display_name>CFMnatural</display_name>
+        </choice>
+        <choice>
+          <value>EffectiveLeakageArea</value>
+          <display_name>EffectiveLeakageArea</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
@@ -1210,11 +1266,18 @@
     <argument>
       <name>air_leakage_value</name>
       <display_name>Air Leakage: Value</display_name>
-      <description>Air exchange rate value.</description>
+      <description>Air exchange rate value. For 'EffectiveLeakageArea', provide value in sq. in.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>3</default_value>
+    </argument>
+    <argument>
+      <name>air_leakage_multifamily_value_type</name>
+      <display_name>air_leakage_multifamily_value_type</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heating_system_type</name>
@@ -1266,10 +1329,6 @@
           <display_name>FixedHeater</display_name>
         </choice>
         <choice>
-          <value>PackagedTerminalAirConditionerHeating</value>
-          <display_name>PackagedTerminalAirConditionerHeating</display_name>
-        </choice>
-        <choice>
           <value>Shared Boiler w/ Baseboard</value>
           <display_name>Shared Boiler w/ Baseboard</display_name>
         </choice>
@@ -1282,7 +1341,7 @@
     <argument>
       <name>heating_system_fuel</name>
       <display_name>Heating System: Fuel Type</display_name>
-      <description>The fuel type of the heating system. Ignored for ElectricResistance and PackagedTerminalAirConditionerHeating.</description>
+      <description>The fuel type of the heating system. Ignored for ElectricResistance.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1344,6 +1403,13 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>heating_system_pilot_light</name>
+      <display_name>heating_system_pilot_light</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>cooling_system_type</name>
@@ -1467,6 +1533,34 @@
       </choices>
     </argument>
     <argument>
+      <name>cooling_system_integrated_heating_system_fuel</name>
+      <display_name>cooling_system_integrated_heating_system_fuel</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_integrated_heating_system_efficiency_percent</name>
+      <display_name>cooling_system_integrated_heating_system_efficiency_percent</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_integrated_heating_system_capacity</name>
+      <display_name>cooling_system_integrated_heating_system_capacity</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_integrated_heating_system_fraction_heat_load_served</name>
+      <display_name>cooling_system_integrated_heating_system_fraction_heat_load_served</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>heat_pump_type</name>
       <display_name>Heat Pump: Type</display_name>
       <description>The type of heat pump. Use 'none' if there is no heat pump.</description>
@@ -1495,12 +1589,16 @@
           <value>packaged terminal heat pump</value>
           <display_name>packaged terminal heat pump</display_name>
         </choice>
+        <choice>
+          <value>room air conditioner with reverse cycle</value>
+          <display_name>room air conditioner with reverse cycle</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
       <name>heat_pump_heating_efficiency_type</name>
       <display_name>Heat Pump: Heating Efficiency Type</display_name>
-      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air and packaged terminal heat pump use COP.</description>
+      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use COP.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1532,7 +1630,7 @@
     <argument>
       <name>heat_pump_cooling_efficiency_type</name>
       <display_name>Heat Pump: Cooling Efficiency Type</display_name>
-      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER or SEER2. System types ground-to-air and packaged terminal heat pump use EER.</description>
+      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER or SEER2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use EER.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1621,6 +1719,13 @@
       <default_value>1</default_value>
     </argument>
     <argument>
+      <name>heat_pump_compressor_lockout_temp</name>
+      <display_name>heat_pump_compressor_lockout_temp</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>heat_pump_backup_type</name>
       <display_name>Heat Pump: Backup Type</display_name>
       <description>The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.</description>
@@ -1682,13 +1787,6 @@
     <argument>
       <name>heat_pump_backup_heating_capacity</name>
       <display_name>heat_pump_backup_heating_capacity</display_name>
-      <type>String</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heat_pump_backup_heating_switchover_temp</name>
-      <display_name>heat_pump_backup_heating_switchover_temp</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -3012,6 +3110,13 @@
     <argument>
       <name>battery_usable_capacity</name>
       <display_name>battery_usable_capacity</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>battery_round_trip_efficiency</name>
+      <display_name>battery_round_trip_efficiency</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -4370,6 +4475,13 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>utility_bill_electricity_filepaths</name>
+      <display_name>utility_bill_electricity_filepaths</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>utility_bill_electricity_fixed_charges</name>
       <display_name>utility_bill_electricity_fixed_charges</display_name>
       <type>String</type>
@@ -4531,28 +4643,9 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>schedules_type</name>
-      <display_name>Schedules: Type</display_name>
-      <description>The type of occupant-related schedules to use.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>smooth</default_value>
-      <choices>
-        <choice>
-          <value>smooth</value>
-          <display_name>smooth</display_name>
-        </choice>
-        <choice>
-          <value>stochastic</value>
-          <display_name>stochastic</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>schedules_vacancy_period</name>
-      <display_name>Schedules: Vacancy Period</display_name>
-      <description>Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".</description>
+      <name>schedules_column_names</name>
+      <display_name>Schedules: Column Names</display_name>
+      <description>A comma-separated list of the column names to generate. If not provided, defaults to all columns. Possible column names are: occupants, lighting_interior, lighting_exterior, lighting_garage, lighting_exterior_holiday, cooking_range, dishwasher, clothes_washer, clothes_dryer, ceiling_fan, plug_loads_other, hot_water_dishwasher, hot_water_clothes_washer, hot_water_fixtures.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -5055,7 +5148,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>F4AF65BB</checksum>
+      <checksum>E7BE4B8F</checksum>
     </file>
   </files>
 </measure>

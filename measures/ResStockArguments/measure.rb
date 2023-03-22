@@ -640,6 +640,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Apply adjustment to infiltration value
       args['air_leakage_value'] *= exposed_wall_area_ratio
+      args['air_leakage_multifamily_value_type'] = HPXML::InfiltrationTestGuarded
 
       if horiz_location == 'Left'
         args['geometry_unit_right_wall_is_adiabatic'] = true
