@@ -370,6 +370,7 @@ def create_hpxmls
     'base-lighting-kwh-per-year.xml' => 'base.xml',
     'base-lighting-mixed.xml' => 'base.xml',
     'base-lighting-none.xml' => 'base.xml',
+    'base-lighting-none-ceiling-fans.xml' => 'base-lighting-none.xml',
     'base-location-AMY-2012.xml' => 'base.xml',
     'base-location-baltimore-md.xml' => 'base-foundation-unvented-crawlspace.xml',
     'base-location-capetown-zaf.xml' => 'base-foundation-vented-crawlspace.xml',
@@ -2104,7 +2105,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   # Lighting
   if ['base-lighting-none.xml'].include? hpxml_file
     args['lighting_present'] = false
-  elsif ['base-lighting-ceiling-fans.xml'].include? hpxml_file
+  elsif ['base-lighting-ceiling-fans.xml',
+         'base-lighting-none-ceiling-fans.xml'].include? hpxml_file
     args['ceiling_fan_present'] = true
     args['ceiling_fan_efficiency'] = 100.0
     args['ceiling_fan_quantity'] = 4
@@ -4599,7 +4601,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                 kwh_per_year: kwh_per_year)
     end
   elsif ['base-lighting-mixed.xml'].include? hpxml_file
-    hpxml.lighting_groups.each do |lg|
+    hpxml.lighting_groups.reverse_each do |lg|
       next unless lg.location == HPXML::LocationExterior
 
       lg.delete
@@ -4610,6 +4612,13 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.lighting_groups.add(id: "LightingGroup#{hpxml.lighting_groups.size + 1}",
                               location: HPXML::LocationExterior,
                               kwh_per_year: 150)
+  elsif ['base-foundation-basement-garage.xml'].include? hpxml_file
+    int_lighting_groups = hpxml.lighting_groups.select { |lg| lg.location == HPXML::LocationInterior }
+    int_lighting_groups.each do |lg|
+      hpxml.lighting_groups << lg.dup
+      hpxml.lighting_groups[-1].location = HPXML::LocationGarage
+      hpxml.lighting_groups[-1].id = "LightingGroup#{hpxml.lighting_groups.size}"
+    end
   end
 
   # --------------- #
