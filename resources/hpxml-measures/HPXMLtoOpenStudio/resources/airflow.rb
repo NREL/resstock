@@ -115,11 +115,13 @@ class Airflow
       break
     end
 
-    _sla, living_ach50, nach, infil_volume, infil_height = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
+    _sla, living_ach50, nach, infil_volume, infil_height, a_ext = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
     if @apply_ashrae140_assumptions
       living_const_ach = nach
       living_ach50 = nil
     end
+    living_const_ach *= a_ext unless living_const_ach.nil?
+    living_ach50 *= a_ext unless living_ach50.nil?
 
     apply_natural_ventilation_and_whole_house_fan(model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor, hpxml.header.natvent_days_per_week,
                                                   infil_volume, infil_height, vacancy_periods, power_outage_periods)
@@ -214,18 +216,18 @@ class Airflow
     else
       fail 'Unexpected error.'
     end
-    return sla, ach50, nach, volume, height
+
+    if measurement.type_of_test == HPXML::InfiltrationTestCompartmentalization
+      a_ext = measurement.a_ext # Adjustment ratio for SFA/MF units; exterior envelope area divided by total envelope area
+    end
+    a_ext = 1.0 if a_ext.nil?
+
+    return sla, ach50, nach, volume, height, a_ext
   end
 
   def self.get_default_mech_vent_flow_rate(hpxml, vent_fan, weather, cfa, nbeds)
     # Calculates Qfan cfm requirement per ASHRAE 62.2-2019
-    infil_a_ext = 1.0
-    if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include? hpxml.building_construction.residential_facility_type
-      tot_cb_area, ext_cb_area = hpxml.compartmentalization_boundary_areas()
-      infil_a_ext = ext_cb_area / tot_cb_area
-    end
-
-    sla, _ach50, _nach, _volume, height = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
+    sla, _ach50, _nach, _volume, height, a_ext = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
 
     nl = get_infiltration_NL_from_SLA(sla, height)
     q_inf = nl * weather.data.WSF * cfa / 7.3 # Effective annual average infiltration rate, cfm, eq. 4.5a
@@ -237,7 +239,7 @@ class Airflow
     else
       phi = q_inf / q_tot
     end
-    q_fan = q_tot - phi * (q_inf * infil_a_ext)
+    q_fan = q_tot - phi * (q_inf * a_ext)
     q_fan = [q_fan, 0].max
 
     if not vent_fan.hours_in_operation.nil?

@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>7dcd8f86-2794-4c3c-b3bc-c037c5b30241</version_id>
-  <version_modified>20230316T143229Z</version_modified>
+  <version_id>bdab74ae-4228-4fe8-8ba0-dffea014e02c</version_id>
+  <version_modified>20230317T163004Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -2035,6 +2035,24 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>3</default_value>
+    </argument>
+    <argument>
+      <name>air_leakage_multifamily_value_type</name>
+      <display_name>Air Leakage: Multifamily Value Type</display_name>
+      <description>Type of air leakage value for a SFA/MF dwelling unit. If 'compartmentalization test', represents the total infiltration to the unit, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'guarded test', represents the infiltration to the unit from outside only. Required when unit type is single-family attached or apartment unit.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>compartmentalization test</value>
+          <display_name>compartmentalization test</display_name>
+        </choice>
+        <choice>
+          <value>guarded test</value>
+          <display_name>guarded test</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>heating_system_type</name>
@@ -6566,7 +6584,7 @@
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>B1DB9680</checksum>
+      <checksum>FC779758</checksum>
     </file>
     <file>
       <version>
@@ -6577,7 +6595,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>D3AB2AEA</checksum>
+      <checksum>3547DCD7</checksum>
     </file>
   </files>
 </measure>

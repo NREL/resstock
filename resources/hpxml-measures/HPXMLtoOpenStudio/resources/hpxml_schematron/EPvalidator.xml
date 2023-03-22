@@ -375,6 +375,16 @@
   </sch:pattern>
 
   <sch:pattern>
+    <sch:title>[AirInfiltrationMeasurement=SFAorMultifamily]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:BuildingSummary/h:BuildingConstruction/h:ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]/h:Enclosure/h:AirInfiltration/h:AirInfiltrationMeasurement[h:BuildingAirLeakage/h:AirLeakage | h:EffectiveLeakageArea]'>
+      <sch:assert role='ERROR' test='count(h:TypeOfInfiltrationTest) = 1'>Expected 1 element(s) for xpath: TypeOfInfiltrationTest</sch:assert>
+      <sch:assert role='ERROR' test='h:TypeOfInfiltrationTest[text()="compartmentalization test" or text()="guarded test"] or not(h:TypeOfInfiltrationTest)'>Expected TypeOfInfiltrationTest to be 'compartmentalization test' or 'guarded test'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:Aext) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/Aext</sch:assert>
+      <sch:assert role='ERROR' test='number(h:extension/h:Aext) &gt; 0 or not(h:extension/h:Aext)'>Expected extension/Aext to be greater than 0</sch:assert>      
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
     <sch:title>[AirInfiltrationMeasurement=ACHorCFM]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:AirInfiltration/h:AirInfiltrationMeasurement[h:BuildingAirLeakage/h:UnitofMeasure[text()="ACH" or text()="CFM"]]'>
       <sch:assert role='ERROR' test='count(h:HousePressure) = 1'>Expected 1 element(s) for xpath: HousePressure</sch:assert>
