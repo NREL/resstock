@@ -90,4 +90,31 @@ class TesBuildStockBatch < MiniTest::Test
     timeseries = _get_timeseries_columns(Dir[File.join(@national_upgrades, 'simulation_output/up*/bldg*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries))
   end
+
+  def test_annual_outputs
+    expected_outputs = CSV.read(File.join('resources', 'data', 'outputs.csv'), headers: true)
+    expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
+
+    actual_outputs = CSV.read(File.join('baseline', 'annual', 'results_output.csv'), headers: true)
+    actual_annual_names = actual_outputs.headers
+
+    annual_names_extras = actual_annual_names - expected_annual_names
+    annual_names_extras -= ['OSW']
+    annual_names_extras -= ['color_index']
+
+    assert_equal(0, annual_names_extras.size)
+  end
+
+  def test_timeseries_outputs
+    expected_outputs = CSV.read(File.join('resources', 'data', 'outputs.csv'), headers: true)
+    expected_timeseries_names = expected_outputs['Timeseries Name'].select { |n| !n.nil? }
+
+    actual_outputs = CSV.read(File.join('baseline', 'timeseries', 'results_output.csv'), headers: true)
+    actual_timeseries_names = actual_outputs.headers
+
+    timeseries_names_extras = actual_timeseries_names - expected_timeseries_names
+    timeseries_names_extras -= ['PROJECT']
+
+    assert_equal(0, timeseries_names_extras.size)
+  end
 end
