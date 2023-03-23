@@ -115,14 +115,16 @@ class Airflow
       break
     end
 
-    _sla, living_ach50, nach, infil_volume, infil_height = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
+    _sla, living_ach50, nach, infil_volume, infil_height, a_ext = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
     if @apply_ashrae140_assumptions
       living_const_ach = nach
       living_ach50 = nil
     end
+    living_const_ach *= a_ext unless living_const_ach.nil?
+    living_ach50 *= a_ext unless living_ach50.nil?
 
-    apply_natural_ventilation_and_whole_house_fan(model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor,
-                                                  hpxml.header.natvent_days_per_week, infil_volume, infil_height, vacancy_periods, power_outage_periods)
+    apply_natural_ventilation_and_whole_house_fan(model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor, hpxml.header.natvent_days_per_week,
+                                                  infil_volume, infil_height, vacancy_periods, power_outage_periods)
     apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             hpxml.building_construction.has_flue_or_chimney, living_ach50, living_const_ach, infil_volume, infil_height,
                                             vented_attic, vented_crawl, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl, vacancy_periods, power_outage_periods)
@@ -214,18 +216,18 @@ class Airflow
     else
       fail 'Unexpected error.'
     end
-    return sla, ach50, nach, volume, height
+
+    if measurement.type_of_test == HPXML::InfiltrationTestCompartmentalization
+      a_ext = measurement.a_ext # Adjustment ratio for SFA/MF units; exterior envelope area divided by total envelope area
+    end
+    a_ext = 1.0 if a_ext.nil?
+
+    return sla, ach50, nach, volume, height, a_ext
   end
 
   def self.get_default_mech_vent_flow_rate(hpxml, vent_fan, weather, cfa, nbeds)
     # Calculates Qfan cfm requirement per ASHRAE 62.2-2019
-    infil_a_ext = 1.0
-    if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include? hpxml.building_construction.residential_facility_type
-      tot_cb_area, ext_cb_area = hpxml.compartmentalization_boundary_areas()
-      infil_a_ext = ext_cb_area / tot_cb_area
-    end
-
-    sla, _ach50, _nach, _volume, height = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
+    sla, _ach50, _nach, _volume, height, a_ext = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
 
     nl = get_infiltration_NL_from_SLA(sla, height)
     q_inf = nl * weather.data.WSF * cfa / 7.3 # Effective annual average infiltration rate, cfm, eq. 4.5a
@@ -237,7 +239,7 @@ class Airflow
     else
       phi = q_inf / q_tot
     end
-    q_fan = q_tot - phi * (q_inf * infil_a_ext)
+    q_fan = q_tot - phi * (q_inf * a_ext)
     q_fan = [q_fan, 0].max
 
     if not vent_fan.hours_in_operation.nil?
@@ -324,13 +326,8 @@ class Airflow
     end
   end
 
-  def self.apply_natural_ventilation_and_whole_house_fan(model, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor,
-                                                         natvent_days_per_week, infil_volume, infil_height, vacancy_periods, power_outage_periods)
-    if @living_zone.thermostatSetpointDualSetpoint.is_initialized
-      thermostat = @living_zone.thermostatSetpointDualSetpoint.get
-      htg_sch = thermostat.heatingSetpointTemperatureSchedule.get
-      clg_sch = thermostat.coolingSetpointTemperatureSchedule.get
-    end
+  def self.apply_natural_ventilation_and_whole_house_fan(model, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor, natvent_days_per_week,
+                                                         infil_volume, infil_height, vacancy_periods, power_outage_periods)
 
     # NV Availability Schedule
     nv_avail_sch = create_nv_and_whf_avail_sch(model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week, vacancy_periods + power_outage_periods)
@@ -345,7 +342,8 @@ class Airflow
     vent_fans_whf.each_with_index do |vent_whf, index|
       whf_num_days_per_week = 7 # FUTURE: Expose via HPXML?
       obj_name = "#{Constants.ObjectNameWholeHouseFan} #{index}"
-      whf_avail_sch = create_nv_and_whf_avail_sch(model, obj_name, whf_num_days_per_week, power_outage_periods)
+      whf_off_periods = Schedule.get_off_periods(SchedulesFile::ColumnWholeHouseFan, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
+      whf_avail_sch = create_nv_and_whf_avail_sch(model, obj_name, whf_num_days_per_week, whf_off_periods)
 
       whf_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
       whf_avail_sensor.setName("#{obj_name} avail s")
@@ -354,16 +352,16 @@ class Airflow
     end
 
     # Sensors
-    if not htg_sch.nil?
+    if @living_zone.thermostatSetpointDualSetpoint.is_initialized
+      thermostat = @living_zone.thermostatSetpointDualSetpoint.get
+
       htg_sp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
       htg_sp_sensor.setName('htg sp s')
-      htg_sp_sensor.setKeyName(htg_sch.name.to_s)
-    end
+      htg_sp_sensor.setKeyName(thermostat.heatingSetpointTemperatureSchedule.get.name.to_s)
 
-    if not clg_sch.nil?
       clg_sp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
       clg_sp_sensor.setName('clg sp s')
-      clg_sp_sensor.setKeyName(clg_sch.name.to_s)
+      clg_sp_sensor.setKeyName(thermostat.coolingSetpointTemperatureSchedule.get.name.to_s)
     end
 
     # Actuators
@@ -430,10 +428,14 @@ class Airflow
     vent_program.addLine('Set Phiout = (@RhFnTdbWPb Tout Wout Pbar)')
     vent_program.addLine("Set MaxHR = #{max_oa_hr}")
     vent_program.addLine("Set MaxRH = #{max_oa_rh}")
-    if (not htg_sp_sensor.nil?) && (not clg_sp_sensor.nil?)
-      vent_program.addLine("Set Tnvsp = (#{htg_sp_sensor.name} + #{clg_sp_sensor.name}) / 2") # Average of heating/cooling setpoints to minimize incurring additional heating energy
+    if not thermostat.nil?
+      # Home has HVAC system (though setpoints may be defaulted); use the average of heating/cooling setpoints to minimize incurring additional heating energy.
+      vent_program.addLine("Set Tnvsp = (#{htg_sp_sensor.name} + #{clg_sp_sensor.name}) / 2")
     else
-      vent_program.addLine("Set Tnvsp = #{UnitConversions.convert(73.0, 'F', 'C')}") # Assumption when no HVAC system
+      # No HVAC system; use the average of defaulted heating/cooling setpoints.
+      default_htg_sp = UnitConversions.convert(HVAC.get_default_heating_setpoint(HPXML::HVACControlTypeManual)[0], 'F', 'C')
+      default_clg_sp = UnitConversions.convert(HVAC.get_default_cooling_setpoint(HPXML::HVACControlTypeManual)[0], 'F', 'C')
+      vent_program.addLine("Set Tnvsp = (#{default_htg_sp} + #{default_clg_sp}) / 2")
     end
     vent_program.addLine("Set NVavail = #{nv_avail_sensor.name}")
     vent_program.addLine("Set ClgSsnAvail = #{nv_clg_ssn_sensor.name}")
@@ -1271,7 +1273,7 @@ class Airflow
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
   end
 
-  def self.apply_local_ventilation(model, vent_object, obj_type_name, index, vacancy_periods, power_outage_periods)
+  def self.apply_local_ventilation(model, vent_object, obj_type_name, index, off_periods)
     daily_sch = [0.0] * 24
     obj_name = "#{obj_type_name} #{index}"
     remaining_hrs = vent_object.hours_in_operation
@@ -1283,7 +1285,7 @@ class Airflow
       end
       remaining_hrs -= 1
     end
-    obj_sch = HourlyByMonthSchedule.new(model, "#{obj_name} schedule", [daily_sch] * 12, [daily_sch] * 12, Constants.ScheduleTypeLimitsFraction, false, off_periods: vacancy_periods + power_outage_periods)
+    obj_sch = HourlyByMonthSchedule.new(model, "#{obj_name} schedule", [daily_sch] * 12, [daily_sch] * 12, Constants.ScheduleTypeLimitsFraction, false, off_periods: off_periods)
     obj_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     obj_sch_sensor.setName("#{obj_name} sch s")
     obj_sch_sensor.setKeyName(obj_sch.schedule.name.to_s)
@@ -1303,7 +1305,7 @@ class Airflow
     return obj_sch_sensor
   end
 
-  def self.apply_dryer_exhaust(model, vented_dryer, schedules_file, index, vacancy_periods, power_outage_periods)
+  def self.apply_dryer_exhaust(model, vented_dryer, schedules_file, index, off_periods)
     obj_name = "#{Constants.ObjectNameClothesDryerExhaust} #{index}"
 
     # Create schedule
@@ -1317,7 +1319,7 @@ class Airflow
       cd_weekday_sch = vented_dryer.weekday_fractions
       cd_weekend_sch = vented_dryer.weekend_fractions
       cd_monthly_sch = vented_dryer.monthly_multipliers
-      obj_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameClothesDryer, cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, Constants.ScheduleTypeLimitsFraction, off_periods: vacancy_periods + power_outage_periods)
+      obj_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameClothesDryer, cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, Constants.ScheduleTypeLimitsFraction, off_periods: off_periods)
       obj_sch = obj_sch.schedule
       obj_sch_name = obj_sch.name.to_s
       full_load_hrs = Schedule.annual_equivalent_full_load_hrs(@year, obj_sch)
@@ -1504,7 +1506,7 @@ class Airflow
     end
   end
 
-  def self.add_ee_for_vent_fan_power(model, obj_name, sup_fans = [], exh_fans = [], bal_fans = [], erv_hrv_fans = [], power_outage_periods = [])
+  def self.add_ee_for_vent_fan_power(model, obj_name, sup_fans = [], exh_fans = [], bal_fans = [], erv_hrv_fans = [], off_periods = [])
     # Calculate fan heat fraction
     # 1.0: Fan heat does not enter space (e.g., exhaust)
     # 0.0: Fan heat does enter space (e.g., supply)
@@ -1532,7 +1534,7 @@ class Airflow
     end
 
     # Availability Schedule
-    avail_sch = ScheduleConstant.new(model, obj_name + ' schedule', 1.0, Constants.ScheduleTypeLimitsFraction, off_periods: power_outage_periods)
+    avail_sch = ScheduleConstant.new(model, obj_name + ' schedule', 1.0, Constants.ScheduleTypeLimitsFraction, off_periods: off_periods)
     avail_sch = avail_sch.schedule
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -1593,7 +1595,8 @@ class Airflow
     infil_program.addLine('Set Qrange = 0')
     vent_fans_kitchen.each_with_index do |vent_kitchen, index|
       # Electricity impact
-      obj_sch_sensor = apply_local_ventilation(model, vent_kitchen, Constants.ObjectNameMechanicalVentilationRangeFan, index, vacancy_periods, power_outage_periods)
+      vent_kitchen_off_periods = Schedule.get_off_periods(SchedulesFile::ColumnKitchenFan, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
+      obj_sch_sensor = apply_local_ventilation(model, vent_kitchen, Constants.ObjectNameMechanicalVentilationRangeFan, index, vent_kitchen_off_periods)
       next unless @cooking_range_in_cond_space
 
       # Infiltration impact
@@ -1603,7 +1606,8 @@ class Airflow
     infil_program.addLine('Set Qbath = 0')
     vent_fans_bath.each_with_index do |vent_bath, index|
       # Electricity impact
-      obj_sch_sensor = apply_local_ventilation(model, vent_bath, Constants.ObjectNameMechanicalVentilationBathFan, index, vacancy_periods, power_outage_periods)
+      vent_bath_off_periods = Schedule.get_off_periods(SchedulesFile::ColumnBathFan, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
+      obj_sch_sensor = apply_local_ventilation(model, vent_bath, Constants.ObjectNameMechanicalVentilationBathFan, index, vent_bath_off_periods)
       # Infiltration impact
       infil_program.addLine("Set Qbath = Qbath + #{UnitConversions.convert(vent_bath.flow_rate * vent_bath.count, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
@@ -1613,7 +1617,8 @@ class Airflow
       next unless @clothes_dryer_in_cond_space
 
       # Infiltration impact
-      obj_sch_sensor, cfm_mult = apply_dryer_exhaust(model, vented_dryer, schedules_file, index, vacancy_periods, power_outage_periods)
+      vented_dryer_off_periods = Schedule.get_off_periods(SchedulesFile::ColumnClothesDryer, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
+      obj_sch_sensor, cfm_mult = apply_dryer_exhaust(model, vented_dryer, schedules_file, index, vented_dryer_off_periods)
       infil_program.addLine("Set Qdryer = Qdryer + #{UnitConversions.convert(vented_dryer.vented_flow_rate * cfm_mult, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
 
@@ -1773,8 +1778,9 @@ class Airflow
     vent_mech_erv_hrv_tot = vent_fans_mech.select { |vent_mech| [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include? vent_mech.fan_type }
 
     # Non-CFIS fan power
+    house_fan_off_periods = Schedule.get_off_periods(SchedulesFile::ColumnHouseFan, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
     add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFan,
-                              vent_mech_sup_tot, vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot, power_outage_periods)
+                              vent_mech_sup_tot, vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot, house_fan_off_periods)
 
     # CFIS fan power
     cfis_fan_actuator = add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFanCFIS) # Fan heat enters space

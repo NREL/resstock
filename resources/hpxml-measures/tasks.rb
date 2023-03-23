@@ -62,6 +62,10 @@ def create_hpxmls
     'base-atticroof-vented.xml' => 'base.xml',
     'base-battery.xml' => 'base.xml',
     'base-battery-scheduled.xml' => 'base-battery.xml',
+    'base-bldgtype-attached.xml' => 'base.xml',
+    'base-bldgtype-attached-2stories.xml' => 'base-bldgtype-attached.xml',
+    'base-bldgtype-attached-atticroof-cathedral.xml' => 'base-bldgtype-attached-2stories.xml',
+    'base-bldgtype-attached-infil-compartmentalization-test.xml' => 'base-bldgtype-attached.xml',
     'base-bldgtype-multifamily.xml' => 'base.xml',
     'base-bldgtype-multifamily-adjacent-to-multifamily-buffer-space.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-adjacent-to-multiple.xml' => 'base-bldgtype-multifamily.xml',
@@ -69,6 +73,7 @@ def create_hpxmls
     'base-bldgtype-multifamily-adjacent-to-other-heated-space.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-calctype-operational.xml' => 'base-bldgtype-multifamily.xml',
+    'base-bldgtype-multifamily-infil-compartmentalization-test.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil.xml' => 'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.xml',
     'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil-ducted.xml' => 'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil.xml',
@@ -94,9 +99,6 @@ def create_hpxmls
     'base-bldgtype-multifamily-shared-pv.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-shared-water-heater.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-shared-water-heater-recirc.xml' => 'base-bldgtype-multifamily-shared-water-heater.xml',
-    'base-bldgtype-single-family-attached.xml' => 'base.xml',
-    'base-bldgtype-single-family-attached-2stories.xml' => 'base-bldgtype-single-family-attached.xml',
-    'base-bldgtype-single-family-attached-atticroof-cathedral.xml' => 'base-bldgtype-single-family-attached-2stories.xml',
     'base-calctype-operational.xml' => 'base.xml',
     'base-calctype-operational-residents-0.xml' => 'base.xml',
     'base-calctype-operational-residents-0-runperiod-1-month.xml' => 'base-calctype-operational-residents-0.xml',
@@ -370,6 +372,7 @@ def create_hpxmls
     'base-lighting-kwh-per-year.xml' => 'base.xml',
     'base-lighting-mixed.xml' => 'base.xml',
     'base-lighting-none.xml' => 'base.xml',
+    'base-lighting-none-ceiling-fans.xml' => 'base-lighting-none.xml',
     'base-location-AMY-2012.xml' => 'base.xml',
     'base-location-baltimore-md.xml' => 'base-foundation-unvented-crawlspace.xml',
     'base-location-capetown-zaf.xml' => 'base-foundation-vented-crawlspace.xml',
@@ -1265,7 +1268,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   end
 
   # Single-Family Attached
-  if ['base-bldgtype-single-family-attached.xml'].include? hpxml_file
+  if ['base-bldgtype-attached.xml'].include? hpxml_file
     args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
     args['geometry_unit_cfa'] = 1800.0
     args['geometry_unit_aspect_ratio'] = 0.6667
@@ -1281,7 +1284,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['window_area_right'] = 0
     args['heating_system_heating_capacity'] = 24000.0
     args['misc_plug_loads_other_annual_kwh'] = 1638.0
-  elsif ['base-bldgtype-single-family-attached-2stories.xml'].include? hpxml_file
+    args['air_leakage_multifamily_value_type'] = HPXML::InfiltrationTestGuarded
+  elsif ['base-bldgtype-attached-2stories.xml'].include? hpxml_file
     args['geometry_unit_num_floors_above_grade'] = 2
     args['geometry_unit_cfa'] = 2700.0
     args['heating_system_heating_capacity'] = 48000.0
@@ -1289,12 +1293,15 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['ducts_supply_surface_area'] = 112.5
     args['ducts_return_surface_area'] = 37.5
     args['misc_plug_loads_other_annual_kwh'] = 2457.0
-  elsif ['base-bldgtype-single-family-attached-atticroof-cathedral.xml'].include? hpxml_file
+  elsif ['base-bldgtype-attached-atticroof-cathedral.xml'].include? hpxml_file
     args['geometry_attic_type'] = HPXML::AtticTypeConditioned
     args['ducts_supply_location'] = HPXML::LocationLivingSpace
     args['ducts_return_location'] = HPXML::LocationLivingSpace
     args['ducts_supply_leakage_to_outside_value'] = 0
     args['ducts_return_leakage_to_outside_value'] = 0
+  elsif ['base-bldgtype-attached-infil-compartmentalization-test.xml'].include? hpxml_file
+    args['air_leakage_multifamily_value_type'] = HPXML::InfiltrationTestCompartmentalization
+    args['air_leakage_value'] = (args['air_leakage_value'] / 0.84014).round(5)
   end
 
   # Multifamily
@@ -1323,6 +1330,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['ducts_supply_insulation_r'] = 0.0
     args['door_area'] = 20.0
     args['misc_plug_loads_other_annual_kwh'] = 819.0
+    args['air_leakage_multifamily_value_type'] = HPXML::InfiltrationTestGuarded
   elsif ['base-bldgtype-multifamily-shared-boiler-only-baseboard.xml',
          'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.xml'].include? hpxml_file
     args['heating_system_type'] = "Shared #{HPXML::HVACTypeBoiler} w/ Baseboard"
@@ -1367,6 +1375,9 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['water_heater_efficiency'] = 0.59
     args['water_heater_recovery_efficiency'] = 0.76
     args['water_heater_heating_capacity'] = 40000
+  elsif ['base-bldgtype-multifamily-infil-compartmentalization-test.xml'].include? hpxml_file
+    args['air_leakage_multifamily_value_type'] = HPXML::InfiltrationTestCompartmentalization
+    args['air_leakage_value'] = (args['air_leakage_value'] / 0.24674).round(5)
   end
 
   # Occ Calc Type
@@ -2104,7 +2115,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   # Lighting
   if ['base-lighting-none.xml'].include? hpxml_file
     args['lighting_present'] = false
-  elsif ['base-lighting-ceiling-fans.xml'].include? hpxml_file
+  elsif ['base-lighting-ceiling-fans.xml',
+         'base-lighting-none-ceiling-fans.xml'].include? hpxml_file
     args['ceiling_fan_present'] = true
     args['ceiling_fan_efficiency'] = 100.0
     args['ceiling_fan_quantity'] = 4
@@ -2764,6 +2776,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.building_construction.conditioned_floor_area -= 400 * 2
     hpxml.building_construction.conditioned_building_volume -= 400 * 2 * 8
     hpxml.air_infiltration_measurements[0].infiltration_volume = hpxml.building_construction.conditioned_building_volume
+  elsif ['base-bldgtype-multifamily-infil-compartmentalization-test.xml'].include? hpxml_file
+    hpxml.air_infiltration_measurements[0].a_ext = 0.2
   end
 
   # --------------- #
@@ -4599,7 +4613,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                 kwh_per_year: kwh_per_year)
     end
   elsif ['base-lighting-mixed.xml'].include? hpxml_file
-    hpxml.lighting_groups.each do |lg|
+    hpxml.lighting_groups.reverse_each do |lg|
       next unless lg.location == HPXML::LocationExterior
 
       lg.delete
@@ -4610,6 +4624,13 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.lighting_groups.add(id: "LightingGroup#{hpxml.lighting_groups.size + 1}",
                               location: HPXML::LocationExterior,
                               kwh_per_year: 150)
+  elsif ['base-foundation-basement-garage.xml'].include? hpxml_file
+    int_lighting_groups = hpxml.lighting_groups.select { |lg| lg.location == HPXML::LocationInterior }
+    int_lighting_groups.each do |lg|
+      hpxml.lighting_groups << lg.dup
+      hpxml.lighting_groups[-1].location = HPXML::LocationGarage
+      hpxml.lighting_groups[-1].id = "LightingGroup#{hpxml.lighting_groups.size}"
+    end
   end
 
   # --------------- #

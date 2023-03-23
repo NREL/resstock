@@ -203,6 +203,7 @@ class OSModel
     Location.apply(model, weather, epw_file, @hpxml)
     add_simulation_params(model)
     @availability_sensor = create_availability_sensor(model)
+    @hvac_off_periods = Schedule.get_off_periods(SchedulesFile::ColumnHVAC, vacancy_periods: @hpxml.header.vacancy_periods, power_outage_periods: @hpxml.header.power_outage_periods)
 
     # Conditioned space/zone
 
@@ -1373,6 +1374,7 @@ class OSModel
     end
 
     # Water Heater
+    off_periods = Schedule.get_off_periods(SchedulesFile::ColumnWaterHeater, vacancy_periods: @hpxml.header.vacancy_periods, power_outage_periods: @hpxml.header.power_outage_periods)
     has_uncond_bsmnt = @hpxml.has_location(HPXML::LocationBasementUnconditioned)
     plantloop_map = {}
     @hpxml.water_heating_systems.each do |water_heating_system|
@@ -1382,14 +1384,14 @@ class OSModel
 
       sys_id = water_heating_system.id
       if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage
-        plantloop_map[sys_id] = Waterheater.apply_tank(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, @hpxml.header.power_outage_periods)
+        plantloop_map[sys_id] = Waterheater.apply_tank(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, off_periods)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless
-        plantloop_map[sys_id] = Waterheater.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, @hpxml.header.power_outage_periods)
+        plantloop_map[sys_id] = Waterheater.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, off_periods)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
         living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
-        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, living_zone, @eri_version, @schedules_file, @hpxml.header.power_outage_periods)
+        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, living_zone, @eri_version, @schedules_file, off_periods)
       elsif [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
-        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, @hpxml.header.power_outage_periods)
+        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, off_periods)
       else
         fail "Unhandled water heater (#{water_heating_system.water_heater_type})."
       end
@@ -1444,12 +1446,12 @@ class OSModel
 
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, cooling_system, heating_system,
                                                                  sequential_cool_load_fracs, sequential_heat_load_fracs,
-                                                                 living_zone, @hpxml.header.power_outage_periods)
+                                                                 living_zone, @hvac_off_periods)
 
       elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
 
         airloop_map[sys_id] = HVAC.apply_evaporative_cooler(model, cooling_system,
-                                                            sequential_cool_load_fracs, living_zone, @hpxml.header.power_outage_periods)
+                                                            sequential_cool_load_fracs, living_zone, @hvac_off_periods)
       end
     end
   end
@@ -1488,17 +1490,17 @@ class OSModel
 
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, nil, heating_system,
                                                                  [0], sequential_heat_load_fracs,
-                                                                 living_zone, @hpxml.header.power_outage_periods)
+                                                                 living_zone, @hvac_off_periods)
 
       elsif [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
 
         airloop_map[sys_id] = HVAC.apply_boiler(model, runner, heating_system,
-                                                sequential_heat_load_fracs, living_zone, @hpxml.header.power_outage_periods)
+                                                sequential_heat_load_fracs, living_zone, @hvac_off_periods)
 
       elsif [HPXML::HVACTypeElectricResistance].include? heating_system.heating_system_type
 
         HVAC.apply_electric_baseboard(model, heating_system,
-                                      sequential_heat_load_fracs, living_zone, @hpxml.header.power_outage_periods)
+                                      sequential_heat_load_fracs, living_zone, @hvac_off_periods)
 
       elsif [HPXML::HVACTypeStove,
              HPXML::HVACTypePortableHeater,
@@ -1508,7 +1510,7 @@ class OSModel
              HPXML::HVACTypeFireplace].include? heating_system.heating_system_type
 
         HVAC.apply_unit_heater(model, heating_system,
-                               sequential_heat_load_fracs, living_zone, @hpxml.header.power_outage_periods)
+                               sequential_heat_load_fracs, living_zone, @hvac_off_periods)
       end
 
       next unless heating_system.is_heat_pump_backup_system
@@ -1543,7 +1545,7 @@ class OSModel
 
         airloop_map[sys_id] = HVAC.apply_water_loop_to_air_heat_pump(model, heat_pump,
                                                                      sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                                                     living_zone, @hpxml.header.power_outage_periods)
+                                                                     living_zone, @hvac_off_periods)
 
       elsif [HPXML::HVACTypeHeatPumpAirToAir,
              HPXML::HVACTypeHeatPumpMiniSplit,
@@ -1551,12 +1553,12 @@ class OSModel
              HPXML::HVACTypeHeatPumpRoom].include? heat_pump.heat_pump_type
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, heat_pump, heat_pump,
                                                                  sequential_cool_load_fracs, sequential_heat_load_fracs,
-                                                                 living_zone, @hpxml.header.power_outage_periods)
+                                                                 living_zone, @hvac_off_periods)
       elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
 
         airloop_map[sys_id] = HVAC.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
                                                                  sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                                                 living_zone, @hpxml.site.ground_conductivity, @hpxml.header.power_outage_periods)
+                                                                 living_zone, @hpxml.site.ground_conductivity, @hvac_off_periods)
 
       end
 
@@ -1590,7 +1592,7 @@ class OSModel
         end
       end
       HVAC.apply_ideal_air_loads(model, obj_name, [cooling_load_frac], [heating_load_frac],
-                                 living_zone, @hpxml.header.power_outage_periods)
+                                 living_zone, @hvac_off_periods)
       return
     end
 
@@ -1610,7 +1612,7 @@ class OSModel
 
     if (sequential_heat_load_fracs.sum > 0.0) || (sequential_cool_load_fracs.sum > 0.0)
       HVAC.apply_ideal_air_loads(model, obj_name, sequential_cool_load_fracs, sequential_heat_load_fracs,
-                                 living_zone, @hpxml.header.power_outage_periods)
+                                 living_zone, @hvac_off_periods)
     end
   end
 
@@ -1635,7 +1637,7 @@ class OSModel
   def self.add_dehumidifiers(model, spaces)
     return if @hpxml.dehumidifiers.size == 0
 
-    HVAC.apply_dehumidifiers(model, @hpxml.dehumidifiers, spaces[HPXML::LocationLivingSpace], @hpxml.header.power_outage_periods)
+    HVAC.apply_dehumidifiers(model, @hpxml.dehumidifiers, spaces[HPXML::LocationLivingSpace], @hpxml.header.vacancy_periods, @hpxml.header.power_outage_periods)
   end
 
   def self.check_distribution_system(hvac_distribution, system_type)

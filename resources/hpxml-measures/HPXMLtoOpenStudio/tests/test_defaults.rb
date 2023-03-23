@@ -465,6 +465,48 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_infiltration_values(hpxml_default.air_infiltration_measurements[0], 1350 * 12)
   end
 
+  def test_infiltration_compartmentaliztion_test_adjustment
+    # Test single-family detached
+    hpxml = _create_hpxml('base.xml')
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestCompartmentalization
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_infiltration_compartmentalization_test_values(hpxml_default.air_infiltration_measurements[0], nil)
+
+    # Test single-family attached not overridden by defaults
+    hpxml = _create_hpxml('base-bldgtype-attached.xml')
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestCompartmentalization
+    hpxml.air_infiltration_measurements[0].a_ext = 0.5
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_infiltration_compartmentalization_test_values(hpxml_default.air_infiltration_measurements[0], 0.5)
+
+    # Test single-family attached defaults
+    hpxml.air_infiltration_measurements[0].a_ext = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_infiltration_compartmentalization_test_values(hpxml_default.air_infiltration_measurements[0], 0.840)
+
+    hpxml.attics[0].within_infiltration_volume = true
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_infiltration_compartmentalization_test_values(hpxml_default.air_infiltration_measurements[0], 0.817)
+
+    # Test multifamily not overridden by defaults
+    hpxml = _create_hpxml('base-bldgtype-multifamily.xml')
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestCompartmentalization
+    hpxml.air_infiltration_measurements[0].a_ext = 0.5
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_infiltration_compartmentalization_test_values(hpxml_default.air_infiltration_measurements[0], 0.5)
+
+    # Test multifamily defaults
+    hpxml.air_infiltration_measurements[0].a_ext = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_infiltration_compartmentalization_test_values(hpxml_default.air_infiltration_measurements[0], 0.247)
+  end
+
   def test_attics
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-atticroof-vented.xml')
@@ -1842,6 +1884,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test inputs not overridden by defaults w/ shared exhaust system
     hpxml = _create_hpxml('base-mechvent-exhaust.xml')
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestGuarded
     vent_fan = hpxml.ventilation_fans.select { |f| f.used_for_whole_building_ventilation }[0]
     vent_fan.is_shared_system = true
     vent_fan.fraction_recirculation = 0.0
@@ -1898,25 +1941,39 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     vent_fan.delivered_ventilation = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_mech_vent_values(hpxml_default, false, 24.0, 35.0, 100)
+    _test_default_mech_vent_values(hpxml_default, false, 24.0, 34.9, 99.6)
 
-    # Test defaults w/ SFA building
-    hpxml = _create_hpxml('base-bldgtype-single-family-attached.xml')
+    # Test defaults w/ SFA building, compartmentalization test
+    hpxml = _create_hpxml('base-bldgtype-attached.xml')
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestCompartmentalization
     hpxml.ventilation_fans.add(id: 'MechanicalVentilation',
                                fan_type: HPXML::MechVentTypeExhaust,
                                used_for_whole_building_ventilation: true)
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_mech_vent_values(hpxml_default, false, 24.0, 27.2, 78)
+    _test_default_mech_vent_values(hpxml_default, false, 24.0, 27.4, 78.4)
 
-    # Test defaults w/ MF building
+    # Test defaults w/ SFA building, guarded test
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestGuarded
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_mech_vent_values(hpxml_default, false, 24.0, 27.2, 77.3)
+
+    # Test defaults w/ MF building, compartmentalization test
     hpxml = _create_hpxml('base-bldgtype-multifamily.xml')
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestCompartmentalization
     hpxml.ventilation_fans.add(id: 'MechanicalVentilation',
                                fan_type: HPXML::MechVentTypeExhaust,
                                used_for_whole_building_ventilation: true)
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_mech_vent_values(hpxml_default, false, 24.0, 19.8, 56.5)
+
+    # Test defaults w/ MF building, guarded test
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestGuarded
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_mech_vent_values(hpxml_default, false, 24.0, 19.2, 54.9)
 
     # Test defaults w/ nACH infiltration
     hpxml = _create_hpxml('base-enclosure-infil-natural-ach.xml')
@@ -1993,7 +2050,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     vent_fan.cfis_addtl_runtime_operating_mode = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_mech_vent_values(hpxml_default, false, 8.0, 150.0, 300.0, 1.0, HPXML::CFISModeAirHandler)
+    _test_default_mech_vent_values(hpxml_default, false, 8.0, 149.4, 298.7, 1.0, HPXML::CFISModeAirHandler)
 
     # Test inputs not overridden by defaults w/ ERV
     hpxml = _create_hpxml('base-mechvent-erv.xml')
@@ -2073,6 +2130,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestGuarded
     hpxml.water_heating_systems.each do |wh|
       wh.is_shared_system = true
       wh.number_of_units_served = 2
@@ -2367,6 +2425,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-pv.xml')
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestGuarded
     hpxml.pv_systems.each do |pv|
       pv.is_shared_system = true
       pv.number_of_bedrooms_served = 20
@@ -2515,6 +2574,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-misc-generators.xml')
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestGuarded
     hpxml.generators.each do |generator|
       generator.is_shared_system = true
       generator.number_of_bedrooms_served = 20
@@ -2536,6 +2596,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestGuarded
     hpxml.water_heating_systems[0].is_shared_system = true
     hpxml.water_heating_systems[0].number_of_units_served = 6
     hpxml.clothes_washers[0].location = HPXML::LocationBasementConditioned
@@ -2592,6 +2653,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestGuarded
     hpxml.water_heating_systems[0].is_shared_system = true
     hpxml.water_heating_systems[0].number_of_units_served = 6
     hpxml.clothes_dryers[0].location = HPXML::LocationBasementConditioned
@@ -2667,6 +2729,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
+    hpxml.air_infiltration_measurements[0].type_of_test = HPXML::InfiltrationTestGuarded
     hpxml.water_heating_systems[0].is_shared_system = true
     hpxml.water_heating_systems[0].number_of_units_served = 6
     hpxml.dishwashers[0].location = HPXML::LocationBasementConditioned
@@ -3499,6 +3562,14 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(volume, air_infiltration_measurement.infiltration_volume)
   end
 
+  def _test_default_infiltration_compartmentalization_test_values(air_infiltration_measurement, a_ext)
+    if a_ext.nil?
+      assert_nil(air_infiltration_measurement.a_ext)
+    else
+      assert_in_delta(a_ext, air_infiltration_measurement.a_ext, 0.001)
+    end
+  end
+
   def _test_default_attic_values(attic, sla)
     assert_in_epsilon(sla, attic.vented_attic_sla, 0.001)
   end
@@ -3975,8 +4046,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     assert_equal(is_shared_system, vent_fan.is_shared_system)
     assert_equal(hours_in_operation, vent_fan.hours_in_operation)
-    assert_in_epsilon(fan_power, vent_fan.fan_power, 0.01)
-    assert_in_epsilon(flow_rate, vent_fan.rated_flow_rate.to_f + vent_fan.calculated_flow_rate.to_f + vent_fan.tested_flow_rate.to_f + vent_fan.delivered_ventilation.to_f, 0.01)
+    assert_in_delta(fan_power, vent_fan.fan_power, 0.1)
+    assert_in_delta(flow_rate, vent_fan.rated_flow_rate.to_f + vent_fan.calculated_flow_rate.to_f + vent_fan.tested_flow_rate.to_f + vent_fan.delivered_ventilation.to_f, 0.1)
     if cfis_vent_mode_airflow_fraction.nil?
       assert_nil(vent_fan.cfis_vent_mode_airflow_fraction)
     else

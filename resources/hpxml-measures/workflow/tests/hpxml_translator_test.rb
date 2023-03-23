@@ -468,7 +468,9 @@ class HPXMLTest < MiniTest::Test
         next if log_line.include? "No '#{HPXML::PlugLoadTypeTelevision}' plug loads specified, the model will not include television plug load energy use."
       end
       if hpxml.lighting_groups.empty?
-        next if log_line.include? 'No lighting specified, the model will not include lighting energy use.'
+        next if log_line.include? 'No interior lighting specified, the model will not include interior lighting energy use.'
+        next if log_line.include? 'No exterior lighting specified, the model will not include exterior lighting energy use.'
+        next if log_line.include? 'No garage lighting specified, the model will not include garage lighting energy use.'
       end
       if hpxml.windows.empty?
         next if log_line.include? 'No windows specified, the model will not include window heat transfer.'
