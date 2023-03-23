@@ -98,11 +98,16 @@ class TesBuildStockBatch < MiniTest::Test
     actual_outputs = CSV.read(File.join('baseline', 'annual', 'results_output.csv'), headers: true)
     actual_annual_names = actual_outputs.headers
 
-    annual_names_extras = actual_annual_names - expected_annual_names
-    annual_names_extras -= ['OSW']
-    annual_names_extras -= ['color_index']
+    actual_extras = actual_annual_names - expected_annual_names
+    actual_extras -= ['OSW']
+    actual_extras -= ['color_index']
+    puts "Annual Name, actual - expected: #{}" if !actual_extras.empty?
 
-    assert_equal(0, annual_names_extras.size)
+    expected_extras = expected_annual_names - actual_annual_names
+    puts "Annual Name, expected - actual: #{}" if !expected_extras.empty?
+
+    assert_equal(0, actual_extras.size)
+    # assert_equal(0, expected_extras.size) # allow
   end
 
   def test_timeseries_outputs
@@ -112,9 +117,14 @@ class TesBuildStockBatch < MiniTest::Test
     actual_outputs = CSV.read(File.join('baseline', 'timeseries', 'results_output.csv'), headers: true)
     actual_timeseries_names = actual_outputs.headers
 
-    timeseries_names_extras = actual_timeseries_names - expected_timeseries_names
-    timeseries_names_extras -= ['PROJECT']
+    actual_extras = actual_timeseries_names - expected_timeseries_names
+    actual_extras -= ['PROJECT']
+    puts "Timeseries Name, actual - expected: #{}" if !actual_extras.empty?
 
-    assert_equal(0, timeseries_names_extras.size)
+    expected_extras = expected_annual_names - actual_annual_names
+    puts "Timeseries Name, expected - actual: #{}" if !expected_extras.empty?
+
+    assert_equal(0, actual_extras.size)
+    # assert_equal(0, expected_extras.size) # allow
   end
 end
