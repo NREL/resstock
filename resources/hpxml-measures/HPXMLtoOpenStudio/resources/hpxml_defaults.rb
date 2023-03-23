@@ -13,8 +13,6 @@ class HPXMLDefaults
     ncfl_ag = hpxml.building_construction.number_of_conditioned_floors_above_grade
     has_uncond_bsmnt = hpxml.has_location(HPXML::LocationBasementUnconditioned)
     infil_measurement = Airflow.get_infiltration_measurement_of_interest(hpxml.air_infiltration_measurements)
-    infil_volume = infil_measurement.infiltration_volume
-    infil_height = infil_measurement.infiltration_height
 
     # Check for presence of fuels once
     has_fuel = {}
@@ -29,9 +27,9 @@ class HPXMLDefaults
     apply_site(hpxml)
     apply_neighbor_buildings(hpxml)
     apply_building_occupancy(hpxml, nbeds, schedules_file)
-    apply_building_construction(hpxml, cfa, nbeds, infil_volume)
+    apply_building_construction(hpxml, cfa, nbeds, infil_measurement)
     apply_climate_and_risk_zones(hpxml, epw_file)
-    apply_infiltration(hpxml, infil_volume, infil_height, infil_measurement)
+    apply_infiltration(hpxml, infil_measurement)
     apply_attics(hpxml)
     apply_foundations(hpxml)
     apply_roofs(hpxml)
@@ -472,11 +470,11 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_building_construction(hpxml, cfa, nbeds, infil_volume)
+  def self.apply_building_construction(hpxml, cfa, nbeds, infil_measurement)
     cond_crawl_volume = hpxml.inferred_conditioned_crawlspace_volume()
     if hpxml.building_construction.conditioned_building_volume.nil? && hpxml.building_construction.average_ceiling_height.nil?
-      if not infil_volume.nil?
-        hpxml.building_construction.average_ceiling_height = [infil_volume / cfa, 8.0].min
+      if not infil_measurement.infiltration_volume.nil?
+        hpxml.building_construction.average_ceiling_height = [infil_measurement.infiltration_volume / cfa, 8.0].min
       else
         hpxml.building_construction.average_ceiling_height = 8.0
       end
@@ -538,16 +536,22 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_infiltration(hpxml, infil_volume, infil_height, infil_measurement)
-    if infil_volume.nil?
-      infil_volume = hpxml.building_construction.conditioned_building_volume
-      infil_measurement.infiltration_volume = infil_volume
+  def self.apply_infiltration(hpxml, infil_measurement)
+    if infil_measurement.infiltration_volume.nil?
+      infil_measurement.infiltration_volume = hpxml.building_construction.conditioned_building_volume
       infil_measurement.infiltration_volume_isdefaulted = true
     end
-    if infil_height.nil?
-      infil_height = hpxml.inferred_infiltration_height(infil_volume)
-      infil_measurement.infiltration_height = infil_height
+    if infil_measurement.infiltration_height.nil?
+      infil_measurement.infiltration_height = hpxml.inferred_infiltration_height(infil_measurement.infiltration_volume)
       infil_measurement.infiltration_height_isdefaulted = true
+    end
+    if infil_measurement.a_ext.nil?
+      if (infil_measurement.type_of_test == HPXML::InfiltrationTestCompartmentalization) &&
+         [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include?(hpxml.building_construction.residential_facility_type)
+        tot_cb_area, ext_cb_area = hpxml.compartmentalization_boundary_areas()
+        infil_measurement.a_ext = (ext_cb_area / tot_cb_area).round(5)
+        infil_measurement.a_ext_isdefaulted = true
+      end
     end
   end
 

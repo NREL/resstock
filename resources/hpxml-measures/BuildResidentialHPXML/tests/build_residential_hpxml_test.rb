@@ -617,6 +617,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['window_area_back'] = 0
       args['window_area_left'] = 0
       args['window_area_right'] = 0
+      args['air_leakage_multifamily_value_type'] = HPXML::InfiltrationTestCompartmentalization
     elsif ['base-mf.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
       args['geometry_unit_cfa'] = 900.0
@@ -641,6 +642,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['ducts_return_insulation_r'] = 0.0
       args['ducts_number_of_return_registers'] = 1
       args['door_area'] = 20.0
+      args['air_leakage_multifamily_value_type'] = HPXML::InfiltrationTestCompartmentalization
     end
 
     # Extras
