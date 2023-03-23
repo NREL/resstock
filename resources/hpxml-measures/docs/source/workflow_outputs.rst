@@ -109,7 +109,7 @@ Fuel uses are listed below.
    Fuel Use: Natural Gas: Total (MBtu)
    Fuel Use: Fuel Oil: Total (MBtu)      Includes "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "kerosene", and "diesel"
    Fuel Use: Propane: Total (MBtu)
-   Fuel Use: Wood: Total (MBtu)
+   Fuel Use: Wood Cord: Total (MBtu)
    Fuel Use: Wood Pellets: Total (MBtu)
    Fuel Use: Coal: Total (MBtu)          Includes "coal", "anthracite coal", "bituminous coal", and "coke".
    ====================================  ===========================
