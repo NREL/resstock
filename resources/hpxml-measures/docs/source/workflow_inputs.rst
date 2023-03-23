@@ -154,9 +154,9 @@ The column names available in the schedule CSV files are:
   ===============================  =====  =================================================================================  ===============================
   ``occupants``                    frac   Occupant heat gain schedule.                                                       Yes
   ``lighting_interior``            frac   Interior lighting energy use schedule.                                             Yes
-  ``lighting_exterior``            frac   Exterior lighting energy use schedule.                                             Yes
+  ``lighting_exterior``            frac   Exterior lighting energy use schedule.                                             No
   ``lighting_garage``              frac   Garage lighting energy use schedule.                                               Yes
-  ``lighting_exterior_holiday``    frac   Exterior holiday lighting energy use schedule.                                     Yes
+  ``lighting_exterior_holiday``    frac   Exterior holiday lighting energy use schedule.                                     No
   ``cooking_range``                frac   Cooking range & oven energy use schedule.                                          Yes
   ``refrigerator``                 frac   Primary refrigerator energy use schedule.                                          No
   ``extra_refrigerator``           frac   Non-primary refrigerator energy use schedule.                                      No
@@ -166,7 +166,7 @@ The column names available in the schedule CSV files are:
   ``clothes_dryer``                frac   Clothes dryer energy use schedule.                                                 Yes
   ``ceiling_fan``                  frac   Ceiling fan energy use schedule.                                                   Yes
   ``plug_loads_other``             frac   Other plug load energy use schedule.                                               Yes
-  ``plug_loads_tv``                frac   Television plug load energy use schedule.                                          No
+  ``plug_loads_tv``                frac   Television plug load energy use schedule.                                          Yes
   ``plug_loads_vehicle``           frac   Electric vehicle plug load energy use schedule.                                    No
   ``plug_loads_well_pump``         frac   Well pump plug load energy use schedule.                                           No
   ``fuel_loads_grill``             frac   Grill fuel load energy use schedule.                                               No

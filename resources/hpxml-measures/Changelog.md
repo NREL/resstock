@@ -30,7 +30,9 @@ __New Features__
 __Bugfixes__
 - Fixes `BackupHeatingSwitchoverTemperature` for a heat pump w/ *separate* backup system; now correctly ceases backup operation above this temperature.
 - Fixes error if calculating utility bills for an all-electric home with a detailed JSON utility rate.
-- BuildResidentialScheduleFile measure now excludes columns for end uses that are not stochastically generated.
+- BuildResidentialScheduleFile measure now:
+  - Excludes columns for end uses that are not stochastically generated.
+  - Garage lighting and TV plug load schedules use interior lighting and miscellaneous plug load schedules, respectively.
 - Fixes operational calculation when the number of residents is set to zero.
 - Fixes possible utility bill calculation error for a home with PV using a detailed electric utility rate.
 - Fixes defaulted mechanical ventilation flow rate for SFA/MF buildings, with respect to infiltration credit.

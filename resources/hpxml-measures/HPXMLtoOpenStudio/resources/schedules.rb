@@ -396,9 +396,9 @@ class MonthWeekdayWeekendSchedule
     @year = model.getYearDescription.assumedYear
     @sch_name = sch_name
     @schedule = nil
-    @weekday_hourly_values = validate_values(weekday_hourly_values, 24, 'weekday')
-    @weekend_hourly_values = validate_values(weekend_hourly_values, 24, 'weekend')
-    @monthly_values = validate_values(monthly_values, 12, 'monthly')
+    @weekday_hourly_values = Schedule.validate_values(weekday_hourly_values, 24, 'weekday')
+    @weekend_hourly_values = Schedule.validate_values(weekend_hourly_values, 24, 'weekend')
+    @monthly_values = Schedule.validate_values(monthly_values, 12, 'monthly')
     @schedule_type_limits_name = schedule_type_limits_name
     @begin_month = begin_month
     @begin_day = begin_day
@@ -438,44 +438,6 @@ class MonthWeekdayWeekendSchedule
   end
 
   private
-
-  def validate_values(values, num_values, sch_name)
-    err_msg = "A comma-separated string of #{num_values} numbers must be entered for the #{sch_name} schedule."
-    if values.is_a?(Array)
-      if values.length != num_values
-        fail err_msg
-      end
-
-      values.each do |val|
-        if not valid_float?(val)
-          fail err_msg
-        end
-      end
-      floats = values.map { |i| i.to_f }
-    elsif values.is_a?(String)
-      begin
-        vals = values.split(',')
-        vals.each do |val|
-          if not valid_float?(val)
-            fail err_msg
-          end
-        end
-        floats = vals.map { |i| i.to_f }
-        if floats.length != num_values
-          fail err_msg
-        end
-      rescue
-        fail err_msg
-      end
-    else
-      fail err_msg
-    end
-    return floats
-  end
-
-  def valid_float?(str)
-    !!Float(str) rescue false
-  end
 
   def normalize_sum_to_one(values)
     sum = values.reduce(:+).to_f
@@ -1320,6 +1282,44 @@ class Schedule
     end
 
     fail "Could not find #{col_name} in schedules_affected.csv"
+  end
+
+  def self.validate_values(values, num_values, sch_name)
+    err_msg = "A comma-separated string of #{num_values} numbers must be entered for the #{sch_name} schedule."
+    if values.is_a?(Array)
+      if values.length != num_values
+        fail err_msg
+      end
+
+      values.each do |val|
+        if not valid_float?(val)
+          fail err_msg
+        end
+      end
+      floats = values.map { |i| i.to_f }
+    elsif values.is_a?(String)
+      begin
+        vals = values.split(',')
+        vals.each do |val|
+          if not valid_float?(val)
+            fail err_msg
+          end
+        end
+        floats = vals.map { |i| i.to_f }
+        if floats.length != num_values
+          fail err_msg
+        end
+      rescue
+        fail err_msg
+      end
+    else
+      fail err_msg
+    end
+    return floats
+  end
+
+  def self.valid_float?(str)
+    !!Float(str) rescue false
   end
 end
 
