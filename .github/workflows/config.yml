@@ -117,14 +117,14 @@ jobs:
           tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output
           tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output
 
-      - name: Run tests
-        run: |
-          ruby test/test_bsb_analysis.rb
-
       - name: Process results
         run: |
           pip install pandas
           python test/process_bsb_analysis.py
+
+      - name: Run tests
+        run: |
+          ruby test/test_bsb_analysis.rb
 
       - name: Upload integration results
         uses: actions/upload-artifact@v3
@@ -133,13 +133,6 @@ jobs:
             baseline
             upgrades
           name: feature_results
-
-      # - name: Upload output files
-        # uses: actions/upload-artifact@v3
-        # with:
-          # path: |
-            # outputs
-          # name: outputs
 
       - name: Upload buildstockbatch results
         uses: actions/upload-artifact@v3
@@ -277,12 +270,6 @@ jobs:
           path: results
           name: feature_results
 
-      # - name: Download output files
-        # uses: actions/download-artifact@v3
-        # with:
-          # path: outputs
-          # name: outputs
-
       - name: Commit latest results
         shell: bash        
         run: |
@@ -293,7 +280,6 @@ jobs:
           cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
           cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
           cp -r results/upgrades/timeseries/results*.csv test/base_results/upgrades/timeseries
-          # cp -r outputs/*.csv test/base_results/outputs
           git add test/base_results
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
