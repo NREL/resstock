@@ -1321,7 +1321,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['schedule-file-and-weekday-weekend-multipliers'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-loads-large-uncommon.xml'))
         hpxml.header.utility_bill_scenarios.clear # we don't want the propane warning
-        hpxml.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/occupancy-stochastic-all.csv')
+        hpxml.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/occupancy-stochastic.csv')
+        hpxml.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/occupancy-non-stochastic.csv')
       elsif ['schedule-file-and-setpoints'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/setpoints.csv')
