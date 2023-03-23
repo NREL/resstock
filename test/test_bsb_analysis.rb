@@ -121,7 +121,7 @@ class TesBuildStockBatch < MiniTest::Test
     actual_extras -= ['PROJECT']
     puts "Timeseries Name, actual - expected: #{}" if !actual_extras.empty?
 
-    expected_extras = expected_annual_names - actual_annual_names
+    expected_extras = expected_timeseries_names - actual_timeseries_names
     puts "Timeseries Name, expected - actual: #{}" if !expected_extras.empty?
 
     assert_equal(0, actual_extras.size)
