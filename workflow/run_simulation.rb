@@ -48,6 +48,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['include_timeseries_total_consumptions'] = timeseries_outputs.include? 'total'
   args['include_timeseries_fuel_consumptions'] = timeseries_outputs.include? 'fuels'
   args['include_timeseries_end_use_consumptions'] = timeseries_outputs.include? 'enduses'
+  args['include_timeseries_system_use_consumptions'] = timeseries_outputs.include? 'systemuses'
   args['include_timeseries_emissions'] = timeseries_outputs.include? 'emissions'
   args['include_timeseries_emission_fuels'] = timeseries_outputs.include? 'emissionfuels'
   args['include_timeseries_emission_end_uses'] = timeseries_outputs.include? 'emissionenduses'
@@ -77,7 +78,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   return results[:success]
 end
 
-timeseries_types = ['ALL', 'total', 'fuels', 'enduses', 'emissions', 'emissionfuels',
+timeseries_types = ['ALL', 'total', 'fuels', 'enduses', 'systemuses', 'emissions', 'emissionfuels',
                     'emissionenduses', 'hotwater', 'loads', 'componentloads',
                     'unmethours', 'temperatures', 'airflows', 'weather']
 

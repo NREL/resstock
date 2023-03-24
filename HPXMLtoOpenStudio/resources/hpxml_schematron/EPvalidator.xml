@@ -26,6 +26,8 @@
       <sch:assert role='ERROR' test='count(h:extension/h:UtilityBillScenarios/h:UtilityBillScenario) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/UtilityBillScenarios/UtilityBillScenario</sch:assert> <!-- See [UtilityBillScenario] -->
       <sch:assert role='ERROR' test='count(h:extension/h:VacancyPeriods/h:VacancyPeriod) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/VacancyPeriods/VacancyPeriod</sch:assert> <!-- See [VacancyPeriod] -->
       <sch:assert role='ERROR' test='count(h:extension/h:PowerOutagePeriods/h:PowerOutagePeriod) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/PowerOutagePeriods/PowerOutagePeriod</sch:assert> <!-- See [PowerOutagePeriod] -->
+      <!-- Warnings -->
+      <sch:report role='WARN' test='count(h:extension/h:PowerOutagePeriods) &gt; 0'>It is not possible to eliminate all desired end uses (e.g. crankcase/defrost energy, water heater parasitics) in EnergyPlus during a power outage.</sch:report>
     </sch:rule>
   </sch:pattern>
   
