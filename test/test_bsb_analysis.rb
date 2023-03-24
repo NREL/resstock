@@ -101,10 +101,10 @@ class TesBuildStockBatch < MiniTest::Test
     actual_extras = actual_annual_names - expected_annual_names
     actual_extras -= ['OSW']
     actual_extras -= ['color_index']
-    puts "Annual Name, actual - expected: #{}" if !actual_extras.empty?
+    puts "Annual Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_annual_names - actual_annual_names
-    puts "Annual Name, expected - actual: #{}" if !expected_extras.empty?
+    puts "Annual Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
 
     assert_equal(0, actual_extras.size)
     # assert_equal(0, expected_extras.size) # allow
@@ -119,10 +119,10 @@ class TesBuildStockBatch < MiniTest::Test
 
     actual_extras = actual_timeseries_names - expected_timeseries_names
     actual_extras -= ['PROJECT']
-    puts "Timeseries Name, actual - expected: #{}" if !actual_extras.empty?
+    puts "Timeseries Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_timeseries_names - actual_timeseries_names
-    puts "Timeseries Name, expected - actual: #{}" if !expected_extras.empty?
+    puts "Timeseries Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
 
     assert_equal(0, actual_extras.size)
     # assert_equal(0, expected_extras.size) # allow
