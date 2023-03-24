@@ -127,6 +127,9 @@ class ReportSimulationOutputTest < MiniTest::Test
     'End Use: Coal: Fireplace (MBtu)',
     'End Use: Coal: Mech Vent Preheating (MBtu)',
     'End Use: Coal: Generator (MBtu)',
+    'System Use: CoolingSystem1: Total (MBtu)',
+    'System Use: HeatingSystem1: Total (MBtu)',
+    'System Use: WaterHeatingSystem1: Total (MBtu)',
     'Load: Heating: Delivered (MBtu)',
     'Load: Cooling: Delivered (MBtu)',
     'Load: Hot Water: Delivered (MBtu)',
@@ -241,6 +244,12 @@ class ReportSimulationOutputTest < MiniTest::Test
     'End Use: Electricity: Refrigerator',
     'End Use: Electricity: Television',
     'End Use: Natural Gas: Heating',
+  ]
+
+  BaseHPXMLTimeseriesColsSystemUses = [
+    'System Use: CoolingSystem1: Total',
+    'System Use: HeatingSystem1: Total',
+    'System Use: WaterHeatingSystem1: Total',
   ]
 
   BaseHPXMLTimeseriesColsWaterUses = [
@@ -367,6 +376,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     return (BaseHPXMLTimeseriesColsEnergy +
             BaseHPXMLTimeseriesColsFuels +
             BaseHPXMLTimeseriesColsEndUses +
+            BaseHPXMLTimeseriesColsSystemUses +
             BaseHPXMLTimeseriesColsWaterUses +
             BaseHPXMLTimeseriesColsTotalLoads +
             BaseHPXMLTimeseriesColsUnmetHours +
@@ -541,6 +551,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_total_consumptions' => false,
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_system_use_consumptions' => false,
                   'include_timeseries_emissions' => false,
                   'include_timeseries_emission_fuels' => false,
                   'include_timeseries_emission_end_uses' => false,
@@ -564,9 +575,10 @@ class ReportSimulationOutputTest < MiniTest::Test
     args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-misc-emissions.xml'),
                   'add_component_loads' => true,
                   'timeseries_frequency' => 'none',
-                  'include_timeseries_total_consumptions' => false,
+                  'include_timeseries_total_consumptions' => true,
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_system_use_consumptions' => true,
                   'include_timeseries_emissions' => true,
                   'include_timeseries_emission_fuels' => true,
                   'include_timeseries_emission_end_uses' => true,
@@ -801,6 +813,23 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_operator(schedule_regular_temp, :>, schedule_available_temp)
     assert_operator(schedule_available_temp, :<, schedule_unavailable_temp)
     assert_operator(schedule_unavailable_temp, :>, schedule_regular_temp)
+  end
+
+  def test_timeseries_hourly_system_uses
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_system_use_consumptions' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsSystemUses
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ['System Use: HeatingSystem1: Total'])
   end
 
   def test_timeseries_hourly_hotwateruses
@@ -1041,6 +1070,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_total_consumptions' => true,
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_system_use_consumptions' => true,
                   'include_timeseries_emissions' => true,
                   'include_timeseries_emission_fuels' => true,
                   'include_timeseries_emission_end_uses' => true,
@@ -1076,6 +1106,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_total_consumptions' => true,
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_system_use_consumptions' => true,
                   'include_timeseries_emissions' => true,
                   'include_timeseries_emission_fuels' => true,
                   'include_timeseries_emission_end_uses' => true,
@@ -1111,6 +1142,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_total_consumptions' => true,
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_system_use_consumptions' => true,
                   'include_timeseries_emissions' => true,
                   'include_timeseries_emission_fuels' => true,
                   'include_timeseries_emission_end_uses' => true,
@@ -1156,6 +1188,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_system_use_consumptions' => false,
                   'include_timeseries_emissions' => true,
                   'include_timeseries_emission_fuels' => true,
                   'include_timeseries_emission_end_uses' => true,
@@ -1343,6 +1376,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_system_use_consumptions' => false,
                   'include_timeseries_emissions' => false,
                   'include_timeseries_emission_fuels' => false,
                   'include_timeseries_emission_end_uses' => false,
@@ -1374,6 +1408,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_system_use_consumptions' => false,
                   'include_timeseries_emissions' => false,
                   'include_timeseries_emission_fuels' => false,
                   'include_timeseries_emission_end_uses' => false,

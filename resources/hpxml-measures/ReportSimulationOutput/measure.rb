@@ -73,6 +73,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_timeseries_system_use_consumptions', false)
+    arg.setDisplayName('Generate Timeseries Output: System Use Consumptions')
+    arg.setDescription('Generates timeseries energy consumptions for each HVAC and water heating system.')
+    arg.setDefaultValue(false)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_timeseries_emissions', false)
     arg.setDisplayName('Generate Timeseries Output: Emissions')
     arg.setDescription('Generates timeseries emissions. Requires the appropriate HPXML inputs to be specified.')
@@ -245,54 +251,43 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     timeseries_frequency = runner.getStringArgumentValue('timeseries_frequency', user_arguments)
     if timeseries_frequency != 'none'
-      include_timeseries_total_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_total_consumptions', user_arguments)
-      include_timeseries_fuel_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_fuel_consumptions', user_arguments)
-      include_timeseries_end_use_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_end_use_consumptions', user_arguments)
-      include_timeseries_emissions = runner.getOptionalBoolArgumentValue('include_timeseries_emissions', user_arguments)
-      include_timeseries_emission_fuels = runner.getOptionalBoolArgumentValue('include_timeseries_emission_fuels', user_arguments)
-      include_timeseries_emission_end_uses = runner.getOptionalBoolArgumentValue('include_timeseries_emission_end_uses', user_arguments)
-      include_timeseries_hot_water_uses = runner.getOptionalBoolArgumentValue('include_timeseries_hot_water_uses', user_arguments)
-      include_timeseries_total_loads = runner.getOptionalBoolArgumentValue('include_timeseries_total_loads', user_arguments)
-      include_timeseries_component_loads = runner.getOptionalBoolArgumentValue('include_timeseries_component_loads', user_arguments)
-      include_timeseries_unmet_hours = runner.getOptionalBoolArgumentValue('include_timeseries_unmet_hours', user_arguments)
-      include_timeseries_zone_temperatures = runner.getOptionalBoolArgumentValue('include_timeseries_zone_temperatures', user_arguments)
-      include_timeseries_airflows = runner.getOptionalBoolArgumentValue('include_timeseries_airflows', user_arguments)
-      include_timeseries_weather = runner.getOptionalBoolArgumentValue('include_timeseries_weather', user_arguments)
+      include_ts_total_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_total_consumptions', user_arguments)
+      include_ts_fuel_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_fuel_consumptions', user_arguments)
+      include_ts_end_use_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_end_use_consumptions', user_arguments)
+      include_ts_system_use_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_system_use_consumptions', user_arguments)
+      include_ts_emissions = runner.getOptionalBoolArgumentValue('include_timeseries_emissions', user_arguments)
+      include_ts_emission_fuels = runner.getOptionalBoolArgumentValue('include_timeseries_emission_fuels', user_arguments)
+      include_ts_emission_end_uses = runner.getOptionalBoolArgumentValue('include_timeseries_emission_end_uses', user_arguments)
+      include_ts_hot_water_uses = runner.getOptionalBoolArgumentValue('include_timeseries_hot_water_uses', user_arguments)
+      include_ts_total_loads = runner.getOptionalBoolArgumentValue('include_timeseries_total_loads', user_arguments)
+      include_ts_component_loads = runner.getOptionalBoolArgumentValue('include_timeseries_component_loads', user_arguments)
+      include_ts_unmet_hours = runner.getOptionalBoolArgumentValue('include_timeseries_unmet_hours', user_arguments)
+      include_ts_zone_temperatures = runner.getOptionalBoolArgumentValue('include_timeseries_zone_temperatures', user_arguments)
+      include_ts_airflows = runner.getOptionalBoolArgumentValue('include_timeseries_airflows', user_arguments)
+      include_ts_weather = runner.getOptionalBoolArgumentValue('include_timeseries_weather', user_arguments)
       user_output_variables = runner.getOptionalStringArgumentValue('user_output_variables', user_arguments)
 
-      include_timeseries_total_consumptions = include_timeseries_total_consumptions.is_initialized ? include_timeseries_total_consumptions.get : false
-      include_timeseries_fuel_consumptions = include_timeseries_fuel_consumptions.is_initialized ? include_timeseries_fuel_consumptions.get : false
-      include_timeseries_end_use_consumptions = include_timeseries_end_use_consumptions.is_initialized ? include_timeseries_end_use_consumptions.get : false
-      include_timeseries_emissions = include_timeseries_emissions.is_initialized ? include_timeseries_emissions.get : false
-      include_timeseries_emission_fuels = include_timeseries_emission_fuels.is_initialized ? include_timeseries_emission_fuels.get : false
-      include_timeseries_emission_end_uses = include_timeseries_emission_end_uses.is_initialized ? include_timeseries_emission_end_uses.get : false
-      include_timeseries_hot_water_uses = include_timeseries_hot_water_uses.is_initialized ? include_timeseries_hot_water_uses.get : false
-      include_timeseries_total_loads = include_timeseries_total_loads.is_initialized ? include_timeseries_total_loads.get : false
-      include_timeseries_component_loads = include_timeseries_component_loads.is_initialized ? include_timeseries_component_loads.get : false
-      include_timeseries_unmet_hours = include_timeseries_unmet_hours.is_initialized ? include_timeseries_unmet_hours.get : false
-      include_timeseries_zone_temperatures = include_timeseries_zone_temperatures.is_initialized ? include_timeseries_zone_temperatures.get : false
-      include_timeseries_airflows = include_timeseries_airflows.is_initialized ? include_timeseries_airflows.get : false
-      include_timeseries_weather = include_timeseries_weather.is_initialized ? include_timeseries_weather.get : false
+      include_ts_total_consumptions = include_ts_total_consumptions.is_initialized ? include_ts_total_consumptions.get : false
+      include_ts_fuel_consumptions = include_ts_fuel_consumptions.is_initialized ? include_ts_fuel_consumptions.get : false
+      include_ts_end_use_consumptions = include_ts_end_use_consumptions.is_initialized ? include_ts_end_use_consumptions.get : false
+      include_ts_system_use_consumptions = include_ts_system_use_consumptions.is_initialized ? include_ts_system_use_consumptions.get : false
+      include_ts_emissions = include_ts_emissions.is_initialized ? include_ts_emissions.get : false
+      include_ts_emission_fuels = include_ts_emission_fuels.is_initialized ? include_ts_emission_fuels.get : false
+      include_ts_emission_end_uses = include_ts_emission_end_uses.is_initialized ? include_ts_emission_end_uses.get : false
+      include_ts_hot_water_uses = include_ts_hot_water_uses.is_initialized ? include_ts_hot_water_uses.get : false
+      include_ts_total_loads = include_ts_total_loads.is_initialized ? include_ts_total_loads.get : false
+      include_ts_component_loads = include_ts_component_loads.is_initialized ? include_ts_component_loads.get : false
+      include_ts_unmet_hours = include_ts_unmet_hours.is_initialized ? include_ts_unmet_hours.get : false
+      include_ts_zone_temperatures = include_ts_zone_temperatures.is_initialized ? include_ts_zone_temperatures.get : false
+      include_ts_airflows = include_ts_airflows.is_initialized ? include_ts_airflows.get : false
+      include_ts_weather = include_ts_weather.is_initialized ? include_ts_weather.get : false
       user_output_variables = user_output_variables.is_initialized ? user_output_variables.get : nil
     end
 
     setup_outputs(false, user_output_variables)
-
-    # To calculate timeseries emissions or timeseries fuel consumption, we also need to select timeseries
-    # end use consumption because EnergyPlus results may be post-processed due to HVAC DSE.
-    # TODO: This could be removed if we could account for DSE inside EnergyPlus.
-    if not @emissions.empty?
-      include_hourly_electric_end_use_consumptions = true # Need hourly electricity values for Cambium
-      if include_timeseries_emissions || include_timeseries_emission_end_uses || include_timeseries_emission_fuels
-        include_timeseries_fuel_consumptions = true
-      end
-    end
-    if include_timeseries_total_consumptions
-      include_timeseries_fuel_consumptions = true
-    end
-    if include_timeseries_fuel_consumptions
-      include_timeseries_end_use_consumptions = true
-    end
+    timeseries_includes = setup_timeseries_includes(@emissions, include_ts_emissions, include_ts_emission_end_uses, include_ts_emission_fuels,
+                                                    include_ts_total_consumptions, include_ts_end_use_consumptions, include_ts_fuel_consumptions, include_ts_system_use_consumptions)
+    include_ts_end_use_consumptions, include_ts_fuel_consumptions, include_hourly_electric_end_use_consumptions = timeseries_includes
 
     has_electricity_production = false
     if @end_uses.select { |_key, end_use| end_use.is_negative && end_use.variables.size > 0 }.size > 0
@@ -308,7 +303,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @fuels.each do |_fuel_type, fuel|
       fuel.meters.each do |meter|
         result << OpenStudio::IdfObject.load("Output:Meter,#{meter},runperiod;").get
-        if include_timeseries_fuel_consumptions
+        if include_ts_fuel_consumptions
           result << OpenStudio::IdfObject.load("Output:Meter,#{meter},#{timeseries_frequency};").get
         end
       end
@@ -318,19 +313,19 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
     if has_electricity_storage
       result << OpenStudio::IdfObject.load('Output:Meter,ElectricStorage:ElectricityProduced,runperiod;').get # Used for error checking
-      if include_timeseries_fuel_consumptions
+      if include_ts_fuel_consumptions
         result << OpenStudio::IdfObject.load("Output:Meter,ElectricStorage:ElectricityProduced,#{timeseries_frequency};").get
       end
     end
 
     # End Use/Hot Water Use/Ideal Load outputs
-    { @end_uses => include_timeseries_end_use_consumptions,
-      @hot_water_uses => include_timeseries_hot_water_uses,
-      @ideal_system_loads => false }.each do |uses, include_timeseries|
+    { @end_uses => include_ts_end_use_consumptions,
+      @hot_water_uses => include_ts_hot_water_uses,
+      @ideal_system_loads => false }.each do |uses, include_ts|
       uses.each do |key, use|
         use.variables.each do |_sys_id, varkey, var|
           result << OpenStudio::IdfObject.load("Output:Variable,#{varkey},#{var},runperiod;").get
-          if include_timeseries
+          if include_ts
             result << OpenStudio::IdfObject.load("Output:Variable,#{varkey},#{var},#{timeseries_frequency};").get
           end
           next unless use.is_a?(EndUse)
@@ -358,7 +353,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @unmet_hours.each do |_key, unmet_hour|
       result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{unmet_hour.ems_variable}_annual_outvar,#{unmet_hour.ems_variable},Summed,ZoneTimestep,#{unmet_hours_program.name},hr;").get
       result << OpenStudio::IdfObject.load("Output:Variable,*,#{unmet_hour.ems_variable}_annual_outvar,runperiod;").get
-      if include_timeseries_unmet_hours
+      if include_ts_unmet_hours
         result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{unmet_hour.ems_variable}_timeseries_outvar,#{unmet_hour.ems_variable},Summed,ZoneTimestep,#{unmet_hours_program.name},hr;").get
         result << OpenStudio::IdfObject.load("Output:Variable,*,#{unmet_hour.ems_variable}_timeseries_outvar,#{timeseries_frequency};").get
       end
@@ -370,7 +365,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
       result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{comp_load.ems_variable}_annual_outvar,#{comp_load.ems_variable},Summed,ZoneTimestep,#{comp_loads_program.name},J;").get
       result << OpenStudio::IdfObject.load("Output:Variable,*,#{comp_load.ems_variable}_annual_outvar,runperiod;").get
-      if include_timeseries_component_loads
+      if include_ts_component_loads
         result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{comp_load.ems_variable}_timeseries_outvar,#{comp_load.ems_variable},Summed,ZoneTimestep,#{comp_loads_program.name},J;").get
         result << OpenStudio::IdfObject.load("Output:Variable,*,#{comp_load.ems_variable}_timeseries_outvar,#{timeseries_frequency};").get
       end
@@ -381,21 +376,21 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       if not load.ems_variable.nil?
         result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{load.ems_variable}_annual_outvar,#{load.ems_variable},Summed,ZoneTimestep,#{total_loads_program.name},J;").get
         result << OpenStudio::IdfObject.load("Output:Variable,*,#{load.ems_variable}_annual_outvar,runperiod;").get
-        if include_timeseries_total_loads
+        if include_ts_total_loads
           result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{load.ems_variable}_timeseries_outvar,#{load.ems_variable},Summed,ZoneTimestep,#{total_loads_program.name},J;").get
           result << OpenStudio::IdfObject.load("Output:Variable,*,#{load.ems_variable}_timeseries_outvar,#{timeseries_frequency};").get
         end
       end
       load.variables.each do |_sys_id, varkey, var|
         result << OpenStudio::IdfObject.load("Output:Variable,#{varkey},#{var},runperiod;").get
-        if include_timeseries_total_loads
+        if include_ts_total_loads
           result << OpenStudio::IdfObject.load("Output:Variable,#{varkey},#{var},#{timeseries_frequency};").get
         end
       end
     end
 
     # Temperature outputs (timeseries only)
-    if include_timeseries_zone_temperatures
+    if include_ts_zone_temperatures
       result << OpenStudio::IdfObject.load("Output:Variable,*,Zone Mean Air Temperature,#{timeseries_frequency};").get
       # For reporting temperature-scheduled spaces timeseries temperatures.
       keys = [HPXML::LocationOtherHeatedSpace,
@@ -419,7 +414,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     # Airflow outputs (timeseries only)
-    if include_timeseries_airflows
+    if include_ts_airflows
       @airflows.values.each do |airflow|
         ems_program = @model.getModelObjectByName(airflow.ems_program.gsub(' ', '_')).get.to_EnergyManagementSystemProgram.get
         airflow.ems_variables.each do |ems_variable|
@@ -430,7 +425,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     # Weather outputs (timeseries only)
-    if include_timeseries_weather
+    if include_ts_weather
       @weather.values.each do |weather_data|
         result << OpenStudio::IdfObject.load("Output:Variable,*,#{weather_data.variable},#{timeseries_frequency};").get
       end
@@ -475,37 +470,39 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
     timeseries_frequency = runner.getStringArgumentValue('timeseries_frequency', user_arguments)
     if timeseries_frequency != 'none'
-      include_timeseries_total_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_total_consumptions', user_arguments)
-      include_timeseries_fuel_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_fuel_consumptions', user_arguments)
-      include_timeseries_end_use_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_end_use_consumptions', user_arguments)
-      include_timeseries_emissions = runner.getOptionalBoolArgumentValue('include_timeseries_emissions', user_arguments)
-      include_timeseries_emission_fuels = runner.getOptionalBoolArgumentValue('include_timeseries_emission_fuels', user_arguments)
-      include_timeseries_emission_end_uses = runner.getOptionalBoolArgumentValue('include_timeseries_emission_end_uses', user_arguments)
-      include_timeseries_hot_water_uses = runner.getOptionalBoolArgumentValue('include_timeseries_hot_water_uses', user_arguments)
-      include_timeseries_total_loads = runner.getOptionalBoolArgumentValue('include_timeseries_total_loads', user_arguments)
-      include_timeseries_component_loads = runner.getOptionalBoolArgumentValue('include_timeseries_component_loads', user_arguments)
-      include_timeseries_unmet_hours = runner.getOptionalBoolArgumentValue('include_timeseries_unmet_hours', user_arguments)
-      include_timeseries_zone_temperatures = runner.getOptionalBoolArgumentValue('include_timeseries_zone_temperatures', user_arguments)
-      include_timeseries_airflows = runner.getOptionalBoolArgumentValue('include_timeseries_airflows', user_arguments)
-      include_timeseries_weather = runner.getOptionalBoolArgumentValue('include_timeseries_weather', user_arguments)
+      include_ts_total_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_total_consumptions', user_arguments)
+      include_ts_fuel_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_fuel_consumptions', user_arguments)
+      include_ts_end_use_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_end_use_consumptions', user_arguments)
+      include_ts_system_use_consumptions = runner.getOptionalBoolArgumentValue('include_timeseries_system_use_consumptions', user_arguments)
+      include_ts_emissions = runner.getOptionalBoolArgumentValue('include_timeseries_emissions', user_arguments)
+      include_ts_emission_fuels = runner.getOptionalBoolArgumentValue('include_timeseries_emission_fuels', user_arguments)
+      include_ts_emission_end_uses = runner.getOptionalBoolArgumentValue('include_timeseries_emission_end_uses', user_arguments)
+      include_ts_hot_water_uses = runner.getOptionalBoolArgumentValue('include_timeseries_hot_water_uses', user_arguments)
+      include_ts_total_loads = runner.getOptionalBoolArgumentValue('include_timeseries_total_loads', user_arguments)
+      include_ts_component_loads = runner.getOptionalBoolArgumentValue('include_timeseries_component_loads', user_arguments)
+      include_ts_unmet_hours = runner.getOptionalBoolArgumentValue('include_timeseries_unmet_hours', user_arguments)
+      include_ts_zone_temperatures = runner.getOptionalBoolArgumentValue('include_timeseries_zone_temperatures', user_arguments)
+      include_ts_airflows = runner.getOptionalBoolArgumentValue('include_timeseries_airflows', user_arguments)
+      include_ts_weather = runner.getOptionalBoolArgumentValue('include_timeseries_weather', user_arguments)
       use_timestamp_start_convention = (runner.getStringArgumentValue('timeseries_timestamp_convention', user_arguments) == 'start')
       add_timeseries_dst_column = runner.getOptionalBoolArgumentValue('add_timeseries_dst_column', user_arguments)
       add_timeseries_utc_column = runner.getOptionalBoolArgumentValue('add_timeseries_utc_column', user_arguments)
       user_output_variables = runner.getOptionalStringArgumentValue('user_output_variables', user_arguments)
 
-      include_timeseries_total_consumptions = include_timeseries_total_consumptions.is_initialized ? include_timeseries_total_consumptions.get : false
-      include_timeseries_fuel_consumptions = include_timeseries_fuel_consumptions.is_initialized ? include_timeseries_fuel_consumptions.get : false
-      include_timeseries_end_use_consumptions = include_timeseries_end_use_consumptions.is_initialized ? include_timeseries_end_use_consumptions.get : false
-      include_timeseries_emissions = include_timeseries_emissions.is_initialized ? include_timeseries_emissions.get : false
-      include_timeseries_emission_fuels = include_timeseries_emission_fuels.is_initialized ? include_timeseries_emission_fuels.get : false
-      include_timeseries_emission_end_uses = include_timeseries_emission_end_uses.is_initialized ? include_timeseries_emission_end_uses.get : false
-      include_timeseries_hot_water_uses = include_timeseries_hot_water_uses.is_initialized ? include_timeseries_hot_water_uses.get : false
-      include_timeseries_total_loads = include_timeseries_total_loads.is_initialized ? include_timeseries_total_loads.get : false
-      include_timeseries_component_loads = include_timeseries_component_loads.is_initialized ? include_timeseries_component_loads.get : false
-      include_timeseries_unmet_hours = include_timeseries_unmet_hours.is_initialized ? include_timeseries_unmet_hours.get : false
-      include_timeseries_zone_temperatures = include_timeseries_zone_temperatures.is_initialized ? include_timeseries_zone_temperatures.get : false
-      include_timeseries_airflows = include_timeseries_airflows.is_initialized ? include_timeseries_airflows.get : false
-      include_timeseries_weather = include_timeseries_weather.is_initialized ? include_timeseries_weather.get : false
+      include_ts_total_consumptions = include_ts_total_consumptions.is_initialized ? include_ts_total_consumptions.get : false
+      include_ts_fuel_consumptions = include_ts_fuel_consumptions.is_initialized ? include_ts_fuel_consumptions.get : false
+      include_ts_end_use_consumptions = include_ts_end_use_consumptions.is_initialized ? include_ts_end_use_consumptions.get : false
+      include_ts_system_use_consumptions = include_ts_system_use_consumptions.is_initialized ? include_ts_system_use_consumptions.get : false
+      include_ts_emissions = include_ts_emissions.is_initialized ? include_ts_emissions.get : false
+      include_ts_emission_fuels = include_ts_emission_fuels.is_initialized ? include_ts_emission_fuels.get : false
+      include_ts_emission_end_uses = include_ts_emission_end_uses.is_initialized ? include_ts_emission_end_uses.get : false
+      include_ts_hot_water_uses = include_ts_hot_water_uses.is_initialized ? include_ts_hot_water_uses.get : false
+      include_ts_total_loads = include_ts_total_loads.is_initialized ? include_ts_total_loads.get : false
+      include_ts_component_loads = include_ts_component_loads.is_initialized ? include_ts_component_loads.get : false
+      include_ts_unmet_hours = include_ts_unmet_hours.is_initialized ? include_ts_unmet_hours.get : false
+      include_ts_zone_temperatures = include_ts_zone_temperatures.is_initialized ? include_ts_zone_temperatures.get : false
+      include_ts_airflows = include_ts_airflows.is_initialized ? include_ts_airflows.get : false
+      include_ts_weather = include_ts_weather.is_initialized ? include_ts_weather.get : false
       user_output_variables = user_output_variables.is_initialized ? user_output_variables.get : nil
     end
     generate_eri_outputs = runner.getOptionalBoolArgumentValue('generate_eri_outputs', user_arguments)
@@ -558,65 +555,25 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     # Retrieve outputs
-    outputs = get_outputs(runner, timeseries_frequency,
-                          include_timeseries_total_consumptions,
-                          include_timeseries_fuel_consumptions,
-                          include_timeseries_end_use_consumptions,
-                          include_timeseries_emissions,
-                          include_timeseries_emission_fuels,
-                          include_timeseries_emission_end_uses,
-                          include_timeseries_hot_water_uses,
-                          include_timeseries_total_loads,
-                          include_timeseries_component_loads,
-                          include_timeseries_unmet_hours,
-                          include_timeseries_zone_temperatures,
-                          include_timeseries_airflows,
-                          include_timeseries_weather)
+    outputs = get_outputs(runner, timeseries_frequency, include_ts_total_consumptions, include_ts_fuel_consumptions,
+                          include_ts_end_use_consumptions, include_ts_system_use_consumptions, include_ts_emissions,
+                          include_ts_emission_fuels, include_ts_emission_end_uses, include_ts_hot_water_uses,
+                          include_ts_total_loads, include_ts_component_loads, include_ts_unmet_hours,
+                          include_ts_zone_temperatures, include_ts_airflows, include_ts_weather)
 
     if not check_for_errors(runner, outputs)
       return false
     end
 
-    # Set rounding precision for run period (e.g., annual) outputs.
-    if output_format == 'msgpack'
-      # No need to round; no file size penalty to storing full precision
-      runperiod_n_digits = 100
-    else
-      # Note: Make sure to round outputs with sufficient resolution for the worst case -- i.e., 1 day instead of a full year.
-      runperiod_n_digits = 3 # Default for annual (or near-annual) data
-      sim_n_days = (Schedule.get_day_num_from_month_day(2000, @hpxml.header.sim_end_month, @hpxml.header.sim_end_day) -
-                    Schedule.get_day_num_from_month_day(2000, @hpxml.header.sim_begin_month, @hpxml.header.sim_begin_day))
-      if sim_n_days <= 10 # 10 days or less; add two decimal places
-        runperiod_n_digits += 2
-      elsif sim_n_days <= 100 # 100 days or less; add one decimal place
-        runperiod_n_digits += 1
-      end
-    end
-
     # Write/report results
-    report_runperiod_output_results(runner, outputs, output_format, annual_output_path, runperiod_n_digits, generate_eri_outputs)
-    report_timeseries_output_results(runner, outputs, output_format,
-                                     timeseries_output_path,
-                                     timeseries_frequency,
-                                     timeseries_num_decimal_places,
-                                     include_timeseries_total_consumptions,
-                                     include_timeseries_fuel_consumptions,
-                                     include_timeseries_end_use_consumptions,
-                                     include_timeseries_emissions,
-                                     include_timeseries_emission_fuels,
-                                     include_timeseries_emission_end_uses,
-                                     include_timeseries_hot_water_uses,
-                                     include_timeseries_total_loads,
-                                     include_timeseries_component_loads,
-                                     include_timeseries_unmet_hours,
-                                     include_timeseries_zone_temperatures,
-                                     include_timeseries_airflows,
-                                     include_timeseries_weather,
-                                     add_dst_column,
-                                     add_utc_column,
-                                     timestamps_dst,
-                                     timestamps_utc,
-                                     use_dview_format)
+    report_runperiod_output_results(runner, outputs, output_format, annual_output_path, generate_eri_outputs)
+    report_timeseries_output_results(runner, outputs, output_format, timeseries_output_path, timeseries_frequency,
+                                     timeseries_num_decimal_places, include_ts_total_consumptions, include_ts_fuel_consumptions,
+                                     include_ts_end_use_consumptions, include_ts_system_use_consumptions, include_ts_emissions,
+                                     include_ts_emission_fuels, include_ts_emission_end_uses, include_ts_hot_water_uses,
+                                     include_ts_total_loads, include_ts_component_loads, include_ts_unmet_hours,
+                                     include_ts_zone_temperatures, include_ts_airflows, include_ts_weather,
+                                     add_dst_column, add_utc_column, timestamps_dst, timestamps_utc, use_dview_format)
 
     return true
   end
@@ -683,47 +640,31 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     return timestamps, timestamps_dst, timestamps_utc
   end
 
-  def get_outputs(runner, timeseries_frequency,
-                  include_timeseries_total_consumptions,
-                  include_timeseries_fuel_consumptions,
-                  include_timeseries_end_use_consumptions,
-                  include_timeseries_emissions,
-                  include_timeseries_emission_fuels,
-                  include_timeseries_emission_end_uses,
-                  include_timeseries_hot_water_uses,
-                  include_timeseries_total_loads,
-                  include_timeseries_component_loads,
-                  include_timeseries_unmet_hours,
-                  include_timeseries_zone_temperatures,
-                  include_timeseries_airflows,
-                  include_timeseries_weather)
+  def get_outputs(runner, timeseries_frequency, include_ts_total_consumptions, include_ts_fuel_consumptions,
+                  include_ts_end_use_consumptions, include_ts_system_use_consumptions, include_ts_emissions,
+                  include_ts_emission_fuels, include_ts_emission_end_uses, include_ts_hot_water_uses,
+                  include_ts_total_loads, include_ts_component_loads, include_ts_unmet_hours,
+                  include_ts_zone_temperatures, include_ts_airflows, include_ts_weather)
     outputs = {}
 
-    # To calculate timeseries emissions or timeseries fuel consumption, we also need to select timeseries
-    # end use consumption because EnergyPlus results may be post-processed due to, e.g., HVAC DSE.
-    # TODO: This could be removed if we could account for DSE inside EnergyPlus.
-    if not @emissions.empty?
-      include_hourly_electric_end_use_consumptions = true # For annual Cambium calculation
-      if include_timeseries_emissions || include_timeseries_emission_end_uses || include_timeseries_emission_fuels
-        include_timeseries_fuel_consumptions = true
-      end
-    end
-    if include_timeseries_total_consumptions
-      include_timeseries_fuel_consumptions = true
-    end
-    if include_timeseries_fuel_consumptions
-      include_timeseries_end_use_consumptions = true
-    end
+    timeseries_includes = setup_timeseries_includes(@emissions, include_ts_emissions, include_ts_emission_end_uses, include_ts_emission_fuels,
+                                                    include_ts_total_consumptions, include_ts_end_use_consumptions, include_ts_fuel_consumptions, include_ts_system_use_consumptions)
+    include_ts_end_use_consumptions, include_ts_fuel_consumptions, include_hourly_electric_end_use_consumptions = timeseries_includes
 
     # Fuel Uses
     @fuels.each do |fuel_type, fuel|
       fuel.annual_output = get_report_meter_data_annual(fuel.meters)
       fuel.annual_output -= get_report_meter_data_annual(['ElectricStorage:ElectricityProduced']) if fuel_type == FT::Elec # We add Electric Storage onto the annual Electricity fuel meter
 
-      next unless include_timeseries_fuel_consumptions
+      next unless include_ts_fuel_consumptions
 
       fuel.timeseries_output = get_report_meter_data_timeseries(fuel.meters, UnitConversions.convert(1.0, 'J', fuel.timeseries_units), 0, timeseries_frequency)
-      fuel.timeseries_output = fuel.timeseries_output.zip(get_report_meter_data_timeseries(['ElectricStorage:ElectricityProduced'], UnitConversions.convert(1.0, 'J', fuel.timeseries_units), 0, timeseries_frequency)).map { |x, y| x - y } if fuel_type == FT::Elec # We add Electric Storage onto the timeseries Electricity fuel meter
+
+      next unless fuel_type == FT::Elec
+
+      # We add Electric Storage onto the timeseries Electricity fuel meter
+      elec_storage_timeseries_output = get_report_meter_data_timeseries(['ElectricStorage:ElectricityProduced'], UnitConversions.convert(1.0, 'J', fuel.timeseries_units), 0, timeseries_frequency)
+      fuel.timeseries_output = fuel.timeseries_output.zip(elec_storage_timeseries_output).map { |x, y| x - y }
     end
 
     # Peak Electricity Consumption
@@ -747,7 +688,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       if not load.ems_variable.nil?
         # Obtain from EMS output variable
         load.annual_output = get_report_variable_data_annual(['EMS'], ["#{load.ems_variable}_annual_outvar"])
-        if include_timeseries_total_loads
+        if include_ts_total_loads
           load.timeseries_output = get_report_variable_data_timeseries(['EMS'], ["#{load.ems_variable}_timeseries_outvar"], UnitConversions.convert(1.0, 'J', load.timeseries_units), 0, timeseries_frequency, ems_shift: true)
         end
       elsif load.variables.size > 0
@@ -757,7 +698,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           vars = load.variables.select { |v| v[0] == sys_id }.map { |v| v[2] }
 
           load.annual_output_by_system[sys_id] = get_report_variable_data_annual(keys, vars, is_negative: load.is_negative)
-          if include_timeseries_total_loads && (load_type == LT::HotWaterDelivered)
+          if include_ts_total_loads && (load_type == LT::HotWaterDelivered)
             load.timeseries_output_by_system[sys_id] = get_report_variable_data_timeseries(keys, vars, UnitConversions.convert(1.0, 'J', load.timeseries_units), 0, timeseries_frequency, is_negative: load.is_negative, ems_shift: true)
           end
         end
@@ -767,7 +708,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     # Component Loads
     @component_loads.each do |_key, comp_load|
       comp_load.annual_output = get_report_variable_data_annual(['EMS'], ["#{comp_load.ems_variable}_annual_outvar"])
-      if include_timeseries_component_loads
+      if include_ts_component_loads
         comp_load.timeseries_output = get_report_variable_data_timeseries(['EMS'], ["#{comp_load.ems_variable}_timeseries_outvar"], UnitConversions.convert(1.0, 'J', comp_load.timeseries_units), 0, timeseries_frequency, ems_shift: true)
       end
     end
@@ -775,7 +716,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     # Unmet Hours
     @unmet_hours.each do |_key, unmet_hour|
       unmet_hour.annual_output = get_report_variable_data_annual(['EMS'], ["#{unmet_hour.ems_variable}_annual_outvar"], 1.0)
-      if include_timeseries_unmet_hours
+      if include_ts_unmet_hours
         unmet_hour.timeseries_output = get_report_variable_data_timeseries(['EMS'], ["#{unmet_hour.ems_variable}_timeseries_outvar"], 1.0, 0, timeseries_frequency)
       end
     end
@@ -805,7 +746,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
         end_use.annual_output_by_system[sys_id] = get_report_variable_data_annual(keys, vars, is_negative: (end_use.is_negative || end_use.is_storage))
 
-        if include_timeseries_end_use_consumptions
+        if include_ts_end_use_consumptions
           end_use.timeseries_output_by_system[sys_id] = get_report_variable_data_timeseries(keys, vars, UnitConversions.convert(1.0, 'J', end_use.timeseries_units), 0, timeseries_frequency, is_negative: (end_use.is_negative || end_use.is_storage))
         end
         if include_hourly_electric_end_use_consumptions && fuel_type == FT::Elec
@@ -838,7 +779,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         vars = hot_water.variables.select { |v| v[0] == sys_id }.map { |v| v[2] }
 
         hot_water.annual_output_by_system[sys_id] = get_report_variable_data_annual(keys, vars, UnitConversions.convert(1.0, 'm^3', hot_water.annual_units))
-        if include_timeseries_hot_water_uses
+        if include_ts_hot_water_uses
           hot_water.timeseries_output_by_system[sys_id] = get_report_variable_data_timeseries(keys, vars, UnitConversions.convert(1.0, 'm^3', hot_water.timeseries_units), 0, timeseries_frequency)
         end
       end
@@ -914,29 +855,48 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
       # Timeseries
       if obj.timeseries_output.empty? && (not obj.timeseries_output_by_system.empty?)
-        obj.timeseries_output = obj.timeseries_output_by_system.values[0]
-        obj.timeseries_output_by_system.values[1..-1].each do |values|
-          obj.timeseries_output = obj.timeseries_output.zip(values).map { |x, y| x + y }
-        end
+        obj.timeseries_output = obj.timeseries_output_by_system.values.transpose.map(&:sum)
       end
 
       # Hourly Electricity (for Cambium)
       next unless obj.is_a?(EndUse) && obj.hourly_output.empty? && (not obj.hourly_output_by_system.empty?)
 
-      obj.hourly_output = obj.hourly_output_by_system.values[0]
-      obj.hourly_output_by_system.values[1..-1].each do |values|
-        obj.hourly_output = obj.hourly_output.zip(values).map { |x, y| x + y }
-      end
+      obj.hourly_output = obj.hourly_output_by_system.values.transpose.map(&:sum)
+    end
+
+    # Calculate System Uses
+    @system_uses = {}
+    system_ids = @end_uses.values.map { |eu| eu.variables.map { |v| v[0] } }.flatten.uniq - [nil]
+    kwh_to_kbtu = UnitConversions.convert(1.0, 'kWh', 'kBtu')
+    system_ids.each do |sys_id|
+      next unless is_hpxml_system(sys_id)
+
+      system_output = BaseOutput.new
+      system_output.name = "System Use: #{sys_id}: Total"
+      @system_uses[sys_id] = system_output
+
+      # Annual
+      end_uses = @end_uses.select { |_key, eu| eu.variables.map { |v| v[0] }.include? sys_id }
+      system_output.annual_output = end_uses.values.map { |eu| eu.annual_output_by_system[sys_id] }.sum
+      system_output.annual_units = end_uses.values[0].annual_units
+
+      next unless include_ts_system_use_consumptions
+
+      # Timeseries
+      end_uses_elec = end_uses.select { |key, _eu| key[0] == FT::Elec }.values
+      end_uses_fuel = end_uses.select { |key, _eu| key[0] != FT::Elec }.values
+      system_output.timeseries_output = [*end_uses_elec.map { |seu| seu.timeseries_output_by_system[sys_id].map { |v| v * kwh_to_kbtu } },
+                                         *end_uses_fuel.map { |seu| seu.timeseries_output_by_system[sys_id] }].transpose.map(&:sum)
+      system_output.timeseries_units = 'kBtu'
     end
 
     # Total/Net Electricity (Net includes, e.g., PV and generators)
     outputs[:elec_prod_annual] = @end_uses.select { |k, eu| k[0] == FT::Elec && eu.is_negative }.map { |_k, eu| eu.annual_output.to_f }.sum(0.0) # Negative value
     outputs[:elec_net_annual] = @fuels[FT::Elec].annual_output.to_f + outputs[:elec_prod_annual]
-    if include_timeseries_fuel_consumptions
-      outputs[:elec_prod_timeseries] = [0.0] * @timestamps.size # Negative values
-      @end_uses.select { |k, eu| k[0] == FT::Elec && eu.is_negative && eu.timeseries_output.size > 0 }.each do |_key, end_use|
-        outputs[:elec_prod_timeseries] = outputs[:elec_prod_timeseries].zip(end_use.timeseries_output).map { |x, y| x + y }
-      end
+    if include_ts_fuel_consumptions
+      prod_end_uses = @end_uses.select { |k, eu| k[0] == FT::Elec && eu.is_negative && eu.timeseries_output.size > 0 }.map { |_k, v| v.timeseries_output }
+      outputs[:elec_prod_timeseries] = prod_end_uses.transpose.map(&:sum)
+      outputs[:elec_prod_timeseries] = [0.0] * @timestamps.size if outputs[:elec_prod_timeseries].empty?
       outputs[:elec_net_timeseries] = @fuels[FT::Elec].timeseries_output.zip(outputs[:elec_prod_timeseries]).map { |x, y| x + y }
     end
 
@@ -944,20 +904,20 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @totals[TE::Total].annual_output = 0.0
     @fuels.each do |_fuel_type, fuel|
       @totals[TE::Total].annual_output += fuel.annual_output
-      next unless include_timeseries_total_consumptions && fuel.timeseries_output.sum != 0.0
+      next unless include_ts_total_consumptions && fuel.timeseries_output.sum != 0.0
 
       @totals[TE::Total].timeseries_output = [0.0] * @timestamps.size if @totals[TE::Total].timeseries_output.empty?
       unit_conv = UnitConversions.convert(1.0, fuel.timeseries_units, @totals[TE::Total].timeseries_units)
       @totals[TE::Total].timeseries_output = @totals[TE::Total].timeseries_output.zip(fuel.timeseries_output).map { |x, y| x + y * unit_conv }
     end
     @totals[TE::Net].annual_output = @totals[TE::Total].annual_output + outputs[:elec_prod_annual]
-    if include_timeseries_total_consumptions
+    if include_ts_total_consumptions
       unit_conv = UnitConversions.convert(1.0, get_timeseries_units_from_fuel_type(FT::Elec), @totals[TE::Total].timeseries_units)
       @totals[TE::Net].timeseries_output = @totals[TE::Total].timeseries_output.zip(outputs[:elec_prod_timeseries]).map { |x, y| x + y * unit_conv }
     end
 
     # Zone temperatures
-    if include_timeseries_zone_temperatures
+    if include_ts_zone_temperatures
       zone_names = []
       scheduled_temperature_names = []
       @model.getThermalZones.each do |zone|
@@ -993,14 +953,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     # Airflows
-    if include_timeseries_airflows
+    if include_ts_airflows
       @airflows.each do |_airflow_type, airflow|
         airflow.timeseries_output = get_report_variable_data_timeseries(['EMS'], airflow.ems_variables.map { |var| "#{var}_timeseries_outvar" }, UnitConversions.convert(1.0, 'm^3/s', 'cfm'), 0, timeseries_frequency)
       end
     end
 
     # Weather
-    if include_timeseries_weather
+    if include_ts_weather
       @weather.each do |_weather_type, weather_data|
         if weather_data.timeseries_units == 'F'
           unit_conv = 9.0 / 5.0
@@ -1080,16 +1040,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           end
           @emissions[key].annual_output_by_end_use[eu_key] = hourly_elec.zip(hourly_elec_factors).map { |x, y| x * y * kwh_to_mwh * elec_units_mult }.sum
 
-          next unless include_timeseries_emissions || include_timeseries_emission_end_uses || include_timeseries_emission_fuels
+          next unless include_ts_emissions || include_ts_emission_end_uses || include_ts_emission_fuels
 
           # Calculate timeseries emissions for end use
 
           if timeseries_frequency == 'timestep' && @hpxml.header.timestep != 60
-            timeseries_elec = nil
-            end_use.timeseries_output_by_system.each do |_sys_id, timeseries_output|
-              timeseries_elec = [0.0] * timeseries_output.size if timeseries_elec.nil?
-              timeseries_elec = timeseries_elec.zip(timeseries_output.map { |x| x * kwh_to_mwh }).map { |x, y| x + y }
-            end
+            timeseries_elec = end_use.timeseries_output_by_system.values.transpose.map(&:sum).map { |x| x * kwh_to_mwh }
           else
             # Need to perform calculations hourly at a minimum
             timeseries_elec = end_use.hourly_output.map { |x| x * kwh_to_mwh }
@@ -1153,14 +1109,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           end
 
           @emissions[key].annual_output_by_end_use[eu_key] = UnitConversions.convert(end_use.annual_output, end_use.annual_units, 'MBtu') * fuel_factor * fuel_units_mult
-          next unless include_timeseries_emissions || include_timeseries_emission_end_uses || include_timeseries_emission_fuels
+          next unless include_ts_emissions || include_ts_emission_end_uses || include_ts_emission_fuels
 
           fuel_to_mbtu = UnitConversions.convert(1.0, end_use.timeseries_units, 'MBtu')
-
-          end_use.timeseries_output_by_system.each do |_sys_id, timeseries_output|
-            @emissions[key].timeseries_output_by_end_use[eu_key] = [0.0] * timeseries_output.size if @emissions[key].timeseries_output_by_end_use[eu_key].nil?
-            @emissions[key].timeseries_output_by_end_use[eu_key] = @emissions[key].timeseries_output_by_end_use[eu_key].zip(timeseries_output.map { |f| f * fuel_to_mbtu * fuel_factor * fuel_units_mult }).map { |x, y| x + y }
-          end
+          @emissions[key].timeseries_output_by_end_use[eu_key] = end_use.timeseries_output_by_system.values.transpose.map(&:sum).map { |f| f * fuel_to_mbtu * fuel_factor * fuel_units_mult }
         end
 
         # Roll up end use emissions to fuel emissions
@@ -1172,7 +1124,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
             @emissions[key].annual_output_by_fuel[fuel_type] += @emissions[key].annual_output_by_end_use[eu_key]
 
-            next unless include_timeseries_emissions || include_timeseries_emission_end_uses || include_timeseries_emission_fuels
+            next unless include_ts_emissions || include_ts_emission_end_uses || include_ts_emission_fuels
 
             @emissions[key].timeseries_output_by_fuel[fuel_type] = [0.0] * @emissions[key].timeseries_output_by_end_use[eu_key].size if @emissions[key].timeseries_output_by_fuel[fuel_type].nil?
             @emissions[key].timeseries_output_by_fuel[fuel_type] = @emissions[key].timeseries_output_by_fuel[fuel_type].zip(@emissions[key].timeseries_output_by_end_use[eu_key]).map { |x, y| x + y }
@@ -1183,12 +1135,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         @emissions[key].annual_output = @emissions[key].annual_output_by_fuel.values.sum()
         next unless not @emissions[key].timeseries_output_by_fuel.empty?
 
-        @emissions[key].timeseries_output = @emissions[key].timeseries_output_by_fuel.first[1]
-        @emissions[key].timeseries_output_by_fuel.each_with_index do |(_fuel, timeseries_output), i|
-          next if i == 0
-
-          @emissions[key].timeseries_output = @emissions[key].timeseries_output.zip(timeseries_output).map { |x, y| x + y }
-        end
+        @emissions[key].timeseries_output = @emissions[key].timeseries_output_by_fuel.values.transpose.map(&:sum)
       end
     end
 
@@ -1253,6 +1200,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     # Check sum of timeseries outputs match annual outputs
     { @totals => 'Total',
       @end_uses => 'End Use',
+      @system_uses => 'System Use',
       @fuels => 'Fuel',
       @emissions => 'Emissions',
       @loads => 'Load',
@@ -1272,14 +1220,34 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     return true
   end
 
-  def report_runperiod_output_results(runner, outputs, output_format, annual_output_path, n_digits, generate_eri_outputs)
+  def report_runperiod_output_results(runner, outputs, output_format, annual_output_path, generate_eri_outputs)
+    # Set rounding precision for run period (e.g., annual) outputs.
+    if output_format == 'msgpack'
+      # No need to round; no file size penalty to storing full precision
+      n_digits = 100
+    else
+      # Note: Make sure to round outputs with sufficient resolution for the worst case -- i.e., 1 day instead of a full year.
+      n_digits = 3 # Default for annual (or near-annual) data
+      sim_n_days = (Schedule.get_day_num_from_month_day(2000, @hpxml.header.sim_end_month, @hpxml.header.sim_end_day) -
+                    Schedule.get_day_num_from_month_day(2000, @hpxml.header.sim_begin_month, @hpxml.header.sim_begin_day))
+      if sim_n_days <= 10 # 10 days or less; add two decimal places
+        n_digits += 2
+      elsif sim_n_days <= 100 # 100 days or less; add one decimal place
+        n_digits += 1
+      end
+    end
+
     line_break = nil
 
     results_out = []
+
+    # Totals
     @totals.each do |_energy_type, total_energy|
       results_out << ["#{total_energy.name} (#{total_energy.annual_units})", total_energy.annual_output.to_f.round(n_digits)]
     end
     results_out << [line_break]
+
+    # Fuels
     @fuels.each do |fuel_type, fuel|
       results_out << ["#{fuel.name} (#{fuel.annual_units})", fuel.annual_output.to_f.round(n_digits)]
       if fuel_type == FT::Elec
@@ -1287,49 +1255,63 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
     results_out << [line_break]
+
+    # End uses
     @end_uses.each do |_key, end_use|
       results_out << ["#{end_use.name} (#{end_use.annual_units})", end_use.annual_output.to_f.round(n_digits)]
     end
+    results_out << [line_break]
 
-    # Outage warning
-    if @hpxml.header.power_outage_periods.size > 0
-      runner.registerWarning('It is not possible to eliminate all desired end uses (e.g. crankcase/defrost energy, water heater parasitics) in EnergyPlus during a power outage.')
+    # System uses
+    @system_uses.each do |_sys_id, system_use|
+      results_out << ["#{system_use.name} (#{system_use.annual_units})", system_use.annual_output.round(n_digits)]
     end
 
+    # Emissions
     if not @emissions.empty?
       results_out << [line_break]
       @emissions.each do |_scenario_key, emission|
         # Emissions total
-        results_out << ["#{emission.name}: Total (#{emission.annual_units})", emission.annual_output.to_f.round(2)]
+        results_out << ["#{emission.name}: Total (#{emission.annual_units})", emission.annual_output.to_f.round(n_digits - 1)]
         # Emissions by fuel
         @fuels.keys.each do |fuel|
-          results_out << ["#{emission.name}: #{fuel}: Total (#{emission.annual_units})", emission.annual_output_by_fuel[fuel].to_f.round(2)]
+          results_out << ["#{emission.name}: #{fuel}: Total (#{emission.annual_units})", emission.annual_output_by_fuel[fuel].to_f.round(n_digits - 1)]
           # Emissions by end use
           @end_uses.keys.each do |key|
             fuel_type, end_use_type = key
             next unless fuel_type == fuel
 
-            results_out << ["#{emission.name}: #{fuel_type}: #{end_use_type} (#{emission.annual_units})", emission.annual_output_by_end_use[key].to_f.round(2)]
+            results_out << ["#{emission.name}: #{fuel_type}: #{end_use_type} (#{emission.annual_units})", emission.annual_output_by_end_use[key].to_f.round(n_digits - 1)]
           end
         end
       end
     end
     results_out << [line_break]
+
+    # Loads
     @loads.each do |_load_type, load|
       results_out << ["#{load.name} (#{load.annual_units})", load.annual_output.to_f.round(n_digits)]
     end
     results_out << [line_break]
+
+    # Unmet hours
     @unmet_hours.each do |_load_type, unmet_hour|
       results_out << ["#{unmet_hour.name} (#{unmet_hour.annual_units})", unmet_hour.annual_output.to_f.round(n_digits)]
     end
     results_out << [line_break]
+
+    # Peak fuels
     @peak_fuels.each do |_key, peak_fuel|
       results_out << ["#{peak_fuel.name} (#{peak_fuel.annual_units})", peak_fuel.annual_output.to_f.round(n_digits - 2)]
     end
     results_out << [line_break]
+
+    # Peak loads
     @peak_loads.each do |_load_type, peak_load|
       results_out << ["#{peak_load.name} (#{peak_load.annual_units})", peak_load.annual_output.to_f.round(n_digits)]
     end
+
+    # Component loads
     if @component_loads.values.map { |load| load.annual_output.to_f }.sum != 0 # Skip if component loads not calculated
       results_out << [line_break]
       @component_loads.each do |_load_type, load|
@@ -1337,11 +1319,16 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
     results_out << [line_break]
+
+    # Hot water uses
     @hot_water_uses.each do |_hot_water_type, hot_water|
       results_out << ["#{hot_water.name} (#{hot_water.annual_units})", hot_water.annual_output.to_f.round(n_digits - 2)]
     end
 
+    # Sizing data
     results_out = append_sizing_results(results_out, line_break)
+
+    # ERI data
     if generate_eri_outputs
       results_out = append_eri_results(results_out, line_break)
     end
@@ -1721,28 +1708,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     return results_out
   end
 
-  def report_timeseries_output_results(runner, outputs, output_format,
-                                       timeseries_output_path,
-                                       timeseries_frequency,
-                                       timeseries_num_decimal_places,
-                                       include_timeseries_total_consumptions,
-                                       include_timeseries_fuel_consumptions,
-                                       include_timeseries_end_use_consumptions,
-                                       include_timeseries_emissions,
-                                       include_timeseries_emission_fuels,
-                                       include_timeseries_emission_end_uses,
-                                       include_timeseries_hot_water_uses,
-                                       include_timeseries_total_loads,
-                                       include_timeseries_component_loads,
-                                       include_timeseries_unmet_hours,
-                                       include_timeseries_zone_temperatures,
-                                       include_timeseries_airflows,
-                                       include_timeseries_weather,
-                                       add_dst_column,
-                                       add_utc_column,
-                                       timestamps_dst,
-                                       timestamps_utc,
-                                       use_dview_format)
+  def report_timeseries_output_results(runner, outputs, output_format, timeseries_output_path, timeseries_frequency,
+                                       timeseries_num_decimal_places, include_ts_total_consumptions, include_ts_fuel_consumptions,
+                                       include_ts_end_use_consumptions, include_ts_system_use_consumptions, include_ts_emissions,
+                                       include_ts_emission_fuels, include_ts_emission_end_uses, include_ts_hot_water_uses,
+                                       include_ts_total_loads, include_ts_component_loads, include_ts_unmet_hours,
+                                       include_ts_zone_temperatures, include_ts_airflows, include_ts_weather,
+                                       add_dst_column, add_utc_column, timestamps_dst, timestamps_utc, use_dview_format)
     return if @timestamps.nil?
 
     if not ['timestep', 'hourly', 'daily', 'monthly'].include? timeseries_frequency
@@ -1780,7 +1752,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       timestamps3 = []
     end
 
-    if include_timeseries_total_consumptions
+    if include_ts_total_consumptions
       total_energy_data = []
       [TE::Total, TE::Net].each do |energy_type|
         next if (energy_type == TE::Net) && (outputs[:elec_prod_timeseries].sum(0.0) == 0)
@@ -1791,7 +1763,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     else
       total_energy_data = []
     end
-    if include_timeseries_fuel_consumptions
+    if include_ts_fuel_consumptions
       fuel_data = @fuels.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
 
       # Also add Net Electricity
@@ -1801,77 +1773,82 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     else
       fuel_data = []
     end
-    if include_timeseries_end_use_consumptions
+    if include_ts_end_use_consumptions
       end_use_data = @end_uses.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
     else
       end_use_data = []
     end
-    if include_timeseries_emissions
+    if include_ts_system_use_consumptions
+      system_use_data = @system_uses.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
+    else
+      system_use_data = []
+    end
+    if include_ts_emissions
       emissions_data = []
       @emissions.values.each do |emission|
         next if emission.timeseries_output.sum(0.0) == 0
 
-        emissions_data << ["#{emission.name}: Total", emission.timeseries_units] + emission.timeseries_output.map { |v| v.round(5) }
+        emissions_data << ["#{emission.name}: Total", emission.timeseries_units] + emission.timeseries_output.map { |v| v.round(n_digits + 2) }
       end
     else
       emissions_data = []
     end
-    if include_timeseries_emission_fuels
+    if include_ts_emission_fuels
       emission_fuel_data = []
       @emissions.values.each do |emission|
         emission.timeseries_output_by_fuel.each do |fuel, timeseries_output|
           next if timeseries_output.sum(0.0) == 0
 
-          emission_fuel_data << ["#{emission.name}: #{fuel}: Total", emission.timeseries_units] + timeseries_output.map { |v| v.round(5) }
+          emission_fuel_data << ["#{emission.name}: #{fuel}: Total", emission.timeseries_units] + timeseries_output.map { |v| v.round(n_digits + 2) }
         end
       end
     else
       emission_fuel_data = []
     end
-    if include_timeseries_emission_end_uses
+    if include_ts_emission_end_uses
       emission_end_use_data = []
       @emissions.values.each do |emission|
         emission.timeseries_output_by_end_use.each do |key, timeseries_output|
           next if timeseries_output.sum(0.0) == 0
 
           fuel_type, end_use_type = key
-          emission_end_use_data << ["#{emission.name}: #{fuel_type}: #{end_use_type}", emission.timeseries_units] + timeseries_output.map { |v| v.round(5) }
+          emission_end_use_data << ["#{emission.name}: #{fuel_type}: #{end_use_type}", emission.timeseries_units] + timeseries_output.map { |v| v.round(n_digits + 2) }
         end
       end
     else
       emission_end_use_data = []
     end
-    if include_timeseries_hot_water_uses
+    if include_ts_hot_water_uses
       hot_water_use_data = @hot_water_uses.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
     else
       hot_water_use_data = []
     end
-    if include_timeseries_total_loads
+    if include_ts_total_loads
       total_loads_data = @loads.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
     else
       total_loads_data = {}
     end
-    if include_timeseries_component_loads
+    if include_ts_component_loads
       comp_loads_data = @component_loads.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
     else
       comp_loads_data = []
     end
-    if include_timeseries_unmet_hours
+    if include_ts_unmet_hours
       unmet_hours_data = @unmet_hours.values.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
     else
       unmet_hours_data = []
     end
-    if include_timeseries_zone_temperatures
+    if include_ts_zone_temperatures
       zone_temps_data = @zone_temps.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
     else
       zone_temps_data = []
     end
-    if include_timeseries_airflows
+    if include_ts_airflows
       airflows_data = @airflows.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
     else
       airflows_data = []
     end
-    if include_timeseries_weather
+    if include_ts_weather
       weather_data = @weather.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
     else
       weather_data = []
@@ -1884,7 +1861,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       output_variables_data = []
     end
 
-    return if (total_energy_data.size + fuel_data.size + end_use_data.size + emissions_data.size + emission_fuel_data.size +
+    return if (total_energy_data.size + fuel_data.size + end_use_data.size + system_use_data.size + emissions_data.size + emission_fuel_data.size +
                emission_end_use_data.size + hot_water_use_data.size + total_loads_data.size + comp_loads_data.size + unmet_hours_data.size +
                zone_temps_data.size + airflows_data.size + weather_data.size + output_variables_data.size) == 0
 
@@ -1892,7 +1869,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     if ['csv'].include? output_format
       # Assemble data
-      data = data.zip(*timestamps2, *timestamps3, *total_energy_data, *fuel_data, *end_use_data, *emissions_data,
+      data = data.zip(*timestamps2, *timestamps3, *total_energy_data, *fuel_data, *end_use_data, *system_use_data, *emissions_data,
                       *emission_fuel_data, *emission_end_use_data, *hot_water_use_data, *total_loads_data, *comp_loads_data,
                       *unmet_hours_data, *zone_temps_data, *airflows_data, *weather_data, *output_variables_data)
 
@@ -1954,7 +1931,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       h['TimeDST'] = timestamps2[2..-1] if timestamps_dst
       h['TimeUTC'] = timestamps3[2..-1] if timestamps_utc
 
-      [total_energy_data, fuel_data, end_use_data, emissions_data, emission_fuel_data,
+      [total_energy_data, fuel_data, end_use_data, system_use_data, emissions_data, emission_fuel_data,
        emission_end_use_data, hot_water_use_data, total_loads_data, comp_loads_data, unmet_hours_data,
        zone_temps_data, airflows_data, weather_data, output_variables_data].each do |d|
         d.each do |o|
@@ -2043,7 +2020,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       # Split into EMS and non-EMS queries so that the EMS values shift occurs for just the EMS query
       # Remove this code if we ever figure out a better way to handle when EMS output should shift
       values = get_report_variable_data_timeseries(['EMS'], variables, unit_conv, unit_adder, timeseries_frequency, is_negative: is_negative, ems_shift: ems_shift)
-      sum_values = values.zip(get_report_variable_data_timeseries(key_values.select { |k| k != 'EMS' }, variables, unit_conv, unit_adder, timeseries_frequency, is_negative: is_negative, ems_shift: ems_shift)).map { |x, y| x + y }
+      non_ems_values = get_report_variable_data_timeseries(key_values.select { |k| k != 'EMS' }, variables, unit_conv, unit_adder, timeseries_frequency, is_negative: is_negative, ems_shift: ems_shift)
+      sum_values = [values, non_ems_values].transpose.map(&:sum)
       return sum_values
     end
 
@@ -2127,8 +2105,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     if not obj.timeseries_output_by_system.empty?
       orig_values = obj.timeseries_output_by_system[sys_id]
       obj.timeseries_output_by_system[sys_id] = obj.timeseries_output_by_system[sys_id].map { |x| x * mult }
-      diffs = obj.timeseries_output_by_system[sys_id].zip(orig_values).map { |x, y| x - y }
       if not sync_obj.nil?
+        diffs = obj.timeseries_output_by_system[sys_id].zip(orig_values).map { |x, y| x - y }
         sync_obj.timeseries_output = sync_obj.timeseries_output.zip(diffs).map { |x, y| x + y }
       end
     end
@@ -2661,6 +2639,29 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
   end
 
+  def setup_timeseries_includes(emissions, include_ts_emissions, include_ts_emission_end_uses, include_ts_emission_fuels,
+                                include_ts_total_consumptions, include_ts_end_use_consumptions, include_ts_fuel_consumptions, include_ts_system_use_consumptions)
+    # To calculate timeseries emissions or timeseries fuel consumption, we also need to select timeseries
+    # end use consumption because EnergyPlus results may be post-processed due to HVAC DSE.
+    # TODO: This could be removed if we could account for DSE inside EnergyPlus.
+    if not emissions.empty?
+      include_hourly_electric_end_use_consumptions = true # Need hourly electricity values for Cambium
+      if include_ts_emissions || include_ts_emission_end_uses || include_ts_emission_fuels
+        include_ts_fuel_consumptions = true
+      end
+    end
+    if include_ts_total_consumptions
+      include_ts_fuel_consumptions = true
+    end
+    if include_ts_fuel_consumptions
+      include_ts_end_use_consumptions = true
+    end
+    if include_ts_system_use_consumptions
+      include_ts_end_use_consumptions = true
+    end
+    return include_ts_end_use_consumptions, include_ts_fuel_consumptions, include_hourly_electric_end_use_consumptions
+  end
+
   def is_heat_pump_backup(sys_id)
     return false if @hpxml.nil?
 
@@ -2675,6 +2676,23 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @hpxml.heating_systems.each do |heating_system|
       next if sys_id != heating_system.id
       next unless heating_system.is_heat_pump_backup_system
+
+      return true
+    end
+
+    if sys_id.include? '_DFHPBackup'
+      return true
+    end
+
+    return false
+  end
+
+  def is_hpxml_system(sys_id)
+    # Returns true if sys_id corresponds to an HVAC or water heating system
+    return false if @hpxml.nil?
+
+    (@hpxml.hvac_systems + @hpxml.water_heating_systems).each do |system|
+      next if system.id != sys_id
 
       return true
     end

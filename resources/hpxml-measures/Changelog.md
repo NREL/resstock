@@ -17,6 +17,7 @@ __New Features__
 - Window shading seasons now based on calendar dates (e.g., summer: May 1-Sep 30 in northern hemisphere) instead of monthly outdoor temperatures.
 - Allows modeling one or more occupant vacancy periods (`VacancyPeriods`) and power outage periods (`PowerOutagePeriods`) in the HPXML file.
 - ReportSimulationOutput measure:
+  - Adds annual energy outputs per HVAC and water heating system; allows requesting timeseries output.
   - Peak summer/winter electricity outputs are now based on Jun/July/Aug and Dec/Jan/Feb months, not HVAC heating/cooling operation.
   - Annual emissions outputs now include all fuel/end uses, even if zero.
   - Allows specifying the number of decimal places for timeseries output.
