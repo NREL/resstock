@@ -11,7 +11,8 @@ col_exclusions = ['applicable',
                   'timeseries_num_decimal_places',
                   'upgrade_name',
                   'add_timeseries_',
-                  'user_output_variables']
+                  'user_output_variables',
+                  'debug']
 
 # BASELINE
 
