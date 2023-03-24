@@ -92,7 +92,7 @@ class TesBuildStockBatch < MiniTest::Test
   end
 
   def test_annual_outputs
-    expected_outputs = CSV.read(File.join('resources', 'data', 'outputs.csv'), headers: true)
+    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join('baseline', 'annual', 'results_output.csv'), headers: true)
@@ -111,7 +111,7 @@ class TesBuildStockBatch < MiniTest::Test
   end
 
   def test_timeseries_outputs
-    expected_outputs = CSV.read(File.join('resources', 'data', 'outputs.csv'), headers: true)
+    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
     expected_timeseries_names = expected_outputs['Timeseries Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join('baseline', 'timeseries', 'results_output.csv'), headers: true)
