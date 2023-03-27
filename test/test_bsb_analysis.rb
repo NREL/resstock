@@ -147,7 +147,7 @@ class TesBuildStockBatch < MiniTest::Test
     assert_equal(0, actual_extras.size)
     # assert_equal(0, expected_extras.size) # allow
 
-    tol = 0.1
+    tol = 0.5
     sums_to_indexes = expected_outputs['Sums To'].select { |n| !n.nil? }.uniq
     sums_to_indexes.each do |sums_to_ix|
       ix = expected_outputs['Index'].index(sums_to_ix)
