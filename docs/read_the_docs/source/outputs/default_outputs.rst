@@ -11,7 +11,7 @@ Housing Characteristics
 Default characteristics include sampled properties for each dwelling unit.
 
 .. csv-table::
-   :file: ../../../../test/base_results/outputs/characteristics.csv
+   :file: characteristics.csv
 
 Simulation Output
 *****************
@@ -21,7 +21,7 @@ Default annual simulation outputs include energy consumptions (total, by fuel, a
 See the OpenStudio-HPXML Workflow Outputs section on `Annual Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-outputs>`_ for more information about annual outputs.
 
 .. csv-table::
-   :file: ../../../../test/base_results/outputs/simulation_outputs.csv
+   :file: simulation_outputs.csv
 
 .. _upgrade-costs:
 
@@ -31,7 +31,7 @@ Upgrade Costs
 Upgrade cost multipliers include:
 
 .. csv-table::
-   :file: ../../../../test/base_results/outputs/cost_multipliers.csv
+   :file: cost_multipliers.csv
 
 Other upgrade cost information includes:
 
