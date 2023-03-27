@@ -231,6 +231,8 @@ class MoreCompare(BaseCompare):
       feature_df = self.intersect_rows(feature_df, base_df)
 
       cols = sorted(list(set(base_df.columns) & set(feature_df.columns)))
+      if not cols:
+        return
 
       g = base_df.groupby('PROJECT')
       groups = g.groups.keys()
