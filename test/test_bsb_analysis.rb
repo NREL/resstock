@@ -108,6 +108,26 @@ class TesBuildStockBatch < MiniTest::Test
 
     assert_equal(0, actual_extras.size)
     # assert_equal(0, expected_extras.size) # allow
+
+    tol = 0.1
+    sums_to_indexes = expected_outputs['Sums To'].select { |n| !n.nil? }.uniq
+    sums_to_indexes.each do |sums_to_ix|
+      ix = expected_outputs['Index'].index(sums_to_ix)
+      sums_to = expected_outputs['Annual Name'][ix]
+
+      terms = []
+      expected_outputs['Sums To'].zip(expected_outputs['Annual Name']).each do |ix, annual_name|
+        terms << annual_name if ix == sums_to_ix
+      end
+
+      actual_outputs.each_with_index do |row, _i|
+        sums_to_val = Float(row[sums_to])
+        terms_val = terms.collect { |t| Float(row[t]) }.sum
+
+        puts "Summed value #{terms_val} does not equal #{sums_to} (#{sums_to_val})" if (sums_to_val - terms_val).abs > tol
+        assert_in_delta(sums_to_val, terms_val, tol)
+      end
+    end
   end
 
   def test_timeseries_outputs
@@ -126,5 +146,25 @@ class TesBuildStockBatch < MiniTest::Test
 
     assert_equal(0, actual_extras.size)
     # assert_equal(0, expected_extras.size) # allow
+
+    tol = 0.1
+    sums_to_indexes = expected_outputs['Sums To'].select { |n| !n.nil? }.uniq
+    sums_to_indexes.each do |sums_to_ix|
+      ix = expected_outputs['Index'].index(sums_to_ix)
+      sums_to = expected_outputs['Timeseries Name'][ix]
+
+      terms = []
+      expected_outputs['Sums To'].zip(expected_outputs['Timeseries Name']).each do |ix, annual_name|
+        terms << annual_name if ix == sums_to_ix
+      end
+
+      actual_outputs.each_with_index do |row, _i|
+        sums_to_val = row.headers.include?(sums_to) ? Float(row[sums_to]) : 0.0
+        terms_val = terms.collect { |t| row.headers.include?(t) ? Float(row[t]) : 0.0 }.sum
+
+        puts "Summed value #{terms_val} does not equal #{sums_to} (#{sums_to_val})" if (sums_to_val - terms_val).abs > tol
+        assert_in_delta(sums_to_val, terms_val, tol)
+      end
+    end
   end
 end
