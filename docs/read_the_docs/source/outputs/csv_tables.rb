@@ -19,7 +19,6 @@ csv_tables = {
 csv_tables_dir = File.join(File.dirname(__FILE__), 'csv_tables')
 Dir.mkdir(csv_tables_dir) if !File.exist?(csv_tables_dir)
 csv_tables.each do |csv_file, kws|
-  puts csv_file
   csv_path = File.join(csv_tables_dir, csv_file)
   CSV.open(csv_path, 'wb') do |csv|
     csv << usecols
