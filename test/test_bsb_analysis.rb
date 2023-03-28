@@ -2,6 +2,7 @@
 
 require 'minitest/autorun'
 require_relative '../test/analysis'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/unit_conversions.rb'
 
 class TesBuildStockBatch < MiniTest::Test
   def before_setup
@@ -156,7 +157,15 @@ class TesBuildStockBatch < MiniTest::Test
       end
 
       sums_to_val = actual_outputs.headers.include?(sums_to) ? actual_outputs[sums_to].map { |x| Float(x) }.sum : 0.0
-      terms_val = terms.collect { |t| actual_outputs.headers.include?(t) ? actual_outputs[t].map { |x| Float(x) }.sum : 0.0 }.sum
+      terms_vals = []
+      terms.each do |term|
+        if actual_outputs.headers.include?(term)
+          terms_vals << actual_outputs[term].map { |x| term != 'Fuel Use: Electricity: Total' ? Float(x) : UnitConversions.convert(Float(x), 'kWh', 'kBtu') }.sum
+        else
+          terms_vals << 0.0
+        end
+      end
+      terms_val = terms_vals.sum
 
       assert_in_epsilon(sums_to_val, terms_val, tol, "Summed value #{terms_val} does not equal #{sums_to} (#{sums_to_val})")
     end
