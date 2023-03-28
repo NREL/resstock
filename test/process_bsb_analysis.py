@@ -120,6 +120,7 @@ df_testing['PROJECT'] = 'project_testing'
 results_output = pd.concat([df_national, df_testing]).fillna(0)
 results_output = results_output.set_index('PROJECT')
 results_output = results_output.sort_index()
+results_output = results_output.reindex(sorted(results_output.columns), axis=1)
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
 # UPGRADES
@@ -238,4 +239,5 @@ df_testing['PROJECT'] = 'project_testing'
 results_output = pd.concat([df_national, df_testing]).fillna(0)
 results_output = results_output.set_index('PROJECT')
 results_output = results_output.sort_index()
+results_output = results_output.reindex(sorted(results_output.columns), axis=1)
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
