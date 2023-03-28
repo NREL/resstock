@@ -19,7 +19,7 @@ Component Loads
 Component loads represent the estimated contribution of different building components to the annual heating/cooling building loads.
 
 .. csv-table::
-   :file: component_loads.csv
+   :file: csv_tables/component_loads.csv
 
 These outputs require that only a single switch is enabled.
 See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``build_existing_model`` section) for more information.
@@ -38,7 +38,7 @@ For the example below, the "LRMER_MidCase_15" emissions scenario was requested.
 See the list of available emissions scenario choices at https://github.com/NREL/resstock/tree/develop/resources/data/cambium.
 
 .. csv-table::
-   :file: emissions.csv
+   :file: csv_tables/emissions.csv
 
 Utility Bills
 *************
@@ -49,7 +49,7 @@ See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedo
 See the OpenStudio-HPXML Workflow Outputs section on `Utility Bill Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#utility-bill-outputs>`_ for more information about utility bill outputs.
 
 .. csv-table::
-   :file: utility_bills.csv
+   :file: csv_tables/utility_bills.csv
 
 Quantities of Interest
 **********************
@@ -58,10 +58,13 @@ These outputs require that only a single switch is enabled.
 See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``reporting_measures`` section) for more information on how to request quantities of interest outputs.
 
 .. csv-table::
-   :file: qoi_report.csv
+   :file: csv_tables/qoi_report.csv
 
 Timeseries
 **********
+
+.. csv-table::
+   :file: csv_tables/other.csv
 
 Specifying any timeseries frequency other than "none" results in, by default, end use consumptions and total loads timeseries output requests.
 See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``simulation_output_report`` section) for more information on how to request various timeseries outputs (or override default requests).
