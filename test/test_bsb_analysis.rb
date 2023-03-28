@@ -109,7 +109,7 @@ class TesBuildStockBatch < MiniTest::Test
     assert_equal(0, actual_extras.size)
     # assert_equal(0, expected_extras.size) # allow
 
-    tol = 0.1
+    tol = 0.001
     sums_to_indexes = expected_outputs['Sums To'].select { |n| !n.nil? }.uniq
     sums_to_indexes.each do |sums_to_ix|
       ix = expected_outputs['Index'].index(sums_to_ix)
@@ -120,12 +120,10 @@ class TesBuildStockBatch < MiniTest::Test
         terms << annual_name if ix == sums_to_ix
       end
 
-      actual_outputs.each do |row|
-        sums_to_val = Float(row[sums_to])
-        terms_val = terms.collect { |t| Float(row[t]) }.sum
+      sums_to_val = actual_outputs[sums_to].map { |x| Float(x) }.sum
+      terms_val = terms.collect { |t| actual_outputs[t].map { |x| Float(x) }.sum }.sum
 
-        assert_in_delta(sums_to_val, terms_val, tol, "Summed value #{terms_val} does not equal #{sums_to} (#{sums_to_val})")
-      end
+      assert_in_epsilon(sums_to_val, terms_val, tol, "Summed value #{terms_val} does not equal #{sums_to} (#{sums_to_val})")
     end
   end
 
@@ -146,7 +144,7 @@ class TesBuildStockBatch < MiniTest::Test
     assert_equal(0, actual_extras.size)
     # assert_equal(0, expected_extras.size) # allow
 
-    tol = 0.1
+    tol = 0.001
     sums_to_indexes = expected_outputs['Sums To'].select { |n| !n.nil? }.uniq
     sums_to_indexes.each do |sums_to_ix|
       ix = expected_outputs['Index'].index(sums_to_ix)
@@ -157,12 +155,10 @@ class TesBuildStockBatch < MiniTest::Test
         terms << annual_name if ix == sums_to_ix
       end
 
-      actual_outputs.each do |row|
-        sums_to_val = row.headers.include?(sums_to) ? Float(row[sums_to]) : 0.0
-        terms_val = terms.collect { |t| row.headers.include?(t) ? Float(row[t]) : 0.0 }.sum
+      sums_to_val = actual_outputs.headers.include?(sums_to) ? actual_outputs[sums_to].map { |x| Float(x) }.sum : 0.0
+      terms_val = terms.collect { |t| actual_outputs.headers.include?(t) ? actual_outputs[t].map { |x| Float(x) }.sum : 0.0 }.sum
 
-        assert_in_epsilon(sums_to_val, terms_val, tol, "Summed value #{terms_val} does not equal #{sums_to} (#{sums_to_val})")
-      end
+      assert_in_epsilon(sums_to_val, terms_val, tol, "Summed value #{terms_val} does not equal #{sums_to} (#{sums_to_val})")
     end
   end
 end
