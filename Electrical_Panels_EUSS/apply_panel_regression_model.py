@@ -104,10 +104,6 @@ def apply_model_to_results(df, model, predict_proba=False):
     df["predicted_panel_amp"] = df["building_id"].map(dict(zip(dfi["building_id"], panel_amp)))
 
     return df
-
-
-def random_draw():
-    num = np.random.default_rng().uniform(0,1)
     
 
 def validate_model_with_dummy_data(model):

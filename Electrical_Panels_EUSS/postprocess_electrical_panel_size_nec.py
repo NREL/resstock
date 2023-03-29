@@ -465,14 +465,10 @@ def _special_load_electric_range(row): # Assuming a single electric range (combi
     # For cooktop + wall oven = 11+0.65*4.5 = 14kW or 0.65*(8+4.5) = 8kW
     range_power = 12000  # or 12500 #TODO: This should be the full nameplate rating (max connected load) of an electric non-induction range
 
-#    if range_power <= 8000:
-#        range_power_w_df = range_power
-#    else:
-#        range_power_w_df = 8000 * (1 + .05*(max(0,range_power-12000)))
-    if range_power <= 8750:
-        range_power_w_df = min(8000,range_power)*0.8
+    if range_power <= 12000:
+        range_power_w_df = min(range_power, 8000)
     elif range_power <= 27000:
-        range_power_w_df = 8000 + 0.05*(max(0,range_power-12000))
+        range_power_w_df = 8000 + 0.05*(max(0,range_power-12000)) # footnote 2
     else:
         raise ValueError(f"range_power={range_power} cannot exceed 27kW")
     
