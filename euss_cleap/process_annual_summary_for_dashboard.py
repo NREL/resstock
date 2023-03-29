@@ -27,10 +27,10 @@ Created on: Oct 4, 2022
         all (pkg 4)
 -   [5] hvac.heat_pump_min_eff_existing_backup: 
         all (pkg 5)
--   [6] hvac.heat_pump_high_eff_electric_backup + enclosure.basic_upgrade: 
-        Heating & Cooling (by excluding: ["hot_water", "clothes_dryer", "range_oven"]) (pkg 9)
--   [7] hvac.heat_pump_high_eff_electric_backup + enclosure.enhanced_upgrade: 
-        Heating & Cooling (by excluding: ["hot_water", "clothes_dryer", "range_oven"]) (pkg 10)
+-   [6] hvac.heat_pump_high_eff_electric_backup + HPWH + enclosure.basic_upgrade: 
+        Heating & Cooling (by excluding: ["clothes_dryer", "range_oven"]) (pkg 9)
+-   [7] hvac.heat_pump_high_eff_electric_backup + HPWH + enclosure.enhanced_upgrade: 
+        Heating & Cooling (by excluding: ["clothes_dryer", "range_oven"]) (pkg 10)
 -   [8] water_heater.heat_pump: 
         all (pkg 6)
 -   [9] clothes_dryer.electric: 
@@ -991,6 +991,15 @@ class SavingsExtraction:
             - energy burden based on 2019 utility rates (income kept at 2019USD)
 
         """
+
+        pkgn = re.sub("[^a-zA-Z0-9 \n\.]", "_", pkg_name).replace(" ", "_")
+        output_file = self.output_dir / f"results__{pkgn}.parquet"
+
+        if output_file.exists():
+            print(f" --- Compiled data found, loading data directly for [[ {pkg_name} ]] using packages: {pkgs} --- ")
+            df = pd.read_parquet(output_file)
+            return df
+
         print(f" --- Compiling data for [[ {pkg_name} ]] using packages: {pkgs} --- ")
 
         if isinstance(pkgs, list):
@@ -1196,15 +1205,12 @@ class SavingsExtraction:
 
         df = df[meta_cols + metric_cols]
 
-        pkgn = re.sub("[^a-zA-Z0-9 \n\.]", "_", pkg_name).replace(" ", "_")
-
         # retain only 1 pkg worth of data by averaging
         if isinstance(pkgs, list):
             df = df.groupby(meta_cols)[metric_cols].mean().reset_index()
             df["sample_weight"] *= len(pkgs)  # redo weight
 
-        # df.to_csv(self.output_dir / f"results__{pkgn}.csv", index=False) # <---
-        df.to_parquet(self.output_dir / f"results__{pkgn}.parquet")
+        df.to_parquet(output_file)
         print(f" - Completed {pkg_name} using packages: {pkgs}\n")
 
         return df
@@ -1322,23 +1328,23 @@ def main(euss_dir):
         )
     )
 
-    # [6] Heat pump – high eff + basic enclosure: Heating & Cooling (pkg 9)
+    # [6] Heat pump – high eff + HPWH + basic enclosure: Heating & Cooling (pkg 9)
     DF.append(
         SE.get_data(
             9,
             "hvac.heat_pump_high_eff_electric_backup + enclosure.basic_upgrade",
             adjustment_type="extract_end_uses_by_excluding",
-            end_uses=["hot_water", "clothes_dryer", "range_oven"],
+            end_uses=["clothes_dryer", "range_oven"],
         )
     )
 
-    # [7] Heat pump – high eff + enhanced enclosure: Heating & Cooling (pkg 10)
+    # [7] Heat pump – high eff + HPWH+ enhanced enclosure: Heating & Cooling (pkg 10)
     DF.append(
         SE.get_data(
             10,
             "hvac.heat_pump_high_eff_electric_backup + enclosure.enhanced_upgrade",
             adjustment_type="extract_end_uses_by_excluding",
-            end_uses=["hot_water", "clothes_dryer", "range_oven"],
+            end_uses=["clothes_dryer", "range_oven"],
         )
     )
 
