@@ -4,7 +4,7 @@ Optional Outputs
 ================
 
 Optional outputs include component loads, emissions, utility bills, and quantities of interest.
-Other timeseries outputs related to zone temperatures, airflow rates, weather file data, and user-requested EnergyPlus output variables can also be requested.
+Other timeseries outputs related to zone temperatures/setpoints, airflow rates, weather file data, and user-requested EnergyPlus output variables can also be requested.
 
 To be generated, some optional outputs need only a single switch enabled (e.g., component loads).
 Others need additional input arguments specified (e.g., emissions, utility bills).
@@ -16,6 +16,7 @@ Component loads represent the estimated contribution of different building compo
 
 .. csv-table::
    :file: csv_tables/component_loads.csv
+   :header-rows: 1
 
 These outputs require that only a single switch is enabled.
 See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``build_existing_model`` section) for more information.
@@ -35,6 +36,7 @@ See the list of available emissions scenario choices at https://github.com/NREL/
 
 .. csv-table::
    :file: csv_tables/emissions.csv
+   :header-rows: 1
 
 Utility Bills
 *************
@@ -48,6 +50,7 @@ For the example below, a "Bills" scenario was requested.
 
 .. csv-table::
    :file: csv_tables/utility_bills.csv
+   :header-rows: 1
 
 Quantities of Interest
 **********************
@@ -57,14 +60,16 @@ See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedo
 
 .. csv-table::
    :file: csv_tables/qoi_report.csv
+   :header-rows: 1
 
 Other Timeseries
 ****************
 
-Other timeseries outputs include zone temperatures, airflow rates, weather file data, and user-requested EnergyPlus output variables.
+Other timeseries outputs include zone temperatures/setpoints, airflow rates, weather file data, and user-requested EnergyPlus output variables.
 See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``simulation_output_report`` section) for more information on how to request other timeseries outputs.
 
 See the OpenStudio-HPXML Workflow Outputs section on `Timeseries Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#timeseries-outputs>`_ for more information about other timeseries outputs.
 
 .. csv-table::
-   :file: csv_tables/other.csv
+   :file: csv_tables/other_timeseries.csv
+   :header-rows: 1

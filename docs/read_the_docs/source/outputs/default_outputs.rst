@@ -25,25 +25,31 @@ See the OpenStudio-HPXML Workflow Outputs sections on `Annual Outputs <https://o
 
 .. csv-table::
    :file: csv_tables/simulation_outputs.csv
+   :header-rows: 1
 
 .. _upgrade-costs:
 
 Upgrade Costs
 *************
 
-Upgrade cost multipliers include:
+Cost multiplier types include:
 
 .. csv-table::
    :file: csv_tables/cost_multipliers.csv
+   :header-rows: 1
 
-Other upgrade cost information includes:
+Note that "Fixed (1)" is also a valid cost multiplier type.
 
-.. list-table::
+When upgrades are applied, additional outputs are reported. They are listed below.
 
-   * - upgrade_costs.option_<#>_name
-   * - upgrade_costs.option_<#>_cost_usd
-   * - upgrade_costs.option_<#>_lifetime_yrs
-   * - upgrade_costs.upgrade_cost_usd
+=====================================  ========================  =====================================
+Annual Name                            Annual Units              Notes
+=====================================  ========================  =====================================
+upgrade_costs.option_<#>_name                                    The Parameter|Option applied.
+upgrade_costs.option_<#>_cost_usd      $                         The option cost (value * multiplier).
+upgrade_costs.option_<#>_lifetime_yrs  years                     The option lifetime.
+upgrade_costs.upgrade_cost_usd         $                         Total cost of the upgrade.
+=====================================  ========================  =====================================
 
 where <#> represents any of the defined option numbers.
 See :doc:`../upgrade_scenario_config` for more information.

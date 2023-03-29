@@ -13,7 +13,7 @@ csv_tables = {
   'emissions.csv' => { 'annual' => true, 'timeseries' => true, 'kws' => ['.emissions_'] },
   'utility_bills.csv' => { 'annual' => true, 'timeseries' => false, 'kws' => ['report_utility_bills.'] },
   'qoi_report.csv' => { 'annual' => true, 'timeseries' => false, 'kws' => ['qoi_report.'] },
-  'other.csv' => { 'annual' => false, 'timeseries' => true, 'kws' => [nil] }
+  'other_timeseries.csv' => { 'annual' => false, 'timeseries' => true, 'kws' => [nil] }
 }
 
 csv_tables_dir = File.join(File.dirname(__FILE__), 'csv_tables')
