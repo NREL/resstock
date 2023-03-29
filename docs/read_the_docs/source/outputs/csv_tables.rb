@@ -7,10 +7,10 @@ outputs = CSV.read(File.join(File.dirname(__FILE__), '../../../../resources/data
 
 csv_tables = {
   # 'characteristics.csv' => ['.build_existing_model'],
-  'simulation_outputs.csv' => ['.end_use', 'fuel_use', '.energy_use'],
-  'cost_multipliers.csv' => ['.upgrade_costs'],
-  'component_loads.csv' => ['.component_load'],
-  'emissions.csv' => ['.emissions'],
+  'simulation_outputs.csv' => ['.end_use_', '.energy_use_', 'fuel_use_', '.hot_water_', '.hvac_capacity_', '.hvac_design_', '.load_', '.peak_', '.unmet_hours_'],
+  'cost_multipliers.csv' => ['upgrade_costs.'],
+  'component_loads.csv' => ['.component_load_'],
+  'emissions.csv' => ['.emissions_'],
   'utility_bills.csv' => ['report_utility_bills.'],
   'qoi_report.csv' => ['qoi_report.'],
   'other.csv' => [nil]
