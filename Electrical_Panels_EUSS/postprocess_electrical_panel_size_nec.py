@@ -256,37 +256,15 @@ def _general_load_laundry(row, n=1):
     """
     if row["completed_status"] != "Success":
         return np.nan
-
-    if n == "auto":
-        # TODO, can expand based on floor_area, vintage, etc
+    
+    if ( "Multifamily" in row["build_existing_model.geometry_building_type_height"] and 
+         row["build_existing_model.clothes_washer_presence"] == "None" and 
+         row["build_existing_model.clothes_dryer"] == "None"):
+        n = 0
+    else:
         n = 1
 
-    if n < 1:
-        raise ValueError(f"n={n}, at least 1 laundry branch circuit for General Load")
-    """
-    if (row["build_existing_model.clothes_washer_presence"] == "Yes") or (
-        row["build_existing_model.clothes_dryer"] != "None"
-    ):
-        return n * 1500 """ # This is incorrect, code requires 1 laundry branch circuit regardless of dryer type
-    return n* 1500
-
-def _optional_load_laundry(row):
-    """Clothes Dryers. NEC 220-18
-    Use 5000 watts or nameplate rating whichever is larger (in another version, use DF=1 for # appliance <=4)
-    240V, 22/24/30A breaker (vented), 30/40A (ventless heat pump), 30A (ventless electric)
-    """
-    if row["completed_status"] != "Success":
-        return np.nan
-
-    if "Electric" not in row["build_existing_model.clothes_dryer"] or row["build_existing_model.clothes_dryer"] == "None":
-        return 0
-
-    if "Ventless" in row["build_existing_model.clothes_dryer"]:
-        rating = 30 * 240
-    else:
-        rating = 24 * 240
-    rating += 2500 # washer rating
-    return max(5000, rating)
+    return n * 1500
 
 def general_load_total(row, n_kit=2, n_ldr=1):
     """Total general load, has tiered demand factors
@@ -309,11 +287,6 @@ def general_load_total(row, n_kit=2, n_ldr=1):
     return apply_demand_factor_to_general_load(sum(general_loads))
 
 def _fixed_load_water_heater(row):
-    """
-    Add water heater load if electric and in-unit
-        - all electric storage and heat pump storage: 4500W (240V, 30A breaker), HomeDepot
-        - electric tankless: 20000-36000W (27000W avg) (240V, takes 3x50A or 4x50A breakers), HomeDepot
-    """
     if row["completed_status"] != "Success":
         return np.nan
 
@@ -321,8 +294,8 @@ def _fixed_load_water_heater(row):
         row["build_existing_model.water_heater_fuel"] == "Electricity"
     ):
         if row["build_existing_model.water_heater_efficiency"] == "Electric Tankless":
-            return 27000
-        return 4500
+            return 36000
+        return 5500
     return 0
 
 def _fixed_load_dishwasher(row):
@@ -367,15 +340,15 @@ def _fixed_load_garbage_disposal(row):
         if row["build_existing_model.geometry_floor_area"] in ["0-499"]:
             return 0
         elif row["build_existing_model.geometry_floor_area"] in ["500-749", "750-999"]:
-            return 800  # 1/3 HP
+            return 500  # 1/3 HP
         elif row["build_existing_model.geometry_floor_area"] in [
             "1000-1499",
             "1500-1999",
             "2000-2499",
         ]:
-            return 1200  # 1/2 HP @ 115V from NEC Table 430-149 #TODO: Table 430.149 no longer exists, see Table 430.247
+            return 5.4 * 120  # 1/2 HP
         else:
-            return 1500
+            return 7.6 * 120 # .75 HP
     return 0
 
 def _fixed_load_garbage_compactor(row):
@@ -389,32 +362,21 @@ def _fixed_load_garbage_compactor(row):
 
     return 0
 
-def _fixed_load_hot_tub_spa(row): # Not a continuous load, but some inconsistency on this
-    """
-    Hot tub (1.5-6kW + 1.5kW water pump)
-    """
+def _fixed_load_hot_tub_spa(row):
     if row["completed_status"] != "Success":
         return np.nan
 
     if row["build_existing_model.misc_hot_tub_spa"] == "Electric":
-        return 4500  # or 8000 (2HP)
+        return 11520 
     return 0
 
-def _fixed_load_well_pump(row): # Not a continuous load
-    """NEC 680
-    Well pump (0.5-5HP)
-    1HP = 746W
-    """
+def _fixed_load_well_pump(row):
     if row["completed_status"] != "Success":
         return np.nan
 
     # TODO: verify
-    if row["build_existing_model.misc_well_pump"] == "National Average":
-        return 0.127 * 746  # based on usage multiplier in options_lookup #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
-    if row["build_existing_model.misc_well_pump"] == "Typical Efficiency":
-        return 1 * 746  # based on usage multiplier in options_lookup #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
-    if row["build_existing_model.misc_well_pump"] == "High Efficiency":
-        return 0.67 * 746  # based on usage multiplier in options_lookup #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
+    if row["build_existing_model.misc_well_pump"] != "None":
+        return 2000
     return 0
 
 def fixed_load_total(row):
@@ -444,10 +406,6 @@ def fixed_load_total(row):
     return sum(fixed_loads) * demand_factor
 
 def _special_load_electric_dryer(row):
-    """Clothes Dryers. NEC 220-18
-    Use 5000 watts or nameplate rating whichever is larger (in another version, use DF=1 for # appliance <=4)
-    240V, 22/24/30A breaker (vented), 30/40A (ventless heat pump), 30A (ventless electric)
-    """
     if row["completed_status"] != "Success":
         return np.nan
 
@@ -455,11 +413,11 @@ def _special_load_electric_dryer(row):
         return 0
 
     if "Ventless" in row["build_existing_model.clothes_dryer"]:
-        rating = 30 * 240
+        rating = 5400
     else:
-        rating = 24 * 240
+        rating = 5600
 
-    return max(5000, rating)
+    return rating
 
 def _special_load_electric_range(row): # Assuming a single electric range (combined oven/stovetop) for each dwelling unit
     if row["completed_status"] != "Success":
@@ -473,18 +431,18 @@ def _special_load_electric_range(row): # Assuming a single electric range (combi
         # cooktop: 11-12kW rating (240V, 30/50A) or 15.4kW rating (240V, 40A), 7.2-8.6kW (240V, 30/45A)
         # electric wall oven: 4.5kW (120V, 30A or 240V, 20/30A)
         # For induction cooktop + electric wall oven = 11+0.65*4.5 = 14kW 
-        range_power = 12500  # 40*240 or 14000 #TODO: This should be the full nameplate rating (max connected load) of an electric induction range
+        range_power = 12000  # 40*240 or 14000 #TODO: This should be the full nameplate rating (max connected load) of an electric induction range
 
     ## Electric, non-induction
     # range-oven: 10-12.1-13.5kW (240V, 40A)
     # cooktop: 9.2kW (240V, 40A), 7.7-10.5kW (240V, 40/50A), 7.4kW (240V, 40A)
     # For cooktop + wall oven = 11+0.65*4.5 = 14kW or 0.65*(8+4.5) = 8kW
-    range_power = 10000  # or 12500 #TODO: This should be the full nameplate rating (max connected load) of an electric non-induction range
+    range_power = 12000  # or 12500 #TODO: This should be the full nameplate rating (max connected load) of an electric non-induction range
 
     if range_power <= 8000:
-        range_power_w_df = min(8000,range_power)
+        range_power_w_df = range_power
     else:
-        range_power_w_df = 8000 * (1 + 400*(max(0,range_power-12000)))
+        range_power_w_df = 8000 * (1 + .05*(max(0,range_power-12000)))
     
     return range_power_w_df
 
@@ -508,7 +466,7 @@ def _special_load_space_conditioning(row):
     if row["completed_status"] != "Success":
         return np.nan
 
-    if row["build_existing_model.heating_fuel"] == "Electricity":
+    if row["build_existing_model.heating_fuel"] == "Electricity": 
         heating_load = (
             row["upgrade_costs.size_heating_system_primary_k_btu_h"]
             + row["upgrade_costs.size_heating_system_secondary_k_btu_h"]
@@ -516,6 +474,8 @@ def _special_load_space_conditioning(row):
         ) * 293.07103866
     else:
         heating_load = 0
+    
+
 
     if row["build_existing_model.hvac_has_ducts"] == "Yes":
         heating_load += 3 * 115  # 3A x 115V (air-handler motor) TODO: Check this value
@@ -533,6 +493,11 @@ def _special_load_space_conditioning(row):
             3 * 115 + 460
         )  # 3A x 115V (condenser fan motor) + 460 (blower motor) TODO: Check this value
         cooling_is_window_unit = False
+    
+    # add efficiency factor to cooling load
+    if row['build_existing_model.hvac_cooling_type'] == 'Central AC':
+        cooling_eff_factor = re.findall(
+            "\d+\.\d+", row['build_existing_model.hvac_cooling_efficiency'])
 
     loads = np.array([heating_load, cooling_load])
 
@@ -624,7 +589,8 @@ def optional_general_load(row, n_kit=2):
         _special_load_electric_range(row),
         _fixed_load_hot_tub_spa(row),
         _fixed_load_well_pump(row),
-        _optional_load_laundry(row)
+        _general_load_laundry(row),
+        _special_load_electric_dryer(row)
     ]
     return apply_opt_demand_factor(sum(general_loads))
 
