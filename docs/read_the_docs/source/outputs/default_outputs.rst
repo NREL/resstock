@@ -5,6 +5,9 @@ Default Outputs
 
 The default set of outputs include housing characteristics, annual simulation outputs, and upgrade cost information.
 
+Specifying any timeseries frequency other than "none" results in, by default, end use consumptions and total loads timeseries output requests.
+See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``simulation_output_report`` section) for more information on how to request various timeseries outputs (or override default requests).
+
 Housing Characteristics
 ***********************
 
@@ -16,9 +19,9 @@ Default characteristics include sampled properties for each dwelling unit.
 Simulation Output
 *****************
 
-Default annual simulation outputs include energy consumptions (total, by fuel, and by end use), hot water uses, building loads, unmet hours, and peak building electricity/loads.
+Default annual simulation outputs include energy consumptions (total, by fuel, and by end use), hot water uses, building loads, unmet hours, peak building electricity/loads, HVAC capacities, and HVAC design temperatures/loads.
 
-See the OpenStudio-HPXML Workflow Outputs section on `Annual Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-outputs>`_ for more information about annual outputs.
+See the OpenStudio-HPXML Workflow Outputs sections on `Annual Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-outputs>`_ and `Timeseries Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#timeseries-outputs>`_ for more information about annual outputs.
 
 .. csv-table::
    :file: csv_tables/simulation_outputs.csv

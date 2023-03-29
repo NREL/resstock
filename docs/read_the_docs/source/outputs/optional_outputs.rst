@@ -3,15 +3,11 @@
 Optional Outputs
 ================
 
-Optional outputs include annual component loads, emissions, utility bills, and quantities of interest.
-Additionally, timeseries outputs can be requested.
+Optional outputs include component loads, emissions, utility bills, and quantities of interest.
+Other timeseries outputs related to zone temperatures, airflow rates, weather file data, and user-requested EnergyPlus output variables can also be requested.
 
 To be generated, some optional outputs need only a single switch enabled (e.g., component loads).
 Others need additional input arguments specified (e.g., emissions, utility bills).
-
-Note that enabling a set of optional outputs will by default generate the entire set.
-For example, requesting emissions outputs will result in columns for totals by fuel *and* by end use.
-There is currently no way to request totals by fuel while excluding totals by end use.
 
 Component Loads
 ***************
@@ -24,7 +20,7 @@ Component loads represent the estimated contribution of different building compo
 These outputs require that only a single switch is enabled.
 See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``build_existing_model`` section) for more information.
 
-See the OpenStudio-HPXML Workflow Outputs section on `Annual Component Building Loads <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-component-building-loads>`_ for more information about component loads.
+See the OpenStudio-HPXML Workflow Outputs sections on `Annual Component Building Loads <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-component-building-loads>`_ and `Timeseries Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#timeseries-outputs>`_ for more information about component loads.
 
 Emissions
 *********
@@ -32,7 +28,7 @@ Emissions
 Optional emissions outputs include annual total, by fuel, and by end use, for each emissions scenario requested.
 See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``emissions`` section) for more information on how to request emissions outputs by scenario.
 
-See the OpenStudio-HPXML Workflow Outputs section on `Annual Emissions <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-emissions>`_ for more information about annual emissions.
+See the OpenStudio-HPXML Workflow Outputs sections on `Annual Emissions <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-emissions>`_ and `Timeseries Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#timeseries-outputs>`_ for more information about emissions.
 
 For the example below, the "LRMER_MidCase_15" emissions scenario was requested.
 See the list of available emissions scenario choices at https://github.com/NREL/resstock/tree/develop/resources/data/cambium.
@@ -48,6 +44,8 @@ See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedo
 
 See the OpenStudio-HPXML Workflow Outputs section on `Utility Bill Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#utility-bill-outputs>`_ for more information about utility bill outputs.
 
+For the example below, a "Bills" scenario was requested.
+
 .. csv-table::
    :file: csv_tables/utility_bills.csv
 
@@ -60,13 +58,13 @@ See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedo
 .. csv-table::
    :file: csv_tables/qoi_report.csv
 
-Timeseries
-**********
+Other Timeseries
+****************
+
+Other timeseries outputs include zone temperatures, airflow rates, weather file data, and user-requested EnergyPlus output variables.
+See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``simulation_output_report`` section) for more information on how to request other timeseries outputs.
+
+See the OpenStudio-HPXML Workflow Outputs section on `Timeseries Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#timeseries-outputs>`_ for more information about other timeseries outputs.
 
 .. csv-table::
    :file: csv_tables/other.csv
-
-Specifying any timeseries frequency other than "none" results in, by default, end use consumptions and total loads timeseries output requests.
-See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``simulation_output_report`` section) for more information on how to request various timeseries outputs (or override default requests).
-
-See the OpenStudio-HPXML Workflow Outputs section on `Timeseries Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#timeseries-outputs>`_ for more information on timeseries outputs.
