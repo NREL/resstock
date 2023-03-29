@@ -19,7 +19,14 @@ class XMLValidator
 
   def self.validate_against_schematron(hpxml_path, schematron_path, hpxml_doc, errors = [], warnings = [])
     # Validate against Schematron doc
-    validator = OpenStudio::XMLValidator.new(schematron_path)
+
+    # First create XSLT at our specified output path to avoid possible errors due
+    # to https://github.com/NREL/OpenStudio/issues/4824.
+    xslt_dir = Dir.mktmpdir('xmlvalidation-')
+    OpenStudio::XMLValidator::schematronToXslt(schematron_path, xslt_dir)
+    xslt_path = File.join(xslt_dir, File.basename(schematron_path, '.xml') + '_stylesheet.xslt')
+
+    validator = OpenStudio::XMLValidator.new(xslt_path)
     validator.validate(hpxml_path)
     if validator.fullValidationReport.is_initialized
       report_doc = Oga.parse_xml(validator.fullValidationReport.get)

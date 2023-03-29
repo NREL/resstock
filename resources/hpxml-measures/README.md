@@ -5,7 +5,7 @@
 [![Documentation Status](https://readthedocs.org/projects/openstudio-hpxml/badge/?version=latest)](https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest)
 
 OpenStudio-HPXML allows running residential EnergyPlus simulations using an [HPXML file](https://hpxml.nrel.gov/) for the building description.
-A Schematron document (`HPXMLtoOpenStudio/resources/hpxml_schematron/EPvalidator.xml`) for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
+A [Schematron](http://schematron.com/) document for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
 
 OpenStudio-HPXML can accommodate a wide range of different building technologies and geometries.
 End-to-end simulations typically run in 3-10 seconds, depending on complexity, computer platform and speed, etc.
