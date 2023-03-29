@@ -49,7 +49,8 @@ for col in df.columns.values:
   elif col.startswith('report_utility_bills'):
     report_utility_bills.append(col)
   elif col.startswith('upgrade_costs'):
-    upgrade_costs.append(col)
+    if not 'upgrade_cost_usd' in col:
+        upgrade_costs.append(col)
   elif col.startswith('qoi_report'):
     qoi_reports.append(col)
 
