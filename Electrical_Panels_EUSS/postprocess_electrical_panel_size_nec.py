@@ -58,7 +58,7 @@ Detailed description:
             - outdoor receptacle outlets
             - lighting outlets
             - motors less than 1/8 hp and connected to lighting circuit
-        floor area is defined as:
+        floor area is defined as (220.5(c)):
             - outside dimensions of dwelling unit
             - excludes "open porches or unfinished areas not adaptable for future use as a habitable room or occupiable space"
             - includes garage as of 2023
@@ -144,7 +144,7 @@ import math
 import argparse
 import sys
 
-from plotting_functions import plot_output
+from plotting_functions import plot_output, plot_output_saturation
 
 # --- lookup ---
 geometry_unit_aspect_ratio = {
@@ -193,19 +193,20 @@ def _general_load_lighting(row):
         case _:
             garage_width = 0
     
-    floor_area = row["upgrade_costs.floor_area_conditioned_ft_2"] + garage_width*garage_depth
-    min_unit_load = 3 * floor_area
+    floor_area = row["upgrade_costs.floor_area_conditioned_ft_2"] # already based on exterior dim (AHS)
 
     # calculate based on perimeter of footprint with receptables at every 6-feet
     aspect_ratio = geometry_unit_aspect_ratio[row["build_existing_model.geometry_building_type_recs"]]
-    fb_length = math.sqrt(floor_area * aspect_ratio)
+    fb_length = math.sqrt(floor_area * aspect_ratio) # total as if single-story
     lr_width = floor_area / fb_length
-    n_receptables = 2*(fb_length+lr_width) // 6
 
+    floor_area += garage_width*garage_depth
+
+    n_receptables = 2*(fb_length+lr_width) // 6
     receptable_load = n_receptables * 20*120 # 20-Amp @ 120V
     # TODO: add other potential unit loads
 
-    return min_unit_load
+    return 3 * floor_area
 
 def _optional_load_lighting(row): 
     """Not including open porches, garages, unused or unfinished spaces not adaptable for future use"""
@@ -256,19 +257,22 @@ def _general_load_laundry(row, n=1):
     """
     if row["completed_status"] != "Success":
         return np.nan
-
+    
     if n == "auto":
-        # TODO, can expand based on floor_area, vintage, etc
-        n = 1
-
-    if n < 1:
+        if "Single-Family" in row["build_existing_model.geometry_building_type_recs"]:
+            n = 1 # TODO, can expand based on floor_area, vintage, etc
+        elif (row["build_existing_model.clothes_washer_presence"] == "Yes") or (
+            row["build_existing_model.clothes_dryer"] != "None"
+            ):
+            # for non-SF, if there's in-unit WD, then there's a branch
+            n = 1
+        else:
+            n = 0
+    
+    if "Single-Family" in row["build_existing_model.geometry_building_type_recs"] and n < 1:
         raise ValueError(f"n={n}, at least 1 laundry branch circuit for General Load")
-    """
-    if (row["build_existing_model.clothes_washer_presence"] == "Yes") or (
-        row["build_existing_model.clothes_dryer"] != "None"
-    ):
-        return n * 1500 """ # This is incorrect, code requires 1 laundry branch circuit regardless of dryer type
-    return n* 1500
+   
+    return n*1500
 
 def _optional_load_laundry(row):
     """Clothes Dryers. NEC 220-18
@@ -481,10 +485,12 @@ def _special_load_electric_range(row): # Assuming a single electric range (combi
     # For cooktop + wall oven = 11+0.65*4.5 = 14kW or 0.65*(8+4.5) = 8kW
     range_power = 10000  # or 12500 #TODO: This should be the full nameplate rating (max connected load) of an electric non-induction range
 
-    if range_power <= 8000:
-        range_power_w_df = min(8000,range_power)
+    if range_power <= 8750:
+        range_power_w_df = min(8000,range_power)*0.8
+    elif range_power <= 27000:
+        range_power_w_df = 8000 + 0.05*(max(0,range_power-12000))
     else:
-        range_power_w_df = 8000 * (1 + 400*(max(0,range_power-12000)))
+        raise ValueError(f"range_power={range_power} cannot exceed 27kW")
     
     return range_power_w_df
 
@@ -722,7 +728,7 @@ def min_amperage_main_breaker(x):
 
     return cond[0]
 
-def main(filename: str = None, plot_only=False):
+def main(filename: str = None, plot_only=False, sfd_only=False):
     """ 
     Main execution
     Args :
@@ -733,14 +739,15 @@ def main(filename: str = None, plot_only=False):
         filename = (
             Path(__file__).resolve().parent
             / "test_data"
-            / "euss1_2018_results_up00_100.csv"
+            / "euss1_2018_results_up00_400plus.csv" # "euss1_2018_results_up00_100.csv"
         )
     else:
         filename = Path(filename)
 
-    output_filename = filename.parent / (filename.stem + "__panels5" + filename.suffix)
+    output_filename = filename.parent / (filename.stem + "__nec_panels" + filename.suffix)
 
-    output_dir = filename.parent / "plots"
+    plot_dir_name = "plots_sfd" if sfd_only else "plots"
+    output_dir = filename.parent / plot_dir_name
     output_dir.mkdir(parents=True, exist_ok=True) 
 
     if plot_only:
@@ -751,42 +758,17 @@ def main(filename: str = None, plot_only=False):
         sys.exit()
         
     df = pd.read_csv(filename, low_memory=False)
-    df_columns = df.columns
+
+    # remove emission and option cols FOR NOW
+    df_columns = [col for col in df.columns if ("emission" not in col) and ("option" not in col)] # TODO: remove eventually
+    df = df[df_columns]
 
     # --- [1] NEC - STANDARD METHOD ----
-    df["std_m_demand_load_general_VA"] = df.apply(
-        lambda x: general_load_total(x, n_kit="auto", n_ldr="auto"), axis=1
-    )
-    df["std_m_demand_load_fixed_VA"] = df.apply(lambda x: fixed_load_total(x), axis=1)
-    df["std_m_demand_load_special_VA"] = df.apply(lambda x: special_load_total(x), axis=1)
-
-    # df["nec_min_amp"] = df.apply(lambda x: min_amperage_nec(x, n_kit="auto", n_ldr="auto"), axis=1) # this is daisy-ed
-    df["std_m_nec_min_amp"] = (
-        df[
-            ["std_m_demand_load_general_VA", "std_m_demand_load_fixed_VA", "std_m_demand_load_special_VA"]
-        ].sum(axis=1)
-        / 240
-    )
-    df["std_m_nec_electrical_panel_amp"] = df["std_m_nec_min_amp"].apply(
-        lambda x: min_amperage_main_breaker(x)
-    )
+    df = apply_standard_method_exploded(df) # <---
 
     # --- [2] NEC - OPTIONAL METHOD ----
-    # Sum _general_load_lighting, _general_load_kitchen and _general_load_laundry, _fixed_load_total, _special_load_electric_range
-    #  _special_load_hot_tub_spa, _special_load_pool_heater, _special_load_pool_pump, _special_load_well_pump
-   
-    df["opt_m_demand_load_general_VA"] = df.apply(lambda x: optional_general_load(x, n_kit="auto"), axis=1) # 100 / 40 for 10/10+ kVA demand factor function
-    df["opt_m_demand_load_space_cond_VA"] = df.apply(lambda x: optional_space_cond_load(x), axis=1) # compute space conditioning load
-    df["opt_m_demand_load_continuous_VA"] = df.apply(lambda x: optional_continuous_load(x), axis=1) #continuous loads
-
-    df["opt_m_nec_min_amp"] = (
-        df[
-            ["opt_m_demand_load_general_VA", "opt_m_demand_load_space_cond_VA", "opt_m_demand_load_continuous_VA"]
-        ].sum(axis=1)
-        / 240
-    )
-    df["opt_m_nec_electrical_panel_amp"] = df["opt_m_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
-    
+    df = apply_optional_method(df)
+        
     # --- compare with simulated peak ---
     df["peak_amp"] = (
         df[
@@ -814,12 +796,96 @@ def main(filename: str = None, plot_only=False):
     print(df.loc[cond, ["building_id"] + new_columns])
 
     # --- save to file ---
-    output_filename = filename.parent / (filename.stem + "__panels5" + filename.suffix)
     df.to_csv(output_filename, index=False)
     print(f"File output to: {output_filename}")
 
     # --- plot ---
-    plot_output(df, output_dir)
+    # plot_output(df, output_dir)
+    plot_output_saturation(df, "std_m_nec_electrical_panel_amp", output_dir, sfd_only=False)
+    plot_output_saturation(df, "opt_m_nec_electrical_panel_amp", output_dir, sfd_only=False)
+
+
+def apply_standard_method(df):
+        df["std_m_demand_load_general_VA"] = df.apply(
+            lambda x: general_load_total(x, n_kit="auto", n_ldr="auto"), axis=1
+        )
+        df["std_m_demand_load_fixed_VA"] = df.apply(lambda x: fixed_load_total(x), axis=1)
+        df["std_m_demand_load_special_VA"] = df.apply(lambda x: special_load_total(x), axis=1)
+
+        # df["nec_min_amp"] = df.apply(lambda x: min_amperage_nec(x, n_kit="auto", n_ldr="auto"), axis=1) # this is daisy-ed
+        df["std_m_nec_min_amp"] = (
+            df[
+                ["std_m_demand_load_general_VA", "std_m_demand_load_fixed_VA", "std_m_demand_load_special_VA"]
+            ].sum(axis=1)
+            / 240
+        )
+        df["std_m_nec_electrical_panel_amp"] = df["std_m_nec_min_amp"].apply(
+            lambda x: min_amperage_main_breaker(x)
+        )
+
+        return df
+
+def apply_standard_method_exploded(df):
+        
+        # General Load:
+        df["std_m_general_lighting_VA"] = df.apply(lambda row: _general_load_lighting(row), axis=1)
+        df["std_m_general_kitchen_VA"] = df.apply(lambda row: _general_load_kitchen(row, n="auto"), axis=1)
+        df["std_m_general_laundry_VA"] = df.apply(lambda row: _general_load_laundry(row, n="auto"), axis=1)
+
+        df["std_m_demand_load_general_VA"] = df.apply(
+            lambda x: general_load_total(x, n_kit="auto", n_ldr="auto"), axis=1
+        )
+        # Fixed Load:
+        df["std_m_fixed_water_heater_VA"] = df.apply(lambda row: _fixed_load_water_heater(row), axis=1)
+        df["std_m_fixed_dishwasher_VA"] = df.apply(lambda row: _fixed_load_dishwasher(row), axis=1)
+        df["std_m_fixed_disposal_VA"] = df.apply(lambda row: _fixed_load_garbage_disposal(row), axis=1)
+        df["std_m_fixed_compactor_VA"] = df.apply(lambda row: _fixed_load_garbage_compactor(row), axis=1)
+        df["std_m_fixed_hot_tub_VA"] = df.apply(lambda row: _fixed_load_hot_tub_spa(row), axis=1)
+        df["std_m_fixed_well_pump_VA"] = df.apply(lambda row:  _fixed_load_well_pump(row), axis=1)
+
+        df["std_m_demand_load_fixed_VA"] = df.apply(lambda x: fixed_load_total(x), axis=1)
+
+        # Special Load:
+        df["std_m_special_dryer_VA"] = df.apply(lambda row: _special_load_electric_dryer(row), axis=1)
+        df["std_m_special_range_VA"] = df.apply(lambda row: _special_load_electric_range(row), axis=1)
+        df["std_m_special_space_cond_VA"] = df.apply(lambda row: _special_load_space_conditioning(row)[0], axis=1)
+        df["std_m_special_motor_VA"] = df.apply(lambda row: _special_load_motor(row), axis=1)
+        df["std_m_special_pool_heater_VA"] = df.apply(lambda row: _special_load_pool_heater(row), axis=1)
+        df["std_m_special_pool_pump_VA"] = df.apply(lambda row: _special_load_pool_pump(row), axis=1)
+        df["std_m_special_evse_VA"] = df.apply(lambda row: EVSE_load(row), axis=1)
+
+        df["std_m_demand_load_special_VA"] = df.apply(lambda x: special_load_total(x), axis=1)
+
+        # Total
+        df["std_m_nec_min_amp"] = (
+            df[
+                ["std_m_demand_load_general_VA", "std_m_demand_load_fixed_VA", "std_m_demand_load_special_VA"]
+            ].sum(axis=1)
+            / 240
+        )
+        df["std_m_nec_electrical_panel_amp"] = df["std_m_nec_min_amp"].apply(
+            lambda x: min_amperage_main_breaker(x)
+        )
+
+        return df
+
+def apply_optional_method(df):
+        # Sum _general_load_lighting, _general_load_kitchen and _general_load_laundry, _fixed_load_total, _special_load_electric_range
+        #  _special_load_hot_tub_spa, _special_load_pool_heater, _special_load_pool_pump, _special_load_well_pump
+    
+        df["opt_m_demand_load_general_VA"] = df.apply(lambda x: optional_general_load(x, n_kit="auto"), axis=1) # 100 / 40 for 10/10+ kVA demand factor function
+        df["opt_m_demand_load_space_cond_VA"] = df.apply(lambda x: optional_space_cond_load(x), axis=1) # compute space conditioning load
+        df["opt_m_demand_load_continuous_VA"] = df.apply(lambda x: optional_continuous_load(x), axis=1) #continuous loads
+
+        df["opt_m_nec_min_amp"] = (
+            df[
+                ["opt_m_demand_load_general_VA", "opt_m_demand_load_space_cond_VA", "opt_m_demand_load_continuous_VA"]
+            ].sum(axis=1)
+            / 240
+        )
+        df["opt_m_nec_electrical_panel_amp"] = df["opt_m_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
+
+        return df
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -839,5 +905,13 @@ if __name__ == "__main__":
         help="Make plots only based on expected output file",
     )
 
+    parser.add_argument(
+        "-d",
+        "--sfd_only",
+        action="store_true",
+        default=False,
+        help="Apply calculation to Single-Family Detached only (this is only on plotting for now)",
+    )
+
     args = parser.parse_args()
-    main(args.filename, plot_only=args.plot_only)
+    main(args.filename, plot_only=args.plot_only, sfd_only=args.sfd_only)
