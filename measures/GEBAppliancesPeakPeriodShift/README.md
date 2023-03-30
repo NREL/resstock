@@ -37,6 +37,15 @@ The number of hours after peak period end.
 **Model Dependent:** false
 
 
+### Schedules: Peak Period Schedule File Column Names
+Comma-separated list of schedule file column names to shift during the peak period.
+**Name:** schedules_peak_period_column_names,
+**Type:** String,
+**Units:** ,
+**Required:** false,
+**Model Dependent:** false
+
+
 
 
 
