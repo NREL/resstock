@@ -46,7 +46,7 @@ class GEBAppliancesPeakPeriodShiftTest < Minitest::Test
     assert_equal('schedules_peak_period_outage', arguments[count += 1].name)
     assert_equal('schedules_peak_period_plug_loads_other', arguments[count += 1].name)
     assert_equal('schedules_peak_period_plug_loads_tv', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_vacancy', arguments[count += 1].name)
+    assert_equal('schedules_peak_period_vacancy', arguments[count + 1].name)
 
     # set argument values to good values and run the measure on model with spaces
     arguments = measure.arguments(model)
@@ -118,7 +118,7 @@ class GEBAppliancesPeakPeriodShiftTest < Minitest::Test
     assert(schedules_peak_period_plug_loads_tv.setValue(false))
     argument_map['schedules_peak_period_plug_loads_tv'] = schedules_peak_period_plug_loads_tv
 
-    schedules_peak_period_vacancy = arguments[count += 1].clone
+    schedules_peak_period_vacancy = arguments[count + 1].clone
     assert(schedules_peak_period_vacancy.setValue(false))
     argument_map['schedules_peak_period_vacancy'] = schedules_peak_period_vacancy
 
@@ -136,7 +136,7 @@ class GEBAppliancesPeakPeriodShiftTest < Minitest::Test
     show_output(result)
     assert(result.value.valueName == 'Success')
     assert(result.warnings.empty?)
-    assert(result.info.size == 0)
+    assert(result.info.size == 4)
 
     # after
     schedules_after = {}

@@ -32,7 +32,7 @@ class AddThermalComfortModelTypesTest < Minitest::Test
     assert_equal('thermal_comfort_model_type_ankledraftash55', arguments[count += 1].name)
     assert_equal('work_efficiency_schedule_value', arguments[count += 1].name)
     assert_equal('clothing_insulation_schedule_value', arguments[count += 1].name)
-    assert_equal('air_velocity_schedule_value', arguments[count += 1].name)
+    assert_equal('air_velocity_schedule_value', arguments[count + 1].name)
 
     # load the test model
     translator = OpenStudio::OSVersion::VersionTranslator.new
@@ -51,7 +51,7 @@ class AddThermalComfortModelTypesTest < Minitest::Test
     assert(thermal_comfort_model_type_fanger.setValue(true))
     argument_map['thermal_comfort_model_type_fanger'] = thermal_comfort_model_type_fanger
 
-    thermal_comfort_model_type_pierce = arguments[count += 1].clone
+    thermal_comfort_model_type_pierce = arguments[count + 1].clone
     assert(thermal_comfort_model_type_pierce.setValue(true))
     argument_map['thermal_comfort_model_type_pierce'] = thermal_comfort_model_type_pierce
 
