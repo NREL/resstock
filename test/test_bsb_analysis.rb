@@ -92,6 +92,24 @@ class TesBuildStockBatch < MiniTest::Test
     assert(_test_timeseries_columns(timeseries))
   end
 
+  def test_inputs
+    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'inputs.csv'), headers: true)
+    expected_parameters = expected_outputs['Parameter'].select { |n| !n.nil? }
+
+    actual_outputs = CSV.read(File.join('baseline', 'annual', 'results_characteristics.csv'), headers: true)
+    actual_parameters = actual_outputs.headers
+
+    actual_extras = actual_parameters - expected_parameters
+    actual_extras -= ['OSW']
+    puts "Parameter, actual - expected: #{actual_extras}" if !actual_extras.empty?
+
+    expected_extras = expected_parameters - actual_parameters
+    puts "Parameter, expected - actual: #{expected_extras}" if !expected_extras.empty?
+
+    assert_equal(0, actual_extras.size)
+    assert_equal(0, expected_extras.size)
+  end
+
   def test_annual_outputs
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
