@@ -26,27 +26,13 @@ class GEBAppliancesPeakPeriodShiftTest < Minitest::Test
 
     # get arguments and test that they are what we are expecting
     arguments = measure.arguments(model)
-    assert_equal(2 + 15, arguments.size)
+    assert_equal(3, arguments.size)
 
     count = -1
 
     assert_equal('schedules_peak_period', arguments[count += 1].name)
     assert_equal('schedules_peak_period_delay', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_ceiling_fan', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_clothes_dryer', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_clothes_washer', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_cooking_range', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_dishwasher', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_hot_water_clothes_washer', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_hot_water_dishwasher', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_hot_water_fixtures', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_lighting_garage', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_lighting_interior', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_occupants', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_outage', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_plug_loads_other', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_plug_loads_tv', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_vacancy', arguments[count + 1].name)
+    assert_equal('schedules_peak_period_column_names', arguments[count + 1].name)
 
     # set argument values to good values and run the measure on model with spaces
     arguments = measure.arguments(model)
@@ -62,65 +48,9 @@ class GEBAppliancesPeakPeriodShiftTest < Minitest::Test
     assert(schedules_peak_period_delay.setValue(1))
     argument_map['schedules_peak_period_delay'] = schedules_peak_period_delay
 
-    schedules_peak_period_ceiling_fan = arguments[count += 1].clone
-    assert(schedules_peak_period_ceiling_fan.setValue(false))
-    argument_map['schedules_peak_period_ceiling_fan'] = schedules_peak_period_ceiling_fan
-
-    schedules_peak_period_clothes_dryer = arguments[count += 1].clone
-    assert(schedules_peak_period_clothes_dryer.setValue(true))
-    argument_map['schedules_peak_period_clothes_dryer'] = schedules_peak_period_clothes_dryer
-
-    schedules_peak_period_clothes_washer = arguments[count += 1].clone
-    assert(schedules_peak_period_clothes_washer.setValue(true))
-    argument_map['schedules_peak_period_clothes_washer'] = schedules_peak_period_clothes_washer
-
-    schedules_peak_period_cooking_range = arguments[count += 1].clone
-    assert(schedules_peak_period_cooking_range.setValue(true))
-    argument_map['schedules_peak_period_cooking_range'] = schedules_peak_period_cooking_range
-
-    schedules_peak_period_dishwasher = arguments[count += 1].clone
-    assert(schedules_peak_period_dishwasher.setValue(true))
-    argument_map['schedules_peak_period_dishwasher'] = schedules_peak_period_dishwasher
-
-    schedules_peak_period_hot_water_clothes_washer = arguments[count += 1].clone
-    assert(schedules_peak_period_hot_water_clothes_washer.setValue(false))
-    argument_map['schedules_peak_period_hot_water_clothes_washer'] = schedules_peak_period_hot_water_clothes_washer
-
-    schedules_peak_period_hot_water_dishwasher = arguments[count += 1].clone
-    assert(schedules_peak_period_hot_water_dishwasher.setValue(false))
-    argument_map['schedules_peak_period_hot_water_dishwasher'] = schedules_peak_period_hot_water_dishwasher
-
-    schedules_peak_period_hot_water_fixtures = arguments[count += 1].clone
-    assert(schedules_peak_period_hot_water_fixtures.setValue(false))
-    argument_map['schedules_peak_period_hot_water_fixtures'] = schedules_peak_period_hot_water_fixtures
-
-    schedules_peak_period_lighting_garage = arguments[count += 1].clone
-    assert(schedules_peak_period_lighting_garage.setValue(false))
-    argument_map['schedules_peak_period_lighting_garage'] = schedules_peak_period_lighting_garage
-
-    schedules_peak_period_lighting_interior = arguments[count += 1].clone
-    assert(schedules_peak_period_lighting_interior.setValue(false))
-    argument_map['schedules_peak_period_lighting_interior'] = schedules_peak_period_lighting_interior
-
-    schedules_peak_period_occupants = arguments[count += 1].clone
-    assert(schedules_peak_period_occupants.setValue(false))
-    argument_map['schedules_peak_period_occupants'] = schedules_peak_period_occupants
-
-    schedules_peak_period_outage = arguments[count += 1].clone
-    assert(schedules_peak_period_outage.setValue(false))
-    argument_map['schedules_peak_period_outage'] = schedules_peak_period_outage
-
-    schedules_peak_period_plug_loads_other = arguments[count += 1].clone
-    assert(schedules_peak_period_plug_loads_other.setValue(false))
-    argument_map['schedules_peak_period_plug_loads_other'] = schedules_peak_period_plug_loads_other
-
-    schedules_peak_period_plug_loads_tv = arguments[count += 1].clone
-    assert(schedules_peak_period_plug_loads_tv.setValue(false))
-    argument_map['schedules_peak_period_plug_loads_tv'] = schedules_peak_period_plug_loads_tv
-
-    schedules_peak_period_vacancy = arguments[count + 1].clone
-    assert(schedules_peak_period_vacancy.setValue(false))
-    argument_map['schedules_peak_period_vacancy'] = schedules_peak_period_vacancy
+    schedules_peak_period_column_names = arguments[count + 1].clone
+    assert(schedules_peak_period_column_names.setValue('dishwasher, clothes_washer, clothes_dryer, cooking_range'))
+    argument_map['schedules_peak_period_column_names'] = schedules_peak_period_column_names
 
     # before
     schedules_before = {}
