@@ -194,6 +194,7 @@ def create_hpxmls
     'base-enclosure-windows-none.xml' => 'base.xml',
     'base-enclosure-windows-physical-properties.xml' => 'base.xml',
     'base-enclosure-windows-shading.xml' => 'base.xml',
+    'base-enclosure-windows-shading-seasons.xml' => 'base.xml',
     'base-enclosure-windows-storms.xml' => 'base.xml',
     'base-enclosure-thermal-mass.xml' => 'base.xml',
     'base-foundation-ambient.xml' => 'base.xml',
@@ -1635,6 +1636,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['window_area_back'] = 0
     args['window_area_left'] = 0
     args['window_area_right'] = 0
+  elsif ['base-enclosure-windows-shading-seasons.xml'].include? hpxml_file
+    args['window_shading_summer_season'] = 'May 1 - Sep 30'
   elsif ['base-enclosure-windows-storms.xml'].include? hpxml_file
     args['window_ufactor'] = 0.6
     args['window_storm_type'] = HPXML::WindowGlassTypeLowE
@@ -2449,6 +2452,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['misc_plug_loads_other_annual_kwh'] = 0.0
     args.delete('misc_plug_loads_other_frac_sensible')
     args.delete('misc_plug_loads_other_frac_latent')
+  elsif ['base-multiple-buildings.xml'].include? hpxml_file
+    args['clothes_dryer_present'] = false
   end
 
   # PV

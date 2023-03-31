@@ -21,7 +21,7 @@ class HPXMLDefaults
       has_fuel[fuel] = hpxml.has_fuel(fuel, hpxml_doc)
     end
 
-    apply_header(hpxml, epw_file)
+    apply_header(hpxml, epw_file, weather)
     apply_emissions_scenarios(hpxml, has_fuel)
     apply_utility_bill_scenarios(runner, hpxml, has_fuel)
     apply_site(hpxml)
@@ -104,7 +104,7 @@ class HPXMLDefaults
 
   private
 
-  def self.apply_header(hpxml, epw_file)
+  def self.apply_header(hpxml, epw_file, weather)
     if hpxml.header.occupancy_calculation_type.nil?
       hpxml.header.occupancy_calculation_type = HPXML::OccupancyCalculationTypeAsset
       hpxml.header.occupancy_calculation_type_isdefaulted = true
@@ -227,6 +227,24 @@ class HPXMLDefaults
       if power_outage_period.natvent_availability.nil?
         power_outage_period.natvent_availability = HPXML::ScheduleRegular
         power_outage_period.natvent_availability_isdefaulted = true
+      end
+    end
+
+    if hpxml.header.shading_summer_begin_month.nil? || hpxml.header.shading_summer_begin_day.nil? || hpxml.header.shading_summer_end_month.nil? || hpxml.header.shading_summer_end_day.nil?
+      if not weather.nil?
+        # Default based on Building America seasons
+        _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+        begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(default_cooling_months, sim_calendar_year)
+        if not begin_month.nil? # Check if no summer
+          hpxml.header.shading_summer_begin_month = begin_month
+          hpxml.header.shading_summer_begin_day = begin_day
+          hpxml.header.shading_summer_end_month = end_month
+          hpxml.header.shading_summer_end_day = end_day
+          hpxml.header.shading_summer_begin_month_isdefaulted = true
+          hpxml.header.shading_summer_begin_day_isdefaulted = true
+          hpxml.header.shading_summer_end_month_isdefaulted = true
+          hpxml.header.shading_summer_end_day_isdefaulted = true
+        end
       end
     end
   end

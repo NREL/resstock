@@ -333,7 +333,7 @@ class Airflow
     nv_avail_sch = create_nv_and_whf_avail_sch(model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week, vacancy_periods + power_outage_periods)
 
     nv_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-    nv_avail_sensor.setName("#{Constants.ObjectNameNaturalVentilation} avail s")
+    nv_avail_sensor.setName("#{Constants.ObjectNameNaturalVentilation} s")
     nv_avail_sensor.setKeyName(nv_avail_sch.name.to_s)
 
     # Availability Schedules paired with vent fan class
@@ -346,7 +346,7 @@ class Airflow
       whf_avail_sch = create_nv_and_whf_avail_sch(model, obj_name, whf_num_days_per_week, whf_off_periods)
 
       whf_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-      whf_avail_sensor.setName("#{obj_name} avail s")
+      whf_avail_sensor.setName("#{obj_name} s")
       whf_avail_sensor.setKeyName(whf_avail_sch.name.to_s)
       whf_avail_sensors[vent_whf.id] = whf_avail_sensor
     end
@@ -487,13 +487,14 @@ class Airflow
 
   def self.create_nv_and_whf_avail_sch(model, obj_name, num_days_per_week, off_periods = [])
     avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
-    sch_name = "#{obj_name} avail schedule"
+    sch_name = "#{obj_name} schedule"
     avail_sch.setName(sch_name)
+    avail_sch.defaultDaySchedule.setName("#{sch_name} default day")
     Schedule.set_schedule_type_limits(model, avail_sch, Constants.ScheduleTypeLimitsOnOff)
     on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
-    on_rule.setName("#{obj_name} avail schedule rule")
+    on_rule.setName("#{sch_name} rule")
     on_rule_day = on_rule.daySchedule
-    on_rule_day.setName("#{obj_name} avail schedule day")
+    on_rule_day.setName("#{sch_name} avail day")
     on_rule_day.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
     method_array = ['setApplyMonday', 'setApplyWednesday', 'setApplyFriday', 'setApplySaturday', 'setApplyTuesday', 'setApplyThursday', 'setApplySunday']
     for i in 1..7 do

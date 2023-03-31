@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>report_simulation_output</name>
   <uid>df9d170c-c21a-4130-866d-0d46b06073fd</uid>
-  <version_id>8709382d-093d-4999-b82b-3dbd897c22e1</version_id>
-  <version_modified>20230323T233954Z</version_modified>
+  <version_id>e75517f6-ca4c-4a30-b0c9-dc387843e8de</version_id>
+  <version_modified>20230330T172311Z</version_modified>
   <xml_checksum>9BF1E6AC</xml_checksum>
   <class_name>ReportSimulationOutput</class_name>
   <display_name>HPXML Simulation Output Report</display_name>
@@ -409,24 +409,6 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>generate_eri_outputs</name>
-      <display_name>Generate ERI Outputs</display_name>
-      <description>Optionally generate additional outputs needed for Energy Rating Index (ERI) calculations.</description>
-      <type>Boolean</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>annual_output_file_name</name>
       <display_name>Annual Output File Name</display_name>
       <description>If not provided, defaults to 'results_annual.csv' (or 'results_annual.json' or 'results_annual.msgpack').</description>
@@ -515,6 +497,13 @@
       <model_dependent>false</model_dependent>
     </output>
     <output>
+      <name>End Use: Electricity: Heating Fans/Pumps MBtu</name>
+      <display_name>End Use: Electricity: Heating Fans/Pumps MBtu</display_name>
+      <short_name>End Use: Electricity: Heating Fans/Pumps MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
       <name>End Use: Electricity: Heating Heat Pump Backup MBtu</name>
       <display_name>End Use: Electricity: Heating Heat Pump Backup MBtu</display_name>
       <short_name>End Use: Electricity: Heating Heat Pump Backup MBtu</short_name>
@@ -522,9 +511,9 @@
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Heating Fans/Pumps MBtu</name>
-      <display_name>End Use: Electricity: Heating Fans/Pumps MBtu</display_name>
-      <short_name>End Use: Electricity: Heating Fans/Pumps MBtu</short_name>
+      <name>End Use: Electricity: Heating Heat Pump Backup Fans/Pumps MBtu</name>
+      <display_name>End Use: Electricity: Heating Heat Pump Backup Fans/Pumps MBtu</display_name>
+      <short_name>End Use: Electricity: Heating Heat Pump Backup Fans/Pumps MBtu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
@@ -1187,6 +1176,13 @@
       <model_dependent>false</model_dependent>
     </output>
     <output>
+      <name>Load: Heating: Heat Pump Backup MBtu</name>
+      <display_name>Load: Heating: Heat Pump Backup MBtu</display_name>
+      <short_name>Load: Heating: Heat Pump Backup MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
       <name>Load: Cooling: Delivered MBtu</name>
       <display_name>Load: Cooling: Delivered MBtu</display_name>
       <short_name>Load: Cooling: Delivered MBtu</short_name>
@@ -1595,12 +1591,6 @@
   </attributes>
   <files>
     <file>
-      <filename>output_report_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>86C344CC</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.1</identifier>
@@ -1609,7 +1599,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>970A043F</checksum>
+      <checksum>2A1BB87D</checksum>
+    </file>
+    <file>
+      <filename>output_report_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9997E3FF</checksum>
     </file>
   </files>
 </measure>
