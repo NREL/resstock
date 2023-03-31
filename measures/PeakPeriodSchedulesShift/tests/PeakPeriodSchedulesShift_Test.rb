@@ -71,7 +71,7 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
     show_output(result)
     assert(result.value.valueName == 'Success')
     assert(result.warnings.empty?)
-    assert(result.info.size == 4)
+    assert(result.info.size == 5)
 
     # after
     schedules_after = {}

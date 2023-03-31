@@ -81,8 +81,10 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
 
     schedules_peak_period = runner.getStringArgumentValue('schedules_peak_period', user_arguments)
     schedules_peak_period_delay = runner.getIntegerArgumentValue('schedules_peak_period_delay', user_arguments)
-    schedules_peak_period_schedule_rulesets_names = runner.getStringArgumentValue('schedules_peak_period_schedule_rulesets_names', user_arguments).split(',').map(&:strip)
-    schedules_peak_period_schedule_files_column_names = runner.getStringArgumentValue('schedules_peak_period_schedule_files_column_names', user_arguments).split(',').map(&:strip)
+    schedules_peak_period_schedule_rulesets_names = runner.getOptionalStringArgumentValue('schedules_peak_period_schedule_rulesets_names', user_arguments)
+    schedules_peak_period_schedule_rulesets_names = schedules_peak_period_schedule_rulesets_names.is_initialized ? schedules_peak_period_schedule_rulesets_names.get.split(',').map(&:strip) : []
+    schedules_peak_period_schedule_files_column_names = runner.getOptionalStringArgumentValue('schedules_peak_period_schedule_files_column_names', user_arguments)
+    schedules_peak_period_schedule_files_column_names = schedules_peak_period_schedule_files_column_names.is_initialized ? schedules_peak_period_schedule_files_column_names.get.split(',').map(&:strip) : []
 
     schedule_ruleset_names_enabled = {}
     get_schedule_ruleset_names(model).each do |schedule_ruleset_name|
@@ -112,6 +114,8 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    # TODO: need to prevent shifting into next day (gets too complicated with Schedule:Ruleset)
+
     # get year
     yd = model.getYearDescription
     calendar_year = yd.assumedYear
@@ -124,13 +128,15 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
     ts_per_hour = ts.numberOfTimestepsPerHour
     steps_in_day = ts_per_hour * 24
 
-    # schedule:ruleset
+    # Schedule:Ruleset
+    shift_summary = {}
     schedule_rulesets = model.getScheduleRulesets
     schedule_ruleset_names_enabled.each do |schedule_ruleset_name, peak_period_shift_enabled|
       next if !peak_period_shift_enabled
 
-      schedule_ruleset = schedule_rulesets.select { |schedule_ruleset| schedule_ruleset.name.to_s == schedule_ruleset_name }[0]
+      shift_summary[schedule_ruleset_name] = 0
 
+      schedule_ruleset = schedule_rulesets.select { |schedule_ruleset| schedule_ruleset.name.to_s == schedule_ruleset_name }[0]
       schedule_ruleset.scheduleRules.each do |schedule_rule|
         next unless schedule_rule.applyMonday || schedule_rule.applyTuesday || schedule_rule.applyWednesday || schedule_rule.applyThursday || schedule_rule.applyFriday
 
@@ -146,26 +152,56 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
 
         old_day_schedule = schedule_rule.daySchedule
         new_day_schedule = new_schedule_rule.daySchedule
-        # TODO: transfer values from old_day_schedule into new_day_schedule, with shift
+        new_day_schedule.setName("#{old_day_schedule.name} Shifted")
+
+        schedule = get_hourly_values(old_day_schedule)
+        shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, 24)
+
+        if shifted
+          shift_summary[schedule_ruleset_name] += 1
+          for h in 0..23
+            time = OpenStudio::Time.new(0, h + 1, 0, 0)
+            new_day_schedule.addValue(time, schedule[h])
+          end
+        else
+          new_schedule_rule.remove
+        end
       end
 
       old_default_day_schedule = schedule_ruleset.defaultDaySchedule
-      default_schedule_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
-      default_schedule_rule.setName("#{old_default_day_schedule.name} Shifted")
-      default_schedule_rule.setApplySunday(false)
-      default_schedule_rule.setApplyMonday(true)
-      default_schedule_rule.setApplyTuesday(true)
-      default_schedule_rule.setApplyWednesday(true)
-      default_schedule_rule.setApplyThursday(true)
-      default_schedule_rule.setApplyFriday(true)
-      default_schedule_rule.setApplySaturday(false)
+      new_default_schedule_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
+      new_default_schedule_rule.setName("#{old_default_day_schedule.name} Shifted")
+      new_default_schedule_rule.setApplySunday(false)
+      new_default_schedule_rule.setApplyMonday(true)
+      new_default_schedule_rule.setApplyTuesday(true)
+      new_default_schedule_rule.setApplyWednesday(true)
+      new_default_schedule_rule.setApplyThursday(true)
+      new_default_schedule_rule.setApplyFriday(true)
+      new_default_schedule_rule.setApplySaturday(false)
       # TODO: ensure this rule is first (all other rules applied on top)
 
-      new_default_day_schedule = default_schedule_rule.daySchedule
-      # TODO: transfer values from old_default_day_schedule into new_default_day_schedule, with shift
+      new_default_day_schedule = new_default_schedule_rule.daySchedule
+      new_default_day_schedule.setName("#{old_default_day_schedule.name} Shifted")
+
+      schedule = get_hourly_values(old_default_day_schedule)
+      shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, 24)
+
+      if shifted
+        shift_summary[schedule_ruleset_name] += 1 if shifted
+        for h in 0..23
+          time = OpenStudio::Time.new(0, h + 1, 0, 0)
+          new_default_day_schedule.addValue(time, schedule[h])
+        end
+      else
+        new_default_schedule_rule.remove
+      end
     end
 
-    # schedule:file
+    shift_summary.each do |schedule_ruleset_name, shifted_day_schedules|
+      runner.registerInfo("Shifted #{shifted_day_schedules} day schedule(s) for the '#{schedule_ruleset_name}' Schedule:Ruleset.")
+    end
+
+    # Schedule:File
     model.getExternalFiles.each do |external_file|
       external_file_path = external_file.filePath.to_s
 
@@ -175,6 +211,24 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
     end
 
     return true
+  end
+
+  def get_hourly_values(day_schedule)
+    times = day_schedule.times
+    values = day_schedule.values
+
+    hourly_values = []
+    t0 = 0
+    times.each_with_index do |_time, i|
+      t1 = times[i].hours
+      t1 = 24 if t1 == 0
+      hours = t1 - t0
+      for _v in 0...hours
+        hourly_values << values[i]
+      end
+      t0 = t1
+    end
+    return hourly_values
   end
 end
 
@@ -218,17 +272,17 @@ class Schedules
         day_of_week = today.wday
         next if [0, 6].include?(day_of_week)
 
-        shifted = day_peak_shift(schedule, day, begin_hour, end_hour, delay, steps_in_day)
+        shifted = Schedules.day_peak_shift(schedule, day, begin_hour, end_hour, delay, steps_in_day)
         shift_summary[schedule_file_column_name] += 1 if shifted
       end
     end
 
     shift_summary.each do |schedule_file_column_name, shifted_days|
-      runner.registerInfo("Out of #{total_days_in_year} total days, #{shifted_days} day(s) were shifted for the '#{schedule_file_column_name}' schedule.")
+      runner.registerInfo("Out of #{total_days_in_year} total days, #{shifted_days} day(s) were shifted for the '#{schedule_file_column_name}' Schedule:File.")
     end
   end
 
-  def day_peak_shift(schedule, day, begin_hour, end_hour, delay, steps_in_day)
+  def self.day_peak_shift(schedule, day, begin_hour, end_hour, delay, steps_in_day)
     steps_in_hour = steps_in_day / 24
     period = (end_hour - begin_hour) * steps_in_hour # n steps
 
