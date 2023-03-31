@@ -92,15 +92,14 @@ class TesBuildStockBatch < MiniTest::Test
     assert(_test_timeseries_columns(timeseries))
   end
 
-  def test_inputs
+  def test_testing_inputs
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'inputs.csv'), headers: true)
-    expected_parameters = expected_outputs['Parameter'].select { |n| !n.nil? }
+    expected_parameters = expected_outputs['Parameter'].select { |p| !p.nil? }
 
-    actual_outputs = CSV.read(File.join('baseline', 'annual', 'results_characteristics.csv'), headers: true)
-    actual_parameters = actual_outputs.headers
+    actual_outputs = CSV.read(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
+    actual_parameters = actual_outputs.headers.select { |h| h.start_with?('build_existing_model.') }
 
     actual_extras = actual_parameters - expected_parameters
-    actual_extras -= ['OSW']
     puts "Parameter, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_parameters - actual_parameters
@@ -110,16 +109,65 @@ class TesBuildStockBatch < MiniTest::Test
     assert_equal(0, expected_extras.size)
   end
 
-  def test_annual_outputs
+  def test_national_inputs
+    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'inputs.csv'), headers: true)
+    expected_parameters = expected_outputs['Parameter'].select { |p| !p.nil? }
+
+    actual_outputs = CSV.read(File.join(@national_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
+    actual_parameters = actual_outputs.headers.select { |h| h.start_with?('build_existing_model.') }
+
+    actual_extras = actual_parameters - expected_parameters
+    puts "Parameter, actual - expected: #{actual_extras}" if !actual_extras.empty?
+
+    expected_extras = expected_parameters - actual_parameters
+    puts "Parameter, expected - actual: #{expected_extras}" if !expected_extras.empty?
+
+    assert_equal(0, actual_extras.size)
+    assert_equal(0, expected_extras.size)
+  end
+
+  def test_testing_annual_outputs
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
-    actual_outputs = CSV.read(File.join('baseline', 'annual', 'results_output.csv'), headers: true)
-    actual_annual_names = actual_outputs.headers
+    actual_outputs = CSV.read(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
+    actual_annual_names = actual_outputs.headers.select { |h| !h.start_with?('build_existing_model.') }
 
     actual_extras = actual_annual_names - expected_annual_names
-    actual_extras -= ['OSW']
-    actual_extras -= ['color_index']
+    puts "Annual Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
+
+    expected_extras = expected_annual_names - actual_annual_names
+    puts "Annual Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
+
+    assert_equal(0, actual_extras.size)
+    # assert_equal(0, expected_extras.size) # allow
+
+    tol = 0.001
+    sums_to_indexes = expected_outputs['Sums To'].select { |n| !n.nil? }.uniq
+    sums_to_indexes.each do |sums_to_ix|
+      ix = expected_outputs['Index'].index(sums_to_ix)
+      sums_to = expected_outputs['Annual Name'][ix]
+
+      terms = []
+      expected_outputs['Sums To'].zip(expected_outputs['Annual Name']).each do |ix, annual_name|
+        terms << annual_name if ix == sums_to_ix
+      end
+
+      sums_to_val = actual_outputs[sums_to].map { |x| Float(x) }.sum
+      terms_val = terms.collect { |t| actual_outputs[t].map { |x| Float(x) }.sum }.sum
+
+      assert_in_epsilon(sums_to_val, terms_val, tol, "Summed value #{terms_val} does not equal #{sums_to} (#{sums_to_val})")
+    end
+  end
+
+  def test_national_annual_outputs
+    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
+    expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
+
+    actual_outputs = CSV.read(File.join(@national_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
+    actual_annual_names = actual_outputs.headers.select { |h| !h.start_with?('build_existing_model.') }
+
+    actual_extras = actual_annual_names - expected_annual_names
     puts "Annual Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_annual_names - actual_annual_names
