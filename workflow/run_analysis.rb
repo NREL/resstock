@@ -168,7 +168,6 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
       'include_timeseries_total_consumptions' => false,
       'include_timeseries_fuel_consumptions' => false,
       'include_timeseries_end_use_consumptions' => true,
-      'include_timeseries_system_use_consumptions' => false,
       'include_timeseries_emissions' => false,
       'include_timeseries_emission_fuels' => false,
       'include_timeseries_emission_end_uses' => false,
