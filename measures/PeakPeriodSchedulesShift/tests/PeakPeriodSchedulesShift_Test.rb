@@ -26,13 +26,14 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
 
     # get arguments and test that they are what we are expecting
     arguments = measure.arguments(model)
-    assert_equal(3, arguments.size)
+    assert_equal(4, arguments.size)
 
     count = -1
 
     assert_equal('schedules_peak_period', arguments[count += 1].name)
     assert_equal('schedules_peak_period_delay', arguments[count += 1].name)
-    assert_equal('schedules_peak_period_column_names', arguments[count + 1].name)
+    assert_equal('schedules_peak_period_schedule_rulesets_names', arguments[count += 1].name)
+    assert_equal('schedules_peak_period_schedule_files_column_names', arguments[count + 1].name)
 
     # set argument values to good values and run the measure on model with spaces
     arguments = measure.arguments(model)
@@ -48,9 +49,13 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
     assert(schedules_peak_period_delay.setValue(1))
     argument_map['schedules_peak_period_delay'] = schedules_peak_period_delay
 
-    schedules_peak_period_column_names = arguments[count + 1].clone
-    assert(schedules_peak_period_column_names.setValue('dishwasher, clothes_washer, clothes_dryer, cooking_range'))
-    argument_map['schedules_peak_period_column_names'] = schedules_peak_period_column_names
+    schedules_peak_period_schedule_rulesets_names = arguments[count += 1].clone
+    assert(schedules_peak_period_schedule_rulesets_names.setValue('fridge'))
+    argument_map['schedules_peak_period_schedule_rulesets_names'] = schedules_peak_period_schedule_rulesets_names
+
+    schedules_peak_period_schedule_files_column_names = arguments[count + 1].clone
+    assert(schedules_peak_period_schedule_files_column_names.setValue('dishwasher, clothes_washer, clothes_dryer, cooking_range'))
+    argument_map['schedules_peak_period_schedule_files_column_names'] = schedules_peak_period_schedule_files_column_names
 
     # before
     schedules_before = {}

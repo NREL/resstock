@@ -3,13 +3,13 @@
   <schema_version>3.0</schema_version>
   <name>peak_period_schedules_shift</name>
   <uid>4954275f-9caf-422c-9e1f-061244ade152</uid>
-  <version_id>73d6cd2f-3590-4993-ac5b-c78c775811cf</version_id>
-  <version_modified>20230331T172823Z</version_modified>
+  <version_id>f29e8809-f6a9-47de-b001-b4a349738ef9</version_id>
+  <version_modified>20230331T183315Z</version_modified>
   <xml_checksum>A8988589</xml_checksum>
   <class_name>PeakPeriodSchedulesShift</class_name>
   <display_name>PeakPeriodSchedulesShift</display_name>
-  <description>TODO</description>
-  <modeler_description>TODO</modeler_description>
+  <description>Shifts select schedules out of a peak period.</description>
+  <modeler_description>Enter a weekday peak period, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Prevent stacking of schedule values by only allowing shifts to all-zero periods.</modeler_description>
   <arguments>
     <argument>
       <name>schedules_peak_period</name>
@@ -31,9 +31,17 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>schedules_peak_period_column_names</name>
-      <display_name>Schedules: Peak Period Schedule File Column Names</display_name>
-      <description>Comma-separated list of schedule file column names to shift during the peak period.</description>
+      <name>schedules_peak_period_schedule_rulesets_names</name>
+      <display_name>Schedules: Peak Period Schedule Rulesets Names</display_name>
+      <description>Comma-separated list of Schedule:Ruleset object names corresponding to schedules to shift during the specified peak period.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_peak_period_schedule_files_column_names</name>
+      <display_name>Schedules: Peak Period Schedule Files Column Names</display_name>
+      <description>Comma-separated list of column names, referenced by Schedule:File objects, corresponding to schedules to shift during the specified peak period.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -76,12 +84,6 @@
       <checksum>AC4D8730</checksum>
     </file>
     <file>
-      <filename>test_GEBAppliancesPeakPeriodShift.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>AC4D8730</checksum>
-    </file>
-    <file>
       <filename>files/schedules20230327-33728-y5y5a5.csv</filename>
       <filetype>csv</filetype>
       <usage_type>test</usage_type>
@@ -96,19 +98,25 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>37FFF72A</checksum>
+      <checksum>425F96C4</checksum>
     </file>
     <file>
       <filename>PeakPeriodSchedulesShift_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>2B5BD3E6</checksum>
+      <checksum>401588C6</checksum>
+    </file>
+    <file>
+      <filename>test_PeakPeriodSchedulesShift.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3FE8E169</checksum>
     </file>
     <file>
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>34C1187D</checksum>
+      <checksum>F02F0326</checksum>
     </file>
   </files>
 </measure>

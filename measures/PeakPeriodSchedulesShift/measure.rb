@@ -15,12 +15,12 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'TODO'
+    return 'Shifts select schedules out of a peak period.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return 'TODO'
+    return 'Enter a weekday peak period, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Prevent stacking of schedule values by only allowing shifts to all-zero periods.'
   end
 
   # define the arguments that the user will input
@@ -40,12 +40,25 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_peak_period_column_names', false)
-    arg.setDisplayName('Schedules: Peak Period Schedule File Column Names')
-    arg.setDescription('Comma-separated list of schedule file column names to shift during the peak period.')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_peak_period_schedule_rulesets_names', false)
+    arg.setDisplayName('Schedules: Peak Period Schedule Rulesets Names')
+    arg.setDescription('Comma-separated list of Schedule:Ruleset object names corresponding to schedules to shift during the specified peak period.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_peak_period_schedule_files_column_names', false)
+    arg.setDisplayName('Schedules: Peak Period Schedule Files Column Names')
+    arg.setDescription('Comma-separated list of column names, referenced by Schedule:File objects, corresponding to schedules to shift during the specified peak period.')
     args << arg
 
     return args
+  end
+
+  def get_schedule_ruleset_names(model)
+    schedule_ruleset_names = []
+    model.getScheduleRulesets.each do |schedule_ruleset|
+      schedule_ruleset_names << schedule_ruleset.name.to_s
+    end
+    return schedule_ruleset_names.uniq.sort
   end
 
   def get_schedule_file_column_names(model)
@@ -68,15 +81,22 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
 
     schedules_peak_period = runner.getStringArgumentValue('schedules_peak_period', user_arguments)
     schedules_peak_period_delay = runner.getIntegerArgumentValue('schedules_peak_period_delay', user_arguments)
-    schedules_peak_period_column_names = runner.getStringArgumentValue('schedules_peak_period_column_names', user_arguments).split(',').map(&:strip)
+    schedules_peak_period_schedule_rulesets_names = runner.getStringArgumentValue('schedules_peak_period_schedule_rulesets_names', user_arguments).split(',').map(&:strip)
+    schedules_peak_period_schedule_files_column_names = runner.getStringArgumentValue('schedules_peak_period_schedule_files_column_names', user_arguments).split(',').map(&:strip)
+
+    schedule_ruleset_names_enabled = {}
+    get_schedule_ruleset_names(model).each do |schedule_ruleset_name|
+      schedule_ruleset_names_enabled[schedule_ruleset_name] = schedules_peak_period_schedule_rulesets_names.include?(schedule_ruleset_name)
+    end
 
     schedule_file_column_names_enabled = {}
     get_schedule_file_column_names(model).each do |schedule_file_column_name|
-      schedule_file_column_names_enabled[schedule_file_column_name] = schedules_peak_period_column_names.include?(schedule_file_column_name)
+      schedule_file_column_names_enabled[schedule_file_column_name] = schedules_peak_period_schedule_files_column_names.include?(schedule_file_column_name)
     end
 
-    if schedule_file_column_names_enabled.empty? || schedule_file_column_names_enabled.values.all? { |value| value == false }
-      runner.registerAsNotApplicable('Did not select any ScheduleFile objects to shift.')
+    if (schedule_ruleset_names_enabled.empty? || schedule_ruleset_names_enabled.values.all? { |value| value == false }) &&
+       (schedule_file_column_names_enabled.empty? || schedule_file_column_names_enabled.values.all? { |value| value == false })
+      runner.registerAsNotApplicable('Did not select any ScheduleRuleset or ScheduleFile objects to shift.')
       return true
     end
 
@@ -104,6 +124,48 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
     ts_per_hour = ts.numberOfTimestepsPerHour
     steps_in_day = ts_per_hour * 24
 
+    # schedule:ruleset
+    schedule_rulesets = model.getScheduleRulesets
+    schedule_ruleset_names_enabled.each do |schedule_ruleset_name, peak_period_shift_enabled|
+      next if !peak_period_shift_enabled
+
+      schedule_ruleset = schedule_rulesets.select { |schedule_ruleset| schedule_ruleset.name.to_s == schedule_ruleset_name }[0]
+
+      schedule_ruleset.scheduleRules.each do |schedule_rule|
+        next unless schedule_rule.applyMonday || schedule_rule.applyTuesday || schedule_rule.applyWednesday || schedule_rule.applyThursday || schedule_rule.applyFriday
+
+        new_schedule_rule = schedule_rule.clone.to_ScheduleRule.get
+        new_schedule_rule.setName("#{schedule_rule.name} Shifted")
+        new_schedule_rule.setApplySunday(false)
+        new_schedule_rule.setApplyMonday(schedule_rule.applyMonday)
+        new_schedule_rule.setApplyTuesday(schedule_rule.applyTuesday)
+        new_schedule_rule.setApplyWednesday(schedule_rule.applyWednesday)
+        new_schedule_rule.setApplyThursday(schedule_rule.applyThursday)
+        new_schedule_rule.setApplyFriday(schedule_rule.applyFriday)
+        new_schedule_rule.setApplySaturday(false)
+
+        old_day_schedule = schedule_rule.daySchedule
+        new_day_schedule = new_schedule_rule.daySchedule
+        # TODO: transfer values from old_day_schedule into new_day_schedule, with shift
+      end
+
+      old_default_day_schedule = schedule_ruleset.defaultDaySchedule
+      default_schedule_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
+      default_schedule_rule.setName("#{old_default_day_schedule.name} Shifted")
+      default_schedule_rule.setApplySunday(false)
+      default_schedule_rule.setApplyMonday(true)
+      default_schedule_rule.setApplyTuesday(true)
+      default_schedule_rule.setApplyWednesday(true)
+      default_schedule_rule.setApplyThursday(true)
+      default_schedule_rule.setApplyFriday(true)
+      default_schedule_rule.setApplySaturday(false)
+      # TODO: ensure this rule is first (all other rules applied on top)
+
+      new_default_day_schedule = default_schedule_rule.daySchedule
+      # TODO: transfer values from old_default_day_schedule into new_default_day_schedule, with shift
+    end
+
+    # schedule:file
     model.getExternalFiles.each do |external_file|
       external_file_path = external_file.filePath.to_s
 
@@ -149,6 +211,7 @@ class Schedules
 
       schedule = @schedules[schedule_file_column_name]
       shift_summary[schedule_file_column_name] = 0
+      next if schedule.nil?
 
       total_days_in_year.times do |day|
         today = sim_start_day + day
