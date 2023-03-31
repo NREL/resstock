@@ -36,6 +36,7 @@ class ScheduleConstant
     else
       schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
       schedule.setName(@sch_name)
+      schedule.defaultDaySchedule.setName(@sch_name + ' default day')
 
       default_day_sch = schedule.defaultDaySchedule
       default_day_sch.clearValues
@@ -131,6 +132,7 @@ class HourlyByMonthSchedule
 
     schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
     schedule.setName(@sch_name)
+    schedule.defaultDaySchedule.setName(@sch_name + ' default day')
 
     prev_wkdy_vals = nil
     prev_wkdy_rule = nil
@@ -297,6 +299,7 @@ class HourlyByDaySchedule
 
     schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
     schedule.setName(@sch_name)
+    schedule.defaultDaySchedule.setName(@sch_name + ' default day')
 
     prev_wkdy_vals = nil
     prev_wkdy_rule = nil
@@ -501,6 +504,7 @@ class MonthWeekdayWeekendSchedule
 
     schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
     schedule.setName(@sch_name)
+    schedule.defaultDaySchedule.setName(@sch_name + ' default day')
 
     prev_wkdy_vals = nil
     prev_wkdy_rule = nil
@@ -1240,15 +1244,19 @@ class Schedule
   end
 
   def self.get_begin_and_end_dates_from_monthly_array(months, year)
-    if months[0] == 1 && months[11] == 1 # Wrap around year
+    num_days_in_month = Constants.NumDaysInMonths(year)
+
+    if months.uniq.size == 1 && months[0] == 1 # Year-round
+      return 1, 1, 12, num_days_in_month[11]
+    elsif months.uniq.size == 1 && months[0] == 0 # Never
+      return
+    elsif months[0] == 1 && months[11] == 1 # Wrap around year
       begin_month = 12 - months.reverse.index(0) + 1
       end_month = months.index(0)
     else
       begin_month = months.index(1) + 1
       end_month = 12 - months.reverse.index(1)
     end
-
-    num_days_in_month = Constants.NumDaysInMonths(year)
 
     begin_day = 1
     end_day = num_days_in_month[end_month - 1]

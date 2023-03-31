@@ -52,11 +52,15 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.natvent_days_per_week = 7
     hpxml.header.vacancy_periods.add(begin_month: 1, begin_day: 1, begin_hour: 1, end_month: 12, end_day: 31, end_hour: 2)
     hpxml.header.power_outage_periods.add(begin_month: 1, begin_day: 1, begin_hour: 3, end_month: 12, end_day: 31, end_hour: 4, natvent_availability: HPXML::ScheduleUnavailable)
+    hpxml.header.shading_summer_begin_month = 2
+    hpxml.header.shading_summer_begin_day = 3
+    hpxml.header.shading_summer_end_month = 4
+    hpxml.header.shading_summer_end_day = 5
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, 2009, false, 3, 3, 10, 10, HPXML::HeatPumpSizingMaxLoad,
                                 true, 'CA', -8, HPXML::OccupancyCalculationTypeOperational, 1.5, 7,
-                                1, 2, 3, 4, HPXML::ScheduleUnavailable)
+                                1, 2, 3, 4, HPXML::ScheduleUnavailable, 2, 3, 4, 5)
 
     # Test defaults - DST not in weather file
     hpxml.header.timestep = nil
@@ -82,11 +86,15 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.power_outage_periods[-1].begin_hour = nil
     hpxml.header.power_outage_periods[-1].end_hour = nil
     hpxml.header.power_outage_periods[-1].natvent_availability = nil
+    hpxml.header.shading_summer_begin_month = nil
+    hpxml.header.shading_summer_begin_day = nil
+    hpxml.header.shading_summer_end_month = nil
+    hpxml.header.shading_summer_end_day = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, HPXML::HeatPumpSizingHERS,
                                 false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
-                                0, 24, 0, 24, HPXML::ScheduleRegular)
+                                0, 24, 0, 24, HPXML::ScheduleRegular, 5, 1, 10, 31)
 
     # Test defaults - DST in weather file
     hpxml = _create_hpxml('base-location-AMY-2012.xml')
@@ -107,11 +115,15 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.time_zone_utc_offset = nil
     hpxml.header.occupancy_calculation_type = nil
     hpxml.header.temperature_capacitance_multiplier = nil
+    hpxml.header.shading_summer_begin_month = nil
+    hpxml.header.shading_summer_begin_day = nil
+    hpxml.header.shading_summer_end_month = nil
+    hpxml.header.shading_summer_end_day = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, nil,
                                 false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
-                                nil, nil, nil, nil, nil)
+                                nil, nil, nil, nil, nil, 5, 1, 9, 30)
 
     # Test defaults - calendar year override by AMY year
     hpxml.header.sim_calendar_year = 2020
@@ -119,9 +131,9 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, nil,
                                 false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
-                                nil, nil, nil, nil, nil)
+                                nil, nil, nil, nil, nil, 5, 1, 9, 30)
 
-    # Test defaults - invalid state code
+    # Test defaults - southern hemisphere, invalid state code
     hpxml = _create_hpxml('base-location-capetown-zaf.xml')
     hpxml.header.timestep = nil
     hpxml.header.sim_begin_month = nil
@@ -140,11 +152,15 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.time_zone_utc_offset = nil
     hpxml.header.occupancy_calculation_type = nil
     hpxml.header.temperature_capacitance_multiplier = nil
+    hpxml.header.shading_summer_begin_month = nil
+    hpxml.header.shading_summer_begin_day = nil
+    hpxml.header.shading_summer_end_month = nil
+    hpxml.header.shading_summer_end_day = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, nil,
                                 false, nil, 2, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
-                                nil, nil, nil, nil, nil)
+                                nil, nil, nil, nil, nil, 12, 1, 4, 30)
   end
 
   def test_emissions_factors
@@ -2481,7 +2497,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.batteries[0].round_trip_efficiency = 0.9
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_battery_values(hpxml_default, 45.0, nil, 34.0, nil, 1234.0, HPXML::LocationBasementConditioned, nil, 0.9)
+    _test_default_battery_values(hpxml_default.batteries[0], 45.0, nil, 34.0, nil, 1234.0, HPXML::LocationBasementConditioned, nil, 0.9)
 
     # Test w/ Ah instead of kWh
     hpxml.batteries[0].nominal_capacity_kwh = nil
@@ -2490,7 +2506,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.batteries[0].usable_capacity_ah = 876.0
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_battery_values(hpxml_default, nil, 987.0, nil, 876.0, 1234.0, HPXML::LocationBasementConditioned, nil, 0.9)
+    _test_default_battery_values(hpxml_default.batteries[0], nil, 987.0, nil, 876.0, 1234.0, HPXML::LocationBasementConditioned, nil, 0.9)
 
     # Test defaults
     hpxml.batteries[0].nominal_capacity_kwh = nil
@@ -2503,7 +2519,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.batteries[0].round_trip_efficiency = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_battery_values(hpxml_default, 10.0, nil, 9.0, nil, 5000.0, HPXML::LocationOutside, nil, 0.925)
+    _test_default_battery_values(hpxml_default.batteries[0], 10.0, nil, 9.0, nil, 5000.0, HPXML::LocationOutside, nil, 0.925)
 
     # Test defaults w/ nominal kWh
     hpxml.batteries[0].nominal_capacity_kwh = 14.0
@@ -2513,7 +2529,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.batteries[0].rated_power_output = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_battery_values(hpxml_default, 14.0, nil, 12.6, nil, 7000.0, HPXML::LocationOutside, nil, 0.925)
+    _test_default_battery_values(hpxml_default.batteries[0], 14.0, nil, 12.6, nil, 7000.0, HPXML::LocationOutside, nil, 0.925)
 
     # Test defaults w/ usable kWh
     hpxml.batteries[0].nominal_capacity_kwh = nil
@@ -2523,7 +2539,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.batteries[0].rated_power_output = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_battery_values(hpxml_default, 13.33, nil, 12.0, nil, 6665.0, HPXML::LocationOutside, nil, 0.925)
+    _test_default_battery_values(hpxml_default.batteries[0], 13.33, nil, 12.0, nil, 6665.0, HPXML::LocationOutside, nil, 0.925)
 
     # Test defaults w/ nominal Ah
     hpxml.batteries[0].nominal_capacity_kwh = nil
@@ -2533,7 +2549,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.batteries[0].rated_power_output = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_battery_values(hpxml_default, nil, 280.0, nil, 252.0, 7000.0, HPXML::LocationOutside, nil, 0.925)
+    _test_default_battery_values(hpxml_default.batteries[0], nil, 280.0, nil, 252.0, 7000.0, HPXML::LocationOutside, nil, 0.925)
 
     # Test defaults w/ usable Ah
     hpxml.batteries[0].nominal_capacity_kwh = nil
@@ -2543,7 +2559,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.batteries[0].rated_power_output = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_battery_values(hpxml_default, nil, 266.67, nil, 240.0, 6667.0, HPXML::LocationOutside, nil, 0.925)
+    _test_default_battery_values(hpxml_default.batteries[0], nil, 266.67, nil, 240.0, 6667.0, HPXML::LocationOutside, nil, 0.925)
 
     # Test defaults w/ rated power output
     hpxml.batteries[0].nominal_capacity_kwh = nil
@@ -2553,7 +2569,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.batteries[0].rated_power_output = 10000.0
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_battery_values(hpxml_default, 20.0, nil, 18.0, nil, 10000.0, HPXML::LocationOutside, nil, 0.925)
+    _test_default_battery_values(hpxml_default.batteries[0], 20.0, nil, 18.0, nil, 10000.0, HPXML::LocationOutside, nil, 0.925)
 
     # Test defaults w/ garage
     hpxml = _create_hpxml('base-pv-battery-garage.xml')
@@ -2567,7 +2583,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.batteries[0].round_trip_efficiency = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_battery_values(hpxml_default, 10.0, nil, 9.0, nil, 5000.0, HPXML::LocationGarage, nil, 0.925)
+    _test_default_battery_values(hpxml_default.batteries[0], 10.0, nil, 9.0, nil, 5000.0, HPXML::LocationGarage, nil, 0.925)
   end
 
   def test_generators
@@ -3305,9 +3321,9 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   def _test_default_header_values(hpxml, tstep, sim_begin_month, sim_begin_day, sim_end_month, sim_end_day, sim_calendar_year,
                                   dst_enabled, dst_begin_month, dst_begin_day, dst_end_month, dst_end_day, heat_pump_sizing_methodology,
                                   allow_increased_fixed_capacities, state_code, time_zone_utc_offset, occupancy_calculation_type,
-                                  temperature_capacitance_multiplier, natvent_days_per_week,
-                                  vacancy_period_begin_hour, vacancy_period_end_hour,
-                                  power_outage_period_begin_hour, power_outage_period_end_hour, power_outage_period_natvent_availability)
+                                  temperature_capacitance_multiplier, natvent_days_per_week, vacancy_period_begin_hour, vacancy_period_end_hour,
+                                  power_outage_period_begin_hour, power_outage_period_end_hour, power_outage_period_natvent_availability,
+                                  shading_summer_begin_month, shading_summer_begin_day, shading_summer_end_month, shading_summer_end_day)
     assert_equal(tstep, hpxml.header.timestep)
     assert_equal(sim_begin_month, hpxml.header.sim_begin_month)
     assert_equal(sim_begin_day, hpxml.header.sim_begin_day)
@@ -3347,6 +3363,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       assert_equal(power_outage_period_end_hour, hpxml.header.power_outage_periods[-1].end_hour)
       assert_equal(power_outage_period_natvent_availability, hpxml.header.power_outage_periods[-1].natvent_availability)
     end
+    assert_equal(shading_summer_begin_month, hpxml.header.shading_summer_begin_month)
+    assert_equal(shading_summer_begin_day, hpxml.header.shading_summer_begin_day)
+    assert_equal(shading_summer_end_month, hpxml.header.shading_summer_end_month)
+    assert_equal(shading_summer_end_day, hpxml.header.shading_summer_end_day)
   end
 
   def _test_default_emissions_values(scenario, elec_schedule_number_of_header_rows, elec_schedule_column_number,
@@ -3708,12 +3728,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if cooling_capacity.nil?
       assert(cooling_system.cooling_capacity > 0)
     else
-      assert_equal(cooling_system.cooling_capacity, cooling_capacity)
+      assert_equal(cooling_capacity, cooling_system.cooling_capacity)
     end
     if cooling_efficiency_seer.nil?
       assert_nil(cooling_system.cooling_efficiency_seer)
     else
-      assert_equal(cooling_system.cooling_efficiency_seer, cooling_efficiency_seer)
+      assert_equal(cooling_efficiency_seer, cooling_system.cooling_efficiency_seer)
     end
   end
 
@@ -3722,7 +3742,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if cooling_capacity.nil?
       assert(cooling_system.cooling_capacity > 0)
     else
-      assert_equal(cooling_system.cooling_capacity, cooling_capacity)
+      assert_equal(cooling_capacity, cooling_system.cooling_capacity)
     end
   end
 
@@ -3743,12 +3763,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if cooling_capacity.nil?
       assert(cooling_system.cooling_capacity > 0)
     else
-      assert_equal(cooling_system.cooling_capacity, cooling_capacity)
+      assert_equal(cooling_capacity, cooling_system.cooling_capacity)
     end
     if cooling_efficiency_seer.nil?
       assert_nil(cooling_system.cooling_efficiency_seer)
     else
-      assert_equal(cooling_system.cooling_efficiency_seer, cooling_efficiency_seer)
+      assert_equal(cooling_efficiency_seer, cooling_system.cooling_efficiency_seer)
     end
   end
 
@@ -3759,13 +3779,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
-      assert_equal(heating_system.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heating_system.heating_capacity)
     end
-    assert_equal(heating_system.pilot_light, pilot_light)
+    assert_equal(pilot_light, heating_system.pilot_light)
     if pilot_light_btuh.nil?
       assert_nil(heating_system.pilot_light_btuh)
     else
-      assert_equal(heating_system.pilot_light_btuh, pilot_light_btuh)
+      assert_equal(pilot_light_btuh, heating_system.pilot_light_btuh)
     end
   end
 
@@ -3774,7 +3794,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
-      assert_equal(heating_system.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heating_system.heating_capacity)
     end
   end
 
@@ -3783,13 +3803,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
-      assert_equal(heating_system.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heating_system.heating_capacity)
     end
-    assert_equal(heating_system.pilot_light, pilot_light)
+    assert_equal(pilot_light, heating_system.pilot_light)
     if pilot_light_btuh.nil?
       assert_nil(heating_system.pilot_light_btuh)
     else
-      assert_equal(heating_system.pilot_light_btuh, pilot_light_btuh)
+      assert_equal(pilot_light_btuh, heating_system.pilot_light_btuh)
     end
   end
 
@@ -3798,13 +3818,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
-      assert_equal(heating_system.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heating_system.heating_capacity)
     end
-    assert_equal(heating_system.pilot_light, pilot_light)
+    assert_equal(pilot_light, heating_system.pilot_light)
     if pilot_light_btuh.nil?
       assert_nil(heating_system.pilot_light_btuh)
     else
-      assert_equal(heating_system.pilot_light_btuh, pilot_light_btuh)
+      assert_equal(pilot_light_btuh, heating_system.pilot_light_btuh)
     end
   end
 
@@ -3813,13 +3833,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
-      assert_equal(heating_system.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heating_system.heating_capacity)
     end
-    assert_equal(heating_system.pilot_light, pilot_light)
+    assert_equal(pilot_light, heating_system.pilot_light)
     if pilot_light_btuh.nil?
       assert_nil(heating_system.pilot_light_btuh)
     else
-      assert_equal(heating_system.pilot_light_btuh, pilot_light_btuh)
+      assert_equal(pilot_light_btuh, heating_system.pilot_light_btuh)
     end
   end
 
@@ -3828,7 +3848,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
-      assert_equal(heating_system.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heating_system.heating_capacity)
     end
   end
 
@@ -3837,7 +3857,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
-      assert_equal(heating_system.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heating_system.heating_capacity)
     end
   end
 
@@ -3846,13 +3866,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
-      assert_equal(heating_system.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heating_system.heating_capacity)
     end
-    assert_equal(heating_system.pilot_light, pilot_light)
+    assert_equal(pilot_light, heating_system.pilot_light)
     if pilot_light_btuh.nil?
       assert_nil(heating_system.pilot_light_btuh)
     else
-      assert_equal(heating_system.pilot_light_btuh, pilot_light_btuh)
+      assert_equal(pilot_light_btuh, heating_system.pilot_light_btuh)
     end
   end
 
@@ -3868,32 +3888,32 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if cooling_capacity.nil?
       assert(heat_pump.cooling_capacity > 0)
     else
-      assert_equal(heat_pump.cooling_capacity, cooling_capacity)
+      assert_equal(cooling_capacity, heat_pump.cooling_capacity)
     end
     if heating_capacity.nil?
       assert(heat_pump.heating_capacity > 0)
     else
-      assert_equal(heat_pump.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heat_pump.heating_capacity)
     end
     if heating_capacity_17F.nil?
       # assert(heat_pump.heating_capacity_17F > 0) # FUTURE
     else
-      assert_equal(heat_pump.heating_capacity_17F, heating_capacity_17F)
+      assert_equal(heating_capacity_17F, heat_pump.heating_capacity_17F)
     end
     if backup_heating_capacity.nil?
       assert(heat_pump.backup_heating_capacity > 0)
     else
-      assert_equal(heat_pump.backup_heating_capacity, backup_heating_capacity)
+      assert_equal(backup_heating_capacity, heat_pump.backup_heating_capacity)
     end
     if cooling_efficiency_seer.nil?
       assert_nil(heat_pump.cooling_efficiency_seer)
     else
-      assert_equal(heat_pump.cooling_efficiency_seer, cooling_efficiency_seer)
+      assert_equal(cooling_efficiency_seer, heat_pump.cooling_efficiency_seer)
     end
     if heating_efficiency_hspf.nil?
       assert_nil(heat_pump.heating_efficiency_hspf)
     else
-      assert_equal(heat_pump.heating_efficiency_hspf, heating_efficiency_hspf)
+      assert_equal(heating_efficiency_hspf, heat_pump.heating_efficiency_hspf)
     end
   end
 
@@ -3902,12 +3922,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if cooling_capacity.nil?
       assert(heat_pump.cooling_capacity > 0)
     else
-      assert_equal(heat_pump.cooling_capacity, cooling_capacity)
+      assert_equal(cooling_capacity, heat_pump.cooling_capacity)
     end
     if heating_capacity.nil?
       assert(heat_pump.heating_capacity > 0)
     else
-      assert_equal(heat_pump.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heat_pump.heating_capacity)
     end
   end
 
@@ -3922,32 +3942,32 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if cooling_capacity.nil?
       assert(heat_pump.cooling_capacity > 0)
     else
-      assert_equal(heat_pump.cooling_capacity, cooling_capacity)
+      assert_equal(cooling_capacity, heat_pump.cooling_capacity)
     end
     if heating_capacity.nil?
       assert(heat_pump.heating_capacity > 0)
     else
-      assert_equal(heat_pump.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heat_pump.heating_capacity)
     end
     if heating_capacity_17F.nil?
       # assert(heat_pump.heating_capacity_17F > 0) # FUTURE
     else
-      assert_equal(heat_pump.heating_capacity_17F, heating_capacity_17F)
+      assert_equal(heating_capacity_17F, heat_pump.heating_capacity_17F)
     end
     if backup_heating_capacity.nil?
       assert(heat_pump.backup_heating_capacity > 0)
     else
-      assert_equal(heat_pump.backup_heating_capacity, backup_heating_capacity)
+      assert_equal(backup_heating_capacity, heat_pump.backup_heating_capacity)
     end
     if cooling_efficiency_seer.nil?
       assert_nil(heat_pump.cooling_efficiency_seer)
     else
-      assert_equal(heat_pump.cooling_efficiency_seer, cooling_efficiency_seer)
+      assert_equal(cooling_efficiency_seer, heat_pump.cooling_efficiency_seer)
     end
     if heating_efficiency_hspf.nil?
       assert_nil(heat_pump.heating_efficiency_hspf)
     else
-      assert_equal(heat_pump.heating_efficiency_hspf, heating_efficiency_hspf)
+      assert_equal(heating_efficiency_hspf, heat_pump.heating_efficiency_hspf)
     end
   end
 
@@ -3956,17 +3976,17 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if compressor_lockout_temp.nil?
       assert_nil(heat_pump.compressor_lockout_temp)
     else
-      assert_equal(heat_pump.compressor_lockout_temp, compressor_lockout_temp)
+      assert_equal(compressor_lockout_temp, heat_pump.compressor_lockout_temp)
     end
     if backup_heating_lockout_temp.nil?
       assert_nil(heat_pump.backup_heating_lockout_temp)
     else
-      assert_equal(heat_pump.backup_heating_lockout_temp, backup_heating_lockout_temp)
+      assert_equal(backup_heating_lockout_temp, heat_pump.backup_heating_lockout_temp)
     end
     if backup_heating_switchover_temp.nil?
       assert_nil(heat_pump.backup_heating_switchover_temp)
     else
-      assert_equal(heat_pump.backup_heating_switchover_temp, backup_heating_switchover_temp)
+      assert_equal(backup_heating_switchover_temp, heat_pump.backup_heating_switchover_temp)
     end
   end
 
@@ -3979,17 +3999,17 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     if cooling_capacity.nil?
       assert(heat_pump.cooling_capacity > 0)
     else
-      assert_equal(heat_pump.cooling_capacity, cooling_capacity)
+      assert_equal(cooling_capacity, heat_pump.cooling_capacity)
     end
     if heating_capacity.nil?
       assert(heat_pump.heating_capacity > 0)
     else
-      assert_equal(heat_pump.heating_capacity, heating_capacity)
+      assert_equal(heating_capacity, heat_pump.heating_capacity)
     end
     if backup_heating_capacity.nil?
       assert(heat_pump.backup_heating_capacity > 0)
     else
-      assert_equal(heat_pump.backup_heating_capacity, backup_heating_capacity)
+      assert_equal(backup_heating_capacity, heat_pump.backup_heating_capacity)
     end
   end
 
@@ -4206,36 +4226,36 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_battery_values(hpxml, nominal_capacity_kwh, nominal_capacity_ah, usable_capacity_kwh, usable_capacity_ah,
+  def _test_default_battery_values(battery, nominal_capacity_kwh, nominal_capacity_ah, usable_capacity_kwh, usable_capacity_ah,
                                    rated_power_output, location, lifetime_model, round_trip_efficiency)
     if nominal_capacity_kwh.nil?
-      assert_nil(hpxml.batteries[0].nominal_capacity_kwh)
+      assert_nil(battery.nominal_capacity_kwh)
     else
-      assert_equal(nominal_capacity_kwh, hpxml.batteries[0].nominal_capacity_kwh)
+      assert_equal(nominal_capacity_kwh, battery.nominal_capacity_kwh)
     end
     if nominal_capacity_ah.nil?
-      assert_nil(hpxml.batteries[0].nominal_capacity_ah)
+      assert_nil(battery.nominal_capacity_ah)
     else
-      assert_equal(nominal_capacity_ah, hpxml.batteries[0].nominal_capacity_ah)
+      assert_equal(nominal_capacity_ah, battery.nominal_capacity_ah)
     end
     if usable_capacity_kwh.nil?
-      assert_nil(hpxml.batteries[0].usable_capacity_kwh)
+      assert_nil(battery.usable_capacity_kwh)
     else
-      assert_equal(usable_capacity_kwh, hpxml.batteries[0].usable_capacity_kwh)
+      assert_equal(usable_capacity_kwh, battery.usable_capacity_kwh)
     end
     if usable_capacity_ah.nil?
-      assert_nil(hpxml.batteries[0].usable_capacity_ah)
+      assert_nil(battery.usable_capacity_ah)
     else
-      assert_equal(usable_capacity_ah, hpxml.batteries[0].usable_capacity_ah)
+      assert_equal(usable_capacity_ah, battery.usable_capacity_ah)
     end
-    assert_equal(rated_power_output, hpxml.batteries[0].rated_power_output)
-    assert_equal(location, hpxml.batteries[0].location)
+    assert_equal(rated_power_output, battery.rated_power_output)
+    assert_equal(location, battery.location)
     if lifetime_model.nil?
-      assert_nil(hpxml.batteries[0].lifetime_model)
+      assert_nil(battery.lifetime_model)
     else
-      assert_equal(lifetime_model, hpxml.batteries[0].lifetime_model)
+      assert_equal(lifetime_model, battery.lifetime_model)
     end
-    assert_equal(round_trip_efficiency, hpxml.batteries[0].round_trip_efficiency)
+    assert_equal(round_trip_efficiency, battery.round_trip_efficiency)
   end
 
   def _test_default_generator_values(hpxml, is_shared_system)

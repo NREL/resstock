@@ -16,12 +16,13 @@
     <sch:rule context='/h:HPXML/h:SoftwareInfo'>
       <sch:assert role='ERROR' test='count(h:extension/h:OccupancyCalculationType) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/OccupancyCalculationType</sch:assert>
       <sch:assert role='ERROR' test='h:extension/h:OccupancyCalculationType[text()="asset" or text()="operational"] or not(h:extension/h:OccupancyCalculationType)'>Expected extension/OccupancyCalculationType to be "asset" or "operational"</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:SimulationControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/SimulationControl</sch:assert> <!-- See [SimulationControl] -->
+      <sch:assert role='ERROR' test='count(h:extension/h:HVACSizingControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/HVACSizingControl</sch:assert> <!-- See [HVACSizingControl] -->
+      <sch:assert role='ERROR' test='count(h:extension/h:ShadingControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/ShadingControl</sch:assert> <!-- See [ShadingControl] -->
+      <sch:assert role='ERROR' test='count(h:extension/h:SchedulesFilePath) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/SchedulesFilePath</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:NaturalVentilationAvailabilityDaysperWeek) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/NaturalVentilationAvailabilityDaysperWeek</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:NaturalVentilationAvailabilityDaysperWeek) &gt;= 0 or not(h:extension/h:NaturalVentilationAvailabilityDaysperWeek)'>Expected extension/NaturalVentilationAvailabilityDaysperWeek to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:NaturalVentilationAvailabilityDaysperWeek) &lt;= 7 or not(h:extension/h:NaturalVentilationAvailabilityDaysperWeek)'>Expected extension/NaturalVentilationAvailabilityDaysperWeek to be less than or equal to 7</sch:assert>
-      <sch:assert role='ERROR' test='count(h:extension/h:SimulationControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/SimulationControl</sch:assert> <!-- See [SimulationControl] -->
-      <sch:assert role='ERROR' test='count(h:extension/h:HVACSizingControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/HVACSizingControl</sch:assert> <!-- See [HVACSizingControl] -->
-      <sch:assert role='ERROR' test='count(h:extension/h:SchedulesFilePath) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/SchedulesFilePath</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:EmissionsScenarios/h:EmissionsScenario) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/EmissionsScenarios/EmissionsScenario</sch:assert> <!-- See [EmissionsScenario] -->
       <sch:assert role='ERROR' test='count(h:extension/h:UtilityBillScenarios/h:UtilityBillScenario) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/UtilityBillScenarios/UtilityBillScenario</sch:assert> <!-- See [UtilityBillScenario] -->
       <sch:assert role='ERROR' test='count(h:extension/h:VacancyPeriods/h:VacancyPeriod) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/VacancyPeriods/VacancyPeriod</sch:assert> <!-- See [VacancyPeriod] -->
@@ -51,6 +52,16 @@
       <sch:assert role='ERROR' test='count(h:AllowIncreasedFixedCapacities) &lt;= 1'>Expected 0 or 1 element(s) for xpath: AllowIncreasedFixedCapacities</sch:assert> <!-- boolean -->
       <sch:assert role='ERROR' test='count(h:HeatPumpSizingMethodology) &lt;= 1'>Expected 0 or 1 element(s) for xpath: HeatPumpSizingMethodology</sch:assert>
       <sch:assert role='ERROR' test='h:HeatPumpSizingMethodology[text()="ACCA" or text()="HERS" or text()="MaxLoad"] or not(h:HeatPumpSizingMethodology)'>Expected HeatPumpSizingMethodology to be 'ACCA' or 'HERS' or 'MaxLoad'</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[ShadingControl]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:ShadingControl'>
+      <sch:assert role='ERROR' test='count(h:SummerBeginMonth) = 1'>Expected 1 element(s) for xpath: SummerBeginMonth</sch:assert> <!-- integer -->
+      <sch:assert role='ERROR' test='count(h:SummerBeginDayOfMonth) = 1'>Expected 1 element(s) for xpath: SummerBeginDayOfMonth</sch:assert> <!-- integer -->
+      <sch:assert role='ERROR' test='count(h:SummerEndMonth) = 1'>Expected 1 element(s) for xpath: SummerEndMonth</sch:assert> <!-- integer -->
+      <sch:assert role='ERROR' test='count(h:SummerEndDayOfMonth) = 1'>Expected 1 element(s) for xpath: SummerEndDayOfMonth</sch:assert> <!-- integer -->
     </sch:rule>
   </sch:pattern>
 

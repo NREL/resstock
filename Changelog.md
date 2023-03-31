@@ -5,28 +5,32 @@ __New Features__
   - Replaces `VentilationFan/Quantity` and `CeilingFan/Quantity` with `Count`.
   - Replaces `PVSystem/InverterEfficiency` with `PVSystem/AttachedToInverter` and `Inverter/InverterEfficiency`.
   - Replaces `WaterHeatingSystem/extension/OperatingMode` with `WaterHeatingSystem/HPWHOperatingMode` for heat pump water heaters.
+- Output updates:
+  - **Breaking change**: Adds `End Use: Heating Heat Pump Backup Fans/Pumps` (disaggregated from `End Use: Heating Fans/Pumps`).
+  - **Breaking change**: Replaces `Component Load: Windows` with `Component Load: Windows Conduction` and `Component Load: Windows Solar`.
+  - **Breaking change**: Replaces `Component Load: Skylights` with `Component Load: Skylights Conduction` and `Component Load: Skylights Solar`.
+  - **Breaking change**: Adds `Component Load: Lighting` (disaggregated from `Component Load: Internal Gains`).
+  - Adds `Load: Heating: Heat Pump Backup` (heating load delivered by heat pump backup systems).
+  - Adds `System Use` outputs (energy use for each HVAC and water heating system); allows requesting timeseries output.
+  - All annual load outputs are now provided as timeseries outputs; previously only "Delivered" loads were available.
+  - Peak summer/winter electricity outputs are now based on Jun/July/Aug and Dec/Jan/Feb months, not HVAC heating/cooling operation.
+  - Allows specifying the number of decimal places for timeseries output.
+  - Msgpack outputs are no longer rounded (since there is no file size penalty to storing full precision).
+  - Annual emissions and utility bills now include all fuel/end uses, even if zero.
 - Heat pump enhancements:
   - Allows `CompressorLockoutTemperature` as an optional input to control the minimum temperature the compressor can operate at.
   - Updates defaults for `CompressorLockoutTemperature` and `BackupHeatingLockoutTemperature`.
   - Provides a warning if `BackupHeatingSwitchoverTemperature` or `BackupHeatingLockoutTemperature` are low and may cause unmet hours.
-- **Breaking change**: Infiltration for SFA/MF dwelling units must include `TypeOfInfiltrationTest` ("compartmentalization test" or "guarded test").
-- LightingGroups can now be specified using kWh/year annual consumption values as an alternative to fractions of different lighting types.
-- LightingGroups for interior, exterior, and garage are no longer required; if not provided, these lighting uses will not be modeled.
-- Allows building air leakage to be specified using CFMnatural or EffectiveLeakageArea.
+- Infiltration changes:
+  - **Breaking change**: Infiltration for SFA/MF dwelling units must include `TypeOfInfiltrationTest` ("compartmentalization test" or "guarded test").
+  - Allows infiltration to be specified using `CFMnatural` or `EffectiveLeakageArea`.
+- Lighting changes:
+  - LightingGroups can now be specified using kWh/year annual consumption values as an alternative to fractions of different lighting types.
+  - LightingGroups for interior, exterior, and garage are no longer required; if not provided, these lighting uses will not be modeled.
 - Allows modeling a pilot light for non-electric heating systems (furnaces, stoves, boilers, and fireplaces).
-- Window shading seasons now based on calendar dates (e.g., summer: May 1-Sep 30 in northern hemisphere) instead of monthly outdoor temperatures.
+- Allows summer vs winter shading seasons to be specified for windows and skylights.
 - Allows modeling one or more occupant vacancy periods (`VacancyPeriods`) and power outage periods (`PowerOutagePeriods`) in the HPXML file.
-- ReportSimulationOutput measure:
-  - Adds annual energy outputs per HVAC and water heating system; allows requesting timeseries output.
-  - Peak summer/winter electricity outputs are now based on Jun/July/Aug and Dec/Jan/Feb months, not HVAC heating/cooling operation.
-  - Annual emissions outputs now include all fuel/end uses, even if zero.
-  - Allows specifying the number of decimal places for timeseries output.
-  - Msgpack outputs are no longer rounded (since there is no file size penalty to storing full precision).
-- ReportUtilityBills measure:
-  - Utility bill outputs now include all fuels, even if zero.
-- **Breaking change**: Updates component loads outputs:
-  - Replaces `Windows` and `Skylights` with `Windows Conduction`, `Windows Solar`, `Skylights Conduction`, and `Skylights Solar`.
-  - Disaggregates `Lighting` from `Internal Gains`.
+- Performance improvement for HPXML files w/ large numbers of `Building` elements.
 
 __Bugfixes__
 - Fixes `BackupHeatingSwitchoverTemperature` for a heat pump w/ *separate* backup system; now correctly ceases backup operation above this temperature.
@@ -37,6 +41,7 @@ __Bugfixes__
 - Fixes operational calculation when the number of residents is set to zero.
 - Fixes possible utility bill calculation error for a home with PV using a detailed electric utility rate.
 - Fixes defaulted mechanical ventilation flow rate for SFA/MF buildings, with respect to infiltration credit.
+- HPXML files w/ multiple `Building` elements now only show warnings for the single `Building` being simulated.
 
 ## OpenStudio-HPXML v1.5.1
 
