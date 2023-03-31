@@ -2,7 +2,7 @@
 
 ###### (Automatically generated documentation)
 
-# GEBAppliancesPeakPeriodShift
+# PeakPeriodSchedulesShift
 
 ## Description
 TODO

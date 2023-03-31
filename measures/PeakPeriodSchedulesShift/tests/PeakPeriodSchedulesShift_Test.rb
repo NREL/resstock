@@ -6,10 +6,10 @@ require 'minitest/autorun'
 require_relative '../measure.rb'
 require 'fileutils'
 
-class GEBAppliancesPeakPeriodShiftTest < Minitest::Test
-  def test_GEBAppliancesPeakPeriodShift
+class PeakPeriodSchedulesShiftTest < Minitest::Test
+  def test_PeakPeriodSchedulesShift
     # create an instance of the measure
-    measure = GEBAppliancesPeakPeriodShift.new
+    measure = PeakPeriodSchedulesShift.new
 
     # create an instance of a runner
     workflow_json = OpenStudio::WorkflowJSON.new
@@ -94,7 +94,7 @@ class GEBAppliancesPeakPeriodShiftTest < Minitest::Test
     assert(schedules_before['plug_loads_tv'][0] == schedules_after['plug_loads_tv'][0])
 
     # save the model
-    output_file_path = OpenStudio::Path.new(File.dirname(__FILE__) + '/test_GEBAppliancesPeakPeriodShift.osm')
+    output_file_path = OpenStudio::Path.new(File.dirname(__FILE__) + '/test_PeakPeriodSchedulesShift.osm')
     model.save(output_file_path, true)
   end
 end

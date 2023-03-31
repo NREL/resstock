@@ -6,11 +6,11 @@
 require 'csv'
 
 # start the measure
-class GEBAppliancesPeakPeriodShift < OpenStudio::Measure::ModelMeasure
+class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
     # Measure name should be the title case of the class name.
-    return 'GEBAppliancesPeakPeriodShift'
+    return 'PeakPeriodSchedulesShift'
   end
 
   # human readable description
@@ -227,4 +227,4 @@ class Schedules
 end
 
 # register the measure to be used by the application
-GEBAppliancesPeakPeriodShift.new.registerWithApplication
+PeakPeriodSchedulesShift.new.registerWithApplication
