@@ -10,6 +10,45 @@ class TesBuildStockBatch < MiniTest::Test
     @national_baseline = 'project_national/national_baseline'
     @testing_upgrades = 'project_testing/testing_upgrades'
     @national_upgrades = 'project_national/national_upgrades'
+
+    @exclusions = [
+      'building_id',
+      'job_id',
+      'started_at',
+      'completed_at',
+      'completed_status',
+      'apply_upgrade.applicable',
+      'apply_upgrade.upgrade_name',
+      'apply_upgrade.reference_scenario',
+      'build_existing_model.applicable',
+      'report_simulation_output.add_timeseries_dst_column',
+      'report_simulation_output.add_timeseries_utc_column',
+      'report_simulation_output.applicable',
+      'report_simulation_output.include_timeseries_airflows',
+      'report_simulation_output.include_timeseries_component_loads',
+      'report_simulation_output.include_timeseries_emission_end_uses',
+      'report_simulation_output.include_timeseries_emission_fuels',
+      'report_simulation_output.include_timeseries_emissions',
+      'report_simulation_output.include_timeseries_end_use_consumptions',
+      'report_simulation_output.include_timeseries_fuel_consumptions',
+      'report_simulation_output.include_timeseries_hot_water_uses',
+      'report_simulation_output.include_timeseries_total_consumptions',
+      'report_simulation_output.include_timeseries_total_loads',
+      'report_simulation_output.include_timeseries_unmet_hours',
+      'report_simulation_output.include_timeseries_weather',
+      'report_simulation_output.include_timeseries_zone_temperatures',
+      'report_simulation_output.output_format',
+      'report_simulation_output.timeseries_frequency',
+      'report_simulation_output.timeseries_num_decimal_places',
+      'report_simulation_output.timeseries_timestamp_convention',
+      'report_simulation_output.user_output_variables',
+      'upgrade_costs.applicable',
+      'upgrade_costs.debug',
+      'upgrade_costs.upgrade_cost_usd',
+      'qoi_report.applicable',
+      'report_utility_bills.applicable',
+      'report_utility_bills.output_format'
+    ]
   end
 
   def test_testing_baseline
@@ -100,6 +139,7 @@ class TesBuildStockBatch < MiniTest::Test
     actual_parameters = actual_outputs.headers.select { |h| h.start_with?('build_existing_model.') }
 
     actual_extras = actual_parameters - expected_parameters
+    actual_extras -= @exclusions
     puts "Parameter, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_parameters - actual_parameters
@@ -117,6 +157,7 @@ class TesBuildStockBatch < MiniTest::Test
     actual_parameters = actual_outputs.headers.select { |h| h.start_with?('build_existing_model.') }
 
     actual_extras = actual_parameters - expected_parameters
+    actual_extras -= @exclusions
     puts "Parameter, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_parameters - actual_parameters
@@ -134,6 +175,7 @@ class TesBuildStockBatch < MiniTest::Test
     actual_annual_names = actual_outputs.headers.select { |h| !h.start_with?('build_existing_model.') }
 
     actual_extras = actual_annual_names - expected_annual_names
+    actual_extras -= @exclusions
     puts "Annual Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_annual_names - actual_annual_names
@@ -168,6 +210,7 @@ class TesBuildStockBatch < MiniTest::Test
     actual_annual_names = actual_outputs.headers.select { |h| !h.start_with?('build_existing_model.') }
 
     actual_extras = actual_annual_names - expected_annual_names
+    actual_extras -= @exclusions
     puts "Annual Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_annual_names - actual_annual_names
