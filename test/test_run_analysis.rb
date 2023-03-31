@@ -27,6 +27,8 @@ class TestRunAnalysis < MiniTest::Test
     expected_order = ['BuildExistingModel',
                       'ApplyUpgrade',
                       'HPXMLtoOpenStudio',
+                      'AddThermalComfortModelTypes',
+                      'GEBAppliancesPeakPeriodShift',
                       'ReportSimulationOutput',
                       'ReportHPXMLOutput',
                       'ReportUtilityBills',
