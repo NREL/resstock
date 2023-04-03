@@ -164,7 +164,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
 
     sim_out_rep_args = {
       'output_format' => 'csv',
-      'include_annual_total_comsumptions' => true,
+      'include_annual_total_consumptions' => true,
       'include_annual_fuel_consumptions' => true,
       'include_annual_end_use_consumptions' => true,
       'include_annual_system_use_consumptions' => false,
