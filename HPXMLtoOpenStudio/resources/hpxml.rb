@@ -407,6 +407,7 @@ class HPXML < Object
     if not hpxml_path.nil?
       @doc = XMLHelper.parse_file(hpxml_path)
 
+      # Validate against XSD schema
       if not schema_path.nil?
         xsd_errors, xsd_warnings = XMLValidator.validate_against_schema(hpxml_path, schema_path)
         @errors += xsd_errors
@@ -418,14 +419,10 @@ class HPXML < Object
       hpxml = XMLHelper.get_element(@doc, '/HPXML')
       Version.check_hpxml_version(XMLHelper.get_attribute_value(hpxml, 'schemaVersion'))
 
-      if not schematron_path.nil?
-        sct_errors, sct_warnings = XMLValidator.validate_against_schematron(hpxml_path, schematron_path, hpxml)
-        @errors += sct_errors
-        @warnings += sct_warnings
-        return unless @errors.empty?
-      end
-
       # Handle multiple buildings
+      # Do this before schematron validation so that:
+      # 1. We don't give schematron warnings for Building elements that are not of interest.
+      # 2. The schematron validation occurs faster (as we're only validating one Building).
       if XMLHelper.get_elements(hpxml, 'Building').size > 1
         if building_id.nil?
           @errors << 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.'
@@ -442,6 +439,18 @@ class HPXML < Object
           @errors << "Could not find Building element with ID '#{building_id}'."
           return unless @errors.empty?
         end
+
+        # Write new HPXML file with all other Building elements removed
+        hpxml_path = Tempfile.new(['hpxml', '.xml']).path.to_s
+        XMLHelper.write_file(hpxml, hpxml_path)
+      end
+
+      # Validate against Schematron
+      if not schematron_path.nil?
+        sct_errors, sct_warnings = XMLValidator.validate_against_schematron(hpxml_path, schematron_path, hpxml)
+        @errors += sct_errors
+        @warnings += sct_warnings
+        return unless @errors.empty?
       end
     end
 
@@ -935,8 +944,9 @@ class HPXML < Object
              :heat_pump_sizing_methodology, :allow_increased_fixed_capacities,
              :apply_ashrae140_assumptions, :energystar_calculation_version, :schedules_filepaths,
              :occupancy_calculation_type, :extension_properties, :iecc_eri_calculation_version,
-             :zerh_calculation_version, :temperature_capacitance_multiplier,
-             :natvent_days_per_week]
+             :zerh_calculation_version, :temperature_capacitance_multiplier, :natvent_days_per_week,
+             :shading_summer_begin_month, :shading_summer_begin_day,
+             :shading_summer_end_month, :shading_summer_end_day]
     attr_accessor(*ATTRS)
     attr_reader(:emissions_scenarios)
     attr_reader(:utility_bill_scenarios)
@@ -961,6 +971,7 @@ class HPXML < Object
       end
 
       errors += HPXML::check_dates('Daylight Saving', @dst_begin_month, @dst_begin_day, @dst_end_month, @dst_end_day)
+      errors += HPXML::check_dates('Shading Summer Season', @shading_summer_begin_month, @shading_summer_begin_day, @shading_summer_end_month, @shading_summer_end_day)
       errors += @emissions_scenarios.check_for_errors
       errors += @utility_bill_scenarios.check_for_errors
       errors += @vacancy_periods.check_for_errors
@@ -1020,6 +1031,13 @@ class HPXML < Object
         @schedules_filepaths.each do |schedules_filepath|
           XMLHelper.add_element(extension, 'SchedulesFilePath', schedules_filepath, :string)
         end
+      end
+      if (not @shading_summer_begin_month.nil?) || (not @shading_summer_begin_day.nil?) || (not @shading_summer_end_month.nil?) || (not @shading_summer_end_day.nil?)
+        window_shading_season = XMLHelper.create_elements_as_needed(software_info, ['extension', 'ShadingControl'])
+        XMLHelper.add_element(window_shading_season, 'SummerBeginMonth', @shading_summer_begin_month, :integer, @shading_summer_begin_month_isdefaulted) unless @shading_summer_begin_month.nil?
+        XMLHelper.add_element(window_shading_season, 'SummerBeginDayOfMonth', @shading_summer_begin_day, :integer, @shading_summer_begin_day_isdefaulted) unless @shading_summer_begin_day.nil?
+        XMLHelper.add_element(window_shading_season, 'SummerEndMonth', @shading_summer_end_month, :integer, @shading_summer_end_month_isdefaulted) unless @shading_summer_end_month.nil?
+        XMLHelper.add_element(window_shading_season, 'SummerEndDayOfMonth', @shading_summer_end_day, :integer, @shading_summer_end_day_isdefaulted) unless @shading_summer_end_day.nil?
       end
       if (not @extension_properties.nil?) && (not @extension_properties.empty?)
         properties = XMLHelper.create_elements_as_needed(software_info, ['extension', 'AdditionalProperties'])
@@ -1089,6 +1107,10 @@ class HPXML < Object
       @temperature_capacitance_multiplier = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/TemperatureCapacitanceMultiplier', :float)
       @occupancy_calculation_type = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/OccupancyCalculationType', :string)
       @natvent_days_per_week = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/NaturalVentilationAvailabilityDaysperWeek', :integer)
+      @shading_summer_begin_month = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ShadingControl/SummerBeginMonth', :integer)
+      @shading_summer_begin_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ShadingControl/SummerBeginDayOfMonth', :integer)
+      @shading_summer_end_month = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ShadingControl/SummerEndMonth', :integer)
+      @shading_summer_end_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ShadingControl/SummerEndDayOfMonth', :integer)
       @apply_ashrae140_assumptions = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ApplyASHRAE140Assumptions', :boolean)
       @heat_pump_sizing_methodology = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/HeatPumpSizingMethodology', :string)
       @allow_increased_fixed_capacities = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/AllowIncreasedFixedCapacities', :boolean)
@@ -3903,6 +3925,7 @@ class HPXML < Object
       XMLHelper.add_extension(cooling_system, 'SharedLoopMotorEfficiency', @shared_loop_motor_efficiency, :float) unless @shared_loop_motor_efficiency.nil?
       XMLHelper.add_extension(cooling_system, 'FanCoilWatts', @fan_coil_watts, :float) unless @fan_coil_watts.nil?
       XMLHelper.add_extension(cooling_system, 'CoolingSeedId', @clg_seed_id, :string) unless @clg_seed_id.nil?
+      XMLHelper.add_extension(cooling_system, 'HeatingSeedId', @htg_seed_id, :string) unless @htg_seed_id.nil?
       if @primary_system
         primary_cooling_system = XMLHelper.add_element(primary_systems, 'PrimaryCoolingSystem')
         XMLHelper.add_attribute(primary_cooling_system, 'idref', @id)
@@ -3943,6 +3966,7 @@ class HPXML < Object
       @shared_loop_motor_efficiency = XMLHelper.get_value(cooling_system, 'extension/SharedLoopMotorEfficiency', :float)
       @fan_coil_watts = XMLHelper.get_value(cooling_system, 'extension/FanCoilWatts', :float)
       @clg_seed_id = XMLHelper.get_value(cooling_system, 'extension/CoolingSeedId', :string)
+      @htg_seed_id = XMLHelper.get_value(cooling_system, 'extension/HeatingSeedId', :string)
       primary_cooling_system = HPXML::get_idref(XMLHelper.get_element(cooling_system, '../PrimarySystems/PrimaryCoolingSystem'))
       if primary_cooling_system == @id
         @primary_system = true

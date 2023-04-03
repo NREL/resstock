@@ -564,5 +564,5 @@ def get_argument_values(runner, arguments, user_arguments)
       end
     end
   end
-  return args
+  return Hash[args.collect { |k, v| [k.to_sym, v] }]
 end

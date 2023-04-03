@@ -520,7 +520,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     end_hour = 24
     natvent_availability = HPXML::ScheduleRegular
 
-    sch_name = "#{Constants.ObjectNameNaturalVentilation} avail schedule"
+    sch_name = "#{Constants.ObjectNameNaturalVentilation} schedule"
 
     model, hpxml = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
