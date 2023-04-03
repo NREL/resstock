@@ -219,10 +219,9 @@ class OSModel
     add_rim_joists(runner, model, spaces)
     add_floors(runner, model, spaces)
     add_foundation_walls_slabs(runner, model, weather, spaces)
-    add_shading_schedule(model, weather)
-    add_windows(model, spaces, weather)
+    add_windows(model, spaces)
     add_doors(model, spaces)
-    add_skylights(model, spaces, weather)
+    add_skylights(model, spaces)
     add_conditioned_floor_area(model, spaces)
     add_thermal_mass(model, spaces)
     Geometry.set_zone_volumes(spaces, @hpxml, @apply_ashrae140_assumptions)
@@ -254,6 +253,7 @@ class OSModel
 
     # Other
 
+    add_cooling_season(model, weather)
     add_airflow(runner, model, weather, spaces, airloop_map)
     add_photovoltaics(model)
     add_generators(model)
@@ -1112,18 +1112,19 @@ class OSModel
     end
   end
 
-  def self.add_shading_schedule(model, weather)
-    # Use BAHSP cooling season, and not year-round or user-specified cooling season, to ensure windows use appropriate interior shading factors
-    _default_heating_months, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
-
+  def self.add_cooling_season(model, weather)
     # Create cooling season schedule
+    # Applies to natural ventilation and calculation of component loads, not HVAC equipment
+    # Uses BAHSP cooling season, not user-specified cooling season (which may be, e.g., year-round)
+    _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+
     clg_season_sch = MonthWeekdayWeekendSchedule.new(model, 'cooling season schedule', Array.new(24, 1), Array.new(24, 1), default_cooling_months, Constants.ScheduleTypeLimitsFraction)
     @clg_ssn_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     @clg_ssn_sensor.setName('cool_season')
     @clg_ssn_sensor.setKeyName(clg_season_sch.schedule.name.to_s)
   end
 
-  def self.add_windows(model, spaces, weather)
+  def self.add_windows(model, spaces)
     # We already stored @fraction_of_windows_operable, so lets remove the
     # fraction_operable properties from windows and re-collapse the enclosure
     # so as to prevent potentially modeling multiple identical windows in E+,
@@ -1188,8 +1189,7 @@ class OSModel
         # Apply interior/exterior shading (as needed)
         shading_vertices = Geometry.create_wall_vertices(window_length, window_height, z_origin, window.azimuth)
         shading_group = Constructions.apply_window_skylight_shading(model, window, i, shading_vertices, surface, sub_surface, shading_group,
-                                                                    shading_schedules, shading_ems, Constants.ObjectNameWindowShade,
-                                                                    weather.header.Latitude)
+                                                                    shading_schedules, shading_ems, Constants.ObjectNameWindowShade, @hpxml)
       else
         # Window is on an interior surface, which E+ does not allow. Model
         # as a door instead so that we can get the appropriate conduction
@@ -1226,7 +1226,7 @@ class OSModel
     apply_adiabatic_construction(model, surfaces, 'wall')
   end
 
-  def self.add_skylights(model, spaces, weather)
+  def self.add_skylights(model, spaces)
     surfaces = []
 
     shading_group = nil
@@ -1267,8 +1267,7 @@ class OSModel
       # Apply interior/exterior shading (as needed)
       shading_vertices = Geometry.create_roof_vertices(length, width, z_origin, skylight.azimuth, tilt)
       shading_group = Constructions.apply_window_skylight_shading(model, skylight, i, shading_vertices, surface, sub_surface, shading_group,
-                                                                  shading_schedules, shading_ems, Constants.ObjectNameSkylightShade,
-                                                                  weather.header.Latitude)
+                                                                  shading_schedules, shading_ems, Constants.ObjectNameSkylightShade, @hpxml)
     end
 
     apply_adiabatic_construction(model, surfaces, 'roof')

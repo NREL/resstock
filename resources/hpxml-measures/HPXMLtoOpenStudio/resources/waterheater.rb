@@ -183,10 +183,6 @@ class Waterheater
                                    off_periods: off_periods)
     new_heater.setSourceSideDesignFlowRate(100) # set one large number, override by EMS
 
-    # Store combi assumed EF for ERI calculation
-    ef = calc_tank_EF(water_heating_system.water_heater_type, ua, water_heating_system.related_hvac_system.heating_efficiency_afue)
-    new_heater.additionalProperties.setFeature('EnergyFactor', ef) # Used by reporting measure
-
     # Create alternate setpoint schedule for source side flow request
     alternate_stp_sch = new_heater.setpointTemperatureSchedule.get.clone(model).to_Schedule.get
     alternate_stp_sch.setName("#{obj_name_combi} Alt Spt")
@@ -1560,26 +1556,6 @@ class Waterheater
       ua = ua_pre
     end
     return ua
-  end
-
-  def self.calc_tank_EF(wh_type, ua, eta_c)
-    # Calculates the energy factor based on UA of the tank and conversion efficiency (eta_c)
-    # Source: Burch and Erickson 2004 - http://www.nrel.gov/docs/gen/fy04/36035.pdf
-    if [HPXML::WaterHeaterTypeTankless, HPXML::WaterHeaterTypeCombiTankless].include? wh_type
-      ef = eta_c
-    else
-      volume_drawn = 64.3 # gal/day
-      density = 8.2938 # lb/gal
-      draw_mass = volume_drawn * density # lb
-      cp = 1.0007 # Btu/lb-F
-      t = 135.0 # F
-      t_in = 58.0 # F
-      t_env = 67.5 # F
-      q_load = draw_mass * cp * (t - t_in) # Btu/day
-
-      ef = q_load / ((ua * (t - t_env) * 24.0 + q_load) / eta_c)
-    end
-    return ef
   end
 
   def self.create_new_pump(model)

@@ -79,7 +79,7 @@ class ReportUtilityBillsTest < MiniTest::Test
       has_fuel[fuel] = @hpxml.has_fuel(fuel, hpxml_doc)
     end
 
-    HPXMLDefaults.apply_header(@hpxml, nil)
+    HPXMLDefaults.apply_header(@hpxml, nil, nil)
     HPXMLDefaults.apply_utility_bill_scenarios(nil, @hpxml, has_fuel)
 
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))

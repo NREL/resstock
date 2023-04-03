@@ -112,6 +112,7 @@ class HVAC
         htg_coil.setNominalCapacity(UnitConversions.convert(heating_system.heating_capacity, 'Btu/hr', 'W'))
         htg_coil.setName(obj_name + ' htg coil')
         htg_coil.additionalProperties.setFeature('HPXML_ID', heating_system.id) # Used by reporting measure
+        htg_coil.additionalProperties.setFeature('IsHeatPumpBackup', heating_system.is_heat_pump_backup_system) # Used by reporting measure
         fan_cfms << htg_cfm
       end
     end
@@ -140,7 +141,11 @@ class HVAC
         end
       end
       if not heating_system.nil?
-        disaggregate_fan_or_pump(model, fan, htg_coil, nil, htg_supp_coil, heating_system)
+        if heating_system.is_heat_pump_backup_system
+          disaggregate_fan_or_pump(model, fan, nil, nil, htg_coil, heating_system)
+        else
+          disaggregate_fan_or_pump(model, fan, htg_coil, nil, htg_supp_coil, heating_system)
+        end
       end
     end
 
@@ -613,7 +618,12 @@ class HVAC
       zone_hvac = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, model.alwaysOnDiscreteSchedule, htg_coil)
       zone_hvac.setName(obj_name + ' baseboard')
       zone_hvac.addToThermalZone(control_zone)
-      disaggregate_fan_or_pump(model, pump, zone_hvac, nil, nil, heating_system)
+      zone_hvac.additionalProperties.setFeature('IsHeatPumpBackup', heating_system.is_heat_pump_backup_system) # Used by reporting measure
+      if heating_system.is_heat_pump_backup_system
+        disaggregate_fan_or_pump(model, pump, nil, nil, zone_hvac, heating_system)
+      else
+        disaggregate_fan_or_pump(model, pump, zone_hvac, nil, nil, heating_system)
+      end
     end
 
     set_sequential_load_fractions(model, control_zone, zone_hvac, sequential_heat_load_fracs, nil, hvac_off_periods, heating_system)
@@ -634,6 +644,7 @@ class HVAC
     zone_hvac.setNominalCapacity(UnitConversions.convert(heating_system.heating_capacity, 'Btu/hr', 'W'))
     zone_hvac.addToThermalZone(control_zone)
     zone_hvac.additionalProperties.setFeature('HPXML_ID', heating_system.id) # Used by reporting measure
+    zone_hvac.additionalProperties.setFeature('IsHeatPumpBackup', heating_system.is_heat_pump_backup_system) # Used by reporting measure
 
     set_sequential_load_fractions(model, control_zone, zone_hvac, sequential_heat_load_fracs, nil, hvac_off_periods, heating_system)
   end
@@ -660,6 +671,7 @@ class HVAC
     htg_coil.setNominalCapacity(UnitConversions.convert(heating_system.heating_capacity, 'Btu/hr', 'W'))
     htg_coil.setName(obj_name + ' htg coil')
     htg_coil.additionalProperties.setFeature('HPXML_ID', heating_system.id) # Used by reporting measure
+    htg_coil.additionalProperties.setFeature('IsHeatPumpBackup', heating_system.is_heat_pump_backup_system) # Used by reporting measure
 
     # Fan
     htg_cfm = heating_system.heating_airflow_cfm
@@ -874,9 +886,8 @@ class HVAC
     # to prevent unmet hours being reported. This is a dangerous idea. These setpoints are used
     # by natural ventilation, Kiva initialization, and probably other things.
 
-    num_days = Constants.NumDaysInYear(year)
     warning = false
-    for i in 0..(num_days - 1)
+    for i in 0..(Constants.NumDaysInYear(year) - 1)
       if (heating_days[i] == cooling_days[i]) # both (or neither) heating/cooling seasons
         htg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
         htg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
@@ -1496,11 +1507,9 @@ class HVAC
     if htg_object.nil?
       htg_object_sensor = nil
     else
-      htg_fuel = EPlus::FuelTypeElectricity
-      var = "Heating Coil #{htg_fuel} Energy"
+      var = "Heating Coil #{EPlus::FuelTypeElectricity} Energy"
       if htg_object.is_a? OpenStudio::Model::CoilHeatingGas
-        htg_fuel = htg_object.fuelType
-        var = "Heating Coil #{htg_fuel} Energy"
+        var = "Heating Coil #{htg_object.fuelType} Energy"
       elsif htg_object.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
         var = 'Baseboard Total Heating Energy'
       elsif htg_object.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil
@@ -1515,11 +1524,11 @@ class HVAC
     if backup_htg_object.nil?
       backup_htg_object_sensor = nil
     else
-      backup_htg_fuel = EPlus::FuelTypeElectricity
-      var = "Heating Coil #{backup_htg_fuel} Energy"
+      var = "Heating Coil #{EPlus::FuelTypeElectricity} Energy"
       if backup_htg_object.is_a? OpenStudio::Model::CoilHeatingGas
-        backup_htg_fuel = backup_htg_object.fuelType
-        var = "Heating Coil #{backup_htg_fuel} Energy"
+        var = "Heating Coil #{backup_htg_object.fuelType} Energy"
+      elsif backup_htg_object.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
+        var = 'Baseboard Total Heating Energy'
       end
 
       backup_htg_object_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
@@ -1572,11 +1581,7 @@ class HVAC
       fan_or_pump_ems_output_var.setUpdateFrequency('SystemTimestep')
       fan_or_pump_ems_output_var.setEMSProgramOrSubroutineName(fan_or_pump_program)
       fan_or_pump_ems_output_var.setUnits('J')
-      if (mode == 'backup_htg') && (hpxml_object.is_a? HPXML::HeatPump) && hpxml_object.is_dual_fuel
-        fan_or_pump_ems_output_var.additionalProperties.setFeature('HPXML_ID', sys_id + '_DFHPBackup') # Used by reporting measure
-      else
-        fan_or_pump_ems_output_var.additionalProperties.setFeature('HPXML_ID', sys_id) # Used by reporting measure
-      end
+      fan_or_pump_ems_output_var.additionalProperties.setFeature('HPXML_ID', sys_id) # Used by reporting measure
     end
   end
 
@@ -1643,11 +1648,8 @@ class HVAC
     end
     htg_supp_coil.setNominalCapacity(UnitConversions.convert(capacity, 'Btu/hr', 'W'))
     htg_supp_coil.setName(obj_name + ' ' + Constants.ObjectNameBackupHeatingCoil)
-    if heat_pump.is_dual_fuel
-      htg_supp_coil.additionalProperties.setFeature('HPXML_ID', heat_pump.id + '_DFHPBackup') # Used by reporting measure
-    else
-      htg_supp_coil.additionalProperties.setFeature('HPXML_ID', heat_pump.id) # Used by reporting measure
-    end
+    htg_supp_coil.additionalProperties.setFeature('HPXML_ID', heat_pump.id) # Used by reporting measure
+    htg_supp_coil.additionalProperties.setFeature('IsHeatPumpBackup', true) # Used by reporting measure
 
     return htg_supp_coil
   end
