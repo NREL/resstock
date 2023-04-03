@@ -28,7 +28,7 @@ class TestRunAnalysis < MiniTest::Test
                       'ApplyUpgrade',
                       'HPXMLtoOpenStudio',
                       'AddThermalComfortModelTypes',
-                      'GEBAppliancesPeakPeriodShift',
+                      'PeakPeriodSchedulesShift',
                       'ReportSimulationOutput',
                       'ReportHPXMLOutput',
                       'ReportUtilityBills',
