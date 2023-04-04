@@ -92,8 +92,8 @@ Annual energy outputs are listed below.
   ====================================  ===========================
   Type                                  Notes
   ====================================  ===========================
-  Energy Use: Total (MBtu)              Includes any battery charging/discharging
-  Energy Use: Net (MBtu)                Subtracts any power produced by PV or generators.
+  Energy Use: Total (MBtu)              Total energy consumption; includes any battery charging/discharging
+  Energy Use: Net (MBtu)                Subtracts any power produced by PV or generators
   ====================================  ===========================
 
 Annual Energy by Fuel Use
@@ -104,15 +104,17 @@ Fuel uses are listed below.
    ====================================  ===========================
    Type                                  Notes
    ====================================  ===========================
-   Fuel Use: Electricity: Total (MBtu)   Includes any battery charging/discharging
-   Fuel Use: Electricity: Net (MBtu)     Subtracts any power produced by PV or generators.
+   Fuel Use: Electricity: Total (MBtu)   Total electricity consumption, includes any battery charging/discharging
+   Fuel Use: Electricity: Net (MBtu)     Subtracts any power produced by PV or generators
    Fuel Use: Natural Gas: Total (MBtu)
    Fuel Use: Fuel Oil: Total (MBtu)      Includes "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "kerosene", and "diesel"
    Fuel Use: Propane: Total (MBtu)
    Fuel Use: Wood Cord: Total (MBtu)
    Fuel Use: Wood Pellets: Total (MBtu)
-   Fuel Use: Coal: Total (MBtu)          Includes "coal", "anthracite coal", "bituminous coal", and "coke".
+   Fuel Use: Coal: Total (MBtu)          Includes "coal", "anthracite coal", "bituminous coal", and "coke"
    ====================================  ===========================
+
+.. _annualenduses:
 
 Annual Energy By End Use
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -255,21 +257,44 @@ Results for each emissions scenario defined in the HPXML file are listed as show
    =======================================================================  ==================================================================
    Type                                                                     Notes
    =======================================================================  ==================================================================
-   Emissions: <EmissionsType>: <ScenarioName>: Total (lb)                   Scenario total emissions
-   Emissions: <EmissionsType>: <ScenarioName>: Electricity: Total (lb)      Scenario emissions for Electricity only
-   Emissions: <EmissionsType>: <ScenarioName>: Electricity: <EndUse> (lb)   Scenario emissions for this Electricity end use only (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Total (lb)                   Scenario total emissions, includes any battery charging/discharging
+   Emissions: <EmissionsType>: <ScenarioName>: Net (lb)                     Subtracts any power produced by PV or generators
+   =======================================================================  ==================================================================
+
+Annual Emissions by Fuel Use
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Results for each emissions scenario defined in the HPXML file are listed as shown below.
+
+   =======================================================================  ==================================================================
+   Type                                                                     Notes
+   =======================================================================  ==================================================================
+   Emissions: <EmissionsType>: <ScenarioName>: Electricity: Total (lb)      Scenario total emissions for Electricity only, includes any battery charging/discharging
+   Emissions: <EmissionsType>: <ScenarioName>: Electricity: Net (lb)        Subtracts any power produced by PV or generators
    Emissions: <EmissionsType>: <ScenarioName>: Natural Gas: Total (lb)      Scenario emissions for Natural Gas only
-   Emissions: <EmissionsType>: <ScenarioName>: Natural Gas: <EndUse> (lb)   Scenario emissions for this Natural Gas end use only (one row per end use)
    Emissions: <EmissionsType>: <ScenarioName>: Fuel Oil: Total (lb)         Scenario emissions for Fuel Oil only
-   Emissions: <EmissionsType>: <ScenarioName>: Fuel Oil: <EndUse> (lb)      Scenario emissions for this Fuel Oil end use only (one row per end use)
    Emissions: <EmissionsType>: <ScenarioName>: Propane: Total (lb)          Scenario emissions for Propane only
-   Emissions: <EmissionsType>: <ScenarioName>: Propane: <EndUse> (lb)       Scenario emissions for this Propane end use only (one row per end use)
    Emissions: <EmissionsType>: <ScenarioName>: Wood Cord: Total (lb)        Scenario emissions for Wood Cord only
-   Emissions: <EmissionsType>: <ScenarioName>: Wood Cord: <EndUse> (lb)     Scenario emissions for this Wood Cord end use only (one row per end use)
    Emissions: <EmissionsType>: <ScenarioName>: Wood Pellets: Total (lb)     Scenario emissions for Wood Pellets only
-   Emissions: <EmissionsType>: <ScenarioName>: Wood Pellets: <EndUse> (lb)  Scenario emissions for this Wood Pellets end use only (one row per end use)
    Emissions: <EmissionsType>: <ScenarioName>: Coal: Total (lb)             Scenario emissions for Coal only
-   Emissions: <EmissionsType>: <ScenarioName>: Coal: <EndUse> (lb)          Scenario emissions for this Coal end use only (one row per end use)
+   =======================================================================  ==================================================================
+
+Annual Emissions by End Use
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Results for each emissions scenario defined in the HPXML file are listed as shown below.
+Every end use from :ref:`annualenduses` will be included.
+
+   =======================================================================  ==================================================================
+   Type                                                                     Notes
+   =======================================================================  ==================================================================
+   Emissions: <EmissionsType>: <ScenarioName>: Electricity: <EndUse> (lb)   Scenario emissions for this Electricity end use (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Natural Gas: <EndUse> (lb)   Scenario emissions for this Natural Gas end use (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Fuel Oil: <EndUse> (lb)      Scenario emissions for this Fuel Oil end use (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Propane: <EndUse> (lb)       Scenario emissions for this Propane end use (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Wood Cord: <EndUse> (lb)     Scenario emissions for this Wood Cord end use (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Wood Pellets: <EndUse> (lb)  Scenario emissions for this Wood Pellets end use (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Coal: <EndUse> (lb)          Scenario emissions for this Coal end use (one row per end use)
    =======================================================================  ==================================================================
 
 Annual Building Loads

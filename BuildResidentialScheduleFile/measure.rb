@@ -82,7 +82,6 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
-    args = Hash[args.collect { |k, v| [k.to_sym, v] }]
 
     hpxml_path = args[:hpxml_path]
     unless (Pathname.new hpxml_path).absolute?

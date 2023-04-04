@@ -931,8 +931,7 @@ class HPXML < Object
     def initialize(hpxml_object, *args)
       @emissions_scenarios = EmissionsScenarios.new(hpxml_object)
       @utility_bill_scenarios = UtilityBillScenarios.new(hpxml_object)
-      @vacancy_periods = VacancyPeriods.new(hpxml_object)
-      @power_outage_periods = PowerOutagePeriods.new(hpxml_object)
+      @unavailable_periods = UnavailablePeriods.new(hpxml_object)
       super(hpxml_object, *args)
     end
     ATTRS = [:xml_type, :xml_generated_by, :created_date_and_time, :transaction,
@@ -950,8 +949,7 @@ class HPXML < Object
     attr_accessor(*ATTRS)
     attr_reader(:emissions_scenarios)
     attr_reader(:utility_bill_scenarios)
-    attr_reader(:vacancy_periods)
-    attr_reader(:power_outage_periods)
+    attr_reader(:unavailable_periods)
 
     def check_for_errors
       errors = []
@@ -974,8 +972,7 @@ class HPXML < Object
       errors += HPXML::check_dates('Shading Summer Season', @shading_summer_begin_month, @shading_summer_begin_day, @shading_summer_end_month, @shading_summer_end_day)
       errors += @emissions_scenarios.check_for_errors
       errors += @utility_bill_scenarios.check_for_errors
-      errors += @vacancy_periods.check_for_errors
-      errors += @power_outage_periods.check_for_errors
+      errors += @unavailable_periods.check_for_errors
 
       return errors
     end
@@ -1047,8 +1044,7 @@ class HPXML < Object
       end
       @emissions_scenarios.to_oga(software_info)
       @utility_bill_scenarios.to_oga(software_info)
-      @vacancy_periods.to_oga(software_info)
-      @power_outage_periods.to_oga(software_info)
+      @unavailable_periods.to_oga(software_info)
 
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
@@ -1126,8 +1122,7 @@ class HPXML < Object
       end
       @emissions_scenarios.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
       @utility_bill_scenarios.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
-      @vacancy_periods.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
-      @power_outage_periods.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
+      @unavailable_periods.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
       @building_id = HPXML::get_id(hpxml, 'Building/BuildingID')
       @event_type = XMLHelper.get_value(hpxml, 'Building/ProjectStatus/EventType', :string)
       @state_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/StateCode', :string)
@@ -1364,107 +1359,58 @@ class HPXML < Object
     end
   end
 
-  class VacancyPeriods < BaseArrayElement
+  class UnavailablePeriods < BaseArrayElement
     def add(**kwargs)
-      self << VacancyPeriod.new(@hpxml_object, **kwargs)
+      self << UnavailablePeriod.new(@hpxml_object, **kwargs)
     end
 
     def from_oga(software_info)
       return if software_info.nil?
 
-      XMLHelper.get_elements(software_info, 'extension/VacancyPeriods/VacancyPeriod').each do |vacancy_period|
-        self << VacancyPeriod.new(@hpxml_object, vacancy_period)
+      XMLHelper.get_elements(software_info, 'extension/UnavailablePeriods/UnavailablePeriod').each do |unavailable_period|
+        self << UnavailablePeriod.new(@hpxml_object, unavailable_period)
       end
     end
   end
 
-  class VacancyPeriod < BaseElement
-    ATTRS = [:begin_month, :begin_day, :begin_hour, :end_month, :end_day, :end_hour]
+  class UnavailablePeriod < BaseElement
+    ATTRS = [:column_name, :begin_month, :begin_day, :begin_hour, :end_month, :end_day, :end_hour, :natvent_availability]
     attr_accessor(*ATTRS)
 
     def delete
-      @hpxml_object.header.vacancy_periods.delete(self)
+      @hpxml_object.header.unavailable_periods.delete(self)
     end
 
     def check_for_errors
       errors = []
-      errors += HPXML::check_dates('Vacancy Period', @begin_month, @begin_day, @end_month, @end_day)
+      errors += HPXML::check_dates('Unavailable Period', @begin_month, @begin_day, @end_month, @end_day)
       return errors
     end
 
     def to_oga(software_info)
-      vacancy_periods = XMLHelper.create_elements_as_needed(software_info, ['extension', 'VacancyPeriods'])
-      vacancy_period = XMLHelper.add_element(vacancy_periods, 'VacancyPeriod')
-      XMLHelper.add_element(vacancy_period, 'BeginMonth', @begin_month, :integer, @begin_month_isdefaulted) unless @begin_month.nil?
-      XMLHelper.add_element(vacancy_period, 'BeginDayOfMonth', @begin_day, :integer, @begin_day_isdefaulted) unless @begin_day.nil?
-      XMLHelper.add_element(vacancy_period, 'BeginHourOfDay', @begin_hour, :integer, @begin_hour_isdefaulted) unless @begin_hour.nil?
-      XMLHelper.add_element(vacancy_period, 'EndMonth', @end_month, :integer, @end_month_isdefaulted) unless @end_month.nil?
-      XMLHelper.add_element(vacancy_period, 'EndDayOfMonth', @end_day, :integer, @end_day_isdefaulted) unless @end_day.nil?
-      XMLHelper.add_element(vacancy_period, 'EndHourOfDay', @end_hour, :integer, @end_hour_isdefaulted) unless @end_hour.nil?
+      unavailable_periods = XMLHelper.create_elements_as_needed(software_info, ['extension', 'UnavailablePeriods'])
+      unavailable_period = XMLHelper.add_element(unavailable_periods, 'UnavailablePeriod')
+      XMLHelper.add_element(unavailable_period, 'ColumnName', @column_name, :string) unless @column_name.nil?
+      XMLHelper.add_element(unavailable_period, 'BeginMonth', @begin_month, :integer, @begin_month_isdefaulted) unless @begin_month.nil?
+      XMLHelper.add_element(unavailable_period, 'BeginDayOfMonth', @begin_day, :integer, @begin_day_isdefaulted) unless @begin_day.nil?
+      XMLHelper.add_element(unavailable_period, 'BeginHourOfDay', @begin_hour, :integer, @begin_hour_isdefaulted) unless @begin_hour.nil?
+      XMLHelper.add_element(unavailable_period, 'EndMonth', @end_month, :integer, @end_month_isdefaulted) unless @end_month.nil?
+      XMLHelper.add_element(unavailable_period, 'EndDayOfMonth', @end_day, :integer, @end_day_isdefaulted) unless @end_day.nil?
+      XMLHelper.add_element(unavailable_period, 'EndHourOfDay', @end_hour, :integer, @end_hour_isdefaulted) unless @end_hour.nil?
+      XMLHelper.add_element(unavailable_period, 'NaturalVentilation', @natvent_availability, :string, @natvent_availability_isdefaulted) unless @natvent_availability.nil?
     end
 
-    def from_oga(vacancy_period)
-      return if vacancy_period.nil?
+    def from_oga(unavailable_period)
+      return if unavailable_period.nil?
 
-      @begin_month = XMLHelper.get_value(vacancy_period, 'BeginMonth', :integer)
-      @begin_day = XMLHelper.get_value(vacancy_period, 'BeginDayOfMonth', :integer)
-      @begin_hour = XMLHelper.get_value(vacancy_period, 'BeginHourOfDay', :integer)
-      @end_month = XMLHelper.get_value(vacancy_period, 'EndMonth', :integer)
-      @end_day = XMLHelper.get_value(vacancy_period, 'EndDayOfMonth', :integer)
-      @end_hour = XMLHelper.get_value(vacancy_period, 'EndHourOfDay', :integer)
-    end
-  end
-
-  class PowerOutagePeriods < BaseArrayElement
-    def add(**kwargs)
-      self << PowerOutagePeriod.new(@hpxml_object, **kwargs)
-    end
-
-    def from_oga(software_info)
-      return if software_info.nil?
-
-      XMLHelper.get_elements(software_info, 'extension/PowerOutagePeriods/PowerOutagePeriod').each do |power_outage_period|
-        self << PowerOutagePeriod.new(@hpxml_object, power_outage_period)
-      end
-    end
-  end
-
-  class PowerOutagePeriod < BaseElement
-    ATTRS = [:begin_month, :begin_day, :begin_hour, :end_month, :end_day, :end_hour, :natvent_availability]
-    attr_accessor(*ATTRS)
-
-    def delete
-      @hpxml_object.header.power_outage_periods.delete(self)
-    end
-
-    def check_for_errors
-      errors = []
-      errors += HPXML::check_dates('Power Outage Period', @begin_month, @begin_day, @end_month, @end_day)
-      return errors
-    end
-
-    def to_oga(software_info)
-      power_outage_periods = XMLHelper.create_elements_as_needed(software_info, ['extension', 'PowerOutagePeriods'])
-      power_outage_period = XMLHelper.add_element(power_outage_periods, 'PowerOutagePeriod')
-      XMLHelper.add_element(power_outage_period, 'BeginMonth', @begin_month, :integer, @begin_month_isdefaulted) unless @begin_month.nil?
-      XMLHelper.add_element(power_outage_period, 'BeginDayOfMonth', @begin_day, :integer, @begin_day_isdefaulted) unless @begin_day.nil?
-      XMLHelper.add_element(power_outage_period, 'BeginHourOfDay', @begin_hour, :integer, @begin_hour_isdefaulted) unless @begin_hour.nil?
-      XMLHelper.add_element(power_outage_period, 'EndMonth', @end_month, :integer, @end_month_isdefaulted) unless @end_month.nil?
-      XMLHelper.add_element(power_outage_period, 'EndDayOfMonth', @end_day, :integer, @end_day_isdefaulted) unless @end_day.nil?
-      XMLHelper.add_element(power_outage_period, 'EndHourOfDay', @end_hour, :integer, @end_hour_isdefaulted) unless @end_hour.nil?
-      XMLHelper.add_element(power_outage_period, 'NaturalVentilation', @natvent_availability, :string, @natvent_availability_isdefaulted) unless @natvent_availability.nil?
-    end
-
-    def from_oga(power_outage_period)
-      return if power_outage_period.nil?
-
-      @begin_month = XMLHelper.get_value(power_outage_period, 'BeginMonth', :integer)
-      @begin_day = XMLHelper.get_value(power_outage_period, 'BeginDayOfMonth', :integer)
-      @begin_hour = XMLHelper.get_value(power_outage_period, 'BeginHourOfDay', :integer)
-      @end_month = XMLHelper.get_value(power_outage_period, 'EndMonth', :integer)
-      @end_day = XMLHelper.get_value(power_outage_period, 'EndDayOfMonth', :integer)
-      @end_hour = XMLHelper.get_value(power_outage_period, 'EndHourOfDay', :integer)
-      @natvent_availability = XMLHelper.get_value(power_outage_period, 'NaturalVentilation', :string)
+      @column_name = XMLHelper.get_value(unavailable_period, 'ColumnName', :string)
+      @begin_month = XMLHelper.get_value(unavailable_period, 'BeginMonth', :integer)
+      @begin_day = XMLHelper.get_value(unavailable_period, 'BeginDayOfMonth', :integer)
+      @begin_hour = XMLHelper.get_value(unavailable_period, 'BeginHourOfDay', :integer)
+      @end_month = XMLHelper.get_value(unavailable_period, 'EndMonth', :integer)
+      @end_day = XMLHelper.get_value(unavailable_period, 'EndDayOfMonth', :integer)
+      @end_hour = XMLHelper.get_value(unavailable_period, 'EndHourOfDay', :integer)
+      @natvent_availability = XMLHelper.get_value(unavailable_period, 'NaturalVentilation', :string)
     end
   end
 

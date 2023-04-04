@@ -489,8 +489,8 @@ class HPXMLTest < MiniTest::Test
       if !hpxml.hvac_distributions.select { |d| d.distribution_system_type == HPXML::HVACDistributionTypeDSE }.empty?
         next if log_line.include? 'DSE is not currently supported when calculating utility bills.'
       end
-      if !hpxml.header.power_outage_periods.empty?
-        next if log_line.include? 'It is not possible to eliminate all desired end uses (e.g. crankcase/defrost energy, water heater parasitics) in EnergyPlus during a power outage.'
+      if !hpxml.header.unavailable_periods.empty?
+        next if log_line.include? 'It is not possible to eliminate all desired end uses (e.g. crankcase/defrost energy, water heater parasitics) in EnergyPlus during an unavailable period.'
       end
 
       flunk "Unexpected run.log warning found for #{File.basename(hpxml_path)}: #{log_line}"
@@ -577,7 +577,7 @@ class HPXMLTest < MiniTest::Test
       if hpxml.solar_thermal_systems.size > 0
         next if err_line.include? 'Supply Side is storing excess heat the majority of the time.'
       end
-      if !hpxml.header.power_outage_periods.empty?
+      if !hpxml.header.unavailable_periods.empty?
         next if err_line.include? 'Target water temperature is greater than the hot water temperature'
         next if err_line.include? 'Target water temperature should be less than or equal to the hot water temperature'
       end

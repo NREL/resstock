@@ -180,7 +180,6 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
-    args = Hash[args.collect { |k, v| [k.to_sym, v] }]
     output_format = args[:output_format].get
 
     output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)

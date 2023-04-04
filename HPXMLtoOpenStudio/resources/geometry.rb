@@ -470,7 +470,7 @@ class Geometry
     return UnitConversions.convert(tilts.max, 'rad', 'deg')
   end
 
-  def self.apply_occupants(model, runner, hpxml, num_occ, space, schedules_file, vacancy_periods)
+  def self.apply_occupants(model, runner, hpxml, num_occ, space, schedules_file, unavailable_periods)
     occ_gain, _hrs_per_day, sens_frac, _lat_frac = Geometry.get_occupancy_default_values()
     activity_per_person = UnitConversions.convert(occ_gain, 'Btu/hr', 'W')
 
@@ -485,13 +485,13 @@ class Geometry
       people_sch = schedules_file.create_schedule_file(col_name: people_col_name)
     end
     if people_sch.nil?
-      people_vacancy_periods = vacancy_periods if Schedule.affected_by_off_period(people_col_name, 'Affected By Vacancy')
+      people_unavailable_periods = Schedule.get_unavailable_periods(people_col_name, unavailable_periods)
       weekday_sch = hpxml.building_occupancy.weekday_fractions.split(',').map(&:to_f)
       weekday_sch = weekday_sch.map { |v| v / weekday_sch.max }.join(',')
       weekend_sch = hpxml.building_occupancy.weekend_fractions.split(',').map(&:to_f)
       weekend_sch = weekend_sch.map { |v| v / weekend_sch.max }.join(',')
       monthly_sch = hpxml.building_occupancy.monthly_multipliers
-      people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction, off_periods: people_vacancy_periods)
+      people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction, unavailable_periods: people_unavailable_periods)
       people_sch = people_sch.schedule
     else
       runner.registerWarning("Both '#{people_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekday_fractions.nil?
