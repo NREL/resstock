@@ -4,6 +4,7 @@ from functools import reduce
 import csv
 
 col_exclusions = ['applicable',
+                  'include_annual_',
                   'include_timeseries_',
                   'output_format',
                   'timeseries_frequency',
@@ -11,7 +12,8 @@ col_exclusions = ['applicable',
                   'timeseries_num_decimal_places',
                   'upgrade_name',
                   'add_timeseries_',
-                  'user_output_variables']
+                  'user_output_variables',
+                  'debug']
 
 # BASELINE
 
