@@ -356,6 +356,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
+    args = Hash[args.collect { |k, v| [k.to_s, v] }]
 
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     arg_names = []
