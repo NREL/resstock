@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>report_simulation_output</name>
   <uid>df9d170c-c21a-4130-866d-0d46b06073fd</uid>
-  <version_id>e75517f6-ca4c-4a30-b0c9-dc387843e8de</version_id>
-  <version_modified>20230330T172311Z</version_modified>
+  <version_id>5c8a8765-7383-4e50-a038-0c002eb8d5b4</version_id>
+  <version_modified>20230403T232612Z</version_modified>
   <xml_checksum>9BF1E6AC</xml_checksum>
   <class_name>ReportSimulationOutput</class_name>
   <display_name>HPXML Simulation Output Report</display_name>
@@ -35,6 +35,272 @@
         <choice>
           <value>csv_dview</value>
           <display_name>csv_dview</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_total_consumptions</name>
+      <display_name>Generate Annual Output: Total Consumptions</display_name>
+      <description>Generates annual energy consumptions for the total building.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_fuel_consumptions</name>
+      <display_name>Generate Annual Output: Fuel Consumptions</display_name>
+      <description>Generates annual energy consumptions for each fuel type.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_end_use_consumptions</name>
+      <display_name>Generate Annual Output: End Use Consumptions</display_name>
+      <description>Generates annual energy consumptions for each end use.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_system_use_consumptions</name>
+      <display_name>Generate Annual Output: System Use Consumptions</display_name>
+      <description>Generates annual energy consumptions for each HVAC and water heating system.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_emissions</name>
+      <display_name>Generate Annual Output: System Use Consumptions</display_name>
+      <description>Generates annual emissions. Requires the appropriate HPXML inputs to be specified.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_emission_fuels</name>
+      <display_name>Generate Annual Output: System Use Consumptions</display_name>
+      <description>Generates annual emissions for each fuel type. Requires the appropriate HPXML inputs to be specified.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_emission_end_uses</name>
+      <display_name>Generate Annual Output: System Use Consumptions</display_name>
+      <description>Generates annual emissions for each end use. Requires the appropriate HPXML inputs to be specified.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_total_loads</name>
+      <display_name>Generate Annual Output: Total Loads</display_name>
+      <description>Generates annual heating, cooling, and hot water loads.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_unmet_hours</name>
+      <display_name>Generate Annual Output: Unmet Hours</display_name>
+      <description>Generates annual unmet hours for heating and cooling.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_peak_fuels</name>
+      <display_name>Generate Annual Output: Peak Fuels</display_name>
+      <description>Generates annual electricity peaks for summer/winter.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_peak_loads</name>
+      <display_name>Generate Annual Output: Peak Loads</display_name>
+      <description>Generates annual peak loads for heating/cooling.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_component_loads</name>
+      <display_name>Generate Annual Output: Component Loads</display_name>
+      <description>Generates annual heating and cooling loads disaggregated by component type.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_hot_water_uses</name>
+      <display_name>Generate Annual Output: Hot Water Uses</display_name>
+      <description>Generates annual hot water usages for each end use.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_hvac_summary</name>
+      <display_name>Generate Annual Output: HVAC Summary</display_name>
+      <description>Generates HVAC capacities, design temperatures, and design loads.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
         </choice>
       </choices>
     </argument>
@@ -72,7 +338,7 @@
     <argument>
       <name>include_timeseries_total_consumptions</name>
       <display_name>Generate Timeseries Output: Total Consumptions</display_name>
-      <description>Generates timeseries energy consumptions for building total.</description>
+      <description>Generates timeseries energy consumptions for the total building.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -224,7 +490,7 @@
     <argument>
       <name>include_timeseries_total_loads</name>
       <display_name>Generate Timeseries Output: Total Loads</display_name>
-      <description>Generates timeseries total heating, cooling, and hot water loads.</description>
+      <description>Generates timeseries heating, cooling, and hot water loads.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1591,6 +1857,12 @@
   </attributes>
   <files>
     <file>
+      <filename>output_report_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E291304D</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.1</identifier>
@@ -1599,13 +1871,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>2A1BB87D</checksum>
-    </file>
-    <file>
-      <filename>output_report_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9997E3FF</checksum>
+      <checksum>E02E8E99</checksum>
     </file>
   </files>
 </measure>

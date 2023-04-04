@@ -10,6 +10,7 @@ __New Features__
   - **Breaking change**: Replaces `Component Load: Windows` with `Component Load: Windows Conduction` and `Component Load: Windows Solar`.
   - **Breaking change**: Replaces `Component Load: Skylights` with `Component Load: Skylights Conduction` and `Component Load: Skylights Solar`.
   - **Breaking change**: Adds `Component Load: Lighting` (disaggregated from `Component Load: Internal Gains`).
+  - **Breaking change**: Adds "net" values for emissions; "total" values now exclude generation (e.g., PV).
   - Adds `Load: Heating: Heat Pump Backup` (heating load delivered by heat pump backup systems).
   - Adds `System Use` outputs (energy use for each HVAC and water heating system); allows requesting timeseries output.
   - All annual load outputs are now provided as timeseries outputs; previously only "Delivered" loads were available.
@@ -17,6 +18,7 @@ __New Features__
   - Allows specifying the number of decimal places for timeseries output.
   - Msgpack outputs are no longer rounded (since there is no file size penalty to storing full precision).
   - Annual emissions and utility bills now include all fuel/end uses, even if zero.
+  - ReportSimulationOutput measure: Allows disabling individual annual output sections.
 - Heat pump enhancements:
   - Allows `CompressorLockoutTemperature` as an optional input to control the minimum temperature the compressor can operate at.
   - Updates defaults for `CompressorLockoutTemperature` and `BackupHeatingLockoutTemperature`.
@@ -29,19 +31,19 @@ __New Features__
   - LightingGroups for interior, exterior, and garage are no longer required; if not provided, these lighting uses will not be modeled.
 - Allows modeling a pilot light for non-electric heating systems (furnaces, stoves, boilers, and fireplaces).
 - Allows summer vs winter shading seasons to be specified for windows and skylights.
-- Allows modeling one or more occupant vacancy periods (`VacancyPeriods`) and power outage periods (`PowerOutagePeriods`) in the HPXML file.
+- Allows defining one or more `UnavailablePeriods` (e.g., occupant vacancies or power outage periods).
 - Performance improvement for HPXML files w/ large numbers of `Building` elements.
+- BuildResidentialScheduleFile measure: Garage lighting and TV plug loads now use interior lighting and miscellaneous plug load schedules, respectively.
 
 __Bugfixes__
 - Fixes `BackupHeatingSwitchoverTemperature` for a heat pump w/ *separate* backup system; now correctly ceases backup operation above this temperature.
 - Fixes error if calculating utility bills for an all-electric home with a detailed JSON utility rate.
-- BuildResidentialScheduleFile measure now:
-  - Excludes columns for end uses that are not stochastically generated.
-  - Garage lighting and TV plug load schedules use interior lighting and miscellaneous plug load schedules, respectively.
+- BuildResidentialScheduleFile measure now excludes columns for end uses that are not stochastically generated.
 - Fixes operational calculation when the number of residents is set to zero.
 - Fixes possible utility bill calculation error for a home with PV using a detailed electric utility rate.
 - Fixes defaulted mechanical ventilation flow rate for SFA/MF buildings, with respect to infiltration credit.
 - HPXML files w/ multiple `Building` elements now only show warnings for the single `Building` being simulated.
+- Adds error-checking to ensure that SFA/MF dwelling units have at least one attached wall/ceiling/floor surface.
 
 ## OpenStudio-HPXML v1.5.1
 

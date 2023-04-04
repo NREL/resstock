@@ -25,10 +25,9 @@
       <sch:assert role='ERROR' test='number(h:extension/h:NaturalVentilationAvailabilityDaysperWeek) &lt;= 7 or not(h:extension/h:NaturalVentilationAvailabilityDaysperWeek)'>Expected extension/NaturalVentilationAvailabilityDaysperWeek to be less than or equal to 7</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:EmissionsScenarios/h:EmissionsScenario) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/EmissionsScenarios/EmissionsScenario</sch:assert> <!-- See [EmissionsScenario] -->
       <sch:assert role='ERROR' test='count(h:extension/h:UtilityBillScenarios/h:UtilityBillScenario) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/UtilityBillScenarios/UtilityBillScenario</sch:assert> <!-- See [UtilityBillScenario] -->
-      <sch:assert role='ERROR' test='count(h:extension/h:VacancyPeriods/h:VacancyPeriod) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/VacancyPeriods/VacancyPeriod</sch:assert> <!-- See [VacancyPeriod] -->
-      <sch:assert role='ERROR' test='count(h:extension/h:PowerOutagePeriods/h:PowerOutagePeriod) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/PowerOutagePeriods/PowerOutagePeriod</sch:assert> <!-- See [PowerOutagePeriod] -->
+      <sch:assert role='ERROR' test='count(h:extension/h:UnavailablePeriods/h:UnavailablePeriod) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/UnavailablePeriods/UnavailablePeriod</sch:assert> <!-- See [UnavailablePeriod] -->
       <!-- Warnings -->
-      <sch:report role='WARN' test='count(h:extension/h:PowerOutagePeriods) &gt; 0'>It is not possible to eliminate all desired end uses (e.g. crankcase/defrost energy, water heater parasitics) in EnergyPlus during a power outage.</sch:report>
+      <sch:report role='WARN' test='count(h:extension/h:UnavailablePeriods) &gt; 0'>It is not possible to eliminate all desired end uses (e.g. crankcase/defrost energy, water heater parasitics) in EnergyPlus during an unavailable period.</sch:report>
     </sch:rule>
   </sch:pattern>
   
@@ -168,24 +167,9 @@
   </sch:pattern>
 
   <sch:pattern>
-    <sch:title>[VacancyPeriod]</sch:title>
-    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:VacancyPeriods/h:VacancyPeriod'>
-      <sch:assert role='ERROR' test='count(h:BeginMonth) = 1'>Expected 1 element(s) for xpath: BeginMonth</sch:assert>
-      <sch:assert role='ERROR' test='count(h:BeginDayOfMonth) = 1'>Expected 1 element(s) for xpath: BeginDayOfMonth</sch:assert>
-      <sch:assert role='ERROR' test='count(h:BeginHourOfDay) &lt;= 1'>Expected 0 or 1 element(s) for xpath: BeginHourOfDay</sch:assert>
-      <sch:assert role='ERROR' test='number(h:BeginHourOfDay) &gt;= 0 or not(h:BeginHourOfDay)'>Expected BeginHourOfDay to be greater than or equal to 0</sch:assert>
-      <sch:assert role='ERROR' test='number(h:BeginHourOfDay) &lt;= 23 or not(h:BeginHourOfDay)'>Expected BeginHourOfDay to be less than or equal to 23</sch:assert>
-      <sch:assert role='ERROR' test='count(h:EndMonth) = 1'>Expected 1 element(s) for xpath: EndMonth</sch:assert>
-      <sch:assert role='ERROR' test='count(h:EndDayOfMonth) = 1'>Expected 1 element(s) for xpath: EndDayOfMonth</sch:assert>
-      <sch:assert role='ERROR' test='count(h:EndHourOfDay) &lt;= 1'>Expected 0 or 1 element(s) for xpath: EndHourOfDay</sch:assert>
-      <sch:assert role='ERROR' test='number(h:EndHourOfDay) &gt;= 1 or not(h:EndHourOfDay)'>Expected EndHourOfDay to be greater than or equal to 1</sch:assert>
-      <sch:assert role='ERROR' test='number(h:EndHourOfDay) &lt;= 24 or not(h:EndHourOfDay)'>Expected EndHourOfDay to be less than or equal to 24</sch:assert>
-    </sch:rule>
-  </sch:pattern>
-
-  <sch:pattern>
-    <sch:title>[PowerOutagePeriod]</sch:title>
-    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:PowerOutagePeriods/h:PowerOutagePeriod'>
+    <sch:title>[UnavailablePeriod]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:UnavailablePeriods/h:UnavailablePeriod'>
+      <sch:assert role='ERROR' test='count(h:ColumnName) = 1'>Expected 1 element(s) for xpath: ColumnName</sch:assert>
       <sch:assert role='ERROR' test='count(h:BeginMonth) = 1'>Expected 1 element(s) for xpath: BeginMonth</sch:assert>
       <sch:assert role='ERROR' test='count(h:BeginDayOfMonth) = 1'>Expected 1 element(s) for xpath: BeginDayOfMonth</sch:assert>
       <sch:assert role='ERROR' test='count(h:BeginHourOfDay) &lt;= 1'>Expected 0 or 1 element(s) for xpath: BeginHourOfDay</sch:assert>
@@ -348,7 +332,7 @@
   <sch:pattern>
     <sch:title>[BuildingConstruction]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:BuildingSummary/h:BuildingConstruction'>
-      <sch:assert role='ERROR' test='count(h:ResidentialFacilityType) = 1'>Expected 1 element(s) for xpath: ResidentialFacilityType</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ResidentialFacilityType) = 1'>Expected 1 element(s) for xpath: ResidentialFacilityType</sch:assert> <!-- See [BuildingType=SFAorMF] -->
       <sch:assert role='ERROR' test='h:ResidentialFacilityType[text()="single-family detached" or text()="single-family attached" or text()="apartment unit" or text()="manufactured home"] or not(h:ResidentialFacilityType)'>Expected ResidentialFacilityType to be 'single-family detached' or 'single-family attached' or 'apartment unit' or 'manufactured home'</sch:assert>
       <sch:assert role='ERROR' test='count(h:NumberofConditionedFloors) = 1'>Expected 1 element(s) for xpath: NumberofConditionedFloors</sch:assert>
       <sch:assert role='ERROR' test='count(h:NumberofConditionedFloorsAboveGrade) = 1'>Expected 1 element(s) for xpath: NumberofConditionedFloorsAboveGrade</sch:assert>
@@ -359,6 +343,13 @@
       <sch:assert role='ERROR' test='number(h:ConditionedFloorArea) &gt;= (sum(../../h:Enclosure/h:Slabs/h:Slab[h:InteriorAdjacentTo="living space" or h:InteriorAdjacentTo="basement - conditioned"]/h:Area) + sum(../../h:Enclosure/h:Floors/h:Floor[h:InteriorAdjacentTo="living space" and not(h:ExteriorAdjacentTo="attic - vented" or h:ExteriorAdjacentTo="attic - unvented" or ((h:ExteriorAdjacentTo="other housing unit" or h:ExteriorAdjacentTo="other heated space" or h:ExteriorAdjacentTo="other multifamily buffer space" or h:ExteriorAdjacentTo="other non-freezing space") and h:FloorOrCeiling="ceiling"))]/h:Area) - 1) or not(h:ConditionedFloorArea)'>Expected ConditionedFloorArea to be greater than or equal to the sum of conditioned slab/floor areas.</sch:assert>
       <sch:assert role='ERROR' test='count(h:ConditionedBuildingVolume) + count(h:AverageCeilingHeight) &gt;= 0'>Expected 0 or more element(s) for xpath: ConditionedBuildingVolume | AverageCeilingHeight</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:HasFlueOrChimney) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/HasFlueOrChimney</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+  
+  <sch:pattern>
+    <sch:title>[BuildingType=SFAorMF]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:BuildingSummary/h:BuildingConstruction/h:ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]'>
+      <sch:assert role='ERROR' test='count(//h:ExteriorAdjacentTo[text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]) &gt;= 1'>Expected 1 or more element(s) for xpath: //ExteriorAdjacentTo[text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]</sch:assert>
     </sch:rule>
   </sch:pattern>
 
