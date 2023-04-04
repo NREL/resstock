@@ -73,15 +73,22 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Download and Install OpenStudio
+        run: |
+          wget -q https://github.com/NREL/OpenStudio/releases/download/v3.5.1/OpenStudio-3.5.1+22e1db7be5-Ubuntu-20.04.deb
+          sudo apt install -y ./OpenStudio-3.5.1+22e1db7be5-Ubuntu-20.04.deb
+          openstudio openstudio_version
+          which openstudio
+
       - name: Run buildstockbatch
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@disable-annual-outputs
           
-          buildstock_docker project_national/national_baseline.yml
-          buildstock_docker project_testing/testing_baseline.yml
+          buildstock_local project_national/national_baseline.yml
+          buildstock_local project_testing/testing_baseline.yml
           
-          buildstock_docker project_national/national_upgrades.yml
-          buildstock_docker project_testing/testing_upgrades.yml
+          buildstock_local project_national/national_upgrades.yml
+          buildstock_local project_testing/testing_upgrades.yml
 
       - name: Unzip results
         run: |
