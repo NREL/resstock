@@ -178,7 +178,6 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       new_default_schedule_rule.setApplyThursday(true)
       new_default_schedule_rule.setApplyFriday(true)
       new_default_schedule_rule.setApplySaturday(false)
-      # TODO: ensure this rule is first (all other rules applied on top)
 
       new_default_day_schedule = new_default_schedule_rule.daySchedule
       new_default_day_schedule.setName("#{old_default_day_schedule.name} Shifted")

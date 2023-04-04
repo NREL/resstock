@@ -13,12 +13,12 @@ class AddThermalComfortModelTypes < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'TODO'
+    return 'Adds to the model (A) any of the available thermal comfort model types, and (B) work efficiency, clothing insulation, and air velocity constant schedules.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return 'TODO'
+    return 'Specify any of the thermal comfort model types to add to People:Definition objects in the model. Specify constant values corresponding to the work efficiency, clothing insulation, and air velocity schedules.'
   end
 
   # define the arguments that the user will input
@@ -27,64 +27,64 @@ class AddThermalComfortModelTypes < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('thermal_comfort_model_type_fanger', true)
     arg.setDisplayName('Thermal Comfort Model Type: Fanger')
-    arg.setDescription('TODO.')
+    arg.setDescription('Whether to add the Fanger thermal comfort model type.')
     arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('thermal_comfort_model_type_pierce', true)
     arg.setDisplayName('Thermal Comfort Model Type: Pierce')
-    arg.setDescription('TODO.')
+    arg.setDescription('Whether to add the Pierce thermal comfort model type.')
     arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('thermal_comfort_model_type_ksu', true)
     arg.setDisplayName('Thermal Comfort Model Type: KSU')
-    arg.setDescription('TODO.')
+    arg.setDescription('Whether to add the KSU thermal comfort model type.')
     arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('thermal_comfort_model_type_adaptiveash55', true)
     arg.setDisplayName('Thermal Comfort Model Type: AdaptiveASH55')
-    arg.setDescription('TODO.')
+    arg.setDescription('Whether to add the AdaptiveASH55 thermal comfort model type.')
     arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('thermal_comfort_model_type_adaptivecen15251', true)
     arg.setDisplayName('Thermal Comfort Model Type: AdaptiveCEN15251')
-    arg.setDescription('TODO.')
+    arg.setDescription('Whether to add the AdaptiveCEN15251 thermal comfort model type.')
     arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('thermal_comfort_model_type_coolingeffectash55', true)
     arg.setDisplayName('Thermal Comfort Model Type: CoolingEffectASH55')
-    arg.setDescription('TODO.')
+    arg.setDescription('Whether to add the CoolingEffectASH55 thermal comfort model type.')
     arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('thermal_comfort_model_type_ankledraftash55', true)
     arg.setDisplayName('Thermal Comfort Model Type: AnkleDraftASH55')
-    arg.setDescription('TODO.')
+    arg.setDescription('Whether to add the AnkleDraftASH55 thermal comfort model type.')
     arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('work_efficiency_schedule_value', true)
     arg.setDisplayName('Work Efficiency Schedule Value')
     arg.setUnits('Frac')
-    arg.setDescription('TODO.')
+    arg.setDescription('Specify the constant work efficiency schedule value.')
     arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothing_insulation_schedule_value', true)
     arg.setDisplayName('Clothing Insulation Schedule Value')
     arg.setUnits('Frac')
-    arg.setDescription('TODO.')
+    arg.setDescription('Specify the constant clothing insulation schedule value.')
     arg.setDefaultValue(0.6)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('air_velocity_schedule_value', true)
     arg.setDisplayName('Air Velocity Schedule Value')
     arg.setUnits('Frac')
-    arg.setDescription('TODO.')
+    arg.setDescription('Specify the constant air velocity schedule value.')
     arg.setDefaultValue(0.1)
     args << arg
 
@@ -135,23 +135,21 @@ class AddThermalComfortModelTypes < OpenStudio::Measure::ModelMeasure
       people_def.pushThermalComfortModelType('AnkleDraftASH55') if thermal_comfort_model_type_ankledraftash55
     end
 
-    work_efficiency_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-    work_efficiency_schedule.setValue(work_efficiency_schedule_value)
-    work_efficiency_schedule.setName('Work Efficiency Schedule')
-
-    clothing_insulation_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-    clothing_insulation_schedule.setValue(clothing_insulation_schedule_value)
-    clothing_insulation_schedule.setName('Clothing Insulation Schedule')
-
-    air_velocity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-    air_velocity_schedule.setValue(air_velocity_schedule_value)
-    air_velocity_schedule.setName('Air Velocity Schedule')
-
     peoples.each do |people|
+      work_efficiency_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      work_efficiency_schedule.setValue(work_efficiency_schedule_value)
+      work_efficiency_schedule.setName('Work Efficiency Schedule')
       people.setWorkEfficiencySchedule(work_efficiency_schedule)
+
+      clothing_insulation_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      clothing_insulation_schedule.setValue(clothing_insulation_schedule_value)
+      clothing_insulation_schedule.setName('Clothing Insulation Schedule')
       people.setClothingInsulationSchedule(clothing_insulation_schedule)
+
+      air_velocity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      air_velocity_schedule.setValue(air_velocity_schedule_value)
+      air_velocity_schedule.setName('Air Velocity Schedule')
       people.setAirVelocitySchedule(air_velocity_schedule)
-      # TODO: allow reset of ActivityLevelSchedule with activity_per_person = 100?
     end
 
     return true
