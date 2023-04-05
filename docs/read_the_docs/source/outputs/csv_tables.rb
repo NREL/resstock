@@ -26,7 +26,7 @@ csv_tables.each do |csv_file, table_info|
   usecols = []
   usecols += ['Parameter', 'Options'] if !annual && !timeseries
   usecols += ['Annual Name', 'Annual Units'] if annual
-  usecols += ['Timeseries Name', 'Timeseries Units'] if timeseries
+  usecols += ['Timeseries ResStock Name', 'Timeseries BuildStockBatch Name', 'Timeseries Units'] if timeseries
   usecols += ['Notes']
 
   csv_path = File.join(csv_tables_dir, csv_file)
