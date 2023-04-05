@@ -187,7 +187,7 @@ class TesBuildStockBatch < MiniTest::Test
     tol = 0.001
     sums_to_indexes = expected_outputs['Sums To'].select { |n| !n.nil? }.uniq
     sums_to_indexes.each do |sums_to_ix|
-      ix = expected_outputs['Index'].index(sums_to_ix)
+      ix = expected_outputs['Row Index'].index(sums_to_ix)
       sums_to = expected_outputs['Annual Name'][ix]
 
       terms = []
@@ -222,7 +222,7 @@ class TesBuildStockBatch < MiniTest::Test
     tol = 0.001
     sums_to_indexes = expected_outputs['Sums To'].select { |n| !n.nil? }.uniq
     sums_to_indexes.each do |sums_to_ix|
-      ix = expected_outputs['Index'].index(sums_to_ix)
+      ix = expected_outputs['Row Index'].index(sums_to_ix)
       sums_to = expected_outputs['Annual Name'][ix]
 
       terms = []
@@ -237,19 +237,21 @@ class TesBuildStockBatch < MiniTest::Test
     end
   end
 
-  def test_timeseries_outputs
-    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
-    expected_timeseries_names = expected_outputs['Timeseries Name'].select { |n| !n.nil? }
+  def test_timeseries_resstock_outputs
+    ts_col = 'Timeseries ResStock Name'
 
-    actual_outputs = CSV.read(File.join('baseline', 'timeseries', 'results_output.csv'), headers: true)
+    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
+    expected_timeseries_names = expected_outputs[ts_col].select { |n| !n.nil? }
+
+    actual_outputs = CSV.read(File.join('baseline', 'timeseries', 'resstock.csv'), headers: true)
     actual_timeseries_names = actual_outputs.headers
 
     actual_extras = actual_timeseries_names - expected_timeseries_names
     actual_extras -= ['PROJECT']
-    puts "Timeseries Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
+    puts "#{ts_col}, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_timeseries_names - actual_timeseries_names
-    puts "Timeseries Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
+    puts "#{ts_col}, expected - actual: #{expected_extras}" if !expected_extras.empty?
 
     assert_equal(0, actual_extras.size)
     # assert_equal(0, expected_extras.size) # allow
@@ -257,11 +259,11 @@ class TesBuildStockBatch < MiniTest::Test
     tol = 0.001
     sums_to_indexes = expected_outputs['Sums To'].select { |n| !n.nil? }.uniq
     sums_to_indexes.each do |sums_to_ix|
-      ix = expected_outputs['Index'].index(sums_to_ix)
-      sums_to = expected_outputs['Timeseries Name'][ix]
+      ix = expected_outputs['Row Index'].index(sums_to_ix)
+      sums_to = expected_outputs[ts_col][ix]
 
       terms = []
-      expected_outputs['Sums To'].zip(expected_outputs['Timeseries Name']).each do |ix, annual_name|
+      expected_outputs['Sums To'].zip(expected_outputs[ts_col]).each do |ix, annual_name|
         terms << annual_name if ix == sums_to_ix
       end
 
@@ -270,6 +272,51 @@ class TesBuildStockBatch < MiniTest::Test
       terms.each do |term|
         if actual_outputs.headers.include?(term)
           terms_vals << actual_outputs[term].map { |x| term != 'Fuel Use: Electricity: Total' ? Float(x) : UnitConversions.convert(Float(x), 'kWh', 'kBtu') }.sum
+        else
+          terms_vals << 0.0
+        end
+      end
+      terms_val = terms_vals.sum
+
+      assert_in_epsilon(sums_to_val, terms_val, tol, "Summed value #{terms_val} does not equal #{sums_to} (#{sums_to_val})")
+    end
+  end
+
+  def test_timeseries_buildstockbatch_outputs
+    ts_col = 'Timeseries BuildStockBatch Name'
+
+    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
+    expected_timeseries_names = expected_outputs[ts_col].select { |n| !n.nil? }
+
+    actual_outputs = CSV.read(File.join('baseline', 'timeseries', 'buildstockbatch.csv'), headers: true)
+    actual_timeseries_names = actual_outputs.headers
+
+    actual_extras = actual_timeseries_names - expected_timeseries_names
+    actual_extras -= ['PROJECT']
+    puts "#{ts_col}, actual - expected: #{actual_extras}" if !actual_extras.empty?
+
+    expected_extras = expected_timeseries_names - actual_timeseries_names
+    puts "#{ts_col}, expected - actual: #{expected_extras}" if !expected_extras.empty?
+
+    assert_equal(0, actual_extras.size)
+    # assert_equal(0, expected_extras.size) # allow
+
+    tol = 0.001
+    sums_to_indexes = expected_outputs['Sums To'].select { |n| !n.nil? }.uniq
+    sums_to_indexes.each do |sums_to_ix|
+      ix = expected_outputs['Row Index'].index(sums_to_ix)
+      sums_to = expected_outputs[ts_col][ix]
+
+      terms = []
+      expected_outputs['Sums To'].zip(expected_outputs[ts_col]).each do |ix, annual_name|
+        terms << annual_name if ix == sums_to_ix
+      end
+
+      sums_to_val = actual_outputs.headers.include?(sums_to) ? actual_outputs[sums_to].map { |x| Float(x) }.sum : 0.0
+      terms_vals = []
+      terms.each do |term|
+        if actual_outputs.headers.include?(term)
+          terms_vals << actual_outputs[term].map { |x| term != 'fuel_use__electricity__total__kwh' ? Float(x) : UnitConversions.convert(Float(x), 'kWh', 'kBtu') }.sum
         else
           terms_vals << 0.0
         end
