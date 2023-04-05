@@ -7,6 +7,7 @@ outputs = CSV.read(File.join(File.dirname(__FILE__), '../../../../resources/data
 
 csv_tables = {
   'characteristics.csv' => { 'annual' => false, 'timeseries' => false, 'kws' => ['build_existing_model.'] },
+  'arguments.csv' => { 'annual' => false, 'timeseries' => false, 'kws' => ['build_existing_model.'] },
   'simulation_outputs.csv' => { 'annual' => true, 'timeseries' => true, 'kws' => ['.end_use_', '.energy_use_', 'fuel_use_', '.hot_water_', '.hvac_capacity_', '.hvac_design_', '.load_', '.peak_', '.unmet_hours_'] },
   'cost_multipliers.csv' => { 'annual' => true, 'timeseries' => false, 'kws' => ['upgrade_costs.'] },
   'component_loads.csv' => { 'annual' => true, 'timeseries' => true, 'kws' => ['.component_load_'] },
@@ -25,6 +26,7 @@ csv_tables.each do |csv_file, table_info|
 
   usecols = []
   usecols += ['Parameter', 'Options'] if !annual && !timeseries
+  usecols -= ['Options'] if csv_file == 'arguments.csv'
   usecols += ['Annual Name', 'Annual Units'] if annual
   usecols += ['Timeseries ResStock Name', 'Timeseries BuildStockBatch Name', 'Timeseries Units'] if timeseries
   usecols += ['Notes']
@@ -39,7 +41,8 @@ csv_tables.each do |csv_file, table_info|
         if row['Parameter'].nil?
           next if !kws.include?(nil)
         else
-          next if row['Options'].nil?
+          next if row['Options'].nil? && csv_file == 'characteristics.csv'
+          next if !row['Options'].nil? && csv_file == 'arguments.csv'
         end
       else
         next if kws.include?(nil)
