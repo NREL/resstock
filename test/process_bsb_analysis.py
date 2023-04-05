@@ -285,7 +285,7 @@ drops = ['building_id', 'timedst', 'timeutc']
 
 groups = sorted(os.listdir('project_national/national_baseline/parquet/timeseries/upgrade=0'))
 for group in groups:
-    for i in range(1, national_num_scenarios:
+    for i in range(1, national_num_scenarios):
         df_national = pd.read_parquet('project_national/national_upgrades/parquet/timeseries/upgrade={}/{}'.format(i, group))
         df_national = df_national.drop(drops, axis=1)
         df_national = df_national.groupby(['time']).sum()
