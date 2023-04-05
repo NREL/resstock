@@ -6,15 +6,15 @@ inputs = CSV.read(File.join(File.dirname(__FILE__), '../../../../resources/data/
 outputs = CSV.read(File.join(File.dirname(__FILE__), '../../../../resources/data/dictionary/outputs.csv'), headers: true)
 
 csv_tables = {
-  'characteristics.csv' => { 'annual' => false, 'timeseries' => false, 'kws' => ['build_existing_model.'] },
-  'arguments.csv' => { 'annual' => false, 'timeseries' => false, 'kws' => ['build_existing_model.'] },
-  'simulation_outputs.csv' => { 'annual' => true, 'timeseries' => true, 'kws' => ['.end_use_', '.energy_use_', 'fuel_use_', '.hot_water_', '.hvac_capacity_', '.hvac_design_', '.load_', '.peak_', '.unmet_hours_'] },
-  'cost_multipliers.csv' => { 'annual' => true, 'timeseries' => false, 'kws' => ['upgrade_costs.'] },
-  'component_loads.csv' => { 'annual' => true, 'timeseries' => true, 'kws' => ['.component_load_'] },
-  'emissions.csv' => { 'annual' => true, 'timeseries' => true, 'kws' => ['.emissions_'] },
-  'utility_bills.csv' => { 'annual' => true, 'timeseries' => false, 'kws' => ['report_utility_bills.'] },
-  'qoi_report.csv' => { 'annual' => true, 'timeseries' => false, 'kws' => ['qoi_report.'] },
-  'other_timeseries.csv' => { 'annual' => false, 'timeseries' => true, 'kws' => [nil] }
+  'characteristics.csv' => { 'annual' => false, 'timeseries' => false, 'kws' => ['build_existing_model.'], 'usecols' => ['Name', 'Description'] },
+  'arguments.csv' => { 'annual' => false, 'timeseries' => false, 'kws' => ['build_existing_model.'], 'usecols' => ['Name', 'Description'] },
+  'simulation_outputs.csv' => { 'annual' => true, 'timeseries' => true, 'kws' => ['.end_use_', '.energy_use_', 'fuel_use_', '.hot_water_', '.hvac_capacity_', '.hvac_design_', '.load_', '.peak_', '.unmet_hours_'], 'usecols' => ['Annual Name', 'Annual Units', 'Timeseries ResStock Name', 'Timeseries BuildStockBatch Name', 'Timeseries Units', 'Notes'] },
+  'cost_multipliers.csv' => { 'annual' => true, 'timeseries' => false, 'kws' => ['upgrade_costs.'], 'usecols' => ['Annual Name', 'Annual Units', 'Notes'] },
+  'component_loads.csv' => { 'annual' => true, 'timeseries' => true, 'kws' => ['.component_load_'], 'usecols' => ['Annual Name', 'Annual Units', 'Timeseries ResStock Name', 'Timeseries BuildStockBatch Name', 'Timeseries Units', 'Notes'] },
+  'emissions.csv' => { 'annual' => true, 'timeseries' => true, 'kws' => ['.emissions_'], 'usecols' => ['Annual Name', 'Annual Units', 'Timeseries ResStock Name', 'Timeseries BuildStockBatch Name', 'Timeseries Units', 'Notes'] },
+  'utility_bills.csv' => { 'annual' => true, 'timeseries' => false, 'kws' => ['report_utility_bills.'], 'usecols' => ['Annual Name', 'Annual Units', 'Notes'] },
+  'qoi_report.csv' => { 'annual' => true, 'timeseries' => false, 'kws' => ['qoi_report.'], 'usecols' => ['Annual Name', 'Annual Units', 'Notes'] },
+  'other_timeseries.csv' => { 'annual' => false, 'timeseries' => true, 'kws' => [nil], 'usecols' => ['Timeseries ResStock Name', 'Timeseries BuildStockBatch Name', 'Timeseries Units', 'Notes'] }
 }
 
 csv_tables_dir = File.join(File.dirname(__FILE__), 'csv_tables')
@@ -23,13 +23,7 @@ csv_tables.each do |csv_file, table_info|
   annual = table_info['annual']
   timeseries = table_info['timeseries']
   kws = table_info['kws']
-
-  usecols = []
-  usecols += ['Parameter', 'Options'] if !annual && !timeseries
-  usecols -= ['Options'] if csv_file == 'arguments.csv'
-  usecols += ['Annual Name', 'Annual Units'] if annual
-  usecols += ['Timeseries ResStock Name', 'Timeseries BuildStockBatch Name', 'Timeseries Units'] if timeseries
-  usecols += ['Notes']
+  usecols = table_info['usecols']
 
   csv_path = File.join(csv_tables_dir, csv_file)
   CSV.open(csv_path, 'wb') do |csv|
@@ -38,11 +32,11 @@ csv_tables.each do |csv_file, table_info|
     rows = outputs if annual || timeseries
     rows.each do |row|
       if row['Annual Name'].nil?
-        if row['Parameter'].nil?
+        if row['Name'].nil?
           next if !kws.include?(nil)
         else
-          next if row['Options'].nil? && csv_file == 'characteristics.csv'
-          next if !row['Options'].nil? && csv_file == 'arguments.csv'
+          next if row['Description'].include?('ref') && csv_file == 'arguments.csv'
+          next if !row['Description'].include?('ref') && csv_file == 'characteristics.csv'
         end
       else
         next if kws.include?(nil)
