@@ -26,10 +26,10 @@ end
 f = File.open(File.join(File.dirname(__FILE__), 'characteristics.rst'), 'w')
 f.puts('.. _housing_characteristics:')
 f.puts
-f.puts('Housing characteristics')
+f.puts('Housing Characteristics')
 f.puts('=======================')
 f.puts
-f.puts('TODO')
+f.puts("The following is populated based on the national project's `source_report.csv <https://github.com/NREL/resstock/blob/data-dictionary/project_national/resources/source_report.csv>`_.")
 f.puts
 
 source_report.each do |row|
@@ -47,5 +47,4 @@ source_report.each do |row|
   write_subsection(f, row, 'Created by', '*')
   write_subsection(f, row, 'Source', '*')
   write_subsection(f, row, 'Assumption', '*')
-  # TODO
 end
