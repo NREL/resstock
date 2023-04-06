@@ -98,7 +98,6 @@ dps = sorted(os.listdir('project_national/national_baseline/simulation_output/up
 for dp in dps:
   df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col)
   df_national = df_national.drop(drops, axis=1)
-
   df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
 
   df_nationals.append(df_national)
@@ -107,7 +106,6 @@ dps = sorted(os.listdir('project_testing/testing_baseline/simulation_output/up00
 for dp in dps:
   df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col)
   df_testing = df_testing.drop(drops, axis=1)
-
   df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
 
   df_testings.append(df_testing)
@@ -119,22 +117,23 @@ df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
 df_testing['PROJECT'] = 'project_testing'
 
 resstock = pd.concat([df_national, df_testing]).fillna(0)
-resstock = resstock.set_index('PROJECT')
+resstock = resstock.reset_index().set_index('PROJECT')
 resstock = resstock.sort_index()
-resstock = resstock.reindex(sorted(resstock.columns), axis=1)
+resstock = resstock.reindex(index_col + sorted(resstock.columns.drop(index_col)), axis=1)
 resstock.to_csv(os.path.join(outdir, 'resstock.csv'))
 
 # buildstockbatch.csv
 
 df_nationals = []
 df_testings = []
+index_col = ['time']
 drops = ['building_id', 'timedst', 'timeutc']
 
 groups = sorted(os.listdir('project_national/national_baseline/parquet/timeseries/upgrade=0'))
 for group in groups:
     df_national = pd.read_parquet('project_national/national_baseline/parquet/timeseries/upgrade=0/{}'.format(group)).reset_index()
     df_national = df_national.drop(drops, axis=1)
-    df_national = df_national.groupby(['time']).sum()
+    df_national = df_national.groupby(index_col).sum()
 
     df_nationals.append(df_national)
 
@@ -142,7 +141,7 @@ groups = sorted(os.listdir('project_testing/testing_baseline/parquet/timeseries/
 for group in groups:
     df_testing = pd.read_parquet('project_testing/testing_baseline/parquet/timeseries/upgrade=0/{}'.format(group)).reset_index()
     df_testing = df_testing.drop(drops, axis=1)
-    df_testing = df_testing.groupby(['time']).sum()
+    df_testing = df_testing.groupby(index_col).sum()
 
     df_testings.append(df_testing)
 
@@ -153,9 +152,9 @@ df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
 df_testing['PROJECT'] = 'project_testing'
 
 buildstockbatch = pd.concat([df_national, df_testing]).fillna(0)
-buildstockbatch = buildstockbatch.set_index('PROJECT')
+buildstockbatch = buildstockbatch.reset_index().set_index('PROJECT')
 buildstockbatch = buildstockbatch.sort_index()
-buildstockbatch = buildstockbatch.reindex(sorted(buildstockbatch.columns), axis=1)
+buildstockbatch = buildstockbatch.reindex(index_col + sorted(buildstockbatch.columns.drop(index_col)), axis=1)
 buildstockbatch.to_csv(os.path.join(outdir, 'buildstockbatch.csv'))
 
 # UPGRADES
@@ -249,7 +248,6 @@ for dp in dps:
 
     df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp), index_col=index_col)
     df_national = df_national.drop(drops, axis=1)
-
     df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
 
     df_nationals.append(df_national)
@@ -262,7 +260,6 @@ for dp in dps:
 
     df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp), index_col=index_col)
     df_testing = df_testing.drop(drops, axis=1)
-
     df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
 
     df_testings.append(df_testing)
@@ -274,32 +271,39 @@ df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
 df_testing['PROJECT'] = 'project_testing'
 
 resstock = pd.concat([df_national, df_testing]).fillna(0)
-resstock = resstock.set_index('PROJECT')
+resstock = resstock.reset_index().set_index('PROJECT')
 resstock = resstock.sort_index()
-resstock = resstock.reindex(sorted(resstock.columns), axis=1)
+resstock = resstock.reindex(index_col + sorted(resstock.columns.drop(index_col)), axis=1)
 resstock.to_csv(os.path.join(outdir, 'resstock.csv'))
 
 # buildstockbatch.csv
 
 df_nationals = []
 df_testings = []
+index_col = ['time']
 drops = ['building_id', 'timedst', 'timeutc']
 
 groups = sorted(os.listdir('project_national/national_baseline/parquet/timeseries/upgrade=0'))
 for group in groups:
     for i in range(1, national_num_scenarios):
+        if not os.path.exists('project_national/national_upgrades/parquet/timeseries/upgrade={}/{}'.format(i, group)):
+            continue
+
         df_national = pd.read_parquet('project_national/national_upgrades/parquet/timeseries/upgrade={}/{}'.format(i, group)).reset_index()
         df_national = df_national.drop(drops, axis=1)
-        df_national = df_national.groupby(['time']).sum()
+        df_national = df_national.groupby(index_col).sum()
 
         df_nationals.append(df_national)
 
 groups = sorted(os.listdir('project_testing/testing_baseline/parquet/timeseries/upgrade=0'))
 for group in groups:
     for i in range(1, testing_num_scenarios):
+        if not os.path.exists('project_testing/testing_upgrades/parquet/timeseries/upgrade={}/{}'.format(i, group)):
+            continue
+
         df_testing = pd.read_parquet('project_testing/testing_upgrades/parquet/timeseries/upgrade={}/{}'.format(i, group)).reset_index()
         df_testing = df_testing.drop(drops, axis=1)
-        df_testing = df_testing.groupby(['time']).sum()
+        df_testing = df_testing.groupby(index_col).sum()
 
         df_testings.append(df_testing)
 
@@ -310,7 +314,7 @@ df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
 df_testing['PROJECT'] = 'project_testing'
 
 buildstockbatch = pd.concat([df_national, df_testing]).fillna(0)
-buildstockbatch = buildstockbatch.set_index('PROJECT')
+buildstockbatch = buildstockbatch.reset_index().set_index('PROJECT')
 buildstockbatch = buildstockbatch.sort_index()
-buildstockbatch = buildstockbatch.reindex(sorted(buildstockbatch.columns), axis=1)
+buildstockbatch = buildstockbatch.reindex(index_col + sorted(buildstockbatch.columns.drop(index_col)), axis=1)
 buildstockbatch.to_csv(os.path.join(outdir, 'buildstockbatch.csv'))
