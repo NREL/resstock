@@ -91,11 +91,12 @@ if not os.path.exists(outdir):
 
 df_nationals = []
 df_testings = []
+index_col = ['Time']
 drops = ['TimeDST', 'TimeUTC']
 
 dps = sorted(os.listdir('project_national/national_baseline/simulation_output/up00'))
 for dp in dps:
-  df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp))
+  df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col)
   df_national = df_national.drop(drops, axis=1)
 
   df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
@@ -104,7 +105,7 @@ for dp in dps:
 
 dps = sorted(os.listdir('project_testing/testing_baseline/simulation_output/up00'))
 for dp in dps:
-  df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp))
+  df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col)
   df_testing = df_testing.drop(drops, axis=1)
 
   df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
@@ -131,7 +132,7 @@ drops = ['building_id', 'timedst', 'timeutc']
 
 groups = sorted(os.listdir('project_national/national_baseline/parquet/timeseries/upgrade=0'))
 for group in groups:
-    df_national = pd.read_parquet('project_national/national_baseline/parquet/timeseries/upgrade=0/{}'.format(group))
+    df_national = pd.read_parquet('project_national/national_baseline/parquet/timeseries/upgrade=0/{}'.format(group)).reset_index()
     df_national = df_national.drop(drops, axis=1)
     df_national = df_national.groupby(['time']).sum()
 
@@ -139,7 +140,7 @@ for group in groups:
 
 groups = sorted(os.listdir('project_testing/testing_baseline/parquet/timeseries/upgrade=0'))
 for group in groups:
-    df_testing = pd.read_parquet('project_testing/testing_baseline/parquet/timeseries/upgrade=0/{}'.format(group))
+    df_testing = pd.read_parquet('project_testing/testing_baseline/parquet/timeseries/upgrade=0/{}'.format(group)).reset_index()
     df_testing = df_testing.drop(drops, axis=1)
     df_testing = df_testing.groupby(['time']).sum()
 
@@ -237,6 +238,7 @@ if not os.path.exists(outdir):
 
 df_nationals = []
 df_testings = []
+index_col = ['Time']
 drops = ['TimeDST', 'TimeUTC']
 
 dps = sorted(os.listdir('project_national/national_upgrades/simulation_output/up00'))
@@ -286,7 +288,7 @@ drops = ['building_id', 'timedst', 'timeutc']
 groups = sorted(os.listdir('project_national/national_baseline/parquet/timeseries/upgrade=0'))
 for group in groups:
     for i in range(1, national_num_scenarios):
-        df_national = pd.read_parquet('project_national/national_upgrades/parquet/timeseries/upgrade={}/{}'.format(i, group))
+        df_national = pd.read_parquet('project_national/national_upgrades/parquet/timeseries/upgrade={}/{}'.format(i, group)).reset_index()
         df_national = df_national.drop(drops, axis=1)
         df_national = df_national.groupby(['time']).sum()
 
@@ -295,7 +297,7 @@ for group in groups:
 groups = sorted(os.listdir('project_testing/testing_baseline/parquet/timeseries/upgrade=0'))
 for group in groups:
     for i in range(1, testing_num_scenarios):
-        df_testing = pd.read_parquet('project_testing/testing_upgrades/parquet/timeseries/upgrade={}/{}'.format(i, group))
+        df_testing = pd.read_parquet('project_testing/testing_upgrades/parquet/timeseries/upgrade={}/{}'.format(i, group)).reset_index()
         df_testing = df_testing.drop(drops, axis=1)
         df_testing = df_testing.groupby(['time']).sum()
 
