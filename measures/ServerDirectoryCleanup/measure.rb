@@ -18,7 +18,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return 'Test.'
+    return 'Present a bunch of bool arguments corresponding to EnergyPlus output files. "False" deletes the file, and "True" retains it. Most arguments default to not retaining the file. Only the in.idf and schedules.csv are retained by default.'
   end
 
   # define the arguments that the user will input
