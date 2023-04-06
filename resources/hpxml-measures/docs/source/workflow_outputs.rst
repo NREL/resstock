@@ -18,6 +18,10 @@ OpenStudio-HPXML generates a number of workflow outputs:
   eplusout.*                                     EnergyPlus output files (e.g., msgpack output, error log). Defaults to a subset of possible files; use ``debug`` to produce ALL files.
   =============================================  ======================================
 
+.. note::
+
+  MBtu is defined as one million Btu.
+
 .. _hpxml_defaults:
 
 HPXML Defaults
@@ -105,7 +109,7 @@ Fuel uses are listed below.
    Fuel Use: Natural Gas: Total (MBtu)
    Fuel Use: Fuel Oil: Total (MBtu)      Includes "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "kerosene", and "diesel"
    Fuel Use: Propane: Total (MBtu)
-   Fuel Use: Wood: Total (MBtu)
+   Fuel Use: Wood Cord: Total (MBtu)
    Fuel Use: Wood Pellets: Total (MBtu)
    Fuel Use: Coal: Total (MBtu)          Includes "coal", "anthracite coal", "bituminous coal", and "coke".
    ====================================  ===========================
@@ -123,9 +127,9 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    ===================================================================  ====================================================
    End Use: Electricity: Heating (MBtu)                                 Excludes heat pump backup and fans/pumps
    End Use: Electricity: Heating Heat Pump Backup (MBtu)
-   End Use: Electricity: Heating Fans/Pumps (MBtu)
+   End Use: Electricity: Heating Fans/Pumps (MBtu)                      Supply fan (air distribution) or circulating pump (hydronic distribution or geothermal loop)
    End Use: Electricity: Cooling (MBtu)                                 Excludes fans/pumps
-   End Use: Electricity: Cooling Fans/Pumps (MBtu)
+   End Use: Electricity: Cooling Fans/Pumps (MBtu)                      Supply fan (air distribution) or circulating pump (geothermal loop)
    End Use: Electricity: Hot Water (MBtu)                               Excludes recirc pump and solar thermal pump
    End Use: Electricity: Hot Water Recirc Pump (MBtu)
    End Use: Electricity: Hot Water Solar Thermal Pump (MBtu)            Non-zero only when using detailed (not simple) solar thermal inputs
@@ -225,7 +229,6 @@ Annual Emissions
 ~~~~~~~~~~~~~~~~
 
 Results for each emissions scenario defined in the HPXML file are listed as shown below.
-Note that rows below with values of zero will be excluded.
 
    =======================================================================  ==================================================================
    Type                                                                     Notes
@@ -284,12 +287,12 @@ Peak Building Electricity
 
 Peak building electricity outputs are listed below.
 
-   ==================================  =========================================================
+   ==================================  =============================================================
    Type                                Notes
-   ==================================  =========================================================
-   Peak Electricity: Winter Total (W)  Winter season defined by operation of the heating system.
-   Peak Electricity: Summer Total (W)  Summer season defined by operation of the cooling system.
-   ==================================  =========================================================
+   ==================================  =============================================================
+   Peak Electricity: Winter Total (W)  Maximum value in Dec/Jan/Feb (or Jun/Jul/Aug in the southern hemisphere)
+   Peak Electricity: Summer Total (W)  Maximum value in Jun/Jul/Aug (or Dec/Jan/Feb in the southern hemisphere)
+   ==================================  =============================================================
 
 Peak Building Loads
 ~~~~~~~~~~~~~~~~~~~
@@ -468,7 +471,6 @@ OpenStudio-HPXML can optionally generate a utility bills output file.
 The utility bills output file is called ``results_bills.csv`` (or ``results_bills.json`` or ``results_bills.msgpack``) and located in the run directory.
 
 Results for each utility bill scenario defined in the HPXML file are listed as shown below.
-Note that rows below with values of zero will be excluded.
 
    =============================================  ====================
    Type                                           Notes
