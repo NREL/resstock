@@ -18,7 +18,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return ''
+    return 'Test.'
   end
 
   # define the arguments that the user will input
