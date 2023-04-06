@@ -43,7 +43,7 @@ __Bugfixes__
 - Fixes possible utility bill calculation error for a home with PV using a detailed electric utility rate.
 - Fixes defaulted mechanical ventilation flow rate for SFA/MF buildings, with respect to infiltration credit.
 - HPXML files w/ multiple `Building` elements now only show warnings for the single `Building` being simulated.
-- Adds error-checking to ensure that SFA/MF dwelling units have at least one attached wall/ceiling/floor surface.
+- Adds a warning for SFA/MF dwelling units without at least one attached wall/ceiling/floor surface.
 
 ## OpenStudio-HPXML v1.5.1
 

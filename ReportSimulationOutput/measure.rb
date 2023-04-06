@@ -555,12 +555,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     # Set paths
     if not args[:annual_output_file_name].nil?
-      annual_output_path = File.join(output_dir, args[:annual_output_file_name].get)
+      annual_output_path = File.join(output_dir, args[:annual_output_file_name])
     else
       annual_output_path = File.join(output_dir, "results_annual.#{args[:output_format]}")
     end
     if not args[:timeseries_output_file_name].nil?
-      timeseries_output_path = File.join(output_dir, args[:timeseries_output_file_name].get)
+      timeseries_output_path = File.join(output_dir, args[:timeseries_output_file_name])
     else
       timeseries_output_path = File.join(output_dir, "results_timeseries.#{args[:output_format]}")
     end
@@ -864,17 +864,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       EUT::MechVentPrecool => [EUT::MechVentPrecool]
     }
     kwh_to_kbtu = UnitConversions.convert(1.0, 'kWh', 'kBtu')
-    system_ids = [] # Unique systems of interest
-    @end_uses.values.each do |eu|
-      eu.variables.each do |v|
-        next if system_ids.include? v[0]
-
-        system_ids << v[0]
-      end
-    end
-    system_ids.each do |sys_id|
-      next unless is_hpxml_system(sys_id)
-
+    get_hpxml_system_ids.each do |sys_id|
       system_use_map.each do |system_use_type, end_use_types|
         system_end_uses = @end_uses.select { |k, eu| end_use_types.include?(k[1]) && eu.variables.map { |v| v[0] }.include?(sys_id) }
         next if system_end_uses.empty?
@@ -2467,22 +2457,15 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     return false
   end
 
-  def is_hpxml_system(sys_id)
-    # Returns true if sys_id corresponds to an HVAC or water heating system
-    return false if @hpxml.nil?
+  def get_hpxml_system_ids
+    # Returns a list of HPXML IDs corresponds to HVAC or water heating systems
+    return [] if @hpxml.nil?
 
-    (@hpxml.hvac_systems + @hpxml.water_heating_systems).each do |system|
-      next if system.id != sys_id
-
-      return true
+    system_ids = []
+    (@hpxml.hvac_systems + @hpxml.water_heating_systems + @hpxml.ventilation_fans).each do |system|
+      system_ids << system.id
     end
-    @hpxml.ventilation_fans.each do |system|
-      next if system.id != sys_id
-
-      return true
-    end
-
-    return false
+    return system_ids
   end
 
   def get_object_output_variables_by_key(model, object, class_name)
