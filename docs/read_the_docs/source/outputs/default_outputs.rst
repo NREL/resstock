@@ -17,8 +17,8 @@ Default characteristics include sampled properties for each dwelling unit.
    :file: csv_tables/characteristics.csv
    :header-rows: 1
 
-Arguments
-*********
+Other Arguments
+***************
 
 .. csv-table::
    :file: csv_tables/arguments.csv

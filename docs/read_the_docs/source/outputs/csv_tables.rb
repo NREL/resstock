@@ -35,8 +35,8 @@ csv_tables.each do |csv_file, table_info|
         if row['Name'].nil?
           next if !kws.include?(nil)
         else
-          next if row['Description'].include?('ref') && csv_file == 'arguments.csv'
-          next if !row['Description'].include?('ref') && csv_file == 'characteristics.csv'
+          next if row['Description'].include?(':ref:') && csv_file == 'arguments.csv'
+          next if !row['Description'].include?(':ref:') && csv_file == 'characteristics.csv'
         end
       else
         next if kws.include?(nil)
