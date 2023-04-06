@@ -2527,3 +2527,71 @@ Assumption
 
 Wood and Vinyl are considered same material; Triple Pane assumed to be 100% low-e; Only breaking out clear and low-e windows for the Double, Non-Metal frame type; Source of low-e distribution is based on engineering judgement, informed by high-levelsales trends observed in Ducker Worldwide studies of the U.S. Market for Windows, Doors and Skylights.; Due to low sample sizes for some Building Types, Building Type data are grouped into: 1) Single-Family Detached, Single-Family Attached, and Mobile homes and 2) Multi-Family 2-4 units and Multi-Family 5+ units; Due to low sample sizes for Vintage, Vintage data are grouped into: 1) <1960, 2) 1960-79, 3) 1980-99, 4) 2000-15; Due to low sample size for Climate, Climate zones are grouped into: 1) 1A, 2A, and 2B, 2) 3A, 3B, 3C, and 4B, 3) 4A and 4C, 4) 5A and 5B, 5) 6A and 6B, and 6) 7A and 7B; Storm window saturations are based on D&R International, Ltd. 'Residential Windows and Window Coverings: A Detailed View of the Installed Base and User Behavior' 2013. https://www.energy.gov/sites/prod/files/2013/11/f5/residential_windows_coverings.pdf. Cut the % storm windows by factor of 55% because only 55% of storms are installed year round; Due to lack of performance data storm windows with triple-pane are modeled without the storm windows; Due to lack of performance data Double-pane, Low-E, Non-Metal, Air, M-gain, Exterior Clear Storm windows are modeled as Double-pane, Clear, Non-Metal, Air, Exterior Clear Storm windows
 
+.. _battery:
+
+Battery
+-------
+
+Created by
+**********
+
+
+Source
+******
+
+
+Assumption
+**********
+
+
+.. _eaves:
+
+Eaves
+-----
+
+Created by
+**********
+
+
+Source
+******
+
+
+Assumption
+**********
+
+
+.. _hvac_has_zonal_electric_heating:
+
+HVAC Has Zonal Electric Heating
+-------------------------------
+
+Created by
+**********
+
+
+Source
+******
+
+
+Assumption
+**********
+
+
+.. _insulation_rim_joist:
+
+Insulation Rim Joist
+--------------------
+
+Created by
+**********
+
+
+Source
+******
+
+
+Assumption
+**********
+
+

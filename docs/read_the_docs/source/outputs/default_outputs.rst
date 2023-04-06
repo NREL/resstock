@@ -17,15 +17,8 @@ Default characteristics include sampled properties for each dwelling unit.
    :file: csv_tables/characteristics.csv
    :header-rows: 1
 
-Other Arguments
-***************
-
-.. csv-table::
-   :file: csv_tables/arguments.csv
-   :header-rows: 1
-
-Simulation Output
-*****************
+Simulation Outputs
+******************
 
 Default annual simulation outputs include energy consumptions (total, by fuel, and by end use), hot water uses, building loads, unmet hours, peak building electricity/loads, HVAC capacities, and HVAC design temperatures/loads.
 
@@ -63,3 +56,10 @@ where <#> represents any of the defined option numbers.
 See :doc:`../upgrade_scenario_config` for more information.
 
 Note that the name, cost, and lifetime information will only be populated when applicable for a given upgrade option (i.e., when the apply logic evaluates as true).
+
+Other Outputs
+*************
+
+.. csv-table::
+   :file: csv_tables/other_outputs.csv
+   :header-rows: 1
