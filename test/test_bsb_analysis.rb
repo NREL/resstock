@@ -133,7 +133,7 @@ class TesBuildStockBatch < MiniTest::Test
 
   def test_testing_inputs
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'inputs.csv'), headers: true)
-    expected_parameters = expected_outputs['Parameter'].select { |p| !p.nil? }
+    expected_parameters = expected_outputs['Name'].select { |p| !p.nil? }
 
     actual_outputs = CSV.read(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
     actual_parameters = actual_outputs.headers.select { |h| h.start_with?('build_existing_model.') }
@@ -151,7 +151,7 @@ class TesBuildStockBatch < MiniTest::Test
 
   def test_national_inputs
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'inputs.csv'), headers: true)
-    expected_parameters = expected_outputs['Parameter'].select { |p| !p.nil? }
+    expected_parameters = expected_outputs['Name'].select { |p| !p.nil? }
 
     actual_outputs = CSV.read(File.join(@national_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
     actual_parameters = actual_outputs.headers.select { |h| h.start_with?('build_existing_model.') }
