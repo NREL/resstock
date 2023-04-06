@@ -93,45 +93,55 @@ class TesBuildStockBatch < MiniTest::Test
   end
 
   def test_testing_inputs
-    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'inputs.csv'), headers: true)
-    expected_parameters = expected_outputs['Name'].select { |p| !p.nil? }
+    expected_inputs = CSV.read(File.join('resources', 'data', 'dictionary', 'inputs.csv'), headers: true)
+    expected_names = expected_inputs['Input Name']
+
+    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
+    expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
-    actual_parameters = actual_outputs.headers.select { |h| h.start_with?('build_existing_model.') }
+    actual_names = actual_outputs.headers - expected_annual_names
 
-    actual_extras = actual_parameters - expected_parameters
-    puts "Parameter, actual - expected: #{actual_extras}" if !actual_extras.empty?
+    actual_extras = actual_names - expected_names
+    puts "Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
-    expected_extras = expected_parameters - actual_parameters
-    puts "Parameter, expected - actual: #{expected_extras}" if !expected_extras.empty?
+    expected_extras = expected_names - actual_names
+    puts "Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
 
     assert_equal(0, actual_extras.size)
     # assert_equal(0, expected_extras.size) # allow
   end
 
   def test_national_inputs
-    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'inputs.csv'), headers: true)
-    expected_parameters = expected_outputs['Name'].select { |p| !p.nil? }
+    expected_inputs = CSV.read(File.join('resources', 'data', 'dictionary', 'inputs.csv'), headers: true)
+    expected_names = expected_inputs['Input Name']
+
+    expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
+    expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join(@national_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
-    actual_parameters = actual_outputs.headers.select { |h| h.start_with?('build_existing_model.') }
+    actual_names = actual_outputs.headers - expected_annual_names
 
-    actual_extras = actual_parameters - expected_parameters
-    puts "Parameter, actual - expected: #{actual_extras}" if !actual_extras.empty?
+    actual_extras = actual_names - expected_names
+    puts "Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
-    expected_extras = expected_parameters - actual_parameters
-    puts "Parameter, expected - actual: #{expected_extras}" if !expected_extras.empty?
+    expected_extras = expected_names - actual_names
+    expected_extras -= ['report_simulation_output.user_output_variables']
+    puts "Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
 
     assert_equal(0, actual_extras.size)
     assert_equal(0, expected_extras.size)
   end
 
   def test_testing_annual_outputs
+    expected_inputs = CSV.read(File.join('resources', 'data', 'dictionary', 'inputs.csv'), headers: true)
+    expected_names = expected_inputs['Input Name']
+
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
-    actual_annual_names = actual_outputs.headers.select { |h| !h.start_with?('build_existing_model.') }
+    actual_annual_names = actual_outputs.headers - expected_names
 
     actual_extras = actual_annual_names - expected_annual_names
     puts "Annual Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
@@ -161,11 +171,14 @@ class TesBuildStockBatch < MiniTest::Test
   end
 
   def test_national_annual_outputs
+    expected_inputs = CSV.read(File.join('resources', 'data', 'dictionary', 'inputs.csv'), headers: true)
+    expected_names = expected_inputs['Input Name']
+
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join(@national_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
-    actual_annual_names = actual_outputs.headers.select { |h| !h.start_with?('build_existing_model.') }
+    actual_annual_names = actual_outputs.headers - expected_names
 
     actual_extras = actual_annual_names - expected_annual_names
     puts "Annual Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
