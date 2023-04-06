@@ -3,8 +3,8 @@ These are all 10 available Standard Scenarios for three metrics at GEA geographi
 2. LRMER levelized over 30 years
 3. average emissions rate (AER) non-levelized
 
-2021 Cambium release data:
-- Levelized **LRMER** come from Cambium22_LRMER_GEAregions.xlsx (available at https://data.nrel.gov/submissions/206):
+2022 Cambium release data:
+- Levelized **LRMER** come from Cambium22_LRMER_GEAregions.xlsx (available via [Long-run Marginal Emission Rates for Electricity - Workbooks for 2022 Cambium Data](https://data.nrel.gov/submissions/206)):
 
   On the "Levelized LRMER" tab:
   - Emission | CO2e
@@ -16,7 +16,7 @@ These are all 10 available Standard Scenarios for three metrics at GEA geographi
   - Global Warming Potentials | 100-year (AR5)
   - Location | End-use
 
-- Non-levelized **AER** come from the Scenario Viewer (available at cambium.nrel.gov):
+- Non-levelized **AER** come from the Scenario Viewer (available via [Scenario Viewer :: Data Downloader](https://cambium.nrel.gov)):
 
   Browse "Cambium 22", and on the "Download" tab:
   - Scenarios | Mid-case, High renewable energy cost, Low renewable energy cost, Mid-case with 95% decarbonization by 2050, Mid-case with 100% decarbonization by 2035, Low natural gas prices, High natural gas prices, High electrification, Mid-case with tax credit expiration, Low renewable energy cost with tax credit expiration
