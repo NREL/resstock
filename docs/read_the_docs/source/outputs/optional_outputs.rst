@@ -34,7 +34,7 @@ See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedo
 
 See the OpenStudio-HPXML Workflow Outputs section on `Annual Emissions <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-emissions>`_ for more information about annual emissions.
 
-For the example below, the "LRMER_MidCase_15" emissions scenario was requested.
+For the example below, the "LRMER_MidCase_15" (2021) emissions scenario was requested.
 See the list of available emissions scenario choices at https://github.com/NREL/resstock/tree/develop/resources/data/cambium.
 
 .. csv-table::
