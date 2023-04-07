@@ -213,7 +213,7 @@ class TesBuildStockBatch < MiniTest::Test
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
     expected_timeseries_names = expected_outputs[ts_col].select { |n| !n.nil? }
 
-    actual_outputs = CSV.read(File.join('baseline', 'timeseries', 'resstock.csv'), headers: true)
+    actual_outputs = CSV.read(File.join('baseline', 'timeseries', 'results_output.csv'), headers: true)
     actual_timeseries_names = actual_outputs.headers
 
     actual_extras = actual_timeseries_names - expected_timeseries_names

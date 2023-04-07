@@ -87,7 +87,7 @@ outdir = 'baseline/timeseries'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
 
-# resstock.csv
+# results_output.csv
 
 df_nationals = []
 df_testings = []
@@ -116,11 +116,11 @@ df_national['PROJECT'] = 'project_national'
 df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
 df_testing['PROJECT'] = 'project_testing'
 
-resstock = pd.concat([df_national, df_testing]).fillna(0)
-resstock = resstock.reset_index().set_index('PROJECT')
-resstock = resstock.sort_index()
-resstock = resstock.reindex(index_col + sorted(resstock.columns.drop(index_col)), axis=1)
-resstock.to_csv(os.path.join(outdir, 'resstock.csv'))
+results_output = pd.concat([df_national, df_testing]).fillna(0)
+results_output = results_output.reset_index().set_index('PROJECT')
+results_output = results_output.sort_index()
+results_output = results_output.reindex(index_col + sorted(results_output.columns.drop(index_col)), axis=1)
+results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
 # buildstockbatch.csv
 
@@ -233,7 +233,7 @@ outdir = 'upgrades/timeseries'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
 
-# resstock.csv
+# results_output.csv
 
 df_nationals = []
 df_testings = []
@@ -270,11 +270,11 @@ df_national['PROJECT'] = 'project_national'
 df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
 df_testing['PROJECT'] = 'project_testing'
 
-resstock = pd.concat([df_national, df_testing]).fillna(0)
-resstock = resstock.reset_index().set_index('PROJECT')
-resstock = resstock.sort_index()
-resstock = resstock.reindex(index_col + sorted(resstock.columns.drop(index_col)), axis=1)
-resstock.to_csv(os.path.join(outdir, 'resstock.csv'))
+results_output = pd.concat([df_national, df_testing]).fillna(0)
+results_output = results_output.reset_index().set_index('PROJECT')
+results_output = results_output.sort_index()
+results_output = results_output.reindex(index_col + sorted(results_output.columns.drop(index_col)), axis=1)
+results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
 # buildstockbatch.csv
 
