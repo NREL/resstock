@@ -55,6 +55,10 @@ upgrade_costs.upgrade_cost_usd         $                         Total cost of t
 where <#> represents any of the defined option numbers.
 See :doc:`../upgrade_scenario_config` for more information.
 
+.. note::
+  Currently, you can enter up to 25 options per upgrade.
+  See :doc:`../advanced_tutorial/increasing_upgrade_options` for more information on how to allow additional options per upgrade.
+
 Note that the name, cost, and lifetime information will only be populated when applicable for a given upgrade option (i.e., when the apply logic evaluates as true).
 
 Other Outputs
