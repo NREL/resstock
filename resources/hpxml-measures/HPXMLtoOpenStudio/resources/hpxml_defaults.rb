@@ -12,7 +12,9 @@ class HPXMLDefaults
     ncfl = hpxml.building_construction.number_of_conditioned_floors
     ncfl_ag = hpxml.building_construction.number_of_conditioned_floors_above_grade
     has_uncond_bsmnt = hpxml.has_location(HPXML::LocationBasementUnconditioned)
-    infil_volume, infil_height, infil_measurements = get_infil_values(hpxml)
+    infil_measurement = Airflow.get_infiltration_measurement_of_interest(hpxml.air_infiltration_measurements)
+    infil_volume = infil_measurement.infiltration_volume
+    infil_height = infil_measurement.infiltration_height
 
     # Check for presence of fuels once
     has_fuel = {}
@@ -29,7 +31,7 @@ class HPXMLDefaults
     apply_building_occupancy(hpxml, nbeds, schedules_file)
     apply_building_construction(hpxml, cfa, nbeds, infil_volume)
     apply_climate_and_risk_zones(hpxml, epw_file)
-    apply_infiltration(hpxml, infil_volume, infil_height, infil_measurements)
+    apply_infiltration(hpxml, infil_volume, infil_height, infil_measurement)
     apply_attics(hpxml)
     apply_foundations(hpxml)
     apply_roofs(hpxml)
@@ -43,10 +45,10 @@ class HPXMLDefaults
     apply_doors(hpxml)
     apply_partition_wall_mass(hpxml)
     apply_furniture_mass(hpxml)
-    apply_hvac(hpxml, weather, convert_shared_systems)
+    apply_hvac(runner, hpxml, weather, convert_shared_systems)
     apply_hvac_control(hpxml, schedules_file)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
-    apply_ventilation_fans(hpxml, infil_measurements, weather, cfa, nbeds)
+    apply_ventilation_fans(hpxml, infil_measurement, weather, cfa, nbeds)
     apply_water_heaters(hpxml, nbeds, eri_version, schedules_file)
     apply_hot_water_distribution(hpxml, cfa, ncfl, has_uncond_bsmnt)
     apply_water_fixtures(hpxml, schedules_file)
@@ -510,20 +512,16 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_infiltration(hpxml, infil_volume, infil_height, infil_measurements)
+  def self.apply_infiltration(hpxml, infil_volume, infil_height, infil_measurement)
     if infil_volume.nil?
       infil_volume = hpxml.building_construction.conditioned_building_volume
-      infil_measurements.each do |measurement|
-        measurement.infiltration_volume = infil_volume
-        measurement.infiltration_volume_isdefaulted = true
-      end
+      infil_measurement.infiltration_volume = infil_volume
+      infil_measurement.infiltration_volume_isdefaulted = true
     end
     if infil_height.nil?
       infil_height = hpxml.inferred_infiltration_height(infil_volume)
-      infil_measurements.each do |measurement|
-        measurement.infiltration_height = infil_height
-        measurement.infiltration_height_isdefaulted = true
-      end
+      infil_measurement.infiltration_height = infil_height
+      infil_measurement.infiltration_height_isdefaulted = true
     end
   end
 
@@ -988,7 +986,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_hvac(hpxml, weather, convert_shared_systems)
+  def self.apply_hvac(runner, hpxml, weather, convert_shared_systems)
     if convert_shared_systems
       HVAC.apply_shared_systems(hpxml)
     end
@@ -1057,13 +1055,47 @@ class HPXMLDefaults
       heat_pump.compressor_type_isdefaulted = true
     end
 
-    # Default ASHP backup heating lockout capability
+    # Default HP compressor lockout temp
+    hpxml.heat_pumps.each do |heat_pump|
+      next unless heat_pump.compressor_lockout_temp.nil?
+      next unless heat_pump.backup_heating_switchover_temp.nil?
+      next if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir
+
+      if heat_pump.backup_type == HPXML::HeatPumpBackupTypeIntegrated
+        hp_backup_fuel = heat_pump.backup_heating_fuel
+      elsif not heat_pump.backup_system.nil?
+        hp_backup_fuel = heat_pump.backup_system.heating_system_fuel
+      end
+
+      if (not hp_backup_fuel.nil?) && (hp_backup_fuel != HPXML::FuelTypeElectricity)
+        heat_pump.compressor_lockout_temp = 25.0 # deg-F
+      else
+        if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit
+          heat_pump.compressor_lockout_temp = -20.0 # deg-F
+        else
+          heat_pump.compressor_lockout_temp = 0.0 # deg-F
+        end
+      end
+      heat_pump.compressor_lockout_temp_isdefaulted = true
+    end
+
+    # Default HP backup lockout temp
     hpxml.heat_pumps.each do |heat_pump|
       next if heat_pump.backup_type.nil?
-      next unless heat_pump.backup_heating_switchover_temp.nil?
       next unless heat_pump.backup_heating_lockout_temp.nil?
+      next unless heat_pump.backup_heating_switchover_temp.nil?
 
-      heat_pump.backup_heating_lockout_temp = 40.0 # deg-F
+      if heat_pump.backup_type == HPXML::HeatPumpBackupTypeIntegrated
+        hp_backup_fuel = heat_pump.backup_heating_fuel
+      else
+        hp_backup_fuel = heat_pump.backup_system.heating_system_fuel
+      end
+
+      if hp_backup_fuel == HPXML::FuelTypeElectricity
+        heat_pump.backup_heating_lockout_temp = 40.0 # deg-F
+      else
+        heat_pump.backup_heating_lockout_temp = 50.0 # deg-F
+      end
       heat_pump.backup_heating_lockout_temp_isdefaulted = true
     end
 
@@ -1326,7 +1358,7 @@ class HPXMLDefaults
         HVAC.set_num_speeds(heat_pump)
         HVAC.set_fan_power_rated(heat_pump) unless use_eer_cop
         HVAC.set_crankcase_assumptions(heat_pump)
-        HVAC.set_heat_pump_temperatures(heat_pump)
+        HVAC.set_heat_pump_temperatures(heat_pump, runner)
 
         HVAC.set_cool_c_d(heat_pump, hp_ap.num_speeds)
         HVAC.set_cool_curves_central_air_source(heat_pump, use_eer_cop)
@@ -1344,7 +1376,7 @@ class HPXMLDefaults
         HVAC.set_num_speeds(heat_pump)
         HVAC.set_crankcase_assumptions(heat_pump)
         HVAC.set_fan_power_rated(heat_pump)
-        HVAC.set_heat_pump_temperatures(heat_pump)
+        HVAC.set_heat_pump_temperatures(heat_pump, runner)
 
         HVAC.set_cool_c_d(heat_pump, num_speeds)
         HVAC.set_cool_curves_mshp(heat_pump, num_speeds)
@@ -1363,7 +1395,7 @@ class HPXMLDefaults
         HVAC.set_curves_gshp(heat_pump)
 
       elsif [HPXML::HVACTypeHeatPumpWaterLoopToAir].include? heat_pump.heat_pump_type
-        HVAC.set_heat_pump_temperatures(heat_pump)
+        HVAC.set_heat_pump_temperatures(heat_pump, runner)
 
       end
     end
@@ -1509,7 +1541,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_ventilation_fans(hpxml, infil_measurements, weather, cfa, nbeds)
+  def self.apply_ventilation_fans(hpxml, infil_measurement, weather, cfa, nbeds)
     # Default mech vent systems
     hpxml.ventilation_fans.each do |vent_fan|
       next unless vent_fan.used_for_whole_building_ventilation
@@ -1527,7 +1559,7 @@ class HPXMLDefaults
           fail 'Defaulting flow rates for multiple mechanical ventilation systems is currently not supported.'
         end
 
-        vent_fan.rated_flow_rate = Airflow.get_default_mech_vent_flow_rate(hpxml, vent_fan, infil_measurements, weather, cfa, nbeds).round(1)
+        vent_fan.rated_flow_rate = Airflow.get_default_mech_vent_flow_rate(hpxml, vent_fan, [infil_measurement], weather, cfa, nbeds).round(1)
         vent_fan.rated_flow_rate_isdefaulted = true
       end
       if vent_fan.fan_power.nil?
@@ -2771,26 +2803,5 @@ class HPXMLDefaults
         return -1.47 + 1.69 * noccs
       end
     end
-  end
-
-  def self.get_infil_values(hpxml)
-    infil_volume = nil
-    infil_height = nil
-    infil_measurements = []
-    hpxml.air_infiltration_measurements.each do |measurement|
-      is_ach = ((measurement.unit_of_measure == HPXML::UnitsACH) && !measurement.house_pressure.nil?)
-      is_cfm = ((measurement.unit_of_measure == HPXML::UnitsCFM) && !measurement.house_pressure.nil?)
-      is_nach = (measurement.unit_of_measure == HPXML::UnitsACHNatural)
-      next unless (is_ach || is_cfm || is_nach)
-
-      infil_measurements << measurement
-      if not measurement.infiltration_volume.nil?
-        infil_volume = measurement.infiltration_volume
-      end
-      if not measurement.infiltration_height.nil?
-        infil_height = measurement.infiltration_height
-      end
-    end
-    return infil_volume, infil_height, infil_measurements
   end
 end

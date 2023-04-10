@@ -175,8 +175,10 @@ def create_hpxmls
     'base-enclosure-infil-ach-house-pressure.xml' => 'base.xml',
     'base-enclosure-infil-cfm-house-pressure.xml' => 'base-enclosure-infil-cfm50.xml',
     'base-enclosure-infil-cfm50.xml' => 'base.xml',
+    'base-enclosure-infil-ela.xml' => 'base.xml',
     'base-enclosure-infil-flue.xml' => 'base.xml',
     'base-enclosure-infil-natural-ach.xml' => 'base.xml',
+    'base-enclosure-infil-natural-cfm.xml' => 'base.xml',
     'base-enclosure-orientations.xml' => 'base.xml',
     'base-enclosure-overhangs.xml' => 'base.xml',
     'base-enclosure-rooftypes.xml' => 'base.xml',
@@ -185,8 +187,6 @@ def create_hpxmls
     'base-enclosure-skylights-shading.xml' => 'base-enclosure-skylights.xml',
     'base-enclosure-skylights-storms.xml' => 'base-enclosure-skylights.xml',
     'base-enclosure-split-level.xml' => 'base-foundation-slab.xml',
-    'base-enclosure-split-surfaces.xml' => 'base-enclosure-skylights.xml', # Surfaces should collapse via HPXML.collapse_enclosure_surfaces()
-    'base-enclosure-split-surfaces2.xml' => 'base-enclosure-skylights.xml', # Surfaces should NOT collapse via HPXML.collapse_enclosure_surfaces()
     'base-enclosure-walltypes.xml' => 'base.xml',
     'base-enclosure-windows-natural-ventilation-availability.xml' => 'base.xml',
     'base-enclosure-windows-none.xml' => 'base.xml',
@@ -1591,11 +1591,17 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   elsif ['base-enclosure-infil-cfm50.xml'].include? hpxml_file
     args['air_leakage_units'] = HPXML::UnitsCFM
     args['air_leakage_value'] = 1080
+  elsif ['base-enclosure-infil-ela.xml'].include? hpxml_file
+    args['air_leakage_units'] = HPXML::UnitsELA
+    args['air_leakage_value'] = 123.0
   elsif ['base-enclosure-infil-flue.xml'].include? hpxml_file
     args['geometry_has_flue_or_chimney'] = 'true'
   elsif ['base-enclosure-infil-natural-ach.xml'].include? hpxml_file
     args['air_leakage_units'] = HPXML::UnitsACHNatural
     args['air_leakage_value'] = 0.2
+  elsif ['base-enclosure-infil-natural-cfm.xml'].include? hpxml_file
+    args['air_leakage_units'] = HPXML::UnitsCFMNatural
+    args['air_leakage_value'] = 72.0
   elsif ['base-enclosure-overhangs.xml'].include? hpxml_file
     args['overhangs_back_depth'] = 2.5
     args['overhangs_back_distance_to_bottom_of_window'] = 4.0
@@ -1741,6 +1747,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['hvac_control_heating_weekday_setpoint'] = '64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64'
     args['hvac_control_heating_weekend_setpoint'] = '64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64'
     args['heat_pump_backup_heating_lockout_temp'] = 35.0
+    args['heat_pump_compressor_lockout_temp'] = 5.0
   elsif ['base-hvac-air-to-air-heat-pump-2-speed.xml'].include? hpxml_file
     args['heating_system_type'] = 'none'
     args['cooling_system_type'] = 'none'
@@ -1770,7 +1777,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heating_system_2_heating_efficiency'] = 0.8
     args['heating_system_2_heating_capacity'] = 60000.0
   elsif ['base-hvac-air-to-air-heat-pump-var-speed-backup-boiler-switchover-temperature.xml'].include? hpxml_file
-    args['heat_pump_backup_heating_switchover_temp'] = 30.0
+    args['heat_pump_compressor_lockout_temp'] = 30.0
+    args['heat_pump_backup_heating_lockout_temp'] = 30.0
   elsif hpxml_file.include? 'autosize'
     args.delete('heating_system_heating_capacity')
     args.delete('heating_system_2_heating_capacity')
@@ -1836,20 +1844,23 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heat_pump_heating_efficiency'] = 7.7
     args['heat_pump_backup_fuel'] = HPXML::FuelTypeNaturalGas
     args['heat_pump_backup_heating_efficiency'] = 0.95
-    args['heat_pump_backup_heating_switchover_temp'] = 30.0
+    args['heat_pump_compressor_lockout_temp'] = 30.0
+    args['heat_pump_backup_heating_lockout_temp'] = 30.0
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-lockout-temperatures.xml'].include? hpxml_file
-    args.delete('heat_pump_backup_heating_switchover_temp')
+    args['heat_pump_compressor_lockout_temp'] = 30.0
     args['heat_pump_backup_heating_lockout_temp'] = 45.0
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.xml',
          'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml'].include? hpxml_file
     args['heat_pump_backup_fuel'] = HPXML::FuelTypeNaturalGas
     args['heat_pump_backup_heating_efficiency'] = 0.95
-    args['heat_pump_backup_heating_switchover_temp'] = 30.0
+    args['heat_pump_compressor_lockout_temp'] = 30.0
+    args['heat_pump_backup_heating_lockout_temp'] = 30.0
   elsif ['base-hvac-dual-fuel-mini-split-heat-pump-ducted.xml'].include? hpxml_file
     args['heat_pump_heating_capacity'] = 36000.0
     args['heat_pump_backup_fuel'] = HPXML::FuelTypeNaturalGas
     args['heat_pump_backup_heating_efficiency'] = 0.95
-    args['heat_pump_backup_heating_switchover_temp'] = 30.0
+    args['heat_pump_compressor_lockout_temp'] = 30.0
+    args['heat_pump_backup_heating_lockout_temp'] = 30.0
   elsif ['base-hvac-ducts-leakage-cfm50.xml'].include? hpxml_file
     args['ducts_leakage_units'] = HPXML::UnitsCFM50
     args['ducts_supply_leakage_to_outside_value'] = 100
@@ -2672,12 +2683,6 @@ end
 def apply_hpxml_modification(hpxml_file, hpxml)
   # Set detailed HPXML values for sample files
 
-  if hpxml_file.include? 'split-surfaces'
-    (hpxml.roofs + hpxml.rim_joists + hpxml.walls + hpxml.foundation_walls).each do |surface|
-      surface.azimuth = nil
-    end
-    hpxml.collapse_enclosure_surfaces()
-  end
   renumber_hpxml_ids(hpxml)
 
   # ------------ #
@@ -3609,138 +3614,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                       insulation_assembly_r_value: roof_type[0] == HPXML::RoofTypeEPS ? 7.0 : 2.3)
       hpxml.attics[0].attached_to_roof_idrefs << hpxml.roofs[-1].id
     end
-  elsif ['base-enclosure-split-surfaces.xml',
-         'base-enclosure-split-surfaces2.xml'].include? hpxml_file
-    for n in 1..hpxml.roofs.size
-      hpxml.roofs[n - 1].area /= 9.0
-      for i in 2..9
-        hpxml.roofs << hpxml.roofs[n - 1].dup
-        hpxml.roofs[-1].id += "_#{i}"
-        if hpxml_file == 'base-enclosure-split-surfaces2.xml'
-          hpxml.roofs[-1].insulation_assembly_r_value += 0.01 * i
-        end
-      end
-    end
-    hpxml.roofs << hpxml.roofs[-1].dup
-    hpxml.roofs[-1].id += '_tiny'
-    hpxml.roofs[-1].area = 0.05
-    for n in 1..hpxml.rim_joists.size
-      hpxml.rim_joists[n - 1].area /= 9.0
-      for i in 2..9
-        hpxml.rim_joists << hpxml.rim_joists[n - 1].dup
-        hpxml.rim_joists[-1].id += "_#{i}"
-        if hpxml_file == 'base-enclosure-split-surfaces2.xml'
-          hpxml.rim_joists[-1].insulation_assembly_r_value += 0.01 * i
-        end
-      end
-    end
-    hpxml.rim_joists << hpxml.rim_joists[-1].dup
-    hpxml.rim_joists[-1].id += '_tiny'
-    hpxml.rim_joists[-1].area = 0.05
-    for n in 1..hpxml.walls.size
-      hpxml.walls[n - 1].area /= 9.0
-      for i in 2..9
-        hpxml.walls << hpxml.walls[n - 1].dup
-        hpxml.walls[-1].id += "_#{i}"
-        if hpxml_file == 'base-enclosure-split-surfaces2.xml'
-          hpxml.walls[-1].insulation_assembly_r_value += 0.01 * i
-        end
-      end
-    end
-    hpxml.walls << hpxml.walls[-1].dup
-    hpxml.walls[-1].id += '_tiny'
-    hpxml.walls[-1].area = 0.05
-    for n in 1..hpxml.foundation_walls.size
-      hpxml.foundation_walls[n - 1].area /= 9.0
-      for i in 2..9
-        hpxml.foundation_walls << hpxml.foundation_walls[n - 1].dup
-        hpxml.foundation_walls[-1].id += "_#{i}"
-        if hpxml_file == 'base-enclosure-split-surfaces2.xml'
-          hpxml.foundation_walls[-1].insulation_exterior_r_value += 0.01 * i
-        end
-      end
-    end
-    hpxml.foundation_walls << hpxml.foundation_walls[-1].dup
-    hpxml.foundation_walls[-1].id += '_tiny'
-    hpxml.foundation_walls[-1].area = 0.05
-    for n in 1..hpxml.floors.size
-      hpxml.floors[n - 1].area /= 9.0
-      for i in 2..9
-        hpxml.floors << hpxml.floors[n - 1].dup
-        hpxml.floors[-1].id += "_#{i}"
-        if hpxml_file == 'base-enclosure-split-surfaces2.xml'
-          hpxml.floors[-1].insulation_assembly_r_value += 0.01 * i
-        end
-      end
-    end
-    hpxml.floors << hpxml.floors[-1].dup
-    hpxml.floors[-1].id += '_tiny'
-    hpxml.floors[-1].area = 0.05
-    for n in 1..hpxml.slabs.size
-      hpxml.slabs[n - 1].area /= 9.0
-      hpxml.slabs[n - 1].exposed_perimeter /= 9.0
-      for i in 2..9
-        hpxml.slabs << hpxml.slabs[n - 1].dup
-        hpxml.slabs[-1].id += "_#{i}"
-        if hpxml_file == 'base-enclosure-split-surfaces2.xml'
-          hpxml.slabs[-1].perimeter_insulation_depth += 0.01 * i
-          hpxml.slabs[-1].perimeter_insulation_r_value += 0.01 * i
-        end
-      end
-    end
-    hpxml.slabs << hpxml.slabs[-1].dup
-    hpxml.slabs[-1].id += '_tiny'
-    hpxml.slabs[-1].area = 0.05
-    for n in 1..hpxml.windows.size
-      hpxml.windows[n - 1].area /= 9.0
-      hpxml.windows[n - 1].fraction_operable = 0.0
-      for i in 2..9
-        hpxml.windows << hpxml.windows[n - 1].dup
-        hpxml.windows[-1].id += "_#{i}"
-        hpxml.windows[-1].wall_idref += "_#{i}"
-        if i >= 4
-          hpxml.windows[-1].fraction_operable = 1.0
-        end
-        next unless hpxml_file == 'base-enclosure-split-surfaces2.xml'
-
-        hpxml.windows[-1].ufactor += 0.01 * i
-        hpxml.windows[-1].interior_shading_factor_summer -= 0.02 * i
-        hpxml.windows[-1].interior_shading_factor_winter -= 0.01 * i
-      end
-    end
-    hpxml.windows << hpxml.windows[-1].dup
-    hpxml.windows[-1].id += '_tiny'
-    hpxml.windows[-1].area = 0.05
-    for n in 1..hpxml.skylights.size
-      hpxml.skylights[n - 1].area /= 9.0
-      for i in 2..9
-        hpxml.skylights << hpxml.skylights[n - 1].dup
-        hpxml.skylights[-1].id += "_#{i}"
-        hpxml.skylights[-1].roof_idref += "_#{i}"
-        next unless hpxml_file == 'base-enclosure-split-surfaces2.xml'
-
-        hpxml.skylights[-1].ufactor += 0.01 * i
-        hpxml.skylights[-1].interior_shading_factor_summer -= 0.02 * i
-        hpxml.skylights[-1].interior_shading_factor_winter -= 0.01 * i
-      end
-    end
-    hpxml.skylights << hpxml.skylights[-1].dup
-    hpxml.skylights[-1].id += '_tiny'
-    hpxml.skylights[-1].area = 0.05
-    for n in 1..hpxml.doors.size
-      hpxml.doors[n - 1].area /= 9.0
-      for i in 2..9
-        hpxml.doors << hpxml.doors[n - 1].dup
-        hpxml.doors[-1].id += "_#{i}"
-        hpxml.doors[-1].wall_idref += "_#{i}"
-        if hpxml_file == 'base-enclosure-split-surfaces2.xml'
-          hpxml.doors[-1].r_value += 0.01 * i
-        end
-      end
-    end
-    hpxml.doors << hpxml.doors[-1].dup
-    hpxml.doors[-1].id += '_tiny'
-    hpxml.doors[-1].area = 0.05
   elsif ['base-enclosure-overhangs.xml'].include? hpxml_file
     # Test relaxed overhangs validation; https://github.com/NREL/OpenStudio-HPXML/issues/866
     hpxml.windows.each do |window|
@@ -4755,12 +4628,10 @@ def apply_hpxml_modification(hpxml_file, hpxml)
   # ----- #
 
   # Collapse some surfaces whose azimuth is a minor effect to simplify HPXMLs.
-  if not hpxml_file.include? 'split-surfaces'
-    (hpxml.roofs + hpxml.rim_joists + hpxml.walls + hpxml.foundation_walls).each do |surface|
-      surface.azimuth = nil
-    end
-    hpxml.collapse_enclosure_surfaces()
+  (hpxml.roofs + hpxml.rim_joists + hpxml.walls + hpxml.foundation_walls).each do |surface|
+    surface.azimuth = nil
   end
+  hpxml.collapse_enclosure_surfaces()
 
   # After surfaces are collapsed, round all areas
   (hpxml.roofs +
