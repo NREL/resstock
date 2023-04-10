@@ -104,7 +104,7 @@ def setup(app):
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
-html_logo = 'https://user-images.githubusercontent.com/1276021/85608250-1ff46b80-b612-11ea-903e-4ced367e5940.jpg'
+html_logo = 'images/logo.jpg'
 html_theme_options = {
     'logo_only': True
 }
