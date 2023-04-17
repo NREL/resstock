@@ -92,35 +92,6 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     bldg_outputs[BO::SystemsHeatPumpBackupCapacity] = BaseOutput.new
     bldg_outputs[BO::SystemsWaterHeaterVolume] = BaseOutput.new
     bldg_outputs[BO::SystemsMechanicalVentilationFlowRate] = BaseOutput.new
-    bldg_outputs[BO::DesignTemperatureHeating] = BaseOutput.new
-    bldg_outputs[BO::DesignTemperatureCooling] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsHeatingTotal] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsHeatingDucts] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsHeatingWindows] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsHeatingSkylights] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsHeatingDoors] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsHeatingWalls] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsHeatingRoofs] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsHeatingFloors] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsHeatingSlabs] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsHeatingCeilings] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsHeatingInfilVent] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleTotal] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleDucts] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleWindows] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleSkylights] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleDoors] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleWalls] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleRoofs] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleFloors] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleSlabs] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleCeilings] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleInfilVent] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingSensibleIntGains] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingLatentTotal] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingLatentDucts] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingLatentInfilVent] = BaseOutput.new
-    bldg_outputs[BO::DesignLoadsCoolingLatentIntGains] = BaseOutput.new
 
     # Building outputs
     bldg_outputs.each do |bldg_type, bldg_output|
@@ -316,64 +287,6 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
         bldg_output += ventilation_fan.flow_rate.to_f
       end
-    elsif bldg_type == BO::DesignTemperatureHeating
-      bldg_output += hpxml.header.manualj_heating_design_temp
-    elsif bldg_type == BO::DesignTemperatureCooling
-      bldg_output += hpxml.header.manualj_cooling_design_temp
-    elsif bldg_type == BO::DesignLoadsHeatingTotal
-      bldg_output += hpxml.hvac_plant.hdl_total
-    elsif bldg_type == BO::DesignLoadsHeatingDucts
-      bldg_output += hpxml.hvac_plant.hdl_ducts
-    elsif bldg_type == BO::DesignLoadsHeatingWindows
-      bldg_output += hpxml.hvac_plant.hdl_windows
-    elsif bldg_type == BO::DesignLoadsHeatingSkylights
-      bldg_output += hpxml.hvac_plant.hdl_skylights
-    elsif bldg_type == BO::DesignLoadsHeatingDoors
-      bldg_output += hpxml.hvac_plant.hdl_doors
-    elsif bldg_type == BO::DesignLoadsHeatingWalls
-      bldg_output += hpxml.hvac_plant.hdl_walls
-    elsif bldg_type == BO::DesignLoadsHeatingRoofs
-      bldg_output += hpxml.hvac_plant.hdl_roofs
-    elsif bldg_type == BO::DesignLoadsHeatingFloors
-      bldg_output += hpxml.hvac_plant.hdl_floors
-    elsif bldg_type == BO::DesignLoadsHeatingSlabs
-      bldg_output += hpxml.hvac_plant.hdl_slabs
-    elsif bldg_type == BO::DesignLoadsHeatingCeilings
-      bldg_output += hpxml.hvac_plant.hdl_ceilings
-    elsif bldg_type == BO::DesignLoadsHeatingInfilVent
-      bldg_output += hpxml.hvac_plant.hdl_infilvent
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleTotal
-      bldg_output += hpxml.hvac_plant.cdl_sens_total
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleDucts
-      bldg_output += hpxml.hvac_plant.cdl_sens_ducts
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleWindows
-      bldg_output += hpxml.hvac_plant.cdl_sens_windows
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleSkylights
-      bldg_output += hpxml.hvac_plant.cdl_sens_skylights
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleDoors
-      bldg_output += hpxml.hvac_plant.cdl_sens_doors
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleWalls
-      bldg_output += hpxml.hvac_plant.cdl_sens_walls
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleRoofs
-      bldg_output += hpxml.hvac_plant.cdl_sens_roofs
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleFloors
-      bldg_output += hpxml.hvac_plant.cdl_sens_floors
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleSlabs
-      bldg_output += hpxml.hvac_plant.cdl_sens_slabs
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleCeilings
-      bldg_output += hpxml.hvac_plant.cdl_sens_ceilings
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleInfilVent
-      bldg_output += hpxml.hvac_plant.cdl_sens_infilvent
-    elsif bldg_type == BO::DesignLoadsCoolingSensibleIntGains
-      bldg_output += hpxml.hvac_plant.cdl_sens_intgains
-    elsif bldg_type == BO::DesignLoadsCoolingLatentTotal
-      bldg_output += hpxml.hvac_plant.cdl_lat_total
-    elsif bldg_type == BO::DesignLoadsCoolingLatentDucts
-      bldg_output += hpxml.hvac_plant.cdl_lat_ducts
-    elsif bldg_type == BO::DesignLoadsCoolingLatentInfilVent
-      bldg_output += hpxml.hvac_plant.cdl_lat_infilvent
-    elsif bldg_type == BO::DesignLoadsCoolingLatentIntGains
-      bldg_output += hpxml.hvac_plant.cdl_lat_intgains
     end
     return bldg_output
   end
