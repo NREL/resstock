@@ -707,14 +707,7 @@ class Schedule
   def self.set_schedule_type_limits(model, schedule, schedule_type_limits_name)
     return if schedule_type_limits_name.nil?
 
-    schedule_type_limits = nil
-    model.getScheduleTypeLimitss.each do |stl|
-      next if stl.name.to_s != schedule_type_limits_name
-
-      schedule_type_limits = stl
-      break
-    end
-
+    schedule_type_limits = model.getScheduleTypeLimitss.find { |stl| stl.name.to_s == schedule_type_limits_name }
     if schedule_type_limits.nil?
       schedule_type_limits = OpenStudio::Model::ScheduleTypeLimits.new(model)
       schedule_type_limits.setName(schedule_type_limits_name)

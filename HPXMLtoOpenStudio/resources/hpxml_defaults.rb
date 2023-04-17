@@ -22,6 +22,7 @@ class HPXMLDefaults
     end
 
     apply_header(hpxml, epw_file, weather)
+    apply_header_sizing(hpxml, weather, nbeds)
     apply_emissions_scenarios(hpxml, has_fuel)
     apply_utility_bill_scenarios(runner, hpxml, has_fuel)
     apply_site(hpxml)
@@ -63,7 +64,7 @@ class HPXMLDefaults
     apply_batteries(hpxml)
 
     # Do HVAC sizing after all other defaults have been applied
-    apply_hvac_sizing(hpxml, weather, cfa, nbeds)
+    apply_hvac_sizing(hpxml, weather, cfa)
   end
 
   def self.get_default_azimuths(hpxml)
@@ -172,15 +173,6 @@ class HPXMLDefaults
       end
     end
 
-    if hpxml.header.allow_increased_fixed_capacities.nil?
-      hpxml.header.allow_increased_fixed_capacities = false
-      hpxml.header.allow_increased_fixed_capacities_isdefaulted = true
-    end
-    if hpxml.header.heat_pump_sizing_methodology.nil? && (hpxml.heat_pumps.size > 0)
-      hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingHERS
-      hpxml.header.heat_pump_sizing_methodology_isdefaulted = true
-    end
-
     if (not epw_file.nil?) && hpxml.header.state_code.nil?
       state_province_region = epw_file.stateProvinceRegion.upcase
       if /^[A-Z]{2}$/.match(state_province_region)
@@ -235,6 +227,65 @@ class HPXMLDefaults
           hpxml.header.shading_summer_end_day_isdefaulted = true
         end
       end
+    end
+  end
+
+  def self.apply_header_sizing(hpxml, weather, nbeds)
+    if hpxml.header.allow_increased_fixed_capacities.nil?
+      hpxml.header.allow_increased_fixed_capacities = false
+      hpxml.header.allow_increased_fixed_capacities_isdefaulted = true
+    end
+
+    if hpxml.header.heat_pump_sizing_methodology.nil? && (hpxml.heat_pumps.size > 0)
+      hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingHERS
+      hpxml.header.heat_pump_sizing_methodology_isdefaulted = true
+    end
+
+    if hpxml.header.manualj_heating_design_temp.nil?
+      hpxml.header.manualj_heating_design_temp = weather.design.HeatingDrybulb.round(2)
+      hpxml.header.manualj_heating_design_temp_isdefaulted = true
+    end
+
+    if hpxml.header.manualj_cooling_design_temp.nil?
+      hpxml.header.manualj_cooling_design_temp = weather.design.CoolingDrybulb.round(2)
+      hpxml.header.manualj_cooling_design_temp_isdefaulted = true
+    end
+
+    if hpxml.header.manualj_heating_setpoint.nil?
+      hpxml.header.manualj_heating_setpoint = 70.0 # deg-F, per Manual J
+      hpxml.header.manualj_heating_setpoint_isdefaulted = true
+    end
+
+    if hpxml.header.manualj_cooling_setpoint.nil?
+      hpxml.header.manualj_cooling_setpoint = 75.0 # deg-F, per Manual J
+      hpxml.header.manualj_cooling_setpoint_isdefaulted = true
+    end
+
+    if hpxml.header.manualj_humidity_setpoint.nil?
+      hpxml.header.manualj_humidity_setpoint = 0.5 # 50%
+      if hpxml.dehumidifiers.size > 0
+        hpxml.header.manualj_humidity_setpoint = [hpxml.header.manualj_humidity_setpoint, hpxml.dehumidifiers[0].rh_setpoint].min
+      end
+      hpxml.header.manualj_humidity_setpoint_isdefaulted = true
+    end
+
+    if hpxml.header.manualj_internal_loads_sensible.nil?
+      if hpxml.refrigerators.size + hpxml.freezers.size <= 1
+        hpxml.header.manualj_internal_loads_sensible = 2400.0 # Btuh, per Manual J
+      else
+        hpxml.header.manualj_internal_loads_sensible = 3600.0 # Btuh, per Manual J
+      end
+      hpxml.header.manualj_internal_loads_sensible_isdefaulted = true
+    end
+
+    if hpxml.header.manualj_internal_loads_latent.nil?
+      hpxml.header.manualj_internal_loads_latent = 0.0 # Btuh
+      hpxml.header.manualj_internal_loads_latent_isdefaulted = true
+    end
+
+    if hpxml.header.manualj_num_occupants.nil?
+      hpxml.header.manualj_num_occupants = nbeds + 1 # Per Manual J
+      hpxml.header.manualj_num_occupants_isdefaulted = true
     end
   end
 
@@ -553,7 +604,7 @@ class HPXMLDefaults
       infil_measurement.infiltration_height_isdefaulted = true
     end
     if infil_measurement.a_ext.nil?
-      if (infil_measurement.type_of_test == HPXML::InfiltrationTestCompartmentalization) &&
+      if (infil_measurement.infiltration_type == HPXML::InfiltrationTypeUnitTotal) &&
          [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include?(hpxml.building_construction.residential_facility_type)
         tot_cb_area, ext_cb_area = hpxml.compartmentalization_boundary_areas()
         infil_measurement.a_ext = (ext_cb_area / tot_cb_area).round(5)
@@ -2650,11 +2701,11 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_hvac_sizing(hpxml, weather, cfa, nbeds)
+  def self.apply_hvac_sizing(hpxml, weather, cfa)
     hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml)
 
     # Calculate building design loads and equipment capacities/airflows
-    bldg_design_loads, all_hvac_sizing_values = HVACSizing.calculate(weather, hpxml, cfa, nbeds, hvac_systems)
+    bldg_design_loads, all_hvac_sizing_values = HVACSizing.calculate(weather, hpxml, cfa, hvac_systems)
 
     hvacpl = hpxml.hvac_plant
     tol = 10 # Btuh
@@ -2689,7 +2740,7 @@ class HPXMLDefaults
     hvacpl.cdl_sens_windows = bldg_design_loads.Cool_Windows.round
     hvacpl.cdl_sens_skylights = bldg_design_loads.Cool_Skylights.round
     hvacpl.cdl_sens_doors = bldg_design_loads.Cool_Doors.round
-    hvacpl.cdl_sens_infilvent = bldg_design_loads.Cool_Infil_Sens.round
+    hvacpl.cdl_sens_infilvent = bldg_design_loads.Cool_InfilVent_Sens.round
     hvacpl.cdl_sens_ducts = bldg_design_loads.Cool_Ducts_Sens.round
     hvacpl.cdl_sens_intgains = bldg_design_loads.Cool_IntGains_Sens.round
     cdl_sens_sum = (hvacpl.cdl_sens_walls + hvacpl.cdl_sens_ceilings +
@@ -2705,17 +2756,13 @@ class HPXMLDefaults
     # Assign cooling latent design loads to HPXML object
     hvacpl.cdl_lat_total = bldg_design_loads.Cool_Lat.round
     hvacpl.cdl_lat_ducts = bldg_design_loads.Cool_Ducts_Lat.round
-    hvacpl.cdl_lat_infilvent = bldg_design_loads.Cool_Infil_Lat.round
+    hvacpl.cdl_lat_infilvent = bldg_design_loads.Cool_InfilVent_Lat.round
     hvacpl.cdl_lat_intgains = bldg_design_loads.Cool_IntGains_Lat.round
     cdl_lat_sum = (hvacpl.cdl_lat_ducts + hvacpl.cdl_lat_infilvent +
                    hvacpl.cdl_lat_intgains)
     if (cdl_lat_sum - hvacpl.cdl_lat_total).abs > tol
       fail 'Cooling latent design loads do not sum to total.'
     end
-
-    # Assign design temperatures to HPXML object
-    hvacpl.temp_heating = weather.design.HeatingDrybulb.round(2)
-    hvacpl.temp_cooling = weather.design.CoolingDrybulb.round(2)
 
     # Assign sizing values to HPXML objects
     all_hvac_sizing_values.each do |hvac_system, hvac_sizing_values|

@@ -128,9 +128,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     "End Use: #{FT::Coal}: #{EUT::Lighting} (MBtu)",
     "End Use: #{FT::Coal}: #{EUT::Fireplace} (MBtu)",
     "End Use: #{FT::Coal}: #{EUT::Generator} (MBtu)",
-    "System Use: CoolingSystem1: #{EUT::Cooling} (MBtu)",
-    "System Use: HeatingSystem1: #{EUT::Heating} (MBtu)",
-    "System Use: WaterHeatingSystem1: #{EUT::HotWater} (MBtu)",
+    "System Use: HeatingSystem1: #{FT::Elec}: #{EUT::HeatingFanPump} (MBtu)",
+    "System Use: HeatingSystem1: #{FT::Gas}: #{EUT::Heating} (MBtu)",
+    "System Use: CoolingSystem1: #{FT::Elec}: #{EUT::Cooling} (MBtu)",
+    "System Use: CoolingSystem1: #{FT::Elec}: #{EUT::CoolingFanPump} (MBtu)",
+    "System Use: WaterHeatingSystem1: #{FT::Elec}: #{EUT::HotWater} (MBtu)",
     "Load: #{LT::Heating} (MBtu)",
     "Load: #{LT::HeatingHeatPumpBackup} (MBtu)",
     "Load: #{LT::Cooling} (MBtu)",
@@ -249,9 +251,11 @@ class ReportSimulationOutputTest < MiniTest::Test
   ]
 
   BaseHPXMLTimeseriesColsSystemUses = [
-    "System Use: CoolingSystem1: #{EUT::Cooling}",
-    "System Use: HeatingSystem1: #{EUT::Heating}",
-    "System Use: WaterHeatingSystem1: #{EUT::HotWater}",
+    "System Use: HeatingSystem1: #{FT::Elec}: #{EUT::HeatingFanPump}",
+    "System Use: HeatingSystem1: #{FT::Gas}: #{EUT::Heating}",
+    "System Use: CoolingSystem1: #{FT::Elec}: #{EUT::Cooling}",
+    "System Use: CoolingSystem1: #{FT::Elec}: #{EUT::CoolingFanPump}",
+    "System Use: WaterHeatingSystem1: #{FT::Elec}: #{EUT::HotWater}",
   ]
 
   BaseHPXMLTimeseriesColsWaterUses = [
@@ -884,7 +888,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ["System Use: HeatingSystem1: #{EUT::Heating}"])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ["System Use: HeatingSystem1: #{FT::Gas}: #{EUT::Heating}"])
   end
 
   def test_timeseries_hourly_hotwateruses

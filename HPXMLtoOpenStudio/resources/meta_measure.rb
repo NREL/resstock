@@ -498,6 +498,7 @@ def report_os_warnings(os_log, rundir)
       next if s.logMessage.include? 'Valid instance'
       next if s.logMessage.include? 'xsdValidate'
       next if s.logMessage.include? 'xsltValidate'
+      next if s.logLevel == 0 && s.logMessage.include?('not within the expected limits') # Ignore EpwFile warnings
 
       f << "OS Message: #{s.logMessage}\n"
     end

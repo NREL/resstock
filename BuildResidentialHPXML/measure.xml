@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>dee8028d-c150-4027-b993-cd0ee3e562c4</version_id>
-  <version_modified>20230403T232607Z</version_modified>
+  <version_id>1806b6bb-e9cb-4319-bbde-077b03651e98</version_id>
+  <version_modified>20230411T234612Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -578,7 +578,7 @@
       <display_name>Geometry: Unit Left Wall Is Adiabatic</display_name>
       <description>Presence of an adiabatic left wall.</description>
       <type>Boolean</type>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>false</default_value>
       <choices>
@@ -597,7 +597,7 @@
       <display_name>Geometry: Unit Right Wall Is Adiabatic</display_name>
       <description>Presence of an adiabatic right wall.</description>
       <type>Boolean</type>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>false</default_value>
       <choices>
@@ -616,7 +616,7 @@
       <display_name>Geometry: Unit Front Wall Is Adiabatic</display_name>
       <description>Presence of an adiabatic front wall, for example, the unit is adjacent to a conditioned corridor.</description>
       <type>Boolean</type>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>false</default_value>
       <choices>
@@ -635,7 +635,7 @@
       <display_name>Geometry: Unit Back Wall Is Adiabatic</display_name>
       <description>Presence of an adiabatic back wall.</description>
       <type>Boolean</type>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>false</default_value>
       <choices>
@@ -1419,9 +1419,9 @@
     <argument>
       <name>roof_radiant_barrier_grade</name>
       <display_name>Roof: Radiant Barrier Grade</display_name>
-      <description>The grade of the radiant barrier, if it exists.</description>
+      <description>The grade of the radiant barrier. If not provided, the OS-HPXML default is used.</description>
       <type>Choice</type>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
       <choices>
@@ -2045,20 +2045,20 @@
       <default_value>3</default_value>
     </argument>
     <argument>
-      <name>air_leakage_multifamily_value_type</name>
-      <display_name>Air Leakage: Multifamily Value Type</display_name>
-      <description>Type of air leakage value for a SFA/MF dwelling unit. If 'compartmentalization test', represents the total infiltration to the unit, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'guarded test', represents the infiltration to the unit from outside only. Required when unit type is single-family attached or apartment unit.</description>
+      <name>air_leakage_type</name>
+      <display_name>Air Leakage: Type</display_name>
+      <description>Type of air leakage. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.</description>
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>compartmentalization test</value>
-          <display_name>compartmentalization test</display_name>
+          <value>unit total</value>
+          <display_name>unit total</display_name>
         </choice>
         <choice>
-          <value>guarded test</value>
-          <display_name>guarded test</display_name>
+          <value>unit exterior only</value>
+          <display_name>unit exterior only</display_name>
         </choice>
       </choices>
     </argument>
@@ -2333,7 +2333,7 @@
       <display_name>Cooling System: Is Ducted</display_name>
       <description>Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.</description>
       <type>Boolean</type>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>false</default_value>
       <choices>
@@ -3946,7 +3946,7 @@
       <display_name>Hot Water Distribution: Recirculation Control Type</display_name>
       <description>If the distribution system is Recirculation, the type of hot water recirculation control, if any.</description>
       <type>Choice</type>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>no control</default_value>
       <choices>
@@ -4036,7 +4036,7 @@
       <display_name>Drain Water Heat Recovery: Equal Flow</display_name>
       <description>Whether the drain water heat recovery has equal flow.</description>
       <type>Boolean</type>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>true</default_value>
       <choices>
@@ -4056,7 +4056,7 @@
       <description>The efficiency of the drain water heat recovery.</description>
       <type>Double</type>
       <units>Frac</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>0.55</default_value>
     </argument>
@@ -6531,6 +6531,25 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>combine_like_surfaces</name>
+      <display_name>Combine like surfaces?</display_name>
+      <description>If true, combines like surfaces to simplify the HPXML file generated.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>apply_defaults</name>
       <display_name>Apply Default Values?</display_name>
       <description>If true, applies OS-HPXML default values to the HPXML output file. Setting to true will also force validation of the HPXML output file before applying OS-HPXML default values.</description>
@@ -6589,12 +6608,6 @@
       <checksum>D9E75C2E</checksum>
     </file>
     <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>FC779758</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.0</identifier>
@@ -6603,7 +6616,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>93832AF9</checksum>
+      <checksum>783DB78D</checksum>
+    </file>
+    <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7F6A3D85</checksum>
     </file>
   </files>
 </measure>

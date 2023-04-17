@@ -12,7 +12,7 @@ __New Features__
   - **Breaking change**: Adds `Component Load: Lighting` (disaggregated from `Component Load: Internal Gains`).
   - **Breaking change**: Adds "net" values for emissions; "total" values now exclude generation (e.g., PV).
   - Adds `Load: Heating: Heat Pump Backup` (heating load delivered by heat pump backup systems).
-  - Adds `System Use` outputs (energy use for each HVAC and water heating system); allows requesting timeseries output.
+  - Adds `System Use` outputs (end use outputs for each heating, cooling, and water heating system); allows requesting timeseries output.
   - All annual load outputs are now provided as timeseries outputs; previously only "Delivered" loads were available.
   - Peak summer/winter electricity outputs are now based on Jun/July/Aug and Dec/Jan/Feb months, not HVAC heating/cooling operation.
   - Allows specifying the number of decimal places for timeseries output.
@@ -24,26 +24,32 @@ __New Features__
   - Updates defaults for `CompressorLockoutTemperature` and `BackupHeatingLockoutTemperature`.
   - Provides a warning if `BackupHeatingSwitchoverTemperature` or `BackupHeatingLockoutTemperature` are low and may cause unmet hours.
 - Infiltration changes:
-  - **Breaking change**: Infiltration for SFA/MF dwelling units must include `TypeOfInfiltrationTest` ("compartmentalization test" or "guarded test").
+  - **Breaking change**: Infiltration for SFA/MF dwelling units must include `TypeOfInfiltrationLeakage` ("unit total" or "unit exterior only").
   - Allows infiltration to be specified using `CFMnatural` or `EffectiveLeakageArea`.
 - Lighting changes:
   - LightingGroups can now be specified using kWh/year annual consumption values as an alternative to fractions of different lighting types.
   - LightingGroups for interior, exterior, and garage are no longer required; if not provided, these lighting uses will not be modeled.
+- HVAC sizing enhancements:
+  - Allows optional inputs under `HVACSizingControl/ManualJInputs` to override Manual J defaults for HVAC autosizing calculations.
+  - Updates to better align various default values and algorithms with Manual J.
+  - Updates design load calculations to handle conditioned basements with insulated slabs.
 - Allows modeling a pilot light for non-electric heating systems (furnaces, stoves, boilers, and fireplaces).
 - Allows summer vs winter shading seasons to be specified for windows and skylights.
 - Allows defining one or more `UnavailablePeriods` (e.g., occupant vacancies or power outage periods).
+- Stochastic schedules for garage lighting and TV plug loads now use interior lighting and miscellaneous plug load schedules, respectively.
 - Performance improvement for HPXML files w/ large numbers of `Building` elements.
-- BuildResidentialScheduleFile measure: Garage lighting and TV plug loads now use interior lighting and miscellaneous plug load schedules, respectively.
+- Weather cache files (\*foo-cache.csv) are no longer used/needed.
 
 __Bugfixes__
 - Fixes `BackupHeatingSwitchoverTemperature` for a heat pump w/ *separate* backup system; now correctly ceases backup operation above this temperature.
 - Fixes error if calculating utility bills for an all-electric home with a detailed JSON utility rate.
-- BuildResidentialScheduleFile measure now excludes columns for end uses that are not stochastically generated.
+- Stochastic schedules now excludes columns for end uses that are not stochastically generated.
 - Fixes operational calculation when the number of residents is set to zero.
 - Fixes possible utility bill calculation error for a home with PV using a detailed electric utility rate.
 - Fixes defaulted mechanical ventilation flow rate for SFA/MF buildings, with respect to infiltration credit.
 - HPXML files w/ multiple `Building` elements now only show warnings for the single `Building` being simulated.
 - Adds a warning for SFA/MF dwelling units without at least one attached wall/ceiling/floor surface.
+- Fixes window/skylight design loads for Manual J HVAC autosizing calculations.
 
 ## OpenStudio-HPXML v1.5.1
 

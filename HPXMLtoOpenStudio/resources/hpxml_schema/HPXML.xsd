@@ -1399,6 +1399,7 @@
 									<xs:element minOccurs="0" maxOccurs="unbounded" name="HeatingSystem" type="HeatingSystemInfoType"/>
 									<xs:element minOccurs="0" maxOccurs="unbounded" name="CoolingSystem" type="CoolingSystemInfoType"/>
 									<xs:element minOccurs="0" maxOccurs="unbounded" name="HeatPump" type="HeatPumpInfoType"/>
+									<xs:element maxOccurs="unbounded" minOccurs="0" name="GeothermalLoop" type="GeothermalLoopType"/>
 									<xs:element ref="extension" minOccurs="0"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -3851,7 +3852,6 @@
 						</xs:annotation>
 					</xs:element>
 					<xs:element minOccurs="0" name="CoolingSensibleHeatFraction" type="Fraction"/>
-					<xs:element name="GeothermalLoop" type="GeothermalLoop" minOccurs="0"/>
 					<xs:element minOccurs="0" name="BackupType" type="HeatPumpBackupType">
 						<xs:annotation>
 							<xs:documentation>Whether the heat pump backup is integrated into the unit (describe in BackupSystemFuel, BackupAnnualHeatingEfficiency, BackupHeatingCapacity), or a
@@ -3894,6 +3894,7 @@
 					</xs:element>
 					<xs:element name="AnnualCoolingEfficiency" type="CoolingEfficiencyType" minOccurs="0" maxOccurs="unbounded"/>
 					<xs:element name="AnnualHeatingEfficiency" minOccurs="0" type="HeatingEfficiencyType" maxOccurs="unbounded"/>
+					<xs:element minOccurs="0" name="AttachedToGeothermalLoop" type="LocalReference"/>
 					<xs:element minOccurs="0" name="CoolingDetailedPerformanceData">
 						<xs:complexType>
 							<xs:sequence>
@@ -3953,6 +3954,83 @@
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="GeothermalLoopType">
+		<xs:sequence>
+			<xs:group ref="SystemInfo"/>
+			<xs:element minOccurs="0" name="LoopType" type="LoopType"/>
+			<xs:element minOccurs="0" name="LoopConfiguration" type="LoopConfiguration"/>
+			<xs:element minOccurs="0" name="LoopFlow" type="HPXMLDouble">
+				<xs:annotation>
+					<xs:documentation>[gpm] Water flow rate through the geothermal loop</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="BoreholesOrTrenches">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs="0" name="Count" type="IntegerGreaterThanZero"/>
+						<xs:element minOccurs="0" name="Length" type="HPXMLDouble">
+							<xs:annotation>
+								<xs:documentation>[ft] Length of each borehole (vertical) or trench (horizontal)</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="Spacing" type="HPXMLDouble">
+							<xs:annotation>
+								<xs:documentation>[ft] Distance between bores/trenches</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="Diameter" type="HPXMLDouble">
+							<xs:annotation>
+								<xs:documentation>[in]</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element ref="extension" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element minOccurs="0" name="Grout">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs="0" name="Type" type="GroutOrPipeType">
+							<xs:annotation>
+								<xs:documentation/>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="Conductivity" type="HPXMLDouble">
+							<xs:annotation>
+								<xs:documentation>[Btu/hr-ft-F]</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element ref="extension" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element minOccurs="0" name="Pipe">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs="0" name="Type" type="GroutOrPipeType"/>
+						<xs:element minOccurs="0" name="Conductivity" type="HPXMLDouble">
+							<xs:annotation>
+								<xs:documentation>[Btu/hr-ft-F]</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="Diameter" type="HPXMLDouble">
+							<xs:annotation>
+								<xs:documentation>[in]</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="ShankSpacing" type="HPXMLDouble">
+							<xs:annotation>
+								<xs:documentation>[in] Measured as center-to-center (not edge-to-edge) distance between two branches of a vertical U-tube</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element ref="extension" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element ref="extension" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
 	<xs:complexType name="CoolingEfficiencyType">
 		<xs:sequence>
@@ -4176,6 +4254,20 @@
 												<xs:element maxOccurs="unbounded" name="Fuel" type="FuelType"/>
 											</xs:sequence>
 											<xs:attribute name="dataSource" type="DataSource"/>
+										</xs:complexType>
+									</xs:element>
+									<xs:element minOccurs="0" name="Soil">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element minOccurs="0" name="SoilType" type="SoilType"/>
+												<xs:element minOccurs="0" name="MoistureType" type="MoisureType"/>
+												<xs:element minOccurs="0" name="Conductivity" type="HPXMLDouble">
+													<xs:annotation>
+														<xs:documentation>[Btu/hr-ft-F]</xs:documentation>
+													</xs:annotation>
+												</xs:element>
+												<xs:element minOccurs="0" ref="extension"/>
+											</xs:sequence>
 										</xs:complexType>
 									</xs:element>
 									<xs:element minOccurs="0" ref="extension"/>
@@ -5351,9 +5443,9 @@
 			<xs:element minOccurs="0" name="WindConditions" type="WindConditions"/>
 			<xs:element name="TypeOfInfiltrationMeasurement" type="TypeofInfiltrationMeasurement" minOccurs="0"/>
 			<xs:element name="TypeOfBlowerDoorTest" type="TypeofBlowerDoorTest" minOccurs="0"/>
-			<xs:element minOccurs="0" name="TypeOfInfiltrationTest" type="TypeOfInfiltrationTest">
+			<xs:element minOccurs="0" name="TypeOfInfiltrationLeakage" type="TypeofInfiltrationLeakage">
 				<xs:annotation>
-					<xs:documentation>Applies to single-family attached and multifamily. Whole building tests measure the infiltration through the total exterior envelope of the building. Compartmentalization tests measure the infiltration for a single dwelling unit through both exterior (adjacent to outside) and interior/shared (adjacent to other spaces/units) surfaces. Guarded tests measure the infiltration for a single dwelling unit through only exterior (adjacent to outside) surfaces.</xs:documentation>
+					<xs:documentation>This element is intended to describe the type of infiltration measured, e.g., for an individual single-family attached or multifamily dwelling unit. Either whole building or single unit infiltration can be measured. For single unit infiltration, leakage can occur through exterior surfaces (adjacent to outside) only, interior surfaces (adjacent to other units or common spaces) only, or both. For example, guarded tests measure unit exterior leakage, unguarded or compartmentalization tests measure unit total leakage, and combining both tests can measure unit interior leakage.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="HousePressure" type="HousePressure" minOccurs="0">
@@ -6619,6 +6711,21 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="TypeofInfiltrationLeakage_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="building total"/>
+			<xs:enumeration value="unit total"/>
+			<xs:enumeration value="unit exterior only"/>
+			<xs:enumeration value="unit interior only"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="TypeofInfiltrationLeakage">
+		<xs:simpleContent>
+			<xs:extension base="TypeofInfiltrationLeakage_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="FanPressure_simple">
 		<xs:restriction base="xs:double"/>
 	</xs:simpleType>
@@ -6664,21 +6771,6 @@
 	<xs:complexType name="HousePressure">
 		<xs:simpleContent>
 			<xs:extension base="HousePressure_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="TypeOfInfiltrationTest_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="whole building test"/>
-			<xs:enumeration value="compartmentalization test"/>
-			<xs:enumeration value="guarded test"/>
-			<xs:enumeration value="other"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="TypeOfInfiltrationTest">
-		<xs:simpleContent>
-			<xs:extension base="TypeOfInfiltrationTest_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -8152,16 +8244,45 @@
 		</xs:simpleContent>
 	</xs:complexType>
 	<!--Heat Pump Information Below-->
-	<xs:simpleType name="GeothermalLoop_simple">
+	<xs:simpleType name="LoopType_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="open"/>
 			<xs:enumeration value="closed"/>
 			<xs:enumeration value="direct expansion"/>
+			<xs:enumeration value="other"/>
 		</xs:restriction>
 	</xs:simpleType>
-	<xs:complexType name="GeothermalLoop">
+	<xs:complexType name="LoopType">
 		<xs:simpleContent>
-			<xs:extension base="GeothermalLoop_simple">
+			<xs:extension base="LoopType_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="LoopConfiguration_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="horizontal"/>
+			<xs:enumeration value="vertical"/>
+			<xs:enumeration value="diagonal"/>
+			<xs:enumeration value="other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="LoopConfiguration">
+		<xs:simpleContent>
+			<xs:extension base="LoopConfiguration_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="GroutOrPipeType_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="standard"/>
+			<xs:enumeration value="thermally enhanced"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="GroutOrPipeType">
+		<xs:simpleContent>
+			<xs:extension base="GroutOrPipeType_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -11218,6 +11339,38 @@
 	<xs:complexType name="HPWHOperatingMode">
 		<xs:simpleContent>
 			<xs:extension base="HPWHOperatingModeType_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="SoilType_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="sand"/>
+			<xs:enumeration value="silt"/>
+			<xs:enumeration value="clay"/>
+			<xs:enumeration value="loam"/>
+			<xs:enumeration value="gravel"/>
+			<xs:enumeration value="other"/>
+			<xs:enumeration value="unknown"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="SoilType">
+		<xs:simpleContent>
+			<xs:extension base="SoilType_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="MoistureType_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="wet"/>
+			<xs:enumeration value="dry"/>
+			<xs:enumeration value="mixed"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="MoisureType">
+		<xs:simpleContent>
+			<xs:extension base="MoistureType_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>

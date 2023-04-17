@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
 class HVACSizing
-  def self.calculate(weather, hpxml, cfa, nbeds, hvac_systems)
+  def self.calculate(weather, hpxml, cfa, hvac_systems)
     # Calculates heating/cooling design loads, and selects equipment
     # values (e.g., capacities, airflows) specific to each HVAC system.
     # Calculations generally follow ACCA Manual J/S.
 
     @hpxml = hpxml
     @cfa = cfa
-    @nbeds = nbeds
 
     def self.is_system_to_skip(hvac)
       # These shared systems should be converted to other equivalent
@@ -31,8 +30,8 @@ class HVACSizing
     bldg_design_loads = DesignLoads.new
     process_load_windows_skylights(bldg_design_loads, weather)
     process_load_doors(bldg_design_loads)
-    process_load_walls(bldg_design_loads, weather)
-    process_load_roofs(bldg_design_loads, weather)
+    process_load_walls(bldg_design_loads)
+    process_load_roofs(bldg_design_loads)
     process_load_ceilings(bldg_design_loads)
     process_load_floors(bldg_design_loads)
     process_load_slabs(bldg_design_loads)
@@ -59,7 +58,7 @@ class HVACSizing
       apply_hvac_loads(hvac, hvac_sizing_values, system_design_loads, ducts_heat_load, ducts_cool_load_sens, ducts_cool_load_lat)
       apply_hvac_heat_pump_logic(hvac_sizing_values, hvac)
       apply_hvac_equipment_adjustments(hvac_sizing_values, weather, hvac)
-      apply_hvac_installation_quality(hvac_sizing_values, weather, hvac)
+      apply_hvac_installation_quality(hvac_sizing_values, hvac)
       apply_hvac_fixed_capacities(hvac_sizing_values, hvac)
       apply_hvac_ground_loop(hvac_sizing_values, weather, hvac)
       apply_hvac_finalize_airflows(hvac_sizing_values, hvac)
@@ -81,14 +80,14 @@ class HVACSizing
     @daily_range_temp_adjust = [4, 0, -5]
 
     # Manual J inside conditions
-    @cool_setpoint = 75.0
-    @heat_setpoint = 70.0
+    @cool_setpoint = @hpxml.header.manualj_cooling_setpoint
+    @heat_setpoint = @hpxml.header.manualj_heating_setpoint
 
     @cool_design_grains = UnitConversions.convert(weather.design.CoolingHumidityRatio, 'lbm/lbm', 'grains')
 
     # Calculate the design temperature differences
-    @ctd = [weather.design.CoolingDrybulb - @cool_setpoint, 0.0].max
-    @htd = [@heat_setpoint - weather.design.HeatingDrybulb, 0.0].max
+    @ctd = [@hpxml.header.manualj_cooling_design_temp - @cool_setpoint, 0.0].max
+    @htd = [@heat_setpoint - @hpxml.header.manualj_heating_design_temp, 0.0].max
 
     # Calculate the average Daily Temperature Range (DTR) to determine the class (low, medium, high)
     dtr = weather.design.DailyTemperatureRange
@@ -109,8 +108,9 @@ class HVACSizing
     @acf = MathTools.interp2(weather.header.Altitude, alt_cnt * 1000.0, (alt_cnt + 1.0) * 1000.0, acfs[alt_cnt], acfs[alt_cnt + 1])
 
     # Calculate the interior humidity in Grains and enthalpy in Btu/lb for cooling
-    pwsat = UnitConversions.convert(0.430075, 'psi', 'kPa') # Calculated for 75degF indoor temperature
-    rh_indoor_cooling = 0.55 # Manual J is vague on the indoor RH. 55% corresponds to BA goals
+    cool_setpoint_c = UnitConversions.convert(@cool_setpoint, 'F', 'C')
+    pwsat = 6.11 * 10**(7.5 * cool_setpoint_c / (237.3 + cool_setpoint_c)) / 10.0 # kPa, using https://www.weather.gov/media/epz/wxcalc/vaporPressure.pdf
+    rh_indoor_cooling = 0.5 # Manual J is vague on the indoor RH but uses 50% in its examples
     hr_indoor_cooling = (0.62198 * rh_indoor_cooling * pwsat) / (UnitConversions.convert(weather.header.LocalPressure, 'atm', 'kPa') - rh_indoor_cooling * pwsat)
     @cool_indoor_grains = UnitConversions.convert(hr_indoor_cooling, 'lbm/lbm', 'grains')
     @wetbulb_indoor_cooling = Psychrometrics.Twb_fT_R_P(@cool_setpoint, rh_indoor_cooling, UnitConversions.convert(weather.header.LocalPressure, 'atm', 'psi'))
@@ -144,11 +144,11 @@ class HVACSizing
 
       if [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
           HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab].include? location
-        @cool_design_temps[location] = calculate_scheduled_space_design_temps(location, @cool_setpoint, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max)
-        @heat_design_temps[location] = calculate_scheduled_space_design_temps(location, @heat_setpoint, weather.design.HeatingDrybulb, weather.data.GroundMonthlyTemps.min)
+        @cool_design_temps[location] = calculate_scheduled_space_design_temps(location, @cool_setpoint, @hpxml.header.manualj_cooling_design_temp, weather.data.GroundMonthlyTemps.max)
+        @heat_design_temps[location] = calculate_scheduled_space_design_temps(location, @heat_setpoint, @hpxml.header.manualj_heating_design_temp, weather.data.GroundMonthlyTemps.min)
       elsif [HPXML::LocationOutside, HPXML::LocationRoofDeck].include? location
-        @cool_design_temps[location] = weather.design.CoolingDrybulb
-        @heat_design_temps[location] = weather.design.HeatingDrybulb
+        @cool_design_temps[location] = @hpxml.header.manualj_cooling_design_temp
+        @heat_design_temps[location] = @hpxml.header.manualj_heating_design_temp
       elsif HPXML::conditioned_locations.include? location
         @cool_design_temps[location] = process_design_temp_cooling(weather, HPXML::LocationLivingSpace)
         @heat_design_temps[location] = process_design_temp_heating(weather, HPXML::LocationLivingSpace)
@@ -164,7 +164,7 @@ class HVACSizing
       heat_temp = @heat_setpoint
 
     elsif location == HPXML::LocationGarage
-      heat_temp = weather.design.HeatingDrybulb + 13.0
+      heat_temp = @hpxml.header.manualj_heating_design_temp + 13.0
 
     elsif (location == HPXML::LocationAtticUnvented) || (location == HPXML::LocationAtticVented)
 
@@ -178,16 +178,16 @@ class HVACSizing
         # Attic is considered to be encapsulated. MJ8 says to use an attic
         # temperature of 95F, however alternative approaches are permissible
         if location == HPXML::LocationAtticVented
-          heat_temp = weather.design.HeatingDrybulb
+          heat_temp = @hpxml.header.manualj_heating_design_temp
         else
-          heat_temp = calculate_space_design_temps(location, weather, @heat_setpoint, weather.design.HeatingDrybulb, weather.data.GroundMonthlyTemps.min)
+          heat_temp = calculate_space_design_temps(location, weather, @heat_setpoint, @hpxml.header.manualj_heating_design_temp, weather.data.GroundMonthlyTemps.min)
         end
       else
-        heat_temp = weather.design.HeatingDrybulb
+        heat_temp = @hpxml.header.manualj_heating_design_temp
       end
 
     elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? location
-      heat_temp = calculate_space_design_temps(location, weather, @heat_setpoint, weather.design.HeatingDrybulb, weather.data.GroundMonthlyTemps.min)
+      heat_temp = calculate_space_design_temps(location, weather, @heat_setpoint, @hpxml.header.manualj_heating_design_temp, weather.data.GroundMonthlyTemps.min)
 
     end
 
@@ -224,15 +224,15 @@ class HVACSizing
       # Calculate the garage cooling design temperature based on Table 4C
       # Linearly interpolate between having living space over the garage and not having living space above the garage
       if @daily_range_num == 0.0
-        cool_temp = (weather.design.CoolingDrybulb +
+        cool_temp = (@hpxml.header.manualj_cooling_design_temp +
                      (11.0 * garage_frac_under_conditioned) +
                      (22.0 * (1.0 - garage_frac_under_conditioned)))
       elsif @daily_range_num == 1.0
-        cool_temp = (weather.design.CoolingDrybulb +
+        cool_temp = (@hpxml.header.manualj_cooling_design_temp +
                      (6.0 * garage_frac_under_conditioned) +
                      (17.0 * (1.0 - garage_frac_under_conditioned)))
       elsif @daily_range_num == 2.0
-        cool_temp = (weather.design.CoolingDrybulb +
+        cool_temp = (@hpxml.header.manualj_cooling_design_temp +
                      (1.0 * garage_frac_under_conditioned) +
                      (12.0 * (1.0 - garage_frac_under_conditioned)))
       end
@@ -249,9 +249,9 @@ class HVACSizing
         # Attic is considered to be encapsulated. MJ8 says to use an attic
         # temperature of 95F, however alternative approaches are permissible
         if location == HPXML::LocationAtticVented
-          cool_temp = weather.design.CoolingDrybulb + 40.0 # This is the number from a California study with dark shingle roof and similar ventilation.
+          cool_temp = @hpxml.header.manualj_cooling_design_temp + 40.0 # This is the number from a California study with dark shingle roof and similar ventilation.
         else
-          cool_temp = calculate_space_design_temps(location, weather, @cool_setpoint, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max, true)
+          cool_temp = calculate_space_design_temps(location, weather, @cool_setpoint, @hpxml.header.manualj_cooling_design_temp, weather.data.GroundMonthlyTemps.max, true)
         end
 
       else
@@ -267,9 +267,9 @@ class HVACSizing
 
           if location == HPXML::LocationAtticUnvented
             if not roof.radiant_barrier
-              cool_temp += (150.0 + (weather.design.CoolingDrybulb - 95.0) + @daily_range_temp_adjust[@daily_range_num]) * roof.net_area
+              cool_temp += (150.0 + (@hpxml.header.manualj_cooling_design_temp - 95.0) + @daily_range_temp_adjust[@daily_range_num]) * roof.net_area
             else
-              cool_temp += (130.0 + (weather.design.CoolingDrybulb - 95.0) + @daily_range_temp_adjust[@daily_range_num]) * roof.net_area
+              cool_temp += (130.0 + (@hpxml.header.manualj_cooling_design_temp - 95.0) + @daily_range_temp_adjust[@daily_range_num]) * roof.net_area
             end
           else
             if not roof.radiant_barrier
@@ -331,11 +331,11 @@ class HVACSizing
         cool_temp /= tot_roof_area
 
         # Adjust base CLTD for cooling design temperature and daily range
-        cool_temp += (weather.design.CoolingDrybulb - 95.0) + @daily_range_temp_adjust[@daily_range_num]
+        cool_temp += (@hpxml.header.manualj_cooling_design_temp - 95.0) + @daily_range_temp_adjust[@daily_range_num]
       end
 
     elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? location
-      cool_temp = calculate_space_design_temps(location, weather, @cool_setpoint, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max)
+      cool_temp = calculate_space_design_temps(location, weather, @cool_setpoint, @hpxml.header.manualj_cooling_design_temp, weather.data.GroundMonthlyTemps.max)
 
     end
 
@@ -476,7 +476,7 @@ class HVACSizing
     # Windows
     bldg_design_loads.Heat_Windows = 0.0
     alp_load = 0.0 # Average Load Procedure (ALP) Load
-    afl_hr = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # Initialize Hourly Aggregate Fenestration Load (AFL)
+    afl_hr = [0.0] * 12 # Initialize Hourly Aggregate Fenestration Load (AFL)
 
     @hpxml.windows.each do |window|
       next unless window.wall.is_exterior_thermal_boundary
@@ -489,7 +489,7 @@ class HVACSizing
 
       bldg_design_loads.Heat_Windows += window_ufactor * window.area * @htd
 
-      for hr in -1..12
+      for hr in -1..11
 
         # If hr == -1: Calculate the Average Load Procedure (ALP) Load
         # Else: Calculate the hourly Aggregate Fenestration Load (AFL)
@@ -610,7 +610,7 @@ class HVACSizing
     # Skylights
     bldg_design_loads.Heat_Skylights = 0.0
     alp_load = 0.0 # Average Load Procedure (ALP) Load
-    afl_hr = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # Initialize Hourly Aggregate Fenestration Load (AFL)
+    afl_hr = [0.0] * 12 # Initialize Hourly Aggregate Fenestration Load (AFL)
 
     @hpxml.skylights.each do |skylight|
       skylight_summer_sf = skylight.interior_shading_factor_summer * skylight.exterior_shading_factor_summer
@@ -622,7 +622,7 @@ class HVACSizing
 
       bldg_design_loads.Heat_Skylights += skylight_ufactor * skylight.area * @htd
 
-      for hr in -1..12
+      for hr in -1..11
 
         # If hr == -1: Calculate the Average Load Procedure (ALP) Load
         # Else: Calculate the hourly Aggregate Fenestration Load (AFL)
@@ -716,7 +716,7 @@ class HVACSizing
     end
   end
 
-  def self.process_load_walls(bldg_design_loads, weather)
+  def self.process_load_walls(bldg_design_loads)
     '''
     Heating and Cooling Loads: Walls
     '''
@@ -771,7 +771,7 @@ class HVACSizing
 
           if @ctd >= 10.0
             # Adjust the CLTD for different cooling design temperatures
-            cltd += (weather.design.CoolingDrybulb - 95.0)
+            cltd += (@hpxml.header.manualj_cooling_design_temp - 95.0)
             # Adjust the CLTD for daily temperature range
             cltd += @daily_range_temp_adjust[@daily_range_num]
           else
@@ -799,7 +799,7 @@ class HVACSizing
     end
   end
 
-  def self.process_load_roofs(bldg_design_loads, weather)
+  def self.process_load_roofs(bldg_design_loads)
     '''
     Heating and Cooling Loads: Roofs
     '''
@@ -846,7 +846,7 @@ class HVACSizing
       end
 
       # Adjust base CLTD for different CTD or DR
-      cltd += (weather.design.CoolingDrybulb - 95.0) + @daily_range_temp_adjust[@daily_range_num]
+      cltd += (@hpxml.header.manualj_cooling_design_temp - 95.0) + @daily_range_temp_adjust[@daily_range_num]
 
       bldg_design_loads.Cool_Roofs += (1.0 / roof.insulation_assembly_r_value) * roof.net_area * cltd
       bldg_design_loads.Heat_Roofs += (1.0 / roof.insulation_assembly_r_value) * roof.net_area * @htd
@@ -953,9 +953,16 @@ class HVACSizing
         bldg_design_loads.Heat_Slabs += f_value * slab.exposed_perimeter * @htd
       elsif HPXML::conditioned_below_grade_locations.include? slab.interior_adjacent_to
         # Based on MJ 8th Ed. A12-7 and ASHRAE HoF 2013 pg 18.31 Eq 40
-        # FIXME: Assumes slab is uninsulated?
-        k_soil = @hpxml.site.ground_conductivity
-        r_other = Material.Concrete(4.0).rvalue + Material.AirFilmFloorAverage.rvalue
+        slab_is_insulated = false
+        if slab.under_slab_insulation_width > 0 && slab.under_slab_insulation_r_value > 0
+          slab_is_insulated = true
+        elsif slab.perimeter_insulation_depth > 0 && slab.perimeter_insulation_r_value > 0
+          slab_is_insulated = true
+        elsif slab.under_slab_insulation_spans_entire_slab && slab.under_slab_insulation_r_value > 0
+          slab_is_insulated = true
+        end
+        k_soil = 0.8 # Value from ASHRAE HoF, probably used by Manual J
+        r_other = 1.47 # Value from ASHRAE HoF, probably used by Manual J
         foundation_walls = @hpxml.foundation_walls.select { |fw| fw.is_thermal_boundary }
         z_f = foundation_walls.map { |fw| fw.depth_below_grade }.sum(0.0) / foundation_walls.size # Average below-grade depth
         sqrt_term = [slab.exposed_perimeter**2 - 16.0 * slab.area, 0.0].max
@@ -964,7 +971,10 @@ class HVACSizing
         w_b = [length, width].min
         w_b = [w_b, 1.0].max # handle zero exposed perimeter
         u_avg_bf = (2.0 * k_soil / (Math::PI * w_b)) * (Math::log(w_b / 2.0 + z_f / 2.0 + (k_soil * r_other) / Math::PI) - Math::log(z_f / 2.0 + (k_soil * r_other) / Math::PI))
-        u_value_mj8 = 0.85 * u_avg_bf
+        u_value_mj8 = 0.85 * u_avg_bf # To account for the storage effect of soil, multiply by 0.85
+        if slab_is_insulated
+          u_value_mj8 *= 0.7 # U-values are multiplied y 0.70 to produce U-values for insulated floors
+        end
         bldg_design_loads.Heat_Slabs += u_value_mj8 * slab.area * @htd
       end
     end
@@ -1002,8 +1012,8 @@ class HVACSizing
 
     bldg_design_loads.Heat_InfilVent = 1.1 * @acf * cfm_Heating * @htd
 
-    bldg_design_loads.Cool_Infil_Sens = 1.1 * @acf * cfm_Cool_Load_Sens * @ctd
-    bldg_design_loads.Cool_Infil_Lat = 0.68 * @acf * cfm_Cool_Load_Lat * (@cool_design_grains - @cool_indoor_grains)
+    bldg_design_loads.Cool_InfilVent_Sens = 1.1 * @acf * cfm_Cool_Load_Sens * @ctd
+    bldg_design_loads.Cool_InfilVent_Lat = 0.68 * @acf * cfm_Cool_Load_Lat * (@cool_design_grains - @cool_indoor_grains)
   end
 
   def self.process_load_internal_gains(bldg_design_loads)
@@ -1011,10 +1021,8 @@ class HVACSizing
     Cooling Load: Internal Gains
     '''
 
-    # Per ANSI/RESNET/ICC 301
-    n_occupants = @nbeds + 1
-    bldg_design_loads.Cool_IntGains_Sens = 1600.0 + 230.0 * n_occupants
-    bldg_design_loads.Cool_IntGains_Lat = 200.0 * n_occupants
+    bldg_design_loads.Cool_IntGains_Sens = @hpxml.header.manualj_internal_loads_sensible + 230.0 * @hpxml.header.manualj_num_occupants
+    bldg_design_loads.Cool_IntGains_Lat = @hpxml.header.manualj_internal_loads_latent + 200.0 * @hpxml.header.manualj_num_occupants
   end
 
   def self.aggregate_loads(bldg_design_loads)
@@ -1033,12 +1041,12 @@ class HVACSizing
     bldg_design_loads.Cool_Sens = bldg_design_loads.Cool_Windows + bldg_design_loads.Cool_Skylights +
                                   bldg_design_loads.Cool_Doors + bldg_design_loads.Cool_Walls +
                                   bldg_design_loads.Cool_Floors + bldg_design_loads.Cool_Ceilings +
-                                  bldg_design_loads.Cool_Roofs + bldg_design_loads.Cool_Infil_Sens +
+                                  bldg_design_loads.Cool_Roofs + bldg_design_loads.Cool_InfilVent_Sens +
                                   bldg_design_loads.Cool_IntGains_Sens
-    bldg_design_loads.Cool_Lat = bldg_design_loads.Cool_Infil_Lat + bldg_design_loads.Cool_IntGains_Lat
+    bldg_design_loads.Cool_Lat = bldg_design_loads.Cool_InfilVent_Lat + bldg_design_loads.Cool_IntGains_Lat
     if bldg_design_loads.Cool_Lat < 0 # No latent loads; also zero out individual components
       bldg_design_loads.Cool_Lat = 0.0
-      bldg_design_loads.Cool_Infil_Lat = 0.0
+      bldg_design_loads.Cool_InfilVent_Lat = 0.0
       bldg_design_loads.Cool_IntGains_Lat = 0.0
     end
     bldg_design_loads.Cool_Tot = bldg_design_loads.Cool_Sens + bldg_design_loads.Cool_Lat
@@ -1351,7 +1359,7 @@ class HVACSizing
     elsif [HPXML::HVACTypeCentralAirConditioner,
            HPXML::HVACTypeHeatPumpAirToAir].include? hvac.CoolType
 
-      enteringTemp = weather.design.CoolingDrybulb
+      enteringTemp = @hpxml.header.manualj_cooling_design_temp
       coefficients = hvac.COOL_CAP_FT_SPEC[hvac.SizingSpeed]
 
       totalCap_CurveValue = MathTools.biquadratic(@wetbulb_indoor_cooling, enteringTemp, coefficients)
@@ -1452,7 +1460,7 @@ class HVACSizing
     elsif [HPXML::HVACTypeHeatPumpMiniSplit,
            HPXML::HVACTypeMiniSplitAirConditioner].include? hvac.CoolType
 
-      enteringTemp = weather.design.CoolingDrybulb
+      enteringTemp = @hpxml.header.manualj_cooling_design_temp
       coefficients = hvac.COOL_CAP_FT_SPEC[hvac.SizingSpeed]
 
       totalCap_CurveValue = MathTools.biquadratic(@wetbulb_indoor_cooling, enteringTemp, coefficients)
@@ -1466,7 +1474,7 @@ class HVACSizing
            HPXML::HVACTypeHeatPumpPTHP,
            HPXML::HVACTypeHeatPumpRoom].include? hvac.CoolType
 
-      enteringTemp = weather.design.CoolingDrybulb
+      enteringTemp = @hpxml.header.manualj_cooling_design_temp
       totalCap_CurveValue = MathTools.biquadratic(@wetbulb_indoor_cooling, enteringTemp, hvac.COOL_CAP_FT_SPEC[hvac.SizingSpeed])
 
       hvac_sizing_values.Cool_Capacity = hvac_sizing_values.Cool_Load_Tot / totalCap_CurveValue
@@ -1645,7 +1653,7 @@ class HVACSizing
     end
   end
 
-  def self.apply_hvac_installation_quality(hvac_sizing_values, weather, hvac)
+  def self.apply_hvac_installation_quality(hvac_sizing_values, hvac)
     # Increases the autosized heating/cooling capacities to account for any reduction
     # in capacity due to HVAC installation quality. This is done to prevent causing
     # unmet loads.
@@ -1658,8 +1666,8 @@ class HVACSizing
     return if (hvac.ChargeDefectRatio.to_f.abs < 0.001) && (hvac.AirflowDefectRatioCooling.to_f.abs < 0.001) && (hvac.AirflowDefectRatioHeating.to_f.abs < 0.001)
 
     tin_cool = UnitConversions.convert(@cool_setpoint, 'F', 'C')
-    tout_cool = UnitConversions.convert(weather.design.CoolingDrybulb, 'F', 'C')
-    tout_heat = UnitConversions.convert(weather.design.HeatingDrybulb, 'F', 'C')
+    tout_cool = UnitConversions.convert(@hpxml.header.manualj_cooling_design_temp, 'F', 'C')
+    tout_heat = UnitConversions.convert(@hpxml.header.manualj_heating_design_temp, 'F', 'C')
 
     f_ch = hvac.ChargeDefectRatio.round(3)
 
@@ -1894,15 +1902,13 @@ class HVACSizing
       else
         # Search for first valid bore field
         new_bore_config = nil
-        valid_field_found = false
         valid_configs.keys.each do |bore_config|
           next unless valid_configs[bore_config].include? num_bore_holes
 
-          valid_field_found = true
           new_bore_config = bore_config
           break
         end
-        if valid_field_found
+        if not new_bore_config.nil?
           bore_config = new_bore_config
         else
           fail 'Could not construct a valid GSHP bore field configuration.'
@@ -1947,16 +1953,17 @@ class HVACSizing
       capacity_ratio = 1.0
     end
 
-    if (not hvac.MinCompressorTemperature.nil?) && (hvac.MinCompressorTemperature > weather.design.HeatingDrybulb)
-      # Calculate the heating load at the minimum compressor temperature to limit uninitialized capacity
-      alternate_weather = Marshal.load(Marshal.dump(weather))
-      alternate_weather.design.HeatingDrybulb = hvac.MinCompressorTemperature
-      _switchover_bldg_design_loads, switchover_all_hvac_sizing_values = calculate(alternate_weather, @hpxml, @cfa, @nbeds, [hvac.hvac_system])
-      heating_load = switchover_all_hvac_sizing_values[hvac.hvac_system].Heat_Load
-      heating_db = alternate_weather.design.HeatingDrybulb
+    if (not hvac.MinCompressorTemperature.nil?) && (hvac.MinCompressorTemperature > @hpxml.header.manualj_heating_design_temp)
+      # Calculate the heating load at the switchover temperature to limit uninitialized capacity
+      temp_heat_design_temp = @hpxml.header.manualj_heating_design_temp
+      @hpxml.header.manualj_heating_design_temp = hvac.MinCompressorTemperature
+      _alternate_bldg_design_loads, alternate_all_hvac_sizing_values = calculate(weather, @hpxml, @cfa, [hvac.hvac_system])
+      heating_load = alternate_all_hvac_sizing_values[hvac.hvac_system].Heat_Load
+      heating_db = hvac.MinCompressorTemperature
+      @hpxml.header.manualj_heating_design_temp = temp_heat_design_temp
     else
       heating_load = hvac_sizing_values.Heat_Load
-      heating_db = weather.design.HeatingDrybulb
+      heating_db = @hpxml.header.manualj_heating_design_temp
     end
 
     heat_cap_rated = (heating_load / MathTools.biquadratic(@heat_setpoint, heating_db, coefficients)) / capacity_ratio
@@ -2308,7 +2315,7 @@ class HVACSizing
       end
       if hpxml_hvac.is_a?(HPXML::HeatingSystem) && hpxml_hvac.is_heat_pump_backup_system
         # Use the same load fractions as the heat pump
-        heat_pump = @hpxml.heat_pumps.select { |hp| hp.backup_system_idref == hpxml_hvac.id }[0]
+        heat_pump = @hpxml.heat_pumps.find { |hp| hp.backup_system_idref == hpxml_hvac.id }
         hvac.HeatingLoadFraction = heat_pump.fraction_heat_load_served
         hvac.CoolingLoadFraction = heat_pump.fraction_cool_load_served
       end
@@ -2627,10 +2634,10 @@ class HVACSizing
     if [HPXML::LocationCrawlspaceVented, HPXML::LocationAtticVented].include? location
       # Vented space
       if location == HPXML::LocationCrawlspaceVented
-        vented_crawl = @hpxml.foundations.select { |f| f.foundation_type == HPXML::FoundationTypeCrawlspaceVented }[0]
+        vented_crawl = @hpxml.foundations.find { |f| f.foundation_type == HPXML::FoundationTypeCrawlspaceVented }
         sla = vented_crawl.vented_crawlspace_sla
       else
-        vented_attic = @hpxml.attics.select { |f| f.attic_type == HPXML::AtticTypeVented }[0]
+        vented_attic = @hpxml.attics.find { |f| f.attic_type == HPXML::AtticTypeVented }
         if not vented_attic.vented_attic_sla.nil?
           sla = vented_attic.vented_attic_sla
         else
@@ -3384,7 +3391,7 @@ class DesignLoads
   end
   attr_accessor(:Cool_Sens, :Cool_Lat, :Cool_Tot, :Heat_Tot, :Heat_Ducts, :Cool_Ducts_Sens, :Cool_Ducts_Lat,
                 :Cool_Windows, :Cool_Skylights, :Cool_Doors, :Cool_Walls, :Cool_Roofs, :Cool_Floors,
-                :Cool_Ceilings, :Cool_Infil_Sens, :Cool_Infil_Lat, :Cool_IntGains_Sens, :Cool_IntGains_Lat,
+                :Cool_Ceilings, :Cool_InfilVent_Sens, :Cool_InfilVent_Lat, :Cool_IntGains_Sens, :Cool_IntGains_Lat,
                 :Heat_Windows, :Heat_Skylights, :Heat_Doors, :Heat_Walls, :Heat_Roofs, :Heat_Floors,
                 :Heat_Slabs, :Heat_Ceilings, :Heat_InfilVent)
 end

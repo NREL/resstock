@@ -420,7 +420,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
-    schedule = model.getScheduleRulesets.select { |schedule| schedule.name.to_s == sch_name }[0]
+    schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
     unavailable_periods = _add_unavailable_period(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour)
 
     schedule_rules = schedule.scheduleRules
@@ -441,7 +441,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
-    schedule = model.getScheduleRulesets.select { |schedule| schedule.name.to_s == sch_name }[0]
+    schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
     unavailable_periods = _add_unavailable_period(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour) # note the change of end month/day
 
     schedule_rules = schedule.scheduleRules
@@ -461,7 +461,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
-    schedule = model.getScheduleRulesets.select { |schedule| schedule.name.to_s == sch_name }[0]
+    schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
     unavailable_periods = _add_unavailable_period(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour) # note the change of end month/day
 
     schedule_rules = schedule.scheduleRules
@@ -482,7 +482,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
-    schedule = model.getScheduleRulesets.select { |schedule| schedule.name.to_s == sch_name }[0]
+    schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
     unavailable_periods = _add_unavailable_period(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour) # note the change of end month/day
 
     schedule_rules = schedule.scheduleRules
@@ -506,7 +506,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
-    schedule = model.getScheduleRulesets.select { |schedule| schedule.name.to_s == sch_name }[0]
+    schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
     unavailable_periods = _add_unavailable_period(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour) # note the change of end month/day
 
     schedule_rules = schedule.scheduleRules
@@ -538,7 +538,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
-    schedule = model.getScheduleRulesets.select { |schedule| schedule.name.to_s == sch_name }[0]
+    schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
     unavailable_periods = _add_unavailable_period(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour, natvent_availability)
 
     schedule_rules = schedule.scheduleRules
@@ -556,7 +556,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
-    schedule = model.getScheduleRulesets.select { |schedule| schedule.name.to_s == sch_name }[0]
+    schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
     unavailable_periods = _add_unavailable_period(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour, natvent_availability)
 
     schedule_rules = schedule.scheduleRules
@@ -574,7 +574,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
-    schedule = model.getScheduleRulesets.select { |schedule| schedule.name.to_s == sch_name }[0]
+    schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
     unavailable_periods = _add_unavailable_period(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour, natvent_availability)
 
     schedule_rules = schedule.scheduleRules
@@ -604,7 +604,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     year = model.getYearDescription.assumedYear
     assert_equal(2012, year)
 
-    schedule = model.getScheduleRulesets.select { |schedule| schedule.name.to_s == sch_name }[0]
+    schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
     unavailable_periods = _add_unavailable_period(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour)
 
     schedule_rules = schedule.scheduleRules

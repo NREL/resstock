@@ -202,25 +202,25 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     level_choices << 'Middle'
     level_choices << 'Top'
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_left_wall_is_adiabatic', true)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_left_wall_is_adiabatic', false)
     arg.setDisplayName('Geometry: Unit Left Wall Is Adiabatic')
     arg.setDescription('Presence of an adiabatic left wall.')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_right_wall_is_adiabatic', true)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_right_wall_is_adiabatic', false)
     arg.setDisplayName('Geometry: Unit Right Wall Is Adiabatic')
     arg.setDescription('Presence of an adiabatic right wall.')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_front_wall_is_adiabatic', true)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_front_wall_is_adiabatic', false)
     arg.setDisplayName('Geometry: Unit Front Wall Is Adiabatic')
     arg.setDescription('Presence of an adiabatic front wall, for example, the unit is adjacent to a conditioned corridor.')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_back_wall_is_adiabatic', true)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_back_wall_is_adiabatic', false)
     arg.setDisplayName('Geometry: Unit Back Wall Is Adiabatic')
     arg.setDescription('Presence of an adiabatic back wall.')
     arg.setDefaultValue(false)
@@ -648,9 +648,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     roof_radiant_barrier_grade_choices << '2'
     roof_radiant_barrier_grade_choices << '3'
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('roof_radiant_barrier_grade', roof_radiant_barrier_grade_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('roof_radiant_barrier_grade', roof_radiant_barrier_grade_choices, false)
     arg.setDisplayName('Roof: Radiant Barrier Grade')
-    arg.setDescription('The grade of the radiant barrier, if it exists.')
+    arg.setDescription('The grade of the radiant barrier. If not provided, the OS-HPXML default is used.')
     arg.setDefaultValue('1')
     args << arg
 
@@ -999,13 +999,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(3)
     args << arg
 
-    air_leakage_mf_value_type_choices = OpenStudio::StringVector.new
-    air_leakage_mf_value_type_choices << HPXML::InfiltrationTestCompartmentalization
-    air_leakage_mf_value_type_choices << HPXML::InfiltrationTestGuarded
+    air_leakage_type_choices = OpenStudio::StringVector.new
+    air_leakage_type_choices << HPXML::InfiltrationTypeUnitTotal
+    air_leakage_type_choices << HPXML::InfiltrationTypeUnitExterior
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('air_leakage_multifamily_value_type', air_leakage_mf_value_type_choices, false)
-    arg.setDisplayName('Air Leakage: Multifamily Value Type')
-    arg.setDescription("Type of air leakage value for a SFA/MF dwelling unit. If '#{HPXML::InfiltrationTestCompartmentalization}', represents the total infiltration to the unit, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if '#{HPXML::InfiltrationTestGuarded}', represents the infiltration to the unit from outside only. Required when unit type is #{HPXML::ResidentialTypeSFA} or #{HPXML::ResidentialTypeApartment}.")
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('air_leakage_type', air_leakage_type_choices, false)
+    arg.setDisplayName('Air Leakage: Type')
+    arg.setDescription("Type of air leakage. If '#{HPXML::InfiltrationTypeUnitTotal}', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if '#{HPXML::InfiltrationTypeUnitExterior}', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is #{HPXML::ResidentialTypeSFA} or #{HPXML::ResidentialTypeApartment}.")
     args << arg
 
     heating_system_type_choices = OpenStudio::StringVector.new
@@ -1136,7 +1136,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('cooling_system_is_ducted', true)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('cooling_system_is_ducted', false)
     arg.setDisplayName('Cooling System: Is Ducted')
     arg.setDescription("Whether the cooling system is ducted or not. Only used for #{HPXML::HVACTypeMiniSplitAirConditioner} and #{HPXML::HVACTypeEvaporativeCooler}. It's assumed that #{HPXML::HVACTypeCentralAirConditioner} is ducted, and #{HPXML::HVACTypeRoomAirConditioner} and #{HPXML::HVACTypePTAC} are not ducted.")
     arg.setDefaultValue(false)
@@ -1905,7 +1905,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     recirculation_control_type_choices << HPXML::DHWRecirControlTypeSensor
     recirculation_control_type_choices << HPXML::DHWRecirControlTypeManual
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('hot_water_distribution_recirc_control_type', recirculation_control_type_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('hot_water_distribution_recirc_control_type', recirculation_control_type_choices, false)
     arg.setDisplayName('Hot Water Distribution: Recirculation Control Type')
     arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the type of hot water recirculation control, if any.")
     arg.setDefaultValue(HPXML::DHWRecirControlTypeNone)
@@ -1946,13 +1946,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('none')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('dwhr_equal_flow', true)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('dwhr_equal_flow', false)
     arg.setDisplayName('Drain Water Heat Recovery: Equal Flow')
     arg.setDescription('Whether the drain water heat recovery has equal flow.')
     arg.setDefaultValue(true)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dwhr_efficiency', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dwhr_efficiency', false)
     arg.setDisplayName('Drain Water Heat Recovery: Efficiency')
     arg.setUnits('Frac')
     arg.setDescription('The efficiency of the drain water heat recovery.')
@@ -3045,6 +3045,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription("Additional properties specified as key-value pairs (i.e., key=value). If multiple additional properties, use a |-separated list. For example, 'LowIncome=false|Remodeled|Description=2-story home in Denver'. These properties will be stored in the HPXML file under /HPXML/SoftwareInfo/extension/AdditionalProperties.")
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('combine_like_surfaces', false)
+    arg.setDisplayName('Combine like surfaces?')
+    arg.setDescription('If true, combines like surfaces to simplify the HPXML file generated.')
+    arg.setDefaultValue(false)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('apply_defaults', false)
     arg.setDisplayName('Apply Default Values?')
     arg.setDescription('If true, applies OS-HPXML default values to the HPXML output file. Setting to true will also force validation of the HPXML output file before applying OS-HPXML default values.')
@@ -3079,6 +3085,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args[:apply_validation] = args[:apply_validation].is_initialized ? args[:apply_validation].get : false
     args[:apply_defaults] = args[:apply_defaults].is_initialized ? args[:apply_defaults].get : false
     args[:apply_validation] = true if args[:apply_defaults]
+    args[:geometry_unit_left_wall_is_adiabatic] = (args[:geometry_unit_left_wall_is_adiabatic].is_initialized && args[:geometry_unit_left_wall_is_adiabatic].get)
+    args[:geometry_unit_right_wall_is_adiabatic] = (args[:geometry_unit_right_wall_is_adiabatic].is_initialized && args[:geometry_unit_right_wall_is_adiabatic].get)
+    args[:geometry_unit_front_wall_is_adiabatic] = (args[:geometry_unit_front_wall_is_adiabatic].is_initialized && args[:geometry_unit_front_wall_is_adiabatic].get)
+    args[:geometry_unit_back_wall_is_adiabatic] = (args[:geometry_unit_back_wall_is_adiabatic].is_initialized && args[:geometry_unit_back_wall_is_adiabatic].get)
+    args[:cooling_system_is_ducted] = (args[:cooling_system_is_ducted].is_initialized && args[:cooling_system_is_ducted].get)
+    args[:heat_pump_is_ducted] = (args[:heat_pump_is_ducted].is_initialized && args[:heat_pump_is_ducted].get)
 
     # Argument error checks
     warnings, errors = validate_arguments(args)
@@ -3376,25 +3388,8 @@ class HPXMLFile
     set_misc_fuel_loads_fireplace(hpxml, args)
     set_pool(hpxml, args)
     set_hot_tub(hpxml, args)
-
-    # Collapse surfaces so that we don't get, e.g., individual windows
-    # or the front wall split because of the door. Exclude foundation walls
-    # from the list so we get all 4 foundation walls.
-    hpxml.collapse_enclosure_surfaces([:roofs, :walls, :rim_joists, :floors,
-                                       :slabs, :windows, :skylights, :doors])
-
-    # After surfaces are collapsed, round all areas
-    (hpxml.roofs +
-     hpxml.rim_joists +
-     hpxml.walls +
-     hpxml.foundation_walls +
-     hpxml.floors +
-     hpxml.slabs +
-     hpxml.windows +
-     hpxml.skylights +
-     hpxml.doors).each do |s|
-      s.area = s.area.round(1)
-    end
+    collapse_surfaces(hpxml, args)
+    renumber_hpxml_ids(hpxml)
 
     hpxml_doc = hpxml.to_oga()
     XMLHelper.write_file(hpxml_doc, hpxml_path)
@@ -3962,9 +3957,9 @@ class HPXMLFile
         house_pressure = args[:air_leakage_house_pressure]
       end
     end
-    if args[:air_leakage_multifamily_value_type].is_initialized
+    if args[:air_leakage_type].is_initialized
       if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include? args[:geometry_unit_type]
-        air_leakage_multifamily_value_type = args[:air_leakage_multifamily_value_type]
+        air_leakage_type = args[:air_leakage_type]
       end
     end
     infiltration_volume = hpxml.building_construction.conditioned_building_volume
@@ -3975,7 +3970,7 @@ class HPXMLFile
                                             air_leakage: air_leakage,
                                             effective_leakage_area: effective_leakage_area,
                                             infiltration_volume: infiltration_volume,
-                                            type_of_test: air_leakage_multifamily_value_type)
+                                            infiltration_type: air_leakage_type)
   end
 
   def self.set_roofs(hpxml, args, sorted_surfaces)
@@ -4000,8 +3995,8 @@ class HPXMLFile
       end
 
       radiant_barrier = args[:roof_radiant_barrier]
-      if args[:roof_radiant_barrier]
-        radiant_barrier_grade = args[:roof_radiant_barrier_grade]
+      if args[:roof_radiant_barrier] && args[:roof_radiant_barrier_grade].is_initialized
+        radiant_barrier_grade = args[:roof_radiant_barrier_grade].get
       end
 
       if args[:geometry_attic_type] == HPXML::AtticTypeFlatRoof
@@ -4949,8 +4944,8 @@ class HPXMLFile
       if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
         air_distribution_systems << heat_pump
       elsif [HPXML::HVACTypeHeatPumpMiniSplit].include?(heat_pump.heat_pump_type)
-        if args[:heat_pump_is_ducted].is_initialized
-          air_distribution_systems << heat_pump if args[:heat_pump_is_ducted].get
+        if args[:heat_pump_is_ducted]
+          air_distribution_systems << heat_pump if args[:heat_pump_is_ducted]
         end
       end
     end
@@ -5461,8 +5456,12 @@ class HPXMLFile
 
     if args[:dwhr_facilities_connected] != 'none'
       dwhr_facilities_connected = args[:dwhr_facilities_connected]
-      dwhr_equal_flow = args[:dwhr_equal_flow]
-      dwhr_efficiency = args[:dwhr_efficiency]
+      if args[:dwhr_equal_flow].is_initialized
+        dwhr_equal_flow = args[:dwhr_equal_flow].get
+      end
+      if args[:dwhr_efficiency].is_initialized
+        dwhr_efficiency = args[:dwhr_efficiency].get
+      end
     end
 
     if args[:hot_water_distribution_system_type] == HPXML::DHWDistTypeStandard
@@ -5470,7 +5469,9 @@ class HPXMLFile
         standard_piping_length = args[:hot_water_distribution_standard_piping_length].get
       end
     else
-      recirculation_control_type = args[:hot_water_distribution_recirc_control_type]
+      if args[:hot_water_distribution_recirc_control_type].is_initialized
+        recirculation_control_type = args[:hot_water_distribution_recirc_control_type].get
+      end
 
       if args[:hot_water_distribution_recirc_piping_length].is_initialized
         recirculation_piping_length = args[:hot_water_distribution_recirc_piping_length].get
@@ -6226,6 +6227,91 @@ class HPXMLFile
                        heater_load_units: heater_load_units,
                        heater_load_value: heater_load_value,
                        heater_usage_multiplier: heater_usage_multiplier)
+  end
+
+  def self.collapse_surfaces(hpxml, args)
+    if args[:combine_like_surfaces].is_initialized && args[:combine_like_surfaces].get
+      # Collapse some surfaces whose azimuth is a minor effect to simplify HPXMLs.
+      (hpxml.roofs + hpxml.rim_joists + hpxml.walls + hpxml.foundation_walls).each do |surface|
+        surface.azimuth = nil
+      end
+      hpxml.collapse_enclosure_surfaces()
+    else
+      # Collapse surfaces so that we don't get, e.g., individual windows
+      # or the front wall split because of the door. Exclude foundation walls
+      # from the list so we get all 4 foundation walls.
+      hpxml.collapse_enclosure_surfaces([:roofs, :walls, :rim_joists, :floors,
+                                         :slabs, :windows, :skylights, :doors])
+    end
+
+    # After surfaces are collapsed, round all areas
+    (hpxml.roofs +
+     hpxml.rim_joists +
+     hpxml.walls +
+     hpxml.foundation_walls +
+     hpxml.floors +
+     hpxml.slabs +
+     hpxml.windows +
+     hpxml.skylights +
+     hpxml.doors).each do |s|
+      s.area = s.area.round(1)
+    end
+  end
+
+  def self.renumber_hpxml_ids(hpxml)
+    # Renumber surfaces
+    { hpxml.walls => 'Wall',
+      hpxml.foundation_walls => 'FoundationWall',
+      hpxml.rim_joists => 'RimJoist',
+      hpxml.floors => 'Floor',
+      hpxml.roofs => 'Roof',
+      hpxml.slabs => 'Slab',
+      hpxml.windows => 'Window',
+      hpxml.doors => 'Door',
+      hpxml.skylights => 'Skylight' }.each do |surfs, surf_name|
+      surfs.each_with_index do |surf, i|
+        (hpxml.attics + hpxml.foundations).each do |attic_or_fnd|
+          if attic_or_fnd.respond_to?(:attached_to_roof_idrefs) && !attic_or_fnd.attached_to_roof_idrefs.nil? && !attic_or_fnd.attached_to_roof_idrefs.delete(surf.id).nil?
+            attic_or_fnd.attached_to_roof_idrefs << "#{surf_name}#{i + 1}"
+          end
+          if attic_or_fnd.respond_to?(:attached_to_wall_idrefs) && !attic_or_fnd.attached_to_wall_idrefs.nil? && !attic_or_fnd.attached_to_wall_idrefs.delete(surf.id).nil?
+            attic_or_fnd.attached_to_wall_idrefs << "#{surf_name}#{i + 1}"
+          end
+          if attic_or_fnd.respond_to?(:attached_to_rim_joist_idrefs) && !attic_or_fnd.attached_to_rim_joist_idrefs.nil? && !attic_or_fnd.attached_to_rim_joist_idrefs.delete(surf.id).nil?
+            attic_or_fnd.attached_to_rim_joist_idrefs << "#{surf_name}#{i + 1}"
+          end
+          if attic_or_fnd.respond_to?(:attached_to_floor_idrefs) && !attic_or_fnd.attached_to_floor_idrefs.nil? && !attic_or_fnd.attached_to_floor_idrefs.delete(surf.id).nil?
+            attic_or_fnd.attached_to_floor_idrefs << "#{surf_name}#{i + 1}"
+          end
+          if attic_or_fnd.respond_to?(:attached_to_slab_idrefs) && !attic_or_fnd.attached_to_slab_idrefs.nil? && !attic_or_fnd.attached_to_slab_idrefs.delete(surf.id).nil?
+            attic_or_fnd.attached_to_slab_idrefs << "#{surf_name}#{i + 1}"
+          end
+          if attic_or_fnd.respond_to?(:attached_to_foundation_wall_idrefs) && !attic_or_fnd.attached_to_foundation_wall_idrefs.nil? && !attic_or_fnd.attached_to_foundation_wall_idrefs.delete(surf.id).nil?
+            attic_or_fnd.attached_to_foundation_wall_idrefs << "#{surf_name}#{i + 1}"
+          end
+        end
+        (hpxml.windows + hpxml.doors).each do |subsurf|
+          if subsurf.respond_to?(:wall_idref) && (subsurf.wall_idref == surf.id)
+            subsurf.wall_idref = "#{surf_name}#{i + 1}"
+          end
+        end
+        hpxml.skylights.each do |subsurf|
+          if subsurf.respond_to?(:roof_idref) && (subsurf.roof_idref == surf.id)
+            subsurf.roof_idref = "#{surf_name}#{i + 1}"
+          end
+        end
+        surf.id = "#{surf_name}#{i + 1}"
+        if surf.respond_to? :insulation_id
+          surf.insulation_id = "#{surf_name}#{i + 1}Insulation"
+        end
+        if surf.respond_to? :perimeter_insulation_id
+          surf.perimeter_insulation_id = "#{surf_name}#{i + 1}PerimeterInsulation"
+        end
+        if surf.respond_to? :under_slab_insulation_id
+          surf.under_slab_insulation_id = "#{surf_name}#{i + 1}UnderSlabInsulation"
+        end
+      end
+    end
   end
 end
 
