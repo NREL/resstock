@@ -317,9 +317,9 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
         bldg_output += ventilation_fan.flow_rate.to_f
       end
     elsif bldg_type == BO::DesignTemperatureHeating
-      bldg_output += hpxml.hvac_plant.temp_heating
+      bldg_output += hpxml.header.manualj_heating_design_temp
     elsif bldg_type == BO::DesignTemperatureCooling
-      bldg_output += hpxml.hvac_plant.temp_cooling
+      bldg_output += hpxml.header.manualj_cooling_design_temp
     elsif bldg_type == BO::DesignLoadsHeatingTotal
       bldg_output += hpxml.hvac_plant.hdl_total
     elsif bldg_type == BO::DesignLoadsHeatingDucts
