@@ -63,24 +63,24 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_annual_system_use_consumptions', false)
     arg.setDisplayName('Generate Annual Output: System Use Consumptions')
-    arg.setDescription('Generates annual energy consumptions for each HVAC and water heating system.')
+    arg.setDescription('Generates annual energy consumptions for each end use of each HVAC and water heating system.')
     arg.setDefaultValue(true)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_annual_emissions', false)
-    arg.setDisplayName('Generate Annual Output: System Use Consumptions')
+    arg.setDisplayName('Generate Annual Output: Emissions')
     arg.setDescription('Generates annual emissions. Requires the appropriate HPXML inputs to be specified.')
     arg.setDefaultValue(true)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_annual_emission_fuels', false)
-    arg.setDisplayName('Generate Annual Output: System Use Consumptions')
+    arg.setDisplayName('Generate Annual Output: Emission Fuel Uses')
     arg.setDescription('Generates annual emissions for each fuel type. Requires the appropriate HPXML inputs to be specified.')
     arg.setDefaultValue(true)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_annual_emission_end_uses', false)
-    arg.setDisplayName('Generate Annual Output: System Use Consumptions')
+    arg.setDisplayName('Generate Annual Output: Emission End Uses')
     arg.setDescription('Generates annual emissions for each end use. Requires the appropriate HPXML inputs to be specified.')
     arg.setDefaultValue(true)
     args << arg
@@ -159,7 +159,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_timeseries_system_use_consumptions', false)
     arg.setDisplayName('Generate Timeseries Output: System Use Consumptions')
-    arg.setDescription('Generates timeseries energy consumptions for each HVAC and water heating system.')
+    arg.setDescription('Generates timeseries energy consumptions for each end use of each HVAC and water heating system.')
     arg.setDefaultValue(false)
     args << arg
 
@@ -170,7 +170,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_timeseries_emission_fuels', false)
-    arg.setDisplayName('Generate Timeseries Output: Emissions')
+    arg.setDisplayName('Generate Timeseries Output: Emission Fuel Uses')
     arg.setDescription('Generates timeseries emissions for each fuel type. Requires the appropriate HPXML inputs to be specified.')
     arg.setDefaultValue(false)
     args << arg
@@ -831,6 +831,30 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
 
+    # Calculate System Uses from End Uses (by HPXML System)
+    @system_uses = {}
+    get_hpxml_system_ids.each do |sys_id|
+      @end_uses.each do |eu_key, end_use|
+        annual_output = end_use.annual_output_by_system[sys_id].to_f
+        next if annual_output <= 0
+
+        system_use_output = BaseOutput.new
+        @system_uses[[sys_id, eu_key]] = system_use_output
+        fuel_type, end_use_type = eu_key
+        system_use_output.name = "System Use: #{sys_id}: #{fuel_type}: #{end_use_type}"
+
+        # Annual
+        system_use_output.annual_output = annual_output
+        system_use_output.annual_units = end_use.annual_units
+
+        next unless args[:include_timeseries_system_use_consumptions]
+
+        # Timeseries
+        system_use_output.timeseries_output = end_use.timeseries_output_by_system[sys_id]
+        system_use_output.timeseries_units = end_use.timeseries_units
+      end
+    end
+
     # Calculate aggregated values from per-system values as needed
     (@end_uses.values + @loads.values + @hot_water_uses.values).each do |obj|
       # Annual
@@ -851,44 +875,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       next unless obj.is_a?(EndUse) && obj.hourly_output.empty? && (not obj.hourly_output_by_system.empty?)
 
       obj.hourly_output = obj.hourly_output_by_system.values.transpose.map(&:sum)
-    end
-
-    # Calculate System Uses from End Uses (by System)
-    @system_uses = {}
-    system_use_map = {
-      EUT::Heating => [EUT::Heating, EUT::HeatingFanPump],
-      EUT::Cooling => [EUT::Cooling, EUT::CoolingFanPump],
-      EUT::HeatingHeatPumpBackup => [EUT::HeatingHeatPumpBackup, EUT::HeatingHeatPumpBackupFanPump],
-      EUT::HotWater => [EUT::HotWater, EUT::HotWaterRecircPump, EUT::HotWaterSolarThermalPump],
-      EUT::MechVentPreheat => [EUT::MechVentPreheat],
-      EUT::MechVentPrecool => [EUT::MechVentPrecool]
-    }
-    kwh_to_kbtu = UnitConversions.convert(1.0, 'kWh', 'kBtu')
-    get_hpxml_system_ids.each do |sys_id|
-      system_use_map.each do |system_use_type, end_use_types|
-        system_end_uses = @end_uses.select { |k, eu| end_use_types.include?(k[1]) && eu.variables.map { |v| v[0] }.include?(sys_id) }
-        next if system_end_uses.empty?
-
-        annual_output = system_end_uses.values.map { |eu| eu.annual_output_by_system[sys_id] }.sum
-        next if annual_output <= 0
-
-        system_output = BaseOutput.new
-        @system_uses[[sys_id, system_use_type]] = system_output
-        system_output.name = "System Use: #{sys_id}: #{system_use_type}"
-
-        # Annual
-        system_output.annual_output = annual_output
-        system_output.annual_units = system_end_uses.values[0].annual_units
-
-        next unless args[:include_timeseries_system_use_consumptions]
-
-        # Timeseries
-        system_end_uses_elec = system_end_uses.select { |key, _eu| key[0] == FT::Elec }.values
-        system_end_uses_fuel = system_end_uses.select { |key, _eu| key[0] != FT::Elec }.values
-        system_output.timeseries_output = [*system_end_uses_elec.map { |seu| seu.timeseries_output_by_system[sys_id].map { |v| v * kwh_to_kbtu } },
-                                           *system_end_uses_fuel.map { |seu| seu.timeseries_output_by_system[sys_id] }].transpose.map(&:sum)
-        system_output.timeseries_units = 'kBtu'
-      end
     end
 
     # Total/Net Electricity (Net includes, e.g., PV and generators)
@@ -1449,8 +1435,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     # HVAC design temperatures
     results_out << [line_break]
-    results_out << ['HVAC Design Temperature: Heating (F)', @hpxml.hvac_plant.temp_heating.round(2)]
-    results_out << ['HVAC Design Temperature: Cooling (F)', @hpxml.hvac_plant.temp_cooling.round(2)]
+    results_out << ['HVAC Design Temperature: Heating (F)', @hpxml.header.manualj_heating_design_temp.round(2)]
+    results_out << ['HVAC Design Temperature: Cooling (F)', @hpxml.header.manualj_cooling_design_temp.round(2)]
 
     # HVAC design loads
     results_out << [line_break]
@@ -1861,7 +1847,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         next if table['TableName'] != table_name
 
         cols = table['Cols']
-        index = cols.each_index.select { |i| cols[i] == "#{col_name} [#{units}]" }[0]
+        index = cols.each_index.find { |i| cols[i] == "#{col_name} [#{units}]" }
         row_names.each do |row_name|
           vals << table['Rows'][row_name][index].to_f
         end

@@ -100,20 +100,8 @@ class Airflow
     window_area = hpxml.windows.map { |w| w.area }.sum(0.0)
     open_window_area = window_area * frac_windows_operable * 0.5 * 0.2 # Assume A) 50% of the area of an operable window can be open, and B) 20% of openable window area is actually open
 
-    vented_attic = nil
-    hpxml.attics.each do |attic|
-      next unless attic.attic_type == HPXML::AtticTypeVented
-
-      vented_attic = attic
-      break
-    end
-    vented_crawl = nil
-    hpxml.foundations.each do |foundation|
-      next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
-
-      vented_crawl = foundation
-      break
-    end
+    vented_attic = hpxml.attics.find { |attic| attic.attic_type == HPXML::AtticTypeVented }
+    vented_crawl = hpxml.foundations.find { |foundation| foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented }
 
     _sla, living_ach50, nach, infil_volume, infil_height, a_ext = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
     if @apply_ashrae140_assumptions
@@ -217,7 +205,7 @@ class Airflow
       fail 'Unexpected error.'
     end
 
-    if measurement.type_of_test == HPXML::InfiltrationTestCompartmentalization
+    if measurement.infiltration_type == HPXML::InfiltrationTypeUnitTotal
       a_ext = measurement.a_ext # Adjustment ratio for SFA/MF units; exterior envelope area divided by total envelope area
     end
     a_ext = 1.0 if a_ext.nil?
@@ -1131,7 +1119,7 @@ class Airflow
       if @cfis_airloop.values.include? object
 
         cfis_id = @cfis_airloop.key(object)
-        vent_mech = vent_fans_mech.select { |vfm| vfm.id == cfis_id }[0]
+        vent_mech = vent_fans_mech.find { |vfm| vfm.id == cfis_id }
 
         add_cfis_duct_losses = (vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeAirHandler)
         if add_cfis_duct_losses

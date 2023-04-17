@@ -371,6 +371,8 @@ class HPXMLTest < MiniTest::Test
     results = {}
     CSV.foreach(annual_csv_path) do |row|
       next if row.nil? || (row.size < 2)
+      next if row[0].start_with? 'System Use:'
+      next if row[0].start_with? 'Emissions:'
 
       results[row[0]] = Float(row[1])
     end
@@ -434,7 +436,6 @@ class HPXMLTest < MiniTest::Test
       next if log_line.strip.empty?
       next if log_line.start_with? 'Info: '
       next if log_line.start_with? 'Executing command'
-      next if log_line.include? "-cache.csv' could not be found; regenerating it."
       next if log_line.include? 'Could not find state average'
 
       if hpxml_path.include? 'base-atticroof-conditioned.xml'

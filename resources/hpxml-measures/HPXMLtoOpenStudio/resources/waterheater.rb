@@ -191,7 +191,7 @@ class Waterheater
     # Create setpoint schedule to specify source side temperature
     source_stp_sch = OpenStudio::Model::ScheduleConstant.new(model)
     source_stp_sch.setName("#{obj_name_combi} Source Spt")
-    boiler_spt_mngr = model.getSetpointManagerScheduleds.select { |spt_mngr| spt_mngr.setpointNode.get == boiler_plant_loop.loopTemperatureSetpointNode }[0]
+    boiler_spt_mngr = model.getSetpointManagerScheduleds.find { |spt_mngr| spt_mngr.setpointNode.get == boiler_plant_loop.loopTemperatureSetpointNode }
     boiler_heating_spt = boiler_spt_mngr.to_SetpointManagerScheduled.get.schedule.to_ScheduleConstant.get.value
     # tank source side inlet temperature, degree C
     source_stp_sch.setValue(boiler_heating_spt)
@@ -289,7 +289,7 @@ class Waterheater
           equipment_target_temp_sensors[wu.name.to_s] = target_temp_sensor
         end
       end
-      dhw_source_loop = model.getPlantLoops.select { |l| l.demandComponents.include? water_heater }[0]
+      dhw_source_loop = model.getPlantLoops.find { |l| l.demandComponents.include? water_heater }
       dhw_source_loop.components.each do |c|
         next unless c.to_PumpVariableSpeed.is_initialized
 
