@@ -367,7 +367,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       measure.arguments(model).each do |arg|
         next if measure_excludes.include? arg.name
 
-        arg_names << arg.name
+        arg_names << arg.name.to_sym
       end
     end
 
@@ -724,7 +724,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end
 
-      register_value(runner, arg_name, arg_value)
+      register_value(runner, arg_name.to_s, arg_value)
     end
 
     return true
