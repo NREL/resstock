@@ -103,7 +103,7 @@ jobs:
 
       - name: Process results
         run: |
-          pip install pandas
+          pip install pandas==1.5.3
           python test/util.py
 
       - name: Upload integration results
@@ -127,8 +127,8 @@ jobs:
           path: |
             project_national/national_baseline/results_csvs/results_up00.csv
             project_testing/testing_baseline/results_csvs/results_up00.csv
-            project_national/national_upgrades/results_csvs/results_up14.csv
-            project_testing/testing_upgrades/results_csvs/results_up14.csv
+            project_national/national_upgrades/results_csvs/results_up15.csv
+            project_testing/testing_upgrades/results_csvs/results_up15.csv
           name: buildstockbatch
 
   compare-tools:
@@ -195,7 +195,7 @@ jobs:
       - name: Compare samples and results
         run: |          
           pip install numpy
-          pip install pandas
+          pip install pandas==1.5.3
           pip install plotly
           pip install kaleido
           
