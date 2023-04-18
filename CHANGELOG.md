@@ -2,7 +2,7 @@
 
 Features
 - Include battery modeling capabilities for project_testing ([#1009](https://github.com/NREL/resstock/pull/1009))
-- Add ability to calculate simple utility bills based on a user-specified CSV file of utility rates ([#1012](https://github.com/NREL/resstock/pull/1012))
+- Add ability to calculate simple utility bills based on a user-specified TSV file of utility rates ([#1012](https://github.com/NREL/resstock/pull/1012))
 - Ability to check buildstock csv against an options lookup as a command line utility ([#1042](https://github.com/NREL/resstock/pull/1042))
 - Demonstrate new power outage modeling feature using upgrades specified in example project yml files ([#1054](https://github.com/NREL/resstock/pull/1054))
 - Ability to specify a "sample_weight" column in the precomputed buildstock.csv ([#1056](https://github.com/NREL/resstock/pull/1056))

@@ -506,7 +506,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
             return false
           end
 
-          rows = CSV.read(simple_filepath, headers: true)
+          rows = CSV.read(simple_filepath, headers: true, col_sep: "\t")
           utility_rates = rows.map { |d| d.to_hash }
           parameter = utility_rates[0].keys[0]
 
