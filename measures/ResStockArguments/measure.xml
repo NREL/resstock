@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>c3a23bee-d995-4a44-aac2-d4ba3cc79383</version_id>
-  <version_modified>20230404T174456Z</version_modified>
+  <version_id>9818b338-c211-4deb-92d5-139f2e86c974</version_id>
+  <version_modified>20230418T151419Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -758,26 +758,10 @@
     </argument>
     <argument>
       <name>roof_radiant_barrier_grade</name>
-      <display_name>Roof: Radiant Barrier Grade</display_name>
-      <description>The grade of the radiant barrier, if it exists.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>roof_radiant_barrier_grade</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
-      <choices>
-        <choice>
-          <value>1</value>
-          <display_name>1</display_name>
-        </choice>
-        <choice>
-          <value>2</value>
-          <display_name>2</display_name>
-        </choice>
-        <choice>
-          <value>3</value>
-          <display_name>3</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>wall_type</name>
@@ -1280,8 +1264,8 @@
       <default_value>3</default_value>
     </argument>
     <argument>
-      <name>air_leakage_multifamily_value_type</name>
-      <display_name>air_leakage_multifamily_value_type</display_name>
+      <name>air_leakage_type</name>
+      <display_name>air_leakage_type</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1522,22 +1506,10 @@
     </argument>
     <argument>
       <name>cooling_system_is_ducted</name>
-      <display_name>Cooling System: Is Ducted</display_name>
-      <description>Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.</description>
-      <type>Boolean</type>
-      <required>true</required>
+      <display_name>cooling_system_is_ducted</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>cooling_system_integrated_heating_system_fuel</name>
@@ -2630,34 +2602,10 @@
     </argument>
     <argument>
       <name>hot_water_distribution_recirc_control_type</name>
-      <display_name>Hot Water Distribution: Recirculation Control Type</display_name>
-      <description>If the distribution system is Recirculation, the type of hot water recirculation control, if any.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>hot_water_distribution_recirc_control_type</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>no control</default_value>
-      <choices>
-        <choice>
-          <value>no control</value>
-          <display_name>no control</display_name>
-        </choice>
-        <choice>
-          <value>timer</value>
-          <display_name>timer</display_name>
-        </choice>
-        <choice>
-          <value>temperature</value>
-          <display_name>temperature</display_name>
-        </choice>
-        <choice>
-          <value>presence sensor demand control</value>
-          <display_name>presence sensor demand control</display_name>
-        </choice>
-        <choice>
-          <value>manual demand control</value>
-          <display_name>manual demand control</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>hot_water_distribution_recirc_piping_length</name>
@@ -2712,32 +2660,17 @@
     </argument>
     <argument>
       <name>dwhr_equal_flow</name>
-      <display_name>Drain Water Heat Recovery: Equal Flow</display_name>
-      <description>Whether the drain water heat recovery has equal flow.</description>
-      <type>Boolean</type>
-      <required>true</required>
+      <display_name>dwhr_equal_flow</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>dwhr_efficiency</name>
-      <display_name>Drain Water Heat Recovery: Efficiency</display_name>
-      <description>The efficiency of the drain water heat recovery.</description>
-      <type>Double</type>
-      <units>Frac</units>
-      <required>true</required>
+      <display_name>dwhr_efficiency</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.55</default_value>
     </argument>
     <argument>
       <name>water_fixtures_shower_low_flow</name>
@@ -4636,6 +4569,13 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>combine_like_surfaces</name>
+      <display_name>combine_like_surfaces</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>apply_defaults</name>
       <display_name>apply_defaults</display_name>
       <type>String</type>
@@ -5155,7 +5095,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>765EB4BA</checksum>
+      <checksum>0507ECAF</checksum>
     </file>
   </files>
 </measure>
