@@ -502,10 +502,11 @@ def process_usurdb(filepath, export_zip: true)
       rate['fixedchargefirstmeter'] = Float(rate['fixedchargefirstmeter']) / 12
     end
 
-    # min charges
-    if ['$/day'].include?(rate['minchargeunits'])
-      next
-    end
+    # JH: no need to ignore with min charges (e.g., San Diego Gas & Electric)
+    # # min charges
+    # if ['$/day'].include?(rate['minchargeunits'])
+    #   next
+    # end
 
     # ignore blank fields
     rate.each do |k, v|
