@@ -8,6 +8,7 @@ Features
 
 Fixes
 - Pulls in upstream OS-HPXML fix related to [avoiding possible OpenStudio temporary directory collision](https://github.com/NREL/OpenStudio-HPXML/pull/1316) causing random errors ([#1054](https://github.com/NREL/resstock/pull/1054))
+- Model a wood storage water heater when "Other Fuel" is sampled from Water Heater Efficiency.tsv. This allow downstream modeling of clothes washer/dryer. ([#947](https://github.com/NREL/resstock/pull/947))
 
 ## ResStock v3.0.0
 ###### February 3, 2023 - [Diff](https://github.com/NREL/resstock/compare/v2.5.0...v3.0.0)
