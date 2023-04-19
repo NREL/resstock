@@ -217,7 +217,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     # Get defaulted hpxml
-    hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
+    hpxml_path = File.expand_path('../existing.xml') # this is the defaulted hpxml
     if File.exist?(hpxml_path)
       hpxml = HPXML.new(hpxml_path: hpxml_path)
     else
@@ -270,7 +270,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         register_value(runner, 'option_%02d_lifetime_to_apply' % option_num, lifetime.to_s)
 
         # Get measure name and arguments associated with the option
-        options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
+        options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
         options_measure_args[option_name].each do |measure_subdir, args_hash|
           system_upgrades = get_system_upgrades(hpxml, system_upgrades, args_hash)
           update_args_hash(measures, measure_subdir, args_hash, false)
@@ -289,7 +289,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         parameters.each do |parameter_name|
           existing_option_name = values[OpenStudio::toUnderscoreCase(parameter_name)]
 
-          options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
+          options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
           options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|
             next if measure_subdir != measure_subdir2
 
@@ -322,17 +322,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../upgraded.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
-    measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
 
-      if ['schedules_type', 'schedules_vacancy_period'].include?(step_value.name)
-        measures['BuildResidentialScheduleFile'][0][step_value.name] = value
-      else
-        measures['BuildResidentialHPXML'][0][step_value.name] = value
-      end
+      measures['BuildResidentialHPXML'][0][step_value.name] = value
     end
 
     # Set additional properties
@@ -397,19 +392,35 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['emissions_fuel_oil_values'] = values['emissions_fuel_oil_values']
     measures['BuildResidentialHPXML'][0]['emissions_wood_values'] = values['emissions_wood_values']
 
+    # Utility Bills
+    measures['BuildResidentialHPXML'][0]['utility_bill_scenario_names'] = values['utility_bill_scenario_names']
+    measures['BuildResidentialHPXML'][0]['utility_bill_electricity_fixed_charges'] = values['utility_bill_electricity_fixed_charges']
+    measures['BuildResidentialHPXML'][0]['utility_bill_electricity_marginal_rates'] = values['utility_bill_electricity_marginal_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_fixed_charges'] = values['utility_bill_natural_gas_fixed_charges']
+    measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_marginal_rates'] = values['utility_bill_natural_gas_marginal_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_propane_fixed_charges'] = values['utility_bill_propane_fixed_charges']
+    measures['BuildResidentialHPXML'][0]['utility_bill_propane_marginal_rates'] = values['utility_bill_propane_marginal_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_fixed_charges'] = values['utility_bill_fuel_oil_fixed_charges']
+    measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_marginal_rates'] = values['utility_bill_fuel_oil_marginal_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_wood_fixed_charges'] = values['utility_bill_wood_fixed_charges']
+    measures['BuildResidentialHPXML'][0]['utility_bill_wood_marginal_rates'] = values['utility_bill_wood_marginal_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_compensation_types'] = values['utility_bill_pv_compensation_types']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = values['utility_bill_pv_net_metering_annual_excess_sellback_rate_types']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = values['utility_bill_pv_net_metering_annual_excess_sellback_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_feed_in_tariff_rates'] = values['utility_bill_pv_feed_in_tariff_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = values['utility_bill_pv_monthly_grid_connection_fee_units']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = values['utility_bill_pv_monthly_grid_connection_fees']
+
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
-    # Get registered values and pass them to HPXMLtoOpenStudio
-    measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
-    measures['HPXMLtoOpenStudio'][0]['debug'] = values['debug']
-    measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = values['add_component_loads']
-
-    measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] },
+    # Specify measures to run
+    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
+    measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] },
                                measures_dir => {} }
 
-    upgrade_measures = measures.keys - ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'HPXMLtoOpenStudio']
+    upgrade_measures = measures.keys - ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile']
     upgrade_measures.each do |upgrade_measure|
       measures_to_apply_hash[measures_dir][upgrade_measure] = measures[upgrade_measure]
     end
@@ -431,6 +442,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
       return false
     end
+
+    # Copy upgraded.xml to home.xml for downstream HPXMLtoOpenStudio
+    # This will overwrite home.xml from BuildExistingModel
+    # We need upgraded.xml (and not just home.xml) for UpgradeCosts
+    in_path = File.expand_path('../home.xml')
+    FileUtils.cp(hpxml_path, in_path)
 
     return true
   end

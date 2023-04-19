@@ -17,7 +17,7 @@ An example of this error is given below:
 
 .. code:: bash
 
-  $ /c/openstudio-3.4.0/bin/openstudio.exe tasks.rb integrity_check_testing
+  $ openstudio tasks.rb integrity_check_testing
   ...
   Error executing argv: ["integrity_check_testing"]
   Error: ERROR: Could not find parameter 'Insulation Wall' and option 'Wood Stud, Uninsulated' in C:/OpenStudio/resstock/test/../resources/options_lookup.tsv.
@@ -33,7 +33,7 @@ An example of this error is given below:
 
 .. code:: bash
 
-  $ /c/openstudio-3.4.0/bin/openstudio.exe tasks.rb integrity_check_testing
+  $ openstudio tasks.rb integrity_check_testing
   ...
   Error executing argv: ["integrity_check_testing"]
   Error: ERROR: Required argument 'wall_assembly_r' not provided in C:/OpenStudio/resstock/test/../resources/options_lookup.tsv for measure 'ResStockArguments'.

@@ -159,20 +159,6 @@ class XMLHelper
     element.unset(attr_name)
   end
 
-  def self.validate(doc, xsd_path, runner = nil)
-    if Gem::Specification::find_all_by_name('nokogiri').any?
-      require 'nokogiri'
-      xsd = Nokogiri::XML::Schema(File.open(xsd_path))
-      doc = Nokogiri::XML(doc)
-      return xsd.validate(doc)
-    else
-      if not runner.nil?
-        runner.registerWarning('Could not load nokogiri, no HPXML validation performed.')
-      end
-      return []
-    end
-  end
-
   def self.create_doc(version = nil, encoding = nil, standalone = nil)
     doc = Oga::XML::Document.new(xml_declaration: Oga::XML::XmlDeclaration.new(version: version, encoding: encoding, standalone: standalone)) # Oga.parse_xml
     return doc
@@ -232,6 +218,8 @@ class XMLHelper
     File.open(out_path, 'w', newline: :crlf) do |f|
       f << doc_s
     end
+
+    return doc_s
   end
 end
 

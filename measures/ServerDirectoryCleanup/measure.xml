@@ -3,13 +3,13 @@
   <schema_version>3.0</schema_version>
   <name>server_directory_cleanup</name>
   <uid>ec7d04ad-0b7b-495b-825a-e1b6d28d1d3f</uid>
-  <version_id>310687e6-484f-4215-81c1-61e7768ed1c9</version_id>
-  <version_modified>20220610T181705Z</version_modified>
+  <version_id>d7831eec-3624-4678-8a03-7ae55c5908d7</version_id>
+  <version_modified>20230406T225316Z</version_modified>
   <xml_checksum>5F1EDF75</xml_checksum>
   <class_name>ServerDirectoryCleanup</class_name>
   <display_name>Server Directory Cleanup</display_name>
-  <description>Removes a significant portion of the saved results from each run, helping to alleviate memory problems.</description>
-  <modeler_description>Use during large server runs, when individual sequel files and the like will not be needed.</modeler_description>
+  <description>Optionally removes a significant portion of the saved results from each run, helping to alleviate memory problems.</description>
+  <modeler_description>Present a bunch of bool arguments corresponding to EnergyPlus output files. "False" deletes the file, and "True" retains it. Most arguments default to not retaining the file. Only the in.idf and schedules.csv are retained by default.</modeler_description>
   <arguments>
     <argument>
       <name>retain_in_osm</name>
@@ -342,6 +342,7 @@
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
       <choices>
         <choice>
           <value>true</value>
@@ -381,7 +382,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>B6140923</checksum>
+      <checksum>6D96C46D</checksum>
     </file>
   </files>
 </measure>

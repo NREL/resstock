@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>report_utility_bills</name>
   <uid>ca88a425-e59a-4bc4-af51-c7e7d1e960fe</uid>
-  <version_id>8a385b32-239d-4f9b-a020-01e658457c63</version_id>
-  <version_modified>20220610T150740Z</version_modified>
+  <version_id>474cf773-6d6c-4bfb-9d09-b43e75efec0f</version_id>
+  <version_modified>20230309T022127Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>ReportUtilityBills</class_name>
   <display_name>Utility Bills Report</display_name>
@@ -34,179 +34,6 @@
         </choice>
       </choices>
     </argument>
-    <argument>
-      <name>electricity_fixed_charge</name>
-      <display_name>Electricity: Fixed Charge</display_name>
-      <description>Monthly fixed charge for electricity.</description>
-      <type>Double</type>
-      <units>$/month</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>12</default_value>
-    </argument>
-    <argument>
-      <name>electricity_marginal_rate</name>
-      <display_name>Electricity: Marginal Rate</display_name>
-      <description>Price per kilowatt-hour for electricity. If not provided, uses a state-average value from EIA.</description>
-      <type>Double</type>
-      <units>$/kWh</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>natural_gas_fixed_charge</name>
-      <display_name>Natural Gas: Fixed Charge</display_name>
-      <description>Monthly fixed charge for natural gas.</description>
-      <type>Double</type>
-      <units>$/month</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>12</default_value>
-    </argument>
-    <argument>
-      <name>natural_gas_marginal_rate</name>
-      <display_name>Natural Gas: Marginal Rate</display_name>
-      <description>Price per therm for natural gas. If not provided, uses a state-average value from EIA.</description>
-      <type>Double</type>
-      <units>$/therm</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>fuel_oil_marginal_rate</name>
-      <display_name>Fuel Oil: Marginal Rate</display_name>
-      <description>Price per gallon for fuel oil. If not provided, uses a state-average value from EIA.</description>
-      <type>Double</type>
-      <units>$/gal</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>propane_marginal_rate</name>
-      <display_name>Propane: Marginal Rate</display_name>
-      <description>Price per gallon for propane. If not provided, uses a state-average value from EIA.</description>
-      <type>Double</type>
-      <units>$/gal</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>wood_cord_marginal_rate</name>
-      <display_name>Wood Cord: Marginal Rate</display_name>
-      <description>Price per kBtu for wood cord.</description>
-      <type>Double</type>
-      <units>$/kBtu</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.015</default_value>
-    </argument>
-    <argument>
-      <name>wood_pellets_marginal_rate</name>
-      <display_name>Wood Pellets: Marginal Rate</display_name>
-      <description>Price per kBtu for wood pellets.</description>
-      <type>Double</type>
-      <units>$/kBtu</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.015</default_value>
-    </argument>
-    <argument>
-      <name>coal_marginal_rate</name>
-      <display_name>Coal: Marginal Rate</display_name>
-      <description>Price per kBtu for coal.</description>
-      <type>Double</type>
-      <units>$/kBtu</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.015</default_value>
-    </argument>
-    <argument>
-      <name>pv_compensation_type</name>
-      <display_name>PV: Compensation Type</display_name>
-      <description>The type of compensation for PV.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Net Metering</default_value>
-      <choices>
-        <choice>
-          <value>Net Metering</value>
-          <display_name>Net Metering</display_name>
-        </choice>
-        <choice>
-          <value>Feed-In Tariff</value>
-          <display_name>Feed-In Tariff</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>pv_annual_excess_sellback_rate_type</name>
-      <display_name>PV: Net Metering Annual Excess Sellback Rate Type</display_name>
-      <description>The type of annual excess sellback rate for PV. Only applies if the PV compensation type is 'Net Metering'.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>User-Specified</default_value>
-      <choices>
-        <choice>
-          <value>User-Specified</value>
-          <display_name>User-Specified</display_name>
-        </choice>
-        <choice>
-          <value>Retail Electricity Cost</value>
-          <display_name>Retail Electricity Cost</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>pv_net_metering_annual_excess_sellback_rate</name>
-      <display_name>PV: Net Metering Annual Excess Sellback Rate</display_name>
-      <description>The annual excess sellback rate for PV. Only applies if the PV compensation type is 'Net Metering' and the PV annual excess sellback rate type is 'User-Specified'.</description>
-      <type>Double</type>
-      <units>$/kWh</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.03</default_value>
-    </argument>
-    <argument>
-      <name>pv_feed_in_tariff_rate</name>
-      <display_name>PV: Feed-In Tariff Rate</display_name>
-      <description>The annual full/gross tariff rate for PV. Only applies if the PV compensation type is 'Feed-In Tariff'.</description>
-      <type>Double</type>
-      <units>$/kWh</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.12</default_value>
-    </argument>
-    <argument>
-      <name>pv_grid_connection_fee_units</name>
-      <display_name>PV: Grid Connection Fee Units</display_name>
-      <description>Units for PV grid connection fee. Only applies when there is PV.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>$/kW</default_value>
-      <choices>
-        <choice>
-          <value>$/kW</value>
-          <display_name>$/kW</display_name>
-        </choice>
-        <choice>
-          <value>$</value>
-          <display_name>$</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>pv_monthly_grid_connection_fee</name>
-      <display_name>PV: Monthly Grid Connection Fee</display_name>
-      <description>Monthly fee for PV grid connection. Only applies when there is PV.</description>
-      <type>Double</type>
-      <units>$</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
   </arguments>
   <outputs />
   <provenances />
@@ -222,70 +49,178 @@
   </attributes>
   <files>
     <file>
-      <filename>PV_10kW.csv</filename>
-      <filetype>csv</filetype>
+      <filename>Contains Demand Charges.json</filename>
+      <filetype>json</filetype>
       <usage_type>test</usage_type>
-      <checksum>3CDAD519</checksum>
+      <checksum>31A7BE3B</checksum>
     </file>
     <file>
-      <filename>PV_1kW.csv</filename>
-      <filetype>csv</filetype>
+      <filename>Invalid Fixed Charge Units.json</filename>
+      <filetype>json</filetype>
       <usage_type>test</usage_type>
-      <checksum>29157297</checksum>
+      <checksum>6CDC3F13</checksum>
     </file>
     <file>
-      <filename>PV_None.csv</filename>
-      <filetype>csv</filetype>
+      <filename>Invalid Min Charge Units.json</filename>
+      <filetype>json</filetype>
       <usage_type>test</usage_type>
-      <checksum>D77D8299</checksum>
+      <checksum>32FB5BA8</checksum>
     </file>
     <file>
-      <filename>Data/UtilityRates/Average_retail_price_of_electricity.csv</filename>
+      <filename>Missing Required Fields.json</filename>
+      <filetype>json</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3DCED656</checksum>
+    </file>
+    <file>
+      <filename>Jackson Electric Member Corp - A Residential Service Senior Citizen Low Income Assistance (Effective 2017-01-01).json</filename>
+      <filetype>json</filetype>
+      <usage_type>test</usage_type>
+      <checksum>953EE2AC</checksum>
+    </file>
+    <file>
+      <filename>data.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F96CB80F</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/openei_rates.zip</filename>
+      <filetype>zip</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>56DDA6EC</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Flat Rate.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C0FCBE3B</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Real-Time Pricing Rate.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>40D684ED</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Tiered Rate.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>27936FC1</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Tiered Time-of-Use Rate.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4508028D</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Time-of-Use Rate.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>AD93D08A</checksum>
+    </file>
+    <file>
+      <filename>simple_rates/Average_retail_price_of_electricity.csv</filename>
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
       <checksum>37E30685</checksum>
     </file>
     <file>
-      <filename>Data/UtilityRates/NG_PRI_SUM_A_EPG0_PRS_DMCF_A.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>2CE8192C</checksum>
-    </file>
-    <file>
-      <filename>Data/UtilityRates/PET_PRI_WFR_A_EPD2F_PRS_DPGAL_W.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>6FEB427A</checksum>
-    </file>
-    <file>
-      <filename>Data/UtilityRates/PET_PRI_WFR_A_EPLLPA_PRS_DPGAL_W.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>22112EBB</checksum>
-    </file>
-    <file>
-      <filename>Data/UtilityRates/README.md</filename>
-      <filetype>md</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>D9D25D07</checksum>
-    </file>
-    <file>
-      <filename>Data/UtilityRates/HouseholdConsumption.csv</filename>
+      <filename>simple_rates/HouseholdConsumption.csv</filename>
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
       <checksum>0BEECB93</checksum>
     </file>
     <file>
+      <filename>simple_rates/NG_PRI_SUM_A_EPG0_PRS_DMCF_A.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2CE8192C</checksum>
+    </file>
+    <file>
+      <filename>simple_rates/PET_PRI_WFR_A_EPD2F_PRS_DPGAL_W.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6FEB427A</checksum>
+    </file>
+    <file>
+      <filename>simple_rates/PET_PRI_WFR_A_EPLLPA_PRS_DPGAL_W.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>22112EBB</checksum>
+    </file>
+    <file>
+      <filename>simple_rates/README.md</filename>
+      <filetype>md</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D9D25D07</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Flat Rate Min Annual Charge.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>453ED6BD</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Flat Rate Min Monthly Charge.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A39362E3</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Real-Time Pricing Rate Min Annual Charge.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>12C12981</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Real-Time Pricing Rate Min Monthly Charge.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DE28BDA1</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Tiered Rate Min Annual Charge.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>05C5F7BD</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Tiered Rate Min Monthly Charge.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9177D651</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Tiered Time-of-Use Rate Min Annual Charge.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E59E9AEE</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Tiered Time-of-Use Rate Min Monthly Charge.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>75AD92DF</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Time-of-Use Rate Min Annual Charge.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2CC2386E</checksum>
+    </file>
+    <file>
+      <filename>detailed_rates/Sample Time-of-Use Rate Min Monthly Charge.json</filename>
+      <filetype>json</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>387337AD</checksum>
+    </file>
+    <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>EE9F4205</checksum>
-    </file>
-    <file>
-      <filename>utility_bills_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>124AD241</checksum>
+      <checksum>041AE7DE</checksum>
     </file>
     <file>
       <version>
@@ -296,7 +231,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>A4A00112</checksum>
+      <checksum>4A971101</checksum>
+    </file>
+    <file>
+      <filename>utility_bills_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B92E545C</checksum>
     </file>
   </files>
 </measure>

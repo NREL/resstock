@@ -10,13 +10,13 @@ The `develop` branch is under active development. Find the latest release [here]
 
 This repository contains:
 
-- [Housing characteristics of the U.S. residential building stock](https://github.com/NREL/resstock/tree/main/project_national/housing_characteristics), in the form of conditional probability distributions stored as tab-separated value (.tsv) files. A visualization of the dependency structure can be found [here](https://htmlpreview.github.io/?https://github.com/NREL/resstock/blob/main/project_national/util/dependency_wheel/dep_wheel.html)
+- [Housing characteristics of the U.S. residential building stock](https://github.com/NREL/resstock/tree/main/project_national/housing_characteristics), in the form of conditional probability distributions stored as tab-separated value (.tsv) files. Comments at the bottom of each file document data sources and assumptions for each.
 - [A library of housing characteristic "options"](https://github.com/NREL/resstock/blob/main/resources/options_lookup.tsv) that translate high-level characteristic parameters into arguments for OpenStudio measures, and which are referenced by the housing characteristic .tsv files and building energy upgrades defined in project definition files
 - Project definition files:
   - v2.3.0 and later: [buildstockbatch YML files openable in any text editor](https://github.com/NREL/resstock/blob/main/project_national/national_baseline.yml)
   - v2.2.5 and prior: [Project folder openable in PAT](https://github.com/NREL/resstock/tree/v2.2.5/project_singlefamilydetached)
 - Unit-level OpenStudio Measures for automatically constructing OpenStudio Models of each representative dwelling unit model:
-  - v2.6.0 and later: [OpenStudio-HPXML Measures](https://github.com/NREL/resstock/tree/main/resources/hpxml-measures)
+  - v3.0.0 and later: [OpenStudio-HPXML Measures](https://github.com/NREL/resstock/tree/main/resources/hpxml-measures)
   - v2.5.0 and prior: [OpenStudio Measures](https://github.com/NREL/resstock/tree/main/resources/measures)
 - [Higher-level OpenStudio Measures](https://github.com/NREL/resstock/tree/main/measures) for controlling simulation inputs and outputs
 

@@ -26,8 +26,10 @@ class TestRunAnalysis < MiniTest::Test
   def _test_measure_order(osw)
     expected_order = ['BuildExistingModel',
                       'ApplyUpgrade',
+                      'HPXMLtoOpenStudio',
                       'ReportSimulationOutput',
                       'ReportHPXMLOutput',
+                      'ReportUtilityBills',
                       'UpgradeCosts',
                       'QOIReport',
                       'ServerDirectoryCleanup']
@@ -35,6 +37,17 @@ class TestRunAnalysis < MiniTest::Test
     actual_order = json[:steps].collect { |k, _v| k[:measure_dir_name] }
     expected_order &= actual_order # subset expected_order to what's in actual_order
     assert_equal(expected_order, actual_order)
+  end
+
+  def _assert_and_puts(output, msg, expect_error = true)
+    includes = output.include?(msg)
+    if !includes && expect_error
+      puts output
+      assert(includes)
+    elsif includes && !expect_error
+      puts output
+      assert(!includes)
+    end
   end
 
   def test_version
@@ -51,7 +64,7 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Error: YML file does not exist at 'test/yml_bad_value/testing_baseline.yml'."))
+    _assert_and_puts(cli_output, "Error: YML file does not exist at 'test/yml_bad_value/testing_baseline.yml'.")
   end
 
   def test_errors_bad_value
@@ -60,11 +73,11 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert(cli_output.include?('Failures detected for: 1, 2.'))
+    _assert_and_puts(cli_output, 'Failures detected for: 1, 2.')
 
     cli_output_log = File.read(File.join(@testing_baseline, 'cli_output.log'))
-    assert(cli_output_log.include?('ERROR'))
-    assert(cli_output_log.include?('Run Period End Day of Month (32) must be one of'))
+    _assert_and_puts(cli_output_log, 'ERROR')
+    _assert_and_puts(cli_output_log, 'Run Period End Day of Month (32) must be one of')
   end
 
   def test_errors_already_exists
@@ -74,7 +87,7 @@ class TestRunAnalysis < MiniTest::Test
     `#{@command}`
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Output directory 'testing_baseline' already exists."))
+    _assert_and_puts(cli_output, "Error: Output directory 'testing_baseline' already exists.")
   end
 
   def test_errors_downselect_resample
@@ -83,7 +96,7 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Not supporting residential_quota_downselect's 'resample' at this time."))
+    _assert_and_puts(cli_output, "Error: Not supporting residential_quota_downselect's 'resample' at this time.")
   end
 
   def test_errors_weather_files
@@ -94,7 +107,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Must include 'weather_files_url' or 'weather_files_path' in yml."))
+    _assert_and_puts(cli_output, "Error: Must include 'weather_files_url' or 'weather_files_path' in yml.")
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
   end
 
@@ -104,7 +117,7 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Sampler type 'residential_quota_downsampler' is invalid or not supported."))
+    _assert_and_puts(cli_output, "Error: Sampler type 'residential_quota_downsampler' is invalid or not supported.")
   end
 
   def test_errors_missing_key
@@ -113,7 +126,27 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert(cli_output.include?("Both 'build_existing_model' and 'simulation_output_report' must be included in yml."))
+    _assert_and_puts(cli_output, "Error: Both 'build_existing_model' and 'simulation_output_report' must be included in yml.")
+  end
+
+  def test_errors_precomputed_outdated_missing_parameter
+    yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_missing.yml'
+    @command += yml
+
+    `#{@command}`
+    cli_output = File.read(File.join(@testing_baseline, 'cli_output.log'))
+
+    _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Missing parameters: HVAC Cooling Partial Space Conditioning.')
+  end
+
+  def test_errors_precomputed_outdated_extra_parameter
+    yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_extra.yml'
+    @command += yml
+
+    `#{@command}`
+    cli_output = File.read(File.join(@testing_baseline, 'cli_output.log'))
+
+    _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: Extra Parameter.')
   end
 
   def test_measures_only
@@ -135,7 +168,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
-    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(!File.exist?(File.join(@testing_baseline, 'testing_baseline-Baseline.osw')))
     assert(!File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'buildstock.csv')))
   end
@@ -182,6 +215,44 @@ class TestRunAnalysis < MiniTest::Test
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
   end
 
+  def test_precomputed
+    yml = ' -y test/tests_yml_files/yml_precomputed/testing_baseline.yml'
+    @command += yml
+
+    system(@command)
+
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(File.exist?(File.join(@testing_baseline, 'run2')))
+    assert(!File.exist?(File.join(@testing_baseline, 'run3')))
+
+    results_baseline = File.join(@testing_baseline, 'results-Baseline.csv')
+    assert(File.exist?(results_baseline))
+    results = CSV.read(results_baseline, headers: true)
+    assert(results.headers.include?('build_existing_model.sample_weight'))
+    assert_in_delta(results['build_existing_model.sample_weight'][0].to_f, 110000000 / 2, 0.001)
+    assert_in_delta(results['build_existing_model.sample_weight'][1].to_f, 110000000 / 2, 0.001)
+  end
+
+  def test_precomputed_sample_weight
+    yml = ' -y test/tests_yml_files/yml_precomputed_weight/testing_baseline.yml'
+    @command += yml
+
+    system(@command)
+
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(File.exist?(File.join(@testing_baseline, 'run2')))
+    assert(!File.exist?(File.join(@testing_baseline, 'run3')))
+
+    results_baseline = File.join(@testing_baseline, 'results-Baseline.csv')
+    assert(File.exist?(results_baseline))
+    results = CSV.read(results_baseline, headers: true)
+    assert(results.headers.include?('build_existing_model.sample_weight'))
+    assert_in_delta(results['build_existing_model.sample_weight'][0].to_f, 226.2342, 0.001)
+    assert_in_delta(results['build_existing_model.sample_weight'][1].to_f, 1.000009, 0.001)
+  end
+
   def test_testing_baseline
     yml = ' -y project_testing/testing_baseline.yml'
     @command += yml
@@ -192,10 +263,7 @@ class TestRunAnalysis < MiniTest::Test
     cli_output_log = File.join(@testing_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
-    if cli_output.include?('ERROR')
-      puts cli_output
-      assert(!cli_output.include?('ERROR'))
-    end
+    _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     results_baseline = File.join(@testing_baseline, 'results-Baseline.csv')
@@ -228,10 +296,7 @@ class TestRunAnalysis < MiniTest::Test
     cli_output_log = File.join(@national_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
-    if cli_output.include?('ERROR')
-      puts cli_output
-      assert(!cli_output.include?('ERROR'))
-    end
+    _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@national_baseline, 'national_baseline-Baseline.osw'))
     results_baseline = File.join(@national_baseline, 'results-Baseline.csv')
@@ -248,7 +313,7 @@ class TestRunAnalysis < MiniTest::Test
     timeseries = _get_timeseries_columns(Dir[File.join(@national_baseline, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries))
 
-    assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
+    assert(!File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
 
     FileUtils.cp(results_baseline, File.join(File.dirname(@national_baseline), 'project_national'))
@@ -265,10 +330,7 @@ class TestRunAnalysis < MiniTest::Test
     cli_output_log = File.join(@testing_upgrades, 'cli_output.log')
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
-    if cli_output.include?('ERROR')
-      puts cli_output
-      assert(!cli_output.include?('ERROR'))
-    end
+    _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Baseline.osw'))
     results_baseline = File.join(@testing_upgrades, 'results-Baseline.csv')
@@ -289,8 +351,8 @@ class TestRunAnalysis < MiniTest::Test
 
     _test_columns(results, true)
 
-    assert(File.exist?(File.join(@testing_upgrades, 'run66', 'run')))
-    contents = Dir[File.join(@testing_upgrades, 'run66', 'run/*')].collect { |x| File.basename(x) }
+    assert(File.exist?(File.join(@testing_upgrades, 'run76', 'run')))
+    contents = Dir[File.join(@testing_upgrades, 'run76', 'run/*')].collect { |x| File.basename(x) }
 
     _test_contents(contents, true, true)
 
@@ -299,15 +361,11 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
-    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-existing-defaulted.xml')))
-    assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-upgraded-defaulted.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-existing.xml')))
     assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-upgraded.xml')))
 
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'AllUpgrades', '1-existing.osw')))
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'AllUpgrades', '1-upgraded.osw')))
-    assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-existing-defaulted.xml')))
-    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-upgraded-defaulted.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-existing.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-upgraded.xml')))
 
@@ -325,10 +383,7 @@ class TestRunAnalysis < MiniTest::Test
     cli_output_log = File.join(@national_upgrades, 'cli_output.log')
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
-    if cli_output.include?('ERROR')
-      puts cli_output
-      assert(!cli_output.include?('ERROR'))
-    end
+    _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Baseline.osw'))
     results_baseline = File.join(@national_upgrades, 'results-Baseline.csv')
@@ -349,27 +404,23 @@ class TestRunAnalysis < MiniTest::Test
 
     _test_columns(results, true)
 
-    assert(File.exist?(File.join(@national_upgrades, 'run66', 'run')))
-    contents = Dir[File.join(@national_upgrades, 'run66', 'run/*')].collect { |x| File.basename(x) }
+    assert(File.exist?(File.join(@national_upgrades, 'run76', 'run')))
+    contents = Dir[File.join(@national_upgrades, 'run76', 'run/*')].collect { |x| File.basename(x) }
 
     _test_contents(contents, true, false)
 
     timeseries = _get_timeseries_columns(Dir[File.join(@national_upgrades, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries))
 
-    assert(File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing-defaulted.xml')))
-    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-upgraded-defaulted.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing.xml')))
     assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-upgraded.xml')))
 
-    assert(File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-existing.osw')))
-    assert(File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-upgraded.osw')))
-    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-existing-defaulted.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-upgraded-defaulted.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-existing.xml')))
-    assert(File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-upgraded.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-existing.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-upgraded.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-existing.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-upgraded.xml')))
 
     FileUtils.cp(results_allupgrades, File.join(File.dirname(@national_upgrades), 'project_national'))
   end

@@ -22,7 +22,7 @@ class WeatherDesign
 end
 
 class WeatherProcess
-  def initialize(model, runner, csv_path = nil)
+  def initialize(epw_path: nil, csv_path: nil, runner: nil)
     @header = WeatherHeader.new
     @data = WeatherData.new
     @design = WeatherDesign.new
@@ -32,22 +32,13 @@ class WeatherProcess
       return
     end
 
-    @model = model
-    @runner = runner
-
-    @epw_path = WeatherProcess.get_epw_path(@model)
-
-    if not File.exist?(@epw_path)
+    if not File.exist?(epw_path)
       fail "Cannot find weather file at #{epw_path}."
     end
 
-    @epw_file = OpenStudio::EpwFile.new(@epw_path, true)
+    epw_file = OpenStudio::EpwFile.new(epw_path, true)
 
-    process_epw
-  end
-
-  def epw_path
-    return @epw_path
+    process_epw(runner, epw_file)
   end
 
   def dump_to_csv(csv_path)
@@ -76,6 +67,7 @@ class WeatherProcess
   end
 
   def load_from_csv(csv_path)
+    require 'csv'
     csv_data = CSV.read(csv_path, headers: false)
 
     def to_datatype(data, dataclass)
@@ -106,42 +98,23 @@ class WeatherProcess
 
   private
 
-  def self.get_epw_path(model)
-    if model.weatherFile.is_initialized
-
-      wf = model.weatherFile.get
-      # Sometimes path is available, sometimes just url. Should be improved in OS 2.0.
-      if wf.path.is_initialized
-        epw_path = wf.path.get.to_s
-      else
-        epw_path = wf.url.to_s.sub('file:///', '').sub('file://', '').sub('file:', '')
-      end
-      if not File.exist? epw_path
-        epw_path = File.absolute_path(File.join(File.dirname(__FILE__), epw_path))
-      end
-      return epw_path
-    end
-
-    fail 'Model has not been assigned a weather file.'
-  end
-
-  def process_epw
+  def process_epw(runner, epw_file)
     # Header info:
-    @header.City = @epw_file.city
-    @header.State = @epw_file.stateProvinceRegion
-    @header.Country = @epw_file.country
-    @header.DataSource = @epw_file.dataSource
-    @header.Station = @epw_file.wmoNumber
-    @header.Latitude = @epw_file.latitude
-    @header.Longitude = @epw_file.longitude
-    @header.Timezone = @epw_file.timeZone
-    @header.Altitude = UnitConversions.convert(@epw_file.elevation, 'm', 'ft')
+    @header.City = epw_file.city
+    @header.State = epw_file.stateProvinceRegion
+    @header.Country = epw_file.country
+    @header.DataSource = epw_file.dataSource
+    @header.Station = epw_file.wmoNumber
+    @header.Latitude = epw_file.latitude
+    @header.Longitude = epw_file.longitude
+    @header.Timezone = epw_file.timeZone
+    @header.Altitude = UnitConversions.convert(epw_file.elevation, 'm', 'ft')
     @header.LocalPressure = Math::exp(-0.0000368 * @header.Altitude) # atm
-    @header.RecordsPerHour = @epw_file.recordsPerHour
+    @header.RecordsPerHour = epw_file.recordsPerHour
 
-    epw_file_data = @epw_file.data
+    epw_file_data = epw_file.data
 
-    epwHasDesignData = get_design_info_from_epw
+    epwHasDesignData = get_design_info_from_epw(epw_file)
 
     # Timeseries data:
     rowdata = []
@@ -215,7 +188,9 @@ class WeatherProcess
     @data.WSF = calc_ashrae_622_wsf(rowdata)
 
     if not epwHasDesignData
-      @runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
+      if not runner.nil?
+        runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
+      end
       calc_design_info(rowdata)
       @design.DailyTemperatureRange = @data.MonthlyAvgDailyHighDrybulbs[7] - @data.MonthlyAvgDailyLowDrybulbs[7]
     end
@@ -248,7 +223,7 @@ class WeatherProcess
   def calc_monthly_drybulbs(hd)
     # Calculates and stores monthly average drybulbs
     @data.MonthlyAvgDrybulbs = []
-    (1...13).to_a.each do |month|
+    for month in 1..12
       y = []
       hd.each do |x|
         if x['month'] == month
@@ -404,8 +379,8 @@ class WeatherProcess
     return wsf.round(2)
   end
 
-  def get_design_info_from_epw
-    epw_design_conditions = @epw_file.designConditions
+  def get_design_info_from_epw(epw_file)
+    epw_design_conditions = epw_file.designConditions
     epwHasDesignData = false
     if epw_design_conditions.length > 0
       epwHasDesignData = true
@@ -415,7 +390,7 @@ class WeatherProcess
       @design.CoolingDrybulb = UnitConversions.convert(epw_design_conditions.coolingDryBulb1, 'C', 'F')
       @design.CoolingWetbulb = UnitConversions.convert(epw_design_conditions.coolingMeanCoincidentWetBulb1, 'C', 'F')
       @design.CoolingWindspeed = epw_design_conditions.coolingMeanCoincidentWindSpeed0pt4
-      @design.DailyTemperatureRange = UnitConversions.convert(epw_design_conditions.coolingDryBulbRange, 'K', 'R')
+      @design.DailyTemperatureRange = UnitConversions.convert(epw_design_conditions.coolingDryBulbRange, 'deltaC', 'deltaF')
       @design.DehumidDrybulb = UnitConversions.convert(epw_design_conditions.coolingDehumidificationMeanCoincidentDryBulb2, 'C', 'F')
       dehum02per_dp = UnitConversions.convert(epw_design_conditions.coolingDehumidificationDewPoint2, 'C', 'F')
       std_press = Psychrometrics.Pstd_fZ(@header.Altitude)
@@ -504,7 +479,7 @@ class WeatherProcess
     bo = (data.MonthlyAvgDrybulbs.max - data.MonthlyAvgDrybulbs.min) * 0.5
 
     @data.GroundMonthlyTemps = []
-    (0...12).to_a.each do |i|
+    for i in 0..11
       theta = amon[i] * 24.0
       @data.GroundMonthlyTemps << UnitConversions.convert(data.AnnualAvgDrybulb - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0, 'R', 'F')
     end

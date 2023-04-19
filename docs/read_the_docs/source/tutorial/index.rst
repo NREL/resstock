@@ -1,11 +1,11 @@
 .. _tutorial:
 
 Tutorial
-########
+========
 
 .. toctree::
    
    installation
-   setup_analysis_project
+   architecture
    run_project
    conclusion

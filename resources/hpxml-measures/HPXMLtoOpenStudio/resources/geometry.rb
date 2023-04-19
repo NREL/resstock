@@ -9,10 +9,6 @@ class Geometry
       space = OpenStudio::Model::Space.new(model)
       space.setName(location)
 
-      st = OpenStudio::Model::SpaceType.new(model)
-      st.setStandardsSpaceType(location)
-      space.setSpaceType(st)
-
       space.setThermalZone(thermal_zone)
       spaces[location] = space
     end
@@ -349,7 +345,7 @@ class Geometry
       return floor_area * height
     elsif [HPXML::LocationAtticUnvented,
            HPXML::LocationAtticVented].include? location
-      floor_area = hpxml.frame_floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? location }.map { |s| s.area }.sum(0.0)
+      floor_area = hpxml.floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? location }.map { |s| s.area }.sum(0.0)
       roofs = hpxml.roofs.select { |r| r.interior_adjacent_to == location }
       avg_pitch = roofs.map { |r| r.pitch }.sum(0.0) / roofs.size
       # Assume square hip roof for volume calculation
@@ -474,47 +470,7 @@ class Geometry
     return UnitConversions.convert(tilts.max, 'rad', 'deg')
   end
 
-  # TODO: Remove this method
-  def self.is_living(space_or_zone)
-    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationLivingSpace)
-  end
-
-  # TODO: Remove this method
-  def self.is_unconditioned_basement(space_or_zone)
-    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationBasementUnconditioned)
-  end
-
-  # TODO: Remove this method
-  def self.is_garage(space_or_zone)
-    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationGarage)
-  end
-
-  def self.space_or_zone_is_of_type(space_or_zone, location)
-    if space_or_zone.is_a? OpenStudio::Model::Space
-      return space_is_of_type(space_or_zone, location)
-    elsif space_or_zone.is_a? OpenStudio::Model::ThermalZone
-      return zone_is_of_type(space_or_zone, location)
-    end
-  end
-
-  def self.space_is_of_type(space, location)
-    unless space.isPlenum
-      if space.spaceType.is_initialized
-        if space.spaceType.get.standardsSpaceType.is_initialized
-          return true if space.spaceType.get.standardsSpaceType.get == location
-        end
-      end
-    end
-    return false
-  end
-
-  def self.zone_is_of_type(zone, location)
-    zone.spaces.each do |space|
-      return space_is_of_type(space, location)
-    end
-  end
-
-  def self.apply_occupants(model, runner, hpxml, num_occ, space, schedules_file)
+  def self.apply_occupants(model, runner, hpxml, num_occ, space, schedules_file, vacancy_periods)
     occ_gain, _hrs_per_day, sens_frac, _lat_frac = Geometry.get_occupancy_default_values()
     activity_per_person = UnitConversions.convert(occ_gain, 'Btu/hr', 'W')
 
@@ -524,21 +480,23 @@ class Geometry
 
     # Create schedule
     people_sch = nil
+    people_col_name = SchedulesFile::ColumnOccupants
     if not schedules_file.nil?
-      people_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnOccupants)
+      people_sch = schedules_file.create_schedule_file(col_name: people_col_name)
     end
     if people_sch.nil?
+      people_vacancy_periods = vacancy_periods if Schedule.affected_by_off_period(people_col_name, 'Affected By Vacancy')
       weekday_sch = hpxml.building_occupancy.weekday_fractions.split(',').map(&:to_f)
       weekday_sch = weekday_sch.map { |v| v / weekday_sch.max }.join(',')
       weekend_sch = hpxml.building_occupancy.weekend_fractions.split(',').map(&:to_f)
       weekend_sch = weekend_sch.map { |v| v / weekend_sch.max }.join(',')
       monthly_sch = hpxml.building_occupancy.monthly_multipliers
-      people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction)
+      people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction, off_periods: people_vacancy_periods)
       people_sch = people_sch.schedule
     else
-      runner.registerWarning("Both '#{SchedulesFile::ColumnOccupants}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekday_fractions.nil?
-      runner.registerWarning("Both '#{SchedulesFile::ColumnOccupants}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekend_fractions.nil?
-      runner.registerWarning("Both '#{SchedulesFile::ColumnOccupants}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml.building_occupancy.monthly_multipliers.nil?
+      runner.registerWarning("Both '#{people_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekday_fractions.nil?
+      runner.registerWarning("Both '#{people_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekend_fractions.nil?
+      runner.registerWarning("Both '#{people_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml.building_occupancy.monthly_multipliers.nil?
     end
 
     # Create schedule
@@ -552,7 +510,6 @@ class Geometry
     occ.setName(Constants.ObjectNameOccupants)
     occ.setSpace(space)
     occ_def.setName(Constants.ObjectNameOccupants)
-    occ_def.setNumberOfPeopleCalculationMethod('People', 1)
     occ_def.setNumberofPeople(num_occ)
     occ_def.setFractionRadiant(occ_rad)
     occ_def.setSensibleHeatFraction(occ_sens)

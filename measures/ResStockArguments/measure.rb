@@ -378,33 +378,33 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Conditioned floor area
     if args['geometry_unit_cfa'] == Constants.Auto
-      cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 328,
-               ['0-499', HPXML::ResidentialTypeSFA] => 317,
-               ['0-499', HPXML::ResidentialTypeApartment] => 333,
-               ['500-749', HPXML::ResidentialTypeSFD] => 633,
-               ['500-749', HPXML::ResidentialTypeSFA] => 617,
-               ['500-749', HPXML::ResidentialTypeApartment] => 617,
-               ['750-999', HPXML::ResidentialTypeSFD] => 885,
-               ['750-999', HPXML::ResidentialTypeSFA] => 866,
-               ['750-999', HPXML::ResidentialTypeApartment] => 853,
-               ['1000-1499', HPXML::ResidentialTypeSFD] => 1220,
-               ['1000-1499', HPXML::ResidentialTypeSFA] => 1202,
-               ['1000-1499', HPXML::ResidentialTypeApartment] => 1138,
-               ['1500-1999', HPXML::ResidentialTypeSFD] => 1690,
-               ['1500-1999', HPXML::ResidentialTypeSFA] => 1675,
-               ['1500-1999', HPXML::ResidentialTypeApartment] => 1623,
-               ['2000-2499', HPXML::ResidentialTypeSFD] => 2176,
-               ['2000-2499', HPXML::ResidentialTypeSFA] => 2152,
-               ['2000-2499', HPXML::ResidentialTypeApartment] => 2115,
-               ['2500-2999', HPXML::ResidentialTypeSFD] => 2663,
-               ['2500-2999', HPXML::ResidentialTypeSFA] => 2631,
-               ['2500-2999', HPXML::ResidentialTypeApartment] => 2590,
-               ['3000-3999', HPXML::ResidentialTypeSFD] => 3301,
-               ['3000-3999', HPXML::ResidentialTypeSFA] => 3241,
-               ['3000-3999', HPXML::ResidentialTypeApartment] => 3138,
-               ['4000+', HPXML::ResidentialTypeSFD] => 8194,
-               ['4000+', HPXML::ResidentialTypeSFA] => 13414,
-               ['4000+', HPXML::ResidentialTypeApartment] => 12291 }
+      cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 298, # AHS 2021, 1 detached and mobile home weighted average
+               ['0-499', HPXML::ResidentialTypeSFA] => 273, # AHS 2021, 1 detached and mobile home weighted average
+               ['0-499', HPXML::ResidentialTypeApartment] => 322, # AHS 2021, multi-family weighted average
+               ['500-749', HPXML::ResidentialTypeSFD] => 634, # AHS 2021, 1 detached and mobile home weighted average
+               ['500-749', HPXML::ResidentialTypeSFA] => 625, # AHS 2021, 1 attached
+               ['500-749', HPXML::ResidentialTypeApartment] => 623, # AHS 2021, multi-family weighted average
+               ['750-999', HPXML::ResidentialTypeSFD] => 881, # AHS 2021, 1 detached and mobile home weighted average
+               ['750-999', HPXML::ResidentialTypeSFA] => 872, # AHS 2021, 1 attached
+               ['750-999', HPXML::ResidentialTypeApartment] => 854, # AHS 2021, multi-family weighted average
+               ['1000-1499', HPXML::ResidentialTypeSFD] => 1228, # AHS 2021, 1 detached and mobile home weighted average
+               ['1000-1499', HPXML::ResidentialTypeSFA] => 1207, # AHS 2021, 1 attached
+               ['1000-1499', HPXML::ResidentialTypeApartment] => 1138, # AHS 2021, multi-family weighted average
+               ['1500-1999', HPXML::ResidentialTypeSFD] => 1698, # AHS 2021, 1 detached and mobile home weighted average
+               ['1500-1999', HPXML::ResidentialTypeSFA] => 1678, # AHS 2021, 1 attached
+               ['1500-1999', HPXML::ResidentialTypeApartment] => 1682, # AHS 2021, multi-family weighted average
+               ['2000-2499', HPXML::ResidentialTypeSFD] => 2179, # AHS 2021, 1 detached and mobile home weighted average
+               ['2000-2499', HPXML::ResidentialTypeSFA] => 2152, # AHS 2021, 1 attached
+               ['2000-2499', HPXML::ResidentialTypeApartment] => 2115, # AHS 2021, multi-family weighted average
+               ['2500-2999', HPXML::ResidentialTypeSFD] => 2678, # AHS 2021, 1 detached and mobile home weighted average
+               ['2500-2999', HPXML::ResidentialTypeSFA] => 2663, # AHS 2021, 1 attached
+               ['2500-2999', HPXML::ResidentialTypeApartment] => 2648, # AHS 2021, multi-family weighted average
+               ['3000-3999', HPXML::ResidentialTypeSFD] => 3310, # AHS 2021, 1 detached and mobile home weighted average
+               ['3000-3999', HPXML::ResidentialTypeSFA] => 3228, # AHS 2021, 1 attached
+               ['3000-3999', HPXML::ResidentialTypeApartment] => 33171, # AHS 2021, multi-family weighted average
+               ['4000+', HPXML::ResidentialTypeSFD] => 5587, # AHS 2021, 1 detached and mobile home weighted average
+               ['4000+', HPXML::ResidentialTypeSFA] => 7414, # AHS 2019, 1 attached
+               ['4000+', HPXML::ResidentialTypeApartment] => 6348 } # AHS 2021, 4,000 or more all unit average
       cfa = cfas[[args['geometry_unit_cfa_bin'], args['geometry_unit_type']]]
       if cfa.nil?
         runner.registerError("ResStockArguments: Could not look up conditioned floor area for '#{args['geometry_unit_cfa_bin']}' and 'args['geometry_unit_type']'.")
@@ -480,26 +480,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['hvac_control_cooling_weekend_setpoint'] = weekend_cooling_setpoints.join(', ')
 
     # Seasons
-    if args['use_auto_heating_season'] || args['use_auto_cooling_season']
-      epw_path, cache_path = process_weather(args['weather_station_epw_filepath'], runner, model, '../in.xml')
-      weather, _epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
-      heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
-    end
-
     if args['use_auto_heating_season']
-      season_heating_begin_month, season_heating_begin_day_of_month, season_heating_end_month, season_heating_end_day_of_month = get_begin_and_end_dates_from_monthly_array(model, heating_months)
-      args['season_heating_begin_month'] = season_heating_begin_month
-      args['season_heating_begin_day_of_month'] = season_heating_begin_day_of_month
-      args['season_heating_end_month'] = season_heating_end_month
-      args['season_heating_end_day_of_month'] = season_heating_end_day_of_month
+      args['hvac_control_heating_season_period'] = HPXML::BuildingAmerica
     end
 
     if args['use_auto_cooling_season']
-      season_cooling_begin_month, season_cooling_begin_day_of_month, season_cooling_end_month, season_cooling_end_day_of_month = get_begin_and_end_dates_from_monthly_array(model, cooling_months)
-      args['season_cooling_begin_month'] = season_cooling_begin_month
-      args['season_cooling_begin_day_of_month'] = season_cooling_begin_day_of_month
-      args['season_cooling_end_month'] = season_cooling_end_month
-      args['season_cooling_end_day_of_month'] = season_cooling_end_day_of_month
+      args['hvac_control_cooling_season_period'] = HPXML::BuildingAmerica
     end
 
     # Flue or Chimney
@@ -647,8 +633,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         elsif ['Left', 'Right'].include? horiz_location
           n_unit_sides = 1
         end
-        n_bldg_sides_equivalent = n_bldg_sides + n_bldg_fronts_backs / aspect_ratio
-        n_unit_sides_equivalent = n_unit_sides + n_unit_fronts_backs / aspect_ratio
+        n_bldg_sides_equivalent = n_bldg_sides + n_bldg_fronts_backs * aspect_ratio
+        n_unit_sides_equivalent = n_unit_sides + n_unit_fronts_backs * aspect_ratio
         exposed_wall_area_ratio = n_unit_sides_equivalent / (n_bldg_sides_equivalent / n_units)
       end
 
@@ -749,60 +735,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       schedule[i] += offset_magnitude * direction
     end
     return schedule
-  end
-
-  def process_weather(weather_station_epw_filepath, runner, model, hpxml_path)
-    epw_path = weather_station_epw_filepath
-
-    if not File.exist? epw_path
-      test_epw_path = File.join(File.dirname(hpxml_path), epw_path)
-      epw_path = test_epw_path if File.exist? test_epw_path
-    end
-    if not File.exist? epw_path
-      test_epw_path = File.join(File.dirname(__FILE__), '..', 'weather', epw_path)
-      epw_path = test_epw_path if File.exist? test_epw_path
-    end
-    if not File.exist? epw_path
-      test_epw_path = File.join(File.dirname(__FILE__), '..', '..', 'weather', epw_path)
-      epw_path = test_epw_path if File.exist? test_epw_path
-    end
-    if not File.exist?(epw_path)
-      fail "'#{epw_path}' could not be found."
-    end
-
-    cache_path = epw_path.gsub('.epw', '-cache.csv')
-    if not File.exist?(cache_path)
-      # Process weather file to create cache .csv
-      runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
-      epw_file = OpenStudio::EpwFile.new(epw_path)
-      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
-      weather = WeatherProcess.new(model, runner)
-      begin
-        File.open(cache_path, 'wb') do |file|
-          weather.dump_to_csv(file)
-        end
-      rescue SystemCallError
-        runner.registerWarning("#{cache_path} could not be written, skipping.")
-      end
-    end
-
-    return epw_path, cache_path
-  end
-
-  def get_begin_and_end_dates_from_monthly_array(model, months)
-    if months.include? 0
-      if months[0] == 1 && months[11] == 1 # Wrap around year
-        begin_month = 12 - months.reverse.index(0) + 1
-        end_month = months.index(0)
-      else
-        begin_month = months.index(1) + 1
-        end_month = 12 - months.reverse.index(1)
-      end
-    end
-    get_num_days_per_month = Schedule.get_num_days_per_month(model)
-    begin_day = 1
-    end_day = get_num_days_per_month[end_month - 1]
-    return begin_month, begin_day, end_month, end_day
   end
 end
 

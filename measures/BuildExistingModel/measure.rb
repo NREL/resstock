@@ -35,11 +35,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The building unit number (between 1 and the number of samples).')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('number_of_buildings_represented', false)
-    arg.setDisplayName('Number of Buildings Represented')
-    arg.setDescription('The total number of buildings represented by the existing building models.')
-    args << arg
-
     arg = OpenStudio::Ruleset::OSArgument.makeDoubleArgument('sample_weight', false)
     arg.setDisplayName('Sample Weight of Simulation')
     arg.setDescription('Number of buildings this simulation represents.')
@@ -48,11 +43,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('downselect_logic', false)
     arg.setDisplayName('Downselect Logic')
     arg.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
-    args << arg
-
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('measures_to_ignore', false)
-    arg.setDisplayName('Measures to Ignore')
-    arg.setDescription("Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (this measure will fail). INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', false)
@@ -89,16 +79,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Simulation Control: Run Period Calendar Year')
     arg.setUnits('year')
     arg.setDescription('This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
-    arg.setDisplayName('Debug Mode?')
-    arg.setDescription('If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
-    arg.setDisplayName('Annual Component Loads?')
-    arg.setDescription('If true, output the annual component loads.')
     args << arg
 
     arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('os_hescore_directory', false)
@@ -141,6 +121,91 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_scenario_names', false)
+    arg.setDisplayName('Utility Bills: Scenario Names')
+    arg.setDescription('Names of utility bill scenarios. If multiple scenarios, use a comma-separated list. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_electricity_fixed_charges', false)
+    arg.setDisplayName('Utility Bills: Electricity Fixed Charges')
+    arg.setDescription('Electricity utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_electricity_marginal_rates', false)
+    arg.setDisplayName('Utility Bills: Electricity Marginal Rates')
+    arg.setDescription('Electricity utility bill marginal rates. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_natural_gas_fixed_charges', false)
+    arg.setDisplayName('Utility Bills: Natural Gas Fixed Charges')
+    arg.setDescription('Natural gas utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_natural_gas_marginal_rates', false)
+    arg.setDisplayName('Utility Bills: Natural Gas Marginal Rates')
+    arg.setDescription('Natural gas utility bill marginal rates. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_propane_fixed_charges', false)
+    arg.setDisplayName('Utility Bills: Propane Fixed Charges')
+    arg.setDescription('Propane utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_propane_marginal_rates', false)
+    arg.setDisplayName('Utility Bills: Propane Marginal Rates')
+    arg.setDescription('Propane utility bill marginal rates. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_fuel_oil_fixed_charges', false)
+    arg.setDisplayName('Utility Bills: Fuel Oil Fixed Charges')
+    arg.setDescription('Fuel oil utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_fuel_oil_marginal_rates', false)
+    arg.setDisplayName('Utility Bills: Fuel Oil Marginal Rates')
+    arg.setDescription('Fuel oil utility bill marginal rates. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_wood_fixed_charges', false)
+    arg.setDisplayName('Utility Bills: Wood Fixed Charges')
+    arg.setDescription('Wood utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_wood_marginal_rates', false)
+    arg.setDisplayName('Utility Bills: Wood Marginal Rates')
+    arg.setDescription('Wood utility bill marginal rates. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_compensation_types', false)
+    arg.setDisplayName('Utility Bills: PV Compensation Types')
+    arg.setDescription('Utility bill PV compensation types. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_net_metering_annual_excess_sellback_rate_types', false)
+    arg.setDisplayName('Utility Bills: PV Net Metering Annual Excess Sellback Rate Types')
+    arg.setDescription("Utility bill PV net metering annual excess sellback rate types. Only applies if the PV compensation type is 'NetMetering'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_net_metering_annual_excess_sellback_rates', false)
+    arg.setDisplayName('Utility Bills: PV Net Metering Annual Excess Sellback Rates')
+    arg.setDescription("Utility bill PV net metering annual excess sellback rates. Only applies if the PV compensation type is 'NetMetering' and the PV annual excess sellback rate type is 'User-Specified'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_feed_in_tariff_rates', false)
+    arg.setDisplayName('Utility Bills: PV Feed-In Tariff Rates')
+    arg.setDescription("Utility bill PV annual full/gross feed-in tariff rates. Only applies if the PV compensation type is 'FeedInTariff'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_monthly_grid_connection_fee_units', false)
+    arg.setDisplayName('Utility Bills: PV Monthly Grid Connection Fee Units')
+    arg.setDescription('Utility bill PV monthly grid connection fee units. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_monthly_grid_connection_fees', false)
+    arg.setDisplayName('Utility Bills: PV Monthly Grid Connection Fees')
+    arg.setDescription('Utility bill PV monthly grid connection fees. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
     return args
   end
 
@@ -167,7 +232,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     if args['os_hescore_directory'].is_initialized
       os_hescore_directory = args['os_hescore_directory'].get
-      hes_hpxml_measures_dir = File.join(os_hescore_directory, 'hpxml-measures')
       hes_ruleset_measures_dir = File.join(os_hescore_directory, 'rulesets')
       run_hescore_workflow = true
     end
@@ -193,6 +257,20 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Retrieve order of parameters to run
     parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
+
+    # Check buildstock.csv has all parameters
+    missings = parameters_ordered - bldg_data.keys
+    if !missings.empty?
+      runner.registerError("Mismatch between buildstock.csv and options_lookup.tsv. Missing parameters: #{missings.join(', ')}.")
+      return false
+    end
+
+    # Check buildstock.csv doesn't have extra parameters
+    extras = bldg_data.keys - parameters_ordered - ['Building', 'sample_weight']
+    if !extras.empty?
+      runner.registerError("Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: #{extras.join(', ')}.")
+      return false
+    end
 
     # Retrieve options that have been selected for this building_id
     parameters_ordered.each do |parameter_name|
@@ -228,27 +306,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     parameters_ordered.each do |parameter_name|
       option_name = bldg_data[parameter_name]
       print_option_assignment(parameter_name, option_name, runner)
-      options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
+      options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
       options_measure_args[option_name].each do |measure_subdir, args_hash|
         update_args_hash(measures, measure_subdir, args_hash, false)
-      end
-    end
-
-    # Remove any measures_to_ignore from the list of measures to run
-    if args['measures_to_ignore'].is_initialized
-      measures_to_ignore = args['measures_to_ignore'].get
-      # core ResStock measures are those specified below
-      # those should not be ignored ...
-      core_measures = ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'HPXMLtoOpenStudio']
-      measures_to_ignore.split('|').each do |measure_dir|
-        if core_measures.include? measure_dir
-          # fail if core ResStock measure is ignored
-          msg = "Core ResStock measure #{measure_dir} cannot be ignored"
-          runner.registerError(msg)
-          fail msg
-        end
-        runner.registerInfo("Ignoring/not running measure #{measure_dir}")
-        measures.delete(measure_dir)
       end
     end
 
@@ -263,17 +323,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../existing.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
-    measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
 
-      if ['schedules_type', 'schedules_vacancy_period'].include?(step_value.name)
-        measures['BuildResidentialScheduleFile'][0][step_value.name] = value
-      else
-        measures['BuildResidentialHPXML'][0][step_value.name] = value
-      end
+      measures['BuildResidentialHPXML'][0][step_value.name] = value
     end
 
     # Set additional properties
@@ -365,21 +420,120 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    # Utility Bills
+    if args['utility_bill_scenario_names'].is_initialized
+      utility_bill_scenario_names = args['utility_bill_scenario_names'].get
+
+      measures['BuildResidentialHPXML'][0]['utility_bill_scenario_names'] = utility_bill_scenario_names
+      register_value(runner, 'utility_bill_scenario_names', utility_bill_scenario_names)
+
+      if args['utility_bill_electricity_fixed_charges'].is_initialized
+        utility_bill_electricity_fixed_charges = args['utility_bill_electricity_fixed_charges'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_electricity_fixed_charges'] = utility_bill_electricity_fixed_charges
+        register_value(runner, 'utility_bill_electricity_fixed_charges', utility_bill_electricity_fixed_charges)
+      end
+
+      if args['utility_bill_electricity_marginal_rates'].is_initialized
+        utility_bill_electricity_marginal_rates = args['utility_bill_electricity_marginal_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_electricity_marginal_rates'] = utility_bill_electricity_marginal_rates
+        register_value(runner, 'utility_bill_electricity_marginal_rates', utility_bill_electricity_marginal_rates)
+      end
+
+      if args['utility_bill_natural_gas_fixed_charges'].is_initialized
+        utility_bill_natural_gas_fixed_charges = args['utility_bill_natural_gas_fixed_charges'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_fixed_charges'] = utility_bill_natural_gas_fixed_charges
+        register_value(runner, 'utility_bill_natural_gas_fixed_charges', utility_bill_natural_gas_fixed_charges)
+      end
+
+      if args['utility_bill_natural_gas_marginal_rates'].is_initialized
+        utility_bill_natural_gas_marginal_rates = args['utility_bill_natural_gas_marginal_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_marginal_rates'] = utility_bill_natural_gas_marginal_rates
+        register_value(runner, 'utility_bill_natural_gas_marginal_rates', utility_bill_natural_gas_marginal_rates)
+      end
+
+      if args['utility_bill_propane_fixed_charges'].is_initialized
+        utility_bill_propane_fixed_charges = args['utility_bill_propane_fixed_charges'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_propane_fixed_charges'] = utility_bill_propane_fixed_charges
+        register_value(runner, 'utility_bill_propane_fixed_charges', utility_bill_propane_fixed_charges)
+      end
+
+      if args['utility_bill_propane_marginal_rates'].is_initialized
+        utility_bill_propane_marginal_rates = args['utility_bill_propane_marginal_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_propane_marginal_rates'] = utility_bill_propane_marginal_rates
+        register_value(runner, 'utility_bill_propane_marginal_rates', utility_bill_propane_marginal_rates)
+      end
+
+      if args['utility_bill_fuel_oil_fixed_charges'].is_initialized
+        utility_bill_fuel_oil_fixed_charges = args['utility_bill_fuel_oil_fixed_charges'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_fixed_charges'] = utility_bill_fuel_oil_fixed_charges
+        register_value(runner, 'utility_bill_fuel_oil_fixed_charges', utility_bill_fuel_oil_fixed_charges)
+      end
+
+      if args['utility_bill_fuel_oil_marginal_rates'].is_initialized
+        utility_bill_fuel_oil_marginal_rates = args['utility_bill_fuel_oil_marginal_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_marginal_rates'] = utility_bill_fuel_oil_marginal_rates
+        register_value(runner, 'utility_bill_fuel_oil_marginal_rates', utility_bill_fuel_oil_marginal_rates)
+      end
+
+      if args['utility_bill_wood_fixed_charges'].is_initialized
+        utility_bill_wood_fixed_charges = args['utility_bill_wood_fixed_charges'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_wood_fixed_charges'] = utility_bill_wood_fixed_charges
+        register_value(runner, 'utility_bill_wood_fixed_charges', utility_bill_wood_fixed_charges)
+      end
+
+      if args['utility_bill_wood_marginal_rates'].is_initialized
+        utility_bill_wood_marginal_rates = args['utility_bill_wood_marginal_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_wood_marginal_rates'] = utility_bill_wood_marginal_rates
+        register_value(runner, 'utility_bill_wood_marginal_rates', utility_bill_wood_marginal_rates)
+      end
+
+      if args['utility_bill_pv_compensation_types'].is_initialized
+        utility_bill_pv_compensation_types = args['utility_bill_pv_compensation_types'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_compensation_types'] = utility_bill_pv_compensation_types
+        register_value(runner, 'utility_bill_pv_compensation_types', utility_bill_pv_compensation_types)
+      end
+
+      if args['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'].is_initialized
+        utility_bill_pv_net_metering_annual_excess_sellback_rate_types = args['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = utility_bill_pv_net_metering_annual_excess_sellback_rate_types
+        register_value(runner, 'utility_bill_pv_net_metering_annual_excess_sellback_rate_types', utility_bill_pv_net_metering_annual_excess_sellback_rate_types)
+      end
+
+      if args['utility_bill_pv_net_metering_annual_excess_sellback_rates'].is_initialized
+        utility_bill_pv_net_metering_annual_excess_sellback_rates = args['utility_bill_pv_net_metering_annual_excess_sellback_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = utility_bill_pv_net_metering_annual_excess_sellback_rates
+        register_value(runner, 'utility_bill_pv_net_metering_annual_excess_sellback_rates', utility_bill_pv_net_metering_annual_excess_sellback_rates)
+      end
+
+      if args['utility_bill_pv_feed_in_tariff_rates'].is_initialized
+        utility_bill_pv_feed_in_tariff_rates = args['utility_bill_pv_feed_in_tariff_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_feed_in_tariff_rates'] = utility_bill_pv_feed_in_tariff_rates
+        register_value(runner, 'utility_bill_pv_feed_in_tariff_rates', utility_bill_pv_feed_in_tariff_rates)
+      end
+
+      if args['utility_bill_pv_monthly_grid_connection_fee_units'].is_initialized
+        utility_bill_pv_monthly_grid_connection_fee_units = args['utility_bill_pv_monthly_grid_connection_fee_units'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = utility_bill_pv_monthly_grid_connection_fee_units
+        register_value(runner, 'utility_bill_pv_monthly_grid_connection_fee_units', utility_bill_pv_monthly_grid_connection_fee_units)
+      end
+
+      if args['utility_bill_pv_monthly_grid_connection_fees'].is_initialized
+        utility_bill_pv_monthly_grid_connection_fees = args['utility_bill_pv_monthly_grid_connection_fees'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = utility_bill_pv_monthly_grid_connection_fees
+        register_value(runner, 'utility_bill_pv_monthly_grid_connection_fees', utility_bill_pv_monthly_grid_connection_fees)
+      end
+    end
+
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
-    # Get registered values and pass them to HPXMLtoOpenStudio
-    measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
-    measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'].get if args['debug'].is_initialized
-    measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'].get if args['add_component_loads'].is_initialized
-
     # Specify measures to run
+    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # for apply_hvac_sizing
     if run_hescore_workflow
-      measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
     else
-      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
+      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] }
     end
 
     if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
@@ -387,13 +541,16 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    # Copy existing.xml to home.xml for downstream HPXMLtoOpenStudio
+    # We need existing.xml (and not just home.xml) for UpgradeCosts
+    in_path = File.expand_path('../home.xml')
+    FileUtils.cp(hpxml_path, in_path)
+
     # Run HEScore Measures
     if run_hescore_workflow
       hes_json_path = File.expand_path('../hes.json')
-      hes_hpxml_path = File.expand_path('../hes.xml')
-      measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => hpxml_path, 'output_path' => hes_json_path }]
-      measures['HEScoreRuleset'] = [{ 'json_path' => hes_json_path, 'hpxml_output_path' => hes_hpxml_path }]
-      measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = hes_hpxml_path
+      measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => in_path, 'output_path' => hes_json_path }]
+      measures['HEScoreRuleset'] = [{ 'json_path' => hes_json_path, 'hpxml_output_path' => in_path }]
 
       # HPXMLtoHEScore and HEScoreRuleset
       measures_hash = { 'HPXMLtoHEScore' => measures['HPXMLtoHEScore'], 'HEScoreRuleset' => measures['HEScoreRuleset'] }
@@ -402,43 +559,25 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         register_logs(runner, new_runner)
         return false
       end
-
-      # HPXMLtoOpenStudio
-      measures_hash = { 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
-      if not apply_measures(hes_hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
-        register_logs(runner, new_runner)
-        return false
-      end
     end
 
     # Report some additional location and model characteristics
-    weather = WeatherProcess.new(model, runner)
-    register_value(runner, 'weather_file_city', weather.header.City)
-    register_value(runner, 'weather_file_latitude', "#{weather.header.Latitude}")
-    register_value(runner, 'weather_file_longitude', "#{weather.header.Longitude}")
-
-    # Determine weight
-    if args['number_of_buildings_represented'].is_initialized
-      total_samples = nil
-      runner.analysis[:analysis][:problem][:workflow].each do |wf|
-        next if wf[:name] != 'build_existing_model'
-
-        wf[:variables].each do |v|
-          next if v[:argument][:name] != 'building_id'
-
-          total_samples = v[:maximum].to_f
-        end
-      end
-      if total_samples.nil?
-        runner.registerError('Could not retrieve value for number_of_buildings_represented.')
-        return false
-      end
-      weight = args['number_of_buildings_represented'].get / total_samples
-      register_value(runner, 'weight', weight.to_s)
+    if File.exist?(hpxml_path)
+      hpxml = HPXML.new(hpxml_path: hpxml_path)
+    else
+      runner.registerWarning("BuildExistingModel measure could not find '#{hpxml_path}'.")
+      return true
     end
 
-    if args['sample_weight'].is_initialized
-      register_value(runner, 'weight', args['sample_weight'].get.to_s)
+    epw_path = Location.get_epw_path(hpxml, hpxml_path)
+    epw_file = OpenStudio::EpwFile.new(epw_path)
+    register_value(runner, 'weather_file_city', epw_file.city)
+    register_value(runner, 'weather_file_latitude', epw_file.latitude)
+    register_value(runner, 'weather_file_longitude', epw_file.longitude)
+
+    if bldg_data.keys.include?('sample_weight')
+      sample_weight = bldg_data['sample_weight']
+      register_value(runner, 'sample_weight', sample_weight.to_s)
     end
 
     return true

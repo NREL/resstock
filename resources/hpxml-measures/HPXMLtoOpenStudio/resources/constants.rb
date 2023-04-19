@@ -39,34 +39,6 @@ class Constants
     return 'AirFilm'
   end
 
-  def self.CalcTypeCO2eRatedHome
-    return 'CO2e Rated Home'
-  end
-
-  def self.CalcTypeCO2eReferenceHome
-    return 'CO2e Reference Home'
-  end
-
-  def self.CalcTypeERIRatedHome
-    return 'ERI Rated Home'
-  end
-
-  def self.CalcTypeERIReferenceHome
-    return 'ERI Reference Home'
-  end
-
-  def self.CalcTypeERIIndexAdjustmentDesign
-    return 'ERI Index Adjustment Design'
-  end
-
-  def self.CalcTypeERIIndexAdjustmentReferenceHome
-    return 'ERI Index Adjustment Reference Home'
-  end
-
-  def self.BuildingAmericaClimateZone
-    return 'Building America'
-  end
-
   def self.ERIVersions
     return ['2014', '2014A', '2014AE', '2014AEG', '2019', '2019A',
             '2019AB', '2019ABC', '2019ABCD']
@@ -130,8 +102,16 @@ class Constants
     return 'backup htg coil'
   end
 
+  def self.ObjectNameBatteryLossesAdjustment(battery_name)
+    return "#{battery_name} losses adjustment"
+  end
+
   def self.ObjectNameBoiler
     return 'boiler'
+  end
+
+  def self.ObjectNameBoilerPilotLight(boiler_name)
+    return "#{boiler_name} pilot light"
   end
 
   def self.ObjectNameCeilingFan
@@ -238,6 +218,10 @@ class Constants
     return 'ptac heating'
   end
 
+  def self.ObjectNameRoomACHeating
+    return 'room ac heating'
+  end
+
   def self.ObjectNameFurniture
     return 'furniture'
   end
@@ -302,6 +286,10 @@ class Constants
     return 'mech vent house fan cfis'
   end
 
+  def self.ObjectNameMechanicalVentilationHouseFanCFISSupplFan
+    return 'mech vent house fan cfis suppl'
+  end
+
   def self.ObjectNameMechanicalVentilationBathFan
     return 'mech vent bath fan'
   end
@@ -320,6 +308,10 @@ class Constants
 
   def self.ObjectNamePTHP
     return 'packaged terminal heat pump'
+  end
+
+  def self.ObjectNameRoomHP
+    return 'room ac with reverse cycle'
   end
 
   def self.ObjectNamePTAC
@@ -432,6 +424,10 @@ class Constants
 
   def self.ObjectNameWaterHeater
     return 'water heater'
+  end
+
+  def self.ObjectNameWaterHeaterSetpoint
+    return 'water heater setpoint'
   end
 
   def self.ObjectNameWaterLatent

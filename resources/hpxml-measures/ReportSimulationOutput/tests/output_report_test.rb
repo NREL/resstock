@@ -6,8 +6,20 @@ require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
 require 'csv'
 require_relative '../measure.rb'
+require_relative '../../HPXMLtoOpenStudio/resources/xmlhelper.rb'
+require_relative '../../HPXMLtoOpenStudio/resources/constants.rb'
+require_relative '../../HPXMLtoOpenStudio/resources/version.rb'
+require 'oga'
 
 class ReportSimulationOutputTest < MiniTest::Test
+  def setup
+    @tmp_hpxml_path = File.join(File.dirname(__FILE__), 'tmp.xml')
+  end
+
+  def teardown
+    File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
+  end
+
   AnnualRows = [
     'Energy Use: Total (MBtu)',
     'Energy Use: Net (MBtu)',
@@ -52,6 +64,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     'End Use: Electricity: Hot Tub Pump (MBtu)',
     'End Use: Electricity: PV (MBtu)',
     'End Use: Electricity: Generator (MBtu)',
+    'End Use: Electricity: Battery (MBtu)',
     'End Use: Natural Gas: Heating (MBtu)',
     'End Use: Natural Gas: Heating Heat Pump Backup (MBtu)',
     'End Use: Natural Gas: Hot Water (MBtu)',
@@ -132,8 +145,10 @@ class ReportSimulationOutputTest < MiniTest::Test
     'Component Load: Heating: Rim Joists (MBtu)',
     'Component Load: Heating: Foundation Walls (MBtu)',
     'Component Load: Heating: Doors (MBtu)',
-    'Component Load: Heating: Windows (MBtu)',
-    'Component Load: Heating: Skylights (MBtu)',
+    'Component Load: Heating: Windows Conduction (MBtu)',
+    'Component Load: Heating: Windows Solar (MBtu)',
+    'Component Load: Heating: Skylights Conduction (MBtu)',
+    'Component Load: Heating: Skylights Solar (MBtu)',
     'Component Load: Heating: Floors (MBtu)',
     'Component Load: Heating: Slabs (MBtu)',
     'Component Load: Heating: Internal Mass (MBtu)',
@@ -143,14 +158,17 @@ class ReportSimulationOutputTest < MiniTest::Test
     'Component Load: Heating: Whole House Fan (MBtu)',
     'Component Load: Heating: Ducts (MBtu)',
     'Component Load: Heating: Internal Gains (MBtu)',
+    'Component Load: Heating: Lighting (MBtu)',
     'Component Load: Cooling: Roofs (MBtu)',
     'Component Load: Cooling: Ceilings (MBtu)',
     'Component Load: Cooling: Walls (MBtu)',
     'Component Load: Cooling: Rim Joists (MBtu)',
     'Component Load: Cooling: Foundation Walls (MBtu)',
     'Component Load: Cooling: Doors (MBtu)',
-    'Component Load: Cooling: Windows (MBtu)',
-    'Component Load: Cooling: Skylights (MBtu)',
+    'Component Load: Cooling: Windows Conduction (MBtu)',
+    'Component Load: Cooling: Windows Solar (MBtu)',
+    'Component Load: Cooling: Skylights Conduction (MBtu)',
+    'Component Load: Cooling: Skylights Solar (MBtu)',
     'Component Load: Cooling: Floors (MBtu)',
     'Component Load: Cooling: Slabs (MBtu)',
     'Component Load: Cooling: Internal Mass (MBtu)',
@@ -160,10 +178,43 @@ class ReportSimulationOutputTest < MiniTest::Test
     'Component Load: Cooling: Whole House Fan (MBtu)',
     'Component Load: Cooling: Ducts (MBtu)',
     'Component Load: Cooling: Internal Gains (MBtu)',
+    'Component Load: Cooling: Lighting (MBtu)',
     'Hot Water: Clothes Washer (gal)',
     'Hot Water: Dishwasher (gal)',
     'Hot Water: Fixtures (gal)',
     'Hot Water: Distribution Waste (gal)',
+    'HVAC Capacity: Cooling (Btu/h)',
+    'HVAC Capacity: Heating (Btu/h)',
+    'HVAC Capacity: Heat Pump Backup (Btu/h)',
+    'HVAC Design Temperature: Heating (F)',
+    'HVAC Design Temperature: Cooling (F)',
+    'HVAC Design Load: Heating: Total (Btu/h)',
+    'HVAC Design Load: Heating: Ducts (Btu/h)',
+    'HVAC Design Load: Heating: Windows (Btu/h)',
+    'HVAC Design Load: Heating: Skylights (Btu/h)',
+    'HVAC Design Load: Heating: Doors (Btu/h)',
+    'HVAC Design Load: Heating: Walls (Btu/h)',
+    'HVAC Design Load: Heating: Roofs (Btu/h)',
+    'HVAC Design Load: Heating: Floors (Btu/h)',
+    'HVAC Design Load: Heating: Slabs (Btu/h)',
+    'HVAC Design Load: Heating: Ceilings (Btu/h)',
+    'HVAC Design Load: Heating: Infiltration/Ventilation (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Total (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Ducts (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Windows (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Skylights (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Doors (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Walls (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Roofs (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Floors (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Slabs (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Ceilings (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Infiltration/Ventilation (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Internal Gains (Btu/h)',
+    'HVAC Design Load: Cooling Latent: Total (Btu/h)',
+    'HVAC Design Load: Cooling Latent: Ducts (Btu/h)',
+    'HVAC Design Load: Cooling Latent: Infiltration/Ventilation (Btu/h)',
+    'HVAC Design Load: Cooling Latent: Internal Gains (Btu/h)'
   ]
 
   BaseHPXMLTimeseriesColsEnergy = [
@@ -211,6 +262,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     'Component Load: Cooling: Ducts',
     'Component Load: Cooling: Foundation Walls',
     'Component Load: Cooling: Infiltration',
+    'Component Load: Cooling: Lighting',
     'Component Load: Cooling: Internal Gains',
     'Component Load: Cooling: Internal Mass',
     'Component Load: Cooling: Mechanical Ventilation',
@@ -218,19 +270,22 @@ class ReportSimulationOutputTest < MiniTest::Test
     'Component Load: Cooling: Rim Joists',
     'Component Load: Cooling: Slabs',
     'Component Load: Cooling: Walls',
-    'Component Load: Cooling: Windows',
+    'Component Load: Cooling: Windows Conduction',
+    'Component Load: Cooling: Windows Solar',
     'Component Load: Heating: Ceilings',
     'Component Load: Heating: Doors',
     'Component Load: Heating: Ducts',
     'Component Load: Heating: Foundation Walls',
     'Component Load: Heating: Infiltration',
+    'Component Load: Heating: Lighting',
     'Component Load: Heating: Internal Gains',
     'Component Load: Heating: Internal Mass',
     'Component Load: Heating: Mechanical Ventilation',
     'Component Load: Heating: Rim Joists',
     'Component Load: Heating: Slabs',
     'Component Load: Heating: Walls',
-    'Component Load: Heating: Windows',
+    'Component Load: Heating: Windows Conduction',
+    'Component Load: Heating: Windows Solar',
   ]
 
   BaseHPXMLTimeseriesColsUnmetHours = [
@@ -241,6 +296,8 @@ class ReportSimulationOutputTest < MiniTest::Test
   BaseHPXMLTimeseriesColsZoneTemps = [
     'Temperature: Attic - Unvented',
     'Temperature: Living Space',
+    'Temperature: Heating Setpoint',
+    'Temperature: Cooling Setpoint',
   ]
 
   BaseHPXMLTimeseriesColsAirflows = [
@@ -266,13 +323,11 @@ class ReportSimulationOutputTest < MiniTest::Test
   BaseHPXMLTimeseriesColsAdvancedOutputVariables = [
     'Surface Construction Index: Door1',
     'Surface Construction Index: Foundationwall1',
-    'Surface Construction Index: Framefloor1',
-    'Surface Construction Index: Furniture Mass Living Space 1 Above Grade',
-    'Surface Construction Index: Furniture Mass Living Space 1 Below Grade',
+    'Surface Construction Index: Floor1',
+    'Surface Construction Index: Furniture Mass Living Space 1',
     'Surface Construction Index: Inferred Conditioned Ceiling',
     'Surface Construction Index: Inferred Conditioned Floor',
-    'Surface Construction Index: Partition Wall Mass Above Grade',
-    'Surface Construction Index: Partition Wall Mass Below Grade',
+    'Surface Construction Index: Partition Wall Mass',
     'Surface Construction Index: Rimjoist1:0',
     'Surface Construction Index: Rimjoist1:90',
     'Surface Construction Index: Rimjoist1:180',
@@ -308,137 +363,6 @@ class ReportSimulationOutputTest < MiniTest::Test
     'Surface Construction Index: Window4'
   ]
 
-  ERIRows = [
-    'hpxml_heat_sys_ids',
-    'hpxml_cool_sys_ids',
-    'hpxml_dhw_sys_ids',
-    'hpxml_vent_preheat_sys_ids',
-    'hpxml_vent_precool_sys_ids',
-    'hpxml_eec_heats',
-    'hpxml_eec_cools',
-    'hpxml_eec_dhws',
-    'hpxml_eec_vent_preheats',
-    'hpxml_eec_vent_precools',
-    'hpxml_heat_fuels',
-    'hpxml_dwh_fuels',
-    'hpxml_vent_preheat_fuels',
-    'fuelElectricity',
-    'fuelNaturalGas',
-    'fuelFuelOil',
-    'fuelPropane',
-    'fuelWoodCord',
-    'fuelWoodPellets',
-    'fuelCoal',
-    'enduseElectricityHeating',
-    'enduseElectricityHeatingFansPumps',
-    'enduseElectricityCooling',
-    'enduseElectricityCoolingFansPumps',
-    'enduseElectricityHotWater',
-    'enduseElectricityHotWaterRecircPump',
-    'enduseElectricityHotWaterSolarThermalPump',
-    'enduseElectricityLightingInterior',
-    'enduseElectricityLightingGarage',
-    'enduseElectricityLightingExterior',
-    'enduseElectricityMechVent',
-    'enduseElectricityMechVentPreheating',
-    'enduseElectricityMechVentPrecooling',
-    'enduseElectricityWholeHouseFan',
-    'enduseElectricityRefrigerator',
-    'enduseElectricityDehumidifier',
-    'enduseElectricityDishwasher',
-    'enduseElectricityClothesWasher',
-    'enduseElectricityClothesDryer',
-    'enduseElectricityRangeOven',
-    'enduseElectricityCeilingFan',
-    'enduseElectricityTelevision',
-    'enduseElectricityPlugLoads',
-    'enduseElectricityPV',
-    'enduseElectricityGenerator',
-    'enduseNaturalGasHeating',
-    'enduseNaturalGasHotWater',
-    'enduseNaturalGasClothesDryer',
-    'enduseNaturalGasRangeOven',
-    'enduseNaturalGasMechVentPreheating',
-    'enduseNaturalGasGenerator',
-    'enduseFuelOilHeating',
-    'enduseFuelOilHotWater',
-    'enduseFuelOilClothesDryer',
-    'enduseFuelOilRangeOven',
-    'enduseFuelOilMechVentPreheating',
-    'enduseFuelOilGenerator',
-    'endusePropaneHeating',
-    'endusePropaneHotWater',
-    'endusePropaneClothesDryer',
-    'endusePropaneRangeOven',
-    'endusePropaneMechVentPreheating',
-    'endusePropaneGenerator',
-    'enduseWoodCordHeating',
-    'enduseWoodCordHotWater',
-    'enduseWoodCordClothesDryer',
-    'enduseWoodCordRangeOven',
-    'enduseWoodCordMechVentPreheating',
-    'enduseWoodCordGenerator',
-    'enduseWoodPelletsHeating',
-    'enduseWoodPelletsHotWater',
-    'enduseWoodPelletsClothesDryer',
-    'enduseWoodPelletsRangeOven',
-    'enduseWoodPelletsMechVentPreheating',
-    'enduseWoodPelletsGenerator',
-    'enduseCoalHeating',
-    'enduseCoalHotWater',
-    'enduseCoalClothesDryer',
-    'enduseCoalRangeOven',
-    'enduseCoalMechVentPreheating',
-    'enduseCoalGenerator',
-    'loadHeatingDelivered',
-    'loadCoolingDelivered',
-    'loadHotWaterDelivered',
-    'co2eCambiumHourlyMidCaseLRMERRMPATotal',
-    'co2eCambiumHourlyMidCaseLRMERRMPAElectricity',
-    'co2eCambiumHourlyMidCaseLRMERRMPANaturalGas',
-    'co2eCambiumHourlyMidCaseLRMERRMPAFuelOil',
-    'co2eCambiumHourlyMidCaseLRMERRMPAPropane',
-    'co2eCambiumHourlyMidCaseLRMERRMPAWoodCord',
-    'co2eCambiumHourlyMidCaseLRMERRMPAWoodPellets',
-    'co2eCambiumHourlyMidCaseLRMERRMPACoal',
-    'co2eCambiumHourlyLowRECostsLRMERRMPATotal',
-    'co2eCambiumHourlyLowRECostsLRMERRMPAElectricity',
-    'co2eCambiumHourlyLowRECostsLRMERRMPANaturalGas',
-    'co2eCambiumHourlyLowRECostsLRMERRMPAFuelOil',
-    'co2eCambiumHourlyLowRECostsLRMERRMPAPropane',
-    'co2eCambiumHourlyLowRECostsLRMERRMPAWoodCord',
-    'co2eCambiumHourlyLowRECostsLRMERRMPAWoodPellets',
-    'co2eCambiumHourlyLowRECostsLRMERRMPACoal',
-    'co2eCambiumAnnualMidCaseAERNationalTotal',
-    'co2eCambiumAnnualMidCaseAERNationalElectricity',
-    'co2eCambiumAnnualMidCaseAERNationalNaturalGas',
-    'co2eCambiumAnnualMidCaseAERNationalFuelOil',
-    'co2eCambiumAnnualMidCaseAERNationalPropane',
-    'co2eCambiumAnnualMidCaseAERNationalWoodCord',
-    'co2eCambiumAnnualMidCaseAERNationalWoodPellets',
-    'co2eCambiumAnnualMidCaseAERNationalCoal',
-    'so2eGRIDRMPATotal',
-    'so2eGRIDRMPAElectricity',
-    'so2eGRIDRMPANaturalGas',
-    'so2eGRIDRMPAFuelOil',
-    'so2eGRIDRMPAPropane',
-    'so2eGRIDRMPAWoodCord',
-    'so2eGRIDRMPAWoodPellets',
-    'so2eGRIDRMPACoal',
-    'noxeGRIDRMPATotal',
-    'noxeGRIDRMPAElectricity',
-    'noxeGRIDRMPANaturalGas',
-    'noxeGRIDRMPAFuelOil',
-    'noxeGRIDRMPAPropane',
-    'noxeGRIDRMPAWoodCord',
-    'noxeGRIDRMPAWoodPellets',
-    'noxeGRIDRMPACoal',
-    'hpxml_cfa',
-    'hpxml_nbr',
-    'hpxml_nst',
-    'hpxml_residential_facility_type',
-  ]
-
   def all_base_hpxml_timeseries_cols
     return (BaseHPXMLTimeseriesColsEnergy +
             BaseHPXMLTimeseriesColsFuels +
@@ -451,32 +375,175 @@ class ReportSimulationOutputTest < MiniTest::Test
             BaseHPXMLTimeseriesColsWeather)
   end
 
+  def emission_scenarios
+    return ['CO2e: Cambium Hourly MidCase LRMER RMPA',
+            'CO2e: Cambium Hourly LowRECosts LRMER RMPA',
+            'CO2e: Cambium Annual MidCase AER National',
+            'SO2: eGRID RMPA',
+            'NOx: eGRID RMPA']
+  end
+
+  def emission_annual_cols
+    cols = []
+    emission_scenarios.each do |scenario|
+      cols += ["Emissions: #{scenario}: Total (lb)",
+               "Emissions: #{scenario}: Electricity: Total (lb)",
+               "Emissions: #{scenario}: Electricity: Heating (lb)",
+               "Emissions: #{scenario}: Electricity: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Electricity: Heating Fans/Pumps (lb)",
+               "Emissions: #{scenario}: Electricity: Cooling (lb)",
+               "Emissions: #{scenario}: Electricity: Cooling Fans/Pumps (lb)",
+               "Emissions: #{scenario}: Electricity: Hot Water (lb)",
+               "Emissions: #{scenario}: Electricity: Hot Water Recirc Pump (lb)",
+               "Emissions: #{scenario}: Electricity: Hot Water Solar Thermal Pump (lb)",
+               "Emissions: #{scenario}: Electricity: Lighting Interior (lb)",
+               "Emissions: #{scenario}: Electricity: Lighting Garage (lb)",
+               "Emissions: #{scenario}: Electricity: Lighting Exterior (lb)",
+               "Emissions: #{scenario}: Electricity: Mech Vent (lb)",
+               "Emissions: #{scenario}: Electricity: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Electricity: Mech Vent Precooling (lb)",
+               "Emissions: #{scenario}: Electricity: Whole House Fan (lb)",
+               "Emissions: #{scenario}: Electricity: Refrigerator (lb)",
+               "Emissions: #{scenario}: Electricity: Freezer (lb)",
+               "Emissions: #{scenario}: Electricity: Dehumidifier (lb)",
+               "Emissions: #{scenario}: Electricity: Dishwasher (lb)",
+               "Emissions: #{scenario}: Electricity: Clothes Washer (lb)",
+               "Emissions: #{scenario}: Electricity: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Electricity: Range/Oven (lb)",
+               "Emissions: #{scenario}: Electricity: Ceiling Fan (lb)",
+               "Emissions: #{scenario}: Electricity: Television (lb)",
+               "Emissions: #{scenario}: Electricity: Plug Loads (lb)",
+               "Emissions: #{scenario}: Electricity: Electric Vehicle Charging (lb)",
+               "Emissions: #{scenario}: Electricity: Well Pump (lb)",
+               "Emissions: #{scenario}: Electricity: Pool Heater (lb)",
+               "Emissions: #{scenario}: Electricity: Pool Pump (lb)",
+               "Emissions: #{scenario}: Electricity: Hot Tub Heater (lb)",
+               "Emissions: #{scenario}: Electricity: Hot Tub Pump (lb)",
+               "Emissions: #{scenario}: Electricity: PV (lb)",
+               "Emissions: #{scenario}: Electricity: Generator (lb)",
+               "Emissions: #{scenario}: Electricity: Battery (lb)",
+               "Emissions: #{scenario}: Natural Gas: Total (lb)",
+               "Emissions: #{scenario}: Natural Gas: Heating (lb)",
+               "Emissions: #{scenario}: Natural Gas: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Natural Gas: Hot Water (lb)",
+               "Emissions: #{scenario}: Natural Gas: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Natural Gas: Range/Oven (lb)",
+               "Emissions: #{scenario}: Natural Gas: Pool Heater (lb)",
+               "Emissions: #{scenario}: Natural Gas: Hot Tub Heater (lb)",
+               "Emissions: #{scenario}: Natural Gas: Grill (lb)",
+               "Emissions: #{scenario}: Natural Gas: Lighting (lb)",
+               "Emissions: #{scenario}: Natural Gas: Fireplace (lb)",
+               "Emissions: #{scenario}: Natural Gas: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Natural Gas: Generator (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Total (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Heating (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Hot Water (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Range/Oven (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Grill (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Lighting (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Fireplace (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Fuel Oil: Generator (lb)",
+               "Emissions: #{scenario}: Propane: Total (lb)",
+               "Emissions: #{scenario}: Propane: Heating (lb)",
+               "Emissions: #{scenario}: Propane: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Propane: Hot Water (lb)",
+               "Emissions: #{scenario}: Propane: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Propane: Range/Oven (lb)",
+               "Emissions: #{scenario}: Propane: Grill (lb)",
+               "Emissions: #{scenario}: Propane: Lighting (lb)",
+               "Emissions: #{scenario}: Propane: Fireplace (lb)",
+               "Emissions: #{scenario}: Propane: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Propane: Generator (lb)",
+               "Emissions: #{scenario}: Wood Cord: Total (lb)",
+               "Emissions: #{scenario}: Wood Cord: Heating (lb)",
+               "Emissions: #{scenario}: Wood Cord: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Wood Cord: Hot Water (lb)",
+               "Emissions: #{scenario}: Wood Cord: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Wood Cord: Range/Oven (lb)",
+               "Emissions: #{scenario}: Wood Cord: Grill (lb)",
+               "Emissions: #{scenario}: Wood Cord: Lighting (lb)",
+               "Emissions: #{scenario}: Wood Cord: Fireplace (lb)",
+               "Emissions: #{scenario}: Wood Cord: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Wood Cord: Generator (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Total (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Heating (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Hot Water (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Range/Oven (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Grill (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Lighting (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Fireplace (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Wood Pellets: Generator (lb)",
+               "Emissions: #{scenario}: Coal: Total (lb)",
+               "Emissions: #{scenario}: Coal: Heating (lb)",
+               "Emissions: #{scenario}: Coal: Heating Heat Pump Backup (lb)",
+               "Emissions: #{scenario}: Coal: Hot Water (lb)",
+               "Emissions: #{scenario}: Coal: Clothes Dryer (lb)",
+               "Emissions: #{scenario}: Coal: Range/Oven (lb)",
+               "Emissions: #{scenario}: Coal: Grill (lb)",
+               "Emissions: #{scenario}: Coal: Lighting (lb)",
+               "Emissions: #{scenario}: Coal: Fireplace (lb)",
+               "Emissions: #{scenario}: Coal: Mech Vent Preheating (lb)",
+               "Emissions: #{scenario}: Coal: Generator (lb)"]
+    end
+    return cols
+  end
+
   def emissions_timeseries_cols
-    return ['Emissions: CO2e: Cambium Hourly MidCase LRMER RMPA: Total',
-            'Emissions: CO2e: Cambium Hourly MidCase LRMER RMPA: Electricity',
-            'Emissions: CO2e: Cambium Hourly MidCase LRMER RMPA: Natural Gas',
-            'Emissions: CO2e: Cambium Hourly LowRECosts LRMER RMPA: Total',
-            'Emissions: CO2e: Cambium Hourly LowRECosts LRMER RMPA: Electricity',
-            'Emissions: CO2e: Cambium Hourly LowRECosts LRMER RMPA: Natural Gas',
-            'Emissions: CO2e: Cambium Annual MidCase AER National: Total',
-            'Emissions: CO2e: Cambium Annual MidCase AER National: Electricity',
-            'Emissions: CO2e: Cambium Annual MidCase AER National: Natural Gas',
-            'Emissions: SO2: eGRID RMPA: Total',
-            'Emissions: SO2: eGRID RMPA: Electricity',
-            'Emissions: SO2: eGRID RMPA: Natural Gas',
-            'Emissions: NOx: eGRID RMPA: Total',
-            'Emissions: NOx: eGRID RMPA: Electricity',
-            'Emissions: NOx: eGRID RMPA: Natural Gas']
+    cols = []
+    emission_scenarios.each do |scenario|
+      cols += ["Emissions: #{scenario}: Total"]
+    end
+    return cols
+  end
+
+  def emission_fuels_timeseries_cols
+    cols = []
+    emission_scenarios.each do |scenario|
+      cols += ["Emissions: #{scenario}: Electricity: Total",
+               "Emissions: #{scenario}: Natural Gas: Total"]
+    end
+    return cols
+  end
+
+  def emission_end_uses_timeseries_cols
+    cols = []
+    emission_scenarios.each do |scenario|
+      cols += ["Emissions: #{scenario}: Electricity: Heating Fans/Pumps",
+               "Emissions: #{scenario}: Electricity: Cooling",
+               "Emissions: #{scenario}: Electricity: Cooling Fans/Pumps",
+               "Emissions: #{scenario}: Electricity: Hot Water",
+               "Emissions: #{scenario}: Electricity: Lighting Interior",
+               "Emissions: #{scenario}: Electricity: Lighting Exterior",
+               "Emissions: #{scenario}: Electricity: Refrigerator",
+               "Emissions: #{scenario}: Electricity: Dishwasher",
+               "Emissions: #{scenario}: Electricity: Clothes Washer",
+               "Emissions: #{scenario}: Electricity: Clothes Dryer",
+               "Emissions: #{scenario}: Electricity: Range/Oven",
+               "Emissions: #{scenario}: Electricity: Television",
+               "Emissions: #{scenario}: Electricity: Plug Loads",
+               "Emissions: #{scenario}: Electricity: PV",
+               "Emissions: #{scenario}: Electricity: Battery",
+               "Emissions: #{scenario}: Natural Gas: Heating"]
+    end
+    return cols
   end
 
   def test_annual_only
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'add_component_loads' => true,
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_total_consumptions' => false,
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
                   'include_timeseries_emissions' => false,
+                  'include_timeseries_emission_fuels' => false,
+                  'include_timeseries_emission_end_uses' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_unmet_hours' => false,
@@ -488,18 +555,21 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
     expected_annual_rows = AnnualRows
-    actual_annual_rows = File.readlines(annual_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
-    assert_equal(expected_annual_rows.sort, actual_annual_rows.sort)
+    actual_annual_rows = _get_actual_annual_rows(annual_csv)
+    assert_equal(expected_annual_rows.sort, actual_annual_rows.keys.sort)
+    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), actual_annual_rows)
   end
 
   def test_annual_only2
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-misc-emissions.xml'),
                   'add_component_loads' => true,
                   'timeseries_frequency' => 'none',
                   'include_timeseries_total_consumptions' => false,
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
                   'include_timeseries_emissions' => true,
+                  'include_timeseries_emission_fuels' => true,
+                  'include_timeseries_emission_end_uses' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_unmet_hours' => true,
@@ -510,13 +580,14 @@ class ReportSimulationOutputTest < MiniTest::Test
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
-    expected_annual_rows = AnnualRows
-    actual_annual_rows = File.readlines(annual_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
-    assert_equal(expected_annual_rows.sort, actual_annual_rows.sort)
+    expected_annual_rows = AnnualRows + emission_annual_cols
+    actual_annual_rows = _get_actual_annual_rows(annual_csv)
+    assert_equal(expected_annual_rows.sort, actual_annual_rows.keys.sort)
+    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), actual_annual_rows)
   end
 
   def test_timeseries_hourly_total_energy
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_total_consumptions' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -529,11 +600,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, ['Energy Use: Total'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ['Energy Use: Total'])
   end
 
   def test_timeseries_hourly_total_energy_pv
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-pv.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-pv.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_total_consumptions' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -546,12 +617,12 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, ['Energy Use: Total',
-                                                         'Energy Use: Net'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ['Energy Use: Total',
+                                                             'Energy Use: Net'])
   end
 
   def test_timeseries_hourly_fuels
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -564,11 +635,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, ['Fuel Use: Electricity: Total'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ['Fuel Use: Electricity: Total'])
   end
 
   def test_timeseries_hourly_fuels_pv
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-pv.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-pv.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -581,12 +652,12 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, ['Fuel Use: Electricity: Total',
-                                                         'Fuel Use: Electricity: Net'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ['Fuel Use: Electricity: Total',
+                                                             'Fuel Use: Electricity: Net'])
   end
 
   def test_timeseries_hourly_emissions
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-emissions.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-misc-emissions.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_emissions' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -599,11 +670,45 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     _check_for_constant_timeseries_step(timeseries_cols[0])
-    _check_for_nonzero_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
+  end
+
+  def test_timeseries_hourly_emission_end_uses
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-misc-emissions.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_emission_end_uses' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + emission_end_uses_timeseries_cols
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    _check_for_constant_timeseries_step(timeseries_cols[0])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, emission_end_uses_timeseries_cols[0..2])
+  end
+
+  def test_timeseries_hourly_emission_fuels
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-misc-emissions.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_emission_fuels' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + emission_fuels_timeseries_cols
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    _check_for_constant_timeseries_step(timeseries_cols[0])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, emission_fuels_timeseries_cols[0..2])
   end
 
   def test_timeseries_hourly_enduses
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_end_use_consumptions' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -616,11 +721,90 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, ['End Use: Electricity: Plug Loads'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ['End Use: Electricity: Plug Loads'])
+  end
+
+  def test_timeseries_hourly_enduses_vacancy
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-vacancy.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_end_use_consumptions' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsEndUses
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    _check_for_zero_timeseries_values(timeseries_csv, ['End Use: Electricity: Plug Loads'], 0, 31 * 24 - 1) # Jan
+    _check_for_zero_timeseries_values(timeseries_csv, ['End Use: Electricity: Plug Loads'], (31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30) * 24 + 1, -1) # Dec
+    _check_for_nonzero_timeseries_values(timeseries_csv, ['End Use: Electricity: Refrigerator'])
+  end
+
+  def test_timeseries_hourly_enduses_power_outage
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_end_use_consumptions' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsEndUses
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    _check_for_zero_timeseries_values(timeseries_csv, ['End Use: Electricity: Plug Loads'], (31 + 28 + 31 + 30 + 31 + 30) * 24 + 4, (31 + 28 + 31 + 30 + 31 + 30 + 31) * 24 - 12) # Jul
+  end
+
+  def test_timeseries_hourly_enduses_power_outage_natvent_availability
+    energy_use_total_col = 'Energy Use: Total'
+    temperature_living_space_col = 'Temperature: Living Space'
+
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_total_consumptions' => true,
+                  'include_timeseries_zone_temperatures' => true }
+    _annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(timeseries_csv))
+    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_living_space_col])
+    schedule_regular_total = values[energy_use_total_col].sum(0.0)
+    schedule_regular_temp = values[temperature_living_space_col].sum(0.0) / values[temperature_living_space_col].size
+
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage-natvent-available.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_total_consumptions' => true,
+                  'include_timeseries_zone_temperatures' => true }
+    _annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(timeseries_csv))
+    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_living_space_col])
+    schedule_available_total = values[energy_use_total_col].sum(0.0)
+    schedule_available_temp = values[temperature_living_space_col].sum(0.0) / values[temperature_living_space_col].size
+
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage-natvent-unavailable.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_total_consumptions' => true,
+                  'include_timeseries_zone_temperatures' => true }
+    _annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(timeseries_csv))
+    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_living_space_col])
+    schedule_unavailable_total = values[energy_use_total_col].sum(0.0)
+    schedule_unavailable_temp = values[temperature_living_space_col].sum(0.0) / values[temperature_living_space_col].size
+
+    assert_operator(schedule_regular_total, :>, schedule_available_total)
+    assert_operator(schedule_available_total, :<, schedule_unavailable_total)
+    assert_operator(schedule_unavailable_total, :<, schedule_regular_total)
+
+    assert_operator(schedule_regular_temp, :>, schedule_available_temp)
+    assert_operator(schedule_available_temp, :<, schedule_unavailable_temp)
+    assert_operator(schedule_unavailable_temp, :>, schedule_regular_temp)
   end
 
   def test_timeseries_hourly_hotwateruses
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_hot_water_uses' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -633,11 +817,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsWaterUses)
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsWaterUses)
   end
 
   def test_timeseries_hourly_total_loads
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_total_loads' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -650,11 +834,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsTotalLoads)
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsTotalLoads)
   end
 
   def test_timeseries_hourly_component_loads
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'add_component_loads' => true,
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_component_loads' => true }
@@ -668,11 +852,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, ['Component Load: Heating: Internal Gains', 'Component Load: Cooling: Internal Gains'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ['Component Load: Heating: Internal Gains', 'Component Load: Cooling: Internal Gains'])
   end
 
   def test_timeseries_hourly_unmet_hours
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-hvac-undersized.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-hvac-undersized.xml'),
                   'add_component_loads' => true,
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_unmet_hours' => true }
@@ -686,11 +870,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, ['Unmet Hours: Heating', 'Unmet Hours: Cooling'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ['Unmet Hours: Heating', 'Unmet Hours: Cooling'])
   end
 
   def test_timeseries_hourly_zone_temperatures
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_zone_temperatures' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -703,11 +887,28 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsZoneTemps)
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsZoneTemps)
+  end
+
+  def test_timeseries_hourly_zone_temperatures_without_cooling
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-hvac-furnace-gas-only.xml'),
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_zone_temperatures' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsZoneTemps - ['Temperature: Cooling Setpoint']
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsZoneTemps - ['Temperature: Cooling Setpoint'])
   end
 
   def test_timeseries_hourly_zone_temperatures_mf_space
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-bldgtype-multifamily-adjacent-to-multiple.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-bldgtype-multifamily-adjacent-to-multiple.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_zone_temperatures' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -727,11 +928,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, cols_temps_other_side)
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, cols_temps_other_side)
   end
 
   def test_timeseries_hourly_airflows_with_exhaust_mechvent
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-mechvent-exhaust.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-mechvent-exhaust.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_airflows' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -744,11 +945,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsAirflows.select { |t| t != 'Airflow: Whole House Fan' })
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsAirflows.select { |t| t != 'Airflow: Whole House Fan' })
   end
 
   def test_timeseries_hourly_airflows_with_whf
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-mechvent-whole-house-fan.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-mechvent-whole-house-fan.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_airflows' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -763,11 +964,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, add_cols)
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, add_cols)
   end
 
   def test_timeseries_hourly_airflows_with_clothes_dryer_exhaust
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-appliances-gas.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-appliances-gas.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_airflows' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -780,11 +981,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, ['Airflow: Mechanical Ventilation'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ['Airflow: Mechanical Ventilation'])
   end
 
   def test_timeseries_hourly_airflows_with_balanced_mechvent
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-mechvent-balanced.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-mechvent-balanced.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_airflows' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -797,11 +998,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, ['Airflow: Mechanical Ventilation'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ['Airflow: Mechanical Ventilation'])
   end
 
   def test_timeseries_hourly_airflows_with_cfis
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-mechvent-cfis.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-mechvent-cfis.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_airflows' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -814,11 +1015,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, ['Airflow: Mechanical Ventilation'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, ['Airflow: Mechanical Ventilation'])
   end
 
   def test_timeseries_hourly_weather
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_weather' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -831,16 +1032,18 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsWeather)
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsWeather)
   end
 
   def test_timeseries_hourly_ALL
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-emissions.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-misc-emissions.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_total_consumptions' => true,
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
                   'include_timeseries_emissions' => true,
+                  'include_timeseries_emission_fuels' => true,
+                  'include_timeseries_emission_end_uses' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_unmet_hours' => true,
@@ -851,25 +1054,31 @@ class ReportSimulationOutputTest < MiniTest::Test
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + all_base_hpxml_timeseries_cols + emissions_timeseries_cols +
-                               ['End Use: Electricity: PV', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
+    expected_timeseries_cols = ['Time'] +
+                               all_base_hpxml_timeseries_cols +
+                               emissions_timeseries_cols +
+                               emission_fuels_timeseries_cols +
+                               emission_end_uses_timeseries_cols +
+                               ['End Use: Electricity: PV', 'End Use: Electricity: Battery', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
-    _check_for_zero_baseload_timeseries_value(timeseries_csv, ['End Use: Electricity: Refrigerator'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
+    _check_for_nonzero_timeseries_values(timeseries_csv, ['End Use: Electricity: Refrigerator'])
   end
 
   def test_timeseries_daily_ALL
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-emissions.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-misc-emissions.xml'),
                   'timeseries_frequency' => 'daily',
                   'include_timeseries_total_consumptions' => true,
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
                   'include_timeseries_emissions' => true,
+                  'include_timeseries_emission_fuels' => true,
+                  'include_timeseries_emission_end_uses' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_unmet_hours' => true,
@@ -880,25 +1089,31 @@ class ReportSimulationOutputTest < MiniTest::Test
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + all_base_hpxml_timeseries_cols + emissions_timeseries_cols +
-                               ['End Use: Electricity: PV', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
+    expected_timeseries_cols = ['Time'] +
+                               all_base_hpxml_timeseries_cols +
+                               emissions_timeseries_cols +
+                               emission_fuels_timeseries_cols +
+                               emission_end_uses_timeseries_cols +
+                               ['End Use: Electricity: PV', 'End Use: Electricity: Battery', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
     assert_equal(365, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
-    _check_for_zero_baseload_timeseries_value(timeseries_csv, ['End Use: Electricity: Refrigerator'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
+    _check_for_nonzero_timeseries_values(timeseries_csv, ['End Use: Electricity: Refrigerator'])
   end
 
   def test_timeseries_monthly_ALL
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-emissions.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-misc-emissions.xml'),
                   'timeseries_frequency' => 'monthly',
                   'include_timeseries_total_consumptions' => true,
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
                   'include_timeseries_emissions' => true,
+                  'include_timeseries_emission_fuels' => true,
+                  'include_timeseries_emission_end_uses' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_unmet_hours' => true,
@@ -909,18 +1124,22 @@ class ReportSimulationOutputTest < MiniTest::Test
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + all_base_hpxml_timeseries_cols + emissions_timeseries_cols +
-                               ['End Use: Electricity: PV', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
+    expected_timeseries_cols = ['Time'] +
+                               all_base_hpxml_timeseries_cols +
+                               emissions_timeseries_cols +
+                               emission_fuels_timeseries_cols +
+                               emission_end_uses_timeseries_cols +
+                               ['End Use: Electricity: PV', 'End Use: Electricity: Battery', 'Energy Use: Net', 'Fuel Use: Electricity: Net']
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
     assert_equal(12, timeseries_rows.size - 2)
-    _check_for_nonzero_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
-    _check_for_zero_baseload_timeseries_value(timeseries_csv, ['End Use: Electricity: Refrigerator'])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
+    _check_for_nonzero_timeseries_values(timeseries_csv, ['End Use: Electricity: Refrigerator'])
   end
 
   def test_timeseries_timestep
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -933,11 +1152,13 @@ class ReportSimulationOutputTest < MiniTest::Test
   end
 
   def test_timeseries_timestep_emissions
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-emissions.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-misc-emissions.xml'),
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
                   'include_timeseries_emissions' => true,
+                  'include_timeseries_emission_fuels' => true,
+                  'include_timeseries_emission_end_uses' => true,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_unmet_hours' => false,
@@ -948,18 +1169,21 @@ class ReportSimulationOutputTest < MiniTest::Test
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + emissions_timeseries_cols
+    expected_timeseries_cols = ['Time'] +
+                               emissions_timeseries_cols +
+                               emission_fuels_timeseries_cols +
+                               emission_end_uses_timeseries_cols
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     _check_for_constant_timeseries_step(timeseries_cols[0])
-    _check_for_nonzero_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
   end
 
   def test_timeseries_timestep_10min
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-timestep-10-mins.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-timestep-10-mins.xml'),
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -971,58 +1195,30 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
   end
 
-  def test_timeseries_hourly_runperiod_Jan
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-runperiod-1-month.xml',
-                  'timeseries_frequency' => 'hourly',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(31 * 24, timeseries_rows.size - 2)
-    timeseries_cols = timeseries_rows.transpose
-    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-  end
+  def test_timeseries_hourly_runperiod_1month
+    expected_values = { 'timestep' => 28 * 24,
+                        'hourly' => 28 * 24,
+                        'daily' => 28,
+                        'monthly' => 1 }
 
-  def test_timeseries_daily_runperiod_Jan
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-runperiod-1-month.xml',
-                  'timeseries_frequency' => 'daily',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(31, timeseries_rows.size - 2)
-    timeseries_cols = timeseries_rows.transpose
-    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-  end
-
-  def test_timeseries_monthly_runperiod_Jan
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-runperiod-1-month.xml',
-                  'timeseries_frequency' => 'monthly',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(1, timeseries_rows.size - 2)
-  end
-
-  def test_timeseries_timestep_runperiod_Jan
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-runperiod-1-month.xml',
-                  'timeseries_frequency' => 'timestep',
-                  'include_timeseries_fuel_consumptions' => true }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    timeseries_rows = CSV.read(timeseries_csv)
-    assert_equal(31 * 24, timeseries_rows.size - 2)
-    timeseries_cols = timeseries_rows.transpose
-    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    expected_values.each do |timeseries_frequency, expected_value|
+      args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
+                    'timeseries_frequency' => timeseries_frequency,
+                    'include_timeseries_fuel_consumptions' => true }
+      annual_csv, timeseries_csv = _test_measure(args_hash)
+      assert(File.exist?(annual_csv))
+      assert(File.exist?(timeseries_csv))
+      timeseries_rows = CSV.read(timeseries_csv)
+      assert_equal(expected_value, timeseries_rows.size - 2)
+      if timeseries_frequency != 'monthly'
+        timeseries_cols = timeseries_rows.transpose
+        assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+      end
+    end
   end
 
   def test_timeseries_hourly_AMY_2012
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-location-AMY-2012.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-location-AMY-2012.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -1034,20 +1230,62 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
   end
 
+  def test_timeseries_timestamp_convention
+    # Expected values are arrays of time offsets (in seconds) for each reported row of output
+    expected_values_array = { 'timestep' => [30 * 60] * 17520,
+                              'hourly' => [60 * 60] * 8760,
+                              'daily' => [60 * 60 * 24] * 365,
+                              'monthly' => Constants.NumDaysInMonths(1999).map { |n_days| n_days * 60 * 60 * 24 } }
+
+    expected_values_array.each do |timeseries_frequency, expected_values|
+      args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-timestep-30-mins.xml'),
+                    'timeseries_frequency' => timeseries_frequency,
+                    'include_timeseries_fuel_consumptions' => true,
+                    'timeseries_timestamp_convention' => 'end' }
+      annual_csv, timeseries_csv = _test_measure(args_hash)
+      assert(File.exist?(annual_csv))
+      assert(File.exist?(timeseries_csv))
+      timeseries_csv = CSV.readlines(timeseries_csv)
+
+      args_hash['timeseries_timestamp_convention'] = 'start'
+      annual_csv, timeseries_csv2 = _test_measure(args_hash)
+      assert(File.exist?(annual_csv))
+      assert(File.exist?(timeseries_csv2))
+      timeseries_csv2 = CSV.readlines(timeseries_csv2)
+
+      for rownum in 2..timeseries_csv.size - 1
+        timestamp_offset = _parse_time(timeseries_csv[rownum][0]) - _parse_time(timeseries_csv2[rownum][0])
+        assert_equal(expected_values[rownum - 2], timestamp_offset)
+      end
+    end
+  end
+
   def test_timeseries_for_dview
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'output_format' => 'csv_dview',
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
-                  'add_timeseries_dst_column' => true }
+                  'include_timeseries_weather' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    assert_equal('wxDVFileHeaderVer.1', CSV.readlines(timeseries_csv)[0][0].strip)
+    timeseries_csv = CSV.readlines(timeseries_csv)
+    assert_equal('wxDVFileHeaderVer.1', timeseries_csv[0][0].strip)
+
+    args_hash['hpxml_path'] = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-daylight-saving-disabled.xml')
+    annual_csv, timeseries_csv2 = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv2))
+    timeseries_csv2 = CSV.readlines(timeseries_csv2)
+    assert_equal('wxDVFileHeaderVer.1', timeseries_csv2[0][0].strip)
+
+    col_ix = timeseries_csv[1].find_index('Weather| Drybulb Temperature')
+    assert_equal(Float(timeseries_csv[5][col_ix].strip), Float(timeseries_csv2[5][col_ix].strip)) # not in dst period, values line up
+    assert_equal(Float(timeseries_csv[5000 + 1][col_ix].strip), Float(timeseries_csv2[5000][col_ix].strip)) # in dst period, values are shifted forward
   end
 
   def test_timeseries_local_time_dst
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
                   'add_timeseries_dst_column' => true }
@@ -1064,7 +1302,7 @@ class ReportSimulationOutputTest < MiniTest::Test
   end
 
   def test_timeseries_local_time_utc
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
                   'add_timeseries_utc_column' => true }
@@ -1081,7 +1319,7 @@ class ReportSimulationOutputTest < MiniTest::Test
   end
 
   def test_timeseries_local_time_dst_and_utc
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
                   'add_timeseries_dst_column' => true,
@@ -1101,11 +1339,13 @@ class ReportSimulationOutputTest < MiniTest::Test
   end
 
   def test_timeseries_user_defined_standard_output_variables
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
                   'include_timeseries_emissions' => false,
+                  'include_timeseries_emission_fuels' => false,
+                  'include_timeseries_emission_end_uses' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_unmet_hours' => false,
@@ -1124,17 +1364,19 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsStandardOutputVariables)
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsStandardOutputVariables)
     assert(File.readlines(run_log).any? { |line| line.include?("Request for output variable 'Foo'") })
   end
 
   def test_timeseries_user_defined_advanced_output_variables
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
                   'add_component_loads' => true,
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
                   'include_timeseries_emissions' => false,
+                  'include_timeseries_emission_fuels' => false,
+                  'include_timeseries_emission_end_uses' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_unmet_hours' => false,
@@ -1153,38 +1395,34 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsAdvancedOutputVariables)
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsAdvancedOutputVariables)
   end
 
-  def test_eri_designs
-    # Create derivative HPXML file w/ ERI design type set
-    require 'fileutils'
-    require_relative '../../HPXMLtoOpenStudio/resources/xmlhelper.rb'
-    require_relative '../../HPXMLtoOpenStudio/resources/constants.rb'
-    require 'oga'
-    old_hpxml_path = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml')
-    [Constants.CalcTypeERIReferenceHome, Constants.CalcTypeERIReferenceHome].each do |eri_design|
-      new_hpxml_path = File.join(File.dirname(__FILE__), '../../workflow/tests/test-eri.xml')
-      FileUtils.cp(old_hpxml_path, new_hpxml_path)
-      hpxml = HPXML.new(hpxml_path: new_hpxml_path)
-      hpxml.header.eri_design = eri_design
-      XMLHelper.write_file(hpxml.to_oga(), new_hpxml_path)
-
-      # Run tests
-      args_hash = { 'hpxml_path' => '../workflow/tests/test-eri.xml' }
-      annual_csv, timeseries_csv = _test_measure(args_hash, eri_design)
-      assert(File.exist?(annual_csv))
-      assert(!File.exist?(timeseries_csv))
-      actual_annual_rows = File.readlines(annual_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
-      assert(actual_annual_rows.include? 'ERI: Building: CFA')
-
-      # Cleanup
-      File.delete(new_hpxml_path)
-      File.delete(annual_csv)
-    end
+  def test_eri_output
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
+                  'generate_eri_outputs' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(!File.exist?(timeseries_csv))
+    actual_annual_rows = File.readlines(annual_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
+    assert(actual_annual_rows.include? 'ERI: Building: CFA')
   end
 
-  def _test_measure(args_hash, eri_design = nil)
+  def test_for_unsuccessful_simulation_infinity
+    # Create HPXML w/ AFUE=0 to generate Infinity result
+    hpxml_path = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml')
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    hpxml.heating_systems[0].heating_efficiency_afue = 10.0**-315
+    XMLHelper.write_file(hpxml.to_oga(), @tmp_hpxml_path)
+
+    args_hash = { 'hpxml_path' => @tmp_hpxml_path }
+    annual_csv, timeseries_csv, run_log = _test_measure(args_hash, expect_success: false)
+    assert(!File.exist?(annual_csv))
+    assert(!File.exist?(timeseries_csv))
+    assert(File.readlines(run_log).any? { |line| line.include?('Simulation used infinite energy; double-check inputs.') })
+  end
+
+  def _test_measure(args_hash, expect_success: true)
     # Run measure via OSW
     require 'json'
     template_osw = File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'template-run-hpxml.osw')
@@ -1215,22 +1453,14 @@ class ReportSimulationOutputTest < MiniTest::Test
 
     # Run OSW
     success = system("#{OpenStudio.getOpenStudioCLI} run -w \"#{osw_path}\"")
-    assert_equal(true, success)
+    assert_equal(expect_success, success)
 
     # Cleanup
     File.delete(osw_path)
 
-    if not eri_design.nil?
-      output_dir = File.dirname(File.join(File.dirname(__FILE__), '..', args_hash['hpxml_path']))
-      hpxml_name = File.basename(args_hash['hpxml_path']).gsub('.xml', '')
-      annual_csv = File.join(output_dir, "#{hpxml_name}.csv")
-      timeseries_csv = File.join(output_dir, "#{hpxml_name}_Hourly.csv")
-      run_log = File.join(output_dir, 'run.log')
-    else
-      annual_csv = File.join(File.dirname(template_osw), 'run', 'results_annual.csv')
-      timeseries_csv = File.join(File.dirname(template_osw), 'run', 'results_timeseries.csv')
-      run_log = File.join(File.dirname(template_osw), 'run', 'run.log')
-    end
+    annual_csv = File.join(File.dirname(template_osw), 'run', 'results_annual.csv')
+    timeseries_csv = File.join(File.dirname(template_osw), 'run', 'results_timeseries.csv')
+    run_log = File.join(File.dirname(template_osw), 'run', 'run.log')
     return annual_csv, timeseries_csv, run_log
   end
 
@@ -1254,7 +1484,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     return steps.uniq.size
   end
 
-  def _check_for_nonzero_timeseries_value(timeseries_csv, timeseries_cols)
+  def _get_values(timeseries_csv, timeseries_cols)
     values = {}
     timeseries_cols.each do |col|
       values[col] = []
@@ -1268,31 +1498,58 @@ class ReportSimulationOutputTest < MiniTest::Test
         values[col] << Float(row[col])
       end
     end
+    return values
+  end
+
+  def _check_for_nonzero_avg_timeseries_value(timeseries_csv, timeseries_cols)
+    values = _get_values(timeseries_csv, timeseries_cols)
+
     timeseries_cols.each do |col|
       avg_value = values[col].sum(0.0) / values[col].size
       assert_operator(avg_value, :!=, 0)
     end
   end
 
-  def _check_for_zero_baseload_timeseries_value(timeseries_csv, timeseries_cols)
-    # check that every day has non zero values for baseload equipment (e.g., refrigerator)
-    values = {}
+  def _check_for_zero_timeseries_values(timeseries_csv, timeseries_cols, start_ix, end_ix)
+    values = _get_values(timeseries_csv, timeseries_cols)
+
     timeseries_cols.each do |col|
-      values[col] = []
+      has_only_zero_timeseries_values = values[col][start_ix..end_ix].all? { |x| x == 0 }
+      assert(has_only_zero_timeseries_values)
     end
-    CSV.foreach(timeseries_csv, headers: true) do |row|
-      next if row['Time'].nil?
+  end
 
-      timeseries_cols.each do |col|
-        fail "Unexpected column: #{col}." if row[col].nil?
-
-        values[col] << Float(row[col])
-      end
-    end
+  def _check_for_nonzero_timeseries_values(timeseries_csv, timeseries_cols)
+    # check that every day has non zero values for baseload equipment (e.g., refrigerator)
+    values = _get_values(timeseries_csv, timeseries_cols)
 
     timeseries_cols.each do |col|
       has_no_zero_timeseries_value = !values[col].include?(0.0)
       assert(has_no_zero_timeseries_value)
+    end
+  end
+
+  def _get_actual_annual_rows(annual_csv)
+    actual_annual_rows = {}
+    File.readlines(annual_csv).each do |line|
+      next if line.strip.empty?
+
+      key, value = line.split(',').map { |x| x.strip }
+      actual_annual_rows[key] = Float(value)
+    end
+    return actual_annual_rows
+  end
+
+  def _check_for_runner_registered_values(results_json, actual_annual_rows)
+    require 'json'
+    runner_annual_rows = JSON.parse(File.read(results_json))
+    runner_annual_rows = runner_annual_rows['ReportSimulationOutput']
+
+    actual_annual_rows.each do |name, value|
+      name = OpenStudio::toUnderscoreCase(name).chomp('_')
+
+      assert_includes(runner_annual_rows.keys, name)
+      assert_equal(value, runner_annual_rows[name])
     end
   end
 end

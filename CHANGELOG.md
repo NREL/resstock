@@ -1,7 +1,19 @@
-## ResStock v2.6.0 (pending)
+## ResStock v3.1.0 (pending)
 
 Features
-- Update to OpenStudio v3.4.0 ([#863](https://github.com/NREL/resstock/pull/863))
+- Include battery modeling capabilities for project_testing ([#1009](https://github.com/NREL/resstock/pull/1009))
+- Ability to check buildstock csv against an options lookup as a command line utility ([#1042](https://github.com/NREL/resstock/pull/1042))
+- Demonstrate new power outage modeling feature using upgrades specified in example project yml files ([#1054](https://github.com/NREL/resstock/pull/1054))
+- Ability to specify a "sample_weight" column in the precomputed buildstock.csv ([#1056](https://github.com/NREL/resstock/pull/1056))
+
+Fixes
+- Pulls in upstream OS-HPXML fix related to [avoiding possible OpenStudio temporary directory collision](https://github.com/NREL/OpenStudio-HPXML/pull/1316) causing random errors ([#1054](https://github.com/NREL/resstock/pull/1054))
+
+## ResStock v3.0.0
+###### February 3, 2023 - [Diff](https://github.com/NREL/resstock/compare/v2.5.0...v3.0.0)
+
+Features
+- Transition to using the HPXML-based workflow ([#443](https://github.com/NREL/resstock/pull/443))
 - Add a new "Floor Area, Foundation (ft^2)" cost multiplier ([#870](https://github.com/NREL/resstock/pull/870))
 - Add a new "Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)" cost multiplier for handling incremental costs of adding attic insulation ([#842](https://github.com/NREL/resstock/pull/842))
 - Allow air leakage % reduction upgrades (e.g., 25%), and add a new "Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)" cost multiplier for handling incremental costs of such upgrades ([#840](https://github.com/NREL/resstock/pull/840))
@@ -13,6 +25,13 @@ Features
 - Update tsvs with new sampling_probability calculation ([#905](https://github.com/NREL/resstock/pull/905))
 - Improve distributions of heat pumps in the southeast U.S. by spliting IECC zone 2A into two zones: 2A (FL, GA, AL, MS) and 2A (TX, LA) ([#913](https://github.com/NREL/resstock/pull/913))
 - Add Income and Tenure tsv, update PUMS tsvs from 2017 5-yrs to 2019 5-yrs, update dependencies and fix encoding error in Occupants.tsv ([#900](https://github.com/NREL/resstock/pull/900))
+- Add Income and Tenure into Geometry Floor Area ([#949](https://github.com/NREL/resstock/pull/949))
+- Add distributions for partial space cooling ([#964](https://github.com/NREL/resstock/pull/964))
+- Add ability to calculate emissions for various scenarios ([#791](https://github.com/NREL/resstock/pull/791))
+- Add ability to calculate simple utility bills for various scenarios ([#984](https://github.com/NREL/resstock/pull/984))
+- Modeled floor area based on AHS 2021 and AHS 2019 ([#978](https://github.com/NREL/resstock/pull/978))
+- Add area median income ([#1004](https://github.com/NREL/resstock/pull/1004))
+- Update to OpenStudio v3.5.1 ([#1006](https://github.com/NREL/resstock/pull/1015))
 
 Fixes
 - Clean up option names for natural ventilation and hot water distribution ([#828](https://github.com/NREL/resstock/pull/828))
@@ -20,6 +39,10 @@ Fixes
 - For homes with a finished attic or cathedral ceilings, models a conditioned attic instead of a vented attic ([#830](https://github.com/NREL/resstock/pull/830))
 - Reduce housing characteristic file size by relaxing the six digit float format in the housing characteristics ([#877](https://github.com/NREL/resstock/pull/877))
 - Fix minor bug in sampling probability calculation ([#934](https://github.com/NREL/resstock/pull/934)) 
+- Rename sources subfolders so all tsv_makers can be imported as packages ([#959](https://github.com/NREL/resstock/pull/959))
+- Fix heating and cooling auto-season inputs ([#975](https://github.com/NREL/resstock/pull/975))
+- Remove Void from dependency columns in TSVs and update tests.([#981](https://github.com/NREL/resstock/pull/981))
+- Update low-sample downscaling logic to use raw source_weight, which leads to minor changes to Geometry Floor Area and HVAC Partial Sapce Conditioning ([#982](https://github.com/NREL/resstock/pull/982))
 
 ## ResStock v2.5.0
 ###### February 9, 2022 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.4.0...v2.5.0)

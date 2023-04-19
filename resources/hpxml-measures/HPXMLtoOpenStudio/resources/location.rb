@@ -8,22 +8,23 @@ class Location
     apply_ground_temps(model, weather)
   end
 
-  def self.apply_weather_file(model, runner, weather_file_path, weather_cache_path)
+  def self.apply_weather_file(model, weather_file_path, weather_cache_path)
     if File.exist?(weather_file_path) && weather_file_path.downcase.end_with?('.epw')
       epw_file = OpenStudio::EpwFile.new(weather_file_path)
     else
       fail "'#{weather_file_path}' does not exist or is not an .epw file."
     end
 
-    OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file).get
+    OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
 
     # Obtain weather object
     # Load from cache .csv file if exists, as this is faster and doesn't require
     # parsing the weather file.
     if File.exist? weather_cache_path
-      weather = WeatherProcess.new(nil, nil, weather_cache_path)
-    else
-      weather = WeatherProcess.new(model, runner)
+      weather = WeatherProcess.new(csv_path: weather_cache_path)
+    end
+    if weather.nil? || weather.data.AnnualAvgDrybulb.nil?
+      weather = WeatherProcess.new(epw_path: weather_file_path)
     end
 
     return weather, epw_file
@@ -103,7 +104,7 @@ class Location
       test_epw_path = File.join(File.dirname(hpxml_path), epw_path)
       epw_path = test_epw_path if File.exist? test_epw_path
     end
-    (1..3).to_a.each do |level_deep|
+    for level_deep in 1..3
       next unless not File.exist? epw_path
 
       level = (['..'] * level_deep).join('/')
@@ -115,5 +116,15 @@ class Location
     end
 
     return epw_path
+  end
+
+  def self.get_sim_calendar_year(sim_calendar_year, epw_file)
+    if (not epw_file.nil?) && epw_file.startDateActualYear.is_initialized # AMY
+      sim_calendar_year = epw_file.startDateActualYear.get
+    end
+    if sim_calendar_year.nil?
+      sim_calendar_year = 2007 # For consistency with SAM utility bill calculations
+    end
+    return sim_calendar_year
   end
 end

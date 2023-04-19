@@ -8,8 +8,14 @@ require_relative '../measure.rb'
 require_relative '../resources/util.rb'
 
 class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
-  def sample_files_dir
-    return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
+  def setup
+    @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
+    @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')
+    @tmp_hpxml_path = File.join(@sample_files_path, 'tmp.xml')
+  end
+
+  def teardown
+    File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
   end
 
   def test_heat_pumps
@@ -19,20 +25,21 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
      'base-hvac-autosize-ground-to-air-heat-pump-sizing-methodology',
      'base-hvac-autosize-mini-split-heat-pump-ducted-sizing-methodology',
      'base-hvac-autosize-pthp-sizing-methodology',
+     'base-hvac-autosize-room-ac-with-reverse-cycle-sizing-methodology',
      'base-hvac-autosize-dual-fuel-air-to-air-heat-pump-1-speed-sizing-methodology'].each do |hpxml_file|
       # Run w/ ACCA sizing
       args_hash = {}
-      args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, "#{hpxml_file}-acca.xml"))
+      args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, "#{hpxml_file}-acca.xml"))
       _model_acca, hpxml_acca = _test_measure(args_hash)
 
       # Run w/ HERS sizing
       args_hash = {}
-      args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, "#{hpxml_file}-hers.xml"))
+      args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, "#{hpxml_file}-hers.xml"))
       _model_hers, hpxml_hers = _test_measure(args_hash)
 
       # Run w/ MaxLoad sizing
       args_hash = {}
-      args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, "#{hpxml_file}-maxload.xml"))
+      args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, "#{hpxml_file}-maxload.xml"))
       _model_maxload, hpxml_maxload = _test_measure(args_hash)
 
       # Check that MaxLoad >= HERS > ACCA for heat pump heating capacity
@@ -47,7 +54,7 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
   def test_heat_pump_separate_backup_systems
     # Run w/ ducted heat pump and ductless backup
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-boiler.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-boiler.xml'))
     _model, hpxml = _test_measure(args_hash)
 
     # Check that boiler capacity equals building heating design load w/o duct load.
@@ -57,7 +64,7 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
 
     # Run w/ ducted heat pump and ducted backup
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-furnace.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-furnace.xml'))
     _model, hpxml = _test_measure(args_hash)
 
     # Check that furnace capacity is between the building heating design load w/o duct load
@@ -71,13 +78,55 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
 
     # Run w/ ductless heat pump and ductless backup
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-autosize-mini-split-heat-pump-ductless-backup-stove.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-autosize-mini-split-heat-pump-ductless-backup-stove.xml'))
     _model, hpxml = _test_measure(args_hash)
 
     # Check that stove capacity equals building heating design load
     htg_design_load = hpxml.hvac_plant.hdl_total
     htg_capacity = hpxml.heating_systems[0].heating_capacity
     assert_in_epsilon(htg_design_load, htg_capacity, 0.001) # 0.001 to handle rounding
+  end
+
+  def test_heat_pump_integrated_backup_systems
+    # Check that HP backup heating capacity matches heating design load even when using MaxLoad in a hot climate (GitHub issue #1140)
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload-miami-fl.xml'))
+    _model, hpxml = _test_measure(args_hash)
+
+    assert_equal(hpxml.heat_pumps[0].backup_heating_capacity, hpxml.hvac_plant.hdl_total)
+  end
+
+  def test_allow_increased_fixed_capacities
+    # Test hard-sized capacities are increased for various equipment types
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+
+    # Test air conditioner + furnace
+    hpxml = _create_hpxml('base-hvac-undersized-allow-increased-fixed-capacities.xml')
+    htg_cap = hpxml.heating_systems[0].heating_capacity
+    clg_cap = hpxml.cooling_systems[0].cooling_capacity
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    _model, hpxml = _test_measure(args_hash)
+    assert(hpxml.heating_systems[0].heating_capacity > htg_cap)
+    assert(hpxml.cooling_systems[0].cooling_capacity > clg_cap)
+
+    # Test heat pump
+    hpxml = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed.xml')
+    hpxml.header.allow_increased_fixed_capacities = true
+    hpxml.heat_pumps[0].heating_capacity /= 10.0
+    hpxml.heat_pumps[0].heating_capacity_17F /= 10.0
+    hpxml.heat_pumps[0].backup_heating_capacity /= 10.0
+    hpxml.heat_pumps[0].cooling_capacity /= 10.0
+    htg_cap = hpxml.heat_pumps[0].heating_capacity
+    htg_17f_cap = hpxml.heat_pumps[0].heating_capacity_17F
+    htg_bak_cap = hpxml.heat_pumps[0].backup_heating_capacity
+    clg_cap = hpxml.heat_pumps[0].cooling_capacity
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    _model, hpxml = _test_measure(args_hash)
+    assert(hpxml.heat_pumps[0].heating_capacity > htg_cap)
+    assert(hpxml.heat_pumps[0].heating_capacity_17F > htg_17f_cap)
+    assert(hpxml.heat_pumps[0].backup_heating_capacity > htg_bak_cap)
+    assert(hpxml.heat_pumps[0].cooling_capacity > clg_cap)
   end
 
   def test_slab_f_factor
@@ -94,28 +143,28 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
 
     # Uninsulated slab
     slab = get_unins_slab()
-    f_factor = HVACSizing.calc_slab_f_value(slab)
+    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
     assert_in_epsilon(1.41, f_factor, 0.01)
 
     # R-10, 4ft under slab insulation
     slab = get_unins_slab()
     slab.under_slab_insulation_width = 4
     slab.under_slab_insulation_r_value = 10
-    f_factor = HVACSizing.calc_slab_f_value(slab)
+    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
     assert_in_epsilon(1.27, f_factor, 0.01)
 
     # R-20, 4ft perimeter insulation
     slab = get_unins_slab()
     slab.perimeter_insulation_depth = 4
     slab.perimeter_insulation_r_value = 20
-    f_factor = HVACSizing.calc_slab_f_value(slab)
+    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
     assert_in_epsilon(0.39, f_factor, 0.01)
 
     # R-40, whole slab insulation
     slab = get_unins_slab()
     slab.under_slab_insulation_spans_entire_slab = true
     slab.under_slab_insulation_r_value = 40
-    f_factor = HVACSizing.calc_slab_f_value(slab)
+    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
     assert_in_epsilon(1.04, f_factor, 0.01)
   end
 
@@ -127,7 +176,7 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
     model = OpenStudio::Model::Model.new
 
     # get arguments
-    args_hash['output_dir'] = 'tests'
+    args_hash['output_dir'] = File.dirname(__FILE__)
     arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 
@@ -155,5 +204,9 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
     File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
     return model, hpxml
+  end
+
+  def _create_hpxml(hpxml_name)
+    return HPXML.new(hpxml_path: File.join(@sample_files_path, hpxml_name))
   end
 end

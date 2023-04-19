@@ -11,20 +11,20 @@ require_relative '../HPXMLtoOpenStudio/resources/version'
 
 basedir = File.expand_path(File.dirname(__FILE__))
 
-def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs, skip_validation, add_comp_loads, add_utility_bills,
-                 output_format, building_id, ep_input_format, detailed_schedules_type, timeseries_time_column_types, timeseries_output_variables)
+def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs, skip_validation, add_comp_loads,
+                 output_format, building_id, ep_input_format, stochastic_schedules, timeseries_time_column_types,
+                 timeseries_output_variables, timeseries_timestamp_convention)
   measures_dir = File.join(basedir, '..')
 
   measures = {}
 
   # Optionally add schedule file measure to workflow
-  unless detailed_schedules_type.nil?
+  if stochastic_schedules
     measure_subdir = 'BuildResidentialScheduleFile'
     args = {}
     args['hpxml_path'] = hpxml
     args['hpxml_output_path'] = hpxml
-    args['schedules_type'] = detailed_schedules_type
-    args['output_csv_path'] = File.join(rundir, "#{detailed_schedules_type}.csv")
+    args['output_csv_path'] = File.join(rundir, 'stochastic.csv')
     args['debug'] = debug
     update_args_hash(measures, measure_subdir, args)
   end
@@ -49,6 +49,8 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['include_timeseries_fuel_consumptions'] = timeseries_outputs.include? 'fuels'
   args['include_timeseries_end_use_consumptions'] = timeseries_outputs.include? 'enduses'
   args['include_timeseries_emissions'] = timeseries_outputs.include? 'emissions'
+  args['include_timeseries_emission_fuels'] = timeseries_outputs.include? 'emissionfuels'
+  args['include_timeseries_emission_end_uses'] = timeseries_outputs.include? 'emissionenduses'
   args['include_timeseries_hot_water_uses'] = timeseries_outputs.include? 'hotwater'
   args['include_timeseries_total_loads'] = timeseries_outputs.include? 'loads'
   args['include_timeseries_component_loads'] = timeseries_outputs.include? 'componentloads'
@@ -56,6 +58,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['include_timeseries_zone_temperatures'] = timeseries_outputs.include? 'temperatures'
   args['include_timeseries_airflows'] = timeseries_outputs.include? 'airflows'
   args['include_timeseries_weather'] = timeseries_outputs.include? 'weather'
+  args['timeseries_timestamp_convention'] = timeseries_timestamp_convention
   args['add_timeseries_dst_column'] = timeseries_time_column_types.include? 'DST'
   args['add_timeseries_utc_column'] = timeseries_time_column_types.include? 'UTC'
   args['user_output_variables'] = timeseries_output_variables.join(', ') unless timeseries_output_variables.empty?
@@ -63,30 +66,24 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
 
   output_format = 'csv' if output_format == 'csv_dview'
 
-  # Add hpxml output measure to workflow
-  measure_subdir = 'ReportHPXMLOutput'
+  # Add utility bills measure to workflow
+  measure_subdir = 'ReportUtilityBills'
   args = {}
   args['output_format'] = output_format
   update_args_hash(measures, measure_subdir, args)
-
-  # Add utility bills measure to workflow
-  if add_utility_bills
-    measure_subdir = 'ReportUtilityBills'
-    args = {}
-    args['output_format'] = output_format
-    update_args_hash(measures, measure_subdir, args)
-  end
 
   results = run_hpxml_workflow(rundir, measures, measures_dir, debug: debug, ep_input_format: ep_input_format)
 
   return results[:success]
 end
 
-timeseries_types = ['ALL', 'total', 'fuels', 'enduses', 'emissions', 'hotwater', 'loads', 'componentloads', 'unmethours', 'temperatures', 'airflows', 'weather']
+timeseries_types = ['ALL', 'total', 'fuels', 'enduses', 'emissions', 'emissionfuels',
+                    'emissionenduses', 'hotwater', 'loads', 'componentloads',
+                    'unmethours', 'temperatures', 'airflows', 'weather']
 
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: #{File.basename(__FILE__)} -x building.xml\n e.g., #{File.basename(__FILE__)} -x base.xml\n"
+  opts.banner = "Usage: #{File.basename(__FILE__)} -x building.xml"
 
   opts.on('-x', '--xml <FILE>', 'HPXML file') do |t|
     options[:hpxml] = t
@@ -101,22 +98,22 @@ OptionParser.new do |opts|
   end
 
   options[:hourly_outputs] = []
-  opts.on('--hourly TYPE', timeseries_types, "Request hourly output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--hourly TYPE', timeseries_types, "Request hourly output type (#{timeseries_types.join(', ')}); can be called multiple times") do |t|
     options[:hourly_outputs] << t
   end
 
   options[:daily_outputs] = []
-  opts.on('--daily TYPE', timeseries_types, "Request daily output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--daily TYPE', timeseries_types, "Request daily output type (#{timeseries_types.join(', ')}); can be called multiple times") do |t|
     options[:daily_outputs] << t
   end
 
   options[:monthly_outputs] = []
-  opts.on('--monthly TYPE', timeseries_types, "Request monthly output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--monthly TYPE', timeseries_types, "Request monthly output type (#{timeseries_types.join(', ')}); can be called multiple times") do |t|
     options[:monthly_outputs] << t
   end
 
   options[:timestep_outputs] = []
-  opts.on('--timestep TYPE', timeseries_types, "Request timestep output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--timestep TYPE', timeseries_types, "Request timestep output type (#{timeseries_types.join(', ')}); can be called multiple times") do |t|
     options[:timestep_outputs] << t
   end
 
@@ -130,8 +127,9 @@ OptionParser.new do |opts|
     options[:add_comp_loads] = true
   end
 
-  opts.on('--add-detailed-schedule TYPE', ['smooth', 'stochastic'], 'Add detailed occupancy schedule of type (smooth, stochastic)') do |t|
-    options[:detailed_schedules_type] = t
+  options[:stochastic_schedules] = false
+  opts.on('--add-stochastic-schedules', 'Add detailed stochastic occupancy schedules') do |_t|
+    options[:stochastic_schedules] = true
   end
 
   options[:timeseries_time_column_types] = []
@@ -144,9 +142,9 @@ OptionParser.new do |opts|
     options[:timeseries_output_variables] << t
   end
 
-  options[:add_utility_bills] = false
-  opts.on('--add-utility-bills', 'Add utility bill calculations (using default rates).') do |_t|
-    options[:add_utility_bills] = true
+  options[:timeseries_timestamp_convention] = 'start'
+  opts.on('--timeseries-timestamp-convention TYPE', ['start', 'end'], 'Convention (start, end) for timeseries timestamps') do |t|
+    options[:timeseries_timestamp_convention] = t
   end
 
   options[:ep_input_format] = 'idf'
@@ -164,7 +162,7 @@ OptionParser.new do |opts|
   end
 
   options[:debug] = false
-  opts.on('-d', '--debug') do |_t|
+  opts.on('-d', '--debug', 'Generate additional debug output/files') do |_t|
     options[:debug] = true
   end
 
@@ -241,9 +239,9 @@ else
   # Run design
   puts "HPXML: #{options[:hpxml]}"
   success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
-                         options[:skip_validation], options[:add_comp_loads], options[:add_utility_bills], options[:output_format], options[:building_id],
-                         options[:ep_input_format], options[:detailed_schedules_type], options[:timeseries_time_column_types],
-                         options[:timeseries_output_variables])
+                         options[:skip_validation], options[:add_comp_loads], options[:output_format], options[:building_id],
+                         options[:ep_input_format], options[:stochastic_schedules], options[:timeseries_time_column_types],
+                         options[:timeseries_output_variables], options[:timeseries_timestamp_convention])
 
   if not success
     exit! 1

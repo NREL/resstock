@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>cd55d8a5-da3f-40cd-ae6c-c29c23d9a947</version_id>
-  <version_modified>20220610T212700Z</version_modified>
+  <version_id>b7dc0765-7251-4c37-8b15-e11e30a5310e</version_id>
+  <version_modified>20230322T231817Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -14,6 +14,27 @@
     <argument>
       <name>schedules_filepaths</name>
       <display_name>schedules_filepaths</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_vacancy_period</name>
+      <display_name>schedules_vacancy_period</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_power_outage_period</name>
+      <display_name>schedules_power_outage_period</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_power_outage_window_natvent_availability</name>
+      <display_name>schedules_power_outage_window_natvent_availability</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -54,6 +75,13 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>simulation_control_temperature_capacitance_multiplier</name>
+      <display_name>simulation_control_temperature_capacitance_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>site_type</name>
       <display_name>site_type</display_name>
       <type>String</type>
@@ -63,6 +91,13 @@
     <argument>
       <name>site_shielding_of_home</name>
       <display_name>site_shielding_of_home</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>site_ground_conductivity</name>
+      <display_name>site_ground_conductivity</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -522,6 +557,33 @@
       <default_value>28.1</default_value>
     </argument>
     <argument>
+      <name>floor_type</name>
+      <display_name>Floor: Type</display_name>
+      <description>The type of floors.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>WoodFrame</default_value>
+      <choices>
+        <choice>
+          <value>WoodFrame</value>
+          <display_name>WoodFrame</display_name>
+        </choice>
+        <choice>
+          <value>StructuralInsulatedPanel</value>
+          <display_name>StructuralInsulatedPanel</display_name>
+        </choice>
+        <choice>
+          <value>SolidConcrete</value>
+          <display_name>SolidConcrete</display_name>
+        </choice>
+        <choice>
+          <value>SteelFrame</value>
+          <display_name>SteelFrame</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>foundation_wall_type</name>
       <display_name>foundation_wall_type</display_name>
       <type>String</type>
@@ -747,8 +809,8 @@
           <display_name>LogWall</display_name>
         </choice>
         <choice>
-          <value>StructurallyInsulatedPanel</value>
-          <display_name>StructurallyInsulatedPanel</display_name>
+          <value>StructuralInsulatedPanel</value>
+          <display_name>StructuralInsulatedPanel</display_name>
         </choice>
         <choice>
           <value>SolidConcrete</value>
@@ -889,6 +951,13 @@
     <argument>
       <name>window_fraction_operable</name>
       <display_name>window_fraction_operable</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>window_natvent_availability</name>
+      <display_name>window_natvent_availability</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1174,6 +1243,14 @@
           <value>ACHnatural</value>
           <display_name>ACHnatural</display_name>
         </choice>
+        <choice>
+          <value>CFMnatural</value>
+          <display_name>CFMnatural</display_name>
+        </choice>
+        <choice>
+          <value>EffectiveLeakageArea</value>
+          <display_name>EffectiveLeakageArea</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
@@ -1189,11 +1266,18 @@
     <argument>
       <name>air_leakage_value</name>
       <display_name>Air Leakage: Value</display_name>
-      <description>Air exchange rate value.</description>
+      <description>Air exchange rate value. For 'EffectiveLeakageArea', provide value in sq. in.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>3</default_value>
+    </argument>
+    <argument>
+      <name>air_leakage_multifamily_value_type</name>
+      <display_name>air_leakage_multifamily_value_type</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heating_system_type</name>
@@ -1245,10 +1329,6 @@
           <display_name>FixedHeater</display_name>
         </choice>
         <choice>
-          <value>PackagedTerminalAirConditionerHeating</value>
-          <display_name>PackagedTerminalAirConditionerHeating</display_name>
-        </choice>
-        <choice>
           <value>Shared Boiler w/ Baseboard</value>
           <display_name>Shared Boiler w/ Baseboard</display_name>
         </choice>
@@ -1261,7 +1341,7 @@
     <argument>
       <name>heating_system_fuel</name>
       <display_name>Heating System: Fuel Type</display_name>
-      <description>The fuel type of the heating system. Ignored for ElectricResistance and PackagedTerminalAirConditionerHeating.</description>
+      <description>The fuel type of the heating system. Ignored for ElectricResistance.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1325,6 +1405,13 @@
       <default_value>1</default_value>
     </argument>
     <argument>
+      <name>heating_system_pilot_light</name>
+      <display_name>heating_system_pilot_light</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>cooling_system_type</name>
       <display_name>Cooling System: Type</display_name>
       <description>The type of cooling system. Use 'none' if there is no cooling system or if there is a heat pump serving a cooling load.</description>
@@ -1362,7 +1449,7 @@
     <argument>
       <name>cooling_system_cooling_efficiency_type</name>
       <display_name>Cooling System: Efficiency Type</display_name>
-      <description>The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.</description>
+      <description>The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER or SEER2. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1371,6 +1458,10 @@
         <choice>
           <value>SEER</value>
           <display_name>SEER</display_name>
+        </choice>
+        <choice>
+          <value>SEER2</value>
+          <display_name>SEER2</display_name>
         </choice>
         <choice>
           <value>EER</value>
@@ -1387,7 +1478,6 @@
       <display_name>Cooling System: Efficiency</display_name>
       <description>The rated efficiency value of the cooling system. Ignored for evaporative cooler.</description>
       <type>Double</type>
-      <units>SEER or EER or CEER</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>13</default_value>
@@ -1443,6 +1533,34 @@
       </choices>
     </argument>
     <argument>
+      <name>cooling_system_integrated_heating_system_fuel</name>
+      <display_name>cooling_system_integrated_heating_system_fuel</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_integrated_heating_system_efficiency_percent</name>
+      <display_name>cooling_system_integrated_heating_system_efficiency_percent</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_integrated_heating_system_capacity</name>
+      <display_name>cooling_system_integrated_heating_system_capacity</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_integrated_heating_system_fraction_heat_load_served</name>
+      <display_name>cooling_system_integrated_heating_system_fraction_heat_load_served</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>heat_pump_type</name>
       <display_name>Heat Pump: Type</display_name>
       <description>The type of heat pump. Use 'none' if there is no heat pump.</description>
@@ -1471,12 +1589,16 @@
           <value>packaged terminal heat pump</value>
           <display_name>packaged terminal heat pump</display_name>
         </choice>
+        <choice>
+          <value>room air conditioner with reverse cycle</value>
+          <display_name>room air conditioner with reverse cycle</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
       <name>heat_pump_heating_efficiency_type</name>
       <display_name>Heat Pump: Heating Efficiency Type</display_name>
-      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF. System types ground-to-air and packaged terminal heat pump use COP.</description>
+      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use COP.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1485,6 +1607,10 @@
         <choice>
           <value>HSPF</value>
           <display_name>HSPF</display_name>
+        </choice>
+        <choice>
+          <value>HSPF2</value>
+          <display_name>HSPF2</display_name>
         </choice>
         <choice>
           <value>COP</value>
@@ -1497,7 +1623,6 @@
       <display_name>Heat Pump: Heating Efficiency</display_name>
       <description>The rated heating efficiency value of the heat pump.</description>
       <type>Double</type>
-      <units>HSPF or COP</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>7.7</default_value>
@@ -1505,7 +1630,7 @@
     <argument>
       <name>heat_pump_cooling_efficiency_type</name>
       <display_name>Heat Pump: Cooling Efficiency Type</display_name>
-      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER. System types ground-to-air and packaged terminal heat pump use EER.</description>
+      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER or SEER2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use EER.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1514,6 +1639,10 @@
         <choice>
           <value>SEER</value>
           <display_name>SEER</display_name>
+        </choice>
+        <choice>
+          <value>SEER2</value>
+          <display_name>SEER2</display_name>
         </choice>
         <choice>
           <value>EER</value>
@@ -1530,7 +1659,6 @@
       <display_name>Heat Pump: Cooling Efficiency</display_name>
       <description>The rated cooling efficiency value of the heat pump.</description>
       <type>Double</type>
-      <units>SEER or EER</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>13</default_value>
@@ -1589,6 +1717,13 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>heat_pump_compressor_lockout_temp</name>
+      <display_name>heat_pump_compressor_lockout_temp</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heat_pump_backup_type</name>
@@ -1652,13 +1787,6 @@
     <argument>
       <name>heat_pump_backup_heating_capacity</name>
       <display_name>heat_pump_backup_heating_capacity</display_name>
-      <type>String</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heat_pump_backup_heating_switchover_temp</name>
-      <display_name>heat_pump_backup_heating_switchover_temp</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2982,6 +3110,13 @@
     <argument>
       <name>battery_usable_capacity</name>
       <display_name>battery_usable_capacity</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>battery_round_trip_efficiency</name>
+      <display_name>battery_round_trip_efficiency</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -4333,6 +4468,160 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>utility_bill_scenario_names</name>
+      <display_name>utility_bill_scenario_names</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_electricity_filepaths</name>
+      <display_name>utility_bill_electricity_filepaths</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_electricity_fixed_charges</name>
+      <display_name>utility_bill_electricity_fixed_charges</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_natural_gas_fixed_charges</name>
+      <display_name>utility_bill_natural_gas_fixed_charges</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_propane_fixed_charges</name>
+      <display_name>utility_bill_propane_fixed_charges</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_fuel_oil_fixed_charges</name>
+      <display_name>utility_bill_fuel_oil_fixed_charges</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_coal_fixed_charges</name>
+      <display_name>utility_bill_coal_fixed_charges</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_wood_fixed_charges</name>
+      <display_name>utility_bill_wood_fixed_charges</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_wood_pellets_fixed_charges</name>
+      <display_name>utility_bill_wood_pellets_fixed_charges</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_electricity_marginal_rates</name>
+      <display_name>utility_bill_electricity_marginal_rates</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_natural_gas_marginal_rates</name>
+      <display_name>utility_bill_natural_gas_marginal_rates</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_propane_marginal_rates</name>
+      <display_name>utility_bill_propane_marginal_rates</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_fuel_oil_marginal_rates</name>
+      <display_name>utility_bill_fuel_oil_marginal_rates</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_coal_marginal_rates</name>
+      <display_name>utility_bill_coal_marginal_rates</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_wood_marginal_rates</name>
+      <display_name>utility_bill_wood_marginal_rates</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_wood_pellets_marginal_rates</name>
+      <display_name>utility_bill_wood_pellets_marginal_rates</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_pv_compensation_types</name>
+      <display_name>utility_bill_pv_compensation_types</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_pv_net_metering_annual_excess_sellback_rate_types</name>
+      <display_name>utility_bill_pv_net_metering_annual_excess_sellback_rate_types</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_pv_net_metering_annual_excess_sellback_rates</name>
+      <display_name>utility_bill_pv_net_metering_annual_excess_sellback_rates</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_pv_feed_in_tariff_rates</name>
+      <display_name>utility_bill_pv_feed_in_tariff_rates</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_pv_monthly_grid_connection_fee_units</name>
+      <display_name>utility_bill_pv_monthly_grid_connection_fee_units</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>utility_bill_pv_monthly_grid_connection_fees</name>
+      <display_name>utility_bill_pv_monthly_grid_connection_fees</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>additional_properties</name>
       <display_name>additional_properties</display_name>
       <type>String</type>
@@ -4354,28 +4643,9 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>schedules_type</name>
-      <display_name>Schedules: Type</display_name>
-      <description>The type of occupant-related schedules to use.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>smooth</default_value>
-      <choices>
-        <choice>
-          <value>smooth</value>
-          <display_name>smooth</display_name>
-        </choice>
-        <choice>
-          <value>stochastic</value>
-          <display_name>stochastic</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>schedules_vacancy_period</name>
-      <display_name>Schedules: Vacancy Period</display_name>
-      <description>Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".</description>
+      <name>schedules_column_names</name>
+      <display_name>Schedules: Column Names</display_name>
+      <description>A comma-separated list of the column names to generate. If not provided, defaults to all columns. Possible column names are: occupants, lighting_interior, lighting_exterior, lighting_garage, lighting_exterior_holiday, cooking_range, dishwasher, clothes_washer, clothes_dryer, ceiling_fan, plug_loads_other, hot_water_dishwasher, hot_water_clothes_washer, hot_water_fixtures.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -4878,7 +5148,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4A468004</checksum>
+      <checksum>F4AF65BB</checksum>
     </file>
   </files>
 </measure>

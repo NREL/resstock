@@ -1,32 +1,33 @@
 # frozen_string_literal: true
 
 class MiscLoads
-  def self.apply_plug(model, runner, plug_load, obj_name, living_space, apply_ashrae140_assumptions, schedules_file)
+  def self.apply_plug(model, runner, plug_load, obj_name, living_space, apply_ashrae140_assumptions, schedules_file, vacancy_periods, power_outage_periods)
     kwh = 0
     if not plug_load.nil?
-      kwh = plug_load.kWh_per_year * plug_load.usage_multiplier
+      kwh = plug_load.kwh_per_year * plug_load.usage_multiplier
     end
 
     return if kwh <= 0
 
     # Create schedule
     sch = nil
+    if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
+      col_name = SchedulesFile::ColumnPlugLoadsOther
+    elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
+      col_name = SchedulesFile::ColumnPlugLoadsTV
+    elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
+      col_name = SchedulesFile::ColumnPlugLoadsVehicle
+    elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
+      col_name = SchedulesFile::ColumnPlugLoadsWellPump
+    end
     if not schedules_file.nil?
-      if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
-        col_name = SchedulesFile::ColumnPlugLoadsOther
-      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
-        col_name = SchedulesFile::ColumnPlugLoadsTV
-      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
-        col_name = SchedulesFile::ColumnPlugLoadsVehicle
-      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
-        col_name = SchedulesFile::ColumnPlugLoadsWellPump
-      end
       space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: kwh)
       sch = schedules_file.create_schedule_file(col_name: col_name)
     end
     if sch.nil?
-      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
-      space_design_level = sch.calcDesignLevelFromDailykWh(kwh / 365.0)
+      col_off_periods = Schedule.get_off_periods(col_name, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
+      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction, off_periods: col_off_periods)
+      space_design_level = sch.calc_design_level_from_daily_kwh(kwh / 365.0)
       sch = sch.schedule
     else
       runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !plug_load.weekday_fractions.nil?
@@ -58,7 +59,7 @@ class MiscLoads
     mel.setSchedule(sch)
   end
 
-  def self.apply_fuel(model, runner, fuel_load, obj_name, living_space, schedules_file)
+  def self.apply_fuel(model, runner, fuel_load, obj_name, living_space, schedules_file, vacancy_periods, power_outage_periods)
     therm = 0
 
     if not fuel_load.nil?
@@ -66,20 +67,21 @@ class MiscLoads
 
       # Create schedule
       sch = nil
+      if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
+        col_name = SchedulesFile::ColumnFuelLoadsGrill
+      elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
+        col_name = SchedulesFile::ColumnFuelLoadsLighting
+      elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
+        col_name = SchedulesFile::ColumnFuelLoadsFireplace
+      end
       if not schedules_file.nil?
-        if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
-          col_name = SchedulesFile::ColumnFuelLoadsGrill
-        elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
-          col_name = SchedulesFile::ColumnFuelLoadsLighting
-        elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
-          col_name = SchedulesFile::ColumnFuelLoadsFireplace
-        end
         space_design_level = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: therm)
         sch = schedules_file.create_schedule_file(col_name: col_name)
       end
       if sch.nil?
-        sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', fuel_load.weekday_fractions, fuel_load.weekend_fractions, fuel_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
-        space_design_level = sch.calcDesignLevelFromDailyTherm(therm / 365.0)
+        col_off_periods = Schedule.get_off_periods(col_name, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
+        sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', fuel_load.weekday_fractions, fuel_load.weekend_fractions, fuel_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction, off_periods: col_off_periods)
+        space_design_level = sch.calc_design_level_from_daily_therm(therm / 365.0)
         sch = sch.schedule
       else
         runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !fuel_load.weekday_fractions.nil?
@@ -108,7 +110,7 @@ class MiscLoads
     mfl.setSchedule(sch)
   end
 
-  def self.apply_pool_or_hot_tub_heater(model, pool_or_hot_tub, obj_name, living_space, schedules_file)
+  def self.apply_pool_or_hot_tub_heater(runner, model, pool_or_hot_tub, obj_name, living_space, schedules_file, vacancy_periods, power_outage_periods)
     return if pool_or_hot_tub.heater_type == HPXML::TypeNone
 
     heater_kwh = 0
@@ -116,16 +118,13 @@ class MiscLoads
 
     # Create schedule
     heater_sch = nil
+    col_name = (obj_name.include?('pool') ? 'pool_heater' : 'hot_tub_heater')
     if not schedules_file.nil?
-      if obj_name.include?('pool')
-        col_name = 'pool_heater'
-      else
-        col_name = 'hot_tub_heater'
-      end
       heater_sch = schedules_file.create_schedule_file(col_name: col_name)
     end
     if heater_sch.nil?
-      heater_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.heater_weekday_fractions, pool_or_hot_tub.heater_weekend_fractions, pool_or_hot_tub.heater_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+      col_off_periods = Schedule.get_off_periods(col_name, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
+      heater_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.heater_weekday_fractions, pool_or_hot_tub.heater_weekend_fractions, pool_or_hot_tub.heater_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, off_periods: col_off_periods)
     else
       runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !pool_or_hot_tub.heater_weekday_fractions.nil?
       runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !pool_or_hot_tub.heater_weekend_fractions.nil?
@@ -139,10 +138,11 @@ class MiscLoads
     end
 
     if heater_kwh > 0
-      if (not schedules_file.nil?)
+      if not schedules_file.nil?
         space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: heater_kwh)
-      else
-        space_design_level = heater_sch.calcDesignLevelFromDailykWh(heater_kwh / 365.0)
+      end
+      if space_design_level.nil?
+        space_design_level = heater_sch.calc_design_level_from_daily_kwh(heater_kwh / 365.0)
         heater_sch = heater_sch.schedule
       end
 
@@ -150,7 +150,7 @@ class MiscLoads
       mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
       mel.setName(obj_name)
       mel.setEndUseSubcategory(obj_name)
-      mel.setSpace(living_space)
+      mel.setSpace(living_space) # no heat gain, so assign the equipment to an arbitrary space
       mel_def.setName(obj_name)
       mel_def.setDesignLevel(space_design_level)
       mel_def.setFractionRadiant(0)
@@ -162,8 +162,9 @@ class MiscLoads
     if heater_therm > 0
       if not schedules_file.nil?
         space_design_level = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: heater_therm)
-      else
-        space_design_level = heater_sch.calcDesignLevelFromDailyTherm(heater_therm / 365.0)
+      end
+      if space_design_level.nil?
+        space_design_level = heater_sch.calc_design_level_from_daily_therm(heater_therm / 365.0)
         heater_sch = heater_sch.schedule
       end
 
@@ -172,7 +173,7 @@ class MiscLoads
       mfl.setName(obj_name)
       mfl.setEndUseSubcategory(obj_name)
       mfl.setFuelType(EPlus.fuel_type(HPXML::FuelTypeNaturalGas))
-      mfl.setSpace(living_space)
+      mfl.setSpace(living_space) # no heat gain, so assign the equipment to an arbitrary space
       mfl_def.setName(obj_name)
       mfl_def.setDesignLevel(space_design_level)
       mfl_def.setFractionRadiant(0)
@@ -182,21 +183,18 @@ class MiscLoads
     end
   end
 
-  def self.apply_pool_or_hot_tub_pump(model, pool_or_hot_tub, obj_name, living_space, schedules_file)
+  def self.apply_pool_or_hot_tub_pump(runner, model, pool_or_hot_tub, obj_name, living_space, schedules_file, vacancy_periods, power_outage_periods)
     pump_kwh = 0
 
     # Create schedule
     pump_sch = nil
+    col_name = (obj_name.include?('pool') ? 'pool_pump' : 'hot_tub_pump')
     if not schedules_file.nil?
-      if obj_name.include?('pool')
-        col_name = 'pool_pump'
-      else
-        col_name = 'hot_tub_pump'
-      end
       pump_sch = schedules_file.create_schedule_file(col_name: col_name)
     end
     if pump_sch.nil?
-      pump_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.pump_weekday_fractions, pool_or_hot_tub.pump_weekend_fractions, pool_or_hot_tub.pump_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+      col_off_periods = Schedule.get_off_periods(col_name, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
+      pump_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.pump_weekday_fractions, pool_or_hot_tub.pump_weekend_fractions, pool_or_hot_tub.pump_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, off_periods: col_off_periods)
     else
       runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !pool_or_hot_tub.pump_weekday_fractions.nil?
       runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !pool_or_hot_tub.pump_weekend_fractions.nil?
@@ -210,8 +208,9 @@ class MiscLoads
     if pump_kwh > 0
       if not schedules_file.nil?
         space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: pump_kwh)
-      else
-        space_design_level = pump_sch.calcDesignLevelFromDailykWh(pump_kwh / 365.0)
+      end
+      if space_design_level.nil?
+        space_design_level = pump_sch.calc_design_level_from_daily_kwh(pump_kwh / 365.0)
         pump_sch = pump_sch.schedule
       end
 
@@ -219,7 +218,7 @@ class MiscLoads
       mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
       mel.setName(obj_name)
       mel.setEndUseSubcategory(obj_name)
-      mel.setSpace(living_space)
+      mel.setSpace(living_space) # no heat gain, so assign the equipment to an arbitrary space
       mel_def.setName(obj_name)
       mel_def.setDesignLevel(space_design_level)
       mel_def.setFractionRadiant(0)

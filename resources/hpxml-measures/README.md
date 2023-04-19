@@ -5,7 +5,7 @@
 [![Documentation Status](https://readthedocs.org/projects/openstudio-hpxml/badge/?version=latest)](https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest)
 
 OpenStudio-HPXML allows running residential EnergyPlus simulations using an [HPXML file](https://hpxml.nrel.gov/) for the building description.
-A Schematron document (`HPXMLtoOpenStudio/resources/hpxml_schematron/EPvalidator.xml`) for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
+A [Schematron](http://schematron.com/) document for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
 
 OpenStudio-HPXML can accommodate a wide range of different building technologies and geometries.
 End-to-end simulations typically run in 3-10 seconds, depending on complexity, computer platform and speed, etc.
@@ -26,18 +26,17 @@ This repository contains several OpenStudio measures:
 - `BuildResidentialScheduleFile`: A measure that generates a CSV of detailed schedules (e.g., stochastic occupancy) for use in the simulation.
 - `HPXMLtoOpenStudio`: A measure that translates an HPXML file to an OpenStudio model.
 - `ReportSimulationOutput`: A reporting measure that generates a variety of simulation-based annual/timeseries outputs in CSV/JSON/MessagePack format.
-- `ReportHPXMLOutput`: A reporting measure that generates a variety of HPXML-based outputs (including defaults like autosized HVAC capacities) in CSV/JSON/MessagePack format.
 - `ReportUtilityBills`: A reporting measure that generates utility bill outputs in CSV/JSON/MessagePack format.
 
 ## Projects
 
 The OpenStudio-HPXML workflow is used by a number of other residential projects, including:
-- [Energy Rating Index (ERI) and ENERGY STAR](https://github.com/NREL/OpenStudio-ERI)
+- [BEopt](https://beopt.nrel.gov)
+- [Energy Rating Index (ERI)](https://github.com/NREL/OpenStudio-ERI)
 - [Home Energy Score](https://betterbuildingssolutioncenter.energy.gov/home-energy-score)
 - [ResStock](https://resstock.nrel.gov/)
 - [URBANopt](https://www.nrel.gov/buildings/urbanopt.html)
-- [BEopt](https://beopt.nrel.gov) (pending)
-- [Weatherization Assistant](https://weatherization.ornl.gov/obtain) (pending)
+- [Weatherization Assistant](https://weatherization.ornl.gov/softwaredescription/) (pending)
 
 ## License
 

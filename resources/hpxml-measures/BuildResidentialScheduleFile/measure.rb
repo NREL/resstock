@@ -6,15 +6,14 @@
 require 'openstudio'
 require 'pathname'
 require 'oga'
-require_relative 'resources/schedules'
-require_relative '../HPXMLtoOpenStudio/resources/constants'
-require_relative '../HPXMLtoOpenStudio/resources/geometry'
-require_relative '../HPXMLtoOpenStudio/resources/hpxml'
-require_relative '../HPXMLtoOpenStudio/resources/lighting'
-require_relative '../HPXMLtoOpenStudio/resources/location'
-require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
-require_relative '../HPXMLtoOpenStudio/resources/schedules'
-require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
+Dir["#{File.dirname(__FILE__)}/resources/*.rb"].each do |resource_file|
+  require resource_file
+end
+Dir["#{File.dirname(__FILE__)}/../HPXMLtoOpenStudio/resources/*.rb"].each do |resource_file|
+  next if resource_file.include? 'minitest_helper.rb'
+
+  require resource_file
+end
 
 # start the measure
 class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
@@ -30,7 +29,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return "Generates a CSV of schedules at the specified file path, and inserts the CSV schedule file path into the output HPXML file (or overwrites it if one already exists). Schedules corresponding to 'smooth' are average (e.g., Building America). Schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data."
+    return 'Generates a CSV of schedules at the specified file path, and inserts the CSV schedule file path into the output HPXML file (or overwrites it if one already exists). Stochastic schedules are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.'
   end
 
   # define the arguments that the user will input
@@ -42,19 +41,9 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path of the HPXML file.')
     args << arg
 
-    schedules_type_choices = OpenStudio::StringVector.new
-    schedules_type_choices << 'smooth'
-    schedules_type_choices << 'stochastic'
-
-    arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('schedules_type', schedules_type_choices, true)
-    arg.setDisplayName('Schedules: Type')
-    arg.setDescription('The type of occupant-related schedules to use.')
-    arg.setDefaultValue('smooth')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_vacancy_period', false)
-    arg.setDisplayName('Schedules: Vacancy Period')
-    arg.setDescription('Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_column_names', false)
+    arg.setDisplayName('Schedules: Column Names')
+    arg.setDescription("A comma-separated list of the column names to generate. If not provided, defaults to all columns. Possible column names are: #{ScheduleGenerator.export_columns.join(', ')}.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_random_seed', false)
@@ -65,7 +54,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('output_csv_path', true)
     arg.setDisplayName('Schedules: Output CSV Path')
-    arg.setDescription('Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.')
+    arg.setDescription('Absolute/relative path of the CSV file containing occupancy schedules. Relative paths are relative to the HPXML output path.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_output_path', true)
@@ -97,7 +86,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     hpxml_path = args[:hpxml_path]
     unless (Pathname.new hpxml_path).absolute?
-      hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
+      hpxml_path = File.expand_path(hpxml_path)
     end
     unless File.exist?(hpxml_path) && hpxml_path.downcase.end_with?('.xml')
       fail "'#{hpxml_path}' does not exist or is not an .xml file."
@@ -105,11 +94,17 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     hpxml_output_path = args[:hpxml_output_path]
     unless (Pathname.new hpxml_output_path).absolute?
-      hpxml_output_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_output_path))
+      hpxml_output_path = File.expand_path(hpxml_output_path)
     end
     args[:hpxml_output_path] = hpxml_output_path
 
     hpxml = HPXML.new(hpxml_path: hpxml_path)
+
+    # exit if number of occupants is zero
+    if hpxml.building_occupancy.number_of_residents == 0
+      runner.registerInfo('Number of occupants set to zero; skipping generation of stochastic schedules.')
+      return true
+    end
 
     # create EpwFile object
     epw_path = Location.get_epw_path(hpxml, hpxml_path)
@@ -161,9 +156,9 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     info_msgs << "State=#{args[:state]}"
     info_msgs << "RandomSeed=#{args[:random_seed]}" if args[:schedules_random_seed].is_initialized
     info_msgs << "GeometryNumOccupants=#{args[:geometry_num_occupants]}"
-    info_msgs << "VacancyPeriod=#{args[:schedules_vacancy_period].get}" if args[:schedules_vacancy_period].is_initialized
+    info_msgs << "ColumnNames=#{args[:column_names]}" if args[:schedules_column_names].is_initialized
 
-    runner.registerInfo("Created #{args[:schedules_type]} schedule with #{info_msgs.join(', ')}")
+    runner.registerInfo("Created stochastic schedule with #{info_msgs.join(', ')}")
 
     return true
   end
@@ -177,13 +172,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args[:mkc_ts_per_day] = 96
     args[:mkc_ts_per_hour] = args[:mkc_ts_per_day] / 24
 
-    calendar_year = 2007 # default to TMY
-    if !hpxml.header.sim_calendar_year.nil?
-      calendar_year = hpxml.header.sim_calendar_year
-    end
-    if epw_file.startDateActualYear.is_initialized # AMY
-      calendar_year = epw_file.startDateActualYear.get
-    end
+    calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
     args[:sim_year] = calendar_year
     args[:sim_start_day] = DateTime.new(args[:sim_year], 1, 1)
     args[:total_days_in_year] = Constants.NumDaysInYear(calendar_year)
@@ -195,27 +184,17 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args[:state] = hpxml.header.state_code if !hpxml.header.state_code.nil?
 
     args[:random_seed] = args[:schedules_random_seed].get if args[:schedules_random_seed].is_initialized
+    args[:column_names] = args[:schedules_column_names].get.split(',').map(&:strip) if args[:schedules_column_names].is_initialized
 
     if hpxml.building_occupancy.number_of_residents.nil?
       args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml.building_construction.number_of_bedrooms)
     else
       args[:geometry_num_occupants] = hpxml.building_occupancy.number_of_residents
     end
-    # Stochastic occupancy required integer number of occupants
-    if args[:schedules_type] == 'stochastic'
-      args[:geometry_num_occupants] = Float(Integer(args[:geometry_num_occupants]))
-    end
-
-    if args[:schedules_vacancy_period].is_initialized
-      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:schedules_vacancy_period].get)
-      args[:schedules_vacancy_begin_month] = begin_month
-      args[:schedules_vacancy_begin_day] = begin_day
-      args[:schedules_vacancy_end_month] = end_month
-      args[:schedules_vacancy_end_day] = end_day
-    end
+    args[:geometry_num_occupants] = Float(Integer(args[:geometry_num_occupants]))
 
     debug = false
-    if args[:schedules_type] == 'stochastic' && args[:debug].is_initialized
+    if args[:debug].is_initialized
       debug = args[:debug].get
     end
     args[:debug] = debug

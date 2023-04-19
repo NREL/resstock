@@ -273,8 +273,8 @@ class Material
     fail "Unexpected type: #{type}."
   end
 
-  def self.Soil(thick_in)
-    return new(name: "soil #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Soil)
+  def self.Soil(thick_in, k_in)
+    return new(name: "soil #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Soil(k_in))
   end
 
   def self.Stud2x(thick_in)
@@ -399,8 +399,8 @@ class BaseMaterial
     return new(rho: (self.InsulationFiberglassLoosefill.rho + self.InsulationCelluloseLoosefill.rho) / 2.0, cp: 0.25)
   end
 
-  def self.Soil
-    return new(rho: 115.0, cp: 0.1, k_in: 12.0)
+  def self.Soil(k_in)
+    return new(rho: 115.0, cp: 0.1, k_in: k_in)
   end
 
   def self.Brick

@@ -21,6 +21,7 @@ enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family
 cols_to_ignore = ['applicable',
                   'output_format',
                   'timeseries_frequency',
+                  'timeseries_timestamp_convention',
                   'completed_status',
                   'color_index',
                   'upgrade_name']
@@ -58,11 +59,11 @@ class MoreCompare(BaseCompare):
         w = csv.writer(f)
         w.writerows(value_counts)
 
-    df = pd.read_csv(os.path.join(self.base_folder, 'buildstock.csv'))
+    df = pd.read_csv(os.path.join(self.base_folder, 'buildstock.csv'), dtype=str)
     file = os.path.join(self.export_folder, 'base_samples.csv')
     value_counts(df, file)
 
-    df = pd.read_csv(os.path.join(self.feature_folder, 'buildstock.csv'))
+    df = pd.read_csv(os.path.join(self.feature_folder, 'buildstock.csv'), dtype=str)
     file = os.path.join(self.export_folder, 'feature_samples.csv')
     value_counts(df, file)
 

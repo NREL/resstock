@@ -55,6 +55,7 @@ class EUT
   Fireplace = 'Fireplace'
   PV = 'PV'
   Generator = 'Generator'
+  Battery = 'Battery'
 end
 
 class HWT
@@ -83,8 +84,10 @@ class CLT
   RimJoists = 'Rim Joists'
   FoundationWalls = 'Foundation Walls'
   Doors = 'Doors'
-  Windows = 'Windows'
-  Skylights = 'Skylights'
+  WindowsConduction = 'Windows Conduction'
+  WindowsSolar = 'Windows Solar'
+  SkylightsConduction = 'Skylights Conduction'
+  SkylightsSolar = 'Skylights Solar'
   Floors = 'Floors'
   Slabs = 'Slabs'
   InternalMass = 'Internal Mass'
@@ -94,6 +97,7 @@ class CLT
   WholeHouseFan = 'Whole House Fan'
   Ducts = 'Ducts'
   InternalGains = 'Internal Gains'
+  Lighting = 'Lighting'
 end
 
 class UHT
@@ -136,65 +140,4 @@ class WT
   WindSpeed = 'Wind Speed'
   DiffuseSolar = 'Diffuse Solar Radiation'
   DirectSolar = 'Direct Solar Radiation'
-end
-
-class OutputMethods
-  def self.get_timestamps(msgpackData, hpxml, add_dst_column = false, add_utc_column = false)
-    return if msgpackData.nil?
-
-    if msgpackData.keys.include? 'MeterData'
-      # Get data for ReportUtilityBills measure
-      ep_timestamps = msgpackData['MeterData']['Monthly']['Rows'].map { |r| r.keys[0] }
-    else
-      # Get data for other reporting measures
-      ep_timestamps = msgpackData['Rows'].map { |r| r.keys[0] }
-    end
-
-    if add_dst_column
-      dst_start_ts = Time.utc(hpxml.header.sim_calendar_year, hpxml.header.dst_begin_month, hpxml.header.dst_begin_day, 2)
-      dst_end_ts = Time.utc(hpxml.header.sim_calendar_year, hpxml.header.dst_end_month, hpxml.header.dst_end_day, 1)
-    end
-    if add_utc_column
-      utc_offset = hpxml.header.time_zone_utc_offset
-      utc_offset *= 3600 # seconds
-    end
-
-    timestamps = []
-    timestamps_dst = [] if add_dst_column
-    timestamps_utc = [] if add_utc_column
-    year = hpxml.header.sim_calendar_year.to_s
-    ep_timestamps.each do |ep_timestamp|
-      month_day, hour_minute = ep_timestamp.split(' ')
-      month, day = month_day.split('/')
-      hour, minute, _ = hour_minute.split(':')
-      ts = Time.utc(year, month, day, hour, minute)
-
-      timestamps << ts.iso8601.delete('Z')
-
-      if add_dst_column
-        if (ts >= dst_start_ts) && (ts < dst_end_ts)
-          ts_dst = ts + 3600 # 1 hr shift forward
-        else
-          ts_dst = ts
-        end
-        timestamps_dst << ts_dst.iso8601.delete('Z')
-      end
-
-      if add_utc_column
-        ts_utc = ts - utc_offset
-        timestamps_utc << ts_utc.iso8601
-      end
-    end
-
-    return timestamps, timestamps_dst, timestamps_utc
-  end
-
-  def self.msgpack_frequency_map
-    return {
-      'timestep' => 'TimeStep',
-      'hourly' => 'Hourly',
-      'daily' => 'Daily',
-      'monthly' => 'Monthly',
-    }
-  end
 end

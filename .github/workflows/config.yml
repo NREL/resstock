@@ -11,18 +11,15 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.4.0
+      image: docker://nrel/openstudio:3.5.1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
       - name: Install gems and software
         run: |
           rm -f Gemfile.lock && bundle install
-          sudo apt update
-          sudo apt-get install -y wget unzip libxml2-utils python3-lxml python3-pip
-          sudo pip3 install sphinx sphinx-rtd-theme
 
       - name: Run integrity checks for all projects
         run: |
@@ -37,28 +34,17 @@ jobs:
           bundle exec rake unit_tests:measure_tests
 
       - name: Upload feature samples
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: resources/buildstock.csv
           name: samples
 
-      - name: Build documentation
-        run: |
-          cd docs/read_the_docs
-          make html
-
-      - name: Save Docs
-        uses: actions/upload-artifact@v2
-        with:
-          name: documentation
-          path: docs/read_the_docs/_build/html/
-
   analysis-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.4.0
+      image: docker://nrel/openstudio:3.5.1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
@@ -71,7 +57,7 @@ jobs:
           bundle exec rake workflow:analysis_tests
 
       - name: Upload run_analysis.rb results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: |
             project_national/results-Baseline.csv
@@ -83,13 +69,13 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
       - name: Run buildstockbatch
         run: |
-          pip install git+https://github.com/NREL/buildstockbatch.git@develop
+          pip install git+https://github.com/NREL/buildstockbatch.git@v2023.01.0
           
           buildstock_docker project_national/national_baseline.yml
           buildstock_docker project_testing/testing_baseline.yml
@@ -117,43 +103,50 @@ jobs:
 
       - name: Process results
         run: |
-          pip install pandas
+          pip install pandas==1.5.3
           python test/util.py
 
       - name: Upload integration results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: |
             baseline
             upgrades
           name: results
 
+      - name: Upload output files
+        uses: actions/upload-artifact@v3
+        with:
+          path: |
+            outputs
+          name: outputs
+
       - name: Upload buildstockbatch results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: |
             project_national/national_baseline/results_csvs/results_up00.csv
             project_testing/testing_baseline/results_csvs/results_up00.csv
-            project_national/national_upgrades/results_csvs/results_up13.csv
-            project_testing/testing_upgrades/results_csvs/results_up13.csv
+            project_national/national_upgrades/results_csvs/results_up15.csv
+            project_testing/testing_upgrades/results_csvs/results_up15.csv
           name: buildstockbatch
 
   compare-tools:
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
       - name: Download buildstockbatch results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: buildstockbatch
           name: buildstockbatch
 
       - name: Download run_analysis results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: run_analysis
           name: run_analysis
@@ -167,34 +160,34 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
       - name: Upload base results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: test/base_results
           name: base_results
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Download base results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: base_results
           name: base_results
 
       - name: Download feature samples
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: samples
           name: samples
 
       - name: Download feature results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: results
           name: results
@@ -202,7 +195,7 @@ jobs:
       - name: Compare samples and results
         run: |          
           pip install numpy
-          pip install pandas
+          pip install pandas==1.5.3
           pip install plotly
           pip install kaleido
           
@@ -239,7 +232,7 @@ jobs:
           python test/compare.py -a timeseries -b base_results/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
 
       - name: Upload comparisons
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: test/base_results/comparisons
           name: comparisons
@@ -248,21 +241,33 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Install gems and software
+        run: |
+          sudo apt update
+          sudo apt-get install -y wget unzip libxml2-utils python3-lxml python3-pip
+          sudo pip3 install sphinx sphinx-rtd-theme
+
       - name: Download feature samples
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: samples
           name: samples
 
       - name: Download feature results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: results
           name: results
+
+      - name: Download output files
+        uses: actions/download-artifact@v3
+        with:
+          path: outputs
+          name: outputs
 
       - name: Commit latest results
         shell: bash        
@@ -274,6 +279,7 @@ jobs:
           cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
           cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
           cp -r results/upgrades/timeseries/results*.csv test/base_results/upgrades/timeseries
+          cp -r outputs/*.csv test/base_results/outputs
           git add test/base_results
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
@@ -283,3 +289,14 @@ jobs:
             echo "Pushing to branch: $branch_name"
             git push -u origin $branch_name
           fi
+
+      - name: Build documentation
+        run: |
+          cd docs/read_the_docs
+          make html SPHINXOPTS="-W --keep-going -n"
+
+      - name: Save Docs
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: docs/read_the_docs/_build/html/
