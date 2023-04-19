@@ -5,14 +5,14 @@ Probabilities are derived from ATUS using the k-modes algorithm.
 
 ### Plug Loads
 
-This is the baseline schedule for plugload, lighting and ceiling fan.
+This is the baseline schedule for misc plugload, lighting and ceiling fan.
 It will be modified based on occupancy.
+Television plugload uses the same schedule as misc plugload.
 
 ### Lighting
 
-The exterior and garage lighting makes use of the weekday/weekend schedule.
-Indoor lighting schedule is generated on the fly. 
-Holiday lighting makes use of the holiday_sch.
+Indoor lighting schedule is generated on the fly.
+Garage lighting uses the same schedule as indoor lighting.
 
 ### Cooking
 
@@ -39,5 +39,6 @@ Power draw distribution is based on csv files.
 Probabilities for all water draw events are extracted from DHW event generators.
 The onset, duration, events_per_cluster_probs, flow rate mean and std could all refer to the DHW event generator excel sheet ('event characteristics' and 'Start Times' sheet).
 
-#### sink
+#### Sink
+
 avg_sink_clusters_per_hh -> Average sink cluster per house hold. Set to 6657 for U.S. average of 2.53 occupants per household, based on relationship of 6885 clusters for 25 gpd, from Building America DHW Event Schedule Generator,

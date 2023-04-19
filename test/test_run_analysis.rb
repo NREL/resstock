@@ -225,6 +225,32 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'run2')))
     assert(!File.exist?(File.join(@testing_baseline, 'run3')))
+
+    results_baseline = File.join(@testing_baseline, 'results-Baseline.csv')
+    assert(File.exist?(results_baseline))
+    results = CSV.read(results_baseline, headers: true)
+    assert(results.headers.include?('build_existing_model.sample_weight'))
+    assert_in_delta(results['build_existing_model.sample_weight'][0].to_f, 110000000 / 2, 0.001)
+    assert_in_delta(results['build_existing_model.sample_weight'][1].to_f, 110000000 / 2, 0.001)
+  end
+
+  def test_precomputed_sample_weight
+    yml = ' -y test/tests_yml_files/yml_precomputed_weight/testing_baseline.yml'
+    @command += yml
+
+    system(@command)
+
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(File.exist?(File.join(@testing_baseline, 'run2')))
+    assert(!File.exist?(File.join(@testing_baseline, 'run3')))
+
+    results_baseline = File.join(@testing_baseline, 'results-Baseline.csv')
+    assert(File.exist?(results_baseline))
+    results = CSV.read(results_baseline, headers: true)
+    assert(results.headers.include?('build_existing_model.sample_weight'))
+    assert_in_delta(results['build_existing_model.sample_weight'][0].to_f, 226.2342, 0.001)
+    assert_in_delta(results['build_existing_model.sample_weight'][1].to_f, 1.000009, 0.001)
   end
 
   def test_testing_baseline
@@ -325,8 +351,8 @@ class TestRunAnalysis < MiniTest::Test
 
     _test_columns(results, true)
 
-    assert(File.exist?(File.join(@testing_upgrades, 'run66', 'run')))
-    contents = Dir[File.join(@testing_upgrades, 'run66', 'run/*')].collect { |x| File.basename(x) }
+    assert(File.exist?(File.join(@testing_upgrades, 'run76', 'run')))
+    contents = Dir[File.join(@testing_upgrades, 'run76', 'run/*')].collect { |x| File.basename(x) }
 
     _test_contents(contents, true, true)
 
@@ -378,8 +404,8 @@ class TestRunAnalysis < MiniTest::Test
 
     _test_columns(results, true)
 
-    assert(File.exist?(File.join(@national_upgrades, 'run66', 'run')))
-    contents = Dir[File.join(@national_upgrades, 'run66', 'run/*')].collect { |x| File.basename(x) }
+    assert(File.exist?(File.join(@national_upgrades, 'run76', 'run')))
+    contents = Dir[File.join(@national_upgrades, 'run76', 'run/*')].collect { |x| File.basename(x) }
 
     _test_contents(contents, true, false)
 
