@@ -37,6 +37,15 @@ The number of hours after peak period end.
 **Model Dependent:** false
 
 
+### Schedules: Peak Period Allow Stacking
+Whether schedules can be shifted to periods that already have non-zero schedule values. Defaults to true.
+**Name:** schedules_peak_period_allow_stacking,
+**Type:** Boolean,
+**Units:** ,
+**Required:** false,
+**Model Dependent:** false
+
+
 ### Schedules: Peak Period Schedule Rulesets Names
 Comma-separated list of Schedule:Ruleset object names corresponding to schedules to shift during the specified peak period.
 **Name:** schedules_peak_period_schedule_rulesets_names,

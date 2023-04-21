@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>peak_period_schedules_shift</name>
   <uid>4954275f-9caf-422c-9e1f-061244ade152</uid>
-  <version_id>bc6e1995-ca87-44c9-b8a9-8fac395765f1</version_id>
-  <version_modified>20230404T222648Z</version_modified>
+  <version_id>1d444ab7-4ef8-44eb-8405-13b2e1a3e384</version_id>
+  <version_modified>20230421T151559Z</version_modified>
   <xml_checksum>A8988589</xml_checksum>
   <class_name>PeakPeriodSchedulesShift</class_name>
   <display_name>PeakPeriodSchedulesShift</display_name>
@@ -29,6 +29,24 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>schedules_peak_period_allow_stacking</name>
+      <display_name>Schedules: Peak Period Allow Stacking</display_name>
+      <description>Whether schedules can be shifted to periods that already have non-zero schedule values. Defaults to true.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>schedules_peak_period_schedule_rulesets_names</name>
@@ -78,34 +96,16 @@
       <checksum>CD7F5672</checksum>
     </file>
     <file>
-      <filename>files/schedules20230327-33728-y5y5a5.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DD03C7FA</checksum>
-    </file>
-    <file>
-      <filename>README.md</filename>
-      <filetype>md</filetype>
-      <usage_type>readme</usage_type>
-      <checksum>F02F0326</checksum>
-    </file>
-    <file>
       <filename>base-schedules-detailed-occupancy-stochastic.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>ED297470</checksum>
+      <checksum>CFA80A78</checksum>
     </file>
     <file>
       <filename>PeakPeriodSchedulesShift_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>D6D6F3E9</checksum>
-    </file>
-    <file>
-      <filename>test_PeakPeriodSchedulesShift.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>0480A5BD</checksum>
+      <checksum>593ED693</checksum>
     </file>
     <file>
       <version>
@@ -116,7 +116,43 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>025621F4</checksum>
+      <checksum>DCDF78B6</checksum>
+    </file>
+    <file>
+      <filename>base.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8193AAB9</checksum>
+    </file>
+    <file>
+      <filename>files/schedules20230418-20180-18nykxu.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D6FBB6B6</checksum>
+    </file>
+    <file>
+      <filename>test_smooth_schedules.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3C60DC3D</checksum>
+    </file>
+    <file>
+      <filename>test_stochastic_schedules.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFA80A78</checksum>
+    </file>
+    <file>
+      <filename>test_stochastic_schedules_no_stacking.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFA80A78</checksum>
+    </file>
+    <file>
+      <filename>README.md</filename>
+      <filetype>md</filetype>
+      <usage_type>readme</usage_type>
+      <checksum>92437D25</checksum>
     </file>
   </files>
 </measure>

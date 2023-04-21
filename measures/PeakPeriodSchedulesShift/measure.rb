@@ -40,6 +40,11 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('schedules_peak_period_allow_stacking', false)
+    arg.setDisplayName('Schedules: Peak Period Allow Stacking')
+    arg.setDescription('Whether schedules can be shifted to periods that already have non-zero schedule values. Defaults to true.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_peak_period_schedule_rulesets_names', false)
     arg.setDisplayName('Schedules: Peak Period Schedule Rulesets Names')
     arg.setDescription('Comma-separated list of Schedule:Ruleset object names corresponding to schedules to shift during the specified peak period.')
@@ -81,6 +86,8 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
 
     schedules_peak_period = runner.getStringArgumentValue('schedules_peak_period', user_arguments)
     schedules_peak_period_delay = runner.getIntegerArgumentValue('schedules_peak_period_delay', user_arguments)
+    schedules_peak_period_allow_stacking = runner.getOptionalBoolArgumentValue('schedules_peak_period_allow_stacking', user_arguments)
+    schedules_peak_period_allow_stacking = schedules_peak_period_allow_stacking.is_initialized ? schedules_peak_period_allow_stacking.get : true
     schedules_peak_period_schedule_rulesets_names = runner.getOptionalStringArgumentValue('schedules_peak_period_schedule_rulesets_names', user_arguments)
     schedules_peak_period_schedule_rulesets_names = schedules_peak_period_schedule_rulesets_names.is_initialized ? schedules_peak_period_schedule_rulesets_names.get.split(',').map(&:strip) : []
     schedules_peak_period_schedule_files_column_names = runner.getOptionalStringArgumentValue('schedules_peak_period_schedule_files_column_names', user_arguments)
@@ -109,12 +116,16 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    if ((end_hour - begin_hour) + schedules_peak_period_delay > 12)
+    peak_period_length = end_hour - begin_hour
+    if (peak_period_length + schedules_peak_period_delay > 12)
       runner.registerError("Specified peak period (#{begin_hour} - #{end_hour}), plus the delay (#{schedules_peak_period_delay}), must be no longer than 12 hours.")
       return false
     end
 
-    # TODO: need to prevent shifting into next day (gets too complicated with Schedule:Ruleset)
+    if (peak_period_length + end_hour + schedules_peak_period_delay > 24)
+      runner.registerError('Cannot shift day schedules into the next day.')
+      return false
+    end
 
     # get year
     yd = model.getYearDescription
@@ -155,7 +166,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
         new_day_schedule.setName("#{old_day_schedule.name} Shifted")
 
         schedule = get_hourly_values(old_day_schedule)
-        shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, 24)
+        shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
 
         if shifted
           shift_summary[schedule_ruleset_name] += 1
@@ -183,7 +194,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       new_default_day_schedule.setName("#{old_default_day_schedule.name} Shifted")
 
       schedule = get_hourly_values(old_default_day_schedule)
-      shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, 24)
+      shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
 
       if shifted
         shift_summary[schedule_ruleset_name] += 1 if shifted
@@ -205,7 +216,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       external_file_path = external_file.filePath.to_s
 
       schedules = Schedules.new(file_path: external_file_path)
-      schedules.shift_schedules(runner, schedule_file_column_names_enabled, begin_hour, end_hour, schedules_peak_period_delay, total_days_in_year, sim_start_day, steps_in_day)
+      schedules.shift_schedules(runner, schedule_file_column_names_enabled, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, total_days_in_year, sim_start_day, steps_in_day)
       schedules.export()
     end
 
@@ -256,7 +267,7 @@ class Schedules
     end
   end
 
-  def shift_schedules(runner, schedule_file_column_names_enabled, begin_hour, end_hour, delay, total_days_in_year, sim_start_day, steps_in_day)
+  def shift_schedules(runner, schedule_file_column_names_enabled, begin_hour, end_hour, delay, allow_stacking, total_days_in_year, sim_start_day, steps_in_day)
     shift_summary = {}
     schedule_file_column_names_enabled.each do |schedule_file_column_name, peak_period_shift_enabled|
       next if !@schedules.keys.include?(schedule_file_column_name)
@@ -271,7 +282,7 @@ class Schedules
         day_of_week = today.wday
         next if [0, 6].include?(day_of_week)
 
-        shifted = Schedules.day_peak_shift(schedule, day, begin_hour, end_hour, delay, steps_in_day)
+        shifted = Schedules.day_peak_shift(schedule, day, begin_hour, end_hour, delay, allow_stacking, steps_in_day)
         shift_summary[schedule_file_column_name] += 1 if shifted
       end
     end
@@ -281,7 +292,7 @@ class Schedules
     end
   end
 
-  def self.day_peak_shift(schedule, day, begin_hour, end_hour, delay, steps_in_day)
+  def self.day_peak_shift(schedule, day, begin_hour, end_hour, delay, allow_stacking, steps_in_day)
     steps_in_hour = steps_in_day / 24
     period = (end_hour - begin_hour) * steps_in_hour # n steps
 
@@ -294,10 +305,12 @@ class Schedules
     new_end_ix = new_begin_ix + period
 
     shifted = false
-    return shifted if schedule[new_begin_ix...new_end_ix].any? { |x| x > 0 } # prevent stacking
+    if !allow_stacking
+      return shifted if schedule[new_begin_ix...new_end_ix].any? { |x| x > 0 } # prevent stacking
+    end
 
     shifted = true if schedule[peak_begin_ix...peak_end_ix].any? { |x| x > 0 } # schedule was actually moved
-    schedule[new_begin_ix...new_end_ix] = schedule[peak_begin_ix...peak_end_ix]
+    schedule[new_begin_ix...new_end_ix] = [schedule[new_begin_ix...new_end_ix], schedule[peak_begin_ix...peak_end_ix]].transpose.map(&:sum)
     schedule[peak_begin_ix...peak_end_ix] = [0] * period
 
     return shifted
