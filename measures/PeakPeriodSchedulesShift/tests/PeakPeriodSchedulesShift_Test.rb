@@ -7,6 +7,13 @@ require_relative '../measure.rb'
 require 'fileutils'
 
 class PeakPeriodSchedulesShiftTest < Minitest::Test
+  def setup
+    # need to avoid using the modified schedules as the starting point for subsequent tests
+    src = File.expand_path(File.join(File.dirname(__FILE__), 'files/unmodified_schedules.csv'))
+    des = File.expand_path(File.join(File.dirname(__FILE__), 'files/schedules20230418-20180-18nykxu.csv'))
+    FileUtils.cp(src, des)
+  end
+
   def test_error_begin_hour_after_end_hour
     # create an instance of the measure
     measure = PeakPeriodSchedulesShift.new
