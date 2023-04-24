@@ -44,6 +44,7 @@ source_report.each do |row|
   f.puts('-' * parameter.size)
   f.puts
 
+  write_subsection(f, row, 'Description', '*')
   write_subsection(f, row, 'Created by', '*')
   write_subsection(f, row, 'Source', '*')
   write_subsection(f, row, 'Assumption', '*')

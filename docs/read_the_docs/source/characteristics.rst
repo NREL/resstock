@@ -10,6 +10,11 @@ The following is populated based on the national project's `source_report.csv <h
 AHS Region
 ----------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -28,6 +33,11 @@ Assumption
 
 AIANNH Area
 -----------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -49,6 +59,11 @@ Assumption
 ASHRAE IECC Climate Zone 2004
 -----------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -67,6 +82,11 @@ Assumption
 
 ASHRAE IECC Climate Zone 2004 - 2A Split
 ----------------------------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -88,6 +108,11 @@ This characteristic is used to better represent HVAC types in the 2A climate zon
 Area Median Income
 ------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -107,6 +132,11 @@ Assumption
 Bathroom Spot Vent Hour
 -----------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -124,6 +154,11 @@ Assumption
 
 Bedrooms
 --------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -145,6 +180,11 @@ More than 5 bedrooms are labeled as 5 bedrooms and 0 bedrooms are labeled as 1 b
 Building America Climate Zone
 -----------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -163,6 +203,11 @@ Assumption
 
 CEC Climate Zone
 ----------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -184,6 +229,11 @@ CEC Climate zones are defined by Zip Codes. The dependency selected is County an
 Ceiling Fan
 -----------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -202,6 +252,11 @@ If the unit is vacant there is no ceiling fan energy
 
 Census Division
 ---------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -222,6 +277,11 @@ Assumption
 Census Division RECS
 --------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -241,6 +301,11 @@ Assumption
 Census Region
 -------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -259,6 +324,11 @@ Assumption
 
 City
 ----
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -280,6 +350,11 @@ Assumption
 Clothes Dryer
 -------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -299,6 +374,11 @@ Assumption
 Clothes Washer
 --------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -316,6 +396,11 @@ Assumption
 
 Clothes Washer Presence
 -----------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -336,6 +421,11 @@ Assumption
 Cooking Range
 -------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -353,6 +443,11 @@ Assumption
 
 Cooling Setpoint
 ----------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -374,6 +469,11 @@ RECS data is queried from two building type groups: 1) Single-Family Detached an
 Cooling Setpoint Has Offset
 ---------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -393,6 +493,11 @@ RECS data is queried from two building type groups: 1) Single-Family Detached an
 
 Cooling Setpoint Offset Magnitude
 ---------------------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -414,6 +519,11 @@ RECS data is queried from two building type groups: 1) Single-Family Detached an
 Cooling Setpoint Offset Period
 ------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -434,6 +544,11 @@ RECS data is queried from two building type groups: 1) Single-Family Detached an
 Corridor
 --------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -451,6 +566,11 @@ Assumption
 
 County
 ------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -471,6 +591,11 @@ Assumption
 County and PUMA
 ---------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -490,6 +615,11 @@ Assumption
 Dehumidifier
 ------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -507,6 +637,11 @@ Assumption
 
 Dishwasher
 ----------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -527,6 +662,11 @@ Assumption
 Door Area
 ---------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -544,6 +684,11 @@ Assumption
 
 Doors
 -----
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -563,6 +708,11 @@ Assumption
 Ducts
 -----
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -581,6 +731,11 @@ Assumption
 Electric Vehicle
 ----------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -598,6 +753,11 @@ Assumption
 
 Federal Poverty Level
 ---------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -619,6 +779,11 @@ Assumption
 Generation And Emissions Assessment Region
 ------------------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -637,6 +802,11 @@ Assumption
 
 Geometry Attic Type
 -------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -658,6 +828,11 @@ Mobile Homes have an unfinished attic because mobile homes are modeled as single
 Geometry Building Horizontal Location MF
 ----------------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -678,6 +853,11 @@ All values are calculated assuming the building has double-loaded corridors (wit
 Geometry Building Horizontal Location SFA
 -----------------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -695,6 +875,11 @@ Assumption
 
 Geometry Building Level MF
 --------------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -716,6 +901,11 @@ Calculated using the number of stories, where buildings >=2 stories have Top and
 Geometry Building Number Units MF
 ---------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -736,6 +926,11 @@ Uses NUMAPTS field in RECS; RECS does not report NUMAPTS for Multifamily 2-4 uni
 Geometry Building Number Units SFA
 ----------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -753,6 +948,11 @@ Assumption
 
 Geometry Building Type ACS
 --------------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -773,6 +973,11 @@ Assumption
 Geometry Building Type Height
 -----------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -792,6 +997,11 @@ Assumption
 Geometry Building Type RECS
 ---------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -810,6 +1020,11 @@ Assumption
 
 Geometry Floor Area
 -------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -831,6 +1046,11 @@ Due to low sample count, the tsv is constructed by downscaling a core sub-tsv wi
 Geometry Floor Area Bin
 -----------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -849,6 +1069,11 @@ Assumption
 
 Geometry Foundation Type
 ------------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -870,6 +1095,11 @@ All mobile homes have Ambient foundations.; Multi-family buildings cannot have A
 Geometry Garage
 ---------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -889,6 +1119,11 @@ All mobile homes and multi-family units do not have an attached garage.; All uni
 
 Geometry Stories
 ----------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -910,6 +1145,11 @@ All mobile homes are 1 story.; Single-Family Detached and Single-Family Attached
 Geometry Stories Low Rise
 -------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -929,6 +1169,11 @@ Assumption
 Geometry Story Bin
 ------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -947,6 +1192,11 @@ Assumption
 
 Geometry Wall Exterior Finish
 -----------------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -968,6 +1218,11 @@ Rows where sample size < 10 are replaced with aggregated values down-scaled from
 Geometry Wall Type
 ------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -987,6 +1242,11 @@ Rows where sample size < 10 are replaced with aggregated values down-scaled from
 
 HVAC Cooling Efficiency
 -----------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1008,6 +1268,11 @@ Check the assumptions on the source tsv files.
 HVAC Cooling Partial Space Conditioning
 ---------------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1027,6 +1292,11 @@ Central AC systems need to serve at least 60 percent of the floor area.; Heat pu
 
 HVAC Cooling Type
 -----------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1048,6 +1318,11 @@ If a sample has both Central AC and Room AC, we assume it has Central AC only; I
 HVAC Has Ducts
 --------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1066,6 +1341,11 @@ Assumption
 
 HVAC Has Shared System
 ----------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1087,6 +1367,11 @@ Due to low sample sizes for some Heating Types, Heating Type data is queried fro
 HVAC Heating Efficiency
 -----------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1106,6 +1391,11 @@ Check the assumptions on the source tsv files.; If a house has a wall furnace wi
 
 HVAC Heating Type
 -----------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1127,6 +1417,11 @@ There are no mini-split heat pumps in RECS 2009; Due to low sample sizes for som
 HVAC Heating Type And Fuel
 --------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1146,6 +1441,11 @@ Assumption
 HVAC Secondary Heating Efficiency
 ---------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1164,6 +1464,11 @@ Assumption
 HVAC Secondary Heating Type And Fuel
 ------------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1181,6 +1486,11 @@ Assumption
 
 HVAC Shared Efficiencies
 ------------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1202,6 +1512,11 @@ Assume that all Heating and Cooling shared systems are fan coils in each dwellin
 HVAC System Is Faulted
 ----------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1220,6 +1535,11 @@ Assumption
 
 HVAC System Single Speed AC Airflow
 -----------------------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1240,6 +1560,11 @@ Assumption
 HVAC System Single Speed AC Charge
 ----------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1258,6 +1583,11 @@ Assumption
 
 HVAC System Single Speed ASHP Airflow
 -------------------------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1278,6 +1608,11 @@ Assumption
 HVAC System Single Speed ASHP Charge
 ------------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1296,6 +1631,11 @@ Assumption
 
 Has PV
 ------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1317,6 +1657,11 @@ Imposed an upperbound of 14 kWDC, which contains 95pct of all installations. Cou
 Heating Fuel
 ------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1336,6 +1681,11 @@ In ACS, Heating Fuel is reported for occupied units only. By excluding Vacancy S
 
 Heating Setpoint
 ----------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1357,6 +1707,11 @@ RECS data is queried from two building type groups: 1) Single-Family Detached an
 Heating Setpoint Has Offset
 ---------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1376,6 +1731,11 @@ RECS data is queried from two building type groups: 1) Single-Family Detached an
 
 Heating Setpoint Offset Magnitude
 ---------------------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1397,6 +1757,11 @@ RECS data is queried from two building type groups: 1) Single-Family Detached an
 Heating Setpoint Offset Period
 ------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1417,6 +1782,11 @@ RECS data is queried from two building type groups: 1) Single-Family Detached an
 Holiday Lighting
 ----------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1434,6 +1804,11 @@ Assumption
 
 Hot Water Distribution
 ----------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1453,6 +1828,11 @@ Assumption
 Hot Water Fixtures
 ------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1470,6 +1850,11 @@ Assumption
 
 Household Has Tribal Persons
 ----------------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1491,6 +1876,11 @@ Assumption
 ISO RTO Region
 --------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1509,6 +1899,11 @@ Assumption
 
 Income
 ------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1530,6 +1925,11 @@ In ACS, Income and Tenure are reported for occupied units only. Because we assum
 Income RECS2015
 ---------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1549,6 +1949,11 @@ Income bins aligned with RECS 2015
 
 Income RECS2020
 ---------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1570,6 +1975,11 @@ Consolidated income bins aligned with RECS 2020
 Infiltration
 ------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1590,6 +2000,11 @@ All ACH50 are based on Single-Family Detached blower door tests.; Climate zones 
 Insulation Ceiling
 ------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1607,6 +2022,11 @@ Assumption
 
 Insulation Floor
 ----------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1626,6 +2046,11 @@ Assumption
 Insulation Foundation Wall
 --------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1643,6 +2068,11 @@ Assumption
 
 Insulation Roof
 ---------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1662,6 +2092,11 @@ Assumption
 Insulation Slab
 ---------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1679,6 +2114,11 @@ Assumption
 
 Insulation Wall
 ---------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1699,6 +2139,11 @@ Updated per new wall type from Lightbox, all wall type-specific distributions fo
 Interior Shading
 ----------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1716,6 +2161,11 @@ Assumption
 
 Lighting
 --------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1737,6 +2187,11 @@ Qualitative lamp type fractions in each household surveyed are distributed to th
 Lighting Interior Use
 ---------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1755,6 +2210,11 @@ Assumption
 Lighting Other Use
 ------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1772,6 +2232,11 @@ Assumption
 
 Location Region
 ---------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1792,6 +2257,11 @@ Assumption
 Mechanical Ventilation
 ----------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1809,6 +2279,11 @@ Assumption
 
 Misc Extra Refrigerator
 -----------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1830,6 +2305,11 @@ The current year is assumed to be 2020 (previously, it was 2016); Previously, fo
 Misc Freezer
 ------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1849,6 +2329,11 @@ Assumption
 Misc Gas Fireplace
 ------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1866,6 +2351,11 @@ Assumption
 
 Misc Gas Grill
 --------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1885,6 +2375,11 @@ Assumption
 Misc Gas Lighting
 -----------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1902,6 +2397,11 @@ Assumption
 
 Misc Hot Tub Spa
 ----------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1922,6 +2422,11 @@ Assumption
 Misc Pool
 ---------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1940,6 +2445,11 @@ Assumption
 
 Misc Pool Heater
 ----------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1960,6 +2470,11 @@ Assumption
 Misc Pool Pump
 --------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -1977,6 +2492,11 @@ Assumption
 
 Misc Well Pump
 --------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -1996,6 +2516,11 @@ Assumption
 Natural Ventilation
 -------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2014,6 +2539,11 @@ Assumption
 Neighbors
 ---------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2031,6 +2561,11 @@ Assumption
 
 Occupants
 ---------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2052,6 +2587,11 @@ Option=10+ has a (weighted) representative value of 11. In ACS, Income, Tenure, 
 Orientation
 -----------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2069,6 +2609,11 @@ Assumption
 
 Overhangs
 ---------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2088,6 +2633,11 @@ Assumption
 PUMA
 ----
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2106,6 +2656,11 @@ Assumption
 
 PUMA Metro Status
 -----------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2127,6 +2682,11 @@ Assumption
 PV Orientation
 --------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2146,6 +2706,11 @@ PV orientation mapped based on azimuth angle of primary array (180 deg is South-
 
 PV System Size
 --------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2167,6 +2732,11 @@ Installations of unknown mount type are assumed rooftop. States without data are
 Plug Load Diversity
 -------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2184,6 +2754,11 @@ Assumption
 
 Plug Loads
 ----------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2205,6 +2780,11 @@ Multipliers are based on ratio of the ResStock MELS regression equations and the
 REEDS Balancing Area
 --------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2224,6 +2804,11 @@ Assumption
 Radiant Barrier
 ---------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2242,6 +2827,11 @@ Assumption
 Range Spot Vent Hour
 --------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2259,6 +2849,11 @@ Assumption
 
 Refrigerator
 ------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2279,6 +2874,11 @@ Assumption
 Roof Material
 -------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2298,6 +2898,11 @@ Assumption
 Solar Hot Water
 ---------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2315,6 +2920,11 @@ Assumption
 
 State
 -----
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2334,6 +2944,11 @@ Assumption
 
 Tenure
 ------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2355,6 +2970,11 @@ In ACS, Tenure is reported for occupied units only. By excluding Vacancy Status 
 Usage Level
 -----------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2372,6 +2992,11 @@ Assumption
 
 Vacancy Status
 --------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2393,6 +3018,11 @@ Where sample counts are less than 10 (434 / 11680 rows), the State average distr
 Vintage
 -------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2413,6 +3043,11 @@ Where sample counts are less than 10 (812 / 21024 rows), the State average distr
 Vintage ACS
 -----------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2431,6 +3066,11 @@ Assumption
 
 Water Heater Efficiency
 -----------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2452,6 +3092,11 @@ Due to low samples, oil water heater efficiency distribution are lumped except f
 Water Heater Fuel
 -----------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2471,6 +3116,11 @@ Due to low samples Single-Family Detached and Mobile Home samples have been lump
 
 Water Heater In Unit
 --------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2492,6 +3142,11 @@ Single-Family Detached and Mobile Homes have in unit water heaters.; If the samp
 Window Areas
 ------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2511,6 +3166,11 @@ The window to wall ratios (WWR) are exponential weibull distributed.; Multi-Fami
 
 Windows
 -------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2532,6 +3192,11 @@ Wood and Vinyl are considered same material; Triple Pane assumed to be 100% low-
 Battery
 -------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2548,6 +3213,11 @@ Assumption
 
 Eaves
 -----
+
+Description
+***********
+
+TODO
 
 Created by
 **********
@@ -2566,6 +3236,11 @@ Assumption
 HVAC Has Zonal Electric Heating
 -------------------------------
 
+Description
+***********
+
+TODO
+
 Created by
 **********
 
@@ -2582,6 +3257,11 @@ Assumption
 
 Insulation Rim Joist
 --------------------
+
+Description
+***********
+
+TODO
 
 Created by
 **********
