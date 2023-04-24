@@ -55,10 +55,10 @@ baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
 
 upgrades:
-  - upgrade_name: Basic enclosure
-    #Up01
+  - upgrade_name: Enhanced enclosure
+    #Up02
     options:
-      #Attic floor insulation up to IECC 2021 levels for homes with vented attics and less than R-30 existing insulation
+      #Basic Enclosure Measures
       - &attic_insulation_IECC_CZ1A
         option: Insulation Ceiling|R-30
         apply_logic:
@@ -185,31 +185,6 @@ upgrades:
           - value: 0.52 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-      #ducts categories 5 & 6 from ABC work do not apply to any duct configurations in the current ResStock baseline
-        # - &ducts_category5 #improving leakage a little, and insulation
-        #   option: Ducts|10% Leakage, R-8
-        #   apply_logic:
-        #     or: 
-        #       - Ducts|15% Leakage, Uninsulated
-        #       - Ducts|15% Leakage, R-4
-        #       - Ducts|15% Leakage, R-6
-        #       - Ducts|14% Leakage, Uninsulated
-        #       - Ducts|14% Leakage, R-4
-        #       - Ducts|14% Leakage, R-6
-        #   costs:
-        #     - value: 2.06 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
-        #       multiplier: Duct Unconditioned Surface Area (ft^2)
-        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-        # - &ducts_category6 #improving leakage a little only
-        #   option: Ducts|10% Leakage, R-8
-        #   apply_logic:
-        #     or: 
-        #       - Ducts|15% Leakage, R-8
-        #       - Ducts|14% Leakage, R-8
-        #   costs:
-        #     - value: 0.26 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
-        #       multiplier: Duct Unconditioned Surface Area (ft^2)
-        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category7 #improving insulation only
         option: Ducts|10% Leakage, R-8
         apply_logic:
@@ -231,22 +206,6 @@ upgrades:
                         # (https://remdb.nrel.gov/measures.php?gId=12&ctId=184&scId=2015&acId=2028)
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-  - upgrade_name: Enhanced enclosure
-    #Up02
-    options:
-      #Basic Enclosure Measures
-      - *attic_insulation_IECC_CZ1A
-      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
-      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
-      - *ducts_category1
-      - *ducts_category2
-      - *ducts_category3
-      - *ducts_category4
-      #- *ducts_category5
-      #- *ducts_category6
-      - *ducts_category7
-      - *Drill-and-fill
       #Add R-10 interior insulation to foundation walls and rim joists in conditioned basements and crawlspace
       - &foundation_wall_insulation #adding even if there is already exterior foundation wall insulation - is that what's wanted? <-- isn't there logic below to only do this if uninsulated?
         option: Insulation Foundation Wall|Wall R-10, Interior
