@@ -3,7 +3,7 @@ os_version: 3.5.1
 os_sha: 22e1db7be5
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_seto_setpoint_v2 # Relative to buildstock_directory
-output_directory: /scratch/pwhite/seto_year_2/trial/tarrant_v2
+output_directory: /scratch/pwhite/seto_year_2/fairfax/adjusted
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -55,10 +55,10 @@ baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
 
 upgrades:
-  - upgrade_name: Basic enclosure
-    #Up01
+  - upgrade_name: Enhanced enclosure # Bundle #2 Variant
+    #Up02
     options:
-      #Attic floor insulation up to IECC 2021 levels for homes with vented attics and less than R-30 existing insulation
+      #Basic Enclosure Measures
       - &attic_insulation_IECC_CZ1A
         option: Insulation Ceiling|R-30
         apply_logic:
@@ -185,31 +185,6 @@ upgrades:
           - value: 0.52 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-      #ducts categories 5 & 6 from ABC work do not apply to any duct configurations in the current ResStock baseline
-        # - &ducts_category5 #improving leakage a little, and insulation
-        #   option: Ducts|10% Leakage, R-8
-        #   apply_logic:
-        #     or: 
-        #       - Ducts|15% Leakage, Uninsulated
-        #       - Ducts|15% Leakage, R-4
-        #       - Ducts|15% Leakage, R-6
-        #       - Ducts|14% Leakage, Uninsulated
-        #       - Ducts|14% Leakage, R-4
-        #       - Ducts|14% Leakage, R-6
-        #   costs:
-        #     - value: 2.06 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
-        #       multiplier: Duct Unconditioned Surface Area (ft^2)
-        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-        # - &ducts_category6 #improving leakage a little only
-        #   option: Ducts|10% Leakage, R-8
-        #   apply_logic:
-        #     or: 
-        #       - Ducts|15% Leakage, R-8
-        #       - Ducts|14% Leakage, R-8
-        #   costs:
-        #     - value: 0.26 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
-        #       multiplier: Duct Unconditioned Surface Area (ft^2)
-        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category7 #improving insulation only
         option: Ducts|10% Leakage, R-8
         apply_logic:
@@ -231,22 +206,6 @@ upgrades:
                         # (https://remdb.nrel.gov/measures.php?gId=12&ctId=184&scId=2015&acId=2028)
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-  - upgrade_name: Enhanced enclosure
-    #Up02
-    options:
-      #Basic Enclosure Measures
-      - *attic_insulation_IECC_CZ1A
-      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
-      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
-      - *ducts_category1
-      - *ducts_category2
-      - *ducts_category3
-      - *ducts_category4
-      #- *ducts_category5
-      #- *ducts_category6
-      - *ducts_category7
-      - *Drill-and-fill
       #Add R-10 interior insulation to foundation walls and rim joists in conditioned basements and crawlspace
       - &foundation_wall_insulation #adding even if there is already exterior foundation wall insulation - is that what's wanted? <-- isn't there logic below to only do this if uninsulated?
         option: Insulation Foundation Wall|Wall R-10, Interior
@@ -312,63 +271,1087 @@ upgrades:
           - value: 5.54 # $/ft2 (4.3* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=13&ctId=395&scId=6283&acId=6822
             multiplier: Roof Area (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-  # - upgrade_name: Heat pumps, min-efficiency, electric backup  #also provides SEER 15 cooling measure profile
-  #   #Up03
-  #   options:
-  #     #ASHP
-  #     - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF # same as base option
-  #       apply_logic: &ducted_mineff_HP_all_fuel_apply_logic
-  #         - HVAC Has Ducts|Yes
-  #         - or: &not_ASHP_greater_than_SEER_15_9_HSPF
-  #           - not: HVAC Cooling Efficiency|Heat Pump
-  #           - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
-  #           - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
-  #           - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
-  #       costs: &costs_ashp_ducted_SEER_15_9_HSPF
-  #       # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
-  #       # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
-  #       # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
-  #         - value: 3907.01 # for HSPF 9
-  #           multiplier: Fixed (1)
-  #         - value: 155.17
-  #           multiplier: Size, Heating System Primary (kBtu/h)
-  #       lifetime: &lifetime_ashp_ducted_SEER_15_9_HSPF 15
-  #     # MSHP
-  #     - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load # Changed to Max Load
-  #       apply_logic: &ductless_mineff_HP_all_fuel_apply_logic
-  #         - and:
-  #           - HVAC Has Ducts|No
-  #           - or: &not_MSHP_greater_than_SEER_15_9_HSPF
-  #             - not: HVAC Cooling Efficiency|Heat Pump
-  #             - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
-  #       costs: &costs_mshp_ductless_SEER_15_9_HSPF
-  #       # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
-  #       # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
-  #       # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
-  #       # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
-  #       # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
-  #       # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB (https://remdb.nrel.gov/).
-  #         - value: 2472.60
-  #           multiplier: Fixed (1)
-  #         - value: 320.42
-  #           multiplier: Size, Heating System Primary (kBtu/h)
-  #       lifetime: &lifetime_mshp_ductless_SEER_15_9_HSPF 
-  #         15
-  #     #global
-  #     - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
-  #       apply_logic:
-  #         or:
-  #           - *ducted_mineff_HP_all_fuel_apply_logic
-  #           - *ductless_mineff_HP_all_fuel_apply_logic
 
+
+  - upgrade_name: Min Eff HP ACCA  # Bundle #7 ACCA
+    #Up03
+    options:
+      # ASHP
+      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF # same as base option
+        apply_logic: &ducted_mineff_HP_all_fuel_apply_logic
+          - HVAC Has Ducts|Yes
+          - or: &not_ASHP_greater_than_SEER_15_9_HSPF
+            - not: HVAC Cooling Efficiency|Heat Pump
+            - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+        costs: &costs_ashp_ducted_SEER_15_9_HSPF
+        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+          - value: 3907.01 # for HSPF 9
+            multiplier: Fixed (1)
+          - value: 155.17
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_ashp_ducted_SEER_15_9_HSPF 15
+      
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *ducted_mineff_HP_all_fuel_apply_logic
+
+
+    #all electric from the start
+  # - upgrade_name: Dual-System Electric Baseboard MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup
+        apply_logic: &dual-system_elec_baseboard_apply_logic
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
+        costs: &costs_mshp_ductless_SEER_15_9_HSPF
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB (https://remdb.nrel.gov/).
+          - value: 2472.60
+            multiplier: Fixed (1)
+          - value: 320.42
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime:  &lifetime_mshp_ductless_SEER_15_9_HSPF 
+          15
+      - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Baseboard
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+  # - upgrade_name: Dual-System Electric Boiler MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup
+        apply_logic: &dual-system_elec_boiler_apply_logic
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
+        apply_logic: *dual-system_elec_boiler_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Boiler
+        apply_logic: *dual-system_elec_boiler_apply_logic
+  # - upgrade_name: Dual-System Electric Wall Furnace MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup
+        apply_logic: &dual-system_elec_wall_furnace_apply_logic
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Wall Furnace
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+    # Existing MSHP upgraded
+      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF
+        apply_logic: &MSHP_upgrade_apply_logic
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Electricity MSHP
+          - or: &not_MSHP_greater_than_SEER_15_9_HSPF
+              - not: HVAC Cooling Efficiency|Heat Pump
+              - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+# Dual-Fuel (use existing separate backup)
+  # Set heat pump option
+  # MSHP (no ducts)
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Separate Backup
+        apply_logic: &dual-fuel_ductlessMSHP_nonshared_heating_apply_logic
+          - HVAC Has Ducts|No
+          - or:
+            - Heating Fuel|Natural Gas
+            - Heating Fuel|Propane
+            - Heating Fuel|Fuel Oil
+          - not:
+            - HVAC Heating Efficiency|Shared Heating              
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
  
+  # Boilers as secondary systems
+  # Set secondary boiler fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
+        apply_logic: &secondary_natural_gas_fuel_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
+        apply_logic: &secondary_propane_fuel_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Propane Fuel Boiler
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
+        apply_logic: &secondary_fuel_oil_fuel_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+  # Set secondary fuel boiler efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
+        apply_logic: &secondary_72_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
+        apply_logic: &secondary_76_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
+        apply_logic: &secondary_80_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
+        apply_logic: &secondary_82_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
+        apply_logic: &secondary_85_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
+        apply_logic: &secondary_90_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
+        apply_logic: &secondary_95_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
+        apply_logic: &secondary_96_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
+
+  # Wall/Floor Furnace as secondary systems
+  # Set secondary Wall/Floor Furnace fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
+        apply_logic: &secondary_ng_wall_floor
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+        apply_logic: &secondary_propane_wall_floor
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+        apply_logic: &secondary_fuel_oil_wall_floor
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+  # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+        apply_logic: &secondary_60_eff_wall_floor
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+        apply_logic: &secondary_68_eff_wall_floor
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+        
+  # MSHP Max Load separate backup for fossil fuels, full replacement for electric
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Separate Backup
+        apply_logic: &dual-fuel_ductless_shared_apply_logic
+          - HVAC Has Ducts|No
+          - or:
+            - Heating Fuel|Natural Gas
+            - Heating Fuel|Propane
+            - Heating Fuel|Fuel Oil
+          - HVAC Heating Efficiency|Shared Heating              
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF
+        apply_logic: &dual-system_ductless_shared_apply_logic
+          - HVAC Has Ducts|No
+          - Heating Fuel|Electricity
+          - HVAC Heating Efficiency|Shared Heating              
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+
+
+  # Shared Heating as secondary systems for dwellings
+  # Set secondary shared system fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
+        apply_logic: &secondary_ng_shared
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Natural Gas         
+      - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
+        apply_logic: &secondary_propane_shared
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Propane
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
+        apply_logic: &secondary_fuel_oil_shared
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Fuel Oil
+
+  # Set secondary shared system efficiency levels for dwellings with no ducts
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
+        apply_logic: &secondary_boiler_baseboard_ng
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Natural Gas
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
+        apply_logic: &secondary_boiler_baseboard_propane
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Propane
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
+        apply_logic: &secondary_boiler_baseboard_fuel_oil
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Fuel Oil
+#global
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *dual-system_elec_baseboard_apply_logic
+            - *dual-system_elec_boiler_apply_logic
+            - *dual-system_elec_wall_furnace_apply_logic
+            - *MSHP_upgrade_apply_logic
+            - *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic
+            - *dual-fuel_ductless_shared_apply_logic
+            - *dual-system_ductless_shared_apply_logic
+
+
+  - upgrade_name: Min Eff HP Max Load  # Bundle #7 Max-load
+    #Up03
+    options:
+      # ASHP
+      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF, Max Load # same as base option
+        apply_logic: *ducted_mineff_HP_all_fuel_apply_logic
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *ducted_mineff_HP_all_fuel_apply_logic
+
+
+    #all electric from the start
+  # - upgrade_name: Dual-System Electric Baseboard MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime:  *lifetime_mshp_ductless_SEER_15_9_HSPF 
+      - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Baseboard
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+  # - upgrade_name: Dual-System Electric Boiler MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-system_elec_boiler_apply_logic
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
+        apply_logic: *dual-system_elec_boiler_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Boiler
+        apply_logic: *dual-system_elec_boiler_apply_logic
+  # - upgrade_name: Dual-System Electric Wall Furnace MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Wall Furnace
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+    # Existing MSHP upgraded
+      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load
+        apply_logic: *MSHP_upgrade_apply_logic
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+# Dual-Fuel (use existing separate backup)
+  # Set heat pump option
+  # MSHP (no ducts)
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic         
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+ 
+  # Boilers as secondary systems
+  # Set secondary boiler fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
+        apply_logic: *secondary_natural_gas_fuel_boiler
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
+        apply_logic: *secondary_propane_fuel_boiler
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
+        apply_logic: *secondary_fuel_oil_fuel_boiler
+  # Set secondary fuel boiler efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
+        apply_logic: *secondary_72_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
+        apply_logic: *secondary_76_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
+        apply_logic: *secondary_80_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
+        apply_logic: *secondary_82_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
+        apply_logic: *secondary_85_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
+        apply_logic: *secondary_90_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
+        apply_logic: *secondary_95_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
+        apply_logic: *secondary_96_eff_boiler
+
+  # Wall/Floor Furnace as secondary systems
+  # Set secondary Wall/Floor Furnace fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
+        apply_logic: *secondary_ng_wall_floor
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+        apply_logic: *secondary_propane_wall_floor
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+        apply_logic: *secondary_fuel_oil_wall_floor
+  # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+        apply_logic: *secondary_60_eff_wall_floor
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+        apply_logic: *secondary_68_eff_wall_floor
+        
+  # MSHP Max Load separate backup for fossil fuels, full replacement for electric
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-fuel_ductless_shared_apply_logic
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load
+        apply_logic: *dual-system_ductless_shared_apply_logic           
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+
+
+  # Shared Heating as secondary systems for dwellings
+  # Set secondary shared system fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
+        apply_logic: *secondary_ng_shared      
+      - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
+        apply_logic: *secondary_propane_shared
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
+        apply_logic: *secondary_fuel_oil_shared
+
+  # Set secondary shared system efficiency levels for dwellings with no ducts
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
+        apply_logic: *secondary_boiler_baseboard_ng
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
+        apply_logic: *secondary_boiler_baseboard_propane
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
+        apply_logic: *secondary_boiler_baseboard_fuel_oil
+
+#global
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *dual-system_elec_baseboard_apply_logic
+            - *dual-system_elec_boiler_apply_logic
+            - *dual-system_elec_wall_furnace_apply_logic
+            - *MSHP_upgrade_apply_logic
+            - *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic
+            - *dual-fuel_ductless_shared_apply_logic
+            - *dual-system_ductless_shared_apply_logic
+
+
+  - upgrade_name: High Eff HP ACCA  # Bundle #8 ACCA
+    options:
+      #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
+      - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Ducted # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
+        apply_logic: &ducted_higheff_HP_all_fuel_apply_logic
+          - HVAC Has Ducts|Yes
+          - or: *not_ASHP_greater_than_SEER_15_9_HSPF #note there are currently no baseline options above SEER 15 9 HSPF so this option does not change for high efficiency ducted heat pumps
+        costs: &costs_mshp_ducted_SEER_24_13_HSPF
+        # Source: Using the ASHP regression because ducted MSHP costs are more similar to ASHP costs than ductless MSHP costs. 
+        # Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+        # The regression only had 3 datapoints > 11 HSPF (all < $15k); extrapolating to 13 HSPF leads to very high costs and may not be appropriate.
+          - value: 15030.40 # for HSPF 13. Value of $9,468.70 for HSPF 11 may be a better fixed value for all highly-performance cold climate variable-speed heat pumps with HSPF 11 or higher.
+            multiplier: Fixed (1)
+          - value: 155.17
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ducted_SEER_24_13_HSPF 15
+      # - &apply_ducted_heat_pump_heating_type
+      #   option: HVAC Heating Type|Ducted Heat Pump
+      #   apply_logic: *ducted_higheff_HP_all_fuel_apply_logic
+
+
+    #all electric from the start
+  # - upgrade_name: Dual-System Electric Baseboard MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+        costs: &costs_mshp_ductless_SEER_29_14_HSPF
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB (https://remdb.nrel.gov/).
+          - value: 2820.60
+            multiplier: Fixed (1)
+          - value: 367.22
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ductless_SEER_29_14_HSPF 15
+      - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Baseboard
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+  # - upgrade_name: Dual-System Electric Boiler MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup
+        apply_logic: *dual-system_elec_boiler_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
+        apply_logic: *dual-system_elec_boiler_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Boiler
+        apply_logic: *dual-system_elec_boiler_apply_logic
+  # - upgrade_name: Dual-System Electric Wall Furnace MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Wall Furnace
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+    # Existing MSHP upgraded
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        apply_logic: *MSHP_upgrade_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+# Dual-Fuel (use existing separate backup)
+  # Set heat pump option
+  # MSHP (no ducts)
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 29.3, 14 HSPF, Separate Backup
+        apply_logic: *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic         
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+ 
+  # Boilers as secondary systems
+  # Set secondary boiler fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
+        apply_logic: *secondary_natural_gas_fuel_boiler
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
+        apply_logic: *secondary_propane_fuel_boiler
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
+        apply_logic: *secondary_fuel_oil_fuel_boiler
+  # Set secondary fuel boiler efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
+        apply_logic: *secondary_72_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
+        apply_logic: *secondary_76_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
+        apply_logic: *secondary_80_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
+        apply_logic: *secondary_82_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
+        apply_logic: *secondary_85_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
+        apply_logic: *secondary_90_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
+        apply_logic: *secondary_95_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
+        apply_logic: *secondary_96_eff_boiler
+
+  # Wall/Floor Furnace as secondary systems
+  # Set secondary Wall/Floor Furnace fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
+        apply_logic: *secondary_ng_wall_floor
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+        apply_logic: *secondary_propane_wall_floor
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+        apply_logic: *secondary_fuel_oil_wall_floor
+  # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+        apply_logic: *secondary_60_eff_wall_floor
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+        apply_logic: *secondary_68_eff_wall_floor
+        
+  # MSHP Max Load separate backup for fossil fuels, full replacement for electric
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 29.3, 14 HSPF, Separate Backup
+        apply_logic: *dual-fuel_ductless_shared_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        apply_logic: *dual-system_ductless_shared_apply_logic           
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+
+
+  # Shared Heating as secondary systems for dwellings
+  # Set secondary shared system fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
+        apply_logic: *secondary_ng_shared      
+      - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
+        apply_logic: *secondary_propane_shared
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
+        apply_logic: *secondary_fuel_oil_shared
+
+  # Set secondary shared system efficiency levels for dwellings with no ducts
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
+        apply_logic: *secondary_boiler_baseboard_ng
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
+        apply_logic: *secondary_boiler_baseboard_propane
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
+        apply_logic: *secondary_boiler_baseboard_fuel_oil
+
+#global
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *dual-system_elec_baseboard_apply_logic
+            - *dual-system_elec_boiler_apply_logic
+            - *dual-system_elec_wall_furnace_apply_logic
+            - *MSHP_upgrade_apply_logic
+            - *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic
+            - *dual-fuel_ductless_shared_apply_logic
+            - *dual-system_ductless_shared_apply_logic
+            - *ducted_higheff_HP_all_fuel_apply_logic
+
+
+  - upgrade_name: High Eff HP Max Load  # Bundle #8 Max-load
+    options:
+      #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
+      - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Ducted, Max Load # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
+        apply_logic: *ducted_higheff_HP_all_fuel_apply_logic
+        costs: *costs_mshp_ducted_SEER_24_13_HSPF
+        lifetime: *lifetime_mshp_ducted_SEER_24_13_HSPF
+      # - *apply_ducted_heat_pump_heating_type
+
+
+    #all electric from the start
+  # - upgrade_name: Dual-System Electric Baseboard MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Baseboard
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+  # - upgrade_name: Dual-System Electric Boiler MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-system_elec_boiler_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
+        apply_logic: *dual-system_elec_boiler_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Boiler
+        apply_logic: *dual-system_elec_boiler_apply_logic
+  # - upgrade_name: Dual-System Electric Wall Furnace MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Wall Furnace
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+    # Existing MSHP upgraded
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load
+        apply_logic: *MSHP_upgrade_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+# Dual-Fuel (use existing separate backup)
+  # Set heat pump option
+  # MSHP (no ducts)
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 29.3, 14 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic         
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+ 
+  # Boilers as secondary systems
+  # Set secondary boiler fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
+        apply_logic: *secondary_natural_gas_fuel_boiler
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
+        apply_logic: *secondary_propane_fuel_boiler
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
+        apply_logic: *secondary_fuel_oil_fuel_boiler
+  # Set secondary fuel boiler efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
+        apply_logic: *secondary_72_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
+        apply_logic: *secondary_76_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
+        apply_logic: *secondary_80_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
+        apply_logic: *secondary_82_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
+        apply_logic: *secondary_85_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
+        apply_logic: *secondary_90_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
+        apply_logic: *secondary_95_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
+        apply_logic: *secondary_96_eff_boiler
+
+  # Wall/Floor Furnace as secondary systems
+  # Set secondary Wall/Floor Furnace fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
+        apply_logic: *secondary_ng_wall_floor
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+        apply_logic: *secondary_propane_wall_floor
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+        apply_logic: *secondary_fuel_oil_wall_floor
+  # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+        apply_logic: *secondary_60_eff_wall_floor
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+        apply_logic: *secondary_68_eff_wall_floor
+        
+  # MSHP Max Load separate backup for fossil fuels, full replacement for electric
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 29.3, 14 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-fuel_ductless_shared_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load
+        apply_logic: *dual-system_ductless_shared_apply_logic           
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+
+
+  # Shared Heating as secondary systems for dwellings
+  # Set secondary shared system fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
+        apply_logic: *secondary_ng_shared      
+      - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
+        apply_logic: *secondary_propane_shared
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
+        apply_logic: *secondary_fuel_oil_shared
+
+  # Set secondary shared system efficiency levels for dwellings with no ducts
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
+        apply_logic: *secondary_boiler_baseboard_ng
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
+        apply_logic: *secondary_boiler_baseboard_propane
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
+        apply_logic: *secondary_boiler_baseboard_fuel_oil
+
+#global
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *dual-system_elec_baseboard_apply_logic
+            - *dual-system_elec_boiler_apply_logic
+            - *dual-system_elec_wall_furnace_apply_logic
+            - *MSHP_upgrade_apply_logic
+            - *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic
+            - *dual-fuel_ductless_shared_apply_logic
+            - *dual-system_ductless_shared_apply_logic
+            - *ducted_higheff_HP_all_fuel_apply_logic
+
+
+  - upgrade_name: High Eff HP ACCA Enhanced Envelope  # Bundle #10 Variant A
+    #Up03
+    options:
+      #package 2
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *seal_vented_crawlspaces 
+      - *roof_insulation_to_R30
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+
+      #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
+      - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Ducted # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
+        apply_logic: *ducted_higheff_HP_all_fuel_apply_logic
+        costs: *costs_mshp_ducted_SEER_24_13_HSPF
+        lifetime: *lifetime_mshp_ducted_SEER_24_13_HSPF
+      # - *apply_ducted_heat_pump_heating_type
+
+    #all electric from the start
+  # - upgrade_name: Dual-System Electric Baseboard MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Baseboard
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+  # - upgrade_name: Dual-System Electric Boiler MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup
+        apply_logic: *dual-system_elec_boiler_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
+        apply_logic: *dual-system_elec_boiler_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Boiler
+        apply_logic: *dual-system_elec_boiler_apply_logic
+  # - upgrade_name: Dual-System Electric Wall Furnace MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Wall Furnace
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+    # Existing MSHP upgraded
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        apply_logic: *MSHP_upgrade_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+# Dual-Fuel (use existing separate backup)
+  # Set heat pump option
+  # MSHP (no ducts)
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 29.3, 14 HSPF, Separate Backup
+        apply_logic: *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic         
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+ 
+  # Boilers as secondary systems
+  # Set secondary boiler fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
+        apply_logic: *secondary_natural_gas_fuel_boiler
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
+        apply_logic: *secondary_propane_fuel_boiler
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
+        apply_logic: *secondary_fuel_oil_fuel_boiler
+  # Set secondary fuel boiler efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
+        apply_logic: *secondary_72_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
+        apply_logic: *secondary_76_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
+        apply_logic: *secondary_80_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
+        apply_logic: *secondary_82_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
+        apply_logic: *secondary_85_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
+        apply_logic: *secondary_90_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
+        apply_logic: *secondary_95_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
+        apply_logic: *secondary_96_eff_boiler
+
+  # Wall/Floor Furnace as secondary systems
+  # Set secondary Wall/Floor Furnace fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
+        apply_logic: *secondary_ng_wall_floor
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+        apply_logic: *secondary_propane_wall_floor
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+        apply_logic: *secondary_fuel_oil_wall_floor
+  # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+        apply_logic: *secondary_60_eff_wall_floor
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+        apply_logic: *secondary_68_eff_wall_floor
+        
+  # MSHP Max Load separate backup for fossil fuels, full replacement for electric
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 29.3, 14 HSPF, Separate Backup
+        apply_logic: *dual-fuel_ductless_shared_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        apply_logic: *dual-system_ductless_shared_apply_logic           
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+
+
+  # Shared Heating as secondary systems for dwellings
+  # Set secondary shared system fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
+        apply_logic: *secondary_ng_shared      
+      - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
+        apply_logic: *secondary_propane_shared
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
+        apply_logic: *secondary_fuel_oil_shared
+
+  # Set secondary shared system efficiency levels for dwellings with no ducts
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
+        apply_logic: *secondary_boiler_baseboard_ng
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
+        apply_logic: *secondary_boiler_baseboard_propane
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
+        apply_logic: *secondary_boiler_baseboard_fuel_oil
+
+#global
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *dual-system_elec_baseboard_apply_logic
+            - *dual-system_elec_boiler_apply_logic
+            - *dual-system_elec_wall_furnace_apply_logic
+            - *MSHP_upgrade_apply_logic
+            - *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic
+            - *dual-fuel_ductless_shared_apply_logic
+            - *dual-system_ductless_shared_apply_logic
+            - *ducted_higheff_HP_all_fuel_apply_logic
+
+
+  - upgrade_name: High Eff HP Max Load Enhanced Envelope  # Bundle #10 Variant C
+    #Up03
+    options:
+
+      #package 2
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *seal_vented_crawlspaces 
+      - *roof_insulation_to_R30
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+
+      #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
+      - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Ducted, Max Load # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
+        apply_logic: *ducted_higheff_HP_all_fuel_apply_logic
+        costs: *costs_mshp_ducted_SEER_24_13_HSPF
+        lifetime: *lifetime_mshp_ducted_SEER_24_13_HSPF
+      # - *apply_ducted_heat_pump_heating_type
+
+
+    #all electric from the start
+  # - upgrade_name: Dual-System Electric Baseboard MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Baseboard
+        apply_logic: *dual-system_elec_baseboard_apply_logic
+  # - upgrade_name: Dual-System Electric Boiler MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-system_elec_boiler_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
+        apply_logic: *dual-system_elec_boiler_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Boiler
+        apply_logic: *dual-system_elec_boiler_apply_logic
+  # - upgrade_name: Dual-System Electric Wall Furnace MSHP
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Wall Furnace
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+    # Existing MSHP upgraded
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load
+        apply_logic: *MSHP_upgrade_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+# Dual-Fuel (use existing separate backup)
+  # Set heat pump option
+  # MSHP (no ducts)
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 29.3, 14 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic         
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+ 
+  # Boilers as secondary systems
+  # Set secondary boiler fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
+        apply_logic: *secondary_natural_gas_fuel_boiler
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
+        apply_logic: *secondary_propane_fuel_boiler
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
+        apply_logic: *secondary_fuel_oil_fuel_boiler
+  # Set secondary fuel boiler efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
+        apply_logic: *secondary_72_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
+        apply_logic: *secondary_76_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
+        apply_logic: *secondary_80_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
+        apply_logic: *secondary_82_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
+        apply_logic: *secondary_85_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
+        apply_logic: *secondary_90_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
+        apply_logic: *secondary_95_eff_boiler
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
+        apply_logic: *secondary_96_eff_boiler
+
+  # Wall/Floor Furnace as secondary systems
+  # Set secondary Wall/Floor Furnace fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
+        apply_logic: *secondary_ng_wall_floor
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+        apply_logic: *secondary_propane_wall_floor
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+        apply_logic: *secondary_fuel_oil_wall_floor
+  # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+        apply_logic: *secondary_60_eff_wall_floor
+      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+        apply_logic: *secondary_68_eff_wall_floor
+        
+  # MSHP Max Load separate backup for fossil fuels, full replacement for electric
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 29.3, 14 HSPF, Separate Backup, Max Load
+        apply_logic: *dual-fuel_ductless_shared_apply_logic
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load
+        apply_logic: *dual-system_ductless_shared_apply_logic           
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+
+
+  # Shared Heating as secondary systems for dwellings
+  # Set secondary shared system fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
+        apply_logic: *secondary_ng_shared      
+      - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
+        apply_logic: *secondary_propane_shared
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
+        apply_logic: *secondary_fuel_oil_shared
+
+  # Set secondary shared system efficiency levels for dwellings with no ducts
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
+        apply_logic: *secondary_boiler_baseboard_ng
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
+        apply_logic: *secondary_boiler_baseboard_propane
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
+        apply_logic: *secondary_boiler_baseboard_fuel_oil
+
+#global
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *dual-system_elec_baseboard_apply_logic
+            - *dual-system_elec_boiler_apply_logic
+            - *dual-system_elec_wall_furnace_apply_logic
+            - *MSHP_upgrade_apply_logic
+            - *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic
+            - *dual-fuel_ductless_shared_apply_logic
+            - *dual-system_ductless_shared_apply_logic
+            - *ducted_higheff_HP_all_fuel_apply_logic
+
+
+  - upgrade_name: High Eff HP ACCA Enhanced Envelope Electric Backup # Bundle #10 Variant E
+    #Up03
+    options:
+      #package 2
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *seal_vented_crawlspaces 
+      - *roof_insulation_to_R30
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+
+      #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
+      - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Ducted # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
+        apply_logic: *ducted_higheff_HP_all_fuel_apply_logic
+        costs: *costs_mshp_ducted_SEER_24_13_HSPF
+        lifetime: *lifetime_mshp_ducted_SEER_24_13_HSPF
+      # - *apply_ducted_heat_pump_heating_type
+
+      # MSHP
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF # changed to Max Load
+        apply_logic: &nonducted_higheff_HP_all_fuel_apply_logic
+          - HVAC Has Ducts|No
+          - or: &not_MSHP_greater_than_SEER_29_14_HSPF
+            - not: HVAC Cooling Efficiency|Heat Pump
+            - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+            - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      #global
+      - &apply_heat_pump_cooling_efficiency
+        option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *ducted_higheff_HP_all_fuel_apply_logic
+            - *nonducted_higheff_HP_all_fuel_apply_logic
+
+
+  - upgrade_name: High Eff HP Max Load Enhanced Envelope Electric Backup  # Bundle #10 Variant F
+    #Up03
+    options:
+      #package 2
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *seal_vented_crawlspaces 
+      - *roof_insulation_to_R30
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+
+      #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
+      - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Ducted, Max Load # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
+        apply_logic: *ducted_higheff_HP_all_fuel_apply_logic
+        costs: *costs_mshp_ducted_SEER_24_13_HSPF
+        lifetime: *lifetime_mshp_ducted_SEER_24_13_HSPF
+      # - *apply_ducted_heat_pump_heating_type
+
+      # MSHP
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load # changed to Max Load
+        apply_logic: &nonducted_higheff_HP_all_fuel_apply_logic
+          - HVAC Has Ducts|No
+          - or: &not_MSHP_greater_than_SEER_29_14_HSPF
+            - not: HVAC Cooling Efficiency|Heat Pump
+            - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+            - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        costs: *costs_mshp_ductless_SEER_29_14_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+      #global
+      - &apply_heat_pump_cooling_efficiency
+        option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *ducted_higheff_HP_all_fuel_apply_logic
+            - *nonducted_higheff_HP_all_fuel_apply_logic
+
 
 eagle:
-  n_jobs: 15
-  minutes_per_sim: 5
+  n_jobs: 20
+  minutes_per_sim: 3
   account: setores
   postprocessing:
-    time: 20
+    time: 30
     n_workers: 1
   sampling:
-    time: 10
+    time: 30
+
+
+postprocessing:
+  keep_individual_timeseries: true  # default false if omitted
+  aws:
+    region_name: "us-west-2"
+    s3:
+      bucket: resstock-resilience
+      prefix: seto_year_2/fairfax #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
