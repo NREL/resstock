@@ -17,12 +17,9 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Install gems and software
+      - name: Install gems
         run: |
           rm -f Gemfile.lock && bundle install
-          export DEBIAN_FRONTEND=noninteractive
-          sudo apt update
-          sudo -E apt-get install -y wget unzip python3-sphinx-rtd-theme
 
       - name: Run integrity checks for all projects
         run: |
@@ -246,6 +243,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
+
+      - name: Install software
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt update
+          sudo -E apt-get install -y wget unzip python3-sphinx-rtd-theme
 
       - name: Download feature samples
         uses: actions/download-artifact@v3
