@@ -21,7 +21,7 @@ workflow_generator:
   type: residential_hpxml
   args:
     build_existing_model:
-      simulation_control_timestep: 60
+      simulation_control_timestep: 15
       simulation_control_run_period_begin_month: 1
       simulation_control_run_period_begin_day_of_month: 1
       simulation_control_run_period_end_month: 12
@@ -37,7 +37,7 @@ workflow_generator:
       - scenario_name: Bills
 
     simulation_output_report:
-      timeseries_frequency: hourly
+      timeseries_frequency: timestep
       include_timeseries_total_consumptions: true
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
@@ -56,7 +56,7 @@ baseline:
 
 upgrades:
 
-  - upgrade_name: High Eff HP ACCA Enhanced Envelope  # Bundle #10 Variant B
+  - upgrade_name: Bundle 10 Variant B # High Eff HP ACCA Enhanced Envelope  # Bundle #10 Variant B
     #Up03
     options:
   #Basic Enclosure Measures
@@ -504,7 +504,7 @@ upgrades:
             - *ducted_higheff_HP_all_fuel_apply_logic
 
 
-  - upgrade_name: High Eff HP Max Load Enhanced Envelope  # Bundle #10 Variant D
+  - upgrade_name: Bundle 10 Variant D # High Eff HP Max Load Enhanced Envelope  # Bundle #10 Variant D
     #Up03
     options:
 
@@ -661,8 +661,8 @@ upgrades:
 
 
 eagle:
-  n_jobs: 20
-  minutes_per_sim: 3
+  n_jobs: 50
+  minutes_per_sim: 10
   account: setores
   postprocessing:
     time: 30

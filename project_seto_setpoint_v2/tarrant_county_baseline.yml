@@ -21,7 +21,7 @@ workflow_generator:
   type: residential_hpxml
   args:
     build_existing_model:
-      simulation_control_timestep: 60
+      simulation_control_timestep: 15
       simulation_control_run_period_begin_month: 1
       simulation_control_run_period_begin_day_of_month: 1
       simulation_control_run_period_end_month: 12
@@ -37,7 +37,7 @@ workflow_generator:
       - scenario_name: Bills
 
     simulation_output_report:
-      timeseries_frequency: hourly
+      timeseries_frequency: timestep
       include_timeseries_total_consumptions: true
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
@@ -56,48 +56,272 @@ baseline:
 
 upgrades:
 
-  - upgrade_name: High Eff HP ACCA Enhanced Envelope  # Bundle #10 Variant B
+  - upgrade_name: Bundle 10 Variant B # High Eff HP ACCA Enhanced Envelope  # Bundle #10 Variant B
     #Up03
     options:
-      #package 2
-      - *attic_insulation_IECC_CZ1A
-      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
-      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
-      - *ducts_category1
-      - *ducts_category2
-      - *ducts_category3
-      - *ducts_category4
-      #- *ducts_category5
-      #- *ducts_category6
-      - *ducts_category7
-      - *Drill-and-fill
-      - *foundation_wall_insulation
-      - *seal_vented_crawlspaces 
-      - *roof_insulation_to_R30
-      - *foundation_wall_insulation_finished_basement
-      - *rim_joist_insulation
+  #Basic Enclosure Measures
+      - &attic_insulation_IECC_CZ1A
+        option: Insulation Ceiling|R-30
+        apply_logic:
+          - and:
+            - ASHRAE IECC Climate Zone 2004|1A
+            - Geometry Attic Type|Vented Attic
+            - or:
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+        costs:
+          - value: 0.0443 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019), with 1.289 inflation factor
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
+          - value: 0.1992 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004), with 1.289 inflation factor
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf 
+      - &attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+        option: Insulation Ceiling|R-49
+        apply_logic:
+          - and:
+            - or:
+              - ASHRAE IECC Climate Zone 2004|2A
+              - ASHRAE IECC Climate Zone 2004|2B
+              - ASHRAE IECC Climate Zone 2004|3A
+              - ASHRAE IECC Climate Zone 2004|3B
+              - ASHRAE IECC Climate Zone 2004|3C
+            - Geometry Attic Type|Vented Attic
+            - or:
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
+              - Insulation Ceiling|R-30
+        costs:
+          - value: 0.0443 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019), with 1.289 inflation factor
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
+          - value: 0.1992 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004), with 1.289 inflation factor
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+        option: Insulation Ceiling|R-60
+        apply_logic:
+          - and:
+            - or:
+              - ASHRAE IECC Climate Zone 2004|4A
+              - ASHRAE IECC Climate Zone 2004|4B
+              - ASHRAE IECC Climate Zone 2004|4C
+              - ASHRAE IECC Climate Zone 2004|5A
+              - ASHRAE IECC Climate Zone 2004|5B
+              - ASHRAE IECC Climate Zone 2004|6A
+              - ASHRAE IECC Climate Zone 2004|6B
+              - ASHRAE IECC Climate Zone 2004|7A
+              - ASHRAE IECC Climate Zone 2004|7B
+            - Geometry Attic Type|Vented Attic
+            - or:
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
+              - Insulation Ceiling|R-30
+              - Insulation Ceiling|R-38
+        costs:
+          - value: 0.0443 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019), with 1.289 inflation factor
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
+          - value: 0.1992 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004), with 1.289 inflation factor
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #General air sealing - 30% total reduction in ACH50 for homes with greater than 10 ACH50
+      #30% is consistent with median reduction documented in https://doi.org/10.20357/B7FP4D 
+      - &infiltration_30pct_reduction
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|15 ACH50
+        costs:
+          - value: 0.50 # $0.50/ft2 is from LBNL data for general air sealing (https://doi.org/10.20357/B7FP4D).
+                        # Interpolated between 20% and 40% reductions to get $0.44/ft2,
+                        # then used 1.14 multiplier to inflate from Jan 2019 to Mar 2022
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #Duct sealing to 10% leakage, R-8 insulation for all ducts in unconditioned space
+      # Costs are mid-values from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+      - &ducts_category1 #improving leakage a lot, and insulation
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|30% Leakage, R-4
+            - Ducts|30% Leakage, R-6
+        costs:
+          - value: 2.84 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category2 #improving leakage a lot only
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|30% Leakage, R-8
+        costs:
+          - value: 1.04 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category3 #improving leakage some, and insulation
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|20% Leakage, Uninsulated
+            - Ducts|20% Leakage, R-4
+            - Ducts|20% Leakage, R-6 
+        costs:
+          - value: 2.32 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category4 #improving leakage some only
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|20% Leakage, R-8
+        costs:
+          - value: 0.52 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category7 #improving insulation only
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|10% Leakage, Uninsulated
+            - Ducts|10% Leakage, R-4
+            - Ducts|10% Leakage, R-6
+        costs:
+          - value: 1.80 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #Drill-and-fill insulation (R-13) for homes with no insulation and wood stud walls
+      - &Drill-and-fill
+        option: Insulation Wall|Wood Stud, R-13
+        apply_logic:
+          - Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.24 # from LBNL data (https://doi.org/10.20357/B7FP4D); consistent with NREL REMDB
+                        # (https://remdb.nrel.gov/measures.php?gId=12&ctId=184&scId=2015&acId=2028)
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #Add R-10 interior insulation to foundation walls and rim joists in conditioned basements and crawlspace
+      - &foundation_wall_insulation #adding even if there is already exterior foundation wall insulation - is that what's wanted? <-- isn't there logic below to only do this if uninsulated?
+        option: Insulation Foundation Wall|Wall R-10, Interior
+        apply_logic: #including vented crawlspaces since they will be sealed and become unvented crawlspaces in the same package. 
+          - and:
+            - or:
+              - Geometry Foundation Type|Unvented Crawlspace
+              - Geometry Foundation Type|Vented Crawlspace
+            - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 4.00 # $/ft2 (3.1* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=14&ctId=378&scId=5929&acId=5932
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &foundation_wall_insulation_finished_basement
+        option: Insulation Foundation Wall|Wall R-10, Interior
+        apply_logic: 
+          - and:
+            - Geometry Foundation Type|Heated Basement
+            - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 4.56 # $/ft2 (3.54* $/ft2 * 1.289 inflation) based on cost in BEopt
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf        
+      - &rim_joist_insulation
+        option: Insulation Rim Joist|R-10, Exterior
+        apply_logic: 
+          - and:
+            - or:
+              - Geometry Foundation Type|Unvented Crawlspace
+              - Geometry Foundation Type|Vented Crawlspace
+              - Geometry Foundation Type|Heated Basement
+            - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 2.32 # $/ft2 (1.8* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=14&ctId=378&scId=5929&acId=5932)
+            multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #seal crawlspace vents
+      - &seal_vented_crawlspaces
+        option: Geometry Foundation Type|Unvented Crawlspace
+        apply_logic:
+          and:
+            - Geometry Foundation Type|Vented Crawlspace
+            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+                - Geometry Building Level MF|None
+                - Geometry Building Level MF|Bottom
+        costs:
+          - value: 1.083 # $/ft2 (0.84* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=14&ctId=334&scId=5169&acId=6565)
+            multiplier: Floor Area, Foundation (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #insulate finished attics and cathedral ceilings to R-30
+      - &roof_insulation_to_R30
+        option: Insulation Roof|Finished, R-30
+        apply_logic: 
+          - and:
+            - or:
+              - Geometry Attic Type|Finished Attic or Cathedral Ceilings
+              - Geometry Building Level MF|Top
+            - or:
+              - Insulation Roof|Finished, Uninsulated
+              - Insulation Roof|Finished, R-7
+              - Insulation Roof|Finished, R-13
+        costs:
+          - value: 5.54 # $/ft2 (4.3* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=13&ctId=395&scId=6283&acId=6822
+            multiplier: Roof Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+
 
       #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
       - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Ducted # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
-        apply_logic: *ducted_higheff_HP_all_fuel_apply_logic
-        costs: *costs_mshp_ducted_SEER_24_13_HSPF
-        lifetime: *lifetime_mshp_ducted_SEER_24_13_HSPF
-      # - *apply_ducted_heat_pump_heating_type
+        apply_logic: &ducted_higheff_HP_all_fuel_apply_logic
+          - HVAC Has Ducts|Yes
+          - or: &not_ASHP_greater_than_SEER_15_9_HSPF
+            - not: HVAC Cooling Efficiency|Heat Pump
+            - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF #note there are currently no baseline options above SEER 15 9 HSPF so this option does not change for high efficiency ducted heat pumps
+        costs: &costs_mshp_ducted_SEER_24_13_HSPF
+        # Source: Using the ASHP regression because ducted MSHP costs are more similar to ASHP costs than ductless MSHP costs. 
+        # Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+        # The regression only had 3 datapoints > 11 HSPF (all < $15k); extrapolating to 13 HSPF leads to very high costs and may not be appropriate.
+          - value: 15030.40 # for HSPF 13. Value of $9,468.70 for HSPF 11 may be a better fixed value for all highly-performance cold climate variable-speed heat pumps with HSPF 11 or higher.
+            multiplier: Fixed (1)
+          - value: 155.17
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ducted_SEER_24_13_HSPF 15
 
     #all electric from the start
   # - upgrade_name: Dual-System Electric Baseboard MSHP
       - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup
-        apply_logic: *dual-system_elec_baseboard_apply_logic
-        costs: *costs_mshp_ductless_SEER_29_14_HSPF
-        lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
+        apply_logic: &dual-system_elec_baseboard_apply_logic
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
+        costs: &costs_mshp_ductless_SEER_29_14_HSPF
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB (https://remdb.nrel.gov/).
+          - value: 2820.60
+            multiplier: Fixed (1)
+          - value: 367.22
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ductless_SEER_29_14_HSPF 15
       - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
         apply_logic: *dual-system_elec_baseboard_apply_logic
       - option: HVAC Secondary Heating Type And Fuel|Electricity Baseboard
         apply_logic: *dual-system_elec_baseboard_apply_logic
   # - upgrade_name: Dual-System Electric Boiler MSHP
       - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup
-        apply_logic: *dual-system_elec_boiler_apply_logic
+        apply_logic: &dual-system_elec_boiler_apply_logic
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
         costs: *costs_mshp_ductless_SEER_29_14_HSPF
         lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
       - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
@@ -106,7 +330,9 @@ upgrades:
         apply_logic: *dual-system_elec_boiler_apply_logic
   # - upgrade_name: Dual-System Electric Wall Furnace MSHP
       - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 29.3, 14 HSPF, Separate Backup
-        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+        apply_logic: &dual-system_elec_wall_furnace_apply_logic
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
         costs: *costs_mshp_ductless_SEER_29_14_HSPF
         lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
       - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
@@ -115,64 +341,117 @@ upgrades:
         apply_logic: *dual-system_elec_wall_furnace_apply_logic
     # Existing MSHP upgraded
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-        apply_logic: *MSHP_upgrade_apply_logic
+        apply_logic: &MSHP_upgrade_apply_logic
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Electricity MSHP
+          - or: &not_MSHP_greater_than_SEER_15_9_HSPF
+              - not: HVAC Cooling Efficiency|Heat Pump
+              - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
         costs: *costs_mshp_ductless_SEER_29_14_HSPF
         lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
 # Dual-Fuel (use existing separate backup)
   # Set heat pump option
   # MSHP (no ducts)
       - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 29.3, 14 HSPF, Separate Backup
-        apply_logic: *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic         
+        apply_logic: &dual-fuel_ductlessMSHP_nonshared_heating_apply_logic
+          - HVAC Has Ducts|No
+          - or:
+            - Heating Fuel|Natural Gas
+            - Heating Fuel|Propane
+            - Heating Fuel|Fuel Oil
+          - not:
+            - HVAC Heating Efficiency|Shared Heating             
         costs: *costs_mshp_ductless_SEER_29_14_HSPF
         lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
  
-  # Boilers as secondary systems
+# Boilers as secondary systems
   # Set secondary boiler fuel type
       - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic: *secondary_natural_gas_fuel_boiler
+        apply_logic: &secondary_natural_gas_fuel_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
       - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic: *secondary_propane_fuel_boiler
+        apply_logic: &secondary_propane_fuel_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Propane Fuel Boiler
       - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic: *secondary_fuel_oil_fuel_boiler
+        apply_logic: &secondary_fuel_oil_fuel_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
   # Set secondary fuel boiler efficiency levels
       - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
-        apply_logic: *secondary_72_eff_boiler
+        apply_logic: &secondary_72_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
       - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
-        apply_logic: *secondary_76_eff_boiler
+        apply_logic: &secondary_76_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
       - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
-        apply_logic: *secondary_80_eff_boiler
+        apply_logic: &secondary_80_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
       - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
-        apply_logic: *secondary_82_eff_boiler
+        apply_logic: &secondary_82_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
       - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
-        apply_logic: *secondary_85_eff_boiler
+        apply_logic: &secondary_85_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
       - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
-        apply_logic: *secondary_90_eff_boiler
+        apply_logic: &secondary_90_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
       - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-        apply_logic: *secondary_95_eff_boiler
+        apply_logic: &secondary_95_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
       - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
-        apply_logic: *secondary_96_eff_boiler
+        apply_logic: &secondary_96_eff_boiler
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
 
   # Wall/Floor Furnace as secondary systems
   # Set secondary Wall/Floor Furnace fuel type
       - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
-        apply_logic: *secondary_ng_wall_floor
+        apply_logic: &secondary_ng_wall_floor
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
       - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
-        apply_logic: *secondary_propane_wall_floor
+        apply_logic: &secondary_propane_wall_floor
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
       - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
-        apply_logic: *secondary_fuel_oil_wall_floor
+        apply_logic: &secondary_fuel_oil_wall_floor
+          - HVAC Has Ducts|No
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
   # Set secondary fuel Wall/Floor Furnace efficiency levels
       - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic: *secondary_60_eff_wall_floor
+        apply_logic: &secondary_60_eff_wall_floor
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
       - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic: *secondary_68_eff_wall_floor
+        apply_logic: &secondary_68_eff_wall_floor
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
         
   # MSHP Max Load separate backup for fossil fuels, full replacement for electric
       - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 29.3, 14 HSPF, Separate Backup
-        apply_logic: *dual-fuel_ductless_shared_apply_logic
+        apply_logic: &dual-fuel_ductless_shared_apply_logic
+          - HVAC Has Ducts|No
+          - or:
+            - Heating Fuel|Natural Gas
+            - Heating Fuel|Propane
+            - Heating Fuel|Fuel Oil
+          - HVAC Heating Efficiency|Shared Heating              
         costs: *costs_mshp_ductless_SEER_29_14_HSPF
         lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-        apply_logic: *dual-system_ductless_shared_apply_logic           
+        apply_logic: &dual-system_ductless_shared_apply_logic
+          - HVAC Has Ducts|No
+          - Heating Fuel|Electricity
+          - HVAC Heating Efficiency|Shared Heating              
         costs: *costs_mshp_ductless_SEER_29_14_HSPF
         lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
 
@@ -180,20 +459,37 @@ upgrades:
   # Shared Heating as secondary systems for dwellings
   # Set secondary shared system fuel type
       - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
-        apply_logic: *secondary_ng_shared      
+        apply_logic: &secondary_ng_shared
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Natural Gas         
       - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
-        apply_logic: *secondary_propane_shared
+        apply_logic: &secondary_propane_shared
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Propane
       - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
-        apply_logic: *secondary_fuel_oil_shared
+        apply_logic: &secondary_fuel_oil_shared
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Fuel Oil
 
   # Set secondary shared system efficiency levels for dwellings with no ducts
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
-        apply_logic: *secondary_boiler_baseboard_ng
+        apply_logic: &secondary_boiler_baseboard_ng
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Natural Gas
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
-        apply_logic: *secondary_boiler_baseboard_propane
+        apply_logic: &secondary_boiler_baseboard_propane
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Propane
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
-        apply_logic: *secondary_boiler_baseboard_fuel_oil
-
+        apply_logic: &secondary_boiler_baseboard_fuel_oil
+          - HVAC Has Ducts|No
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Fuel Oil
 #global
       - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
         apply_logic:
@@ -208,7 +504,7 @@ upgrades:
             - *ducted_higheff_HP_all_fuel_apply_logic
 
 
-  - upgrade_name: High Eff HP Max Load Enhanced Envelope  # Bundle #10 Variant D
+  - upgrade_name: Bundle 10 Variant D # High Eff HP Max Load Enhanced Envelope  # Bundle #10 Variant D
     #Up03
     options:
 
@@ -362,12 +658,9 @@ upgrades:
             - *ducted_higheff_HP_all_fuel_apply_logic
 
 
-
-
-
 eagle:
-  n_jobs: 20
-  minutes_per_sim: 3
+  n_jobs: 50
+  minutes_per_sim: 10
   account: setores
   postprocessing:
     time: 30
