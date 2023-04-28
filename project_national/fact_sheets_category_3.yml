@@ -1,0 +1,207 @@
+schema_version: '0.3'
+os_version: 3.5.1
+os_sha: 22e1db7be5
+buildstock_directory: ../ # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: national_upgrades
+weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 5
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    emissions:
+      - scenario_name: LRMER_MidCase_15
+        type: CO2e
+        elec_folder: data/cambium/LRMER_MidCase_15
+
+    utility_bills:
+      - scenario_name: Bills
+
+    simulation_output_report:
+      timeseries_frequency: hourly
+      include_timeseries_total_consumptions: true
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_total_loads: false
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+baseline:
+  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+
+upgrades:
+  - upgrade_name: All ENERGYSTAR Appliances
+    options:
+      - &energystar_refrigerator
+        option: Refrigerator|EF 19.9
+        apply_logic:
+          - or:
+            - Refrigerator|EF 6.7
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 17.6
+        costs:
+          - value: 2500.0 #TBD
+            multiplier: Fixed (1)
+        lifetime: 17.4
+      - &energystar_clothes_washer
+        option: Clothes Washer|EnergyStar
+        apply_logic:
+          - Clothes Washer|Standard
+      - &energystar_dishwasher 
+        option: Dishwasher|270 Rated kWh
+        apply_logic:
+          - or:
+            - Dishwasher|318 Rated kWh
+            - Dishwasher|290 Rated kWh
+      - &energystar_clothes_dryer_electric 
+        option: Clothes Dryer|Electric, Premium, EnergyStar
+        apply_logic:
+          - or:
+            - Clothes Dryer|Electric
+            - Clothes Dryer|Electric, Premium
+      - &energystar_clothes_dryer_gas 
+        option: Clothes Dryer|Gas, Premium, EnergyStar
+        apply_logic:
+          - or:
+            - Clothes Dryer|Gas
+            - Clothes Dryer|Gas, Premium
+
+  - upgrade_name: All ENERGYSTAR Most Efficient Appliances
+    options:
+      - &energystar_most_eff_refrigerator
+        option: Refrigerator|EF 15.9 #TBD
+        apply_logic:
+          - or:
+            - Refrigerator|EF 6.7
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 10.5
+        costs:
+          - value: 2500.0 #TBD
+            multiplier: Fixed (1)
+        lifetime: 17.4
+      - &energystar_most_eff_clothes_washer
+        option: Clothes Washer|EnergyStar Most Efficient
+        apply_logic:
+        - or:
+            - Clothes Washer|Standard
+            - Clothes Washer|EnergyStar
+            - Clothes Washer|EnergyStar, Cold Only
+            - Clothes Washer|EnergyStar More Efficient
+      - &energystar_most_eff_dishwasher 
+        option: Dishwasher|240 Rated kWh
+        apply_logic:
+          - or:
+            - Dishwasher|318 Rated kWh
+            - Dishwasher|290 Rated kWh
+            - Dishwasher|270 Rated kWh
+            - Dishwasher|255 Rated kWh
+      - &energystar_most_eff_clothes_dryer_electric 
+        option: Clothes Dryer|Electric, Premium, EnergyStar Most Efficient
+        apply_logic:
+          - or:
+            - Clothes Dryer|Electric
+            - Clothes Dryer|Electric, Premium
+            - Clothes Dryer|Electric, Premium, EnergyStar
+      - &energystar_most_eff_clothes_dryer_gas 
+        option: Clothes Dryer|Gas, Premium, EnergyStar Most Efficient
+        apply_logic:
+          - or:
+            - Clothes Dryer|Gas
+            - Clothes Dryer|Gas, Premium
+            - Clothes Dryer|Gas, Premium, EnergyStar
+
+  - upgrade_name: ENERGYSTAR Electric Dryer
+    options:
+      - &energystar_electric_dryer
+        option: Clothes Dryer|Electric, Premium, EnergyStar
+        apply_logic:
+          - or:
+            - Clothes Dryer|Gas
+            - Clothes Dryer|Gas, Premium
+            - Clothes Dryer|Propane
+
+  - upgrade_name: Induction Range & Oven
+    options:
+      - &induction_range_oven 
+        option: Cooking Range|Electric Induction
+        apply_logic:
+          - or:
+            - Cooking Range|Gas
+            - Cooking Range|Propane
+
+  - upgrade_name: Conventional Range & Oven
+    options:
+      - &conventional_range_oven 
+        option: Cooking Range|Electric Conventional
+        apply_logic:
+          - or:
+            - Cooking Range|Gas
+            - Cooking Range|Propane
+
+  - upgrade_name: Electric Pool Heaters
+    options:
+      - &electric_pool_heaters 
+        option: Misc Pool Heater|Electricity
+        apply_logic:
+          - Misc Pool Heater|Natural Gas
+      - &electric_pool_heaters_78F 
+        option: Misc Pool Heater|Electric, 78F
+        apply_logic:
+          - Misc Pool Heater|Gas, 78F
+      - &electric_pool_heaters_covered
+        option: Misc Pool Heater|Electric, Covered
+        apply_logic:
+          - Misc Pool Heater|Gas, Covered
+      - &electric_pool_heaters_covered_78F
+        option: Misc Pool Heater|Electric, Covered, 78F
+        apply_logic:
+          - Misc Pool Heater|Gas, Covered, 78F
+
+  - upgrade_name: Electric Spa Heaters
+    options:
+      - &electric_spa_heaters 
+        option: Misc Hot Tub Spa|Electricity
+        apply_logic:
+          - Misc Hot Tub Spa|Natural Gas
+
+
+  - upgrade_name: High-Efficacy LED Lighting
+    options:
+      - &lighting_100_percent_led
+        option: Lighting|100% LED
+        costs:
+          - value: 0.75
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 25
+
+eagle:
+  n_jobs: 3
+  minutes_per_sim: 30
+  account: <account you are authorized to use>
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 5
