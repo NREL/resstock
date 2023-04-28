@@ -13,7 +13,7 @@ AHS Region
 Description
 ***********
 
-TODO
+The American Housing Survey region that the sample is located.
 
 Created by
 **********
@@ -37,7 +37,7 @@ AIANNH Area
 Description
 ***********
 
-TODO
+American Indian/Alaska Native/Native Hawaiian Area that the sample is located.
 
 Created by
 **********
@@ -62,7 +62,7 @@ ASHRAE IECC Climate Zone 2004
 Description
 ***********
 
-TODO
+Climate zone according to ASHRAE 169 in 2004 and IECC in 2012 that the sample is located.
 
 Created by
 **********
@@ -86,7 +86,7 @@ ASHRAE IECC Climate Zone 2004 - 2A Split
 Description
 ***********
 
-TODO
+Climate zone according to ASHRAE 169 in 2004 and IECC in 2012 that the sample is located. Climate zone where climate zone 2A is split between counties in TX, LA and FL, GA, AL, and MS
 
 Created by
 **********
@@ -111,7 +111,7 @@ Area Median Income
 Description
 ***********
 
-TODO
+Area median income of the household occupying the dwelling unit.
 
 Created by
 **********
@@ -135,16 +135,41 @@ Bathroom Spot Vent Hour
 Description
 ***********
 
-TODO
+Bathroom spot ventilation daily start hour
 
 Created by
 **********
 
+manually created
 
 Source
 ******
 
 Same as occupancy schedule from Wilson et al. 'Building America House Simulation Protocols' 2014
+
+Assumption
+**********
+
+
+.. _battery:
+
+Battery
+-------
+
+Description
+***********
+
+The presence, size, location, and efficiency of an onsite battery (not modeled in project_national).
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+n/a
 
 Assumption
 **********
@@ -158,7 +183,7 @@ Bedrooms
 Description
 ***********
 
-TODO
+The number of bedrooms in the dwelling unit.
 
 Created by
 **********
@@ -183,7 +208,7 @@ Building America Climate Zone
 Description
 ***********
 
-TODO
+The Building America Climate Zone that the sample is located.
 
 Created by
 **********
@@ -207,7 +232,7 @@ CEC Climate Zone
 Description
 ***********
 
-TODO
+The California Energy Commission Climate Zone that the sample is located.
 
 Created by
 **********
@@ -222,7 +247,7 @@ Spatial definitions are from the U.S. Census Bureau as of July 1, 2015.; Zip cod
 Assumption
 **********
 
-CEC Climate zones are defined by Zip Codes. The dependency selected is County and PUMA as zip codes are not modeled in ResStock. The mapping between Census Tracts and Zip Codes are approximate and some discrepancies may exist.
+CEC Climate zones are defined by Zip Codes.; The dependency selected is County and PUMA as zip codes are not modeled in ResStock.; The mapping between Census Tracts and Zip Codes are approximate and some discrepancies may exist.; If the sample is outside California, the option is set to None.
 
 .. _ceiling_fan:
 
@@ -232,11 +257,12 @@ Ceiling Fan
 Description
 ***********
 
-TODO
+Presence and energy usage of ceiling fans at medium speed
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -256,7 +282,7 @@ Census Division
 Description
 ***********
 
-TODO
+The U.S. Census Division that the sample is located.
 
 Created by
 **********
@@ -280,7 +306,7 @@ Census Division RECS
 Description
 ***********
 
-TODO
+Census Division as used in RECS 2015 that the sample is located. RECS 2015 splits the Mountain Census Division into north (CO, ID, MT, UT, WY) and south (AZ, NM, NV).
 
 Created by
 **********
@@ -304,7 +330,7 @@ Census Region
 Description
 ***********
 
-TODO
+The U.S. Census Region that the sample is located.
 
 Created by
 **********
@@ -328,7 +354,7 @@ City
 Description
 ***********
 
-TODO
+The City that the sample is located.
 
 Created by
 **********
@@ -353,12 +379,12 @@ Clothes Dryer
 Description
 ***********
 
-TODO
+The presence, rated efficiency, fuel type, and usage level of the clothes dryer in a dwelling unit.
 
 Created by
 **********
 
-sources/ahs/2017/tsv_maker.py
+Originally created with sources/ahs/2017/tsv_maker.py. Manually updated.
 
 Source
 ******
@@ -377,11 +403,12 @@ Clothes Washer
 Description
 ***********
 
-TODO
+Presence, rated efficiency, and usage level of the clothes washer.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -400,7 +427,7 @@ Clothes Washer Presence
 Description
 ***********
 
-TODO
+The number of bedrooms in the dwelling unit.
 
 Created by
 **********
@@ -424,11 +451,12 @@ Cooking Range
 Description
 ***********
 
-TODO
+Presence, fuel type, and usage level of the cooking range.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -447,7 +475,7 @@ Cooling Setpoint
 Description
 ***********
 
-TODO
+Baseline cooling setpoint with no offset applied.
 
 Created by
 **********
@@ -472,7 +500,7 @@ Cooling Setpoint Has Offset
 Description
 ***********
 
-TODO
+Presence of a cooling setpoint offset.
 
 Created by
 **********
@@ -497,7 +525,7 @@ Cooling Setpoint Offset Magnitude
 Description
 ***********
 
-TODO
+The magnitude of cooling setpoint offset.
 
 Created by
 **********
@@ -522,7 +550,7 @@ Cooling Setpoint Offset Period
 Description
 ***********
 
-TODO
+The period and offset for the dwelling unit's cooling setpoint. Default for the day is from 9am to 5pm and for the night is 10pm to 7am.
 
 Created by
 **********
@@ -547,11 +575,12 @@ Corridor
 Description
 ***********
 
-TODO
+Type of corridor attached to multi-family units.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -570,7 +599,7 @@ County
 Description
 ***********
 
-TODO
+The U.S. County that the sample is located.
 
 Created by
 **********
@@ -594,7 +623,7 @@ County and PUMA
 Description
 ***********
 
-TODO
+The GISJOIN identifier for the County and the Public Use Microdata Area that the sample is located.
 
 Created by
 **********
@@ -618,11 +647,12 @@ Dehumidifier
 Description
 ***********
 
-TODO
+Presence, water removal rate, and humidity setpoint of the dehumidifier.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -641,7 +671,7 @@ Dishwasher
 Description
 ***********
 
-TODO
+The presence and rated efficiency of the dishwasher.
 
 Created by
 **********
@@ -665,11 +695,12 @@ Door Area
 Description
 ***********
 
-TODO
+Area of exterior doors
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -688,11 +719,12 @@ Doors
 Description
 ***********
 
-TODO
+Exterior door material and properties.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -711,16 +743,41 @@ Ducts
 Description
 ***********
 
-TODO
+Duct insulation and leakage levels.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
 
 IECC 2009; Lucas and Cole, 'Impacts of the 2009 IECC for Residential Buildings at State Level', 2009; Wilson et al., 'Building America House Simulation Protocols', 2014
+
+Assumption
+**********
+
+
+.. _eaves:
+
+Eaves
+-----
+
+Description
+***********
+
+Depth of roof eaves.
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+Wilson et al. 'Building America House Simulation Protocols' 2014
 
 Assumption
 **********
@@ -734,11 +791,12 @@ Electric Vehicle
 Description
 ***********
 
-TODO
+Electric vehicle usage and efficiency (not used in project_national).
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -757,7 +815,7 @@ Federal Poverty Level
 Description
 ***********
 
-TODO
+Federal poverty level of the household occupying the dwelling unit.
 
 Created by
 **********
@@ -782,7 +840,7 @@ Generation And Emissions Assessment Region
 Description
 ***********
 
-TODO
+The generation and carbon emissions assessment region that the sample is located.
 
 Created by
 **********
@@ -806,7 +864,7 @@ Geometry Attic Type
 Description
 ***********
 
-TODO
+The dwelling unit attic type.
 
 Created by
 **********
@@ -831,7 +889,7 @@ Geometry Building Horizontal Location MF
 Description
 ***********
 
-TODO
+Location of the single-family attached unit horizontally within the building (left, middle, right).
 
 Created by
 **********
@@ -856,11 +914,12 @@ Geometry Building Horizontal Location SFA
 Description
 ***********
 
-TODO
+Location of the single-family attached unit horizontally within the building (left, middle, right).
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -879,7 +938,7 @@ Geometry Building Level MF
 Description
 ***********
 
-TODO
+Location of the multi-family unit vertically within the building (bottom, middle, top).
 
 Created by
 **********
@@ -904,12 +963,12 @@ Geometry Building Number Units MF
 Description
 ***********
 
-TODO
+The number of dwelling units in the multi-family building.
 
 Created by
 **********
 
-sources/recs/2009/tsv_maker.py
+Originally created by sources/recs/2009/tsv_maker.py. Manually updated during HPXML transition.
 
 Source
 ******
@@ -929,11 +988,12 @@ Geometry Building Number Units SFA
 Description
 ***********
 
-TODO
+Number of units in the single-family attached building.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -952,7 +1012,7 @@ Geometry Building Type ACS
 Description
 ***********
 
-TODO
+The building type classification according to the U.S. Census American Communicy Survey.
 
 Created by
 **********
@@ -976,7 +1036,7 @@ Geometry Building Type Height
 Description
 ***********
 
-TODO
+The 2009 U.S. Energy Information Administration Residential Energy Consumption Survey  building type with multi-family buildings split out by low-rise, mid-rise, and high-rise.
 
 Created by
 **********
@@ -1000,7 +1060,7 @@ Geometry Building Type RECS
 Description
 ***********
 
-TODO
+The building type classification according to the U.S. Energy Information Administration Residential Energy Consumption Survey.
 
 Created by
 **********
@@ -1024,7 +1084,7 @@ Geometry Floor Area
 Description
 ***********
 
-TODO
+The finished floor area of the dwelling unit using bins from 2017-2019 AHS.
 
 Created by
 **********
@@ -1049,7 +1109,7 @@ Geometry Floor Area Bin
 Description
 ***********
 
-TODO
+The finished floor area of the dwelling unit using bins from the U.S. Energy Information Administration Residential Energy Consumption Survey.
 
 Created by
 **********
@@ -1073,7 +1133,7 @@ Geometry Foundation Type
 Description
 ***********
 
-TODO
+The type of foundation.
 
 Created by
 **********
@@ -1098,7 +1158,7 @@ Geometry Garage
 Description
 ***********
 
-TODO
+The size of an attached garage.
 
 Created by
 **********
@@ -1123,7 +1183,7 @@ Geometry Stories
 Description
 ***********
 
-TODO
+The number of building stories.
 
 Created by
 **********
@@ -1148,7 +1208,7 @@ Geometry Stories Low Rise
 Description
 ***********
 
-TODO
+Number of building stories for low-rise buildings.
 
 Created by
 **********
@@ -1172,7 +1232,7 @@ Geometry Story Bin
 Description
 ***********
 
-TODO
+The building has more than 8 or less than 8 stories.
 
 Created by
 **********
@@ -1196,7 +1256,7 @@ Geometry Wall Exterior Finish
 Description
 ***********
 
-TODO
+Wall siding material and color.
 
 Created by
 **********
@@ -1221,7 +1281,7 @@ Geometry Wall Type
 Description
 ***********
 
-TODO
+The wall material used for thermal mass calculations of exterior walls.
 
 Created by
 **********
@@ -1246,12 +1306,12 @@ HVAC Cooling Efficiency
 Description
 ***********
 
-TODO
+The presence and efficiency of primary cooling system in the dwelling unit.
 
 Created by
 **********
 
-sources/recs/2009/tsv_maker.py
+Originally created by sources/recs/2009/tsv_maker.py. Manually updated during transition to HPXML.
 
 Source
 ******
@@ -1271,7 +1331,7 @@ HVAC Cooling Partial Space Conditioning
 Description
 ***********
 
-TODO
+The fraction of the finished floor area that the cooling system provides cooling.
 
 Created by
 **********
@@ -1296,7 +1356,7 @@ HVAC Cooling Type
 Description
 ***********
 
-TODO
+The presence and type of primary cooling system in the dwelling unit.
 
 Created by
 **********
@@ -1321,7 +1381,7 @@ HVAC Has Ducts
 Description
 ***********
 
-TODO
+The presence of ducts in the dwelling unit.
 
 Created by
 **********
@@ -1345,12 +1405,12 @@ HVAC Has Shared System
 Description
 ***********
 
-TODO
+The presence of an HVAC system shared between multiple dwelling units.
 
 Created by
 **********
 
-sources/recs/2009/tsv_maker.py
+Originally created by sources/recs/2009/tsv_maker.py. Manually updated during the HPXML transition.
 
 Source
 ******
@@ -1362,6 +1422,30 @@ Assumption
 
 Due to low sample sizes for some Heating Types, Heating Type data is queried from two groups:1) Ducted Heating and Ducted Heat Pump and 2) Non-Ducted Heating and Non-Ducted Heat Pump and None; Due to low sample sizes for some Cooling Types, Cooling Type data is queried from two groups:1) Central AC and Heat Pump and 2) Room AC and None
 
+.. _hvac_has_zonal_electric_heating:
+
+HVAC Has Zonal Electric Heating
+-------------------------------
+
+Description
+***********
+
+Presence of electric baseboard heating
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+n/a
+
+Assumption
+**********
+
+
 .. _hvac_heating_efficiency:
 
 HVAC Heating Efficiency
@@ -1370,7 +1454,7 @@ HVAC Heating Efficiency
 Description
 ***********
 
-TODO
+The presence and efficiency of the primary heating system in the dwelling unit.
 
 Created by
 **********
@@ -1395,7 +1479,7 @@ HVAC Heating Type
 Description
 ***********
 
-TODO
+The presence and type of the primary heating system in the dwelling unit.
 
 Created by
 **********
@@ -1420,7 +1504,7 @@ HVAC Heating Type And Fuel
 Description
 ***********
 
-TODO
+The presence, type, and fuel of primary heating system.
 
 Created by
 **********
@@ -1444,11 +1528,12 @@ HVAC Secondary Heating Efficiency
 Description
 ***********
 
-TODO
+Efficiency of the secondary heating system (not used in project_national).
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -1467,11 +1552,12 @@ HVAC Secondary Heating Type And Fuel
 Description
 ***********
 
-TODO
+Secondary HVAC system heating type and fuel (not used in project_national).
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -1490,12 +1576,12 @@ HVAC Shared Efficiencies
 Description
 ***********
 
-TODO
+The presence and efficiency of the shared HVAC system.
 
 Created by
 **********
 
-sources/recs/2009/tsv_maker.py
+Originally created by sources/recs/2009/tsv_maker.py. Manually updated during the HPXML transition.
 
 Source
 ******
@@ -1515,7 +1601,7 @@ HVAC System Is Faulted
 Description
 ***********
 
-TODO
+The presence of the HVAC system having a fault (not used in project_national).
 
 Created by
 **********
@@ -1539,7 +1625,7 @@ HVAC System Single Speed AC Airflow
 Description
 ***********
 
-TODO
+Single speed central and room air conditioner actual air flow rates.
 
 Created by
 **********
@@ -1563,7 +1649,7 @@ HVAC System Single Speed AC Charge
 Description
 ***********
 
-TODO
+Central and room air conditioner deviation between design/installed charge.
 
 Created by
 **********
@@ -1587,7 +1673,7 @@ HVAC System Single Speed ASHP Airflow
 Description
 ***********
 
-TODO
+Single speed air source heat pump actual air flow rates.
 
 Created by
 **********
@@ -1611,7 +1697,7 @@ HVAC System Single Speed ASHP Charge
 Description
 ***********
 
-TODO
+Air source heat pump deviation between design/installed charge.
 
 Created by
 **********
@@ -1635,7 +1721,7 @@ Has PV
 Description
 ***********
 
-TODO
+The dwelling unit has a rooftop photovoltaic system.
 
 Created by
 **********
@@ -1660,7 +1746,7 @@ Heating Fuel
 Description
 ***********
 
-TODO
+The primary fuel used for heating the dwelling unit.
 
 Created by
 **********
@@ -1685,7 +1771,7 @@ Heating Setpoint
 Description
 ***********
 
-TODO
+Baseline heating setpoint with no offset applied.
 
 Created by
 **********
@@ -1710,7 +1796,7 @@ Heating Setpoint Has Offset
 Description
 ***********
 
-TODO
+Presence of a heating setpoint offset.
 
 Created by
 **********
@@ -1735,7 +1821,7 @@ Heating Setpoint Offset Magnitude
 Description
 ***********
 
-TODO
+Magnitude of the heating setpoint offset.
 
 Created by
 **********
@@ -1760,7 +1846,7 @@ Heating Setpoint Offset Period
 Description
 ***********
 
-TODO
+The period and offset for the dwelling unit's heating setpoint. Default for the day is from 9am to 5pm and for the night is 10pm to 7am.
 
 Created by
 **********
@@ -1785,11 +1871,12 @@ Holiday Lighting
 Description
 ***********
 
-TODO
+Use of holiday lighting (not used in project_national).
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -1808,11 +1895,12 @@ Hot Water Distribution
 Description
 ***********
 
-TODO
+Hot water piping material and insulation level.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -1831,11 +1919,12 @@ Hot Water Fixtures
 Description
 ***********
 
-TODO
+Hot water fixture usage and flow levels.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -1854,7 +1943,7 @@ Household Has Tribal Persons
 Description
 ***********
 
-TODO
+The houshold occupying the dwelling unit has at least one tribal person in the household.
 
 Created by
 **********
@@ -1879,7 +1968,7 @@ ISO RTO Region
 Description
 ***********
 
-TODO
+The independent system operator or regional transmission organization region that the sample is located.
 
 Created by
 **********
@@ -1903,7 +1992,7 @@ Income
 Description
 ***********
 
-TODO
+Income of the household occupying the dwelling unit.
 
 Created by
 **********
@@ -1928,7 +2017,7 @@ Income RECS2015
 Description
 ***********
 
-TODO
+Income of the household occupying the dwelling unit that are aligned with the 2015 U.S. Energy Information Administration Residential Energy Consumption Survey.
 
 Created by
 **********
@@ -1953,7 +2042,7 @@ Income RECS2020
 Description
 ***********
 
-TODO
+Income of the household occupying the dwelling unit that are aligned with the 2020 U.S. Energy Information Administration Residential Energy Consumption Survey.
 
 Created by
 **********
@@ -1978,7 +2067,7 @@ Infiltration
 Description
 ***********
 
-TODO
+Air leakage rates for the living and garage spaces
 
 Created by
 **********
@@ -2003,11 +2092,12 @@ Insulation Ceiling
 Description
 ***********
 
-TODO
+Ceiling insulation level.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2026,11 +2116,12 @@ Insulation Floor
 Description
 ***********
 
-TODO
+Floor insulation level.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2049,11 +2140,12 @@ Insulation Foundation Wall
 Description
 ***********
 
-TODO
+Foundation walls insulation level.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2064,6 +2156,31 @@ Assumption
 **********
 
 
+.. _insulation_rim_joist:
+
+Insulation Rim Joist
+--------------------
+
+Description
+***********
+
+Insulation level for rim joists.
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+Engineering Judgement
+
+Assumption
+**********
+
+Rim joist insulation is the same value as the foundation wall insulation.
+
 .. _insulation_roof:
 
 Insulation Roof
@@ -2072,11 +2189,12 @@ Insulation Roof
 Description
 ***********
 
-TODO
+Finished roof insulation level.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2095,11 +2213,12 @@ Insulation Slab
 Description
 ***********
 
-TODO
+Slab insulation level.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2118,21 +2237,22 @@ Insulation Wall
 Description
 ***********
 
-TODO
+Wall construction type and insulation level.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
 
-Ritschard et al. Single-Family Heating and Cooling Requirements: Assumptions, Methods, and Summary Results 1992; Nettleton, G.; Edwards, J. (2012). Data Collection-Data Characterization Summary, NorthernSTAR Building America Partnership, Building Technologies Program. Washington, D.C.: U.S. Department of Energy, as described in Roberts et al., 'Assessment of the U.S. Department of Energy's Home Energy Score Tool', 2012, and Merket Building America Field Data Repository, Webinar, 2014; Ritschard et al. Single-Family Heating and Cooling Requirements: Assumptions, Methods, and Summary Results 1992; Nettleton, G.; Edwards, J. (2012). Data Collection-Data Characterization Summary, NorthernSTAR Building America Partnership, Building Technologies Program. Washington, D.C.: U.S. Department of Energy, as described in Roberts et al., 'Assessment of the U.S. Department of Energy's Home Energy Score Tool', 2012, and Merket Building America Field Data Repository, Webinar, 2014; Ritschard et al. Single-Family Heating and Cooling Requirements: Assumptions, Methods, and Summary Results 1992; Nettleton, G.; Edwards, J. (2012). Data Collection-Data Characterization Summary, NorthernSTAR Building America Partnership, Building Technologies Program. Washington, D.C.: U.S. Department of Energy, as described in Roberts et al., 'Assessment of the U.S. Department of Energy's Home Energy Score Tool', 2012, and Merket Building America Field Data Repository, Webinar, 2014; Ritschard et al. Single-Family Heating and Cooling Requirements: Assumptions, Methods, and Summary Results 1992; Nettleton, G.; Edwards, J. (2012). Data Collection-Data Characterization Summary, NorthernSTAR Building America Partnership, Building Technologies Program. Washington, D.C.: U.S. Department of Energy, as described in Roberts et al., 'Assessment of the U.S. Department of Energy's Home Energy Score Tool', 2012, and Merket Building America Field Data Repository, Webinar, 2014
+Ritschard et al. Single-Family Heating and Cooling Requirements: Assumptions, Methods, and Summary Results 1992; Nettleton, G.; Edwards, J. (2012). Data Collection-Data Characterization Summary, NorthernSTAR Building America Partnership, Building Technologies Program. Washington, D.C.: U.S. Department of Energy, as described in Roberts et al., 'Assessment of the U.S. Department of Energy's Home Energy Score Tool', 2012, and Merket Building America Field Data Repository, Webinar, 2014
 
 Assumption
 **********
 
-Updated per new wall type from Lightbox, all wall type-specific distributions follow that of `Wood Frame` (`WoodStud`); Updated per new wall type from Lightbox, all wall type-specific distributions follow that of `Wood Frame` (`WoodStud`); Updated per new wall type from Lightbox, all wall type-specific distributions follow that of `Wood Frame` (`WoodStud`); Updated per new wall type from Lightbox, all wall type-specific distributions follow that of `Wood Frame` (`WoodStud`)
+Updated per new wall type from Lightbox, all wall type-specific distributions follow that of `Wood Frame` (`WoodStud`)
 
 .. _interior_shading:
 
@@ -2142,11 +2262,12 @@ Interior Shading
 Description
 ***********
 
-TODO
+Fraction of window shading in the summer and winter.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2165,12 +2286,12 @@ Lighting
 Description
 ***********
 
-TODO
+Fraction of lighting types.
 
 Created by
 **********
 
-sources/recs/2015/tsv_maker.py
+originally created by sources/recs/2015/tsv_maker.py. Manually updated during the HPXML transition.
 
 Source
 ******
@@ -2190,11 +2311,12 @@ Lighting Interior Use
 Description
 ***********
 
-TODO
+Interior lighting usage relative to the national average.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2213,11 +2335,12 @@ Lighting Other Use
 Description
 ***********
 
-TODO
+Exterior and garage lighting usage relative to the national average.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2236,7 +2359,7 @@ Location Region
 Description
 ***********
 
-TODO
+A custom ResStock region constructed of RECS 2009 reportable domains that the sample is located.
 
 Created by
 **********
@@ -2246,7 +2369,7 @@ sources/spatial/tsv_maker.py
 Source
 ******
 
-Spatial definitions are from the U.S. Census Bureau as of July 1, 2015.; Unit counts are from the American Community Survey 5-yr 2016.
+Spatial definitions are from the U.S. Census Bureau as of July 1, 2015.; Unit counts are from the American Community Survey 5-yr 2016.; Custom region map located https://github.com/NREL/resstock/wiki/Custom-Region-(CR)-Map
 
 Assumption
 **********
@@ -2260,11 +2383,12 @@ Mechanical Ventilation
 Description
 ***********
 
-TODO
+Mechanical ventilation type and efficiency.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2283,12 +2407,12 @@ Misc Extra Refrigerator
 Description
 ***********
 
-TODO
+The presence and rated efficiency of the secondary refrigerator.
 
 Created by
 **********
 
-sources/recs/2009/tsv_maker.py
+Originally created by sources/recs/2009/tsv_maker.py. Manually updated during the transition to HPXML.
 
 Source
 ******
@@ -2308,7 +2432,7 @@ Misc Freezer
 Description
 ***********
 
-TODO
+The presence and rated efficiency of a standalone freezer.
 
 Created by
 **********
@@ -2332,11 +2456,12 @@ Misc Gas Fireplace
 Description
 ***********
 
-TODO
+Presence of a gas fireplace.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2355,11 +2480,12 @@ Misc Gas Grill
 Description
 ***********
 
-TODO
+Presence of a gas grill.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2378,11 +2504,12 @@ Misc Gas Lighting
 Description
 ***********
 
-TODO
+Presence of exterior gas lighting.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2401,7 +2528,7 @@ Misc Hot Tub Spa
 Description
 ***********
 
-TODO
+The presence and heating fuel of a hot tub/spa at the dwelling unit.
 
 Created by
 **********
@@ -2425,7 +2552,7 @@ Misc Pool
 Description
 ***********
 
-TODO
+The presence of a pool at the dwelling unit.
 
 Created by
 **********
@@ -2440,6 +2567,7 @@ U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
 Assumption
 **********
 
+Pools at mobile home and multi-family dwelling units are not modeled.
 
 .. _misc_pool_heater:
 
@@ -2449,12 +2577,12 @@ Misc Pool Heater
 Description
 ***********
 
-TODO
+The heating fuel of the pool heater if there is a pool.
 
 Created by
 **********
 
-sources/recs/2009/tsv_maker.py
+Originally created by sources/recs/2009/tsv_maker.py. Manually updated during the transition to HPXML.
 
 Source
 ******
@@ -2473,11 +2601,12 @@ Misc Pool Pump
 Description
 ***********
 
-TODO
+Presence and size of pool pump.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2496,11 +2625,12 @@ Misc Well Pump
 Description
 ***********
 
-TODO
+Presence and efficiency of well pump.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2519,11 +2649,12 @@ Natural Ventilation
 Description
 ***********
 
-TODO
+Schedule of natural ventilation from windows.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2542,11 +2673,12 @@ Neighbors
 Description
 ***********
 
-TODO
+Presence and distance between the dwelling unit and the nearest neighbors to the left and right.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2565,7 +2697,7 @@ Occupants
 Description
 ***********
 
-TODO
+The number of occupants living in the dwelling unit.
 
 Created by
 **********
@@ -2590,11 +2722,12 @@ Orientation
 Description
 ***********
 
-TODO
+Orientation of the front of the dwelling unit as it faces the street.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2613,11 +2746,12 @@ Overhangs
 Description
 ***********
 
-TODO
+Presence, depth, and location of window overhangs (not used in project_national).
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2636,7 +2770,7 @@ PUMA
 Description
 ***********
 
-TODO
+The Public Use Microdata Area from 2010 U.S. Census that the sample is located.
 
 Created by
 **********
@@ -2660,7 +2794,7 @@ PUMA Metro Status
 Description
 ***********
 
-TODO
+The public use microdata area metropolitan status that the dwelling unit is located.
 
 Created by
 **********
@@ -2685,7 +2819,7 @@ PV Orientation
 Description
 ***********
 
-TODO
+The orientation of the photovoltaic system.
 
 Created by
 **********
@@ -2710,7 +2844,7 @@ PV System Size
 Description
 ***********
 
-TODO
+The size of the photovoltaic system.
 
 Created by
 **********
@@ -2735,11 +2869,12 @@ Plug Load Diversity
 Description
 ***********
 
-TODO
+Plug load diversity multiplier intended to add variation in plug load profiles across all simulations.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2758,7 +2893,7 @@ Plug Loads
 Description
 ***********
 
-TODO
+Plug load usage level which is varied by Census Division RECS and Building Type RECS.
 
 Created by
 **********
@@ -2783,7 +2918,7 @@ REEDS Balancing Area
 Description
 ***********
 
-TODO
+The Regional Energy Deployment System Model (ReEDS) balancing area that the sample is located.
 
 Created by
 **********
@@ -2807,11 +2942,12 @@ Radiant Barrier
 Description
 ***********
 
-TODO
+Presence of radiant barrier in the attic (not modeled in project_national).
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2830,11 +2966,12 @@ Range Spot Vent Hour
 Description
 ***********
 
-TODO
+Range spot ventilation daily start hour.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2853,12 +2990,12 @@ Refrigerator
 Description
 ***********
 
-TODO
+The presence and rated efficiency of the primary refrigerator.
 
 Created by
 **********
 
-sources/recs/2009/tsv_maker.py
+Originally created by sources/recs/2009/tsv_maker.py. Manually updated during the HPXML transition.
 
 Source
 ******
@@ -2877,7 +3014,7 @@ Roof Material
 Description
 ***********
 
-TODO
+Roof material and color.
 
 Created by
 **********
@@ -2901,11 +3038,12 @@ Solar Hot Water
 Description
 ***********
 
-TODO
+Presence, size, and location of solar hot water system (not modeled in project_national).
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2924,7 +3062,7 @@ State
 Description
 ***********
 
-TODO
+The U.S. State the sample is located.
 
 Created by
 **********
@@ -2948,7 +3086,7 @@ Tenure
 Description
 ***********
 
-TODO
+The tenancy (owner or renter) of the household occupying the dwelling unit.
 
 Created by
 **********
@@ -2973,11 +3111,12 @@ Usage Level
 Description
 ***********
 
-TODO
+Usage of major appliances relative to the national average.
 
 Created by
 **********
 
+manually created
 
 Source
 ******
@@ -2996,7 +3135,7 @@ Vacancy Status
 Description
 ***********
 
-TODO
+The vacancy status (occupied or vacant) of the dwelling unit.
 
 Created by
 **********
@@ -3021,7 +3160,7 @@ Vintage
 Description
 ***********
 
-TODO
+Time period in which the building was constructed.
 
 Created by
 **********
@@ -3046,7 +3185,7 @@ Vintage ACS
 Description
 ***********
 
-TODO
+Time period in which the dwelling unit was constructed as defined by the U.S. Census American Community Survey.
 
 Created by
 **********
@@ -3070,7 +3209,7 @@ Water Heater Efficiency
 Description
 ***********
 
-TODO
+The efficiency, type, and heating fuel of water heater.
 
 Created by
 **********
@@ -3095,7 +3234,7 @@ Water Heater Fuel
 Description
 ***********
 
-TODO
+The water heater fuel type.
 
 Created by
 **********
@@ -3120,7 +3259,7 @@ Water Heater In Unit
 Description
 ***********
 
-TODO
+Individual water heater present or not present in the dwelling unit that solely serves the specific dwelling unit.
 
 Created by
 **********
@@ -3145,7 +3284,7 @@ Window Areas
 Description
 ***********
 
-TODO
+Window to wall ratios of the front, back, left, and right walls.
 
 Created by
 **********
@@ -3170,7 +3309,7 @@ Windows
 Description
 ***********
 
-TODO
+Construction type and efficiency levels of windows.
 
 Created by
 **********
@@ -3186,92 +3325,4 @@ Assumption
 **********
 
 Wood and Vinyl are considered same material; Triple Pane assumed to be 100% low-e; Only breaking out clear and low-e windows for the Double, Non-Metal frame type; Source of low-e distribution is based on engineering judgement, informed by high-levelsales trends observed in Ducker Worldwide studies of the U.S. Market for Windows, Doors and Skylights.; Due to low sample sizes for some Building Types, Building Type data are grouped into: 1) Single-Family Detached, Single-Family Attached, and Mobile homes and 2) Multi-Family 2-4 units and Multi-Family 5+ units; Due to low sample sizes for Vintage, Vintage data are grouped into: 1) <1960, 2) 1960-79, 3) 1980-99, 4) 2000-15; Due to low sample size for Climate, Climate zones are grouped into: 1) 1A, 2A, and 2B, 2) 3A, 3B, 3C, and 4B, 3) 4A and 4C, 4) 5A and 5B, 5) 6A and 6B, and 6) 7A and 7B; Storm window saturations are based on D&R International, Ltd. 'Residential Windows and Window Coverings: A Detailed View of the Installed Base and User Behavior' 2013. https://www.energy.gov/sites/prod/files/2013/11/f5/residential_windows_coverings.pdf. Cut the % storm windows by factor of 55% because only 55% of storms are installed year round; Due to lack of performance data storm windows with triple-pane are modeled without the storm windows; Due to lack of performance data Double-pane, Low-E, Non-Metal, Air, M-gain, Exterior Clear Storm windows are modeled as Double-pane, Clear, Non-Metal, Air, Exterior Clear Storm windows
-
-.. _battery:
-
-Battery
--------
-
-Description
-***********
-
-TODO
-
-Created by
-**********
-
-
-Source
-******
-
-
-Assumption
-**********
-
-
-.. _eaves:
-
-Eaves
------
-
-Description
-***********
-
-TODO
-
-Created by
-**********
-
-
-Source
-******
-
-
-Assumption
-**********
-
-
-.. _hvac_has_zonal_electric_heating:
-
-HVAC Has Zonal Electric Heating
--------------------------------
-
-Description
-***********
-
-TODO
-
-Created by
-**********
-
-
-Source
-******
-
-
-Assumption
-**********
-
-
-.. _insulation_rim_joist:
-
-Insulation Rim Joist
---------------------
-
-Description
-***********
-
-TODO
-
-Created by
-**********
-
-
-Source
-******
-
-
-Assumption
-**********
-
 
