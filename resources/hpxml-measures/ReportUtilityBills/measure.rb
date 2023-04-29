@@ -312,12 +312,18 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
           fields = tariff.keys
 
           if fields.include?(:fixedchargeunits)
+            rate.fixedmonthlycharge = 0.0 if fields.include?(:fixedchargefirstmeter) || fields.include?(:fixedchargeeaaddl)
             if tariff[:fixedchargeunits] == '$/month'
-              rate.fixedmonthlycharge = 0.0 if fields.include?(:fixedchargefirstmeter) || fields.include?(:fixedchargeeaaddl)
               rate.fixedmonthlycharge += tariff[:fixedchargefirstmeter] if fields.include?(:fixedchargefirstmeter)
               rate.fixedmonthlycharge += tariff[:fixedchargeeaaddl] if fields.include?(:fixedchargeeaaddl)
+            elsif tariff[:fixedchargeunits] == '$/day'
+              rate.fixedmonthlycharge += tariff[:fixedchargefirstmeter] * 365 / 12 if fields.include?(:fixedchargefirstmeter)
+              rate.fixedmonthlycharge += tariff[:fixedchargeeaaddl] * 365 / 12 if fields.include?(:fixedchargeeaaddl)
+            elsif tariff[:fixedchargeunits] == '$/year'
+              rate.fixedmonthlycharge += tariff[:fixedchargefirstmeter] / 12 if fields.include?(:fixedchargefirstmeter)
+              rate.fixedmonthlycharge += tariff[:fixedchargeeaaddl] / 12 if fields.include?(:fixedchargeeaaddl)
             else
-              warnings << 'Fixed charge units must be $/month.'
+              warnings << 'Fixed charge units must be $/month, $/day, or $/year'
             end
           end
 

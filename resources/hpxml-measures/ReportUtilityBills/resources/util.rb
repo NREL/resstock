@@ -488,21 +488,13 @@ def process_usurdb(filepath, export_zip: true)
     next if !rate['enddate'].nil?
     next if keywords.any? { |x| rate['name'].downcase.include?(x) } && skip_keywords
 
+    # Do not ignore files with fixed charge with $/day or $/year unit
     # # fixed charges
     # if ['$/day', '$/year'].include?(rate['fixedchargeunits'])
     #   next
     # end
-    # JH: convert daily/year fixed charges to monthly, not ignore them
-    if ['$/day'].include?(rate['fixedchargeunits'])
-      rate['fixedchargeunits'] = '$/month'
-      rate['fixedchargefirstmeter'] = Float(rate['fixedchargefirstmeter']) * 365 / 12
-    end
-    if ['$/year'].include?(rate['fixedchargeunits'])
-      rate['fixedchargeunits'] = '$/month'
-      rate['fixedchargefirstmeter'] = Float(rate['fixedchargefirstmeter']) / 12
-    end
 
-    # JH: no need to ignore with min charges (e.g., San Diego Gas & Electric)
+    # No need to ignore with min charges (e.g., San Diego Gas & Electric)
     # # min charges
     # if ['$/day'].include?(rate['minchargeunits'])
     #   next
