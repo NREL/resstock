@@ -1,12 +1,12 @@
-.. _available_outputs:
+.. _workflow_outputs:
 
-Available Outputs
-=================
+Workflow Outputs
+================
 
-ResStock generates a default set of housing characteristics, simulation output, and upgrade cost outputs.
+ResStock, by default, generates a set of sampled housing characteristics, simulation output, and upgrade cost outputs.
 ResStock optionally generates outputs related to component loads, emissions, utility bills, quantities of interest, zone temperatures/setpoints, airflow rates, weather file data, and user-requested EnergyPlus output variables.
 
-Tables in the :ref:`default_outputs` and :ref:`optional_outputs` sections are generated based on `data dictionary files <https://github.com/NREL/resstock/tree/data-dictionary/resources/data/dictionary>`_.
+Tables in the :ref:`default_outputs` and :ref:`optional_outputs` sections are generated based on `data dictionary files for inputs and outputs <https://github.com/NREL/resstock/tree/data-dictionary/resources/data/dictionary/>`_.
 The data dictionary files, along with their data columns, are shown below:
 
 - ``resources/data/dictionary/inputs.csv``
@@ -29,6 +29,7 @@ The data dictionary files, along with their data columns, are shown below:
   Although not shown in the tables, the "Row Index" and "Sums To" columns can be used to understand how various outputs relate to other outputs (e.g., end use columns sum to fuel use, and fuel use columns sum to energy use).
 
 .. toctree::
+   :maxdepth: 2
 
-  default_outputs
-  optional_outputs
+   default_outputs
+   optional_outputs

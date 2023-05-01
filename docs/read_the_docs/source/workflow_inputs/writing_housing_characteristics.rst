@@ -1,3 +1,5 @@
+.. _writing_housing_characteristics:
+
 Writing Housing Characteristics
 ===============================
 

@@ -2,7 +2,7 @@
 
 require 'csv'
 
-source_report = CSV.read(File.join(File.dirname(__FILE__), '../../../project_national/resources/source_report.csv'), headers: true)
+source_report = CSV.read(File.join(File.dirname(__FILE__), '../../../../project_national/resources/source_report.csv'), headers: true)
 
 def write_subsection(f, row, name, sc)
   f.puts(name)
@@ -28,8 +28,6 @@ f.puts('.. _housing_characteristics:')
 f.puts
 f.puts('Housing Characteristics')
 f.puts('=======================')
-f.puts
-f.puts("The following is populated based on the national project's `source_report.csv <https://github.com/NREL/resstock/blob/data-dictionary/project_national/resources/source_report.csv>`_.")
 f.puts
 
 source_report.each do |row|

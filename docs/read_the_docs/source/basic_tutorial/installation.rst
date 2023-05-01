@@ -26,7 +26,7 @@ Install OpenStudio
 
 Download the version of OpenStudio software (corresponding to the ResStock version that has been selected) from the `OpenStudio developer website <https://www.openstudio.net/developers>`_.
 
-Developer instructions
+Developer Instructions
 ----------------------
 
 If you will be developing residential measures and testing residential building models, see the :ref:`advanced_tutorial`. If you are a developer, make sure that you have checked out the ``develop`` branch of the repository.

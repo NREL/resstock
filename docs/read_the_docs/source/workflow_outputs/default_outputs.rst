@@ -3,7 +3,7 @@
 Default Outputs
 ===============
 
-The default set of outputs include housing characteristics, annual simulation outputs, and upgrade cost information.
+The default set of outputs include sampled housing characteristics, annual simulation outputs, and upgrade cost information.
 
 Specifying any timeseries frequency other than "none" results in, by default, end use consumptions and total loads timeseries output requests.
 See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``simulation_output_report`` section) for more information on how to request various timeseries outputs (or override default requests).

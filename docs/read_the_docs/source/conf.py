@@ -106,7 +106,8 @@ def setup(app):
 # html_sidebars = {}
 html_logo = 'images/logo.jpg'
 html_theme_options = {
-    'logo_only': True
+    'logo_only': True,
+    'style_nav_header_background': 'white',
 }
 
 

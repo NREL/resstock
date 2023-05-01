@@ -3,8 +3,6 @@
 Housing Characteristics
 =======================
 
-The following is populated based on the national project's `source_report.csv <https://github.com/NREL/resstock/blob/data-dictionary/project_national/resources/source_report.csv>`_.
-
 .. _ahs_region:
 
 AHS Region

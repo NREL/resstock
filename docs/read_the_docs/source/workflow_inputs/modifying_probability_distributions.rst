@@ -1,3 +1,5 @@
+.. _modifying_probability_distributions:
+
 Modifying Probability Distributions
 ===================================
 
