@@ -7,15 +7,20 @@ output_directory: /scratch/pwhite/seto_year_2/fairfax/baseline_tmy
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
+# sampler:
+#   type: residential_quota_downselect
+#   args:
+#     n_datapoints: 1000
+#     logic:
+#       - Geometry Building Type RECS|Single-Family Detached
+#       - Vacancy Status|Occupied
+#       - County|VA, Fairfax County
+#     resample: true
+
 sampler:
-  type: residential_quota_downselect
+  type: precomputed
   args:
-    n_datapoints: 1000
-    logic:
-      - Geometry Building Type RECS|Single-Family Detached
-      - Vacancy Status|Occupied
-      - County|VA, Fairfax County
-    resample: true
+    sample_file: buildstock_fairfax.csv
 
 workflow_generator:
   type: residential_hpxml

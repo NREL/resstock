@@ -3,25 +3,30 @@ os_version: 3.5.1
 os_sha: 22e1db7be5
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_seto_setpoint_v2 # Relative to buildstock_directory
-output_directory: /scratch/pwhite/seto_year_2/trial/tarrant_v2
+output_directory: /scratch/pwhite/seto_year_2/hillsborough/adjusted_tmy
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
+# sampler:
+#   type: residential_quota_downselect
+#   args:
+#     n_datapoints: 1000
+#     logic:
+#       - Geometry Building Type RECS|Single-Family Detached
+#       - Vacancy Status|Occupied
+#       - County|FL, Hillsborough County
+#     resample: true
+
 sampler:
-  type: residential_quota_downselect
+  type: precomputed
   args:
-    n_datapoints: 1000
-    logic:
-      - Geometry Building Type RECS|Single-Family Detached
-      - Vacancy Status|Occupied
-      - County|FL, Hillsborough County
-    resample: true
+    sample_file: buildstock_hillsborough_adjusted.csv
 
 workflow_generator:
   type: residential_hpxml
   args:
     build_existing_model:
-      simulation_control_timestep: 60
+      simulation_control_timestep: 15
       simulation_control_run_period_begin_month: 1
       simulation_control_run_period_begin_day_of_month: 1
       simulation_control_run_period_end_month: 12
@@ -37,7 +42,7 @@ workflow_generator:
       - scenario_name: Bills
 
     simulation_output_report:
-      timeseries_frequency: hourly
+      timeseries_frequency: timestep
       include_timeseries_total_consumptions: true
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
@@ -55,7 +60,7 @@ baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
 
 upgrades:
-  - upgrade_name: Enhanced enclosure # Bundle #2 Variant
+  - upgrade_name: Bundle 2 Variant # Enhanced enclosure # Bundle #2 Variant
     #Up02
     options:
       #Basic Enclosure Measures
@@ -273,7 +278,7 @@ upgrades:
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
 
 
-  - upgrade_name: Min Eff HP ACCA  # Bundle #7 ACCA
+  - upgrade_name: Bundle 7 Variant A # Min Eff HP ACCA  # Bundle #7 ACCA
     #Up03
     options:
       # ASHP
@@ -510,7 +515,7 @@ upgrades:
             - *dual-system_ductless_shared_apply_logic
 
 
-  - upgrade_name: Min Eff HP Max Load  # Bundle #7 Max-load
+  - upgrade_name: Bundle 7 Variant B # Min Eff HP Max Load  # Bundle #7 Max-load
     #Up03
     options:
       # ASHP
@@ -646,7 +651,7 @@ upgrades:
             - *dual-system_ductless_shared_apply_logic
 
 
-  - upgrade_name: High Eff HP ACCA  # Bundle #8 ACCA
+  - upgrade_name: Bundle 8 Variant A # High Eff HP ACCA  # Bundle #8 ACCA
     options:
       #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
       - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Ducted # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
@@ -802,7 +807,7 @@ upgrades:
             - *ducted_higheff_HP_all_fuel_apply_logic
 
 
-  - upgrade_name: High Eff HP Max Load  # Bundle #8 Max-load
+  - upgrade_name: Bundle 8 Variant B # High Eff HP Max Load  # Bundle #8 Max-load
     options:
       #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
       - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Ducted, Max Load # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
@@ -935,7 +940,7 @@ upgrades:
             - *ducted_higheff_HP_all_fuel_apply_logic
 
 
-  - upgrade_name: High Eff HP ACCA Enhanced Envelope  # Bundle #10 Variant A
+  - upgrade_name: Bundle 10 Variant A # High Eff HP ACCA Enhanced Envelope  # Bundle #10 Variant A
     #Up03
     options:
       #package 2
@@ -1087,7 +1092,7 @@ upgrades:
             - *ducted_higheff_HP_all_fuel_apply_logic
 
 
-  - upgrade_name: High Eff HP Max Load Enhanced Envelope  # Bundle #10 Variant C
+  - upgrade_name: Bundle 10 Variant C # High Eff HP Max Load Enhanced Envelope  # Bundle #10 Variant C
     #Up03
     options:
 
@@ -1241,7 +1246,7 @@ upgrades:
             - *ducted_higheff_HP_all_fuel_apply_logic
 
 
-  - upgrade_name: High Eff HP ACCA Enhanced Envelope Electric Backup # Bundle #10 Variant E
+  - upgrade_name: Bundle 10 Variant E # High Eff HP ACCA Enhanced Envelope Electric Backup # Bundle #10 Variant E
     #Up03
     options:
       #package 2
@@ -1289,7 +1294,7 @@ upgrades:
             - *nonducted_higheff_HP_all_fuel_apply_logic
 
 
-  - upgrade_name: High Eff HP Max Load Enhanced Envelope Electric Backup  # Bundle #10 Variant F
+  - upgrade_name: Bundle 10 Variant F # High Eff HP Max Load Enhanced Envelope Electric Backup  # Bundle #10 Variant F
     #Up03
     options:
       #package 2
@@ -1320,26 +1325,16 @@ upgrades:
 
       # MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load # changed to Max Load
-        apply_logic: &nonducted_higheff_HP_all_fuel_apply_logic
-          - HVAC Has Ducts|No
-          - or: &not_MSHP_greater_than_SEER_29_14_HSPF
-            - not: HVAC Cooling Efficiency|Heat Pump
-            - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
-            - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        apply_logic: *nonducted_higheff_HP_all_fuel_apply_logic
         costs: *costs_mshp_ductless_SEER_29_14_HSPF
         lifetime: *lifetime_mshp_ductless_SEER_29_14_HSPF
       #global
-      - &apply_heat_pump_cooling_efficiency
-        option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
-        apply_logic:
-          or:
-            - *ducted_higheff_HP_all_fuel_apply_logic
-            - *nonducted_higheff_HP_all_fuel_apply_logic
+      - *apply_heat_pump_cooling_efficiency
 
 
 eagle:
-  n_jobs: 20
-  minutes_per_sim: 3
+  n_jobs: 50
+  minutes_per_sim: 10
   account: setores
   postprocessing:
     time: 30
