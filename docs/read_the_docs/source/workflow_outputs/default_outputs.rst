@@ -53,7 +53,7 @@ upgrade_costs.upgrade_cost_usd         $                         Total cost of t
 =====================================  ========================  =====================================
 
 where <#> represents any of the defined option numbers.
-See :doc:`../upgrade_scenario_config` for more information.
+See :doc:`../advanced_tutorial/upgrade_scenario_config` for more information.
 
 .. note::
   Currently, you can enter up to 25 options per upgrade.

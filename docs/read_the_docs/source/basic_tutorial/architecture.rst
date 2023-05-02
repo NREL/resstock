@@ -136,7 +136,7 @@ They contribute to the generation of the model.
   Also, we'll give the upgrade scenario a name: "Triple-Pane Windows" and a cost of $40/ft\ :superscript:`2` of window area by entering the number in **Option 1 Cost Value** and selecting "Window Area (ft^2)" for **Option 1 Cost Multiplier**.
   Like the **downselect logic**, excluded datapoints (i.e., datapoints for which the upgrade does not apply) will result in "completed invalid workflow".
   Note that using no downselect logic will apply the option to all housing units.
-  For a full explanation of how to set up the options and logic surrounding them, see :doc:`../upgrade_scenario_config`.
+  For a full explanation of how to set up the options and logic surrounding them, see :doc:`../advanced_tutorial/upgrade_scenario_config`.
 
 **HPXMLtoOpenStudio**
 
