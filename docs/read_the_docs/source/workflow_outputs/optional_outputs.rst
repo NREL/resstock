@@ -8,6 +8,7 @@ Other timeseries outputs related to zone temperatures/setpoints, airflow rates, 
 
 To be generated, some optional outputs need only a single switch enabled (e.g., component loads).
 Others need additional input arguments specified (e.g., emissions, utility bills).
+Again, see the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page for more information on how to enable optional output requests.
 
 Component Loads
 ***************
@@ -31,8 +32,11 @@ See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedo
 
 See the OpenStudio-HPXML Workflow Outputs sections on `Annual Emissions <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-emissions>`_ and `Timeseries Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#timeseries-outputs>`_ for more information about emissions.
 
-For the example below, the "LRMER_MidCase_15" emissions scenario was requested.
-See the list of available emissions scenario choices at https://github.com/NREL/resstock/tree/develop/resources/data/cambium.
+In the below, "<type>" refers to the ``type`` of emission (e.g., "CO2e", "NOx", etc.) specified and "<scenario_name>" refers to the ``scenario_name`` (e.g., "LRMER_MidCase_15", "AER_HighRECost_1", etc.) specified.
+See the list of all available emissions scenario name choices at https://github.com/NREL/resstock/tree/develop/resources/data/cambium.
+
+.. note::
+  Output names may show "<type>" and "<scenario_name>" in some form of "underscore" case. For example, "CO2e" becomes "co2e" (or "co_2_e") and "LRMER_MidCase_15" becomes "lrmer_mid_case_15" (or "lrmer_midcase_15").
 
 .. csv-table::
    :file: csv_tables/emissions.csv
@@ -46,7 +50,8 @@ See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedo
 
 See the OpenStudio-HPXML Workflow Outputs section on `Utility Bill Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#utility-bill-outputs>`_ for more information about utility bill outputs.
 
-For the example below, a "Bills" scenario was requested.
+In the table below, "<scenario_name>" refers to the ``scenario_name`` (e.g., "Bills") specified.
+Like emissions, output names may show "<scenario_name>" in some form of "underscore" case. For example, "Bills" becomes "bills".
 
 .. csv-table::
    :file: csv_tables/utility_bills.csv

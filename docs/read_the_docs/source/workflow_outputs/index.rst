@@ -4,7 +4,9 @@ Workflow Outputs
 ================
 
 ResStock, by default, generates a set of sampled housing characteristics, simulation output, and upgrade cost outputs.
+
 ResStock optionally generates outputs related to component loads, emissions, utility bills, quantities of interest, zone temperatures/setpoints, airflow rates, weather file data, and user-requested EnergyPlus output variables.
+See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page for more information on how to request optional outputs.
 
 Tables in the :ref:`default_outputs` and :ref:`optional_outputs` sections are generated based on `data dictionary files for inputs and outputs <https://github.com/NREL/resstock/tree/data-dictionary/resources/data/dictionary/>`_.
 The data dictionary files, along with their data columns, are shown below:
