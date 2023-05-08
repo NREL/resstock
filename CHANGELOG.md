@@ -6,6 +6,7 @@ Features
 - Demonstrate new power outage modeling feature using upgrades specified in example project yml files ([#1054](https://github.com/NREL/resstock/pull/1054))
 - Ability to specify a "sample_weight" column in the precomputed buildstock.csv ([#1056](https://github.com/NREL/resstock/pull/1056))
 - Add descriptions to the housing characteristics ([#1069](https://github.com/NREL/resstock/pull/1069))
+- Connect ASHP to optional capacity retention temperature and fraction arguments (that already exist for MSHP) ([#1071](https://github.com/NREL/resstock/pull/1071))
 
 Fixes
 - Pulls in upstream OS-HPXML fix related to [avoiding possible OpenStudio temporary directory collision](https://github.com/NREL/OpenStudio-HPXML/pull/1316) causing random errors ([#1054](https://github.com/NREL/resstock/pull/1054))
