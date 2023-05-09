@@ -267,37 +267,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     return args
   end
 
-  # define the outputs that the measure will create
-  def outputs
-    outs = OpenStudio::Measure::OSOutputVector.new
-
-    setup_outputs(true)
-
-    all_outputs = []
-    all_outputs << @totals
-    all_outputs << @fuels
-    all_outputs << @end_uses
-    all_outputs << @loads
-    all_outputs << @unmet_hours
-    all_outputs << @peak_fuels
-    all_outputs << @peak_loads
-    all_outputs << @component_loads
-    all_outputs << @hot_water_uses
-
-    output_names = []
-    all_outputs.each do |outputs|
-      outputs.values.each do |obj|
-        output_names << get_runner_output_name(obj.name, obj.annual_units)
-      end
-    end
-
-    output_names.each do |output_name|
-      outs << OpenStudio::Measure::OSOutput.makeDoubleOutput(output_name)
-    end
-
-    return outs
-  end
-
   def get_arguments(runner, arguments, user_arguments)
     args = get_argument_values(runner, arguments, user_arguments)
     args.each do |k, val|
@@ -1402,10 +1371,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
   end
 
-  def get_runner_output_name(name, annual_units)
-    return "#{name} #{annual_units}"
-  end
-
   def append_sizing_results(results_out, line_break)
     # Summary HVAC capacities
     htg_cap, clg_cap, hp_backup_cap = 0.0, 0.0, 0.0
@@ -1885,19 +1850,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @object_variables_by_key = {}
     return if @model.nil?
 
-    @model.getModelObjects.each do |object|
+    @model.getModelObjects.sort.each do |object|
       next if object.to_AdditionalProperties.is_initialized
 
       [EUT, HWT, LT].each do |class_name|
-        vars_by_key = get_object_output_variables_by_key(@model, object, class_name)
-        next if vars_by_key.size == 0
-
         sys_id = object.additionalProperties.getFeatureAsString('HPXML_ID')
-        if sys_id.is_initialized
-          sys_id = sys_id.get
-        else
-          sys_id = nil
-        end
+        sys_id = sys_id.is_initialized ? sys_id.get : nil
+        vars_by_key = get_object_output_variables_by_key(@model, object, sys_id, class_name)
+        next if vars_by_key.size == 0
 
         vars_by_key.each do |key, output_vars|
           output_vars.each do |output_var|
@@ -2454,7 +2414,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     return system_ids
   end
 
-  def get_object_output_variables_by_key(model, object, class_name)
+  def get_object_output_variables_by_key(model, object, sys_id, class_name)
+    # For a given object, returns the output variables to be requested and associates
+    # them with the appropriate keys (e.g., [FT::Elec, EUT::Heating]).
+
     to_ft = { EPlus::FuelTypeElectricity => FT::Elec,
               EPlus::FuelTypeNaturalGas => FT::Gas,
               EPlus::FuelTypeOil => FT::Oil,
@@ -2462,16 +2425,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
               EPlus::FuelTypeWoodCord => FT::WoodCord,
               EPlus::FuelTypeWoodPellets => FT::WoodPellets,
               EPlus::FuelTypeCoal => FT::Coal }
-
-    # For a given object, returns the output variables to be requested and associates
-    # them with the appropriate keys (e.g., [FT::Elec, EUT::Heating]).
-
-    sys_id = object.additionalProperties.getFeatureAsString('HPXML_ID')
-    if sys_id.is_initialized
-      sys_id = sys_id.get
-    else
-      sys_id = nil
-    end
 
     if class_name == EUT
 

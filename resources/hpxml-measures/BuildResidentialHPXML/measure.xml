@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>1806b6bb-e9cb-4319-bbde-077b03651e98</version_id>
-  <version_modified>20230411T234612Z</version_modified>
+  <version_id>235c0e9c-de56-46b1-8712-83df120d39b8</version_id>
+  <version_modified>20230501T221652Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -34,24 +34,6 @@
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>occupancy_calculation_type</name>
-      <display_name>Occupancy Calculation Type</display_name>
-      <description>The type of occupancy calculation type. If 'asset' is chosen, various end uses (e.g., clothes washer) are calculated using number of bedrooms and/or conditioned floor area. If 'operational' is chosen, end uses based on number of bedrooms are adjusted for the number of occupants. If not provided, the OS-HPXML default is used.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>asset</value>
-          <display_name>asset</display_name>
-        </choice>
-        <choice>
-          <value>operational</value>
-          <display_name>operational</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>schedules_filepaths</name>
@@ -692,7 +674,7 @@
     <argument>
       <name>geometry_unit_num_bedrooms</name>
       <display_name>Geometry: Unit Number of Bedrooms</display_name>
-      <description>The number of bedrooms in the unit. Used to determine the energy usage of appliances and plug loads, hot water usage, etc.</description>
+      <description>The number of bedrooms in the unit.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
@@ -711,7 +693,7 @@
     <argument>
       <name>geometry_unit_num_occupants</name>
       <display_name>Geometry: Unit Number of Occupants</display_name>
-      <description>The number of occupants in the unit. If not provided, the OS-HPXML default is used. Required if Occupancy Calculation Type is 'operational'.</description>
+      <description>The number of occupants in the unit. If not provided, an *asset* calculation is performed assuming standard occupancy, in which various end use defaults (e.g., plug loads, appliances, and hot water usage) are calculated based on Number of Bedrooms and Conditioned Floor Area per ANSI/RESNET/ICC 301-2019. If provided, an *operational* calculation is instead performed in which the end use defaults are adjusted using the relationship between Number of Bedrooms and Number of Occupants from RECS 2015.</description>
       <type>Double</type>
       <units>#</units>
       <required>false</required>
@@ -6608,6 +6590,12 @@
       <checksum>D9E75C2E</checksum>
     </file>
     <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7F6A3D85</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.0</identifier>
@@ -6616,13 +6604,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>783DB78D</checksum>
-    </file>
-    <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>7F6A3D85</checksum>
+      <checksum>85C5A15B</checksum>
     </file>
   </files>
 </measure>

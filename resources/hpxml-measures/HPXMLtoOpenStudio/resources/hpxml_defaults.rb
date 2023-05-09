@@ -27,7 +27,7 @@ class HPXMLDefaults
     apply_utility_bill_scenarios(runner, hpxml, has_fuel)
     apply_site(hpxml)
     apply_neighbor_buildings(hpxml)
-    apply_building_occupancy(hpxml, nbeds, schedules_file)
+    apply_building_occupancy(hpxml, schedules_file)
     apply_building_construction(hpxml, cfa, nbeds, infil_measurement)
     apply_climate_and_risk_zones(hpxml, epw_file)
     apply_infiltration(hpxml, infil_measurement)
@@ -55,10 +55,9 @@ class HPXMLDefaults
     apply_appliances(hpxml, nbeds, eri_version, schedules_file)
     apply_lighting(hpxml, schedules_file)
     apply_ceiling_fans(hpxml, nbeds, weather, schedules_file)
-    nbeds_adjusted = get_nbeds_adjusted_for_operational_calculation(hpxml)
-    apply_pools_and_hot_tubs(hpxml, cfa, nbeds_adjusted, schedules_file)
-    apply_plug_loads(hpxml, cfa, nbeds_adjusted, schedules_file)
-    apply_fuel_loads(hpxml, cfa, nbeds_adjusted, schedules_file)
+    apply_pools_and_hot_tubs(hpxml, cfa, schedules_file)
+    apply_plug_loads(hpxml, cfa, schedules_file)
+    apply_fuel_loads(hpxml, cfa, schedules_file)
     apply_pv_systems(hpxml)
     apply_generators(hpxml)
     apply_batteries(hpxml)
@@ -106,11 +105,6 @@ class HPXMLDefaults
   private
 
   def self.apply_header(hpxml, epw_file, weather)
-    if hpxml.header.occupancy_calculation_type.nil?
-      hpxml.header.occupancy_calculation_type = HPXML::OccupancyCalculationTypeAsset
-      hpxml.header.occupancy_calculation_type_isdefaulted = true
-    end
-
     if hpxml.header.timestep.nil?
       hpxml.header.timestep = 60
       hpxml.header.timestep_isdefaulted = true
@@ -508,10 +502,13 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_building_occupancy(hpxml, nbeds, schedules_file)
+  def self.apply_building_occupancy(hpxml, schedules_file)
     if hpxml.building_occupancy.number_of_residents.nil?
-      hpxml.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(nbeds)
-      hpxml.building_occupancy.number_of_residents_isdefaulted = true
+      hpxml.building_construction.additional_properties.adjusted_number_of_bedrooms = hpxml.building_construction.number_of_bedrooms
+    else
+      # Set adjusted number of bedrooms for operational calculation; this is an adjustment on
+      # ANSI 301 or Building America equations, which are based on number of bedrooms.
+      hpxml.building_construction.additional_properties.adjusted_number_of_bedrooms = get_nbeds_adjusted_for_operational_calculation(hpxml)
     end
     schedules_file_includes_occupants = (schedules_file.nil? ? false : schedules_file.includes_col_name(SchedulesFile::ColumnOccupants))
     if hpxml.building_occupancy.weekday_fractions.nil? && !schedules_file_includes_occupants
@@ -2381,7 +2378,8 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_pools_and_hot_tubs(hpxml, cfa, nbeds, schedules_file)
+  def self.apply_pools_and_hot_tubs(hpxml, cfa, schedules_file)
+    nbeds = hpxml.building_construction.additional_properties.adjusted_number_of_bedrooms
     hpxml.pools.each do |pool|
       next if pool.type == HPXML::TypeNone
 
@@ -2495,7 +2493,8 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_plug_loads(hpxml, cfa, nbeds, schedules_file)
+  def self.apply_plug_loads(hpxml, cfa, schedules_file)
+    nbeds = hpxml.building_construction.additional_properties.adjusted_number_of_bedrooms
     hpxml.plug_loads.each do |plug_load|
       if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
         default_annual_kwh, default_sens_frac, default_lat_frac = MiscLoads.get_residual_mels_default_values(cfa)
@@ -2613,7 +2612,8 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_fuel_loads(hpxml, cfa, nbeds, schedules_file)
+  def self.apply_fuel_loads(hpxml, cfa, schedules_file)
+    nbeds = hpxml.building_construction.additional_properties.adjusted_number_of_bedrooms
     hpxml.fuel_loads.each do |fuel_load|
       if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
         if fuel_load.therm_per_year.nil?
@@ -2893,18 +2893,14 @@ class HPXMLDefaults
   end
 
   def self.get_nbeds_adjusted_for_operational_calculation(hpxml)
-    occ_calc_type = hpxml.header.occupancy_calculation_type
+    n_occs = hpxml.building_occupancy.number_of_residents
     unit_type = hpxml.building_construction.residential_facility_type
-    nbeds = hpxml.building_construction.number_of_bedrooms
-    if occ_calc_type == HPXML::OccupancyCalculationTypeAsset
-      return nbeds
-    elsif occ_calc_type == HPXML::OccupancyCalculationTypeOperational
-      noccs = hpxml.building_occupancy.number_of_residents
-      if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? unit_type
-        return -0.68 + 1.09 * noccs
-      elsif [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include? unit_type
-        return -1.47 + 1.69 * noccs
-      end
+    if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? unit_type
+      return -0.68 + 1.09 * n_occs
+    elsif [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include? unit_type
+      return -1.47 + 1.69 * n_occs
+    else
+      fail "Unexpected residential facility type: #{unit_type}."
     end
   end
 end

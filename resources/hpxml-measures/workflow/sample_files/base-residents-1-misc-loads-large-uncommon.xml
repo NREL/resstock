@@ -8,7 +8,6 @@
   </XMLTransactionHeaderInformation>
   <SoftwareInfo>
     <extension>
-      <OccupancyCalculationType>operational</OccupancyCalculationType>
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
@@ -43,7 +42,7 @@
           </FuelTypesAvailable>
         </Site>
         <BuildingOccupancy>
-          <NumberofResidents>0.0</NumberofResidents>
+          <NumberofResidents>1.0</NumberofResidents>
         </BuildingOccupancy>
         <BuildingConstruction>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
@@ -469,6 +468,16 @@
           <RatedAnnualkWh>650.0</RatedAnnualkWh>
           <PrimaryIndicator>true</PrimaryIndicator>
         </Refrigerator>
+        <Refrigerator>
+          <SystemIdentifier id='Refrigerator2'/>
+          <RatedAnnualkWh>700.0</RatedAnnualkWh>
+          <PrimaryIndicator>false</PrimaryIndicator>
+        </Refrigerator>
+        <Freezer>
+          <SystemIdentifier id='Freezer1'/>
+          <Location>living space</Location>
+          <RatedAnnualkWh>300.0</RatedAnnualkWh>
+        </Freezer>
         <CookingRange>
           <SystemIdentifier id='CookingRange1'/>
           <Location>living space</Location>
@@ -530,27 +539,78 @@
           </LightingType>
         </LightingGroup>
       </Lighting>
+      <Pools>
+        <Pool>
+          <SystemIdentifier id='Pool1'/>
+          <Type>unknown</Type>
+          <PoolPumps>
+            <PoolPump>
+              <SystemIdentifier id='Pool1Pump'/>
+              <Type>unknown</Type>
+            </PoolPump>
+          </PoolPumps>
+          <Heater>
+            <SystemIdentifier id='Pool1Heater'/>
+            <Type>gas fired</Type>
+          </Heater>
+        </Pool>
+      </Pools>
+      <HotTubs>
+        <HotTub>
+          <SystemIdentifier id='HotTub1'/>
+          <Type>unknown</Type>
+          <HotTubPumps>
+            <HotTubPump>
+              <SystemIdentifier id='HotTub1Pump'/>
+              <Type>unknown</Type>
+            </HotTubPump>
+          </HotTubPumps>
+          <Heater>
+            <SystemIdentifier id='HotTub1Heater'/>
+            <Type>electric resistance</Type>
+          </Heater>
+        </HotTub>
+      </HotTubs>
       <MiscLoads>
         <PlugLoad>
           <SystemIdentifier id='PlugLoad1'/>
           <PlugLoadType>TV other</PlugLoadType>
-          <Load>
-            <Units>kWh/year</Units>
-            <Value>620.0</Value>
-          </Load>
         </PlugLoad>
         <PlugLoad>
           <SystemIdentifier id='PlugLoad2'/>
           <PlugLoadType>other</PlugLoadType>
-          <Load>
-            <Units>kWh/year</Units>
-            <Value>2457.0</Value>
-          </Load>
           <extension>
             <FracSensible>0.855</FracSensible>
             <FracLatent>0.045</FracLatent>
           </extension>
         </PlugLoad>
+        <PlugLoad>
+          <SystemIdentifier id='PlugLoad3'/>
+          <PlugLoadType>electric vehicle charging</PlugLoadType>
+        </PlugLoad>
+        <PlugLoad>
+          <SystemIdentifier id='PlugLoad4'/>
+          <PlugLoadType>well pump</PlugLoadType>
+        </PlugLoad>
+        <FuelLoad>
+          <SystemIdentifier id='FuelLoad1'/>
+          <FuelLoadType>grill</FuelLoadType>
+          <FuelType>propane</FuelType>
+        </FuelLoad>
+        <FuelLoad>
+          <SystemIdentifier id='FuelLoad2'/>
+          <FuelLoadType>lighting</FuelLoadType>
+          <FuelType>natural gas</FuelType>
+        </FuelLoad>
+        <FuelLoad>
+          <SystemIdentifier id='FuelLoad3'/>
+          <FuelLoadType>fireplace</FuelLoadType>
+          <FuelType>wood</FuelType>
+          <extension>
+            <FracSensible>0.5</FracSensible>
+            <FracLatent>0.1</FracLatent>
+          </extension>
+        </FuelLoad>
       </MiscLoads>
     </BuildingDetails>
   </Building>

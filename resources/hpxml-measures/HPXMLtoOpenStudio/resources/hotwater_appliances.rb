@@ -11,7 +11,7 @@ class HotWaterAndAppliances
     has_uncond_bsmnt = hpxml.has_location(HPXML::LocationBasementUnconditioned)
     fixtures_usage_multiplier = hpxml.water_heating.water_fixtures_usage_multiplier
     living_space = spaces[HPXML::LocationLivingSpace]
-    nbeds = HPXMLDefaults.get_nbeds_adjusted_for_operational_calculation(hpxml)
+    nbeds = hpxml.building_construction.additional_properties.adjusted_number_of_bedrooms
 
     # Get appliances, etc.
     if not hpxml.clothes_washers.empty?
@@ -242,7 +242,8 @@ class HotWaterAndAppliances
         wh_setpoint = Waterheater.get_default_hot_water_temperature(eri_version) if wh_setpoint.nil? # using detailed schedules
         avg_setpoint_temp += wh_setpoint * water_heating_system.fraction_dhw_load_served
       end
-      daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow)
+      daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow,
+                                                                               hpxml.header.sim_calendar_year)
       daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map { |t| UnitConversions.convert(t, 'F', 'C') }
       daily_mw_fractions = calc_mixed_water_daily_fractions(daily_wh_inlet_temperatures, avg_setpoint_temp, t_mix)
 
@@ -860,23 +861,23 @@ class HotWaterAndAppliances
     return eff_adj, iFrac, plc, locF, fixF
   end
 
-  def self.calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow)
+  def self.calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow, year)
     # Get daily mains temperatures
     avgOAT = weather.data.AnnualAvgDrybulb
     maxDiffMonthlyAvgOAT = weather.data.MonthlyAvgDrybulbs.max - weather.data.MonthlyAvgDrybulbs.min
-    tmains_daily = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, weather.header.Latitude)[2]
+    tmains_daily = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, weather.header.Latitude, year)[2]
 
     wh_temps_daily = tmains_daily
     if (not hot_water_distribution.dwhr_efficiency.nil?)
       dwhr_eff_adj, dwhr_iFrac, dwhr_plc, dwhr_locF, dwhr_fixF = get_dwhr_factors(nbeds, hot_water_distribution, fixtures_all_low_flow)
       # Adjust inlet temperatures
       dwhr_inT = 97.0 # F
-      for day in 0..364
+      for day in 0..tmains_daily.size - 1
         dwhr_WHinTadj = dwhr_iFrac * (dwhr_inT - tmains_daily[day]) * hot_water_distribution.dwhr_efficiency * dwhr_eff_adj * dwhr_plc * dwhr_locF * dwhr_fixF
         wh_temps_daily[day] = (wh_temps_daily[day] + dwhr_WHinTadj).round(3)
       end
     else
-      for day in 0..364
+      for day in 0..tmains_daily.size - 1
         wh_temps_daily[day] = (wh_temps_daily[day]).round(3)
       end
     end
@@ -886,7 +887,7 @@ class HotWaterAndAppliances
 
   def self.calc_mixed_water_daily_fractions(daily_wh_inlet_temperatures, tHot, tMix)
     adjFmix = []
-    for day in 0..364
+    for day in 0..daily_wh_inlet_temperatures.size - 1
       adjFmix << (1.0 - ((tHot - tMix) / (tHot - daily_wh_inlet_temperatures[day]))).round(4)
     end
 

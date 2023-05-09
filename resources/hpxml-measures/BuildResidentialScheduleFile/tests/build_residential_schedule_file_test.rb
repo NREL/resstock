@@ -13,6 +13,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')
     @tmp_hpxml_path = File.join(@sample_files_path, 'tmp.xml')
     @tmp_output_path = File.join(@sample_files_path, 'tmp_output')
+    @tmp_schedule_file_path = File.join(@sample_files_path, 'tmp.csv')
     FileUtils.mkdir_p(@tmp_output_path)
 
     @args_hash = {}
@@ -22,6 +23,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
   def teardown
     File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
+    File.delete(@tmp_schedule_file_path) if File.exist? @tmp_schedule_file_path
     FileUtils.rm_rf(@tmp_output_path)
   end
 
@@ -42,7 +44,8 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     sf = SchedulesFile.new(model: model,
                            schedules_paths: hpxml.header.schedules_filepaths,
-                           year: 2007)
+                           year: 2007,
+                           output_path: @tmp_schedule_file_path)
 
     assert_in_epsilon(6689, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOccupants, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingInterior, schedules: sf.tmp_schedules), 0.1)
@@ -82,7 +85,8 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     sf = SchedulesFile.new(model: model,
                            schedules_paths: hpxml.header.schedules_filepaths,
-                           year: 2007)
+                           year: 2007,
+                           output_path: @tmp_schedule_file_path)
 
     columns.each do |column|
       assert(sf.schedules.keys.include?(column))
@@ -124,7 +128,8 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     sf = SchedulesFile.new(model: model,
                            schedules_paths: hpxml.header.schedules_filepaths,
-                           year: 2007)
+                           year: 2007,
+                           output_path: @tmp_schedule_file_path)
 
     assert_in_epsilon(6689, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOccupants, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingInterior, schedules: sf.tmp_schedules), 0.1)
@@ -160,7 +165,8 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     sf = SchedulesFile.new(model: model,
                            schedules_paths: hpxml.header.schedules_filepaths,
-                           year: 2007)
+                           year: 2007,
+                           output_path: @tmp_schedule_file_path)
 
     assert_in_epsilon(6689, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOccupants, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingInterior, schedules: sf.tmp_schedules), 0.1)
@@ -190,7 +196,8 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     sf = SchedulesFile.new(model: model,
                            schedules_paths: hpxml.header.schedules_filepaths,
-                           year: 2007)
+                           year: 2007,
+                           output_path: @tmp_schedule_file_path)
 
     assert_in_epsilon(6072, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOccupants, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(1765, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingInterior, schedules: sf.tmp_schedules), 0.1)
@@ -225,7 +232,8 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     sf = SchedulesFile.new(model: model,
                            schedules_paths: hpxml.header.schedules_filepaths,
-                           year: 2007)
+                           year: 2007,
+                           output_path: @tmp_schedule_file_path)
 
     assert_in_epsilon(6707, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOccupants, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2077, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingInterior, schedules: sf.tmp_schedules), 0.1)
