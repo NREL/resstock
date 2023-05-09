@@ -373,9 +373,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
-    # Set operational calculation
-    args[:occupancy_calculation_type] = HPXML::OccupancyCalculationTypeOperational
-
     # Conditioned floor area
     if args[:geometry_unit_cfa] == Constants.Auto
       cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 298, # AHS 2021, 1 detached and mobile home weighted average
