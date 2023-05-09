@@ -9,34 +9,55 @@ end
 def create_hpxmls
   this_dir = File.dirname(__FILE__)
   workflow_dir = File.join(this_dir, 'workflow')
-  hpxml_inputs_tsv_path = File.join(workflow_dir, 'hpxml_inputs.tsv')
+  hpxml_inputs_tsv_path = File.join(workflow_dir, 'hpxml_inputs.json')
 
-  require 'csv'
-  csv_data = CSV.open(hpxml_inputs_tsv_path, headers: :first_row, col_sep: "\t").map(&:to_h)
+  require 'json'
+  json_inputs = JSON.parse(File.read(hpxml_inputs_tsv_path))
   abs_hpxml_files = []
-  dirs = csv_data.map { |r| r['hpxml_path'] }.uniq
+  dirs = json_inputs.keys.map { |file_path| File.dirname(file_path) }.uniq
 
-  puts "Generating #{csv_data.size} HPXML files..."
+  schema_path = File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
+  schema_validator = XMLValidator.get_schema_validator(schema_path)
 
-  csv_data.each_with_index do |csv_row, i|
-    puts "[#{i + 1}/#{csv_data.size}] Generating #{csv_row['hpxml_file']}..."
-    hpxml_file = csv_row['hpxml_file']
-    csv_row['hpxml_path'] = File.join(workflow_dir, csv_row['hpxml_path'], hpxml_file)
-    hpxml_path = csv_row['hpxml_path']
+  schedules_regenerated = []
+
+  puts "Generating #{json_inputs.size} HPXML files..."
+
+  json_inputs.keys.each_with_index do |hpxml_filename, i|
+    puts "[#{i + 1}/#{json_inputs.size}] Generating #{hpxml_filename}..."
+    hpxml_path = File.join(workflow_dir, hpxml_filename)
     abs_hpxml_files << File.absolute_path(hpxml_path)
-    csv_row.delete('hpxml_file')
 
-    # Convert from true/false strings to boolean
-    csv_row.each do |k, v|
-      next if v.nil?
+    # Build up json_input from parent_hpxml(s)
+    parent_hpxml_filenames = []
+    parent_hpxml_filename = json_inputs[hpxml_filename]['parent_hpxml']
+    while not parent_hpxml_filename.nil?
+      if not json_inputs.keys.include? parent_hpxml_filename
+        fail "Could not find parent_hpxml: #{parent_hpxml_filename}."
+      end
 
-      csv_row[k] = true if ['true', 'TRUE'].include?(v)
-      csv_row[k] = false if ['false', 'FALSE'].include?(v)
+      parent_hpxml_filenames << parent_hpxml_filename
+      parent_hpxml_filename = json_inputs[parent_hpxml_filename]['parent_hpxml']
     end
+    json_input = { 'hpxml_path' => hpxml_path }
+    for parent_hpxml_filename in parent_hpxml_filenames.reverse
+      json_input.merge!(json_inputs[parent_hpxml_filename])
+    end
+    json_input.merge!(json_inputs[hpxml_filename])
+    json_input.delete('parent_hpxml')
 
     measures = {}
-    measures['BuildResidentialHPXML'] = [csv_row]
-    # measures['BuildResidentialScheduleFile'] = [sch_args] if !sch_args.empty?
+    measures['BuildResidentialHPXML'] = [json_input]
+
+    # Re-generate stochastic schedule CSV?
+    csv_path = json_input['schedules_filepaths'].to_s.split(',').map(&:strip).find { |fp| fp.include? 'occupancy-stochastic' }
+    if (not csv_path.nil?) && (not schedules_regenerated.include? csv_path)
+      sch_args = { 'hpxml_path' => hpxml_path,
+                   'output_csv_path' => csv_path,
+                   'hpxml_output_path' => hpxml_path }
+      measures['BuildResidentialScheduleFile'] = [sch_args]
+      schedules_regenerated << csv_path
+    end
 
     measures_dir = File.dirname(__FILE__)
     model = OpenStudio::Model::Model.new
@@ -59,11 +80,11 @@ def create_hpxmls
     if hpxml_path.include? 'ASHRAE_Standard_140'
       apply_hpxml_modification_ashrae_140(hpxml)
     else
-      apply_hpxml_modification(hpxml_file, hpxml)
+      apply_hpxml_modification(File.basename(hpxml_path), hpxml)
     end
     hpxml_doc = hpxml.to_oga()
 
-    if ['base-multiple-buildings.xml'].include? hpxml_file
+    if hpxml_path.include? 'base-multiple-buildings.xml'
       # HPXML class doesn't support multiple buildings, so we'll stitch together manually.
       hpxml_element = XMLHelper.get_element(hpxml_doc, '/HPXML')
       building_element = XMLHelper.get_element(hpxml_element, 'Building')
@@ -87,12 +108,11 @@ def create_hpxmls
 
     XMLHelper.write_file(hpxml_doc, hpxml_path)
 
-    schema_path = File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
-    errors, _ = XMLValidator.validate_against_schema(hpxml_path, schema_path)
+    errors, _warnings = XMLValidator.validate_against_schema(hpxml_path, schema_validator)
     next unless errors.size > 0
 
     puts errors.to_s
-    puts "\nError: Did not successfully validate #{hpxml_file}."
+    puts "\nError: Did not successfully validate #{hpxml_filename}."
     exit!
   end
 

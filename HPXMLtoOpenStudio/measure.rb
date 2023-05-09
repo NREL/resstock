@@ -109,13 +109,15 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     begin
       if skip_validation
-        xsd_path = nil
-        stron_path = nil
+        schema_validator = nil
+        schematron_validator = nil
       else
-        xsd_path = File.join(File.dirname(__FILE__), 'resources', 'hpxml_schema', 'HPXML.xsd')
-        stron_path = File.join(File.dirname(__FILE__), 'resources', 'hpxml_schematron', 'EPvalidator.xml')
+        schema_path = File.join(File.dirname(__FILE__), 'resources', 'hpxml_schema', 'HPXML.xsd')
+        schema_validator = XMLValidator.get_schema_validator(schema_path)
+        schematron_path = File.join(File.dirname(__FILE__), 'resources', 'hpxml_schematron', 'EPvalidator.xml')
+        schematron_validator = XMLValidator.get_schematron_validator(schematron_path)
       end
-      hpxml = HPXML.new(hpxml_path: hpxml_path, schema_path: xsd_path, schematron_path: stron_path, building_id: building_id)
+      hpxml = HPXML.new(hpxml_path: hpxml_path, schema_validator: schema_validator, schematron_validator: schematron_validator, building_id: building_id)
       hpxml.errors.each do |error|
         runner.registerError(error)
       end
@@ -154,12 +156,6 @@ class OSModel
     @hpxml = hpxml
     @debug = debug
 
-    # Set the working directory so that any files OS creates (e.g., external files
-    # in the 'files' dir) end up in a writable directory.
-    # Has a secondary benefit of creating the 'files' dir next to the 'run' dir.
-    # See https://github.com/NREL/OpenStudio/issues/4763
-    Dir.chdir(File.dirname(hpxml_path))
-
     @eri_version = @hpxml.header.eri_calculation_version # Hidden feature
     @eri_version = 'latest' if @eri_version.nil?
     @eri_version = Constants.ERIVersions[-1] if @eri_version == 'latest'
@@ -181,7 +177,8 @@ class OSModel
     @schedules_file = SchedulesFile.new(runner: runner, model: model,
                                         schedules_paths: @hpxml.header.schedules_filepaths,
                                         year: Location.get_sim_calendar_year(@hpxml.header.sim_calendar_year, epw_file),
-                                        unavailable_periods: @hpxml.header.unavailable_periods)
+                                        unavailable_periods: @hpxml.header.unavailable_periods,
+                                        output_path: File.join(output_dir, 'in.schedules.csv'))
     set_defaults_and_globals(runner, output_dir, epw_file, weather, @schedules_file)
     validate_emissions_files()
     Location.apply(model, weather, epw_file, @hpxml)
@@ -319,10 +316,15 @@ class OSModel
     @hpxml.collapse_enclosure_surfaces() # Speeds up simulation
     @hpxml.delete_adiabatic_subsurfaces() # EnergyPlus doesn't allow this
 
-    # Handle zero occupants when operational calculation
-    occ_calc_type = @hpxml.header.occupancy_calculation_type
-    noccs = @hpxml.building_occupancy.number_of_residents
-    if occ_calc_type == HPXML::OccupancyCalculationTypeOperational && noccs == 0
+    # We don't want this to be written to in.xml, because then if you ran the in.xml
+    # file, you would get different results (operational calculation) relative to the
+    # original file (asset calculation).
+    if @hpxml.building_occupancy.number_of_residents.nil?
+      @hpxml.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(@nbeds)
+    end
+
+    # If zero occupants, ensure end uses of interest are zeroed out
+    if (@hpxml.building_occupancy.number_of_residents == 0) && (not @apply_ashrae140_assumptions)
       @hpxml.header.unavailable_periods.add(column_name: 'Vacancy',
                                             begin_month: @hpxml.header.sim_begin_month,
                                             begin_day: @hpxml.header.sim_begin_day,
@@ -1725,7 +1727,6 @@ class OSModel
     end
 
     # Create HVAC availability sensor
-    # FIXME: Check if the 0 vs 1 convention is correct
     @hvac_availability_sensor = nil
     if not @hvac_unavailable_periods.empty?
       avail_sch = ScheduleConstant.new(model, SchedulesFile::ColumnHVAC, 1.0, Constants.ScheduleTypeLimitsFraction, unavailable_periods: @hvac_unavailable_periods)
@@ -2347,7 +2348,13 @@ class OSModel
       s = "Set hr_#{loadtype} = hr_#{loadtype}"
       sensors.each do |sensor|
         if sensor.name.to_s.include? 'gain'
-          s += " - #{sensor.name}"
+          # FIXME: Workaround for https://github.com/NREL/EnergyPlus/issues/9934
+          # Remove when the issue is resolved
+          if loadtype == 'infil'
+            s += " - (#{sensor.name} * 3600)"
+          else
+            s += " - #{sensor.name}"
+          end
         elsif sensor.name.to_s.include? 'loss'
           s += " + #{sensor.name}"
         end

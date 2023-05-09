@@ -314,10 +314,11 @@ class WeatherProcess
     end
   end
 
-  def self.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, latitude)
+  def self.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, latitude, year)
+    n_days = Constants.NumDaysInYear(year)
     pi = Math::PI
     deg_rad = pi / 180
-    mainsDailyTemps = Array.new(365, 0)
+    mainsDailyTemps = Array.new(n_days, 0)
     mainsMonthlyTemps = Array.new(12, 0)
     mainsAvgTemp = 0
 
@@ -330,9 +331,9 @@ class WeatherProcess
     end
 
     # Calculate daily and annual
-    for d in 1..365
+    for d in 1..n_days
       mainsDailyTemps[d - 1] = avgOAT + 6 + tmains_ratio * maxDiffMonthlyAvgOAT / 2 * Math.sin(deg_rad * (0.986 * (d - 15 - tmains_lag) + sign * 90))
-      mainsAvgTemp += mainsDailyTemps[d - 1] / 365.0
+      mainsAvgTemp += mainsDailyTemps[d - 1] / Float(n_days)
     end
     # Calculate monthly
     for m in 1..12

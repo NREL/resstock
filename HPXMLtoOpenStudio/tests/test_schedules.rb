@@ -12,10 +12,12 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
     @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')
     @tmp_hpxml_path = File.join(@sample_files_path, 'tmp.xml')
+    @tmp_schedule_file_path = File.join(@sample_files_path, 'tmp.csv')
   end
 
   def teardown
     File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
+    File.delete(@tmp_schedule_file_path) if File.exist? @tmp_schedule_file_path
   end
 
   def sample_files_dir
@@ -200,7 +202,8 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     sf = SchedulesFile.new(model: model,
                            schedules_paths: schedules_paths,
                            year: 2007,
-                           unavailable_periods: hpxml.header.unavailable_periods)
+                           unavailable_periods: hpxml.header.unavailable_periods,
+                           output_path: @tmp_schedule_file_path)
 
     vacancy_hrs = 31.0 * 2.0 * 24.0
     occupied_ratio = (1.0 - vacancy_hrs / 8760.0)
@@ -248,7 +251,8 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     sf = SchedulesFile.new(model: model,
                            schedules_paths: schedules_paths,
                            year: 2007,
-                           unavailable_periods: hpxml.header.unavailable_periods)
+                           unavailable_periods: hpxml.header.unavailable_periods,
+                           output_path: @tmp_schedule_file_path)
 
     vacancy_hrs = ((31.0 * 2.0) + (28.0 * 1.0)) * 24.0
     occupied_ratio = (1.0 - vacancy_hrs / 8760.0)
@@ -288,7 +292,8 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     sf = SchedulesFile.new(model: model,
                            schedules_paths: schedules_paths,
                            year: 2007,
-                           unavailable_periods: hpxml.header.unavailable_periods)
+                           unavailable_periods: hpxml.header.unavailable_periods,
+                           output_path: @tmp_schedule_file_path)
 
     vacancy_hrs = 8760.0
     occupied_ratio = (1.0 - vacancy_hrs / 8760.0)
@@ -328,7 +333,8 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     sf = SchedulesFile.new(model: model,
                            schedules_paths: schedules_paths,
                            year: 2007,
-                           unavailable_periods: hpxml.header.unavailable_periods)
+                           unavailable_periods: hpxml.header.unavailable_periods,
+                           output_path: @tmp_schedule_file_path)
 
     outage_hrs = 31.0 * 2.0 * 24.0 - 15.0
     powered_ratio = (1.0 - outage_hrs / 8760.0)
@@ -378,7 +384,8 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     sf = SchedulesFile.new(model: model,
                            schedules_paths: schedules_paths,
                            year: 2007,
-                           unavailable_periods: hpxml.header.unavailable_periods)
+                           unavailable_periods: hpxml.header.unavailable_periods,
+                           output_path: @tmp_schedule_file_path)
 
     outage_hrs = ((31.0 * 2.0) + (28.0 * 1.0)) * 24.0 - 5.0
     powered_ratio = (1.0 - outage_hrs / 8760.0)

@@ -47,7 +47,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.allow_increased_fixed_capacities = true
     hpxml.header.state_code = 'CA'
     hpxml.header.time_zone_utc_offset = -8
-    hpxml.header.occupancy_calculation_type = HPXML::OccupancyCalculationTypeOperational
     hpxml.header.temperature_capacitance_multiplier = 1.5
     hpxml.header.natvent_days_per_week = 7
     hpxml.header.unavailable_periods.add(column_name: 'Power Outage', begin_month: 1, begin_day: 1, begin_hour: 3, end_month: 12, end_day: 31, end_hour: 4, natvent_availability: HPXML::ScheduleUnavailable)
@@ -65,9 +64,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.manualj_num_occupants = 8
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, 2009, false, 3, 3, 10, 10, HPXML::HeatPumpSizingMaxLoad,
-                                true, 'CA', -8, HPXML::OccupancyCalculationTypeOperational, 1.5, 7,
-                                3, 4, HPXML::ScheduleUnavailable, 2, 3, 4, 5, 0.0, 100.0, 68.0, 78.0, 0.44, 1600.0, 60.0, 8)
+    _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, 2009, false, 3, 3, 10, 10, HPXML::HeatPumpSizingMaxLoad, true, 'CA',
+                                -8, 1.5, 7, 3, 4, HPXML::ScheduleUnavailable, 2, 3, 4, 5, 0.0, 100.0, 68.0, 78.0, 0.44, 1600.0, 60.0, 8)
 
     # Test defaults - DST not in weather file
     hpxml.header.timestep = nil
@@ -85,7 +83,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.allow_increased_fixed_capacities = nil
     hpxml.header.state_code = nil
     hpxml.header.time_zone_utc_offset = nil
-    hpxml.header.occupancy_calculation_type = nil
     hpxml.header.temperature_capacitance_multiplier = nil
     hpxml.header.natvent_days_per_week = nil
     hpxml.header.unavailable_periods[-1].begin_hour = nil
@@ -105,9 +102,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.manualj_num_occupants = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, HPXML::HeatPumpSizingHERS,
-                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
-                                0, 24, HPXML::ScheduleRegular, 5, 1, 10, 31, 6.8, 91.8, 70.0, 75.0, 0.5, 2400.0, 0.0, 4)
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, HPXML::HeatPumpSizingHERS, false, 'CO',
+                                -7, 1.0, 3, 0, 24, HPXML::ScheduleRegular, 5, 1, 10, 31, 6.8, 91.8, 70.0, 75.0, 0.5, 2400.0, 0.0, 4)
 
     # Test defaults - DST in weather file
     hpxml = _create_hpxml('base-location-AMY-2012.xml')
@@ -126,7 +122,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.allow_increased_fixed_capacities = nil
     hpxml.header.state_code = nil
     hpxml.header.time_zone_utc_offset = nil
-    hpxml.header.occupancy_calculation_type = nil
     hpxml.header.temperature_capacitance_multiplier = nil
     hpxml.header.shading_summer_begin_month = nil
     hpxml.header.shading_summer_begin_day = nil
@@ -134,17 +129,15 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.shading_summer_end_day = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, nil,
-                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
-                                nil, nil, nil, 5, 1, 9, 30, 10.2, 91.4, 70.0, 75.0, 0.5, 2400.0, 0.0, 4)
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, nil, false, 'CO',
+                                -7, 1.0, 3, nil, nil, nil, 5, 1, 9, 30, 10.2, 91.4, 70.0, 75.0, 0.5, 2400.0, 0.0, 4)
 
     # Test defaults - calendar year override by AMY year
     hpxml.header.sim_calendar_year = 2020
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, nil,
-                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
-                                nil, nil, nil, 5, 1, 9, 30, 10.2, 91.4, 70.0, 75.0, 0.5, 2400.0, 0.0, 4)
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, nil, false, 'CO',
+                                -7, 1.0, 3, nil, nil, nil, 5, 1, 9, 30, 10.2, 91.4, 70.0, 75.0, 0.5, 2400.0, 0.0, 4)
 
     # Test defaults - southern hemisphere, invalid state code
     hpxml = _create_hpxml('base-location-capetown-zaf.xml')
@@ -163,7 +156,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.allow_increased_fixed_capacities = nil
     hpxml.header.state_code = nil
     hpxml.header.time_zone_utc_offset = nil
-    hpxml.header.occupancy_calculation_type = nil
     hpxml.header.temperature_capacitance_multiplier = nil
     hpxml.header.shading_summer_begin_month = nil
     hpxml.header.shading_summer_begin_day = nil
@@ -171,9 +163,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.shading_summer_end_day = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, nil,
-                                false, nil, 2, HPXML::OccupancyCalculationTypeAsset, 1.0, 3,
-                                nil, nil, nil, 12, 1, 4, 30, 41.0, 84.4, 70.0, 75.0, 0.5, 2400.0, 0.0, 4)
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, nil, false, nil,
+                                2, 1.0, 3, nil, nil, nil, 12, 1, 4, 30, 41.0, 84.4, 70.0, 75.0, 0.5, 2400.0, 0.0, 4)
   end
 
   def test_emissions_factors
@@ -370,22 +361,20 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   def test_occupancy
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
-    hpxml.building_occupancy.number_of_residents = 1
     hpxml.building_occupancy.weekday_fractions = ConstantDaySchedule
     hpxml.building_occupancy.weekend_fractions = ConstantDaySchedule
     hpxml.building_occupancy.monthly_multipliers = ConstantMonthSchedule
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_occupancy_values(hpxml_default, 1, ConstantDaySchedule, ConstantDaySchedule, ConstantMonthSchedule)
+    _test_default_occupancy_values(hpxml_default, ConstantDaySchedule, ConstantDaySchedule, ConstantMonthSchedule)
 
     # Test defaults
-    hpxml.building_occupancy.number_of_residents = nil
     hpxml.building_occupancy.weekday_fractions = nil
     hpxml.building_occupancy.weekend_fractions = nil
     hpxml.building_occupancy.monthly_multipliers = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_occupancy_values(hpxml_default, 3, Schedule.OccupantsWeekdayFractions, Schedule.OccupantsWeekendFractions, Schedule.OccupantsMonthlyMultipliers)
+    _test_default_occupancy_values(hpxml_default, Schedule.OccupantsWeekdayFractions, Schedule.OccupantsWeekendFractions, Schedule.OccupantsMonthlyMultipliers)
   end
 
   def test_building_construction
@@ -3317,9 +3306,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def _test_default_header_values(hpxml, tstep, sim_begin_month, sim_begin_day, sim_end_month, sim_end_day, sim_calendar_year,
                                   dst_enabled, dst_begin_month, dst_begin_day, dst_end_month, dst_end_day, heat_pump_sizing_methodology,
-                                  allow_increased_fixed_capacities, state_code, time_zone_utc_offset, occupancy_calculation_type,
-                                  temperature_capacitance_multiplier, natvent_days_per_week, unavailable_period_begin_hour,
-                                  unavailable_period_end_hour, unavailable_period_natvent_availability,
+                                  allow_increased_fixed_capacities, state_code, time_zone_utc_offset, temperature_capacitance_multiplier,
+                                  natvent_days_per_week, unavailable_period_begin_hour, unavailable_period_end_hour, unavailable_period_natvent_availability,
                                   shading_summer_begin_month, shading_summer_begin_day, shading_summer_end_month, shading_summer_end_day,
                                   manualj_heating_design_temp, manualj_cooling_design_temp, manualj_heating_setpoint, manualj_cooling_setpoint,
                                   manualj_humidity_setpoint, manualj_internal_loads_sensible, manualj_internal_loads_latent, manualj_num_occupants)
@@ -3346,7 +3334,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       assert_equal(state_code, hpxml.header.state_code)
     end
     assert_equal(time_zone_utc_offset, hpxml.header.time_zone_utc_offset)
-    assert_equal(occupancy_calculation_type, hpxml.header.occupancy_calculation_type)
     assert_equal(temperature_capacitance_multiplier, hpxml.header.temperature_capacitance_multiplier)
     assert_equal(natvent_days_per_week, hpxml.header.natvent_days_per_week)
     if unavailable_period_begin_hour.nil? && unavailable_period_end_hour.nil? && unavailable_period_natvent_availability.nil?
@@ -3540,8 +3527,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_occupancy_values(hpxml, num_occupants, weekday_sch, weekend_sch, monthly_mults)
-    assert_equal(num_occupants, hpxml.building_occupancy.number_of_residents)
+  def _test_default_occupancy_values(hpxml, weekday_sch, weekend_sch, monthly_mults)
     if weekday_sch.nil?
       assert_nil(hpxml.building_occupancy.weekday_fractions)
     else
@@ -3771,6 +3757,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     else
       assert_equal(cooling_efficiency_seer, cooling_system.cooling_efficiency_seer)
     end
+    assert_equal(HPXML::HVACCompressorTypeVariableSpeed, cooling_system.compressor_type)
   end
 
   def _test_default_furnace_values(heating_system, fan_watts_per_cfm, airflow_defect_ratio, heating_capacity,
@@ -3970,6 +3957,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     else
       assert_equal(heating_efficiency_hspf, heat_pump.heating_efficiency_hspf)
     end
+    assert_equal(HPXML::HVACCompressorTypeVariableSpeed, heat_pump.compressor_type)
   end
 
   def _test_default_heat_pump_temperature_values(heat_pump, compressor_lockout_temp, backup_heating_lockout_temp,

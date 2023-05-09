@@ -239,6 +239,9 @@ else
 
   # Run design
   puts "HPXML: #{options[:hpxml]}"
+  if not options[:building_id].nil?
+    puts "BuildingID: #{options[:building_id]}"
+  end
   success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
                          options[:skip_validation], options[:add_comp_loads], options[:output_format], options[:building_id],
                          options[:ep_input_format], options[:stochastic_schedules], options[:timeseries_time_column_types],

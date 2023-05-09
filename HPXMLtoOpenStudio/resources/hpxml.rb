@@ -239,8 +239,6 @@ class HPXML < Object
   MechVentTypeExhaust = 'exhaust only'
   MechVentTypeHRV = 'heat recovery ventilator'
   MechVentTypeSupply = 'supply only'
-  OccupancyCalculationTypeAsset = 'asset'
-  OccupancyCalculationTypeOperational = 'operational'
   OrientationEast = 'east'
   OrientationNorth = 'north'
   OrientationNortheast = 'northeast'
@@ -397,7 +395,7 @@ class HPXML < Object
   WindowClassResidential = 'residential'
   WindowClassLightCommercial = 'light commercial'
 
-  def initialize(hpxml_path: nil, schema_path: nil, schematron_path: nil, building_id: nil)
+  def initialize(hpxml_path: nil, schema_validator: nil, schematron_validator: nil, building_id: nil)
     @doc = nil
     @hpxml_path = hpxml_path
     @errors = []
@@ -408,8 +406,8 @@ class HPXML < Object
       @doc = XMLHelper.parse_file(hpxml_path)
 
       # Validate against XSD schema
-      if not schema_path.nil?
-        xsd_errors, xsd_warnings = XMLValidator.validate_against_schema(hpxml_path, schema_path)
+      if not schema_validator.nil?
+        xsd_errors, xsd_warnings = XMLValidator.validate_against_schema(hpxml_path, schema_validator)
         @errors += xsd_errors
         @warnings += xsd_warnings
         return unless @errors.empty?
@@ -446,8 +444,8 @@ class HPXML < Object
       end
 
       # Validate against Schematron
-      if not schematron_path.nil?
-        sct_errors, sct_warnings = XMLValidator.validate_against_schematron(hpxml_path, schematron_path, hpxml)
+      if not schematron_validator.nil?
+        sct_errors, sct_warnings = XMLValidator.validate_against_schematron(hpxml_path, schematron_validator, hpxml)
         @errors += sct_errors
         @warnings += sct_warnings
         return unless @errors.empty?
@@ -936,13 +934,12 @@ class HPXML < Object
     end
     ATTRS = [:xml_type, :xml_generated_by, :created_date_and_time, :transaction,
              :software_program_used, :software_program_version, :eri_calculation_version,
-             :timestep, :building_id, :event_type, :state_code, :zip_code,
+             :co2index_calculation_version, :timestep, :building_id, :event_type, :state_code, :zip_code,
              :egrid_region, :egrid_subregion, :cambium_region_gea, :time_zone_utc_offset,
              :sim_begin_month, :sim_begin_day, :sim_end_month, :sim_end_day, :sim_calendar_year,
              :dst_enabled, :dst_begin_month, :dst_begin_day, :dst_end_month, :dst_end_day,
-             :heat_pump_sizing_methodology, :allow_increased_fixed_capacities,
-             :apply_ashrae140_assumptions, :energystar_calculation_version, :schedules_filepaths,
-             :occupancy_calculation_type, :extension_properties, :iecc_eri_calculation_version,
+             :heat_pump_sizing_methodology, :allow_increased_fixed_capacities, :apply_ashrae140_assumptions,
+             :energystar_calculation_version, :schedules_filepaths, :extension_properties, :iecc_eri_calculation_version,
              :zerh_calculation_version, :temperature_capacitance_multiplier, :natvent_days_per_week,
              :shading_summer_begin_month, :shading_summer_begin_day, :shading_summer_end_month,
              :shading_summer_end_day, :manualj_heating_design_temp, :manualj_cooling_design_temp,
@@ -996,12 +993,12 @@ class HPXML < Object
       software_info = XMLHelper.add_element(hpxml, 'SoftwareInfo')
       XMLHelper.add_element(software_info, 'SoftwareProgramUsed', @software_program_used, :string) unless @software_program_used.nil?
       XMLHelper.add_element(software_info, 'SoftwareProgramVersion', @software_program_version, :string) unless @software_program_version.nil?
-      XMLHelper.add_extension(software_info, 'OccupancyCalculationType', @occupancy_calculation_type, :string, @occupancy_calculation_type_isdefaulted) unless @occupancy_calculation_type.nil?
       XMLHelper.add_extension(software_info, 'ApplyASHRAE140Assumptions', @apply_ashrae140_assumptions, :boolean) unless @apply_ashrae140_assumptions.nil?
-      { @eri_calculation_version => 'ERICalculation',
-        @energystar_calculation_version => 'EnergyStarCalculation',
-        @iecc_eri_calculation_version => 'IECCERICalculation',
-        @zerh_calculation_version => 'ZERHCalculation' }.each do |calculation_version, element_name|
+      { 'ERICalculation' => @eri_calculation_version,
+        'CO2IndexCalculation' => @co2index_calculation_version,
+        'EnergyStarCalculation' => @energystar_calculation_version,
+        'IECCERICalculation' => @iecc_eri_calculation_version,
+        'ZERHCalculation' => @zerh_calculation_version }.each do |element_name, calculation_version|
         next if calculation_version.nil?
 
         extension = XMLHelper.create_elements_as_needed(software_info, ['extension'])
@@ -1104,6 +1101,7 @@ class HPXML < Object
       @software_program_used = XMLHelper.get_value(hpxml, 'SoftwareInfo/SoftwareProgramUsed', :string)
       @software_program_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/SoftwareProgramVersion', :string)
       @eri_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ERICalculation/Version', :string)
+      @co2index_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/CO2IndexCalculation/Version', :string)
       @iecc_eri_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/IECCERICalculation/Version', :string)
       @energystar_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/EnergyStarCalculation/Version', :string)
       @zerh_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ZERHCalculation/Version', :string)
@@ -1114,7 +1112,6 @@ class HPXML < Object
       @sim_end_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/EndDayOfMonth', :integer)
       @sim_calendar_year = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/CalendarYear', :integer)
       @temperature_capacitance_multiplier = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/TemperatureCapacitanceMultiplier', :float)
-      @occupancy_calculation_type = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/OccupancyCalculationType', :string)
       @natvent_days_per_week = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/NaturalVentilationAvailabilityDaysperWeek', :integer)
       @shading_summer_begin_month = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ShadingControl/SummerBeginMonth', :integer)
       @shading_summer_begin_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ShadingControl/SummerBeginDayOfMonth', :integer)
@@ -4429,18 +4426,6 @@ class HPXML < Object
       end
 
       return list
-    end
-
-    def total_unconditioned_duct_areas
-      areas = { HPXML::DuctTypeSupply => 0,
-                HPXML::DuctTypeReturn => 0 }
-      @ducts.each do |duct|
-        next if HPXML::conditioned_locations.include? duct.duct_location
-        next if duct.duct_type.nil?
-
-        areas[duct.duct_type] += duct.duct_surface_area
-      end
-      return areas
     end
 
     def delete
