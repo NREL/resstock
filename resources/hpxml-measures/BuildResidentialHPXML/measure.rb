@@ -1333,13 +1333,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_capacity_retention_fraction', false)
     arg.setDisplayName('Heat Pump: Capacity Retention Fraction')
-    arg.setDescription("Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}.")
+    arg.setDescription("Only used for #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit}.")
     arg.setUnits('Frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_capacity_retention_temp', false)
     arg.setDisplayName('Heat Pump: Capacity Retention Temperature')
-    arg.setDescription("Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}.")
+    arg.setDescription("Only used for #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit}.")
     arg.setUnits('deg-F')
     args << arg
 
