@@ -2267,8 +2267,7 @@ class HVACSizing
 
           duct_area_fraction = duct_area / total_area
 
-          effective_rvalue = Airflow.get_duct_insulation_rvalue(duct.duct_insulation_r_value, duct_type)
-          dse_Ufactor[duct_type] += 1.0 / effective_rvalue * duct_area_fraction
+          dse_Ufactor[duct_type] += 1.0 / duct.duct_effective_r_value * duct_area_fraction
 
           dse_Tamb[duct_type] += design_temps[duct.duct_location] * duct_area_fraction
 
@@ -2306,12 +2305,12 @@ class HVACSizing
     return cfms[HPXML::DuctTypeSupply], cfms[HPXML::DuctTypeReturn]
   end
 
-  def self.process_curve_fit(airFlowRate, capacity, temp)
+  def self.process_curve_fit(airflow_rate, capacity, temp)
     # TODO: Get rid of this curve by using ADP/BF calculations
     return 0 if capacity == 0
 
     capacity_tons = UnitConversions.convert(capacity, 'Btu/hr', 'ton')
-    return MathTools.biquadratic(airFlowRate / capacity_tons, temp, get_shr_biquadratic)
+    return MathTools.biquadratic(airflow_rate / capacity_tons, temp, get_shr_biquadratic)
   end
 
   def self.get_shr_biquadratic

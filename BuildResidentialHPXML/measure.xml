@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>235c0e9c-de56-46b1-8712-83df120d39b8</version_id>
-  <version_modified>20230501T221652Z</version_modified>
+  <version_id>35aa6a0f-1652-40e5-a79d-19f78ec9b96e</version_id>
+  <version_modified>20230510T181859Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -957,24 +957,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>2</default_value>
-    </argument>
-    <argument>
-      <name>geometry_has_flue_or_chimney</name>
-      <display_name>Geometry: Has Flue or Chimney</display_name>
-      <description>Presence of flue or chimney for infiltration model. If not provided, the OS-HPXML default is used.</description>
-      <type>Boolean</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>neighbor_front_distance</name>
@@ -2045,6 +2027,24 @@
       </choices>
     </argument>
     <argument>
+      <name>air_leakage_has_flue_or_chimney_in_conditioned_space</name>
+      <display_name>Air Leakage: Has Flue or Chimney in Conditioned Space</display_name>
+      <description>Presence of flue or chimney with combustion air from conditioned space; used for infiltration model. If not provided, the OS-HPXML default is used.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>heating_system_type</name>
       <display_name>Heating System: Type</display_name>
       <description>The type of heating system. Use 'none' if there is no heating system or if there is a heat pump serving a heating load.</description>
@@ -3030,6 +3030,32 @@
       <default_value>0</default_value>
     </argument>
     <argument>
+      <name>ducts_supply_buried_insulation_level</name>
+      <display_name>Ducts: Supply Buried Insulation Level</display_name>
+      <description>Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>not buried</value>
+          <display_name>not buried</display_name>
+        </choice>
+        <choice>
+          <value>partially buried</value>
+          <display_name>partially buried</display_name>
+        </choice>
+        <choice>
+          <value>fully buried</value>
+          <display_name>fully buried</display_name>
+        </choice>
+        <choice>
+          <value>deeply buried</value>
+          <display_name>deeply buried</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>ducts_supply_surface_area</name>
       <display_name>Ducts: Supply Surface Area</display_name>
       <description>The surface area of the supply ducts. If not provided, the OS-HPXML default is used.</description>
@@ -3125,6 +3151,32 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>ducts_return_buried_insulation_level</name>
+      <display_name>Ducts: Return Buried Insulation Level</display_name>
+      <description>Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>not buried</value>
+          <display_name>not buried</display_name>
+        </choice>
+        <choice>
+          <value>partially buried</value>
+          <display_name>partially buried</display_name>
+        </choice>
+        <choice>
+          <value>fully buried</value>
+          <display_name>fully buried</display_name>
+        </choice>
+        <choice>
+          <value>deeply buried</value>
+          <display_name>deeply buried</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>ducts_return_surface_area</name>
@@ -6604,7 +6656,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>85C5A15B</checksum>
+      <checksum>74318562</checksum>
     </file>
   </files>
 </measure>
