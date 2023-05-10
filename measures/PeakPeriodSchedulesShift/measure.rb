@@ -145,10 +145,10 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
     schedule_ruleset_names_enabled.each do |schedule_ruleset_name, peak_period_shift_enabled|
       next if !peak_period_shift_enabled
 
-      shift_summary[schedule_ruleset_name] = 0
+      shift_summary[schedule_ruleset_name] = []
 
-      schedule_ruleset = schedule_rulesets.select { |schedule_ruleset| schedule_ruleset.name.to_s == schedule_ruleset_name }[0]
-      schedule_ruleset.scheduleRules.each do |schedule_rule|
+      schedule_ruleset = schedule_rulesets.find { |schedule_ruleset| schedule_ruleset.name.to_s == schedule_ruleset_name }
+      schedule_ruleset.scheduleRules.reverse.each do |schedule_rule|
         next unless schedule_rule.applyMonday || schedule_rule.applyTuesday || schedule_rule.applyWednesday || schedule_rule.applyThursday || schedule_rule.applyFriday
 
         new_schedule_rule = schedule_rule.clone.to_ScheduleRule.get
@@ -169,7 +169,14 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
         shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
 
         if shifted
-          shift_summary[schedule_ruleset_name] += 1
+          start_date = new_schedule_rule.startDate.get
+          start_date_month = start_date.monthOfYear.value
+          start_date_day = start_date.dayOfMonth
+          end_date = new_schedule_rule.endDate.get
+          end_date_month = end_date.monthOfYear.value
+          end_date_day = end_date.dayOfMonth
+
+          shift_summary[schedule_ruleset_name] << "#{start_date_month}/#{start_date_day}-#{end_date_month}/#{end_date_day}"
           for h in 0..23
             time = OpenStudio::Time.new(0, h + 1, 0, 0)
             new_day_schedule.addValue(time, schedule[h])
@@ -197,7 +204,14 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
 
       if shifted
-        shift_summary[schedule_ruleset_name] += 1 if shifted
+        start_date = new_schedule_rule.startDate.get
+        start_date_month = start_date.monthOfYear.value
+        start_date_day = start_date.dayOfMonth
+        end_date = new_schedule_rule.endDate.get
+        end_date_month = end_date.monthOfYear.value
+        end_date_day = end_date.dayOfMonth
+
+        shift_summary[schedule_ruleset_name] << "#{start_date_month}/#{start_date_day}-#{end_date_month}/#{end_date_day}"
         for h in 0..23
           time = OpenStudio::Time.new(0, h + 1, 0, 0)
           new_default_day_schedule.addValue(time, schedule[h])
@@ -207,8 +221,8 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    shift_summary.each do |schedule_ruleset_name, shifted_day_schedules|
-      runner.registerInfo("Shifted #{shifted_day_schedules} day schedule(s) for the '#{schedule_ruleset_name}' Schedule:Ruleset.")
+    shift_summary.each do |schedule_ruleset_name, shifted_day_schedule_ranges|
+      runner.registerInfo("Shifted weekday schedule(s) during date ranges #{shifted_day_schedule_ranges.join(', ')} for the '#{schedule_ruleset_name}' Schedule:Ruleset.")
     end
 
     # Schedule:File
@@ -288,7 +302,7 @@ class Schedules
     end
 
     shift_summary.each do |schedule_file_column_name, shifted_days|
-      runner.registerInfo("Out of #{total_days_in_year} total days, #{shifted_days} day(s) were shifted for the '#{schedule_file_column_name}' Schedule:File.")
+      runner.registerInfo("Out of #{total_days_in_year} total days, #{shifted_days} weekday(s) were shifted for the '#{schedule_file_column_name}' Schedule:File.")
     end
   end
 
