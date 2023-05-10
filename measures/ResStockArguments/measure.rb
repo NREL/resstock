@@ -489,11 +489,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if (args[:heating_system_has_flue_or_chimney] == 'false') &&
        (args[:heating_system_2_has_flue_or_chimney] == 'false') &&
        (args[:water_heater_has_flue_or_chimney] == 'false')
-      args[:geometry_has_flue_or_chimney] = false
+      args[:air_leakage_has_flue_or_chimney_in_conditioned_space] = false
     elsif (args[:heating_system_type] != 'none' && args[:heating_system_has_flue_or_chimney] == 'true') ||
           (args[:heating_system_2_type] != 'none' && args[:heating_system_2_has_flue_or_chimney] == 'true') ||
           (args[:water_heater_type] != 'none' && args[:water_heater_has_flue_or_chimney] == 'true')
-      args[:geometry_has_flue_or_chimney] = true
+      args[:air_leakage_has_flue_or_chimney_in_conditioned_space] = true
     end
 
     # HVAC Faults
