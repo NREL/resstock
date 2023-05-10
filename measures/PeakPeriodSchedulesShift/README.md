@@ -5,10 +5,10 @@
 # PeakPeriodSchedulesShift
 
 ## Description
-Shifts select schedules out of a peak period.
+Shifts select weekday schedules out of a peak period.
 
 ## Modeler Description
-Enter a weekday peak period, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Prevent stacking of schedule values by only allowing shifts to all-zero periods.
+Enter a weekday peak period window, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Optionally prevent stacking of schedule values by only allowing shifts to all-zero periods.
 
 ## Measure Type
 ModelMeasure

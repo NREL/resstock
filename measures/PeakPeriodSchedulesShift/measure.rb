@@ -15,12 +15,12 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'Shifts select schedules out of a peak period.'
+    return 'Shifts select weekday schedules out of a peak period.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return 'Enter a weekday peak period, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Prevent stacking of schedule values by only allowing shifts to all-zero periods.'
+    return 'Enter a weekday peak period window, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Optionally prevent stacking of schedule values by only allowing shifts to all-zero periods.'
   end
 
   # define the arguments that the user will input
