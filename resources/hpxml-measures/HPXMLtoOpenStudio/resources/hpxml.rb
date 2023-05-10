@@ -49,8 +49,8 @@ XMLHelper.write_file(hpxml.to_oga, "out.xml")
 
 class HPXML < Object
   HPXML_ATTRS = [:header, :site, :neighbor_buildings, :building_occupancy, :building_construction,
-                 :climate_and_risk_zones, :air_infiltration_measurements, :attics, :foundations,
-                 :roofs, :rim_joists, :walls, :foundation_walls, :floors, :slabs, :windows,
+                 :climate_and_risk_zones, :air_infiltration, :air_infiltration_measurements, :attics,
+                 :foundations, :roofs, :rim_joists, :walls, :foundation_walls, :floors, :slabs, :windows,
                  :skylights, :doors, :partition_wall_mass, :furniture_mass, :heating_systems,
                  :cooling_systems, :heat_pumps, :hvac_plant, :hvac_controls, :hvac_distributions,
                  :ventilation_fans, :water_heating_systems, :hot_water_distributions, :water_fixtures,
@@ -93,6 +93,10 @@ class HPXML < Object
   ColorReflective = 'reflective'
   DehumidifierTypePortable = 'portable'
   DehumidifierTypeWholeHome = 'whole-home'
+  DuctBuriedInsulationNone = 'not buried'
+  DuctBuriedInsulationPartial = 'partially buried'
+  DuctBuriedInsulationFull = 'fully buried'
+  DuctBuriedInsulationDeep = 'deeply buried'
   DHWRecirControlTypeManual = 'manual demand control'
   DHWRecirControlTypeNone = 'no control'
   DHWRecirControlTypeSensor = 'presence sensor demand control'
@@ -713,6 +717,7 @@ class HPXML < Object
     @building_construction.to_oga(@doc)
     @climate_and_risk_zones.to_oga(@doc)
     @air_infiltration_measurements.to_oga(@doc)
+    @air_infiltration.to_oga(@doc)
     @attics.to_oga(@doc)
     @foundations.to_oga(@doc)
     @roofs.to_oga(@doc)
@@ -768,6 +773,7 @@ class HPXML < Object
     @building_construction = BuildingConstruction.new(self, hpxml)
     @climate_and_risk_zones = ClimateandRiskZones.new(self, hpxml)
     @air_infiltration_measurements = AirInfiltrationMeasurements.new(self, hpxml)
+    @air_infiltration = AirInfiltration.new(self, hpxml)
     @attics = Attics.new(self, hpxml)
     @foundations = Foundations.new(self, hpxml)
     @roofs = Roofs.new(self, hpxml)
@@ -1563,7 +1569,7 @@ class HPXML < Object
     ATTRS = [:year_built, :number_of_conditioned_floors, :number_of_conditioned_floors_above_grade,
              :average_ceiling_height, :number_of_bedrooms, :number_of_bathrooms,
              :conditioned_floor_area, :conditioned_building_volume, :residential_facility_type,
-             :building_footprint_area, :has_flue_or_chimney]
+             :building_footprint_area]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -1585,7 +1591,6 @@ class HPXML < Object
       XMLHelper.add_element(building_construction, 'BuildingFootprintArea', @building_footprint_area, :float, @building_footprint_area_isdefaulted) unless @building_footprint_area.nil?
       XMLHelper.add_element(building_construction, 'ConditionedFloorArea', @conditioned_floor_area, :float) unless @conditioned_floor_area.nil?
       XMLHelper.add_element(building_construction, 'ConditionedBuildingVolume', @conditioned_building_volume, :float, @conditioned_building_volume_isdefaulted) unless @conditioned_building_volume.nil?
-      XMLHelper.add_extension(building_construction, 'HasFlueOrChimney', @has_flue_or_chimney, :boolean, @has_flue_or_chimney_isdefaulted) unless @has_flue_or_chimney.nil?
     end
 
     def from_oga(hpxml)
@@ -1604,7 +1609,6 @@ class HPXML < Object
       @building_footprint_area = XMLHelper.get_value(building_construction, 'BuildingFootprintArea', :float)
       @conditioned_floor_area = XMLHelper.get_value(building_construction, 'ConditionedFloorArea', :float)
       @conditioned_building_volume = XMLHelper.get_value(building_construction, 'ConditionedBuildingVolume', :float)
-      @has_flue_or_chimney = XMLHelper.get_value(building_construction, 'extension/HasFlueOrChimney', :boolean)
     end
   end
 
@@ -1696,6 +1700,32 @@ class HPXML < Object
 
       @year = XMLHelper.get_value(climate_zone_iecc, 'Year', :integer)
       @zone = XMLHelper.get_value(climate_zone_iecc, 'ClimateZone', :string)
+    end
+  end
+
+  class AirInfiltration < BaseElement
+    ATTRS = [:has_flue_or_chimney_in_conditioned_space]
+    attr_accessor(*ATTRS)
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def to_oga(doc)
+      return if nil?
+
+      air_infiltration = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'Enclosure', 'AirInfiltration'])
+      XMLHelper.add_extension(air_infiltration, 'HasFlueOrChimneyInConditionedSpace', @has_flue_or_chimney_in_conditioned_space, :boolean, @has_flue_or_chimney_in_conditioned_space_isdefaulted) unless @has_flue_or_chimney_in_conditioned_space.nil?
+    end
+
+    def from_oga(hpxml)
+      return if hpxml.nil?
+
+      air_infiltration = XMLHelper.get_element(hpxml, 'Building/BuildingDetails/Enclosure/AirInfiltration')
+      return if air_infiltration.nil?
+
+      @has_flue_or_chimney_in_conditioned_space = XMLHelper.get_value(air_infiltration, 'extension/HasFlueOrChimneyInConditionedSpace', :boolean)
     end
   end
 
@@ -3656,7 +3686,7 @@ class HPXML < Object
       heating_system = XMLHelper.add_element(hvac_plant, 'HeatingSystem')
       sys_id = XMLHelper.add_element(heating_system, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
-      XMLHelper.add_element(heating_system, 'UnitLocation', @location, :string) unless @location.nil?
+      XMLHelper.add_element(heating_system, 'UnitLocation', @location, :string, @location_isdefaulted) unless @location.nil?
       XMLHelper.add_element(heating_system, 'YearInstalled', @year_installed, :integer) unless @year_installed.nil?
       XMLHelper.add_element(heating_system, 'ThirdPartyCertification', @third_party_certification, :string) unless @third_party_certification.nil?
       if not @distribution_system_idref.nil?
@@ -3774,9 +3804,9 @@ class HPXML < Object
              :cooling_efficiency_seer2, :cooling_efficiency_eer, :cooling_efficiency_ceer, :cooling_efficiency_kw_per_ton,
              :cooling_shr, :third_party_certification, :clg_seed_id, :is_shared_system, :number_of_units_served,
              :shared_loop_watts, :shared_loop_motor_efficiency, :fan_coil_watts, :airflow_defect_ratio,
-             :fan_watts_per_cfm, :charge_defect_ratio, :cooling_airflow_cfm, :location, :primary_system, :integrated_heating_system_fuel,
-             :integrated_heating_system_capacity, :integrated_heating_system_efficiency_percent, :integrated_heating_system_fraction_heat_load_served,
-             :integrated_heating_system_airflow_cfm, :htg_seed_id]
+             :fan_watts_per_cfm, :charge_defect_ratio, :cooling_airflow_cfm, :location, :primary_system,
+             :integrated_heating_system_fuel, :integrated_heating_system_capacity, :integrated_heating_system_efficiency_percent,
+             :integrated_heating_system_fraction_heat_load_served, :integrated_heating_system_airflow_cfm, :htg_seed_id]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -3832,7 +3862,7 @@ class HPXML < Object
       cooling_system = XMLHelper.add_element(hvac_plant, 'CoolingSystem')
       sys_id = XMLHelper.add_element(cooling_system, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
-      XMLHelper.add_element(cooling_system, 'UnitLocation', @location, :string) unless @location.nil?
+      XMLHelper.add_element(cooling_system, 'UnitLocation', @location, :string, @location_isdefaulted) unless @location.nil?
       XMLHelper.add_element(cooling_system, 'YearInstalled', @year_installed, :integer) unless @year_installed.nil?
       XMLHelper.add_element(cooling_system, 'ThirdPartyCertification', @third_party_certification, :string) unless @third_party_certification.nil?
       if not @distribution_system_idref.nil?
@@ -4036,7 +4066,7 @@ class HPXML < Object
       heat_pump = XMLHelper.add_element(hvac_plant, 'HeatPump')
       sys_id = XMLHelper.add_element(heat_pump, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
-      XMLHelper.add_element(heat_pump, 'UnitLocation', @location, :string) unless @location.nil?
+      XMLHelper.add_element(heat_pump, 'UnitLocation', @location, :string, @location_isdefaulted) unless @location.nil?
       XMLHelper.add_element(heat_pump, 'YearInstalled', @year_installed, :integer) unless @year_installed.nil?
       XMLHelper.add_element(heat_pump, 'ThirdPartyCertification', @third_party_certification, :string) unless @third_party_certification.nil?
       if not @distribution_system_idref.nil?
@@ -4591,7 +4621,8 @@ class HPXML < Object
 
   class Duct < BaseElement
     ATTRS = [:id, :duct_type, :duct_insulation_r_value, :duct_insulation_material, :duct_location,
-             :duct_fraction_area, :duct_surface_area, :duct_surface_area_multiplier]
+             :duct_fraction_area, :duct_surface_area, :duct_surface_area_multiplier,
+             :duct_buried_insulation_level, :duct_effective_r_value]
     attr_accessor(*ATTRS)
 
     def delete
@@ -4617,6 +4648,8 @@ class HPXML < Object
         XMLHelper.add_element(ins_material_el, @duct_insulation_material)
       end
       XMLHelper.add_element(ducts_el, 'DuctInsulationRValue', @duct_insulation_r_value, :float) unless @duct_insulation_r_value.nil?
+      XMLHelper.add_element(ducts_el, 'DuctBuriedInsulationLevel', @duct_buried_insulation_level, :string, @duct_buried_insulation_level_isdefaulted) unless @duct_buried_insulation_level.nil?
+      XMLHelper.add_element(ducts_el, 'DuctEffectiveRValue', @duct_effective_r_value, :float, @duct_effective_r_value_isdefaulted) unless @duct_effective_r_value.nil?
       XMLHelper.add_element(ducts_el, 'DuctLocation', @duct_location, :string, @duct_location_isdefaulted) unless @duct_location.nil?
       XMLHelper.add_element(ducts_el, 'FractionDuctArea', @duct_fraction_area, :float, @duct_fraction_area_isdefaulted) unless @duct_fraction_area.nil?
       XMLHelper.add_element(ducts_el, 'DuctSurfaceArea', @duct_surface_area, :float, @duct_surface_area_isdefaulted) unless @duct_surface_area.nil?
@@ -4630,6 +4663,8 @@ class HPXML < Object
       @duct_type = XMLHelper.get_value(duct, 'DuctType', :string)
       @duct_insulation_material = XMLHelper.get_child_name(duct, 'DuctInsulationMaterial')
       @duct_insulation_r_value = XMLHelper.get_value(duct, 'DuctInsulationRValue', :float)
+      @duct_buried_insulation_level = XMLHelper.get_value(duct, 'DuctBuriedInsulationLevel', :string)
+      @duct_effective_r_value = XMLHelper.get_value(duct, 'DuctEffectiveRValue', :float)
       @duct_location = XMLHelper.get_value(duct, 'DuctLocation', :string)
       @duct_fraction_area = XMLHelper.get_value(duct, 'FractionDuctArea', :float)
       @duct_surface_area = XMLHelper.get_value(duct, 'DuctSurfaceArea', :float)

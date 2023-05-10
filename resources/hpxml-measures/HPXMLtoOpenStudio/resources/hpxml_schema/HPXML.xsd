@@ -200,6 +200,65 @@
 		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
+	<xs:complexType name="DetailedConstruction">
+		<xs:annotation>
+			<xs:documentation>Can be used to describe properties for each individual material in the construction</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:group ref="SystemInfo"/>
+			<xs:element maxOccurs="unbounded" name="ConstructionLayer">
+				<xs:annotation>
+					<xs:documentation>Layers should be ordered from exterior to interior. Do not include air films.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs="0" name="LayerType" type="ConstructionLayerType"/>
+						<xs:element minOccurs="0" name="LayerThickness" type="LengthMeasurement">
+							<xs:annotation>
+								<xs:documentation>[in]</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element maxOccurs="unbounded" name="LayerMaterial">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element minOccurs="0" name="AreaFraction" type="FractionGreaterThanZero">
+										<xs:annotation>
+											<xs:documentation>Fraction of the layer's area defined by this material. Values across all materials in a layer should sum to 1.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="MaterialType" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>E.g., "wood", "concrete", "drywall", etc.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="Conductivity" type="HPXMLDoubleGreaterThanZero">
+										<xs:annotation>
+											<xs:documentation>[Btu/hr-ft-F]</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="Density" type="HPXMLDoubleGreaterThanZero">
+										<xs:annotation>
+											<xs:documentation>[lb/ft3]</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="SpecificHeat" type="HPXMLDoubleGreaterThanZero">
+										<xs:annotation>
+											<xs:documentation>[Btu/lb-F]</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="RValue" type="RValue"/>
+									<xs:element ref="extension" minOccurs="0"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element ref="extension" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element ref="extension" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="dataSource" type="DataSource"/>
+	</xs:complexType>
 	<xs:complexType name="InsulationMaterial">
 		<xs:choice>
 			<xs:element name="Batt" type="InsulationBattType"/>
@@ -989,6 +1048,7 @@
 									<xs:element name="RadiantBarrierLocation" type="RadiantBarrierLocation" minOccurs="0"/>
 									<xs:element name="RadiantBarrierGrade" type="InsulationGrade" minOccurs="0"/>
 									<xs:element minOccurs="0" name="Insulation" type="InsulationInfo"/>
+									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element ref="extension" minOccurs="0"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -1029,6 +1089,7 @@
 									<xs:element minOccurs="0" name="SolarAbsorptance" type="SolarAbsorptance"/>
 									<xs:element minOccurs="0" name="Emittance" type="Emittance"/>
 									<xs:element minOccurs="0" name="Insulation" type="InsulationInfo"/>
+									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element minOccurs="0" name="FloorJoists" type="StudProperties"/>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
 										<xs:complexType>
@@ -1082,6 +1143,7 @@
 									<xs:element minOccurs="0" name="Emittance" type="Emittance"/>
 									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"/>
 									<xs:element minOccurs="0" maxOccurs="1" name="Insulation" type="InsulationInfo"/>
+									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
 										<xs:complexType>
 											<xs:sequence>
@@ -1149,6 +1211,7 @@
 									<xs:element minOccurs="0" name="InteriorStuds" type="StudProperties"/>
 									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"/>
 									<xs:element maxOccurs="1" minOccurs="0" name="Insulation" type="FoundationWallInsulationInfo"/>
+									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -1188,6 +1251,7 @@
 									</xs:element>
 									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"/>
 									<xs:element minOccurs="0" maxOccurs="1" name="Insulation" type="InsulationInfo"/>
+									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element minOccurs="0" name="MobileHomeBellyOrWing" type="MobileHomeBellyOrWing">
 										<xs:annotation>
 											<xs:documentation>Indicate whether the floor section is a mobile home belly or wing section. Omit if not applicable. For a mobile home, if the foundation type is a belly and wing, ExteriorAdjacentTo should be set to 'outside'.</xs:documentation>
@@ -1247,6 +1311,7 @@
 									<xs:element minOccurs="0" name="FloorCovering" type="FloorCovering"/>
 									<xs:element maxOccurs="1" minOccurs="0" name="PerimeterInsulation" type="SlabPerimeterInsulationInfo"/>
 									<xs:element minOccurs="0" name="UnderSlabInsulation" type="UnderSlabInsulationInfo"/>
+									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -1713,6 +1778,23 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="HPWHOperatingMode" type="HPWHOperatingMode"/>
+									<xs:element minOccurs="0" name="HPWHDucting">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element minOccurs="0" name="SupplyAirSource" type="AdjacentTo">
+													<xs:annotation>
+														<xs:documentation>Where the air is supplied from; not the location where the supply ducts are running through.</xs:documentation>
+													</xs:annotation>
+												</xs:element>
+												<xs:element minOccurs="0" name="ExhaustAirTermination" type="AdjacentTo">
+													<xs:annotation>
+														<xs:documentation>Where the air is exhausted to; not the location where the exhaust ducts are running through.</xs:documentation>
+													</xs:annotation>
+												</xs:element>
+												<xs:element ref="extension" minOccurs="0"/>
+											</xs:sequence>
+										</xs:complexType>
+									</xs:element>
 									<xs:element minOccurs="0" name="FirstHourRating" type="Volume">
 										<xs:annotation>
 											<xs:documentation>[gal per hour] An estimate of the maximum volume of hot water in gallons that a storage water heater can supply within an hour that begins
@@ -4129,13 +4211,27 @@
 						<xs:element name="DuctType" type="DuctType" minOccurs="0"/>
 						<xs:element name="DuctMaterial" type="DuctMaterial" minOccurs="0"/>
 						<xs:element minOccurs="0" name="DuctInsulationMaterial" type="InsulationMaterial"/>
-						<xs:element name="DuctInsulationRValue" type="RValue" minOccurs="0"/>
+						<xs:element name="DuctInsulationRValue" type="RValue" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>This should exclude the exterior air film -- e.g., use zero for uninsulated ducts. For ducts buried in insulation, this should only represent any surrounding insulation duct wrap and not the entire attic insulation R-value.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element minOccurs="0" name="DuctInsulationThickness" type="LengthMeasurement">
 							<xs:annotation>
 								<xs:documentation>[in]</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 						<xs:element minOccurs="0" name="DuctInsulationCondition" type="InsulationCondition"/>
+						<xs:element minOccurs="0" name="DuctBuriedInsulationLevel" type="DuctBuriedInsulationLevel">
+							<xs:annotation>
+								<xs:documentation>Describes ducts buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts. See https://basc.pnnl.gov/resource-guides/ducts-buried-attic-insulation for more information.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="DuctEffectiveRValue" type="RValue">
+							<xs:annotation>
+								<xs:documentation>The overall effective R-value. Includes the exterior air film as well as other effects such as adjustments for insulation wrapped around round ducts, or ducts buried in attic insulation.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element name="DuctLocation" type="DuctLocation" minOccurs="0"/>
 						<xs:element minOccurs="0" name="FractionDuctArea" type="Fraction">
 							<xs:annotation>
@@ -5445,7 +5541,7 @@
 			<xs:element name="TypeOfBlowerDoorTest" type="TypeofBlowerDoorTest" minOccurs="0"/>
 			<xs:element minOccurs="0" name="TypeOfInfiltrationLeakage" type="TypeofInfiltrationLeakage">
 				<xs:annotation>
-					<xs:documentation>This element is intended to describe the type of infiltration measured, e.g., for an individual single-family attached or multifamily dwelling unit. Either whole building or single unit infiltration can be measured. For single unit infiltration, leakage can occur through exterior surfaces (adjacent to outside) only, interior surfaces (adjacent to other units or common spaces) only, or both. For example, guarded tests measure unit exterior leakage, unguarded or compartmentalization tests measure unit total leakage, and combining both tests can measure unit interior leakage.</xs:documentation>
+					<xs:documentation>This element is intended to describe the type of infiltration measured, e.g., for an individual single-family attached or multifamily dwelling unit. Either whole building or single unit infiltration can be measured. For single unit infiltration, leakage can occur through exterior surfaces, interior surfaces, or both. For example, guarded tests measure unit exterior leakage, unguarded or compartmentalization tests measure unit total leakage, and combining both tests can measure unit interior leakage.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="HousePressure" type="HousePressure" minOccurs="0">
@@ -6399,6 +6495,18 @@
 	<xs:complexType name="HPXMLDouble">
 		<xs:simpleContent>
 			<xs:extension base="xs:double">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="HPXMLDoubleGreaterThanZero_simple">
+		<xs:restriction base="xs:double">
+			<xs:minExclusive value="0"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="HPXMLDoubleGreaterThanZero">
+		<xs:simpleContent>
+			<xs:extension base="HPXMLDoubleGreaterThanZero_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -8357,6 +8465,21 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="DuctBuriedInsulationLevel_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="not buried"/>
+			<xs:enumeration value="partially buried"/>
+			<xs:enumeration value="fully buried"/>
+			<xs:enumeration value="deeply buried"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="DuctBuriedInsulationLevel">
+		<xs:simpleContent>
+			<xs:extension base="DuctBuriedInsulationLevel_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="DuctLocation_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="attic"/>
@@ -9703,6 +9826,19 @@
 	<xs:complexType name="Fraction">
 		<xs:simpleContent>
 			<xs:extension base="Fraction_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="FractionGreaterThanZero_simple">
+		<xs:annotation>
+			<xs:documentation>A fraction that has to be between 0 (exclusive) and 1 (inclusive)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:double"/>
+	</xs:simpleType>
+	<xs:complexType name="FractionGreaterThanZero">
+		<xs:simpleContent>
+			<xs:extension base="FractionGreaterThanOne_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -11371,6 +11507,25 @@
 	<xs:complexType name="MoisureType">
 		<xs:simpleContent>
 			<xs:extension base="MoistureType_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="ConstructionLayerType_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="exterior finish"/>
+			<xs:enumeration value="sheathing"/>
+			<xs:enumeration value="continuous insulation"/>
+			<xs:enumeration value="framing/cavity insulation"/>
+			<xs:enumeration value="structural core"/>
+			<xs:enumeration value="interior finish"/>
+			<xs:enumeration value="subfloor"/>
+			<xs:enumeration value="other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="ConstructionLayerType">
+		<xs:simpleContent>
+			<xs:extension base="ConstructionLayerType_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>

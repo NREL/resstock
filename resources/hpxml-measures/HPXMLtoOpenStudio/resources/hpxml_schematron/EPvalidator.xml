@@ -226,6 +226,7 @@
       <sch:assert role='ERROR' test='count(h:BuildingSummary/h:BuildingConstruction) = 1'>Expected 1 element(s) for xpath: BuildingSummary/BuildingConstruction</sch:assert> <!-- See [BuildingConstruction] -->
       <sch:assert role='ERROR' test='count(h:ClimateandRiskZones/h:ClimateZoneIECC) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ClimateandRiskZones/ClimateZoneIECC</sch:assert> <!-- See [ClimateZoneIECC] -->
       <sch:assert role='ERROR' test='count(h:ClimateandRiskZones/h:WeatherStation) = 1'>Expected 1 element(s) for xpath: ClimateandRiskZones/WeatherStation</sch:assert> <!-- See [WeatherStation] -->
+      <sch:assert role='ERROR' test='count(h:Enclosure/h:AirInfiltration/h:extension/h:HasFlueOrChimneyInConditionedSpace) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Enclosure/AirInfiltration/extension/HasFlueOrChimneyInConditionedSpace</sch:assert>
       <sch:assert role='ERROR' test='count(h:Enclosure/h:AirInfiltration/h:AirInfiltrationMeasurement[h:BuildingAirLeakage/h:AirLeakage | h:EffectiveLeakageArea]) = 1'>Expected 1 element(s) for xpath: Enclosure/AirInfiltration/AirInfiltrationMeasurement[BuildingAirLeakage/AirLeakage | EffectiveLeakageArea]</sch:assert> <!-- see [AirInfiltrationMeasurement] -->
       <sch:assert role='ERROR' test='count(h:Enclosure/h:Roofs/h:Roof) &gt;= 0'>Expected 0 or more element(s) for xpath: Enclosure/Roofs/Roof</sch:assert> <!-- see [Roof] -->
       <sch:assert role='ERROR' test='count(h:Enclosure/h:RimJoists/h:RimJoist) &gt;= 0'>Expected 0 or more element(s) for xpath: Enclosure/RimJoists/RimJoist</sch:assert> <!-- see [RimJoist] -->
@@ -343,7 +344,8 @@
       <sch:assert role='ERROR' test='count(h:ConditionedFloorArea) = 1'>Expected 1 element(s) for xpath: ConditionedFloorArea</sch:assert>
       <sch:assert role='ERROR' test='number(h:ConditionedFloorArea) &gt;= (sum(../../h:Enclosure/h:Slabs/h:Slab[h:InteriorAdjacentTo="living space" or h:InteriorAdjacentTo="basement - conditioned"]/h:Area) + sum(../../h:Enclosure/h:Floors/h:Floor[h:InteriorAdjacentTo="living space" and not(h:ExteriorAdjacentTo="attic - vented" or h:ExteriorAdjacentTo="attic - unvented" or ((h:ExteriorAdjacentTo="other housing unit" or h:ExteriorAdjacentTo="other heated space" or h:ExteriorAdjacentTo="other multifamily buffer space" or h:ExteriorAdjacentTo="other non-freezing space") and h:FloorOrCeiling="ceiling"))]/h:Area) - 1) or not(h:ConditionedFloorArea)'>Expected ConditionedFloorArea to be greater than or equal to the sum of conditioned slab/floor areas.</sch:assert>
       <sch:assert role='ERROR' test='count(h:ConditionedBuildingVolume) + count(h:AverageCeilingHeight) &gt;= 0'>Expected 0 or more element(s) for xpath: ConditionedBuildingVolume | AverageCeilingHeight</sch:assert>
-      <sch:assert role='ERROR' test='count(h:extension/h:HasFlueOrChimney) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/HasFlueOrChimney</sch:assert>
+      <!-- Deprecated old HasFlueOrChimney input; see https://github.com/NREL/OpenStudio-HPXML/issues/1350 -->
+      <sch:assert role='ERROR' test='count(h:extension/h:HasFlueOrChimney) = 0'>extension/HasFlueOrChimney has been replaced by /HPXML/Building/BuildingDetails/Enclosure/AirInfiltration/extension/HasFlueOrChimneyInConditionedSpace</sch:assert>
     </sch:rule>
   </sch:pattern>
   
@@ -703,6 +705,8 @@
     <sch:title>[HeatingSystem]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACPlant/h:HeatingSystem'>
       <sch:assert role='ERROR' test='count(../../h:HVACControl) = 1'>Expected 1 element(s) for xpath: ../../HVACControl</sch:assert> <!-- See [HVACControl=Heating] -->
+      <sch:assert role='ERROR' test='count(h:UnitLocation) &lt;=1'>Expected 0 or 1 element(s) for xpath: UnitLocation</sch:assert>
+      <sch:assert role='ERROR' test='h:UnitLocation[text()="living space" or text()="basement - unconditioned" or text()="basement - conditioned" or text()="attic - unvented" or text()="attic - vented" or text()="garage" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="crawlspace - conditioned" or text()="other exterior" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space" or text()="roof deck" or text()="unconditioned space"] or not(h:UnitLocation)'>Expected UnitLocation to be 'living space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'crawlspace - conditioned' or 'other exterior' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space' or 'roof deck' or 'unconditioned space'</sch:assert>
       <sch:assert role='ERROR' test='count(h:HeatingSystemType[h:ElectricResistance | h:Furnace | h:WallFurnace | h:FloorFurnace | h:Boiler | h:Stove | h:PortableHeater | h:FixedHeater | h:Fireplace]) = 1'>Expected 1 element(s) for xpath: HeatingSystemType[ElectricResistance | Furnace | WallFurnace | FloorFurnace | Boiler | Stove | PortableHeater | FixedHeater | Fireplace]</sch:assert> <!-- See [HeatingSystemType=Resistance] or [HeatingSystemType=Furnace] or [HeatingSystemType=WallFurnace] or [HeatingSystemType=FloorFurnace] or [HeatingSystemType=Boiler] or [HeatingSystemType=Stove] or [HeatingSystemType=PortableHeater] or [HeatingSystemType=FixedHeater] or [HeatingSystemType=Fireplace] -->
       <sch:assert role='ERROR' test='count(h:FractionHeatLoadServed) = 1 or count(../h:HeatPump/h:BackupSystem) &gt;= 1'>Expected 1 element(s) for xpath: FractionHeatLoadServed</sch:assert> <!-- See [HeatingSystem=HeatPumpBackup] -->
     </sch:rule>
@@ -915,6 +919,8 @@
     <sch:title>[CoolingSystem]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACPlant/h:CoolingSystem'>
       <sch:assert role='ERROR' test='count(../../h:HVACControl) = 1'>Expected 1 element(s) for xpath: ../../HVACControl</sch:assert> <!-- See [HVACControl=Cooling] -->
+      <sch:assert role='ERROR' test='count(h:UnitLocation) &lt;=1'>Expected 0 or 1 element(s) for xpath: UnitLocation</sch:assert>
+      <sch:assert role='ERROR' test='h:UnitLocation[text()="living space" or text()="basement - unconditioned" or text()="basement - conditioned" or text()="attic - unvented" or text()="attic - vented" or text()="garage" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="crawlspace - conditioned" or text()="other exterior" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space" or text()="roof deck" or text()="unconditioned space"] or not(h:UnitLocation)'>Expected UnitLocation to be 'living space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'crawlspace - conditioned' or 'other exterior' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space' or 'roof deck' or 'unconditioned space'</sch:assert>
       <sch:assert role='ERROR' test='count(h:CoolingSystemType) = 1'>Expected 1 element(s) for xpath: CoolingSystemType</sch:assert> <!-- See [CoolingSystemType=CentralAC] or [CoolingSystemType=PTACorRoomAC] or [CoolingSystemType=EvapCooler] or [CoolingSystemType=MiniSplitAC] or [CoolingSystemType=SharedChiller] or [CoolingSystemType=SharedCoolingTowerWLHP] -->
       <sch:assert role='ERROR' test='h:CoolingSystemType[text()="central air conditioner" or text()="room air conditioner" or text()="evaporative cooler" or text()="mini-split" or text()="chiller" or text()="cooling tower" or text()="packaged terminal air conditioner"] or not(h:CoolingSystemType)'>Expected CoolingSystemType to be 'central air conditioner' or 'room air conditioner' or 'evaporative cooler' or 'mini-split' or 'chiller' or 'cooling tower' or 'packaged terminal air conditioner'</sch:assert>
       <sch:assert role='ERROR' test='count(h:CoolingSystemFuel) = 1'>Expected 1 element(s) for xpath: CoolingSystemFuel</sch:assert>
@@ -1070,6 +1076,8 @@
     <sch:title>[HeatPump]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACPlant/h:HeatPump'>
       <sch:assert role='ERROR' test='count(../../h:HVACControl) = 1'>Expected 1 element(s) for xpath: ../../HVACControl</sch:assert> <!-- See [HVACControl=Heating] and/or [HVACControl=Cooling] -->
+      <sch:assert role='ERROR' test='count(h:UnitLocation) &lt;=1'>Expected 0 or 1 element(s) for xpath: UnitLocation</sch:assert>
+      <sch:assert role='ERROR' test='h:UnitLocation[text()="living space" or text()="basement - unconditioned" or text()="basement - conditioned" or text()="attic - unvented" or text()="attic - vented" or text()="garage" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="crawlspace - conditioned" or text()="other exterior" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space" or text()="roof deck" or text()="unconditioned space"] or not(h:UnitLocation)'>Expected UnitLocation to be 'living space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'crawlspace - conditioned' or 'other exterior' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space' or 'roof deck' or 'unconditioned space'</sch:assert>
       <sch:assert role='ERROR' test='count(h:HeatPumpType) = 1'>Expected 1 element(s) for xpath: HeatPumpType</sch:assert> <!-- See [HeatPumpType=AirSource] or [HeatPumpType=MiniSplit] or [HeatPumpType=GroundSource] or [HeatPumpType=WaterLoop] or [HeatPumpType=PTHPorRoomACwithReverseCycle] -->
       <sch:assert role='ERROR' test='h:HeatPumpType[text()="air-to-air" or text()="mini-split" or text()="ground-to-air" or text()="water-loop-to-air" or text()="packaged terminal heat pump" or text()="room air conditioner with reverse cycle"] or not(h:HeatPumpType)'>Expected HeatPumpType to be 'air-to-air' or 'mini-split' or 'ground-to-air' or 'water-loop-to-air' or 'packaged terminal heat pump' or 'room air conditioner with reverse cycle'</sch:assert>
       <sch:assert role='ERROR' test='count(h:HeatPumpFuel) = 1'>Expected 1 element(s) for xpath: HeatPumpFuel</sch:assert>
@@ -1410,7 +1418,9 @@
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACDistribution/h:DistributionSystemType/h:AirDistribution/h:Ducts'>
       <sch:assert role='ERROR' test='count(h:DuctType) = 1'>Expected 1 element(s) for xpath: DuctType</sch:assert>
       <sch:assert role='ERROR' test='h:DuctType[text()="supply" or text()="return"] or not(h:DuctType)'>Expected DuctType to be 'supply' or 'return'</sch:assert>
-      <sch:assert role='ERROR' test='count(h:DuctInsulationRValue) = 1'>Expected 1 element(s) for xpath: DuctInsulationRValue</sch:assert>
+      <sch:assert role='ERROR' test='count(h:DuctInsulationRValue) + count(h:DuctEffectiveRValue) &gt;= 1'>Expected 1 or more element(s) for xpath: DuctInsulationRValue | DuctEffectiveRValue</sch:assert>
+      <sch:assert role='ERROR' test='count(h:DuctBuriedInsulationLevel) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DuctBuriedInsulationLevel</sch:assert>
+      <sch:assert role='ERROR' test='h:DuctBuriedInsulationLevel[text()="not buried" or text()="partially buried" or text()="fully buried" or text()="deeply buried"] or not(h:DuctBuriedInsulationLevel)'>Expected DuctBuriedInsulationLevel to be 'not buried' or 'partially buried' or 'fully buried' or 'deeply buried'</sch:assert>
       <sch:assert role='ERROR' test='count(h:DuctLocation) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DuctLocation</sch:assert> <!-- See [HVACDuct=WithLocation] or [HVACDuct=WithoutLocation] -->
       <sch:assert role='ERROR' test='h:DuctLocation[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="crawlspace - conditioned" or text()="attic - vented" or text()="attic - unvented" or text()="garage" or text()="exterior wall" or text()="under slab" or text()="roof deck" or text()="outside" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"] or not(h:DuctLocation)'>Expected DuctLocation to be 'living space' or 'basement - conditioned' or 'basement - unconditioned' or 'crawlspace - vented' or 'crawlspace - unvented' or 'crawlspace - conditioned' or 'attic - vented' or 'attic - unvented' or 'garage' or 'exterior wall' or 'under slab' or 'roof deck' or 'outside' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space'</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:DuctSurfaceAreaMultiplier) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/DuctSurfaceAreaMultiplier</sch:assert>
@@ -2281,60 +2291,60 @@
     </sch:rule>
   </sch:pattern>
   
-  <!-- Rules below check that the specified appliance, water heater, or duct location exists in the building -->
+  <!-- Rules below check that the specified appliance, water heater, HVAC, or duct location exists in the building -->
   
   <sch:pattern>
     <sch:title>[LocationCheck=ConditionedBasement]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="basement - conditioned"] | h:Systems/*/*[h:Location="basement - conditioned"] | h:Systems/*/*/*/*/*[h:DuctLocation="basement - conditioned"]]'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="basement - conditioned"] | h:Systems/*/*[h:Location="basement - conditioned"] | h:Systems/*/*/*[h:UnitLocation="basement - conditioned"] | h:Systems/*/*/*/*/*[h:DuctLocation="basement - conditioned"]]'>
       <sch:assert role='ERROR' test='count(h:Enclosure/*/*[h:InteriorAdjacentTo="basement - conditioned" or h:ExteriorAdjacentTo="basement - conditioned"]) &gt;= 1'>A location is specified as "basement - conditioned" but no surfaces were found adjacent to this space type.</sch:assert>
     </sch:rule>
   </sch:pattern>
 
   <sch:pattern>
     <sch:title>[LocationCheck=UnconditionedBasement]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="basement - unconditioned"] | h:Systems/*/*[h:Location="basement - unconditioned"] | h:Systems/*/*/*/*/*[h:DuctLocation="basement - unconditioned"]]'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="basement - unconditioned"] | h:Systems/*/*[h:Location="basement - unconditioned"] | h:Systems/*/*/*[h:UnitLocation="basement - unconditioned"] | h:Systems/*/*/*/*/*[h:DuctLocation="basement - unconditioned"]]'>
       <sch:assert role='ERROR' test='count(h:Enclosure/*/*[h:InteriorAdjacentTo="basement - unconditioned" or h:ExteriorAdjacentTo="basement - unconditioned"]) &gt;= 1'>A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.</sch:assert>
     </sch:rule>
   </sch:pattern>
 
   <sch:pattern>
     <sch:title>[LocationCheck=VentedCrawlspace]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="crawlspace - vented"] | h:Systems/*/*[h:Location="crawlspace - vented"] | h:Systems/*/*/*/*/*[h:DuctLocation="crawlspace - vented"]]'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="crawlspace - vented"] | h:Systems/*/*[h:Location="crawlspace - vented"] | h:Systems/*/*/*[h:UnitLocation="crawlspace - vented"] | h:Systems/*/*/*/*/*[h:DuctLocation="crawlspace - vented"]]'>
       <sch:assert role='ERROR' test='count(h:Enclosure/*/*[h:InteriorAdjacentTo="crawlspace - vented" or h:ExteriorAdjacentTo="crawlspace - vented"]) &gt;= 1'>A location is specified as "crawlspace - vented" but no surfaces were found adjacent to this space type.</sch:assert>
     </sch:rule>
   </sch:pattern>
 
   <sch:pattern>
     <sch:title>[LocationCheck=UnventedCrawlspace]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="crawlspace - unvented"] | h:Systems/*/*[h:Location="crawlspace - unvented"] | h:Systems/*/*/*/*/*[h:DuctLocation="crawlspace - unvented"]]'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="crawlspace - unvented"] | h:Systems/*/*[h:Location="crawlspace - unvented"] | h:Systems/*/*/*[h:UnitLocation="crawlspace - unvented"] | h:Systems/*/*/*/*/*[h:DuctLocation="crawlspace - unvented"]]'>
       <sch:assert role='ERROR' test='count(h:Enclosure/*/*[h:InteriorAdjacentTo="crawlspace - unvented" or h:ExteriorAdjacentTo="crawlspace - unvented"]) &gt;= 1'>A location is specified as "crawlspace - unvented" but no surfaces were found adjacent to this space type.</sch:assert>
     </sch:rule>
   </sch:pattern>
 
   <sch:pattern>
     <sch:title>[LocationCheck=ConditionedCrawlspace]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="crawlspace - conditioned"] | h:Systems/*/*[h:Location="crawlspace - conditioned"] | h:Systems/*/*/*/*/*[h:DuctLocation="crawlspace - conditioned"]]'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="crawlspace - conditioned"] | h:Systems/*/*[h:Location="crawlspace - conditioned"] | h:Systems/*/*/*[h:UnitLocation="crawlspace - conditioned"] | h:Systems/*/*/*/*/*[h:DuctLocation="crawlspace - conditioned"]]'>
       <sch:assert role='ERROR' test='count(h:Enclosure/*/*[h:InteriorAdjacentTo="crawlspace - conditioned" or h:ExteriorAdjacentTo="crawlspace - conditioned"]) &gt;= 1'>A location is specified as "crawlspace - conditioned" but no surfaces were found adjacent to this space type.</sch:assert>
     </sch:rule>
   </sch:pattern>
 
   <sch:pattern>
     <sch:title>[LocationCheck=Garage]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="garage"] | h:Systems/*/*[h:Location="garage"] | h:Systems/*/*/*/*/*[h:DuctLocation="garage"]]'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="garage"] | h:Systems/*/*[h:Location="garage"] | h:Systems/*/*/*[h:UnitLocation="garage"] | h:Systems/*/*/*/*/*[h:DuctLocation="garage"]]'>
       <sch:assert role='ERROR' test='count(h:Enclosure/*/*[h:InteriorAdjacentTo="garage" or h:ExteriorAdjacentTo="garage"]) &gt;= 1'>A location is specified as "garage" but no surfaces were found adjacent to this space type.</sch:assert>
     </sch:rule>
   </sch:pattern>
 
   <sch:pattern>
     <sch:title>[LocationCheck=VentedAttic]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="attic - vented"] | h:Systems/*/*[h:Location="attic - vented"] | h:Systems/*/*/*/*/*[h:DuctLocation="attic - vented"]]'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="attic - vented"] | h:Systems/*/*[h:Location="attic - vented"] | h:Systems/*/*/*[h:UnitLocation="attic - vented"] | h:Systems/*/*/*/*/*[h:DuctLocation="attic - vented"]]'>
       <sch:assert role='ERROR' test='count(h:Enclosure/*/*[h:InteriorAdjacentTo="attic - vented" or h:ExteriorAdjacentTo="attic - vented"]) &gt;= 1'>A location is specified as "attic - vented" but no surfaces were found adjacent to this space type.</sch:assert>
     </sch:rule>
   </sch:pattern>
 
   <sch:pattern>
     <sch:title>[LocationCheck=UnventedAttic]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="attic - unvented"] | h:Systems/*/*[h:Location="attic - unvented"] | h:Systems/*/*/*/*/*[h:DuctLocation="attic - unvented"]]'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="attic - unvented"] | h:Systems/*/*[h:Location="attic - unvented"] | h:Systems/*/*/*[h:UnitLocation="attic - unvented"] | h:Systems/*/*/*/*/*[h:DuctLocation="attic - unvented"]]'>
       <sch:assert role='ERROR' test='count(h:Enclosure/*/*[h:InteriorAdjacentTo="attic - unvented" or h:ExteriorAdjacentTo="attic - unvented"]) &gt;= 1'>A location is specified as "attic - unvented" but no surfaces were found adjacent to this space type.</sch:assert>
     </sch:rule>
   </sch:pattern>

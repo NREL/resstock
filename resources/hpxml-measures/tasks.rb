@@ -1404,6 +1404,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml.hvac_distributions[0].conditioned_floor_area_served = 4050.0
       hpxml.hvac_distributions[0].number_of_return_registers = 3
     end
+  elsif ['base-hvac-ducts-effective-rvalue.xml'].include? hpxml_file
+    hpxml.hvac_distributions[0].ducts[0].duct_insulation_r_value = nil
+    hpxml.hvac_distributions[0].ducts[1].duct_insulation_r_value = nil
+    hpxml.hvac_distributions[0].ducts[0].duct_effective_r_value = 4.5
+    hpxml.hvac_distributions[0].ducts[1].duct_effective_r_value = 1.7
   elsif ['base-hvac-multiple.xml'].include? hpxml_file
     hpxml.hvac_distributions.reverse_each do |hvac_distribution|
       hvac_distribution.delete

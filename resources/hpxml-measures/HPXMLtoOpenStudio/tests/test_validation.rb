@@ -114,6 +114,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'hvac-distribution-return-duct-leakage-missing' => ['Expected 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="return"]/DuctLeakage[(Units="CFM25" or Units="CFM50" or Units="Percent") and TotalOrToOutside="to outside"] [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution[AirDistributionType[text()="regular velocity" or text()="gravity"]], id: "HVACDistribution1"]'],
                             'hvac-frac-load-served' => ['Expected sum(FractionHeatLoadServed) to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails]',
                                                         'Expected sum(FractionCoolLoadServed) to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails]'],
+                            'hvac-location-heating-system' => ['A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.'],
+                            'hvac-location-cooling-system' => ['A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.'],
+                            'hvac-location-heat-pump' => ['A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.'],
                             'hvac-sizing-humidity-setpoint' => ['Expected ManualJInputs/HumiditySetpoint to be less than 1'],
                             'incomplete-integrated-heating' => ['Expected 1 element(s) for xpath: IntegratedHeatingSystemFractionHeatLoadServed'],
                             'invalid-airflow-defect-ratio' => ['Expected extension/AirflowDefectRatio to be 0'],
@@ -356,6 +359,15 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.cooling_systems[0].primary_system = true
         hpxml.heat_pumps[-1].primary_heating_system = false
         hpxml.heat_pumps[-1].primary_cooling_system = false
+      elsif ['hvac-location-heating-system'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-boiler-oil-only.xml'))
+        hpxml.heating_systems[0].location = HPXML::LocationBasementUnconditioned
+      elsif ['hvac-location-cooling-system'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-central-ac-only-1-speed.xml'))
+        hpxml.cooling_systems[0].location = HPXML::LocationBasementUnconditioned
+      elsif ['hvac-location-heat-pump'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-1-speed.xml'))
+        hpxml.heat_pumps[0].location = HPXML::LocationBasementUnconditioned
       elsif ['hvac-sizing-humidity-setpoint'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.header.manualj_humidity_setpoint = 50

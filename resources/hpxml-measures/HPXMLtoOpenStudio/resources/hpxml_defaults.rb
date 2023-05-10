@@ -47,8 +47,10 @@ class HPXMLDefaults
     apply_hvac(runner, hpxml, weather, convert_shared_systems)
     apply_hvac_control(hpxml, schedules_file)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
+    apply_hvac_location(hpxml)
     apply_ventilation_fans(hpxml, weather, cfa, nbeds)
     apply_water_heaters(hpxml, nbeds, eri_version, schedules_file)
+    apply_flue_or_chimney(hpxml)
     apply_hot_water_distribution(hpxml, cfa, ncfl, has_uncond_bsmnt)
     apply_water_fixtures(hpxml, schedules_file)
     apply_solar_thermal_systems(hpxml)
@@ -547,35 +549,6 @@ class HPXMLDefaults
     if hpxml.building_construction.number_of_bathrooms.nil?
       hpxml.building_construction.number_of_bathrooms = Float(Waterheater.get_default_num_bathrooms(nbeds)).to_i
       hpxml.building_construction.number_of_bathrooms_isdefaulted = true
-    end
-
-    if hpxml.building_construction.has_flue_or_chimney.nil?
-      hpxml.building_construction.has_flue_or_chimney = false
-      hpxml.building_construction.has_flue_or_chimney_isdefaulted = true
-      hpxml.heating_systems.each do |heating_system|
-        if [HPXML::HVACTypeFurnace, HPXML::HVACTypeBoiler, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeStove, HPXML::HVACTypeFixedHeater].include? heating_system.heating_system_type
-          if not heating_system.heating_efficiency_afue.nil?
-            next if heating_system.heating_efficiency_afue >= 0.89
-          elsif not heating_system.heating_efficiency_percent.nil?
-            next if heating_system.heating_efficiency_percent >= 0.89
-          end
-
-          hpxml.building_construction.has_flue_or_chimney = true
-        elsif [HPXML::HVACTypeFireplace].include? heating_system.heating_system_type
-          next if heating_system.heating_system_fuel == HPXML::FuelTypeElectricity
-
-          hpxml.building_construction.has_flue_or_chimney = true
-        end
-      end
-      hpxml.water_heating_systems.each do |water_heating_system|
-        if not water_heating_system.energy_factor.nil?
-          next if water_heating_system.energy_factor >= 0.63
-        elsif not water_heating_system.uniform_energy_factor.nil?
-          next if Waterheater.calc_ef_from_uef(water_heating_system) >= 0.63
-        end
-
-        hpxml.building_construction.has_flue_or_chimney = true
-      end
     end
   end
 
@@ -1564,8 +1537,6 @@ class HPXMLDefaults
       next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
       next if hvac_distribution.ducts.empty?
 
-      # Default ducts
-
       supply_ducts = hvac_distribution.ducts.select { |duct| duct.duct_type == HPXML::DuctTypeSupply }
       return_ducts = hvac_distribution.ducts.select { |duct| duct.duct_type == HPXML::DuctTypeReturn }
 
@@ -1641,6 +1612,76 @@ class HPXMLDefaults
 
         ducts.duct_surface_area_multiplier = 1.0
         ducts.duct_surface_area_multiplier_isdefaulted = true
+      end
+
+      # Default buried insulation level
+      hvac_distribution.ducts.each do |ducts|
+        next unless ducts.duct_buried_insulation_level.nil?
+
+        ducts.duct_buried_insulation_level = HPXML::DuctBuriedInsulationNone
+        ducts.duct_buried_insulation_level_isdefaulted = true
+      end
+
+      # Default effective R-value
+      hvac_distribution.ducts.each do |ducts|
+        next unless ducts.duct_effective_r_value.nil?
+
+        ducts.duct_effective_r_value = Airflow.get_duct_effective_r_value(ducts.duct_insulation_r_value, ducts.duct_type, ducts.duct_buried_insulation_level)
+        ducts.duct_effective_r_value_isdefaulted = true
+      end
+    end
+  end
+
+  def self.apply_hvac_location(hpxml)
+    # This needs to come after we have applied defaults for ducts
+    hpxml.hvac_systems.each do |hvac_system|
+      next unless hvac_system.location.nil?
+
+      hvac_system.location_isdefaulted = true
+
+      # Set default location based on distribution system
+      dist_system = hvac_system.distribution_system
+      if dist_system.nil?
+        hvac_system.location = HPXML::LocationLivingSpace
+      else
+        dist_type = dist_system.distribution_system_type
+        if dist_type == HPXML::HVACDistributionTypeAir
+          # Find largest unconditioned supply duct location
+          uncond_duct_locations = {}
+          dist_system.ducts.select { |d| d.duct_type == HPXML::DuctTypeSupply }.each do |d|
+            next if HPXML::conditioned_locations_this_unit.include? d.duct_location
+            next if [HPXML::LocationExteriorWall, HPXML::LocationUnderSlab].include? d.duct_location # air handler won't be here
+
+            uncond_duct_locations[d.duct_location] = 0.0 if uncond_duct_locations[d.duct_location].nil?
+            uncond_duct_locations[d.duct_location] += d.duct_surface_area
+          end
+          if uncond_duct_locations.empty?
+            hvac_system.location = HPXML::LocationLivingSpace
+          else
+            hvac_system.location = uncond_duct_locations.key(uncond_duct_locations.values.max)
+            if hvac_system.location == HPXML::LocationOutside
+              # DuctLocation "outside" needs to be converted to a valid UnitLocation enumeration
+              hvac_system.location = HPXML::LocationOtherExterior
+            end
+          end
+        elsif dist_type == HPXML::HVACDistributionTypeHydronic
+          # Assume same default logic as a water heater
+          hvac_system.location = Waterheater.get_default_location(hpxml, hpxml.climate_and_risk_zones.climate_zone_ieccs[0])
+        elsif dist_type == HPXML::HVACDistributionTypeDSE
+          # DSE=1 implies distribution system in conditioned space
+          has_dse_of_one = true
+          if (hvac_system.respond_to? :fraction_heat_load_served) && (dist_system.annual_heating_dse != 1)
+            has_dse_of_one = false
+          end
+          if (hvac_system.respond_to? :fraction_cool_load_served) && (dist_system.annual_cooling_dse != 1)
+            has_dse_of_one = false
+          end
+          if has_dse_of_one
+            hvac_system.location = HPXML::LocationLivingSpace
+          else
+            hvac_system.location = HPXML::LocationUnconditionedSpace
+          end
+        end
       end
     end
   end
@@ -1812,6 +1853,14 @@ class HPXMLDefaults
         water_heating_system.usage_bin = HPXML::WaterHeaterUsageBinMedium
       end
       water_heating_system.usage_bin_isdefaulted = true
+    end
+  end
+
+  def self.apply_flue_or_chimney(hpxml)
+    # This needs to come after we have applied defaults for HVAC/DHW systems
+    if hpxml.air_infiltration.has_flue_or_chimney_in_conditioned_space.nil?
+      hpxml.air_infiltration.has_flue_or_chimney_in_conditioned_space = get_default_flue_or_chimney_in_conditioned_space(hpxml)
+      hpxml.air_infiltration.has_flue_or_chimney_in_conditioned_space_isdefaulted = true
     end
   end
 
@@ -2902,5 +2951,45 @@ class HPXMLDefaults
     else
       fail "Unexpected residential facility type: #{unit_type}."
     end
+  end
+
+  def self.get_default_flue_or_chimney_in_conditioned_space(hpxml)
+    # Check for atmospheric heating system in conditioned space
+    hpxml.heating_systems.each do |heating_system|
+      next unless HPXML::conditioned_locations_this_unit.include? heating_system.location
+
+      if [HPXML::HVACTypeFurnace,
+          HPXML::HVACTypeBoiler,
+          HPXML::HVACTypeWallFurnace,
+          HPXML::HVACTypeFloorFurnace,
+          HPXML::HVACTypeStove,
+          HPXML::HVACTypeFixedHeater].include? heating_system.heating_system_type
+        if not heating_system.heating_efficiency_afue.nil?
+          next if heating_system.heating_efficiency_afue >= 0.89
+        elsif not heating_system.heating_efficiency_percent.nil?
+          next if heating_system.heating_efficiency_percent >= 0.89
+        end
+
+        return true
+      elsif [HPXML::HVACTypeFireplace].include? heating_system.heating_system_type
+        next if heating_system.heating_system_fuel == HPXML::FuelTypeElectricity
+
+        return true
+      end
+    end
+
+    # Check for atmospheric water heater in conditioned space
+    hpxml.water_heating_systems.each do |water_heating_system|
+      next unless HPXML::conditioned_locations_this_unit.include? water_heating_system.location
+
+      if not water_heating_system.energy_factor.nil?
+        next if water_heating_system.energy_factor >= 0.63
+      elsif not water_heating_system.uniform_energy_factor.nil?
+        next if Waterheater.calc_ef_from_uef(water_heating_system) >= 0.63
+      end
+
+      return true
+    end
+    return false
   end
 end
