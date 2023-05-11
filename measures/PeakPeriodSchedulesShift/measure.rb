@@ -145,7 +145,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
     schedule_ruleset_names_enabled.each do |schedule_ruleset_name, peak_period_shift_enabled|
       next if !peak_period_shift_enabled
 
-      shift_summary[schedule_ruleset_name] = []
+      shift_summary[schedule_ruleset_name] = 0
 
       schedule_ruleset = schedule_rulesets.find { |schedule_ruleset| schedule_ruleset.name.to_s == schedule_ruleset_name }
       schedule_ruleset.scheduleRules.reverse.each do |schedule_rule|
@@ -170,18 +170,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
         shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
 
         if shifted
-          start_date = new_schedule_rule.startDate.get
-          start_date_month = start_date.monthOfYear.value
-          start_date_day = start_date.dayOfMonth
-          end_date = new_schedule_rule.endDate.get
-          end_date_month = end_date.monthOfYear.value
-          end_date_day = end_date.dayOfMonth
-
-          shift_summary[schedule_ruleset_name] << "#{start_date_month}/#{start_date_day}-#{end_date_month}/#{end_date_day}"
-          for h in 0..23
-            time = OpenStudio::Time.new(0, h + 1, 0, 0)
-            new_day_schedule.addValue(time, schedule[h])
-          end
+          shift_day_schedule(calendar_year, shift_summary, schedule_ruleset_name, new_schedule_rule, new_day_schedule, schedule)
         else
           new_schedule_rule.remove
         end
@@ -206,26 +195,15 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
 
       if shifted
-        start_date = new_schedule_rule.startDate.get
-        start_date_month = start_date.monthOfYear.value
-        start_date_day = start_date.dayOfMonth
-        end_date = new_schedule_rule.endDate.get
-        end_date_month = end_date.monthOfYear.value
-        end_date_day = end_date.dayOfMonth
-
-        shift_summary[schedule_ruleset_name] << "#{start_date_month}/#{start_date_day}-#{end_date_month}/#{end_date_day}"
-        for h in 0..23
-          time = OpenStudio::Time.new(0, h + 1, 0, 0)
-          new_default_day_schedule.addValue(time, schedule[h])
-        end
+        shift_day_schedule(calendar_year, shift_summary, schedule_ruleset_name, new_default_schedule_rule, new_default_day_schedule, schedule)
       else
         new_default_schedule_rule.remove
       end
     end
 
-    shift_summary.each do |schedule_ruleset_name, shifted_day_schedule_ranges|
-      runner.registerInfo("Shifted weekday schedule(s) during date ranges #{shifted_day_schedule_ranges.join(', ')} for the '#{schedule_ruleset_name}' Schedule:Ruleset.")
-      runner.registerValue("#{schedule_ruleset_name}_schedule_ruleset", shifted_day_schedule_ranges.size)
+    shift_summary.each do |schedule_ruleset_name, shifted_days|
+      runner.registerInfo("Out of #{total_days_in_year} total days, #{shifted_days} weekday(s) were shifted for the '#{schedule_ruleset_name}' Schedule:Ruleset.")
+      runner.registerValue("shifted_days_#{schedule_ruleset_name}", shifted_days)
     end
 
     # Schedule:File
@@ -238,6 +216,35 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
     end
 
     return true
+  end
+
+  def shift_day_schedule(calendar_year, shift_summary, schedule_ruleset_name, schedule_rule, day_schedule, schedule)
+    start_date = schedule_rule.startDate.get
+    start_date_month = start_date.monthOfYear.value
+    start_date_day = start_date.dayOfMonth
+    end_date = schedule_rule.endDate.get
+    end_date_month = end_date.monthOfYear.value
+    end_date_day = end_date.dayOfMonth
+
+    start_date = DateTime.new(calendar_year, start_date_month, start_date_day)
+    end_date = DateTime.new(calendar_year, end_date_month, end_date_day)
+    n_days = (end_date - start_date).to_i + 1
+    shifted_days = 0
+    n_days.times do |day|
+      today = start_date + day
+      day_of_week = today.wday
+      shifted_days += 1 if day_of_week == 1 && schedule_rule.applyMonday
+      shifted_days += 1 if day_of_week == 2 && schedule_rule.applyTuesday
+      shifted_days += 1 if day_of_week == 3 && schedule_rule.applyWednesday
+      shifted_days += 1 if day_of_week == 4 && schedule_rule.applyThursday
+      shifted_days += 1 if day_of_week == 5 && schedule_rule.applyFriday
+    end
+
+    shift_summary[schedule_ruleset_name] += shifted_days
+    for h in 0..23
+      time = OpenStudio::Time.new(0, h + 1, 0, 0)
+      day_schedule.addValue(time, schedule[h])
+    end
   end
 
   def get_hourly_values(day_schedule)
@@ -306,7 +313,7 @@ class Schedules
 
     shift_summary.each do |schedule_file_column_name, shifted_days|
       runner.registerInfo("Out of #{total_days_in_year} total days, #{shifted_days} weekday(s) were shifted for the '#{schedule_file_column_name}' Schedule:File.")
-      runner.registerValue("#{schedule_file_column_name}_schedule_file", shifted_days)
+      runner.registerValue("shifted_days_#{schedule_file_column_name}", shifted_days)
     end
   end
 
