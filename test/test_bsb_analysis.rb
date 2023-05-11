@@ -97,12 +97,15 @@ class TesBuildStockBatch < MiniTest::Test
     expected_names = expected_inputs['Input Name']
 
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
-    expected_outputs['Annual Name'] = map_scenario_names(expected_outputs['Annual Name'], 'report_simulation_output.emissions_<type>_<scenario_name>', 'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15')
-    expected_outputs['Annual Name'] = map_scenario_names(expected_outputs['Annual Name'], 'report_utility_bills.<scenario_name>', 'report_utility_bills.bills')
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
-    actual_names = actual_outputs.headers - expected_annual_names
+    actual_outputs = actual_outputs.headers
+    actual_outputs = map_scenario_names(actual_outputs, 'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_', 'report_simulation_output.emissions_<type>_<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_3_', 'report_utility_bills.<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_2_', 'report_utility_bills.<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_', 'report_utility_bills.<scenario_name>_')
+    actual_names = actual_outputs - expected_annual_names
 
     actual_extras = actual_names - expected_names
     puts "Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
@@ -119,12 +122,15 @@ class TesBuildStockBatch < MiniTest::Test
     expected_names = expected_inputs['Input Name']
 
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
-    expected_outputs['Annual Name'] = map_scenario_names(expected_outputs['Annual Name'], 'report_simulation_output.emissions_<type>_<scenario_name>', 'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15')
-    expected_outputs['Annual Name'] = map_scenario_names(expected_outputs['Annual Name'], 'report_utility_bills.<scenario_name>', 'report_utility_bills.bills')
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join(@national_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
-    actual_names = actual_outputs.headers - expected_annual_names
+    actual_outputs = actual_outputs.headers
+    actual_outputs = map_scenario_names(actual_outputs, 'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_', 'report_simulation_output.emissions_<type>_<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_3_', 'report_utility_bills.<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_2_', 'report_utility_bills.<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_', 'report_utility_bills.<scenario_name>_')
+    actual_names = actual_outputs - expected_annual_names
 
     actual_extras = actual_names - expected_names
     puts "Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
@@ -142,12 +148,15 @@ class TesBuildStockBatch < MiniTest::Test
     expected_names = expected_inputs['Input Name']
 
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
-    expected_outputs['Annual Name'] = map_scenario_names(expected_outputs['Annual Name'], 'report_simulation_output.emissions_<type>_<scenario_name>', 'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15')
-    expected_outputs['Annual Name'] = map_scenario_names(expected_outputs['Annual Name'], 'report_utility_bills.<scenario_name>', 'report_utility_bills.bills')
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
-    actual_annual_names = actual_outputs.headers - expected_names
+    actual_outputs = actual_outputs.headers
+    actual_outputs = map_scenario_names(actual_outputs, 'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_', 'report_simulation_output.emissions_<type>_<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_3_', 'report_utility_bills.<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_2_', 'report_utility_bills.<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_', 'report_utility_bills.<scenario_name>_')
+    actual_annual_names = actual_outputs - expected_names
 
     actual_extras = actual_annual_names - expected_annual_names
     puts "Annual Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
@@ -181,12 +190,15 @@ class TesBuildStockBatch < MiniTest::Test
     expected_names = expected_inputs['Input Name']
 
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
-    expected_outputs['Annual Name'] = map_scenario_names(expected_outputs['Annual Name'], 'report_simulation_output.emissions_<type>_<scenario_name>', 'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15')
-    expected_outputs['Annual Name'] = map_scenario_names(expected_outputs['Annual Name'], 'report_utility_bills.<scenario_name>', 'report_utility_bills.bills')
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join(@national_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
-    actual_annual_names = actual_outputs.headers - expected_names
+    actual_outputs = actual_outputs.headers
+    actual_outputs = map_scenario_names(actual_outputs, 'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_', 'report_simulation_output.emissions_<type>_<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_3_', 'report_utility_bills.<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_2_', 'report_utility_bills.<scenario_name>_')
+    actual_outputs = map_scenario_names(actual_outputs, 'report_utility_bills.bills_', 'report_utility_bills.<scenario_name>_')
+    actual_annual_names = actual_outputs - expected_names
 
     actual_extras = actual_annual_names - expected_annual_names
     puts "Annual Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
@@ -219,11 +231,11 @@ class TesBuildStockBatch < MiniTest::Test
     ts_col = 'Timeseries ResStock Name'
 
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
-    expected_outputs[ts_col] = map_scenario_names(expected_outputs[ts_col], 'Emissions: <type>: <scenario_name>', 'Emissions: CO2e: LRMER_MidCase_15')
     expected_timeseries_names = expected_outputs[ts_col].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join('baseline', 'timeseries', 'results_output.csv'), headers: true)
-    actual_timeseries_names = actual_outputs.headers
+    actual_outputs = actual_outputs.headers
+    actual_timeseries_names = map_scenario_names(actual_outputs, 'Emissions: CO2e: LRMER_MidCase_15', 'Emissions: <type>: <scenario_name>')
 
     actual_extras = actual_timeseries_names - expected_timeseries_names
     actual_extras -= ['PROJECT']
@@ -246,10 +258,10 @@ class TesBuildStockBatch < MiniTest::Test
         terms << annual_name if ix == sums_to_ix
       end
 
-      sums_to_val = actual_outputs.headers.include?(sums_to) ? actual_outputs[sums_to].map { |x| Float(x) }.sum : 0.0
+      sums_to_val = actual_outputs.include?(sums_to) ? actual_outputs[sums_to].map { |x| Float(x) }.sum : 0.0
       terms_vals = []
       terms.each do |term|
-        if actual_outputs.headers.include?(term)
+        if actual_outputs.include?(term)
           terms_vals << actual_outputs[term].map { |x| term != 'Fuel Use: Electricity: Total' ? Float(x) : UnitConversions.convert(Float(x), 'kWh', 'kBtu') }.sum
         else
           terms_vals << 0.0
@@ -265,11 +277,11 @@ class TesBuildStockBatch < MiniTest::Test
     ts_col = 'Timeseries BuildStockBatch Name'
 
     expected_outputs = CSV.read(File.join('resources', 'data', 'dictionary', 'outputs.csv'), headers: true)
-    expected_outputs[ts_col] = map_scenario_names(expected_outputs[ts_col], 'emissions__<type>__<scenario_name>', 'emissions__co2e__lrmer_midcase_15')
     expected_timeseries_names = expected_outputs[ts_col].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join('baseline', 'timeseries', 'buildstockbatch.csv'), headers: true)
-    actual_timeseries_names = actual_outputs.headers
+    actual_outputs = actual_outputs.headers
+    actual_timeseries_names = map_scenario_names(actual_outputs, 'Emissions: CO2e: LRMER_MidCase_15', 'Emissions: <type>: <scenario_name>')
 
     actual_extras = actual_timeseries_names - expected_timeseries_names
     actual_extras -= ['PROJECT']
@@ -292,10 +304,10 @@ class TesBuildStockBatch < MiniTest::Test
         terms << annual_name if ix == sums_to_ix
       end
 
-      sums_to_val = actual_outputs.headers.include?(sums_to) ? actual_outputs[sums_to].map { |x| Float(x) }.sum : 0.0
+      sums_to_val = actual_outputs.include?(sums_to) ? actual_outputs[sums_to].map { |x| Float(x) }.sum : 0.0
       terms_vals = []
       terms.each do |term|
-        if actual_outputs.headers.include?(term)
+        if actual_outputs.include?(term)
           terms_vals << actual_outputs[term].map { |x| term != 'fuel_use__electricity__total__kwh' ? Float(x) : UnitConversions.convert(Float(x), 'kWh', 'kBtu') }.sum
         else
           terms_vals << 0.0
