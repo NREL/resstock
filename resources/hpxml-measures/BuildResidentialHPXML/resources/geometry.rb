@@ -1315,7 +1315,6 @@ class Geometry
       sub_surface.setName("#{surface.name} - Window 1")
       sub_surface.setSurface(surface)
       sub_surface.setSubSurfaceType('FixedWindow')
-      sub_surface.additionalProperties.setFeature('Index', indexer(model))
       return true
     end
 
