@@ -1287,13 +1287,31 @@ class Geometry
       if wwr >= 0.90
         wwr = 0.90
       end
-      offset = 0.0254 # TODO: make it smarter
-      ss_ = surface.setWindowToWallRatio(wwr, offset, true)
-      if ss_.empty?
-        return false
+
+      # Instead of using this
+      # ss_ = surface.setWindowToWallRatio(wwr, offset, true)
+      # We offset the vertices towards the centroid
+      window_vertices = []
+      g = surface.centroid
+      scale_factor = wwr**0.5
+
+      surface.vertices.each do |vertex|
+        # A vertex is a Point3d.
+        # A diff a 2 Point3d creates a Vector3d
+
+        # Vector from centroid to vertex (GA, GB, GC, etc)
+        centroid_vector = vertex - g
+
+        # Resize the vector (done in place) according to scale_factor
+        centroid_vector.setLength(centroid_vector.length * scale_factor)
+
+        # Change the vertex
+        vertex = g + centroid_vector
+
+        window_vertices << vertex
       end
-      sub_surface = ss_.get
-      # sub_surface = create_sub_surface(window_polygon, model)
+
+      sub_surface = create_sub_surface(window_vertices, model)
       sub_surface.setName("#{surface.name} - Window 1")
       sub_surface.setSurface(surface)
       sub_surface.setSubSurfaceType('FixedWindow')
