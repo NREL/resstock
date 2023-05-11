@@ -225,6 +225,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
 
     shift_summary.each do |schedule_ruleset_name, shifted_day_schedule_ranges|
       runner.registerInfo("Shifted weekday schedule(s) during date ranges #{shifted_day_schedule_ranges.join(', ')} for the '#{schedule_ruleset_name}' Schedule:Ruleset.")
+      runner.registerValue("#{schedule_ruleset_name}_schedule_ruleset", shifted_day_schedule_ranges.size)
     end
 
     # Schedule:File
@@ -305,6 +306,7 @@ class Schedules
 
     shift_summary.each do |schedule_file_column_name, shifted_days|
       runner.registerInfo("Out of #{total_days_in_year} total days, #{shifted_days} weekday(s) were shifted for the '#{schedule_file_column_name}' Schedule:File.")
+      runner.registerValue("#{schedule_file_column_name}_schedule_file", shifted_days)
     end
   end
 
