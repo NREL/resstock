@@ -20,7 +20,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return 'Enter a weekday peak period window, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Optionally prevent stacking of schedule values by only allowing shifts to all-zero periods.'
+    return 'Enter a peak period window, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Optionally prevent stacking of schedule values by only allowing shifts to all-zero periods. Optionally apply schedule shifts to weekend days.'
   end
 
   # define the arguments that the user will input
@@ -43,6 +43,11 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('schedules_peak_period_allow_stacking', false)
     arg.setDisplayName('Schedules: Peak Period Allow Stacking')
     arg.setDescription('Whether schedules can be shifted to periods that already have non-zero schedule values. Defaults to true. Note that stacking runs the risk of creating out-of-range schedule values.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('schedules_peak_period_weekdays_only', false)
+    arg.setDisplayName('Schedules: Peak Period Weekdays Only')
+    arg.setDescription('Whether schedules can be shifted for weekdays only, or weekends as well. Defaults to true.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_peak_period_schedule_rulesets_names', false)
@@ -88,6 +93,8 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
     schedules_peak_period_delay = runner.getIntegerArgumentValue('schedules_peak_period_delay', user_arguments)
     schedules_peak_period_allow_stacking = runner.getOptionalBoolArgumentValue('schedules_peak_period_allow_stacking', user_arguments)
     schedules_peak_period_allow_stacking = schedules_peak_period_allow_stacking.is_initialized ? schedules_peak_period_allow_stacking.get : true
+    schedules_peak_period_weekdays_only = runner.getOptionalBoolArgumentValue('schedules_peak_period_weekdays_only', user_arguments)
+    schedules_peak_period_weekdays_only = schedules_peak_period_weekdays_only.is_initialized ? schedules_peak_period_weekdays_only.get : true
     schedules_peak_period_schedule_rulesets_names = runner.getOptionalStringArgumentValue('schedules_peak_period_schedule_rulesets_names', user_arguments)
     schedules_peak_period_schedule_rulesets_names = schedules_peak_period_schedule_rulesets_names.is_initialized ? schedules_peak_period_schedule_rulesets_names.get.split(',').map(&:strip) : []
     schedules_peak_period_schedule_files_column_names = runner.getOptionalStringArgumentValue('schedules_peak_period_schedule_files_column_names', user_arguments)
@@ -149,17 +156,21 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
 
       schedule_ruleset = schedule_rulesets.find { |schedule_ruleset| schedule_ruleset.name.to_s == schedule_ruleset_name }
       schedule_ruleset.scheduleRules.reverse.each do |schedule_rule|
-        next unless schedule_rule.applyMonday || schedule_rule.applyTuesday || schedule_rule.applyWednesday || schedule_rule.applyThursday || schedule_rule.applyFriday
+        if schedules_peak_period_weekdays_only
+          next unless schedule_rule.applyMonday || schedule_rule.applyTuesday || schedule_rule.applyWednesday || schedule_rule.applyThursday || schedule_rule.applyFriday # at least one weekday applies
+        end
 
         new_schedule_rule = schedule_rule.clone.to_ScheduleRule.get
         new_schedule_rule.setName("#{schedule_rule.name} Shifted")
-        new_schedule_rule.setApplySunday(false)
+        new_schedule_rule.setApplySunday(schedule_rule.applySunday)
+        new_schedule_rule.setApplySunday(false) if schedules_peak_period_weekdays_only
         new_schedule_rule.setApplyMonday(schedule_rule.applyMonday)
         new_schedule_rule.setApplyTuesday(schedule_rule.applyTuesday)
         new_schedule_rule.setApplyWednesday(schedule_rule.applyWednesday)
         new_schedule_rule.setApplyThursday(schedule_rule.applyThursday)
         new_schedule_rule.setApplyFriday(schedule_rule.applyFriday)
-        new_schedule_rule.setApplySaturday(false)
+        new_schedule_rule.setApplySaturday(schedule_rule.applySaturday)
+        new_schedule_rule.setApplySaturday(false) if schedules_peak_period_weekdays_only
         schedule_ruleset.setScheduleRuleIndex(new_schedule_rule, 0)
 
         old_day_schedule = schedule_rule.daySchedule
@@ -170,7 +181,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
         shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
 
         if shifted
-          shift_day_schedule(calendar_year, shift_summary, schedule_ruleset_name, new_schedule_rule, new_day_schedule, schedule)
+          shift_day_schedule(calendar_year, shift_summary, schedule_ruleset_name, new_schedule_rule, new_day_schedule, schedule, schedules_peak_period_weekdays_only)
         else
           new_schedule_rule.remove
         end
@@ -180,12 +191,14 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       new_default_schedule_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
       new_default_schedule_rule.setName("#{old_default_day_schedule.name} Shifted")
       new_default_schedule_rule.setApplySunday(false)
+      new_default_schedule_rule.setApplySunday(true) if !schedules_peak_period_weekdays_only
       new_default_schedule_rule.setApplyMonday(true)
       new_default_schedule_rule.setApplyTuesday(true)
       new_default_schedule_rule.setApplyWednesday(true)
       new_default_schedule_rule.setApplyThursday(true)
       new_default_schedule_rule.setApplyFriday(true)
       new_default_schedule_rule.setApplySaturday(false)
+      new_default_schedule_rule.setApplySaturday(true) if !schedules_peak_period_weekdays_only
       schedule_ruleset.setScheduleRuleIndex(new_default_schedule_rule, 0)
 
       new_default_day_schedule = new_default_schedule_rule.daySchedule
@@ -195,7 +208,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
 
       if shifted
-        shift_day_schedule(calendar_year, shift_summary, schedule_ruleset_name, new_default_schedule_rule, new_default_day_schedule, schedule)
+        shift_day_schedule(calendar_year, shift_summary, schedule_ruleset_name, new_default_schedule_rule, new_default_day_schedule, schedule, schedules_peak_period_weekdays_only)
       else
         new_default_schedule_rule.remove
       end
@@ -211,14 +224,14 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       external_file_path = external_file.filePath.to_s
 
       schedules = Schedules.new(file_path: external_file_path)
-      schedules.shift_schedules(runner, schedule_file_column_names_enabled, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, total_days_in_year, sim_start_day, steps_in_day)
+      schedules.shift_schedules(runner, schedule_file_column_names_enabled, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, total_days_in_year, sim_start_day, steps_in_day, schedules_peak_period_weekdays_only)
       schedules.export()
     end
 
     return true
   end
 
-  def shift_day_schedule(calendar_year, shift_summary, schedule_ruleset_name, schedule_rule, day_schedule, schedule)
+  def shift_day_schedule(calendar_year, shift_summary, schedule_ruleset_name, schedule_rule, day_schedule, schedule, schedules_peak_period_weekdays_only)
     start_date = schedule_rule.startDate.get
     start_date_month = start_date.monthOfYear.value
     start_date_day = start_date.dayOfMonth
@@ -233,11 +246,13 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
     n_days.times do |day|
       today = start_date + day
       day_of_week = today.wday
+      shifted_days += 1 if day_of_week == 0 && schedule_rule.applySunday && !schedules_peak_period_weekdays_only
       shifted_days += 1 if day_of_week == 1 && schedule_rule.applyMonday
       shifted_days += 1 if day_of_week == 2 && schedule_rule.applyTuesday
       shifted_days += 1 if day_of_week == 3 && schedule_rule.applyWednesday
       shifted_days += 1 if day_of_week == 4 && schedule_rule.applyThursday
       shifted_days += 1 if day_of_week == 5 && schedule_rule.applyFriday
+      shifted_days += 1 if day_of_week == 6 && schedule_rule.applySaturday && !schedules_peak_period_weekdays_only
     end
 
     shift_summary[schedule_ruleset_name] += shifted_days
@@ -291,7 +306,7 @@ class Schedules
     end
   end
 
-  def shift_schedules(runner, schedule_file_column_names_enabled, begin_hour, end_hour, delay, allow_stacking, total_days_in_year, sim_start_day, steps_in_day)
+  def shift_schedules(runner, schedule_file_column_names_enabled, begin_hour, end_hour, delay, allow_stacking, total_days_in_year, sim_start_day, steps_in_day, schedules_peak_period_weekdays_only)
     shift_summary = {}
     schedule_file_column_names_enabled.each do |schedule_file_column_name, peak_period_shift_enabled|
       next if !@schedules.keys.include?(schedule_file_column_name)
@@ -304,7 +319,7 @@ class Schedules
       total_days_in_year.times do |day|
         today = sim_start_day + day
         day_of_week = today.wday
-        next if [0, 6].include?(day_of_week)
+        next if [0, 6].include?(day_of_week) && schedules_peak_period_weekdays_only
 
         shifted = Schedules.day_peak_shift(schedule, day, begin_hour, end_hour, delay, allow_stacking, steps_in_day)
         shift_summary[schedule_file_column_name] += 1 if shifted

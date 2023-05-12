@@ -3,13 +3,13 @@
   <schema_version>3.0</schema_version>
   <name>peak_period_schedules_shift</name>
   <uid>4954275f-9caf-422c-9e1f-061244ade152</uid>
-  <version_id>d856c8c8-cee6-442e-930f-c316e4ef02c7</version_id>
-  <version_modified>20230511T233421Z</version_modified>
+  <version_id>6caf618e-ccf2-489d-8bc7-9210cc3f2832</version_id>
+  <version_modified>20230512T201258Z</version_modified>
   <xml_checksum>A8988589</xml_checksum>
   <class_name>PeakPeriodSchedulesShift</class_name>
   <display_name>PeakPeriodSchedulesShift</display_name>
   <description>Shifts select weekday schedules out of a peak period.</description>
-  <modeler_description>Enter a weekday peak period window, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Optionally prevent stacking of schedule values by only allowing shifts to all-zero periods.</modeler_description>
+  <modeler_description>Enter a peak period window, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Optionally prevent stacking of schedule values by only allowing shifts to all-zero periods. Optionally apply schedule shifts to weekend days.</modeler_description>
   <arguments>
     <argument>
       <name>schedules_peak_period</name>
@@ -34,6 +34,24 @@
       <name>schedules_peak_period_allow_stacking</name>
       <display_name>Schedules: Peak Period Allow Stacking</display_name>
       <description>Whether schedules can be shifted to periods that already have non-zero schedule values. Defaults to true. Note that stacking runs the risk of creating out-of-range schedule values.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>schedules_peak_period_weekdays_only</name>
+      <display_name>Schedules: Peak Period Weekdays Only</display_name>
+      <description>Whether schedules can be shifted for weekdays only, or weekends as well. Defaults to true.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -108,46 +126,40 @@
       <checksum>8193AAB9</checksum>
     </file>
     <file>
-      <filename>files/schedules20230418-20180-18nykxu.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D6FBB6B6</checksum>
-    </file>
-    <file>
-      <filename>PeakPeriodSchedulesShift_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>59BD68C0</checksum>
-    </file>
-    <file>
-      <filename>test_stochastic_schedules_no_stacking.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>EA2DDF93</checksum>
-    </file>
-    <file>
       <filename>files/unmodified_schedules.csv</filename>
       <filetype>csv</filetype>
       <usage_type>test</usage_type>
       <checksum>D6FBB6B6</checksum>
     </file>
     <file>
+      <filename>files/schedules20230418-20180-18nykxu.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1B08F2AD</checksum>
+    </file>
+    <file>
+      <filename>PeakPeriodSchedulesShift_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CB58565B</checksum>
+    </file>
+    <file>
+      <filename>test_stochastic_schedules_no_stacking.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>2966A9DE</checksum>
+    </file>
+    <file>
       <filename>test_smooth_schedules.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>8C873951</checksum>
+      <checksum>C61A09C3</checksum>
     </file>
     <file>
       <filename>test_stochastic_schedules.osm</filename>
       <filetype>osm</filetype>
       <usage_type>test</usage_type>
-      <checksum>51C74CBB</checksum>
-    </file>
-    <file>
-      <filename>README.md</filename>
-      <filetype>md</filetype>
-      <usage_type>readme</usage_type>
-      <checksum>464285FE</checksum>
+      <checksum>596E1BC0</checksum>
     </file>
     <file>
       <version>
@@ -158,7 +170,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>C662B356</checksum>
+      <checksum>6EF9BDEB</checksum>
+    </file>
+    <file>
+      <filename>README.md</filename>
+      <filetype>md</filetype>
+      <usage_type>readme</usage_type>
+      <checksum>F6E7652E</checksum>
     </file>
   </files>
 </measure>

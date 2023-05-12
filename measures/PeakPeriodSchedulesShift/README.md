@@ -8,7 +8,7 @@
 Shifts select weekday schedules out of a peak period.
 
 ## Modeler Description
-Enter a weekday peak period window, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Optionally prevent stacking of schedule values by only allowing shifts to all-zero periods.
+Enter a peak period window, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Optionally prevent stacking of schedule values by only allowing shifts to all-zero periods. Optionally apply schedule shifts to weekend days.
 
 ## Measure Type
 ModelMeasure
@@ -40,6 +40,15 @@ The number of hours after peak period end.
 ### Schedules: Peak Period Allow Stacking
 Whether schedules can be shifted to periods that already have non-zero schedule values. Defaults to true. Note that stacking runs the risk of creating out-of-range schedule values.
 **Name:** schedules_peak_period_allow_stacking,
+**Type:** Boolean,
+**Units:** ,
+**Required:** false,
+**Model Dependent:** false
+
+
+### Schedules: Peak Period Weekdays Only
+Whether schedules can be shifted for weekdays only, or weekends as well. Defaults to true.
+**Name:** schedules_peak_period_weekdays_only,
 **Type:** Boolean,
 **Units:** ,
 **Required:** false,
