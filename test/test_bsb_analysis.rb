@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/autorun'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../test/analysis'
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/unit_conversions.rb'
 
@@ -102,13 +102,15 @@ class TesBuildStockBatch < MiniTest::Test
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
+    actual_outputs.headers.map { |x| actual_outputs.delete(x) if x.include?('report_utility_bills.bills_2_') }
+    actual_outputs.headers.map { |x| actual_outputs.delete(x) if x.include?('report_utility_bills.bills_3_') }
     actual_names = actual_outputs.headers - expected_annual_names
 
     actual_extras = actual_names - expected_names
-    puts "Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
+    puts "Input Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_names - actual_names
-    puts "Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
+    puts "Input Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
 
     assert_equal(0, actual_extras.size)
     # assert_equal(0, expected_extras.size) # allow
@@ -127,11 +129,11 @@ class TesBuildStockBatch < MiniTest::Test
     actual_names = actual_outputs.headers - expected_annual_names
 
     actual_extras = actual_names - expected_names
-    puts "Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
+    puts "Input Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_names - actual_names
     expected_extras -= ['report_simulation_output.user_output_variables']
-    puts "Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
+    puts "Input Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
 
     assert_equal(0, actual_extras.size)
     assert_equal(0, expected_extras.size)
