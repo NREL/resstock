@@ -85,7 +85,6 @@ jobs:
 
       - name: Run buildstockbatch
         run: |
-          sudo gem install simplecov
           pip install git+https://github.com/NREL/buildstockbatch.git@simple-bill-calcs2
           
           buildstock_docker project_national/national_baseline.yml
@@ -115,6 +114,7 @@ jobs:
 
       - name: Run tests
         run: |
+          sudo gem install minitest-reporters
           sudo gem install simplecov
           sudo gem install simplecov-html
           ruby test/test_bsb_analysis.rb
@@ -159,6 +159,7 @@ jobs:
 
       - name: Run tests
         run: |
+          sudo gem install minitest-reporters
           sudo gem install simplecov
           sudo gem install simplecov-html
           ruby test/test_analysis_tools.rb
