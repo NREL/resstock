@@ -62,19 +62,51 @@ upgrades:
             - Refrigerator|EF 15.9
             - Refrigerator|EF 17.6
         costs:
-          - value: 2500.0 #TBD
+          - value: 1136.6 # option1: $899-999 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in BestBuy https://www.bestbuy.com/site/searchpage.jsp?id=pcat17071&qp=totalcapacityrange_facet%3DCapacity%20(cu.%20ft.)~20.9%20to%2020.9&st=refrigerator
+                          # option2: $8144-8599 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in Home Depot https://www.homedepot.com/s/Refrigerator%2020.9?NCNI-5  
+                          # option3: $938. $670 for EF 19.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+                          # 1136.6=949*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor. 
             multiplier: Fixed (1)
-        lifetime: 17.4
+        lifetime: 17.4 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
+      - &energystar_extra_refrigerator
+        option: Misc Extra Refrigerator|EF 19.9
+        apply_logic:
+          - or:
+            - Misc Extra Refrigerator|EF 6.9, National Average
+            - Misc Extra Refrigerator|EF 6.9, Average Installed
+            - Misc Extra Refrigerator|EF 15.9, Fed Standard, bottom freezer-reference fridge
+            - Misc Extra Refrigerator|EF 19.8, bottom freezer
+            - Misc Extra Refrigerator|EF 6.7
+            - Misc Extra Refrigerator|EF 10.2
+            - Misc Extra Refrigerator|EF 10.5
+            - Misc Extra Refrigerator|EF 15.9
+            - Misc Extra Refrigerator|EF 17.6
+        costs:
+          - value: 1136.6 # $899-999 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in BestBuy https://www.bestbuy.com/site/searchpage.jsp?id=pcat17071&qp=totalcapacityrange_facet%3DCapacity%20(cu.%20ft.)~20.9%20to%2020.9&st=refrigerator
+                          # $8144-8599 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in Home Depot https://www.homedepot.com/s/Refrigerator%2020.9?NCNI-5  
+                          # $938. $670 for EF 19.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+                          # 1136.6=949*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor
+            multiplier: Fixed (1)
+        lifetime: 17.4 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
       - &energystar_clothes_washer
         option: Clothes Washer|EnergyStar
         apply_logic:
           - Clothes Washer|Standard
+        costs:
+          - value: 903.0 # $903. $630-660 for replacing clothes washer from MEF0.78 to MEF2 in REMDB
+                          # then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+            multiplier: Fixed (1)
+        lifetime: 14 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=293&actionId=1068&bcId=4538
       - &energystar_dishwasher 
         option: Dishwasher|270 Rated kWh
         apply_logic:
           - or:
             - Dishwasher|318 Rated kWh
             - Dishwasher|290 Rated kWh
+        costs:
+          - value: 938.0 # 
+            multiplier: Fixed (1)
+        lifetime: 14 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
       - &energystar_clothes_dryer_electric 
         option: Clothes Dryer|Electric, Premium, EnergyStar
         apply_logic:
@@ -91,16 +123,39 @@ upgrades:
   - upgrade_name: All ENERGYSTAR Most Efficient Appliances
     options:
       - &energystar_most_eff_refrigerator
-        option: Refrigerator|EF 15.9 #TBD
+        option: Refrigerator|EF 21.9 #TBD
         apply_logic:
           - or:
             - Refrigerator|EF 6.7
             - Refrigerator|EF 10.2
             - Refrigerator|EF 10.5
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 17.6
+            - Refrigerator|EF 19.9
         costs:
-          - value: 2500.0 #TBD
+          - value: 1400.0 #TBD
+                          # $1400. $1000 for EF 21.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
             multiplier: Fixed (1)
-        lifetime: 17.4
+        lifetime: 17.4 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
+      - &energystar_most_eff_extra_refrigerator
+        option: Misc Extra Refrigerator|EF 21.9
+        apply_logic:
+          - or:
+            - Misc Extra Refrigerator|EF 6.9, National Average
+            - Misc Extra Refrigerator|EF 6.9, Average Installed
+            - Misc Extra Refrigerator|EF 15.9, Fed Standard, bottom freezer-reference fridge
+            - Misc Extra Refrigerator|EF 19.8, bottom freezer
+            - Misc Extra Refrigerator|EF 6.7
+            - Misc Extra Refrigerator|EF 10.2
+            - Misc Extra Refrigerator|EF 10.5
+            - Misc Extra Refrigerator|EF 15.9
+            - Misc Extra Refrigerator|EF 17.6
+            - Misc Extra Refrigerator|EF 19.9
+        costs:
+          - value: 1400.0 #TBD
+                          # $1400. $1000 for EF 21.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+            multiplier: Fixed (1)
+        lifetime: 17.4 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
       - &energystar_most_eff_clothes_washer
         option: Clothes Washer|EnergyStar Most Efficient
         apply_logic:
@@ -132,9 +187,9 @@ upgrades:
             - Clothes Dryer|Gas, Premium
             - Clothes Dryer|Gas, Premium, EnergyStar
 
-  - upgrade_name: ENERGYSTAR Electric Dryer
+  - upgrade_name: ENERGYSTAR Electric Dryer for Non-electric Dryer
     options:
-      - &energystar_electric_dryer
+      - &energystar_electric_dryer_for_non-electric_dryer
         option: Clothes Dryer|Electric, Premium, EnergyStar
         apply_logic:
           - or:
@@ -142,19 +197,19 @@ upgrades:
             - Clothes Dryer|Gas, Premium
             - Clothes Dryer|Propane
 
-  - upgrade_name: Induction Range & Oven
+  - upgrade_name: Induction Range & Oven for Non-electric Cooking
     options:
-      - &induction_range_oven 
+      - &induction_range_oven_for_non-electric_cooking 
         option: Cooking Range|Electric Induction
         apply_logic:
           - or:
             - Cooking Range|Gas
             - Cooking Range|Propane
 
-  - upgrade_name: Conventional Range & Oven
+  - upgrade_name: Conventional Range & Oven for Non-electric Cooking
     options:
-      - &conventional_range_oven 
-        option: Cooking Range|Electric Conventional
+      - &conventional_range_oven_for_non-electric_cooking 
+        option: Cooking Range|Electric Resistance
         apply_logic:
           - or:
             - Cooking Range|Gas
@@ -166,18 +221,6 @@ upgrades:
         option: Misc Pool Heater|Electricity
         apply_logic:
           - Misc Pool Heater|Natural Gas
-      - &electric_pool_heaters_78F 
-        option: Misc Pool Heater|Electric, 78F
-        apply_logic:
-          - Misc Pool Heater|Gas, 78F
-      - &electric_pool_heaters_covered
-        option: Misc Pool Heater|Electric, Covered
-        apply_logic:
-          - Misc Pool Heater|Gas, Covered
-      - &electric_pool_heaters_covered_78F
-        option: Misc Pool Heater|Electric, Covered, 78F
-        apply_logic:
-          - Misc Pool Heater|Gas, Covered, 78F
 
   - upgrade_name: Electric Spa Heaters
     options:
@@ -190,6 +233,11 @@ upgrades:
     options:
       - &lighting_100_percent_led
         option: Lighting|100% LED
+        apply_logic:
+          - or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL
+            - Lighting|100% CFL
         costs:
           - value: 0.75
             multiplier: Floor Area, Lighting (ft^2)

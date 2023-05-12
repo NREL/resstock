@@ -164,9 +164,9 @@ upgrades:
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         apply_logic:
           - or:
-            - Occupants|0
-            - Occupants|1
-            - Occupants|2
+            - Bedrooms|1
+            - Bedrooms|2
+            - Bedrooms|3
         costs:
           - value: 100.0 #TBD
             multiplier: Size, Water Heater (gal)
@@ -175,7 +175,7 @@ upgrades:
         option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
         apply_logic:
           - or:
-            - Occupants|3
+            - Bedrooms|4
         costs:
           - value: 100.0 #TBD
             multiplier: Size, Water Heater (gal)
@@ -184,13 +184,7 @@ upgrades:
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         apply_logic:
           - or:
-            - Occupants|4
-            - Occupants|5
-            - Occupants|6
-            - Occupants|7
-            - Occupants|8
-            - Occupants|9
-            - Occupants|10+
+            - Bedrooms|5
         costs:
           - value: 100.0 #TBD
             multiplier: Size, Water Heater (gal)
@@ -204,7 +198,14 @@ upgrades:
           - and: 
             - or:
               - Heating Fuel|Natural Gas
-              - Water Heater Fuel|Natural Gas # Do we need more to represent any natural gas usage?
+              - Water Heater Fuel|Natural Gas
+              - Clothes Dryer|Gas
+              - Clothes Dryer|Gas, Premium
+              - Misc Hot Tub Spa|Natural Gas
+              - Misc Pool Heater|Natural Gas
+              - Misc Gas Fireplace|Gas Fireplace
+              - Misc Gas Grill|Gas Grill
+              - Misc Gas Lighting|Gas Lighting
             - or:
               - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
               - HVAC Heating Type And Fuel|Propane Fuel Furnace
