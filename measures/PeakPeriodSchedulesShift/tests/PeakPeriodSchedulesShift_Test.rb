@@ -33,13 +33,14 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
 
     # get arguments and test that they are what we are expecting
     arguments = measure.arguments(model)
-    assert_equal(5, arguments.size)
+    assert_equal(6, arguments.size)
 
     count = -1
 
     assert_equal('schedules_peak_period', arguments[count += 1].name)
     assert_equal('schedules_peak_period_delay', arguments[count += 1].name)
     assert_equal('schedules_peak_period_allow_stacking', arguments[count += 1].name)
+    assert_equal('schedules_peak_period_weekdays_only', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_rulesets_names', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_files_column_names', arguments[count + 1].name)
 
@@ -60,6 +61,10 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
     schedules_peak_period_allow_stacking = arguments[count += 1].clone
     # assert(schedules_peak_period_allow_stacking.setValue(true))
     argument_map['schedules_peak_period_allow_stacking'] = schedules_peak_period_allow_stacking
+
+    schedules_peak_period_weekdays_only = arguments[count += 1].clone
+    # assert(schedules_peak_period_weekdays_only.setValue(true))
+    argument_map['schedules_peak_period_weekdays_only'] = schedules_peak_period_weekdays_only
 
     schedules_peak_period_schedule_rulesets_names = arguments[count += 1].clone
     assert(schedules_peak_period_schedule_rulesets_names.setValue('fridge, dishwasher, clothes washer, clothes dryer, cooking range, misc tv schedule, misc plug loads schedule, lighting schedule, exterior lighting schedule'))
@@ -96,13 +101,14 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
 
     # get arguments and test that they are what we are expecting
     arguments = measure.arguments(model)
-    assert_equal(5, arguments.size)
+    assert_equal(6, arguments.size)
 
     count = -1
 
     assert_equal('schedules_peak_period', arguments[count += 1].name)
     assert_equal('schedules_peak_period_delay', arguments[count += 1].name)
     assert_equal('schedules_peak_period_allow_stacking', arguments[count += 1].name)
+    assert_equal('schedules_peak_period_weekdays_only', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_rulesets_names', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_files_column_names', arguments[count + 1].name)
 
@@ -123,6 +129,10 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
     schedules_peak_period_allow_stacking = arguments[count += 1].clone
     # assert(schedules_peak_period_allow_stacking.setValue(true))
     argument_map['schedules_peak_period_allow_stacking'] = schedules_peak_period_allow_stacking
+
+    schedules_peak_period_weekdays_only = arguments[count += 1].clone
+    # assert(schedules_peak_period_weekdays_only.setValue(true))
+    argument_map['schedules_peak_period_weekdays_only'] = schedules_peak_period_weekdays_only
 
     schedules_peak_period_schedule_rulesets_names = arguments[count += 1].clone
     assert(schedules_peak_period_schedule_rulesets_names.setValue('fridge, dishwasher, clothes washer, clothes dryer, cooking range, misc tv schedule, misc plug loads schedule, lighting schedule, exterior lighting schedule'))
@@ -159,13 +169,14 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
 
     # get arguments and test that they are what we are expecting
     arguments = measure.arguments(model)
-    assert_equal(5, arguments.size)
+    assert_equal(6, arguments.size)
 
     count = -1
 
     assert_equal('schedules_peak_period', arguments[count += 1].name)
     assert_equal('schedules_peak_period_delay', arguments[count += 1].name)
     assert_equal('schedules_peak_period_allow_stacking', arguments[count += 1].name)
+    assert_equal('schedules_peak_period_weekdays_only', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_rulesets_names', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_files_column_names', arguments[count + 1].name)
 
@@ -186,6 +197,10 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
     schedules_peak_period_allow_stacking = arguments[count += 1].clone
     # assert(schedules_peak_period_allow_stacking.setValue(true))
     argument_map['schedules_peak_period_allow_stacking'] = schedules_peak_period_allow_stacking
+
+    schedules_peak_period_weekdays_only = arguments[count += 1].clone
+    # assert(schedules_peak_period_weekdays_only.setValue(true))
+    argument_map['schedules_peak_period_weekdays_only'] = schedules_peak_period_weekdays_only
 
     schedules_peak_period_schedule_rulesets_names = arguments[count += 1].clone
     assert(schedules_peak_period_schedule_rulesets_names.setValue('fridge, dishwasher, clothes washer, clothes dryer, cooking range, misc tv schedule, misc plug loads schedule, lighting schedule, exterior lighting schedule'))
@@ -222,13 +237,14 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
 
     # get arguments and test that they are what we are expecting
     arguments = measure.arguments(model)
-    assert_equal(5, arguments.size)
+    assert_equal(6, arguments.size)
 
     count = -1
 
     assert_equal('schedules_peak_period', arguments[count += 1].name)
     assert_equal('schedules_peak_period_delay', arguments[count += 1].name)
     assert_equal('schedules_peak_period_allow_stacking', arguments[count += 1].name)
+    assert_equal('schedules_peak_period_weekdays_only', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_rulesets_names', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_files_column_names', arguments[count + 1].name)
 
@@ -249,6 +265,10 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
     schedules_peak_period_allow_stacking = arguments[count += 1].clone
     # assert(schedules_peak_period_allow_stacking.setValue(true))
     argument_map['schedules_peak_period_allow_stacking'] = schedules_peak_period_allow_stacking
+
+    schedules_peak_period_weekdays_only = arguments[count += 1].clone
+    # assert(schedules_peak_period_weekdays_only.setValue(true))
+    argument_map['schedules_peak_period_weekdays_only'] = schedules_peak_period_weekdays_only
 
     schedules_peak_period_schedule_rulesets_names = arguments[count += 1].clone
     assert(schedules_peak_period_schedule_rulesets_names.setValue('fridge, dishwasher, clothes washer, clothes dryer, cooking range, misc tv schedule, misc plug loads schedule, lighting schedule, exterior lighting schedule'))
@@ -332,13 +352,14 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
 
     # get arguments and test that they are what we are expecting
     arguments = measure.arguments(model)
-    assert_equal(5, arguments.size)
+    assert_equal(6, arguments.size)
 
     count = -1
 
     assert_equal('schedules_peak_period', arguments[count += 1].name)
     assert_equal('schedules_peak_period_delay', arguments[count += 1].name)
     assert_equal('schedules_peak_period_allow_stacking', arguments[count += 1].name)
+    assert_equal('schedules_peak_period_weekdays_only', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_rulesets_names', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_files_column_names', arguments[count + 1].name)
 
@@ -359,6 +380,10 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
     schedules_peak_period_allow_stacking = arguments[count += 1].clone
     assert(schedules_peak_period_allow_stacking.setValue(true))
     argument_map['schedules_peak_period_allow_stacking'] = schedules_peak_period_allow_stacking
+
+    schedules_peak_period_weekdays_only = arguments[count += 1].clone
+    # assert(schedules_peak_period_weekdays_only.setValue(true))
+    argument_map['schedules_peak_period_weekdays_only'] = schedules_peak_period_weekdays_only
 
     schedules_peak_period_schedule_rulesets_names = arguments[count += 1].clone
     assert(schedules_peak_period_schedule_rulesets_names.setValue('fridge'))
@@ -462,13 +487,14 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
 
     # get arguments and test that they are what we are expecting
     arguments = measure.arguments(model)
-    assert_equal(5, arguments.size)
+    assert_equal(6, arguments.size)
 
     count = -1
 
     assert_equal('schedules_peak_period', arguments[count += 1].name)
     assert_equal('schedules_peak_period_delay', arguments[count += 1].name)
     assert_equal('schedules_peak_period_allow_stacking', arguments[count += 1].name)
+    assert_equal('schedules_peak_period_weekdays_only', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_rulesets_names', arguments[count += 1].name)
     assert_equal('schedules_peak_period_schedule_files_column_names', arguments[count + 1].name)
 
@@ -489,6 +515,10 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
     schedules_peak_period_allow_stacking = arguments[count += 1].clone
     assert(schedules_peak_period_allow_stacking.setValue(false))
     argument_map['schedules_peak_period_allow_stacking'] = schedules_peak_period_allow_stacking
+
+    schedules_peak_period_weekdays_only = arguments[count += 1].clone
+    # assert(schedules_peak_period_weekdays_only.setValue(false))
+    argument_map['schedules_peak_period_weekdays_only'] = schedules_peak_period_weekdays_only
 
     schedules_peak_period_schedule_rulesets_names = arguments[count += 1].clone
     assert(schedules_peak_period_schedule_rulesets_names.setValue('fridge'))
@@ -533,7 +563,6 @@ class PeakPeriodSchedulesShiftTest < Minitest::Test
     assert_equal(schedule_rulesets['fridge'].scheduleRules.size, 7)
     shifted_rule = schedule_rulesets['fridge'].scheduleRules.find { |schedule_rule| schedule_rule.name.to_s == 'fridge allday ruleset1 Shifted' }
     assert(shifted_rule.nil?)
-
     schedule_files_after = {}
     model.getExternalFiles.each do |external_file|
       external_file_path = external_file.filePath.to_s
