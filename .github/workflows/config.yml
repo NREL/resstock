@@ -79,6 +79,10 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      # - uses: ruby/setup-ruby@v1
+        # with:
+          # ruby-version: 2.7
+
       - name: Run buildstockbatch
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@simple-bill-calcs2
@@ -110,8 +114,8 @@ jobs:
 
       - name: Run tests
         run: |
-          gem install simplecov
-          gem install simplecov-html
+          sudo gem install simplecov
+          sudo gem install simplecov-html
           ruby test/test_bsb_analysis.rb
 
       - name: Upload integration results
@@ -154,8 +158,8 @@ jobs:
 
       - name: Run tests
         run: |
-          gem install simplecov
-          gem install simplecov-html
+          sudo gem install simplecov
+          sudo gem install simplecov-html
           ruby test/test_analysis_tools.rb
 
   compare-results:
