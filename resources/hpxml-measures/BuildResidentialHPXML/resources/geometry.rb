@@ -1284,8 +1284,10 @@ class Geometry
       runner.registerWarning("Surface #{surface.nameString} has an area of #{surface_area}, params: window_area=#{window_area} ft^2, window_gap_y=#{window_gap_y} ft, window_gap_x=#{window_gap_x} ft, window_aspect_ratio=#{window_aspect_ratio}, max_single_window_area=#{max_single_window_area} ft^2, facade=#{facade}")
       runner.registerWarning("Could not fit windows on #{surface.name}. Fall back to WWR")
       wwr = window_area / surface_area
-      if wwr >= 0.90
-        wwr = 0.90
+      max_wwr = 0.9
+      if wwr >= max_wwr
+        runner.registerWarning("WWR too high (#{wwr}) for #{surface.name}. Falling back to reasonable maximum WWR #{max_wwr}")
+        wwr = max_wwr
       end
 
       # Instead of using this
