@@ -1077,7 +1077,6 @@ class HPXMLDefaults
       cooling_system.cooling_efficiency_seer_isdefaulted = true
       cooling_system.cooling_efficiency_seer2 = nil
     end
-
     hpxml.heat_pumps.each do |heat_pump|
       next unless [HPXML::HVACTypeHeatPumpAirToAir,
                    HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
@@ -1111,6 +1110,22 @@ class HPXMLDefaults
 
       heat_pump.compressor_type = HVAC.get_default_compressor_type(heat_pump.heat_pump_type, heat_pump.cooling_efficiency_seer)
       heat_pump.compressor_type_isdefaulted = true
+    end
+
+    # Default HP heating capacity retention
+    hpxml.heat_pumps.each do |heat_pump|
+      next unless heat_pump.heating_capacity_retention_fraction.nil?
+      next unless heat_pump.heating_capacity_17F.nil?
+      next if [HPXML::HVACTypeHeatPumpGroundToAir, HPXML::HVACTypeHeatPumpWaterLoopToAir].include? heat_pump.heat_pump_type
+
+      heat_pump.heating_capacity_retention_temp = 5.0
+      if [HPXML::HVACCompressorTypeSingleStage, HPXML::HVACCompressorTypeTwoStage].include? heat_pump.compressor_type
+        heat_pump.heating_capacity_retention_fraction = 0.425
+      elsif [HPXML::HVACCompressorTypeVariableSpeed].include? heat_pump.compressor_type
+        heat_pump.heating_capacity_retention_fraction = 0.5
+      end
+      heat_pump.heating_capacity_retention_fraction_isdefaulted = true
+      heat_pump.heating_capacity_retention_temp_isdefaulted = true
     end
 
     # Default HP compressor lockout temp
@@ -2832,11 +2847,6 @@ class HPXMLDefaults
                 htg_sys.heating_capacity_17F = htg_cap_17f.round
                 htg_sys.heating_capacity_17F_isdefaulted = true
               end
-            else
-              # Autosized
-              # FUTURE: Calculate HeatingCapacity17F from heat_cap_ft_spec? Might be confusing
-              # since user would not be able to replicate the results using this value, as the
-              # default curves are non-linear.
             end
           end
           htg_sys.heating_capacity = hvac_sizing_values.Heat_Capacity.round

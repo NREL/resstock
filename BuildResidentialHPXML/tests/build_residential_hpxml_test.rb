@@ -697,7 +697,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['heating_system_type'] = 'none'
       args['cooling_system_type'] = 'none'
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
-      args['heat_pump_heating_capacity_17_f'] = 22680.0
       args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
       args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
       args['heat_pump_heating_capacity'] = 48000.0
