@@ -8,6 +8,7 @@ Features
 - Add descriptions to the housing characteristics ([#1069](https://github.com/NREL/resstock/pull/1069))
 - Connect ASHP to optional capacity retention temperature and fraction arguments (that already exist for MSHP) ([#1071](https://github.com/NREL/resstock/pull/1071))
 - Add data dictionary files for describing various outputs. Use these files to (1) check against integration test results, and (2) generate documentation tables ([#1058](https://github.com/NREL/resstock/pull/1058))
+- OS-HPXML now supports use of optional heat pump capacity retention temperature and fraction arguments (applicable to both ASHP and MSHP) ([#1072](https://github.com/NREL/resstock/pull/1072))
 - Update to OpenStudio v3.6.0 ([#1072](https://github.com/NREL/resstock/pull/1072))
 
 Fixes
@@ -46,7 +47,7 @@ Fixes
 - Rename sources subfolders so all tsv_makers can be imported as packages ([#959](https://github.com/NREL/resstock/pull/959))
 - Fix heating and cooling auto-season inputs ([#975](https://github.com/NREL/resstock/pull/975))
 - Remove Void from dependency columns in TSVs and update tests.([#981](https://github.com/NREL/resstock/pull/981))
-- Update low-sample downscaling logic to use raw source_weight, which leads to minor changes to Geometry Floor Area and HVAC Partial Sapce Conditioning ([#982](https://github.com/NREL/resstock/pull/982))
+- Update low-sample downscaling logic to use raw source_weight, which leads to minor changes to Geometry Floor Area and HVAC Partial Space Conditioning ([#982](https://github.com/NREL/resstock/pull/982))
 
 ## ResStock v2.5.0
 ###### February 9, 2022 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.4.0...v2.5.0)
