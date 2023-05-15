@@ -1265,8 +1265,8 @@ class Geometry
   end
 
   def self.add_windows_to_wall(surface, window_area, window_gap_y, window_gap_x, window_aspect_ratio, max_single_window_area, facade, model, runner)
-    wall_width = get_surface_length(surface)
-    average_ceiling_height = get_surface_height(surface)
+    wall_width = get_surface_length(surface) # ft
+    average_ceiling_height = get_surface_height(surface) # ft
 
     # Calculate number of windows needed
     num_windows = (window_area / max_single_window_area).ceil
@@ -1278,9 +1278,46 @@ class Geometry
     window_width = Math.sqrt((window_area / num_windows.to_f) / window_aspect_ratio)
     window_height = (window_area / num_windows.to_f) / window_width
     width_for_windows = window_width * num_windows.to_f + window_gap_x * num_window_gaps.to_f
+
     if width_for_windows > wall_width
-      runner.registerError("Could not fit windows on #{surface.name}.")
-      return false
+      surface_area = UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
+      runner.registerWarning("Surface #{surface.nameString} has an area of #{surface_area}, params: window_area=#{window_area} ft^2, window_gap_y=#{window_gap_y} ft, window_gap_x=#{window_gap_x} ft, window_aspect_ratio=#{window_aspect_ratio}, max_single_window_area=#{max_single_window_area} ft^2, facade=#{facade}")
+      runner.registerWarning("Could not fit windows on #{surface.name}. Fall back to WWR")
+      wwr = window_area / surface_area
+      max_wwr = 0.9
+      if wwr >= max_wwr
+        runner.registerWarning("WWR too high (#{wwr}) for #{surface.name}. Falling back to reasonable maximum WWR #{max_wwr}")
+        wwr = max_wwr
+      end
+
+      # Instead of using this
+      # ss_ = surface.setWindowToWallRatio(wwr, offset, true)
+      # We offset the vertices towards the centroid
+      window_vertices = []
+      g = surface.centroid
+      scale_factor = wwr**0.5
+
+      surface.vertices.each do |vertex|
+        # A vertex is a Point3d.
+        # A diff a 2 Point3d creates a Vector3d
+
+        # Vector from centroid to vertex (GA, GB, GC, etc)
+        centroid_vector = vertex - g
+
+        # Resize the vector (done in place) according to scale_factor
+        centroid_vector.setLength(centroid_vector.length * scale_factor)
+
+        # Change the vertex
+        vertex = g + centroid_vector
+
+        window_vertices << vertex
+      end
+
+      sub_surface = create_sub_surface(window_vertices, model)
+      sub_surface.setName("#{surface.name} - Window 1")
+      sub_surface.setSurface(surface)
+      sub_surface.setSubSurfaceType('FixedWindow')
+      return true
     end
 
     # Position window from top of surface
