@@ -10,10 +10,11 @@ require 'fileutils'
 class BuildResidentialHPXMLTest < MiniTest::Test
   def setup
     @output_path = File.join(File.dirname(__FILE__), 'extra_files')
+    @model_save = false # true helpful for debugging, i.e., can render osm in 3D
   end
 
   def teardown
-    FileUtils.rm_rf(@output_path)
+    FileUtils.rm_rf(@output_path) if !@model_save
   end
 
   def test_workflows
@@ -288,6 +289,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
         # Apply measure
         success = apply_measures(measures_dir, measures, runner, model)
+        model.save(File.absolute_path(File.join(@output_path, hpxml_file.gsub('.xml', '.osm')))) if @model_save
 
         _test_measure(runner, expected_errors[hpxml_file], expected_warnings[hpxml_file])
 
