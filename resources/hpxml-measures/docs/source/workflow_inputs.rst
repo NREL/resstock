@@ -556,6 +556,7 @@ For each neighboring building defined, additional information is entered in a ``
   ==============================  =================  ================  ===================  ========  ========  =============================================
   
   .. [#] Orientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north"
+         The azimuth/orientation of the neighboring building must match the azimuth/orientation of at least one wall in the home, otherwise an error will be thrown.
   .. [#] If Height not provided, assumed to be same height as the dwelling unit.
 
 .. _buildingoccupancy:
@@ -882,7 +883,7 @@ Each rim joist surface (i.e., the perimeter of floor joists typically found betw
 HPXML Walls
 ***********
 
-Each wall that has no contact with the ground and bounds a space type is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Walls/Wall``.
+Each wall surface not attached to a foundation space is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Walls/Wall``.
 
   ======================================  =================  ================  =====================  =============  ===========  ====================================
   Element                                 Type               Units             Constraints            Required       Default      Notes
@@ -925,9 +926,7 @@ Each wall that has no contact with the ground and bounds a space type is entered
 HPXML Foundation Walls
 **********************
 
-Each wall that is in contact with the ground should be specified as an ``/HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall``.
-
-Other walls (e.g., wood framed walls) that are connected to a below-grade space but have no contact with the ground should be specified as a ``Wall`` and not a ``FoundationWall``.
+Each wall surface attached to a foundation space is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall``.
 
   ==============================================================  =================  ================  ===================  =========  ==============  ====================================
   Element                                                         Type               Units             Constraints          Required   Default         Notes
@@ -983,7 +982,7 @@ If insulation layers are provided, additional information is entered in each ``F
   .. [#] When NominalRValue is non-zero, DistanceToBottomOfInsulation must be greater than DistanceToTopOfInsulation and less than or equal to FoundationWall/Height.
 
 HPXML Floors
-******************
+************
 
 Each floor/ceiling surface that is not in contact with the ground (Slab) nor adjacent to ambient conditions above (Roof) is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Floors/Floor``.
 
@@ -1023,7 +1022,7 @@ For floors adjacent to "other housing unit", "other heated space", "other multif
 HPXML Slabs
 ***********
 
-Each space type that borders the ground (i.e., basements, crawlspaces, garages, and slab-on-grade foundations) should have a slab entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Slabs/Slab``.
+Each space type that borders the ground (i.e., basement, crawlspace, garage, and slab-on-grade foundation) should have a slab entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Slabs/Slab``.
 
   =======================================================  ========  ============  ===========  =========  ========  ====================================================
   Element                                                  Type      Units         Constraints  Required   Default   Notes

@@ -730,24 +730,22 @@ class HPXMLTest < MiniTest::Test
       # nop
     elsif hpxml_path.include? 'real_homes'
       # nop
-    elsif hpxml_path.include? 'base-bldgtype-multifamily'
-      assert_equal(0, num_kiva_instances)                                                # no foundation, above dwelling unit
+    elsif hpxml.building_construction.residential_facility_type == HPXML::ResidentialTypeApartment
+      # no foundation, above dwelling unit
+      assert_equal(0, num_kiva_instances)
+    elsif hpxml.slabs.empty?
+      assert_equal(0, num_kiva_instances)
     else
-      num_expected_kiva_instances = { 'base-foundation-ambient.xml' => 0,                # no foundation in contact w/ ground
-                                      'base-enclosure-floortypes.xml' => 0,              # no foundation in contact w/ ground
-                                      'base-foundation-multiple.xml' => 2,               # additional instance for 2nd foundation type
+      num_expected_kiva_instances = { 'base-foundation-multiple.xml' => 2,               # additional instance for 2nd foundation type
                                       'base-enclosure-2stories-garage.xml' => 2,         # additional instance for garage
                                       'base-foundation-basement-garage.xml' => 2,        # additional instance for garage
                                       'base-enclosure-garage.xml' => 2,                  # additional instance for garage
                                       'base-foundation-walkout-basement.xml' => 4,       # 3 foundation walls plus a no-wall exposed perimeter
                                       'base-foundation-complex.xml' => 10,               # lots of foundations for testing
                                       'base-pv-battery-garage.xml' => 2 }                # additional instance for garage
-
-      if not num_expected_kiva_instances[File.basename(hpxml_path)].nil?
-        assert_equal(num_expected_kiva_instances[File.basename(hpxml_path)], num_kiva_instances)
-      else
-        assert_equal(1, num_kiva_instances)
-      end
+      num_expected = num_expected_kiva_instances[File.basename(hpxml_path)]
+      num_expected = 1 if num_expected.nil?
+      assert_equal(num_expected, num_kiva_instances)
     end
 
     # Enclosure Foundation Slabs

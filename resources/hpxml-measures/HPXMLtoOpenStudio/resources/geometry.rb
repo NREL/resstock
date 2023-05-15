@@ -169,7 +169,7 @@ class Geometry
     azimuth_lengths = {}
     model.getSurfaces.sort.each do |surface|
       next unless ['wall', 'roofceiling'].include? surface.surfaceType.downcase
-      next unless ['outdoors', 'foundation', 'adiabatic'].include? surface.outsideBoundaryCondition.downcase
+      next unless ['outdoors', 'foundation', 'adiabatic', 'othersidecoefficients'].include? surface.outsideBoundaryCondition.downcase
       next if surface.additionalProperties.getFeatureAsDouble('Tilt').get <= 0 # skip flat roofs
 
       surfaces << surface
