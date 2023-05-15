@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>20945cf9-0ecb-41c1-b8fe-5dc26ff5c5c4</version_id>
-  <version_modified>20230512T181528Z</version_modified>
+  <version_id>58c397aa-1969-4e48-a7bc-0d22e27e7733</version_id>
+  <version_modified>20230515T163005Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -2556,11 +2556,20 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>heat_pump_heating_capacity_17_f</name>
-      <display_name>Heat Pump: Heating Capacity 17F</display_name>
-      <description>The output heating capacity of the heat pump at 17F. Only applies to air-to-air and mini-split. If not provided, the OS-HPXML default is used.</description>
+      <name>heat_pump_heating_capacity_retention_fraction</name>
+      <display_name>Heat Pump: Heating Capacity Retention Fraction</display_name>
+      <description>The output heating capacity of the heat pump at a user-specified temperature (e.g., 17F or 5F) divided by the above nominal heating capacity. Applies to all heat pump types except ground-to-air. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
-      <units>Btu/hr</units>
+      <units>Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_heating_capacity_retention_temp</name>
+      <display_name>Heat Pump: Heating Capacity Retention Temperature</display_name>
+      <description>The user-specified temperature (e.g., 17F or 5F) for the above heating capacity retention fraction. Applies to all heat pump types except ground-to-air. Required if the Heating Capacity Retention Fraction is provided.</description>
+      <type>Double</type>
+      <units>deg-F</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -6636,6 +6645,18 @@
   </attributes>
   <files>
     <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E8F9FEA0</checksum>
+    </file>
+    <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C26172ED</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.0</identifier>
@@ -6644,31 +6665,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>74318562</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>864F8465</checksum>
-    </file>
-    <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>5461EA7B</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-enclosure-garage-atticroof-conditioned.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>AF68B450</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-enclosure-garage-atticroof-conditioned.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CC7D040C</checksum>
+      <checksum>F7B212C2</checksum>
     </file>
   </files>
 </measure>

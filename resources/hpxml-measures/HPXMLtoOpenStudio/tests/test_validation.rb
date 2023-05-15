@@ -137,6 +137,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                                                      'Expected DistanceToBottomOfInsulation to be greater than or equal to DistanceToTopOfInsulation [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer[InstallationType="continuous - exterior" or InstallationType="continuous - interior"], id: "FoundationWall1Insulation"]',
                                                                      'Expected DistanceToBottomOfInsulation to be less than or equal to ../../Height [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer[InstallationType="continuous - exterior" or InstallationType="continuous - interior"], id: "FoundationWall1Insulation"]'],
                             'invalid-ground-conductivity' => ['Expected extension/GroundConductivity to be greater than 0'],
+                            'invalid-heat-pump-capacity-retention' => ['Expected Fraction to be less than 1',
+                                                                       'Expected Temperature to be less than or equal to 17'],
+                            'invalid-heat-pump-capacity-retention2' => ['Expected Fraction to be greater than or equal to 0'],
                             'invalid-hvac-installation-quality' => ['Expected extension/AirflowDefectRatio to be greater than or equal to -0.9 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[HeatPumpType="air-to-air"], id: "HeatPump1"]',
                                                                     'Expected extension/ChargeDefectRatio to be greater than or equal to -0.9 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[HeatPumpType="air-to-air"], id: "HeatPump1"]'],
                             'invalid-hvac-installation-quality2' => ['Expected extension/AirflowDefectRatio to be less than or equal to 9 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[HeatPumpType="air-to-air"], id: "HeatPump1"]',
@@ -335,6 +338,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['heat-pump-capacity-17f'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-1-speed.xml'))
         hpxml.heat_pumps[0].heating_capacity_17F = hpxml.heat_pumps[0].heating_capacity + 1000.0
+        hpxml.heat_pumps[0].heating_capacity_retention_fraction = nil
+        hpxml.heat_pumps[0].heating_capacity_retention_temp = nil
       elsif ['heat-pump-lockout-temperatures'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml'))
         hpxml.heat_pumps[0].compressor_lockout_temp = hpxml.heat_pumps[0].backup_heating_lockout_temp + 1
@@ -413,6 +418,16 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['invalid-ground-conductivity'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.site.ground_conductivity = 0.0
+      elsif ['invalid-heat-pump-capacity-retention'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-1-speed.xml'))
+        hpxml.heat_pumps[0].heating_capacity_17F = nil
+        hpxml.heat_pumps[0].heating_capacity_retention_fraction = 1.5
+        hpxml.heat_pumps[0].heating_capacity_retention_temp = 30
+      elsif ['invalid-heat-pump-capacity-retention2'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-1-speed.xml'))
+        hpxml.heat_pumps[0].heating_capacity_17F = nil
+        hpxml.heat_pumps[0].heating_capacity_retention_fraction = -1
+        hpxml.heat_pumps[0].heating_capacity_retention_temp = 5
       elsif ['invalid-hvac-installation-quality'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-1-speed.xml'))
         hpxml.heat_pumps[0].airflow_defect_ratio = -99

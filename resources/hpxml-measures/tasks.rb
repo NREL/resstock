@@ -1672,6 +1672,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.header.manualj_internal_loads_latent = 200
     hpxml.header.manualj_num_occupants = 5
   end
+  if hpxml_file.include? 'heating-capacity-17f'
+    hpxml.heat_pumps[0].heating_capacity_17F = hpxml.heat_pumps[0].heating_capacity * hpxml.heat_pumps[0].heating_capacity_retention_fraction
+    hpxml.heat_pumps[0].heating_capacity_retention_fraction = nil
+    hpxml.heat_pumps[0].heating_capacity_retention_temp = nil
+  end
 
   # ------------------ #
   # HPXML WaterHeating #
@@ -2323,7 +2328,7 @@ if ARGV[0].to_sym == :update_hpxmls
   OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
   t = Time.now
   create_hpxmls()
-  puts "Completed in #{Time.now - t}s"
+  puts "Completed in #{(Time.now - t).round(1)}s"
 end
 
 if ARGV[0].to_sym == :download_utility_rates

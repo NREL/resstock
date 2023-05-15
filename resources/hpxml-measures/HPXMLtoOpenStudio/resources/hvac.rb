@@ -1104,12 +1104,7 @@ class HVAC
       cap_fflow_spec, eir_fflow_spec = get_airflow_fault_heating_coeff()
       hp_ap.heat_cap_fflow_spec = [cap_fflow_spec]
       hp_ap.heat_eir_fflow_spec = [eir_fflow_spec]
-
-      if !heat_pump.heating_capacity_17F.nil? || (!heat_pump.capacity_retention_temp.nil? && !heat_pump.capacity_retention_fraction.nil?)
-        hp_ap.heat_cap_ft_spec = calc_heat_cap_ft_spec_using_capacity_17F(heat_pump)
-      else
-        hp_ap.heat_cap_ft_spec = [[0.566333415, -0.000744164, -0.0000103, 0.009414634, 0.0000506, -0.00000675]]
-      end
+      hp_ap.heat_cap_ft_spec = calc_heat_cap_ft_spec(heat_pump, heat_pump.additional_properties.num_speeds)
       if not use_cop
         hp_ap.heat_cops = [calc_cop_heating_1speed(heat_pump.heating_efficiency_hspf, hp_ap.heat_c_d, hp_ap.fan_power_rated, hp_ap.heat_eir_ft_spec, hp_ap.heat_cap_ft_spec)]
       end
@@ -1125,12 +1120,7 @@ class HVAC
                                    [0.76634609, 0.32840943, -0.094701495]]
       hp_ap.heat_eir_fflow_spec = [[2.153618211, -1.737190609, 0.584269478],
                                    [2.001041353, -1.58869128, 0.587593517]]
-      if !heat_pump.heating_capacity_17F.nil? || (!heat_pump.capacity_retention_temp.nil? && !heat_pump.capacity_retention_fraction.nil?)
-        hp_ap.heat_cap_ft_spec = calc_heat_cap_ft_spec_using_capacity_17F(heat_pump)
-      else
-        hp_ap.heat_cap_ft_spec = [[0.335690634, 0.002405123, -0.0000464, 0.013498735, 0.0000499, -0.00000725],
-                                  [0.306358843, 0.005376987, -0.0000579, 0.011645092, 0.0000591, -0.0000203]]
-      end
+      hp_ap.heat_cap_ft_spec = calc_heat_cap_ft_spec(heat_pump, heat_pump.additional_properties.num_speeds)
       hp_ap.heat_cops = calc_cops_heating_2speed(heat_pump.heating_efficiency_hspf, hp_ap.heat_c_d, hp_ap.heat_capacity_ratios, hp_ap.heat_fan_speed_ratios, hp_ap.fan_power_rated, hp_ap.heat_eir_ft_spec, hp_ap.heat_cap_ft_spec)
     elsif hp_ap.num_speeds == 4
       # From manufacturers data
@@ -1143,14 +1133,7 @@ class HVAC
                                 [0.690404655, 0.00616619, 0.000137643, -0.009350199, 0.000153427, -0.000213258]]
       hp_ap.heat_cap_fflow_spec = [[1, 0, 0]] * 4
       hp_ap.heat_eir_fflow_spec = [[1, 0, 0]] * 4
-      if !heat_pump.heating_capacity_17F.nil? || (!heat_pump.capacity_retention_temp.nil? && !heat_pump.capacity_retention_fraction.nil?)
-        hp_ap.heat_cap_ft_spec = calc_heat_cap_ft_spec_using_capacity_17F(heat_pump)
-      else
-        hp_ap.heat_cap_ft_spec = [[0.304192655, -0.003972566, 0.0000196432, 0.024471251, -0.000000774126, -0.0000841323],
-                                  [0.496381324, -0.00144792, 0.0, 0.016020855, 0.0000203447, -0.0000584118],
-                                  [0.697171186, -0.006189599, 0.0000337077, 0.014291981, 0.0000105633, -0.0000387956],
-                                  [0.555513805, -0.001337363, -0.00000265117, 0.014328826, 0.0000163849, -0.0000480711]]
-      end
+      hp_ap.heat_cap_ft_spec = calc_heat_cap_ft_spec(heat_pump, heat_pump.additional_properties.num_speeds)
       hp_ap.heat_cops = calc_cops_heating_4speed(heat_pump.heating_efficiency_hspf, hp_ap.heat_c_d, hp_ap.heat_capacity_ratios, hp_ap.heat_fan_speed_ratios, hp_ap.fan_power_rated, hp_ap.heat_eir_ft_spec, hp_ap.heat_cap_ft_spec)
     end
   end
@@ -1178,33 +1161,7 @@ class HVAC
     hp_ap.heat_cap_fflow_spec = [[1, 0, 0]] * num_speeds
     hp_ap.heat_eir_fflow_spec = [[1, 0, 0]] * num_speeds
 
-    # Derive coefficients from user input for capacity retention at outdoor drybulb temperature X [C].
-    if heat_pump.heating_capacity_17F.nil? || ((heat_pump.heating_capacity_17F == 0) && (heat_pump.heating_capacity == 0))
-      cap_retention_frac = heat_pump.capacity_retention_fraction # frac
-      cap_retention_temp = heat_pump.capacity_retention_temp # deg-F
-    else
-      cap_retention_frac = heat_pump.heating_capacity_17F / heat_pump.heating_capacity
-      cap_retention_temp = 17.0 # deg-F
-    end
-
-    # Biquadratic: capacity multiplier = a + b*IAT + c*IAT^2 + d*OAT + e*OAT^2 + f*IAT*OAT
-    x_A = UnitConversions.convert(cap_retention_temp, 'F', 'C')
-    y_A = cap_retention_frac
-    x_B = UnitConversions.convert(47.0, 'F', 'C') # 47F is the rating point
-    y_B = 1.0 # Maximum capacity factor is 1 at the rating point, by definition (this is maximum capacity, not nominal capacity)
-    oat_slope = (y_B - y_A) / (x_B - x_A)
-    oat_intercept = y_A - (x_A * oat_slope)
-
-    # Coefficients for the indoor temperature relationship are retained from the generic curve (Daikin lab data).
-    iat_slope = -0.010386676170938
-    iat_intercept = 0.219274275
-    a = oat_intercept + iat_intercept
-    b = iat_slope
-    c = 0
-    d = oat_slope
-    e = 0
-    f = 0
-    hp_ap.heat_cap_ft_spec = [HVAC.convert_curve_biquadratic([a, b, c, d, e, f], false)] * num_speeds
+    hp_ap.heat_cap_ft_spec = calc_heat_cap_ft_spec(heat_pump, num_speeds)
 
     hp_ap.heat_min_capacity_ratio = 0.3 # frac
     hp_ap.heat_max_capacity_ratio = 1.2 # frac
@@ -1843,31 +1800,36 @@ class HVAC
     end
   end
 
-  def self.calc_heat_cap_ft_spec_using_capacity_17F(heat_pump)
-    num_speeds = heat_pump.additional_properties.num_speeds
-
-    # Indoor temperature slope and intercept used if Q_17 is specified (derived using heat_cap_ft_spec)
-    # NOTE: Using Q_17 assumes the same curve for all speeds
-    if num_speeds == 1
-      iat_slope = -0.002303414
-      iat_intercept = 0.18417308
-    elsif num_speeds == 2
-      iat_slope = -0.002947013
-      iat_intercept = 0.23168251
-    elsif num_speeds == 4
-      iat_slope = -0.002897048
-      iat_intercept = 0.209319129
+  def self.calc_heat_cap_ft_spec(heat_pump, num_speeds)
+    if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit
+      # Coefficients for the indoor temperature relationship are retained from the generic curve (Daikin lab data).
+      iat_slope = -0.005770375
+      iat_intercept = 0.403926296
+    else
+      if num_speeds == 1
+        iat_slope = -0.002303414
+        iat_intercept = 0.18417308
+      elsif num_speeds == 2
+        iat_slope = -0.002947013
+        iat_intercept = 0.23168251
+      elsif num_speeds == 4
+        iat_slope = -0.002897048
+        iat_intercept = 0.209319129
+      end
     end
 
-    # Derive coefficients from user input for heating capacity at 47F and 17F
     # Biquadratic: capacity multiplier = a + b*IAT + c*IAT^2 + d*OAT + e*OAT^2 + f*IAT*OAT
-    x_A = 17.0
-    y_A = 0.5 # Arbitrary
-    if !heat_pump.capacity_retention_temp.nil? && !heat_pump.capacity_retention_fraction.nil?
-      x_A = heat_pump.capacity_retention_temp # deg-F
-      y_A = heat_pump.capacity_retention_fraction # frac
-    elsif heat_pump.heating_capacity > 0
-      y_A = heat_pump.heating_capacity_17F / heat_pump.heating_capacity
+    # Derive coefficients from user input for capacity retention at outdoor drybulb temperature X [C].
+    if not heat_pump.heating_capacity_17F.nil?
+      x_A = 17.0
+      if heat_pump.heating_capacity > 0
+        y_A = heat_pump.heating_capacity_17F / heat_pump.heating_capacity
+      else
+        y_A = 0.0
+      end
+    else
+      x_A = heat_pump.heating_capacity_retention_temp
+      y_A = heat_pump.heating_capacity_retention_fraction
     end
     x_B = 47.0 # 47F is the rating point
     y_B = 1.0
@@ -1875,12 +1837,7 @@ class HVAC
     oat_slope = (y_B - y_A) / (x_B - x_A)
     oat_intercept = y_A - (x_A * oat_slope)
 
-    heat_cap_ft_spec = []
-    for _i in 1..num_speeds
-      heat_cap_ft_spec << [oat_intercept + iat_intercept, iat_slope, 0, oat_slope, 0, 0]
-    end
-
-    return heat_cap_ft_spec
+    return [[oat_intercept + iat_intercept, iat_slope, 0, oat_slope, 0, 0]] * num_speeds
   end
 
   def self.calc_eir_from_cop(cop, fan_power_rated)
@@ -2739,28 +2696,16 @@ class HVAC
     return curve
   end
 
-  def self.convert_curve_biquadratic(coeff, ip_to_si = true)
-    if ip_to_si
-      # Convert IP curves to SI curves
-      si_coeff = []
-      si_coeff << coeff[0] + 32.0 * (coeff[1] + coeff[3]) + 1024.0 * (coeff[2] + coeff[4] + coeff[5])
-      si_coeff << 9.0 / 5.0 * coeff[1] + 576.0 / 5.0 * coeff[2] + 288.0 / 5.0 * coeff[5]
-      si_coeff << 81.0 / 25.0 * coeff[2]
-      si_coeff << 9.0 / 5.0 * coeff[3] + 576.0 / 5.0 * coeff[4] + 288.0 / 5.0 * coeff[5]
-      si_coeff << 81.0 / 25.0 * coeff[4]
-      si_coeff << 81.0 / 25.0 * coeff[5]
-      return si_coeff
-    else
-      # Convert SI curves to IP curves
-      ip_coeff = []
-      ip_coeff << coeff[0] - 160.0 / 9.0 * (coeff[1] + coeff[3]) + 25600.0 / 81.0 * (coeff[2] + coeff[4] + coeff[5])
-      ip_coeff << 5.0 / 9.0 * (coeff[1] - 320.0 / 9.0 * coeff[2] - 160.0 / 9.0 * coeff[5])
-      ip_coeff << 25.0 / 81.0 * coeff[2]
-      ip_coeff << 5.0 / 9.0 * (coeff[3] - 320.0 / 9.0 * coeff[4] - 160.0 / 9.0 * coeff[5])
-      ip_coeff << 25.0 / 81.0 * coeff[4]
-      ip_coeff << 25.0 / 81.0 * coeff[5]
-      return ip_coeff
-    end
+  def self.convert_curve_biquadratic(coeff)
+    # Convert IP curves to SI curves
+    si_coeff = []
+    si_coeff << coeff[0] + 32.0 * (coeff[1] + coeff[3]) + 1024.0 * (coeff[2] + coeff[4] + coeff[5])
+    si_coeff << 9.0 / 5.0 * coeff[1] + 576.0 / 5.0 * coeff[2] + 288.0 / 5.0 * coeff[5]
+    si_coeff << 81.0 / 25.0 * coeff[2]
+    si_coeff << 9.0 / 5.0 * coeff[3] + 576.0 / 5.0 * coeff[4] + 288.0 / 5.0 * coeff[5]
+    si_coeff << 81.0 / 25.0 * coeff[4]
+    si_coeff << 81.0 / 25.0 * coeff[5]
+    return si_coeff
   end
 
   def self.create_curve_biquadratic(model, coeff, name, min_x, max_x, min_y, max_y)
