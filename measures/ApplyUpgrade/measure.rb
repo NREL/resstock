@@ -326,7 +326,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
-      next if step_value.name == 'heat_pump_separate_backup_fraction_heat_load_served'
+      next if step_value.name == 'heat_pump_backup_type' && value == 'existing'
 
       measures['BuildResidentialHPXML'][0][step_value.name] = value
     end
@@ -340,12 +340,11 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
     # Heat Pump Backup
-    heat_pump_separate_backup_fraction_heat_load_served = measures['ResStockArguments'][0]['heat_pump_separate_backup_fraction_heat_load_served']
-    unless heat_pump_separate_backup_fraction_heat_load_served.nil?
-      heat_pump_separate_backup_fraction_heat_load_served = Float(heat_pump_separate_backup_fraction_heat_load_served)
+    heat_pump_backup_type = measures['ResStockArguments'][0]['heat_pump_backup_type']
+    if heat_pump_backup_type == 'existing'
       heating_system = get_heating_system(hpxml)
 
-      unless heating_system.nil?
+      if not heating_system.nil?
         if [HPXML::HVACTypeFurnace, HPXML::HVACTypeFixedHeater].include?(heating_system.heating_system_type) # Integrated
           measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
           measures['BuildResidentialHPXML'][0]['heat_pump_backup_fuel'] = heating_system.heating_system_fuel
@@ -355,6 +354,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
             measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_efficiency'] = heating_system.heating_efficiency_percent
           end
           measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heating_system.heating_capacity
+
+          runner.registerInfo("Found '#{heating_system.heating_system_type}' heating system type; setting it as 'heat_pump_backup_type=#{HPXML::HeatPumpBackupTypeIntegrated}'.")
         else # Separate
           measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
           measures['BuildResidentialHPXML'][0]['heating_system_2_type'] = heating_system.heating_system_type
@@ -365,8 +366,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
             measures['BuildResidentialHPXML'][0]['heating_system_2_heating_efficiency'] = heating_system.heating_efficiency_percent
           end
           measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = heating_system.heating_capacity
-          measures['BuildResidentialHPXML'][0]['heating_system_2_fraction_heat_load_served'] = heat_pump_separate_backup_fraction_heat_load_served
+
+          runner.registerInfo("Found '#{heating_system.heating_system_type}' heating system type; setting it as 'heat_pump_backup_type=#{HPXML::HeatPumpBackupTypeSeparate}'.")
         end
+      else
+        # Did not find valid heating system to set as the heat pump backup; set backup type back to the default
+        measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
       end
     end
 
@@ -534,7 +539,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   def get_heating_system(hpxml)
     hpxml.heating_systems.each do |heating_system|
       next unless heating_system.primary_system
-      next if heating_system.heating_system_type.include?('Shared')
+      next if heating_system.is_shared_system
 
       return heating_system
     end
