@@ -344,8 +344,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     if heat_pump_backup_type == 'existing'
       heating_system = get_heating_system(hpxml)
 
-      if not heating_system.nil?
-        if [HPXML::HVACTypeFurnace, HPXML::HVACTypeFixedHeater].include?(heating_system.heating_system_type) # Integrated
+      if (not heating_system.nil?) && (measures['BuildResidentialHPXML'][0]['heat_pump_type'] != 'none')
+        heat_pump_is_ducted = measures['BuildResidentialHPXML'][0]['heat_pump_is_ducted']
+        if [HPXML::HVACTypeFurnace, HPXML::HVACTypeFixedHeater].include?(heating_system.heating_system_type) && (not heat_pump_is_ducted == false) # Integrated
           measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
           measures['BuildResidentialHPXML'][0]['heat_pump_backup_fuel'] = heating_system.heating_system_fuel
           if not heating_system.heating_efficiency_afue.nil?
@@ -356,7 +357,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
           measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heating_system.heating_capacity
 
           runner.registerInfo("Found '#{heating_system.heating_system_type}' heating system type; setting it as 'heat_pump_backup_type=#{HPXML::HeatPumpBackupTypeIntegrated}'.")
-        else # Separate
+        end
+        if not [HPXML::HVACTypeFurnace, HPXML::HVACTypeFixedHeater].include?(heating_system.heating_system_type) # Separate
           measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
           measures['BuildResidentialHPXML'][0]['heating_system_2_type'] = heating_system.heating_system_type
           measures['BuildResidentialHPXML'][0]['heating_system_2_fuel'] = heating_system.heating_system_fuel
