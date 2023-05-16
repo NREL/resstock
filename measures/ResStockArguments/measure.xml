@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>be151b70-af0c-49f2-90f5-79fd122ea358</version_id>
-  <version_modified>20230516T042745Z</version_modified>
+  <version_id>a064f434-eb22-49a2-81b7-96ffd5124030</version_id>
+  <version_modified>20230516T152202Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -1724,29 +1724,6 @@
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heat_pump_backup_type</name>
-      <display_name>Heat Pump: Backup Type</display_name>
-      <description>The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>integrated</default_value>
-      <choices>
-        <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>integrated</value>
-          <display_name>integrated</display_name>
-        </choice>
-        <choice>
-          <value>separate</value>
-          <display_name>separate</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>heat_pump_backup_fuel</name>
@@ -5120,12 +5097,14 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>heat_pump_separate_backup_fraction_heat_load_served</name>
-      <display_name>Heat Pump Separate Backup: Fraction Heat Load Served</display_name>
-      <description>If specified, the primary heating system becomes the secondary heating system. Properties of the primary heating system, e.g., capacity, are retained.</description>
-      <type>Double</type>
-      <required>false</required>
+      <name>heat_pump_backup_type</name>
+      <display_name>Heat Pump: Backup Type</display_name>
+      <description>E.g., 'integrated' or 'separate' or 'existing'.</description>
+      <type>String</type>
+      <units>sqft</units>
+      <required>true</required>
       <model_dependent>false</model_dependent>
+      <default_value>integrated</default_value>
     </argument>
   </arguments>
   <outputs />
@@ -5156,7 +5135,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>DF7329EE</checksum>
+      <checksum>FC4B67EF</checksum>
     </file>
   </files>
 </measure>

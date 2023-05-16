@@ -40,6 +40,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Following are arguments with the same name but different options
       next if arg.name == 'geometry_unit_cfa'
+      next if arg.name == 'heat_pump_backup_type'
 
       # Convert optional arguments to string arguments that allow Constants.Auto for defaulting
       if !arg.required
@@ -342,9 +343,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_separate_backup_fraction_heat_load_served', false)
-    arg.setDisplayName('Heat Pump Separate Backup: Fraction Heat Load Served')
-    arg.setDescription('If specified, the primary heating system becomes the secondary heating system. Properties of the primary heating system, e.g., capacity, are retained.')
+    # Adds a heat_pump_backup_type argument similar to the BuildResidentialHPXML measure, but as a string with "existing" allowed
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_backup_type', true)
+    arg.setDisplayName('Heat Pump: Backup Type')
+    arg.setDescription("E.g., '#{HPXML::HeatPumpBackupTypeIntegrated}' or '#{HPXML::HeatPumpBackupTypeSeparate}' or 'existing'.")
+    arg.setUnits('sqft')
+    arg.setDefaultValue(HPXML::HeatPumpBackupTypeIntegrated)
     args << arg
 
     return args
@@ -714,11 +718,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       rim_joist_assembly_r = assembly_exterior_r + assembly_interior_r
     end
     args['rim_joist_assembly_r'] = rim_joist_assembly_r
-
-    # Heat Pump Backup
-    if args['heat_pump_separate_backup_fraction_heat_load_served'].is_initialized
-      args_to_delete.delete('heat_pump_separate_backup_fraction_heat_load_served')
-    end
 
     args.each do |arg_name, arg_value|
       begin
