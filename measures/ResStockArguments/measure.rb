@@ -342,6 +342,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_separate_backup_fraction_heat_load_served', false)
+    arg.setDisplayName('Heat Pump Separate Backup: Fraction Heat Load Served')
+    arg.setDescription('If specified, the primary heating system becomes the secondary heating system. Properties of the primary heating system, e.g., capacity, are retained.')
+    args << arg
+
     return args
   end
 
@@ -709,6 +714,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       rim_joist_assembly_r = assembly_exterior_r + assembly_interior_r
     end
     args['rim_joist_assembly_r'] = rim_joist_assembly_r
+
+    # Heat Pump Backup
+    if args['heat_pump_separate_backup_fraction_heat_load_served'].is_initialized
+      args_to_delete.delete('heat_pump_separate_backup_fraction_heat_load_served')
+    end
 
     args.each do |arg_name, arg_value|
       begin
