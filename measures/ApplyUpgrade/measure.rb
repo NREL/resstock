@@ -326,6 +326,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
+      next if step_value.name == 'heat_pump_separate_backup_fraction_heat_load_served'
 
       measures['BuildResidentialHPXML'][0][step_value.name] = value
     end
@@ -338,8 +339,38 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
     measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
-    # Retain HVAC capacities
+    # Heat Pump Backup
+    heat_pump_separate_backup_fraction_heat_load_served = measures['ResStockArguments'][0]['heat_pump_separate_backup_fraction_heat_load_served']
+    unless heat_pump_separate_backup_fraction_heat_load_served.nil?
+      heat_pump_separate_backup_fraction_heat_load_served = Float(heat_pump_separate_backup_fraction_heat_load_served)
+      heating_system = get_heating_system(hpxml)
 
+      unless heating_system.nil?
+        if [HPXML::HVACTypeFurnace, HPXML::HVACTypeFixedHeater].include?(heating_system.heating_system_type) # Integrated
+          measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
+          measures['BuildResidentialHPXML'][0]['heat_pump_backup_fuel'] = heating_system.heating_system_fuel
+          if not heating_system.heating_efficiency_afue.nil?
+            measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_efficiency'] = heating_system.heating_efficiency_afue
+          elsif not heating_system.heating_efficiency_percent.nil?
+            measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_efficiency'] = heating_system.heating_efficiency_percent
+          end
+          measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heating_system.heating_capacity
+        else # Separate
+          measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
+          measures['BuildResidentialHPXML'][0]['heating_system_2_type'] = heating_system.heating_system_type
+          measures['BuildResidentialHPXML'][0]['heating_system_2_fuel'] = heating_system.heating_system_fuel
+          if not heating_system.heating_efficiency_afue.nil?
+            measures['BuildResidentialHPXML'][0]['heating_system_2_heating_efficiency'] = heating_system.heating_efficiency_afue
+          elsif not heating_system.heating_efficiency_percent.nil?
+            measures['BuildResidentialHPXML'][0]['heating_system_2_heating_efficiency'] = heating_system.heating_efficiency_percent
+          end
+          measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = heating_system.heating_capacity
+          measures['BuildResidentialHPXML'][0]['heating_system_2_fraction_heat_load_served'] = heat_pump_separate_backup_fraction_heat_load_served
+        end
+      end
+    end
+
+    # Retain HVAC capacities
     capacities = get_system_capacities(hpxml, system_upgrades)
 
     unless capacities['heating_system_heating_capacity'].nil?
@@ -498,6 +529,16 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     return system_upgrades
+  end
+
+  def get_heating_system(hpxml)
+    hpxml.heating_systems.each do |heating_system|
+      next unless heating_system.primary_system
+      next if heating_system.heating_system_type.include?('Shared')
+
+      return heating_system
+    end
+    return
   end
 
   def get_system_capacities(hpxml, system_upgrades)
