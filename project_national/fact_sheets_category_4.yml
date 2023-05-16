@@ -194,78 +194,66 @@ upgrades:
     options:
       - &Furnace_fuel_type
         option: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-        apply_logic:
-          - and: 
-            - or:
-              - Heating Fuel|Natural Gas
-              - Water Heater Fuel|Natural Gas
-              - Clothes Dryer|Gas
-              - Clothes Dryer|Gas, Premium
-              - Misc Hot Tub Spa|Natural Gas
-              - Misc Pool Heater|Natural Gas
-              - Misc Gas Fireplace|Gas Fireplace
-              - Misc Gas Grill|Gas Grill
-              - Misc Gas Lighting|Gas Lighting
-            - or:
-              - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-              - HVAC Heating Type And Fuel|Propane Fuel Furnace
-              - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace
       - &96%AFUE_furnace
         option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
         apply_logic:
-          - and: 
-            - or:
-              - Heating Fuel|Natural Gas
-              - Water Heater Fuel|Natural Gas
-            - or:
-              - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-              - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-              - HVAC Heating Type And Fuel|Propane Fuel Furnace
-              - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace
-            - or:
-              - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
-              - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
-              - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
-              - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
-              - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
-              - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
-              - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
-              - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+          - or:
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+    package_apply_logic: 
+      - and: 
+        - or:
+          - Heating Fuel|Natural Gas
+          - Water Heater Fuel|Natural Gas
+          - Clothes Dryer|Gas
+          - Clothes Dryer|Gas, Premium
+          - Misc Hot Tub Spa|Natural Gas
+          - Misc Pool Heater|Natural Gas
+          - Misc Gas Fireplace|Gas Fireplace
+          - Misc Gas Grill|Gas Grill
+          - Misc Gas Lighting|Gas Lighting
+        - or:
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+          - HVAC Heating Type And Fuel|Propane Fuel Furnace
+          - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace
 
   - upgrade_name: 96% AFUE Natural Gas Boiler
     options:
       - &Furnace_fuel_type
         option: HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - and: 
-            - or:
-              - Heating Fuel|Natural Gas
-              - Water Heater Fuel|Natural Gas # Do we need more to represent any natural gas usage?
-            - or:
-              - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
-              - HVAC Heating Type And Fuel|Propane Fuel Boiler
-              - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
       - &96%AFUE_boiler
         option: HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
         apply_logic:
-          - and: 
-            - or:
-              - Heating Fuel|Natural Gas
-              - Water Heater Fuel|Natural Gas
-            - or:
-              - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
-              - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
-              - HVAC Heating Type And Fuel|Propane Fuel Boiler
-              - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
-            - or:
-              - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-              - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-              - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-              - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-              - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-              - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-              - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-
+          - or:
+            - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
+    package_apply_logic: 
+      - and: 
+        - or:
+          - Heating Fuel|Natural Gas
+          - Water Heater Fuel|Natural Gas
+          - Clothes Dryer|Gas
+          - Clothes Dryer|Gas, Premium
+          - Misc Hot Tub Spa|Natural Gas
+          - Misc Pool Heater|Natural Gas
+          - Misc Gas Fireplace|Gas Fireplace
+          - Misc Gas Grill|Gas Grill
+          - Misc Gas Lighting|Gas Lighting
+        - or:
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+          - HVAC Heating Type And Fuel|Propane Fuel Furnace
+          - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace
 eagle:
   n_jobs: 3
   minutes_per_sim: 30

@@ -402,9 +402,9 @@ upgrades:
       - *EnergyStar_window_IECC_CZ3A-3B-3C
       - *EnergyStar_window_IECC_CZ4A-4B-4C
       - *EnergyStar_window_IECC_CZ5A-5B-6A-6B-7A-7B
-      #1” (TBD EPS or XPS) Exterior wall insulation for dwelling units with wall insulation of less than R-19  
+      #1” XPS (R-5/in) Exterior wall insulation for dwelling units with wall insulation of less than R-19  
       - &exterior_wall_insulation
-        option: Insulation Wall|ICF, 2-in EPS, 4-in Concrete, 2-in EPS #(TBD)
+        option: Insulation Sheathing|R-5
         apply_logic:
           - or:
             - Insulation Wall|Wood Stud, Uninsulated
@@ -413,10 +413,6 @@ upgrades:
             - Insulation Wall|Wood Stud, R-13
             - Insulation Wall|Wood Stud, R-15
             - Insulation Wall|Wood Stud, Uninsulated, R-5 Sheathing
-            - Insulation Wall|Wood Stud, R-7, R-5 Sheathing
-            - Insulation Wall|Wood Stud, R-11, R-5 Sheathing
-            - Insulation Wall|Wood Stud, R-13, R-5 Sheathing
-            - Insulation Wall|Wood Stud, R-15, R-5 Sheathing
             - Insulation Wall|Steel Stud, Uninsulated
             - Insulation Wall|Steel Stud, R-13
         costs:
@@ -425,7 +421,7 @@ upgrades:
         lifetime: 60
       - &infiltration_IECC2021_with_ERV_added
         option: Infiltration|3 ACH50
-        apply_logic:
+        apply_logic: &infiltration_higher_than_3ACH50
           - or:
             - Infiltration|50 ACH50
             - Infiltration|40 ACH50
@@ -461,26 +457,7 @@ upgrades:
               - Mechanical Ventilation|None
               - Mechanical Ventilation|Exhaust
               - Mechanical Ventilation|Supply
-            - or:
-              - Infiltration|50 ACH50
-              - Infiltration|40 ACH50
-              - Infiltration|30 ACH50
-              - Infiltration|25 ACH50
-              - Infiltration|20 ACH50
-              - Infiltration|18.5 ACH50
-              - Infiltration|15 ACH50
-              - Infiltration|11.25 ACH50
-              - Infiltration|10 ACH50
-              - Infiltration|8 ACH50
-              - Infiltration|7.5 ACH50
-              - Infiltration|7 ACH50
-              - Infiltration|7 ACH50, 0.5 Shelter Coefficient
-              - Infiltration|6 ACH50
-              - Infiltration|5.25 ACH50
-              - Infiltration|5 ACH50
-              - Infiltration|4.5 ACH50
-              - Infiltration|4 ACH50
-              - Infiltration|3.75 ACH50
+            - or: *infiltration_higher_than_3ACH50
         costs:
           - value: 0.50 # To be decided
             multiplier: Floor Area, Conditioned (ft^2)
