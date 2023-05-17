@@ -652,17 +652,10 @@ class Geometry
         end
 
         if num_floors == 1
-          if not attic_type == HPXML::AtticTypeConditioned
-            nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, living_space.zOrigin + nw_point.z)
-            ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, living_space.zOrigin + ne_point.z)
-            sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, living_space.zOrigin + sw_point.z)
-            se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, living_space.zOrigin + se_point.z)
-          else
-            nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, nw_point.z - living_space.zOrigin)
-            ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, ne_point.z - living_space.zOrigin)
-            sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, sw_point.z - living_space.zOrigin)
-            se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, se_point.z - living_space.zOrigin)
-          end
+          nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, living_space.zOrigin + nw_point.z)
+          ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, living_space.zOrigin + ne_point.z)
+          sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, living_space.zOrigin + sw_point.z)
+          se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, living_space.zOrigin + se_point.z)
         else
           nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, num_floors * nw_point.z + rim_joist_height)
           ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, num_floors * ne_point.z + rim_joist_height)
@@ -1265,8 +1258,8 @@ class Geometry
   end
 
   def self.add_windows_to_wall(surface, window_area, window_gap_y, window_gap_x, window_aspect_ratio, max_single_window_area, facade, model, runner)
-    wall_width = get_surface_length(surface)
-    average_ceiling_height = get_surface_height(surface)
+    wall_width = get_surface_length(surface) # ft
+    average_ceiling_height = get_surface_height(surface) # ft
 
     # Calculate number of windows needed
     num_windows = (window_area / max_single_window_area).ceil
@@ -1278,9 +1271,43 @@ class Geometry
     window_width = Math.sqrt((window_area / num_windows.to_f) / window_aspect_ratio)
     window_height = (window_area / num_windows.to_f) / window_width
     width_for_windows = window_width * num_windows.to_f + window_gap_x * num_window_gaps.to_f
+
     if width_for_windows > wall_width
-      runner.registerError("Could not fit windows on #{surface.name}.")
-      return false
+      surface_area = UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
+      wwr = window_area / surface_area
+      if wwr > 0.90
+        runner.registerWarning("Could not fit windows on #{surface.name}; reducing window area to 90% WWR.")
+        wwr = 0.90
+      end
+
+      # Instead of using this
+      # ss_ = surface.setWindowToWallRatio(wwr, offset, true)
+      # We offset the vertices towards the centroid to maximize the likelihood of fitting the window area on the surface
+      window_vertices = []
+      g = surface.centroid
+      scale_factor = wwr**0.5
+
+      surface.vertices.each do |vertex|
+        # A vertex is a Point3d.
+        # A diff from 2 Point3d creates a Vector3d
+
+        # Vector from centroid to vertex (GA, GB, GC, etc)
+        centroid_vector = vertex - g
+
+        # Resize the vector (done in place) according to scale_factor
+        centroid_vector.setLength(centroid_vector.length * scale_factor)
+
+        # Change the vertex
+        vertex = g + centroid_vector
+
+        window_vertices << vertex
+      end
+
+      sub_surface = create_sub_surface(window_vertices, model)
+      sub_surface.setName("#{surface.name} - Window 1")
+      sub_surface.setSurface(surface)
+      sub_surface.setSubSurfaceType('FixedWindow')
+      return true
     end
 
     # Position window from top of surface

@@ -7,7 +7,7 @@ class Airflow
   def self.apply(model, runner, weather, spaces, hpxml, cfa, nbeds,
                  ncfl_ag, duct_systems, airloop_map, clg_ssn_sensor, eri_version,
                  frac_windows_operable, apply_ashrae140_assumptions, schedules_file,
-                 vacancy_periods, power_outage_periods, availability_sensor)
+                 unavailable_periods, hvac_availability_sensor)
 
     # Global variables
 
@@ -23,7 +23,7 @@ class Airflow
     @cfa = cfa
     @cooking_range_in_cond_space = hpxml.cooking_ranges.empty? ? true : HPXML::conditioned_locations_this_unit.include?(hpxml.cooking_ranges[0].location)
     @clothes_dryer_in_cond_space = hpxml.clothes_dryers.empty? ? true : HPXML::conditioned_locations_this_unit.include?(hpxml.clothes_dryers[0].location)
-    @availability_sensor = availability_sensor
+    @hvac_availability_sensor = hvac_availability_sensor
 
     # Global sensors
 
@@ -80,7 +80,7 @@ class Airflow
     vented_dryers = hpxml.clothes_dryers.select { |cd| cd.is_vented && cd.vented_flow_rate.to_f > 0 }
 
     # Initialization
-    initialize_cfis(model, vent_fans_mech, airloop_map, power_outage_periods)
+    initialize_cfis(model, vent_fans_mech, airloop_map, unavailable_periods)
     model.getAirLoopHVACs.each do |air_loop|
       initialize_fan_objects(model, air_loop)
     end
@@ -100,20 +100,8 @@ class Airflow
     window_area = hpxml.windows.map { |w| w.area }.sum(0.0)
     open_window_area = window_area * frac_windows_operable * 0.5 * 0.2 # Assume A) 50% of the area of an operable window can be open, and B) 20% of openable window area is actually open
 
-    vented_attic = nil
-    hpxml.attics.each do |attic|
-      next unless attic.attic_type == HPXML::AtticTypeVented
-
-      vented_attic = attic
-      break
-    end
-    vented_crawl = nil
-    hpxml.foundations.each do |foundation|
-      next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
-
-      vented_crawl = foundation
-      break
-    end
+    vented_attic = hpxml.attics.find { |attic| attic.attic_type == HPXML::AtticTypeVented }
+    vented_crawl = hpxml.foundations.find { |foundation| foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented }
 
     _sla, living_ach50, nach, infil_volume, infil_height, a_ext = get_values_from_air_infiltration_measurements(hpxml, cfa, weather)
     if @apply_ashrae140_assumptions
@@ -122,12 +110,13 @@ class Airflow
     end
     living_const_ach *= a_ext unless living_const_ach.nil?
     living_ach50 *= a_ext unless living_ach50.nil?
+    has_flue_chimney_in_cond_space = hpxml.air_infiltration.has_flue_or_chimney_in_conditioned_space
 
     apply_natural_ventilation_and_whole_house_fan(model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor, hpxml.header.natvent_days_per_week,
-                                                  infil_volume, infil_height, vacancy_periods, power_outage_periods)
+                                                  infil_volume, infil_height, unavailable_periods)
     apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                            hpxml.building_construction.has_flue_or_chimney, living_ach50, living_const_ach, infil_volume, infil_height,
-                                            vented_attic, vented_crawl, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl, vacancy_periods, power_outage_periods)
+                                            has_flue_chimney_in_cond_space, living_ach50, living_const_ach, infil_volume, infil_height,
+                                            vented_attic, vented_crawl, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl, unavailable_periods)
   end
 
   def self.get_default_fraction_of_windows_operable()
@@ -217,7 +206,7 @@ class Airflow
       fail 'Unexpected error.'
     end
 
-    if measurement.type_of_test == HPXML::InfiltrationTestCompartmentalization
+    if measurement.infiltration_type == HPXML::InfiltrationTypeUnitTotal
       a_ext = measurement.a_ext # Adjustment ratio for SFA/MF units; exterior envelope area divided by total envelope area
     end
     a_ext = 1.0 if a_ext.nil?
@@ -327,13 +316,13 @@ class Airflow
   end
 
   def self.apply_natural_ventilation_and_whole_house_fan(model, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor, natvent_days_per_week,
-                                                         infil_volume, infil_height, vacancy_periods, power_outage_periods)
+                                                         infil_volume, infil_height, unavailable_periods)
 
     # NV Availability Schedule
-    nv_avail_sch = create_nv_and_whf_avail_sch(model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week, vacancy_periods + power_outage_periods)
+    nv_avail_sch = create_nv_and_whf_avail_sch(model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week, unavailable_periods)
 
     nv_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-    nv_avail_sensor.setName("#{Constants.ObjectNameNaturalVentilation} avail s")
+    nv_avail_sensor.setName("#{Constants.ObjectNameNaturalVentilation} s")
     nv_avail_sensor.setKeyName(nv_avail_sch.name.to_s)
 
     # Availability Schedules paired with vent fan class
@@ -342,11 +331,11 @@ class Airflow
     vent_fans_whf.each_with_index do |vent_whf, index|
       whf_num_days_per_week = 7 # FUTURE: Expose via HPXML?
       obj_name = "#{Constants.ObjectNameWholeHouseFan} #{index}"
-      whf_off_periods = Schedule.get_off_periods(SchedulesFile::ColumnWholeHouseFan, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
-      whf_avail_sch = create_nv_and_whf_avail_sch(model, obj_name, whf_num_days_per_week, whf_off_periods)
+      whf_unavailable_periods = Schedule.get_unavailable_periods(SchedulesFile::ColumnWholeHouseFan, unavailable_periods)
+      whf_avail_sch = create_nv_and_whf_avail_sch(model, obj_name, whf_num_days_per_week, whf_unavailable_periods)
 
       whf_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-      whf_avail_sensor.setName("#{obj_name} avail s")
+      whf_avail_sensor.setName("#{obj_name} s")
       whf_avail_sensor.setKeyName(whf_avail_sch.name.to_s)
       whf_avail_sensors[vent_whf.id] = whf_avail_sensor
     end
@@ -390,7 +379,7 @@ class Airflow
     whf_equip_def.setFractionLost(1)
     whf_equip.setSchedule(model.alwaysOnDiscreteSchedule)
     whf_equip.setEndUseSubcategory(Constants.ObjectNameWholeHouseFan)
-    whf_elec_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(whf_equip, *EPlus::EMSActuatorElectricEquipmentPower)
+    whf_elec_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(whf_equip, *EPlus::EMSActuatorElectricEquipmentPower, whf_equip.space.get)
     whf_elec_actuator.setName("#{whf_equip.name} act")
 
     # Assume located in attic floor if attic zone exists; otherwise assume it's through roof/wall.
@@ -443,14 +432,14 @@ class Airflow
     vent_program.addLine("Set #{whf_flow_actuator.name} = 0") # Init
     vent_program.addLine("Set #{liv_to_zone_flow_rate_actuator.name} = 0") unless whf_zone.nil? # Init
     vent_program.addLine("Set #{whf_elec_actuator.name} = 0") # Init
-    if @availability_sensor.nil?
-      vent_program.addLine('If (Wout < MaxHR) && (Phiout < MaxRH) && (Tin > Tout) && (Tin > Tnvsp) && (ClgSsnAvail > 0)')
-    else
+    infil_constraints = 'If ((Wout < MaxHR) && (Phiout < MaxRH) && (Tin > Tout) && (Tin > Tnvsp) && (ClgSsnAvail > 0))'
+    if not @hvac_availability_sensor.nil?
       # We are using the availability schedule, but we also constrain the window opening based on temperatures and humidity.
-      # We're assuming that if it's an outage, you'd ignore the humidity constraints we normally put on window opening per the old HSP guidance (RH < 70% and w < 0.015).
-      # Without, the humidity constraints prevent the window from opening during the entire outage period even though the sensible cooling would have really helped.
-      vent_program.addLine("If ((Wout < MaxHR) && (Phiout < MaxRH) && (Tin > Tout) && (Tin > Tnvsp) && (ClgSsnAvail > 0)) || ((Tin > Tout) && (Tin > Tnvsp) && (#{@availability_sensor.name} == 0))")
+      # We're assuming that if the HVAC is not available, you'd ignore the humidity constraints we normally put on window opening per the old HSP guidance (RH < 70% and w < 0.015).
+      # Without, the humidity constraints prevent the window from opening during the entire period even though the sensible cooling would have really helped.
+      infil_constraints += "|| ((Tin > Tout) && (Tin > Tnvsp) && (#{@hvac_availability_sensor.name} == 0))"
     end
+    vent_program.addLine(infil_constraints)
     vent_program.addLine('  Set WHF_Flow = 0')
     vent_fans_whf.each do |vent_whf|
       vent_program.addLine("  Set WHF_Flow = WHF_Flow + #{UnitConversions.convert(vent_whf.flow_rate, 'cfm', 'm^3/s')} * #{whf_avail_sensors[vent_whf.id].name}")
@@ -485,15 +474,16 @@ class Airflow
     manager.addProgram(vent_program)
   end
 
-  def self.create_nv_and_whf_avail_sch(model, obj_name, num_days_per_week, off_periods = [])
+  def self.create_nv_and_whf_avail_sch(model, obj_name, num_days_per_week, unavailable_periods = [])
     avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
-    sch_name = "#{obj_name} avail schedule"
+    sch_name = "#{obj_name} schedule"
     avail_sch.setName(sch_name)
+    avail_sch.defaultDaySchedule.setName("#{sch_name} default day")
     Schedule.set_schedule_type_limits(model, avail_sch, Constants.ScheduleTypeLimitsOnOff)
     on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
-    on_rule.setName("#{obj_name} avail schedule rule")
+    on_rule.setName("#{sch_name} rule")
     on_rule_day = on_rule.daySchedule
-    on_rule_day.setName("#{obj_name} avail schedule day")
+    on_rule_day.setName("#{sch_name} avail day")
     on_rule_day.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
     method_array = ['setApplyMonday', 'setApplyWednesday', 'setApplyFriday', 'setApplySaturday', 'setApplyTuesday', 'setApplyThursday', 'setApplySunday']
     for i in 1..7 do
@@ -505,7 +495,7 @@ class Airflow
     on_rule.setEndDate(OpenStudio::Date::fromDayOfYear(365))
 
     year = model.getYearDescription.assumedYear
-    Schedule.set_off_periods(avail_sch, sch_name, off_periods, year)
+    Schedule.set_unavailable_periods(avail_sch, sch_name, unavailable_periods, year)
     return avail_sch
   end
 
@@ -567,7 +557,7 @@ class Airflow
     other_equip_def.setFractionLost(frac_lost)
     other_equip_def.setFractionLatent(frac_lat)
     other_equip_def.setFractionRadiant(0.0)
-    actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, *EPlus::EMSActuatorOtherEquipmentPower)
+    actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, *EPlus::EMSActuatorOtherEquipmentPower, other_equip.space.get)
     actuator.setName("#{other_equip.name} act")
     if not is_duct_load_for_report.nil?
       other_equip.additionalProperties.setFeature(Constants.IsDuctLoadForReport, is_duct_load_for_report)
@@ -575,7 +565,7 @@ class Airflow
     return actuator
   end
 
-  def self.initialize_cfis(model, vent_fans_mech, airloop_map, power_outage_periods)
+  def self.initialize_cfis(model, vent_fans_mech, airloop_map, unavailable_periods)
     # Get AirLoop associated with CFIS
     @cfis_airloop = {}
     @cfis_t_sum_open_var = {}
@@ -587,7 +577,7 @@ class Airflow
     vent_fans_mech.each do |vent_mech|
       next if vent_mech.fan_type != HPXML::MechVentTypeCFIS
 
-      fail 'Cannot apply power outage period(s) to CFIS systems.' if !power_outage_periods.empty?
+      fail 'Cannot apply unavailable period(s) to CFIS systems.' if !unavailable_periods.empty?
 
       vent_mech.distribution_system.hvac_systems.map { |system| system.id }.each do |cfis_id|
         next if airloop_map[cfis_id].nil?
@@ -666,7 +656,6 @@ class Airflow
 
   def self.apply_ducts(model, ducts, object, vent_fans_mech)
     ducts.each do |duct|
-      duct.rvalue = get_duct_insulation_rvalue(duct.rvalue, duct.side) # Convert from nominal to actual R-value
       if not duct.loc_schedule.nil?
         # Pass MF space temperature schedule name
         duct.location = duct.loc_schedule.name.to_s
@@ -680,20 +669,6 @@ class Airflow
     end
 
     return if ducts.size == 0 # No ducts
-
-    # get duct located zone or ambient temperature schedule objects
-    duct_locations = ducts.map { |duct| if duct.zone.nil? then duct.loc_schedule else duct.zone end }.uniq
-
-    # All duct zones are in living space?
-    all_ducts_conditioned = true
-    duct_locations.each do |duct_zone|
-      if duct_locations.is_a? OpenStudio::Model::ThermalZone
-        next if Geometry.is_living(duct_zone)
-      end
-
-      all_ducts_conditioned = false
-    end
-    return if all_ducts_conditioned
 
     if object.is_a? OpenStudio::Model::AirLoopHVAC
       # Most system types
@@ -767,6 +742,9 @@ class Airflow
       ra_w_sensor.setName("#{ra_w_var.name} s")
       ra_w_sensor.setKeyName(@living_zone.name.to_s)
     end
+
+    # Get duct located zone or ambient temperature schedule objects
+    duct_locations = ducts.map { |duct| if duct.zone.nil? then duct.loc_schedule else duct.zone end }.uniq
 
     # Create one duct program for each duct location zone
     duct_locations.each_with_index do |duct_location, i|
@@ -968,7 +946,7 @@ class Airflow
           leakage_cfm25s[duct.side] = 0 if leakage_cfm25s[duct.side].nil?
           leakage_cfm25s[duct.side] += calc_air_leakage_at_diff_pressure(InfilPressureExponent, duct.leakage_cfm50, 50.0, 25.0)
         end
-        ua_values[duct.side] += duct.area / duct.rvalue
+        ua_values[duct.side] += duct.area / duct.effective_rvalue
       end
 
       # Calculate fraction of outside air specific to this duct location
@@ -1130,7 +1108,7 @@ class Airflow
       if @cfis_airloop.values.include? object
 
         cfis_id = @cfis_airloop.key(object)
-        vent_mech = vent_fans_mech.select { |vfm| vfm.id == cfis_id }[0]
+        vent_mech = vent_fans_mech.find { |vfm| vfm.id == cfis_id }
 
         add_cfis_duct_losses = (vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeAirHandler)
         if add_cfis_duct_losses
@@ -1273,7 +1251,7 @@ class Airflow
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
   end
 
-  def self.apply_local_ventilation(model, vent_object, obj_type_name, index, off_periods)
+  def self.apply_local_ventilation(model, vent_object, obj_type_name, index, unavailable_periods)
     daily_sch = [0.0] * 24
     obj_name = "#{obj_type_name} #{index}"
     remaining_hrs = vent_object.hours_in_operation
@@ -1285,7 +1263,7 @@ class Airflow
       end
       remaining_hrs -= 1
     end
-    obj_sch = HourlyByMonthSchedule.new(model, "#{obj_name} schedule", [daily_sch] * 12, [daily_sch] * 12, Constants.ScheduleTypeLimitsFraction, false, off_periods: off_periods)
+    obj_sch = HourlyByMonthSchedule.new(model, "#{obj_name} schedule", [daily_sch] * 12, [daily_sch] * 12, Constants.ScheduleTypeLimitsFraction, false, unavailable_periods: unavailable_periods)
     obj_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     obj_sch_sensor.setName("#{obj_name} sch s")
     obj_sch_sensor.setKeyName(obj_sch.schedule.name.to_s)
@@ -1305,7 +1283,7 @@ class Airflow
     return obj_sch_sensor
   end
 
-  def self.apply_dryer_exhaust(model, vented_dryer, schedules_file, index, off_periods)
+  def self.apply_dryer_exhaust(model, vented_dryer, schedules_file, index, unavailable_periods)
     obj_name = "#{Constants.ObjectNameClothesDryerExhaust} #{index}"
 
     # Create schedule
@@ -1319,7 +1297,7 @@ class Airflow
       cd_weekday_sch = vented_dryer.weekday_fractions
       cd_weekend_sch = vented_dryer.weekend_fractions
       cd_monthly_sch = vented_dryer.monthly_multipliers
-      obj_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameClothesDryer, cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, Constants.ScheduleTypeLimitsFraction, off_periods: off_periods)
+      obj_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameClothesDryer, cd_weekday_sch, cd_weekend_sch, cd_monthly_sch, Constants.ScheduleTypeLimitsFraction, unavailable_periods: unavailable_periods)
       obj_sch = obj_sch.schedule
       obj_sch_name = obj_sch.name.to_s
       full_load_hrs = Schedule.annual_equivalent_full_load_hrs(@year, obj_sch)
@@ -1506,7 +1484,7 @@ class Airflow
     end
   end
 
-  def self.add_ee_for_vent_fan_power(model, obj_name, sup_fans = [], exh_fans = [], bal_fans = [], erv_hrv_fans = [], off_periods = [])
+  def self.add_ee_for_vent_fan_power(model, obj_name, sup_fans = [], exh_fans = [], bal_fans = [], erv_hrv_fans = [], unavailable_periods = [])
     # Calculate fan heat fraction
     # 1.0: Fan heat does not enter space (e.g., exhaust)
     # 0.0: Fan heat does enter space (e.g., supply)
@@ -1534,7 +1512,7 @@ class Airflow
     end
 
     # Availability Schedule
-    avail_sch = ScheduleConstant.new(model, obj_name + ' schedule', 1.0, Constants.ScheduleTypeLimitsFraction, off_periods: off_periods)
+    avail_sch = ScheduleConstant.new(model, obj_name + ' schedule', 1.0, Constants.ScheduleTypeLimitsFraction, unavailable_periods: unavailable_periods)
     avail_sch = avail_sch.schedule
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -1550,7 +1528,7 @@ class Airflow
     equip_actuator = nil
     if [Constants.ObjectNameMechanicalVentilationHouseFanCFIS,
         Constants.ObjectNameMechanicalVentilationHouseFanCFISSupplFan].include? obj_name # actuate its power level in EMS
-      equip_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, *EPlus::EMSActuatorElectricEquipmentPower)
+      equip_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, *EPlus::EMSActuatorElectricEquipmentPower, equip.space.get)
       equip_actuator.setName("#{equip.name} act")
     end
     if not tot_fans_w.nil?
@@ -1585,7 +1563,7 @@ class Airflow
   end
 
   def self.apply_infiltration_adjustment_to_conditioned(model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers, vent_mech_sup_tot,
-                                                        vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot, infil_flow_actuator, schedules_file, vacancy_periods, power_outage_periods)
+                                                        vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot, infil_flow_actuator, schedules_file, unavailable_periods)
     # Average in-unit CFMs (include recirculation from in unit CFMs for shared systems)
     sup_cfm_tot = vent_mech_sup_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
     exh_cfm_tot = vent_mech_exh_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
@@ -1595,8 +1573,8 @@ class Airflow
     infil_program.addLine('Set Qrange = 0')
     vent_fans_kitchen.each_with_index do |vent_kitchen, index|
       # Electricity impact
-      vent_kitchen_off_periods = Schedule.get_off_periods(SchedulesFile::ColumnKitchenFan, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
-      obj_sch_sensor = apply_local_ventilation(model, vent_kitchen, Constants.ObjectNameMechanicalVentilationRangeFan, index, vent_kitchen_off_periods)
+      vent_kitchen_unavailable_periods = Schedule.get_unavailable_periods(SchedulesFile::ColumnKitchenFan, unavailable_periods)
+      obj_sch_sensor = apply_local_ventilation(model, vent_kitchen, Constants.ObjectNameMechanicalVentilationRangeFan, index, vent_kitchen_unavailable_periods)
       next unless @cooking_range_in_cond_space
 
       # Infiltration impact
@@ -1606,8 +1584,8 @@ class Airflow
     infil_program.addLine('Set Qbath = 0')
     vent_fans_bath.each_with_index do |vent_bath, index|
       # Electricity impact
-      vent_bath_off_periods = Schedule.get_off_periods(SchedulesFile::ColumnBathFan, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
-      obj_sch_sensor = apply_local_ventilation(model, vent_bath, Constants.ObjectNameMechanicalVentilationBathFan, index, vent_bath_off_periods)
+      vent_bath_unavailable_periods = Schedule.get_unavailable_periods(SchedulesFile::ColumnBathFan, unavailable_periods)
+      obj_sch_sensor = apply_local_ventilation(model, vent_bath, Constants.ObjectNameMechanicalVentilationBathFan, index, vent_bath_unavailable_periods)
       # Infiltration impact
       infil_program.addLine("Set Qbath = Qbath + #{UnitConversions.convert(vent_bath.flow_rate * vent_bath.count, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
@@ -1617,8 +1595,8 @@ class Airflow
       next unless @clothes_dryer_in_cond_space
 
       # Infiltration impact
-      vented_dryer_off_periods = Schedule.get_off_periods(SchedulesFile::ColumnClothesDryer, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
-      obj_sch_sensor, cfm_mult = apply_dryer_exhaust(model, vented_dryer, schedules_file, index, vented_dryer_off_periods)
+      vented_dryer_unavailable_periods = Schedule.get_unavailable_periods(SchedulesFile::ColumnClothesDryer, unavailable_periods)
+      obj_sch_sensor, cfm_mult = apply_dryer_exhaust(model, vented_dryer, schedules_file, index, vented_dryer_unavailable_periods)
       infil_program.addLine("Set Qdryer = Qdryer + #{UnitConversions.convert(vented_dryer.vented_flow_rate * cfm_mult, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
 
@@ -1765,8 +1743,8 @@ class Airflow
   end
 
   def self.apply_infiltration_ventilation_to_conditioned(model, site, vent_fans_mech, living_ach50, living_const_ach, infil_volume, infil_height, weather,
-                                                         vent_fans_kitchen, vent_fans_bath, vented_dryers, has_flue_chimney, clg_ssn_sensor, schedules_file,
-                                                         vent_fans_cfis_suppl, vacancy_periods, power_outage_periods)
+                                                         vent_fans_kitchen, vent_fans_bath, vented_dryers, has_flue_chimney_in_cond_space, clg_ssn_sensor, schedules_file,
+                                                         vent_fans_cfis_suppl, unavailable_periods)
     # Categorize fans into different types
     vent_mech_preheat = vent_fans_mech.select { |vent_mech| (not vent_mech.preheating_efficiency_cop.nil?) }
     vent_mech_precool = vent_fans_mech.select { |vent_mech| (not vent_mech.precooling_efficiency_cop.nil?) }
@@ -1778,9 +1756,9 @@ class Airflow
     vent_mech_erv_hrv_tot = vent_fans_mech.select { |vent_mech| [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include? vent_mech.fan_type }
 
     # Non-CFIS fan power
-    house_fan_off_periods = Schedule.get_off_periods(SchedulesFile::ColumnHouseFan, vacancy_periods: vacancy_periods, power_outage_periods: power_outage_periods)
+    house_fan_unavailable_periods = Schedule.get_unavailable_periods(SchedulesFile::ColumnHouseFan, unavailable_periods)
     add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFan,
-                              vent_mech_sup_tot, vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot, house_fan_off_periods)
+                              vent_mech_sup_tot, vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot, house_fan_unavailable_periods)
 
     # CFIS fan power
     cfis_fan_actuator = add_ee_for_vent_fan_power(model, Constants.ObjectNameMechanicalVentilationHouseFanCFIS) # Fan heat enters space
@@ -1810,7 +1788,7 @@ class Airflow
     infil_program.setName(Constants.ObjectNameInfiltration + ' program')
 
     # Calculate infiltration without adjustment by ventilation
-    apply_infiltration_to_conditioned(site, living_ach50, living_const_ach, infil_program, weather, has_flue_chimney, infil_volume, infil_height)
+    apply_infiltration_to_conditioned(site, living_ach50, living_const_ach, infil_program, weather, has_flue_chimney_in_cond_space, infil_volume, infil_height)
 
     # Common variable and load actuators across multiple mech vent calculations, create only once
     fan_sens_load_actuator, fan_lat_load_actuator = setup_mech_vent_vars_actuators(model: model, program: infil_program)
@@ -1823,7 +1801,7 @@ class Airflow
     # Calculate Qfan, Qinf_adj
     # Calculate adjusted infiltration based on mechanical ventilation system
     apply_infiltration_adjustment_to_conditioned(model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers, vent_mech_sup_tot,
-                                                 vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot, infil_flow_actuator, schedules_file, vacancy_periods, power_outage_periods)
+                                                 vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot, infil_flow_actuator, schedules_file, unavailable_periods)
 
     # Address load of Qfan (Qload)
     # Qload as variable for tracking outdoor air flow rate, excluding recirculation
@@ -1847,8 +1825,8 @@ class Airflow
   end
 
   def self.apply_infiltration_and_ventilation_fans(model, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                   has_flue_chimney, living_ach50, living_const_ach, infil_volume, infil_height, vented_attic,
-                                                   vented_crawl, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl, vacancy_periods, power_outage_periods)
+                                                   has_flue_chimney_in_cond_space, living_ach50, living_const_ach, infil_volume, infil_height, vented_attic,
+                                                   vented_crawl, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl, unavailable_periods)
 
     # Infiltration for unconditioned spaces
     apply_infiltration_to_garage(model, site, living_ach50)
@@ -1860,11 +1838,11 @@ class Airflow
 
     # Infiltration/ventilation for conditioned space
     apply_infiltration_ventilation_to_conditioned(model, site, vent_fans_mech, living_ach50, living_const_ach, infil_volume, infil_height, weather,
-                                                  vent_fans_kitchen, vent_fans_bath, vented_dryers, has_flue_chimney, clg_ssn_sensor, schedules_file,
-                                                  vent_fans_cfis_suppl, vacancy_periods, power_outage_periods)
+                                                  vent_fans_kitchen, vent_fans_bath, vented_dryers, has_flue_chimney_in_cond_space, clg_ssn_sensor, schedules_file,
+                                                  vent_fans_cfis_suppl, unavailable_periods)
   end
 
-  def self.apply_infiltration_to_conditioned(site, living_ach50, living_const_ach, infil_program, weather, has_flue_chimney, infil_volume, infil_height)
+  def self.apply_infiltration_to_conditioned(site, living_ach50, living_const_ach, infil_program, weather, has_flue_chimney_in_cond_space, infil_volume, infil_height)
     site_ap = site.additional_properties
 
     if living_ach50.to_f > 0
@@ -1882,7 +1860,7 @@ class Airflow
       delta_pref = 0.016 # inH2O
       c_i = a_o * (2.0 / outside_air_density)**0.5 * delta_pref**(0.5 - n_i) * inf_conv_factor
 
-      if has_flue_chimney
+      if has_flue_chimney_in_cond_space
         y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFIL1RATION MODEL, Walker and Wilson, 1990
         s_wflue = 1.0 # Flue Shelter Coefficient
       else
@@ -1913,7 +1891,7 @@ class Airflow
       else
         m_i = 1.0 # eq. 11
       end
-      if has_flue_chimney
+      if has_flue_chimney_in_cond_space
         if @ncfl_ag <= 0
           z_f = 1.0
         else
@@ -2021,24 +1999,63 @@ class Airflow
     return q_old * (p_new / p_old)**n_i
   end
 
-  def self.get_duct_insulation_rvalue(nominal_rvalue, side)
-    # Insulated duct values based on "True R-Values of Round Residential Ductwork"
-    # by Palmiter & Kruse 2006. Linear extrapolation from SEEM's "DuctTrueRValues"
-    # worksheet in, e.g., ExistingResidentialSingleFamily_SEEMRuns_v05.xlsm.
-    #
-    # Nominal | 4.2 | 6.0 | 8.0 | 11.0
-    # --------|-----|-----|-----|----
-    # Supply  | 4.5 | 5.7 | 6.8 | 8.4
-    # Return  | 4.9 | 6.3 | 7.8 | 9.7
-    #
-    # Uninsulated ducts are set to R-1.7 based on ASHRAE HOF and the above paper.
-    if nominal_rvalue <= 0
-      return 1.7
-    end
-    if side == HPXML::DuctTypeSupply
-      return 2.2438 + 0.5619 * nominal_rvalue
-    elsif side == HPXML::DuctTypeReturn
-      return 2.0388 + 0.7053 * nominal_rvalue
+  def self.get_duct_effective_r_value(nominal_rvalue, side, buried_level)
+    if buried_level == HPXML::DuctBuriedInsulationNone
+      # Insulated duct values based on "True R-Values of Round Residential Ductwork"
+      # by Palmiter & Kruse 2006. Linear extrapolation from SEEM's "DuctTrueRValues"
+      # worksheet in, e.g., ExistingResidentialSingleFamily_SEEMRuns_v05.xlsm.
+      #
+      # Nominal | 4.2 | 6.0 | 8.0 | 11.0
+      # --------|-----|-----|-----|----
+      # Supply  | 4.5 | 5.7 | 6.8 | 8.4
+      # Return  | 4.9 | 6.3 | 7.8 | 9.7
+      #
+      # Uninsulated ducts are set to R-1.7 based on ASHRAE HOF and the above paper.
+
+      if nominal_rvalue <= 0
+        return 1.7
+      end
+      if side == HPXML::DuctTypeSupply
+        return 2.2438 + 0.5619 * nominal_rvalue
+      elsif side == HPXML::DuctTypeReturn
+        return 2.0388 + 0.7053 * nominal_rvalue
+      end
+    else
+      if side == HPXML::DuctTypeSupply
+        # Equations derived from Table 13 in https://www.nrel.gov/docs/fy13osti/55876.pdf
+        # assuming 8-in supply diameter
+        #
+        # Duct configuration | 4.2  | 6.0  | 8.0
+        # -------------------|------|------|-----
+        # Partially-buried   | 7.8  | 9.9  | 11.8
+        # Fully buried       | 11.3 | 13.2 | 15.1
+        # Deeply buried      | 18.1 | 19.6 | 21.0
+
+        if buried_level == HPXML::DuctBuriedInsulationPartial
+          return 5.83 + 2.0 * nominal_rvalue
+        elsif buried_level == HPXML::DuctBuriedInsulationFull
+          return 9.4 + 1.9 * nominal_rvalue
+        elsif buried_level == HPXML::DuctBuriedInsulationDeep
+          return 16.67 + 1.45 * nominal_rvalue
+        end
+      elsif side == HPXML::DuctTypeReturn
+        # Equations derived from Table 13 in https://www.nrel.gov/docs/fy13osti/55876.pdf
+        # assuming 14-in return diameter
+        #
+        # Duct configuration | 4.2  | 6.0  | 8.0
+        # -------------------|------|------|-----
+        # Partially-buried   | 10.1 | 12.6 | 15.1
+        # Fully buried       | 14.3 | 16.7 | 19.2
+        # Deeply buried      | 22.8 | 24.7 | 26.6
+
+        if buried_level == HPXML::DuctBuriedInsulationPartial
+          return 7.6 + 2.5 * nominal_rvalue
+        elsif buried_level == HPXML::DuctBuriedInsulationFull
+          return 11.83 + 2.45 * nominal_rvalue
+        elsif buried_level == HPXML::DuctBuriedInsulationDeep
+          return 20.9 + 1.9 * nominal_rvalue
+        end
+      end
     end
   end
 
@@ -2049,7 +2066,7 @@ class Airflow
 end
 
 class Duct
-  def initialize(side, loc_space, loc_schedule, leakage_frac, leakage_cfm25, leakage_cfm50, area, rvalue)
+  def initialize(side, loc_space, loc_schedule, leakage_frac, leakage_cfm25, leakage_cfm50, area, effective_rvalue, buried_level)
     @side = side
     @loc_space = loc_space
     @loc_schedule = loc_schedule
@@ -2057,7 +2074,8 @@ class Duct
     @leakage_cfm25 = leakage_cfm25
     @leakage_cfm50 = leakage_cfm50
     @area = area
-    @rvalue = rvalue
+    @effective_rvalue = effective_rvalue
+    @buried_level = buried_level
   end
-  attr_accessor(:side, :loc_space, :loc_schedule, :leakage_frac, :leakage_cfm25, :leakage_cfm50, :area, :rvalue, :zone, :location)
+  attr_accessor(:side, :loc_space, :loc_schedule, :leakage_frac, :leakage_cfm25, :leakage_cfm50, :area, :effective_rvalue, :zone, :location, :buried_level)
 end

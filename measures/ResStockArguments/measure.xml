@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>a064f434-eb22-49a2-81b7-96ffd5124030</version_id>
-  <version_modified>20230516T152202Z</version_modified>
+  <version_id>36b25843-ce9b-4373-bf5b-2fb333e003ab</version_id>
+  <version_modified>20230517T145344Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -192,7 +192,7 @@
     <argument>
       <name>geometry_unit_num_bedrooms</name>
       <display_name>Geometry: Unit Number of Bedrooms</display_name>
-      <description>The number of bedrooms in the unit. Used to determine the energy usage of appliances and plug loads, hot water usage, etc.</description>
+      <description>The number of bedrooms in the unit.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
@@ -758,26 +758,10 @@
     </argument>
     <argument>
       <name>roof_radiant_barrier_grade</name>
-      <display_name>Roof: Radiant Barrier Grade</display_name>
-      <description>The grade of the radiant barrier, if it exists.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>roof_radiant_barrier_grade</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
-      <choices>
-        <choice>
-          <value>1</value>
-          <display_name>1</display_name>
-        </choice>
-        <choice>
-          <value>2</value>
-          <display_name>2</display_name>
-        </choice>
-        <choice>
-          <value>3</value>
-          <display_name>3</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>wall_type</name>
@@ -1005,6 +989,13 @@
     <argument>
       <name>window_exterior_shading_summer</name>
       <display_name>window_exterior_shading_summer</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>window_shading_summer_season</name>
+      <display_name>window_shading_summer_season</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1273,8 +1264,15 @@
       <default_value>3</default_value>
     </argument>
     <argument>
-      <name>air_leakage_multifamily_value_type</name>
-      <display_name>air_leakage_multifamily_value_type</display_name>
+      <name>air_leakage_type</name>
+      <display_name>air_leakage_type</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>air_leakage_has_flue_or_chimney_in_conditioned_space</name>
+      <display_name>air_leakage_has_flue_or_chimney_in_conditioned_space</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1515,22 +1513,10 @@
     </argument>
     <argument>
       <name>cooling_system_is_ducted</name>
-      <display_name>Cooling System: Is Ducted</display_name>
-      <description>Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.</description>
-      <type>Boolean</type>
-      <required>true</required>
+      <display_name>cooling_system_is_ducted</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>cooling_system_integrated_heating_system_fuel</name>
@@ -1685,8 +1671,15 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>heat_pump_heating_capacity_17_f</name>
-      <display_name>heat_pump_heating_capacity_17_f</display_name>
+      <name>heat_pump_heating_capacity_retention_fraction</name>
+      <display_name>heat_pump_heating_capacity_retention_fraction</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_heating_capacity_retention_temp</name>
+      <display_name>heat_pump_heating_capacity_retention_temp</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1785,20 +1778,6 @@
     <argument>
       <name>heat_pump_is_ducted</name>
       <display_name>heat_pump_is_ducted</display_name>
-      <type>String</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heat_pump_capacity_retention_fraction</name>
-      <display_name>heat_pump_capacity_retention_fraction</display_name>
-      <type>String</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heat_pump_capacity_retention_temp</name>
-      <display_name>heat_pump_capacity_retention_temp</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1985,6 +1964,13 @@
       <default_value>0</default_value>
     </argument>
     <argument>
+      <name>ducts_supply_buried_insulation_level</name>
+      <display_name>ducts_supply_buried_insulation_level</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>ducts_supply_surface_area</name>
       <display_name>ducts_supply_surface_area</display_name>
       <type>String</type>
@@ -2007,6 +1993,13 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>ducts_return_buried_insulation_level</name>
+      <display_name>ducts_return_buried_insulation_level</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>ducts_return_surface_area</name>
@@ -2600,34 +2593,10 @@
     </argument>
     <argument>
       <name>hot_water_distribution_recirc_control_type</name>
-      <display_name>Hot Water Distribution: Recirculation Control Type</display_name>
-      <description>If the distribution system is Recirculation, the type of hot water recirculation control, if any.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>hot_water_distribution_recirc_control_type</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>no control</default_value>
-      <choices>
-        <choice>
-          <value>no control</value>
-          <display_name>no control</display_name>
-        </choice>
-        <choice>
-          <value>timer</value>
-          <display_name>timer</display_name>
-        </choice>
-        <choice>
-          <value>temperature</value>
-          <display_name>temperature</display_name>
-        </choice>
-        <choice>
-          <value>presence sensor demand control</value>
-          <display_name>presence sensor demand control</display_name>
-        </choice>
-        <choice>
-          <value>manual demand control</value>
-          <display_name>manual demand control</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>hot_water_distribution_recirc_piping_length</name>
@@ -2682,32 +2651,17 @@
     </argument>
     <argument>
       <name>dwhr_equal_flow</name>
-      <display_name>Drain Water Heat Recovery: Equal Flow</display_name>
-      <description>Whether the drain water heat recovery has equal flow.</description>
-      <type>Boolean</type>
-      <required>true</required>
+      <display_name>dwhr_equal_flow</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>dwhr_efficiency</name>
-      <display_name>Drain Water Heat Recovery: Efficiency</display_name>
-      <description>The efficiency of the drain water heat recovery.</description>
-      <type>Double</type>
-      <units>Frac</units>
-      <required>true</required>
+      <display_name>dwhr_efficiency</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.55</default_value>
     </argument>
     <argument>
       <name>water_fixtures_shower_low_flow</name>
@@ -4606,6 +4560,13 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>combine_like_surfaces</name>
+      <display_name>combine_like_surfaces</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>apply_defaults</name>
       <display_name>apply_defaults</display_name>
       <type>String</type>
@@ -5135,7 +5096,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FC4B67EF</checksum>
+      <checksum>E1D79F6D</checksum>
     </file>
   </files>
 </measure>

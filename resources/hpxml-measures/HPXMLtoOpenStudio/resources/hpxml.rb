@@ -49,8 +49,8 @@ XMLHelper.write_file(hpxml.to_oga, "out.xml")
 
 class HPXML < Object
   HPXML_ATTRS = [:header, :site, :neighbor_buildings, :building_occupancy, :building_construction,
-                 :climate_and_risk_zones, :air_infiltration_measurements, :attics, :foundations,
-                 :roofs, :rim_joists, :walls, :foundation_walls, :floors, :slabs, :windows,
+                 :climate_and_risk_zones, :air_infiltration, :air_infiltration_measurements, :attics,
+                 :foundations, :roofs, :rim_joists, :walls, :foundation_walls, :floors, :slabs, :windows,
                  :skylights, :doors, :partition_wall_mass, :furniture_mass, :heating_systems,
                  :cooling_systems, :heat_pumps, :hvac_plant, :hvac_controls, :hvac_distributions,
                  :ventilation_fans, :water_heating_systems, :hot_water_distributions, :water_fixtures,
@@ -93,6 +93,10 @@ class HPXML < Object
   ColorReflective = 'reflective'
   DehumidifierTypePortable = 'portable'
   DehumidifierTypeWholeHome = 'whole-home'
+  DuctBuriedInsulationNone = 'not buried'
+  DuctBuriedInsulationPartial = 'partially buried'
+  DuctBuriedInsulationFull = 'fully buried'
+  DuctBuriedInsulationDeep = 'deeply buried'
   DHWRecirControlTypeManual = 'manual demand control'
   DHWRecirControlTypeNone = 'no control'
   DHWRecirControlTypeSensor = 'presence sensor demand control'
@@ -200,8 +204,8 @@ class HPXML < Object
   InteriorFinishNone = 'none'
   InteriorFinishPlaster = 'plaster'
   InteriorFinishWood = 'wood'
-  InfiltrationTestCompartmentalization = 'compartmentalization test'
-  InfiltrationTestGuarded = 'guarded test'
+  InfiltrationTypeUnitTotal = 'unit total'
+  InfiltrationTypeUnitExterior = 'unit exterior only'
   LeakinessTight = 'tight'
   LeakinessAverage = 'average'
   LightingTypeCFL = 'CompactFluorescent'
@@ -239,8 +243,6 @@ class HPXML < Object
   MechVentTypeExhaust = 'exhaust only'
   MechVentTypeHRV = 'heat recovery ventilator'
   MechVentTypeSupply = 'supply only'
-  OccupancyCalculationTypeAsset = 'asset'
-  OccupancyCalculationTypeOperational = 'operational'
   OrientationEast = 'east'
   OrientationNorth = 'north'
   OrientationNortheast = 'northeast'
@@ -397,7 +399,7 @@ class HPXML < Object
   WindowClassResidential = 'residential'
   WindowClassLightCommercial = 'light commercial'
 
-  def initialize(hpxml_path: nil, schema_path: nil, schematron_path: nil, building_id: nil)
+  def initialize(hpxml_path: nil, schema_validator: nil, schematron_validator: nil, building_id: nil)
     @doc = nil
     @hpxml_path = hpxml_path
     @errors = []
@@ -407,8 +409,9 @@ class HPXML < Object
     if not hpxml_path.nil?
       @doc = XMLHelper.parse_file(hpxml_path)
 
-      if not schema_path.nil?
-        xsd_errors, xsd_warnings = XMLValidator.validate_against_schema(hpxml_path, schema_path)
+      # Validate against XSD schema
+      if not schema_validator.nil?
+        xsd_errors, xsd_warnings = XMLValidator.validate_against_schema(hpxml_path, schema_validator)
         @errors += xsd_errors
         @warnings += xsd_warnings
         return unless @errors.empty?
@@ -418,14 +421,10 @@ class HPXML < Object
       hpxml = XMLHelper.get_element(@doc, '/HPXML')
       Version.check_hpxml_version(XMLHelper.get_attribute_value(hpxml, 'schemaVersion'))
 
-      if not schematron_path.nil?
-        sct_errors, sct_warnings = XMLValidator.validate_against_schematron(hpxml_path, schematron_path, hpxml)
-        @errors += sct_errors
-        @warnings += sct_warnings
-        return unless @errors.empty?
-      end
-
       # Handle multiple buildings
+      # Do this before schematron validation so that:
+      # 1. We don't give schematron warnings for Building elements that are not of interest.
+      # 2. The schematron validation occurs faster (as we're only validating one Building).
       if XMLHelper.get_elements(hpxml, 'Building').size > 1
         if building_id.nil?
           @errors << 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.'
@@ -442,6 +441,18 @@ class HPXML < Object
           @errors << "Could not find Building element with ID '#{building_id}'."
           return unless @errors.empty?
         end
+
+        # Write new HPXML file with all other Building elements removed
+        hpxml_path = Tempfile.new(['hpxml', '.xml']).path.to_s
+        XMLHelper.write_file(hpxml, hpxml_path)
+      end
+
+      # Validate against Schematron
+      if not schematron_validator.nil?
+        sct_errors, sct_warnings = XMLValidator.validate_against_schematron(hpxml_path, schematron_validator, hpxml)
+        @errors += sct_errors
+        @warnings += sct_warnings
+        return unless @errors.empty?
       end
     end
 
@@ -606,7 +617,7 @@ class HPXML < Object
   def compartmentalization_boundary_areas()
     # Returns the infiltration compartmentalization boundary areas
     total_area = 0.0 # Total surface area that bounds the Infiltration Volume
-    exterior_area = 0.0 # Same as above excluding surfaces attached to garage or other housing units
+    exterior_area = 0.0 # Same as above excluding surfaces attached to garage, other housing units, or other multifamily spaces (see 301-2019 Addendum B)
 
     # Determine which spaces are within infiltration volume
     spaces_within_infil_volume = HPXML::conditioned_locations_this_unit
@@ -706,6 +717,7 @@ class HPXML < Object
     @building_construction.to_oga(@doc)
     @climate_and_risk_zones.to_oga(@doc)
     @air_infiltration_measurements.to_oga(@doc)
+    @air_infiltration.to_oga(@doc)
     @attics.to_oga(@doc)
     @foundations.to_oga(@doc)
     @roofs.to_oga(@doc)
@@ -761,6 +773,7 @@ class HPXML < Object
     @building_construction = BuildingConstruction.new(self, hpxml)
     @climate_and_risk_zones = ClimateandRiskZones.new(self, hpxml)
     @air_infiltration_measurements = AirInfiltrationMeasurements.new(self, hpxml)
+    @air_infiltration = AirInfiltration.new(self, hpxml)
     @attics = Attics.new(self, hpxml)
     @foundations = Foundations.new(self, hpxml)
     @roofs = Roofs.new(self, hpxml)
@@ -922,26 +935,26 @@ class HPXML < Object
     def initialize(hpxml_object, *args)
       @emissions_scenarios = EmissionsScenarios.new(hpxml_object)
       @utility_bill_scenarios = UtilityBillScenarios.new(hpxml_object)
-      @vacancy_periods = VacancyPeriods.new(hpxml_object)
-      @power_outage_periods = PowerOutagePeriods.new(hpxml_object)
+      @unavailable_periods = UnavailablePeriods.new(hpxml_object)
       super(hpxml_object, *args)
     end
     ATTRS = [:xml_type, :xml_generated_by, :created_date_and_time, :transaction,
              :software_program_used, :software_program_version, :eri_calculation_version,
-             :timestep, :building_id, :event_type, :state_code, :zip_code,
+             :co2index_calculation_version, :timestep, :building_id, :event_type, :state_code, :zip_code,
              :egrid_region, :egrid_subregion, :cambium_region_gea, :time_zone_utc_offset,
              :sim_begin_month, :sim_begin_day, :sim_end_month, :sim_end_day, :sim_calendar_year,
              :dst_enabled, :dst_begin_month, :dst_begin_day, :dst_end_month, :dst_end_day,
-             :heat_pump_sizing_methodology, :allow_increased_fixed_capacities,
-             :apply_ashrae140_assumptions, :energystar_calculation_version, :schedules_filepaths,
-             :occupancy_calculation_type, :extension_properties, :iecc_eri_calculation_version,
-             :zerh_calculation_version, :temperature_capacitance_multiplier,
-             :natvent_days_per_week]
+             :heat_pump_sizing_methodology, :allow_increased_fixed_capacities, :apply_ashrae140_assumptions,
+             :energystar_calculation_version, :schedules_filepaths, :extension_properties, :iecc_eri_calculation_version,
+             :zerh_calculation_version, :temperature_capacitance_multiplier, :natvent_days_per_week,
+             :shading_summer_begin_month, :shading_summer_begin_day, :shading_summer_end_month,
+             :shading_summer_end_day, :manualj_heating_design_temp, :manualj_cooling_design_temp,
+             :manualj_heating_setpoint, :manualj_cooling_setpoint, :manualj_humidity_setpoint,
+             :manualj_internal_loads_sensible, :manualj_internal_loads_latent, :manualj_num_occupants]
     attr_accessor(*ATTRS)
     attr_reader(:emissions_scenarios)
     attr_reader(:utility_bill_scenarios)
-    attr_reader(:vacancy_periods)
-    attr_reader(:power_outage_periods)
+    attr_reader(:unavailable_periods)
 
     def check_for_errors
       errors = []
@@ -961,10 +974,10 @@ class HPXML < Object
       end
 
       errors += HPXML::check_dates('Daylight Saving', @dst_begin_month, @dst_begin_day, @dst_end_month, @dst_end_day)
+      errors += HPXML::check_dates('Shading Summer Season', @shading_summer_begin_month, @shading_summer_begin_day, @shading_summer_end_month, @shading_summer_end_day)
       errors += @emissions_scenarios.check_for_errors
       errors += @utility_bill_scenarios.check_for_errors
-      errors += @vacancy_periods.check_for_errors
-      errors += @power_outage_periods.check_for_errors
+      errors += @unavailable_periods.check_for_errors
 
       return errors
     end
@@ -986,12 +999,12 @@ class HPXML < Object
       software_info = XMLHelper.add_element(hpxml, 'SoftwareInfo')
       XMLHelper.add_element(software_info, 'SoftwareProgramUsed', @software_program_used, :string) unless @software_program_used.nil?
       XMLHelper.add_element(software_info, 'SoftwareProgramVersion', @software_program_version, :string) unless @software_program_version.nil?
-      XMLHelper.add_extension(software_info, 'OccupancyCalculationType', @occupancy_calculation_type, :string, @occupancy_calculation_type_isdefaulted) unless @occupancy_calculation_type.nil?
       XMLHelper.add_extension(software_info, 'ApplyASHRAE140Assumptions', @apply_ashrae140_assumptions, :boolean) unless @apply_ashrae140_assumptions.nil?
-      { @eri_calculation_version => 'ERICalculation',
-        @energystar_calculation_version => 'EnergyStarCalculation',
-        @iecc_eri_calculation_version => 'IECCERICalculation',
-        @zerh_calculation_version => 'ZERHCalculation' }.each do |calculation_version, element_name|
+      { 'ERICalculation' => @eri_calculation_version,
+        'CO2IndexCalculation' => @co2index_calculation_version,
+        'EnergyStarCalculation' => @energystar_calculation_version,
+        'IECCERICalculation' => @iecc_eri_calculation_version,
+        'ZERHCalculation' => @zerh_calculation_version }.each do |element_name, calculation_version|
         next if calculation_version.nil?
 
         extension = XMLHelper.create_elements_as_needed(software_info, ['extension'])
@@ -1014,12 +1027,30 @@ class HPXML < Object
         XMLHelper.add_element(hvac_sizing_control, 'HeatPumpSizingMethodology', @heat_pump_sizing_methodology, :string, @heat_pump_sizing_methodology_isdefaulted) unless @heat_pump_sizing_methodology.nil?
         XMLHelper.add_element(hvac_sizing_control, 'AllowIncreasedFixedCapacities', @allow_increased_fixed_capacities, :boolean, @allow_increased_fixed_capacities_isdefaulted) unless @allow_increased_fixed_capacities.nil?
       end
+      if (not @manualj_heating_design_temp.nil?) || (not @manualj_cooling_design_temp.nil?) || (not @manualj_heating_setpoint.nil?) || (not @manualj_cooling_setpoint.nil?) || (not @manualj_humidity_setpoint.nil?) || (not @manualj_internal_loads_sensible.nil?) || (not @manualj_internal_loads_latent.nil?) || (not @manualj_num_occupants.nil?)
+        manualj_sizing_inputs = XMLHelper.create_elements_as_needed(software_info, ['extension', 'HVACSizingControl', 'ManualJInputs'])
+        XMLHelper.add_element(manualj_sizing_inputs, 'HeatingDesignTemperature', @manualj_heating_design_temp, :float, @manualj_heating_design_temp_isdefaulted) unless @manualj_heating_design_temp.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'CoolingDesignTemperature', @manualj_cooling_design_temp, :float, @manualj_cooling_design_temp_isdefaulted) unless @manualj_cooling_design_temp.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'HeatingSetpoint', @manualj_heating_setpoint, :float, @manualj_heating_setpoint_isdefaulted) unless @manualj_heating_setpoint.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'CoolingSetpoint', @manualj_cooling_setpoint, :float, @manualj_cooling_setpoint_isdefaulted) unless @manualj_cooling_setpoint.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'HumiditySetpoint', @manualj_humidity_setpoint, :float, @manualj_humidity_setpoint_isdefaulted) unless @manualj_humidity_setpoint.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'InternalLoadsSensible', @manualj_internal_loads_sensible, :float, @manualj_internal_loads_sensible_isdefaulted) unless @manualj_internal_loads_sensible.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'InternalLoadsLatent', @manualj_internal_loads_latent, :float, @manualj_internal_loads_latent_isdefaulted) unless @manualj_internal_loads_latent.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'NumberofOccupants', @manualj_num_occupants, :integer, @manualj_num_occupants_isdefaulted) unless @manualj_num_occupants.nil?
+      end
       XMLHelper.add_extension(software_info, 'NaturalVentilationAvailabilityDaysperWeek', @natvent_days_per_week, :integer, @natvent_days_per_week_isdefaulted) unless @natvent_days_per_week.nil?
       if (not @schedules_filepaths.nil?) && (not @schedules_filepaths.empty?)
         extension = XMLHelper.create_elements_as_needed(software_info, ['extension'])
         @schedules_filepaths.each do |schedules_filepath|
           XMLHelper.add_element(extension, 'SchedulesFilePath', schedules_filepath, :string)
         end
+      end
+      if (not @shading_summer_begin_month.nil?) || (not @shading_summer_begin_day.nil?) || (not @shading_summer_end_month.nil?) || (not @shading_summer_end_day.nil?)
+        window_shading_season = XMLHelper.create_elements_as_needed(software_info, ['extension', 'ShadingControl'])
+        XMLHelper.add_element(window_shading_season, 'SummerBeginMonth', @shading_summer_begin_month, :integer, @shading_summer_begin_month_isdefaulted) unless @shading_summer_begin_month.nil?
+        XMLHelper.add_element(window_shading_season, 'SummerBeginDayOfMonth', @shading_summer_begin_day, :integer, @shading_summer_begin_day_isdefaulted) unless @shading_summer_begin_day.nil?
+        XMLHelper.add_element(window_shading_season, 'SummerEndMonth', @shading_summer_end_month, :integer, @shading_summer_end_month_isdefaulted) unless @shading_summer_end_month.nil?
+        XMLHelper.add_element(window_shading_season, 'SummerEndDayOfMonth', @shading_summer_end_day, :integer, @shading_summer_end_day_isdefaulted) unless @shading_summer_end_day.nil?
       end
       if (not @extension_properties.nil?) && (not @extension_properties.empty?)
         properties = XMLHelper.create_elements_as_needed(software_info, ['extension', 'AdditionalProperties'])
@@ -1029,8 +1060,7 @@ class HPXML < Object
       end
       @emissions_scenarios.to_oga(software_info)
       @utility_bill_scenarios.to_oga(software_info)
-      @vacancy_periods.to_oga(software_info)
-      @power_outage_periods.to_oga(software_info)
+      @unavailable_periods.to_oga(software_info)
 
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
@@ -1077,6 +1107,7 @@ class HPXML < Object
       @software_program_used = XMLHelper.get_value(hpxml, 'SoftwareInfo/SoftwareProgramUsed', :string)
       @software_program_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/SoftwareProgramVersion', :string)
       @eri_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ERICalculation/Version', :string)
+      @co2index_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/CO2IndexCalculation/Version', :string)
       @iecc_eri_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/IECCERICalculation/Version', :string)
       @energystar_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/EnergyStarCalculation/Version', :string)
       @zerh_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ZERHCalculation/Version', :string)
@@ -1087,11 +1118,22 @@ class HPXML < Object
       @sim_end_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/EndDayOfMonth', :integer)
       @sim_calendar_year = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/CalendarYear', :integer)
       @temperature_capacitance_multiplier = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/TemperatureCapacitanceMultiplier', :float)
-      @occupancy_calculation_type = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/OccupancyCalculationType', :string)
       @natvent_days_per_week = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/NaturalVentilationAvailabilityDaysperWeek', :integer)
+      @shading_summer_begin_month = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ShadingControl/SummerBeginMonth', :integer)
+      @shading_summer_begin_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ShadingControl/SummerBeginDayOfMonth', :integer)
+      @shading_summer_end_month = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ShadingControl/SummerEndMonth', :integer)
+      @shading_summer_end_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ShadingControl/SummerEndDayOfMonth', :integer)
       @apply_ashrae140_assumptions = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ApplyASHRAE140Assumptions', :boolean)
       @heat_pump_sizing_methodology = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/HeatPumpSizingMethodology', :string)
       @allow_increased_fixed_capacities = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/AllowIncreasedFixedCapacities', :boolean)
+      @manualj_heating_design_temp = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/ManualJInputs/HeatingDesignTemperature', :float)
+      @manualj_cooling_design_temp = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/ManualJInputs/CoolingDesignTemperature', :float)
+      @manualj_heating_setpoint = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/ManualJInputs/HeatingSetpoint', :float)
+      @manualj_cooling_setpoint = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/ManualJInputs/CoolingSetpoint', :float)
+      @manualj_humidity_setpoint = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/ManualJInputs/HumiditySetpoint', :float)
+      @manualj_internal_loads_sensible = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/ManualJInputs/InternalLoadsSensible', :float)
+      @manualj_internal_loads_latent = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/ManualJInputs/InternalLoadsLatent', :float)
+      @manualj_num_occupants = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/ManualJInputs/NumberofOccupants', :integer)
       @schedules_filepaths = XMLHelper.get_values(hpxml, 'SoftwareInfo/extension/SchedulesFilePath', :string)
       @extension_properties = {}
       XMLHelper.get_elements(hpxml, 'SoftwareInfo/extension/AdditionalProperties').each do |property|
@@ -1104,8 +1146,7 @@ class HPXML < Object
       end
       @emissions_scenarios.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
       @utility_bill_scenarios.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
-      @vacancy_periods.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
-      @power_outage_periods.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
+      @unavailable_periods.from_oga(XMLHelper.get_element(hpxml, 'SoftwareInfo'))
       @building_id = HPXML::get_id(hpxml, 'Building/BuildingID')
       @event_type = XMLHelper.get_value(hpxml, 'Building/ProjectStatus/EventType', :string)
       @state_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/StateCode', :string)
@@ -1342,107 +1383,58 @@ class HPXML < Object
     end
   end
 
-  class VacancyPeriods < BaseArrayElement
+  class UnavailablePeriods < BaseArrayElement
     def add(**kwargs)
-      self << VacancyPeriod.new(@hpxml_object, **kwargs)
+      self << UnavailablePeriod.new(@hpxml_object, **kwargs)
     end
 
     def from_oga(software_info)
       return if software_info.nil?
 
-      XMLHelper.get_elements(software_info, 'extension/VacancyPeriods/VacancyPeriod').each do |vacancy_period|
-        self << VacancyPeriod.new(@hpxml_object, vacancy_period)
+      XMLHelper.get_elements(software_info, 'extension/UnavailablePeriods/UnavailablePeriod').each do |unavailable_period|
+        self << UnavailablePeriod.new(@hpxml_object, unavailable_period)
       end
     end
   end
 
-  class VacancyPeriod < BaseElement
-    ATTRS = [:begin_month, :begin_day, :begin_hour, :end_month, :end_day, :end_hour]
+  class UnavailablePeriod < BaseElement
+    ATTRS = [:column_name, :begin_month, :begin_day, :begin_hour, :end_month, :end_day, :end_hour, :natvent_availability]
     attr_accessor(*ATTRS)
 
     def delete
-      @hpxml_object.header.vacancy_periods.delete(self)
+      @hpxml_object.header.unavailable_periods.delete(self)
     end
 
     def check_for_errors
       errors = []
-      errors += HPXML::check_dates('Vacancy Period', @begin_month, @begin_day, @end_month, @end_day)
+      errors += HPXML::check_dates('Unavailable Period', @begin_month, @begin_day, @end_month, @end_day)
       return errors
     end
 
     def to_oga(software_info)
-      vacancy_periods = XMLHelper.create_elements_as_needed(software_info, ['extension', 'VacancyPeriods'])
-      vacancy_period = XMLHelper.add_element(vacancy_periods, 'VacancyPeriod')
-      XMLHelper.add_element(vacancy_period, 'BeginMonth', @begin_month, :integer, @begin_month_isdefaulted) unless @begin_month.nil?
-      XMLHelper.add_element(vacancy_period, 'BeginDayOfMonth', @begin_day, :integer, @begin_day_isdefaulted) unless @begin_day.nil?
-      XMLHelper.add_element(vacancy_period, 'BeginHourOfDay', @begin_hour, :integer, @begin_hour_isdefaulted) unless @begin_hour.nil?
-      XMLHelper.add_element(vacancy_period, 'EndMonth', @end_month, :integer, @end_month_isdefaulted) unless @end_month.nil?
-      XMLHelper.add_element(vacancy_period, 'EndDayOfMonth', @end_day, :integer, @end_day_isdefaulted) unless @end_day.nil?
-      XMLHelper.add_element(vacancy_period, 'EndHourOfDay', @end_hour, :integer, @end_hour_isdefaulted) unless @end_hour.nil?
+      unavailable_periods = XMLHelper.create_elements_as_needed(software_info, ['extension', 'UnavailablePeriods'])
+      unavailable_period = XMLHelper.add_element(unavailable_periods, 'UnavailablePeriod')
+      XMLHelper.add_element(unavailable_period, 'ColumnName', @column_name, :string) unless @column_name.nil?
+      XMLHelper.add_element(unavailable_period, 'BeginMonth', @begin_month, :integer, @begin_month_isdefaulted) unless @begin_month.nil?
+      XMLHelper.add_element(unavailable_period, 'BeginDayOfMonth', @begin_day, :integer, @begin_day_isdefaulted) unless @begin_day.nil?
+      XMLHelper.add_element(unavailable_period, 'BeginHourOfDay', @begin_hour, :integer, @begin_hour_isdefaulted) unless @begin_hour.nil?
+      XMLHelper.add_element(unavailable_period, 'EndMonth', @end_month, :integer, @end_month_isdefaulted) unless @end_month.nil?
+      XMLHelper.add_element(unavailable_period, 'EndDayOfMonth', @end_day, :integer, @end_day_isdefaulted) unless @end_day.nil?
+      XMLHelper.add_element(unavailable_period, 'EndHourOfDay', @end_hour, :integer, @end_hour_isdefaulted) unless @end_hour.nil?
+      XMLHelper.add_element(unavailable_period, 'NaturalVentilation', @natvent_availability, :string, @natvent_availability_isdefaulted) unless @natvent_availability.nil?
     end
 
-    def from_oga(vacancy_period)
-      return if vacancy_period.nil?
+    def from_oga(unavailable_period)
+      return if unavailable_period.nil?
 
-      @begin_month = XMLHelper.get_value(vacancy_period, 'BeginMonth', :integer)
-      @begin_day = XMLHelper.get_value(vacancy_period, 'BeginDayOfMonth', :integer)
-      @begin_hour = XMLHelper.get_value(vacancy_period, 'BeginHourOfDay', :integer)
-      @end_month = XMLHelper.get_value(vacancy_period, 'EndMonth', :integer)
-      @end_day = XMLHelper.get_value(vacancy_period, 'EndDayOfMonth', :integer)
-      @end_hour = XMLHelper.get_value(vacancy_period, 'EndHourOfDay', :integer)
-    end
-  end
-
-  class PowerOutagePeriods < BaseArrayElement
-    def add(**kwargs)
-      self << PowerOutagePeriod.new(@hpxml_object, **kwargs)
-    end
-
-    def from_oga(software_info)
-      return if software_info.nil?
-
-      XMLHelper.get_elements(software_info, 'extension/PowerOutagePeriods/PowerOutagePeriod').each do |power_outage_period|
-        self << PowerOutagePeriod.new(@hpxml_object, power_outage_period)
-      end
-    end
-  end
-
-  class PowerOutagePeriod < BaseElement
-    ATTRS = [:begin_month, :begin_day, :begin_hour, :end_month, :end_day, :end_hour, :natvent_availability]
-    attr_accessor(*ATTRS)
-
-    def delete
-      @hpxml_object.header.power_outage_periods.delete(self)
-    end
-
-    def check_for_errors
-      errors = []
-      errors += HPXML::check_dates('Power Outage Period', @begin_month, @begin_day, @end_month, @end_day)
-      return errors
-    end
-
-    def to_oga(software_info)
-      power_outage_periods = XMLHelper.create_elements_as_needed(software_info, ['extension', 'PowerOutagePeriods'])
-      power_outage_period = XMLHelper.add_element(power_outage_periods, 'PowerOutagePeriod')
-      XMLHelper.add_element(power_outage_period, 'BeginMonth', @begin_month, :integer, @begin_month_isdefaulted) unless @begin_month.nil?
-      XMLHelper.add_element(power_outage_period, 'BeginDayOfMonth', @begin_day, :integer, @begin_day_isdefaulted) unless @begin_day.nil?
-      XMLHelper.add_element(power_outage_period, 'BeginHourOfDay', @begin_hour, :integer, @begin_hour_isdefaulted) unless @begin_hour.nil?
-      XMLHelper.add_element(power_outage_period, 'EndMonth', @end_month, :integer, @end_month_isdefaulted) unless @end_month.nil?
-      XMLHelper.add_element(power_outage_period, 'EndDayOfMonth', @end_day, :integer, @end_day_isdefaulted) unless @end_day.nil?
-      XMLHelper.add_element(power_outage_period, 'EndHourOfDay', @end_hour, :integer, @end_hour_isdefaulted) unless @end_hour.nil?
-      XMLHelper.add_element(power_outage_period, 'NaturalVentilation', @natvent_availability, :string, @natvent_availability_isdefaulted) unless @natvent_availability.nil?
-    end
-
-    def from_oga(power_outage_period)
-      return if power_outage_period.nil?
-
-      @begin_month = XMLHelper.get_value(power_outage_period, 'BeginMonth', :integer)
-      @begin_day = XMLHelper.get_value(power_outage_period, 'BeginDayOfMonth', :integer)
-      @begin_hour = XMLHelper.get_value(power_outage_period, 'BeginHourOfDay', :integer)
-      @end_month = XMLHelper.get_value(power_outage_period, 'EndMonth', :integer)
-      @end_day = XMLHelper.get_value(power_outage_period, 'EndDayOfMonth', :integer)
-      @end_hour = XMLHelper.get_value(power_outage_period, 'EndHourOfDay', :integer)
-      @natvent_availability = XMLHelper.get_value(power_outage_period, 'NaturalVentilation', :string)
+      @column_name = XMLHelper.get_value(unavailable_period, 'ColumnName', :string)
+      @begin_month = XMLHelper.get_value(unavailable_period, 'BeginMonth', :integer)
+      @begin_day = XMLHelper.get_value(unavailable_period, 'BeginDayOfMonth', :integer)
+      @begin_hour = XMLHelper.get_value(unavailable_period, 'BeginHourOfDay', :integer)
+      @end_month = XMLHelper.get_value(unavailable_period, 'EndMonth', :integer)
+      @end_day = XMLHelper.get_value(unavailable_period, 'EndDayOfMonth', :integer)
+      @end_hour = XMLHelper.get_value(unavailable_period, 'EndHourOfDay', :integer)
+      @natvent_availability = XMLHelper.get_value(unavailable_period, 'NaturalVentilation', :string)
     end
   end
 
@@ -1577,7 +1569,7 @@ class HPXML < Object
     ATTRS = [:year_built, :number_of_conditioned_floors, :number_of_conditioned_floors_above_grade,
              :average_ceiling_height, :number_of_bedrooms, :number_of_bathrooms,
              :conditioned_floor_area, :conditioned_building_volume, :residential_facility_type,
-             :building_footprint_area, :has_flue_or_chimney]
+             :building_footprint_area]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -1599,7 +1591,6 @@ class HPXML < Object
       XMLHelper.add_element(building_construction, 'BuildingFootprintArea', @building_footprint_area, :float, @building_footprint_area_isdefaulted) unless @building_footprint_area.nil?
       XMLHelper.add_element(building_construction, 'ConditionedFloorArea', @conditioned_floor_area, :float) unless @conditioned_floor_area.nil?
       XMLHelper.add_element(building_construction, 'ConditionedBuildingVolume', @conditioned_building_volume, :float, @conditioned_building_volume_isdefaulted) unless @conditioned_building_volume.nil?
-      XMLHelper.add_extension(building_construction, 'HasFlueOrChimney', @has_flue_or_chimney, :boolean, @has_flue_or_chimney_isdefaulted) unless @has_flue_or_chimney.nil?
     end
 
     def from_oga(hpxml)
@@ -1618,7 +1609,6 @@ class HPXML < Object
       @building_footprint_area = XMLHelper.get_value(building_construction, 'BuildingFootprintArea', :float)
       @conditioned_floor_area = XMLHelper.get_value(building_construction, 'ConditionedFloorArea', :float)
       @conditioned_building_volume = XMLHelper.get_value(building_construction, 'ConditionedBuildingVolume', :float)
-      @has_flue_or_chimney = XMLHelper.get_value(building_construction, 'extension/HasFlueOrChimney', :boolean)
     end
   end
 
@@ -1713,6 +1703,32 @@ class HPXML < Object
     end
   end
 
+  class AirInfiltration < BaseElement
+    ATTRS = [:has_flue_or_chimney_in_conditioned_space]
+    attr_accessor(*ATTRS)
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def to_oga(doc)
+      return if nil?
+
+      air_infiltration = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'Enclosure', 'AirInfiltration'])
+      XMLHelper.add_extension(air_infiltration, 'HasFlueOrChimneyInConditionedSpace', @has_flue_or_chimney_in_conditioned_space, :boolean, @has_flue_or_chimney_in_conditioned_space_isdefaulted) unless @has_flue_or_chimney_in_conditioned_space.nil?
+    end
+
+    def from_oga(hpxml)
+      return if hpxml.nil?
+
+      air_infiltration = XMLHelper.get_element(hpxml, 'Building/BuildingDetails/Enclosure/AirInfiltration')
+      return if air_infiltration.nil?
+
+      @has_flue_or_chimney_in_conditioned_space = XMLHelper.get_value(air_infiltration, 'extension/HasFlueOrChimneyInConditionedSpace', :boolean)
+    end
+  end
+
   class AirInfiltrationMeasurements < BaseArrayElement
     def add(**kwargs)
       self << AirInfiltrationMeasurement.new(@hpxml_object, **kwargs)
@@ -1729,7 +1745,7 @@ class HPXML < Object
 
   class AirInfiltrationMeasurement < BaseElement
     ATTRS = [:id, :house_pressure, :unit_of_measure, :air_leakage, :effective_leakage_area, :type_of_measurement,
-             :infiltration_volume, :leakiness_description, :infiltration_height, :a_ext, :type_of_test]
+             :infiltration_volume, :leakiness_description, :infiltration_height, :a_ext, :infiltration_type]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -1745,7 +1761,7 @@ class HPXML < Object
       sys_id = XMLHelper.add_element(air_infiltration_measurement, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(air_infiltration_measurement, 'TypeOfInfiltrationMeasurement', @type_of_measurement, :string) unless @type_of_measurement.nil?
-      XMLHelper.add_element(air_infiltration_measurement, 'TypeOfInfiltrationTest', @type_of_test, :string) unless @type_of_test.nil?
+      XMLHelper.add_element(air_infiltration_measurement, 'TypeOfInfiltrationLeakage', @infiltration_type, :string) unless @infiltration_type.nil?
       XMLHelper.add_element(air_infiltration_measurement, 'HousePressure', @house_pressure, :float) unless @house_pressure.nil?
       XMLHelper.add_element(air_infiltration_measurement, 'LeakinessDescription', @leakiness_description, :string) unless @leakiness_description.nil?
       if (not @unit_of_measure.nil?) && (not @air_leakage.nil?)
@@ -1764,7 +1780,7 @@ class HPXML < Object
 
       @id = HPXML::get_id(air_infiltration_measurement)
       @type_of_measurement = XMLHelper.get_value(air_infiltration_measurement, 'TypeOfInfiltrationMeasurement', :string)
-      @type_of_test = XMLHelper.get_value(air_infiltration_measurement, 'TypeOfInfiltrationTest', :string)
+      @infiltration_type = XMLHelper.get_value(air_infiltration_measurement, 'TypeOfInfiltrationLeakage', :string)
       @house_pressure = XMLHelper.get_value(air_infiltration_measurement, 'HousePressure', :float)
       @leakiness_description = XMLHelper.get_value(air_infiltration_measurement, 'LeakinessDescription', :string)
       @unit_of_measure = XMLHelper.get_value(air_infiltration_measurement, 'BuildingAirLeakage/UnitofMeasure', :string)
@@ -3670,7 +3686,7 @@ class HPXML < Object
       heating_system = XMLHelper.add_element(hvac_plant, 'HeatingSystem')
       sys_id = XMLHelper.add_element(heating_system, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
-      XMLHelper.add_element(heating_system, 'UnitLocation', @location, :string) unless @location.nil?
+      XMLHelper.add_element(heating_system, 'UnitLocation', @location, :string, @location_isdefaulted) unless @location.nil?
       XMLHelper.add_element(heating_system, 'YearInstalled', @year_installed, :integer) unless @year_installed.nil?
       XMLHelper.add_element(heating_system, 'ThirdPartyCertification', @third_party_certification, :string) unless @third_party_certification.nil?
       if not @distribution_system_idref.nil?
@@ -3788,9 +3804,9 @@ class HPXML < Object
              :cooling_efficiency_seer2, :cooling_efficiency_eer, :cooling_efficiency_ceer, :cooling_efficiency_kw_per_ton,
              :cooling_shr, :third_party_certification, :clg_seed_id, :is_shared_system, :number_of_units_served,
              :shared_loop_watts, :shared_loop_motor_efficiency, :fan_coil_watts, :airflow_defect_ratio,
-             :fan_watts_per_cfm, :charge_defect_ratio, :cooling_airflow_cfm, :location, :primary_system, :integrated_heating_system_fuel,
-             :integrated_heating_system_capacity, :integrated_heating_system_efficiency_percent, :integrated_heating_system_fraction_heat_load_served,
-             :integrated_heating_system_airflow_cfm, :htg_seed_id]
+             :fan_watts_per_cfm, :charge_defect_ratio, :cooling_airflow_cfm, :location, :primary_system,
+             :integrated_heating_system_fuel, :integrated_heating_system_capacity, :integrated_heating_system_efficiency_percent,
+             :integrated_heating_system_fraction_heat_load_served, :integrated_heating_system_airflow_cfm, :htg_seed_id]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -3846,7 +3862,7 @@ class HPXML < Object
       cooling_system = XMLHelper.add_element(hvac_plant, 'CoolingSystem')
       sys_id = XMLHelper.add_element(cooling_system, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
-      XMLHelper.add_element(cooling_system, 'UnitLocation', @location, :string) unless @location.nil?
+      XMLHelper.add_element(cooling_system, 'UnitLocation', @location, :string, @location_isdefaulted) unless @location.nil?
       XMLHelper.add_element(cooling_system, 'YearInstalled', @year_installed, :integer) unless @year_installed.nil?
       XMLHelper.add_element(cooling_system, 'ThirdPartyCertification', @third_party_certification, :string) unless @third_party_certification.nil?
       if not @distribution_system_idref.nil?
@@ -3903,6 +3919,7 @@ class HPXML < Object
       XMLHelper.add_extension(cooling_system, 'SharedLoopMotorEfficiency', @shared_loop_motor_efficiency, :float) unless @shared_loop_motor_efficiency.nil?
       XMLHelper.add_extension(cooling_system, 'FanCoilWatts', @fan_coil_watts, :float) unless @fan_coil_watts.nil?
       XMLHelper.add_extension(cooling_system, 'CoolingSeedId', @clg_seed_id, :string) unless @clg_seed_id.nil?
+      XMLHelper.add_extension(cooling_system, 'HeatingSeedId', @htg_seed_id, :string) unless @htg_seed_id.nil?
       if @primary_system
         primary_cooling_system = XMLHelper.add_element(primary_systems, 'PrimaryCoolingSystem')
         XMLHelper.add_attribute(primary_cooling_system, 'idref', @id)
@@ -3943,6 +3960,7 @@ class HPXML < Object
       @shared_loop_motor_efficiency = XMLHelper.get_value(cooling_system, 'extension/SharedLoopMotorEfficiency', :float)
       @fan_coil_watts = XMLHelper.get_value(cooling_system, 'extension/FanCoilWatts', :float)
       @clg_seed_id = XMLHelper.get_value(cooling_system, 'extension/CoolingSeedId', :string)
+      @htg_seed_id = XMLHelper.get_value(cooling_system, 'extension/HeatingSeedId', :string)
       primary_cooling_system = HPXML::get_idref(XMLHelper.get_element(cooling_system, '../PrimarySystems/PrimaryCoolingSystem'))
       if primary_cooling_system == @id
         @primary_system = true
@@ -3983,8 +4001,9 @@ class HPXML < Object
              :cooling_efficiency_seer2, :cooling_efficiency_eer, :cooling_efficiency_ceer, :heating_efficiency_hspf,
              :heating_efficiency_hspf2, :heating_efficiency_cop, :third_party_certification, :htg_seed_id, :clg_seed_id,
              :pump_watts_per_ton, :fan_watts_per_cfm, :is_shared_system, :number_of_units_served, :shared_loop_watts,
-             :shared_loop_motor_efficiency, :airflow_defect_ratio, :charge_defect_ratio, :capacity_retention_fraction, :capacity_retention_temp,
-             :heating_airflow_cfm, :cooling_airflow_cfm, :location, :primary_heating_system, :primary_cooling_system]
+             :shared_loop_motor_efficiency, :airflow_defect_ratio, :charge_defect_ratio,
+             :heating_airflow_cfm, :cooling_airflow_cfm, :location, :primary_heating_system, :primary_cooling_system,
+             :heating_capacity_retention_fraction, :heating_capacity_retention_temp]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -4048,7 +4067,7 @@ class HPXML < Object
       heat_pump = XMLHelper.add_element(hvac_plant, 'HeatPump')
       sys_id = XMLHelper.add_element(heat_pump, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
-      XMLHelper.add_element(heat_pump, 'UnitLocation', @location, :string) unless @location.nil?
+      XMLHelper.add_element(heat_pump, 'UnitLocation', @location, :string, @location_isdefaulted) unless @location.nil?
       XMLHelper.add_element(heat_pump, 'YearInstalled', @year_installed, :integer) unless @year_installed.nil?
       XMLHelper.add_element(heat_pump, 'ThirdPartyCertification', @third_party_certification, :string) unless @third_party_certification.nil?
       if not @distribution_system_idref.nil?
@@ -4129,8 +4148,11 @@ class HPXML < Object
       XMLHelper.add_extension(heat_pump, 'PumpPowerWattsPerTon', @pump_watts_per_ton, :float, @pump_watts_per_ton_isdefaulted) unless @pump_watts_per_ton.nil?
       XMLHelper.add_extension(heat_pump, 'SharedLoopWatts', @shared_loop_watts, :float) unless @shared_loop_watts.nil?
       XMLHelper.add_extension(heat_pump, 'SharedLoopMotorEfficiency', @shared_loop_motor_efficiency, :float) unless @shared_loop_motor_efficiency.nil?
-      XMLHelper.add_extension(heat_pump, 'CapacityRetentionFraction', @capacity_retention_fraction, :float) unless @capacity_retention_fraction.nil?
-      XMLHelper.add_extension(heat_pump, 'CapacityRetentionTemperature', @capacity_retention_temp, :float) unless @capacity_retention_temp.nil?
+      if (not @heating_capacity_retention_fraction.nil?) || (not @heating_capacity_retention_temp.nil?)
+        htg_cap_retention = XMLHelper.add_extension(heat_pump, 'HeatingCapacityRetention')
+        XMLHelper.add_element(htg_cap_retention, 'Fraction', @heating_capacity_retention_fraction, :float, @heating_capacity_retention_fraction_isdefaulted) unless @heating_capacity_retention_fraction.nil?
+        XMLHelper.add_element(htg_cap_retention, 'Temperature', @heating_capacity_retention_temp, :float, @heating_capacity_retention_temp_isdefaulted) unless @heating_capacity_retention_temp.nil?
+      end
       XMLHelper.add_extension(heat_pump, 'HeatingSeedId', @htg_seed_id, :string) unless @htg_seed_id.nil?
       XMLHelper.add_extension(heat_pump, 'CoolingSeedId', @clg_seed_id, :string) unless @clg_seed_id.nil?
       if @primary_heating_system
@@ -4186,8 +4208,8 @@ class HPXML < Object
       @pump_watts_per_ton = XMLHelper.get_value(heat_pump, 'extension/PumpPowerWattsPerTon', :float)
       @shared_loop_watts = XMLHelper.get_value(heat_pump, 'extension/SharedLoopWatts', :float)
       @shared_loop_motor_efficiency = XMLHelper.get_value(heat_pump, 'extension/SharedLoopMotorEfficiency', :float)
-      @capacity_retention_fraction = XMLHelper.get_value(heat_pump, 'extension/CapacityRetentionFraction', :float)
-      @capacity_retention_temp = XMLHelper.get_value(heat_pump, 'extension/CapacityRetentionTemperature', :float)
+      @heating_capacity_retention_fraction = XMLHelper.get_value(heat_pump, 'extension/HeatingCapacityRetention/Fraction', :float)
+      @heating_capacity_retention_temp = XMLHelper.get_value(heat_pump, 'extension/HeatingCapacityRetention/Temperature', :float)
       @htg_seed_id = XMLHelper.get_value(heat_pump, 'extension/HeatingSeedId', :string)
       @clg_seed_id = XMLHelper.get_value(heat_pump, 'extension/CoolingSeedId', :string)
       primary_heating_system = HPXML::get_idref(XMLHelper.get_element(heat_pump, '../PrimarySystems/PrimaryHeatingSystem'))
@@ -4228,14 +4250,12 @@ class HPXML < Object
                        cdl_sens_slabs: 'Slabs',
                        cdl_sens_ceilings: 'Ceilings',
                        cdl_sens_infilvent: 'InfilVent',
-                       cdl_sens_intgains: 'InternalGains' }
+                       cdl_sens_intgains: 'InternalLoads' }
     CDL_LAT_ATTRS = { cdl_lat_total: 'Total',
                       cdl_lat_ducts: 'Ducts',
                       cdl_lat_infilvent: 'InfilVent',
-                      cdl_lat_intgains: 'InternalGains' }
-    TEMPERATURE_ATTRS = { temp_heating: 'Heating',
-                          temp_cooling: 'Cooling' }
-    ATTRS = HDL_ATTRS.keys + CDL_SENS_ATTRS.keys + CDL_LAT_ATTRS.keys + TEMPERATURE_ATTRS.keys
+                      cdl_lat_intgains: 'InternalLoads' }
+    ATTRS = HDL_ATTRS.keys + CDL_SENS_ATTRS.keys + CDL_LAT_ATTRS.keys
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -4247,13 +4267,6 @@ class HPXML < Object
       return if nil?
 
       hvac_plant = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'Systems', 'HVAC', 'HVACPlant'])
-      if not @temp_heating.nil?
-        dl_extension = XMLHelper.create_elements_as_needed(hvac_plant, ['extension', 'DesignTemperatures'])
-        XMLHelper.add_attribute(dl_extension, 'dataSource', 'software')
-        TEMPERATURE_ATTRS.each do |attr, element_name|
-          XMLHelper.add_element(dl_extension, element_name, send(attr), :float)
-        end
-      end
       if not @hdl_total.nil?
         dl_extension = XMLHelper.create_elements_as_needed(hvac_plant, ['extension', 'DesignLoads'])
         XMLHelper.add_attribute(dl_extension, 'dataSource', 'software')
@@ -4278,9 +4291,6 @@ class HPXML < Object
       hvac_plant = XMLHelper.get_element(hpxml, 'Building/BuildingDetails/Systems/HVAC/HVACPlant')
       return if hvac_plant.nil?
 
-      TEMPERATURE_ATTRS.each do |attr, element_name|
-        send("#{attr}=", XMLHelper.get_value(hvac_plant, "extension/DesignTemperatures/#{element_name}", :float))
-      end
       HDL_ATTRS.each do |attr, element_name|
         send("#{attr}=", XMLHelper.get_value(hvac_plant, "extension/DesignLoads/Heating/#{element_name}", :float))
       end
@@ -4456,18 +4466,6 @@ class HPXML < Object
       return list
     end
 
-    def total_unconditioned_duct_areas
-      areas = { HPXML::DuctTypeSupply => 0,
-                HPXML::DuctTypeReturn => 0 }
-      @ducts.each do |duct|
-        next if HPXML::conditioned_locations.include? duct.duct_location
-        next if duct.duct_type.nil?
-
-        areas[duct.duct_type] += duct.duct_surface_area
-      end
-      return areas
-    end
-
     def delete
       @hpxml_object.hvac_distributions.delete(self)
       @hpxml_object.hvac_systems.each do |hvac_system|
@@ -4627,7 +4625,8 @@ class HPXML < Object
 
   class Duct < BaseElement
     ATTRS = [:id, :duct_type, :duct_insulation_r_value, :duct_insulation_material, :duct_location,
-             :duct_fraction_area, :duct_surface_area, :duct_surface_area_multiplier]
+             :duct_fraction_area, :duct_surface_area, :duct_surface_area_multiplier,
+             :duct_buried_insulation_level, :duct_effective_r_value]
     attr_accessor(*ATTRS)
 
     def delete
@@ -4653,6 +4652,8 @@ class HPXML < Object
         XMLHelper.add_element(ins_material_el, @duct_insulation_material)
       end
       XMLHelper.add_element(ducts_el, 'DuctInsulationRValue', @duct_insulation_r_value, :float) unless @duct_insulation_r_value.nil?
+      XMLHelper.add_element(ducts_el, 'DuctBuriedInsulationLevel', @duct_buried_insulation_level, :string, @duct_buried_insulation_level_isdefaulted) unless @duct_buried_insulation_level.nil?
+      XMLHelper.add_element(ducts_el, 'DuctEffectiveRValue', @duct_effective_r_value, :float, @duct_effective_r_value_isdefaulted) unless @duct_effective_r_value.nil?
       XMLHelper.add_element(ducts_el, 'DuctLocation', @duct_location, :string, @duct_location_isdefaulted) unless @duct_location.nil?
       XMLHelper.add_element(ducts_el, 'FractionDuctArea', @duct_fraction_area, :float, @duct_fraction_area_isdefaulted) unless @duct_fraction_area.nil?
       XMLHelper.add_element(ducts_el, 'DuctSurfaceArea', @duct_surface_area, :float, @duct_surface_area_isdefaulted) unless @duct_surface_area.nil?
@@ -4666,6 +4667,8 @@ class HPXML < Object
       @duct_type = XMLHelper.get_value(duct, 'DuctType', :string)
       @duct_insulation_material = XMLHelper.get_child_name(duct, 'DuctInsulationMaterial')
       @duct_insulation_r_value = XMLHelper.get_value(duct, 'DuctInsulationRValue', :float)
+      @duct_buried_insulation_level = XMLHelper.get_value(duct, 'DuctBuriedInsulationLevel', :string)
+      @duct_effective_r_value = XMLHelper.get_value(duct, 'DuctEffectiveRValue', :float)
       @duct_location = XMLHelper.get_value(duct, 'DuctLocation', :string)
       @duct_fraction_area = XMLHelper.get_value(duct, 'FractionDuctArea', :float)
       @duct_surface_area = XMLHelper.get_value(duct, 'DuctSurfaceArea', :float)

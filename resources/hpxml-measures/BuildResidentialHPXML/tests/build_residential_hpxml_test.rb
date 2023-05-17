@@ -10,10 +10,11 @@ require 'fileutils'
 class BuildResidentialHPXMLTest < MiniTest::Test
   def setup
     @output_path = File.join(File.dirname(__FILE__), 'extra_files')
+    @model_save = false # true helpful for debugging, i.e., can render osm in 3D
   end
 
   def teardown
-    FileUtils.rm_rf(@output_path)
+    FileUtils.rm_rf(@output_path) if !@model_save
   end
 
   def test_workflows
@@ -288,6 +289,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
         # Apply measure
         success = apply_measures(measures_dir, measures, runner, model)
+        model.save(File.absolute_path(File.join(@output_path, hpxml_file.gsub('.xml', '.osm')))) if @model_save
 
         _test_measure(runner, expected_errors[hpxml_file], expected_warnings[hpxml_file])
 
@@ -617,7 +619,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['window_area_back'] = 0
       args['window_area_left'] = 0
       args['window_area_right'] = 0
-      args['air_leakage_multifamily_value_type'] = HPXML::InfiltrationTestCompartmentalization
+      args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
     elsif ['base-mf.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
       args['geometry_unit_cfa'] = 900.0
@@ -642,7 +644,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['ducts_return_insulation_r'] = 0.0
       args['ducts_number_of_return_registers'] = 1
       args['door_area'] = 20.0
-      args['air_leakage_multifamily_value_type'] = HPXML::InfiltrationTestCompartmentalization
+      args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
     end
 
     # Extras
@@ -695,7 +697,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['heating_system_type'] = 'none'
       args['cooling_system_type'] = 'none'
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
-      args['heat_pump_heating_capacity_17_f'] = 22680.0
       args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
       args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
       args['heat_pump_heating_capacity'] = 48000.0

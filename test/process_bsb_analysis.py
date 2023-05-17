@@ -4,6 +4,7 @@ from functools import reduce
 import csv
 
 col_exclusions = ['applicable',
+                  'include_annual_',
                   'include_timeseries_',
                   'output_format',
                   'timeseries_frequency',

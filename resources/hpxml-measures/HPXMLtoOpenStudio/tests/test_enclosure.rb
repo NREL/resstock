@@ -35,7 +35,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s.start_with? "#{hpxml.roofs[0].id}:" }[0]
+      os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml.roofs[0].id}:" }
       _check_surface(hpxml.roofs[0], os_surface, roof_values[:layer_names])
     end
 
@@ -51,7 +51,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s.start_with? "#{hpxml.roofs[0].id}:" }[0]
+      os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml.roofs[0].id}:" }
       _check_surface(hpxml.roofs[0], os_surface, roof_values[:layer_names])
     end
 
@@ -100,7 +100,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
         model, hpxml = _test_measure(args_hash)
 
         # Check properties
-        os_surface = model.getSurfaces.select { |s| s.name.to_s.start_with? "#{hpxml.roofs[i].id}:" }[0]
+        os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml.roofs[i].id}:" }
         _check_surface(hpxml.roofs[i], os_surface, roof_values[:layer_names])
       end
     end
@@ -121,7 +121,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s.start_with? "#{hpxml.roofs[0].id}:" }[0]
+      os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml.roofs[0].id}:" }
       _check_surface(hpxml.roofs[0], os_surface, roof_values[:layer_names])
     end
   end
@@ -142,7 +142,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s.start_with? "#{hpxml.rim_joists[0].id}:" }[0]
+      os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml.rim_joists[0].id}:" }
       _check_surface(hpxml.rim_joists[0], os_surface, rimj_values[:layer_names])
     end
 
@@ -198,7 +198,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
         model, hpxml = _test_measure(args_hash)
 
         # Check properties
-        os_surface = model.getSurfaces.select { |s| s.name.to_s.start_with? "#{hpxml.rim_joists[i].id}:" }[0]
+        os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml.rim_joists[i].id}:" }
         _check_surface(hpxml.rim_joists[i], os_surface, rimj_values[:layer_names])
       end
     end
@@ -220,7 +220,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s.start_with? "#{hpxml.walls[0].id}:" }[0]
+      os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml.walls[0].id}:" }
       _check_surface(hpxml.walls[0], os_surface, wall_values[:layer_names])
     end
 
@@ -280,7 +280,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
         model, hpxml = _test_measure(args_hash)
 
         # Check properties
-        os_surface = model.getSurfaces.select { |s| s.name.to_s.start_with? "#{hpxml.walls[i].id}:" }[0]
+        os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml.walls[i].id}:" }
         _check_surface(hpxml.walls[i], os_surface, wall_values[:layer_names])
       end
     end
@@ -302,7 +302,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.foundation_walls[0].id }[0]
+      os_surface = model.getSurfaces.find { |s| s.name.to_s == hpxml.foundation_walls[0].id }
       _check_surface(hpxml.foundation_walls[0], os_surface, wall_values[:layer_names])
     end
 
@@ -324,7 +324,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.foundation_walls[0].id }[0]
+      os_surface = model.getSurfaces.find { |s| s.name.to_s == hpxml.foundation_walls[0].id }
       _check_surface(hpxml.foundation_walls[0], os_surface, wall_values[:layer_names])
     end
 
@@ -349,7 +349,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.foundation_walls[0].id }[0]
+      os_surface = model.getSurfaces.find { |s| s.name.to_s == hpxml.foundation_walls[0].id }
       _check_surface(hpxml.foundation_walls[0], os_surface, wall_values[:layer_names])
     end
   end
@@ -370,7 +370,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.floors[1].id }[0]
+      os_surface = model.getSurfaces.find { |s| s.name.to_s == hpxml.floors[1].id }
       _check_surface(hpxml.floors[1], os_surface, ceiling_values[:layer_names])
     end
 
@@ -398,7 +398,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
         model, hpxml = _test_measure(args_hash)
 
         # Check properties
-        os_surface = model.getSurfaces.select { |s| s.name.to_s.start_with? "#{hpxml.floors[i].id}" }[0]
+        os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml.floors[i].id}" }
         _check_surface(hpxml.floors[i], os_surface, ceiling_values[:layer_names])
       end
     end
@@ -420,7 +420,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.floors[0].id }[0]
+      os_surface = model.getSurfaces.find { |s| s.name.to_s == hpxml.floors[0].id }
       _check_surface(hpxml.floors[0], os_surface, floor_values[:layer_names])
     end
 
@@ -448,7 +448,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
         model, hpxml = _test_measure(args_hash)
 
         # Check properties
-        os_surface = model.getSurfaces.select { |s| s.name.to_s.start_with? "#{hpxml.floors[i].id}" }[0]
+        os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml.floors[i].id}" }
         _check_surface(hpxml.floors[i], os_surface, floor_values[:layer_names])
       end
     end
@@ -486,7 +486,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.slabs[0].id }[0]
+      os_surface = model.getSurfaces.find { |s| s.name.to_s == hpxml.slabs[0].id }
       _check_surface(hpxml.slabs[0], os_surface, slab_values[:layer_names])
     end
   end
@@ -498,7 +498,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
     # Check window properties
     hpxml.windows.each do |window|
-      os_window = model.getSubSurfaces.select { |w| w.name.to_s == window.id }[0]
+      os_window = model.getSubSurfaces.find { |w| w.name.to_s == window.id }
       os_simple_glazing = os_window.construction.get.to_LayeredConstruction.get.getLayer(0).to_SimpleGlazing.get
 
       assert_equal(window.shgc, os_simple_glazing.solarHeatGainCoefficient)
@@ -518,7 +518,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
     # Check window properties
     hpxml.windows.each do |window|
-      os_window = model.getSubSurfaces.select { |w| w.name.to_s == window.id }[0]
+      os_window = model.getSubSurfaces.find { |w| w.name.to_s == window.id }
       os_simple_glazing = os_window.construction.get.to_LayeredConstruction.get.getLayer(0).to_SimpleGlazing.get
 
       assert_equal(0.36, os_simple_glazing.solarHeatGainCoefficient)
@@ -550,7 +550,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
         sf_winter *= window.exterior_shading_factor_winter unless window.exterior_shading_factor_winter.nil?
 
         # Check shading transmittance for sky beam and sky diffuse
-        os_shading_surface = model.getShadingSurfaces.select { |ss| ss.name.to_s.start_with? window.id }[0]
+        os_shading_surface = model.getShadingSurfaces.find { |ss| ss.name.to_s.start_with? window.id }
         if (sf_summer == 1) && (sf_winter == 1)
           assert_nil(os_shading_surface) # No shading
         else
@@ -568,7 +568,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
         # Check subsurface view factor to ground
         subsurface_view_factor = 0.5
-        window_actuator = model.getEnergyManagementSystemActuators.select { |w| w.actuatedComponent.get.name.to_s == window.id }[0]
+        window_actuator = model.getEnergyManagementSystemActuators.find { |w| w.actuatedComponent.get.name.to_s == window.id }
         program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'fixedwindow view factor to ground program')
         assert_equal(subsurface_view_factor, program_values["#{window_actuator.name}"][0])
       end
@@ -582,7 +582,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
     # Check skylight properties
     hpxml.skylights.each do |skylight|
-      os_skylight = model.getSubSurfaces.select { |w| w.name.to_s == skylight.id }[0]
+      os_skylight = model.getSubSurfaces.find { |w| w.name.to_s == skylight.id }
       os_simple_glazing = os_skylight.construction.get.to_LayeredConstruction.get.getLayer(0).to_SimpleGlazing.get
 
       assert_equal(skylight.shgc, os_simple_glazing.solarHeatGainCoefficient)
@@ -614,7 +614,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
         sf_winter *= skylight.exterior_shading_factor_winter unless skylight.exterior_shading_factor_winter.nil?
 
         # Check shading transmittance for sky beam and sky diffuse
-        os_shading_surface = model.getShadingSurfaces.select { |ss| ss.name.to_s.start_with? skylight.id }[0]
+        os_shading_surface = model.getShadingSurfaces.find { |ss| ss.name.to_s.start_with? skylight.id }
         if (sf_summer == 1) && (sf_winter == 1)
           assert_nil(os_shading_surface) # No shading
         else
@@ -632,7 +632,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
         # Check subsurface view factor to ground
         subsurface_view_factor = 0.05 # 6:12 pitch
-        skylight_actuator = model.getEnergyManagementSystemActuators.select { |w| w.actuatedComponent.get.name.to_s == skylight.id }[0]
+        skylight_actuator = model.getEnergyManagementSystemActuators.find { |w| w.actuatedComponent.get.name.to_s == skylight.id }
         program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'skylight view factor to ground program')
         assert_equal(subsurface_view_factor, program_values["#{skylight_actuator.name}"][0])
       end
@@ -655,7 +655,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSubSurfaces.select { |s| s.name.to_s == hpxml.doors[0].id }[0]
+      os_surface = model.getSubSurfaces.find { |s| s.name.to_s == hpxml.doors[0].id }
       _check_surface(hpxml.doors[0], os_surface, door_values[:layer_names])
     end
   end
@@ -670,7 +670,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
 
     # Check properties
-    os_surface = model.getInternalMassDefinitions.select { |s| s.name.to_s == 'partition wall mass' }[0]
+    os_surface = model.getInternalMassDefinitions.find { |s| s.name.to_s == 'partition wall mass' }
     _check_surface(hpxml.partition_wall_mass, os_surface, partition_wall_mass_layer_names)
   end
 
@@ -684,7 +684,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
 
     # Check properties
-    os_surface = model.getInternalMassDefinitions.select { |s| s.name.to_s.start_with?('furniture mass living space') }[0]
+    os_surface = model.getInternalMassDefinitions.find { |s| s.name.to_s.start_with?('furniture mass living space') }
     _check_surface(hpxml.furniture_mass, os_surface, furniture_mass_layer_names)
   end
 
@@ -799,8 +799,8 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
   def test_aspect_ratios
     # Test single-family attached
     hpxml = _create_hpxml('base-bldgtype-attached.xml')
-    wall_outside = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOutside && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
-    wall_other_housing_unit = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
+    wall_outside = hpxml.walls.find { |w| w.exterior_adjacent_to == HPXML::LocationOutside && w.interior_adjacent_to == HPXML::LocationLivingSpace }
+    wall_other_housing_unit = hpxml.walls.find { |w| w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit && w.interior_adjacent_to == HPXML::LocationLivingSpace }
 
     wall_height = hpxml.building_construction.average_ceiling_height
     left_right_wall_length = wall_other_housing_unit.area / wall_height
@@ -809,8 +809,8 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
     # Test multifamily
     hpxml = _create_hpxml('base-bldgtype-multifamily.xml')
-    wall_outside = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOutside && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
-    wall_other_housing_unit = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
+    wall_outside = hpxml.walls.find { |w| w.exterior_adjacent_to == HPXML::LocationOutside && w.interior_adjacent_to == HPXML::LocationLivingSpace }
+    wall_other_housing_unit = hpxml.walls.find { |w| w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit && w.interior_adjacent_to == HPXML::LocationLivingSpace }
 
     wall_height = hpxml.building_construction.average_ceiling_height
     left_right_wall_length = wall_other_housing_unit.area / wall_height

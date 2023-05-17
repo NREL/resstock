@@ -961,7 +961,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
 
   def test_operational
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-calctype-operational.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-1.xml'))
     model, _hpxml = _test_measure(args_hash)
 
     # water use equipment peak flows
