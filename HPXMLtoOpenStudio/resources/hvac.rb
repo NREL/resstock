@@ -3592,7 +3592,13 @@ class HVAC
       tout_db_sensor.setKeyName('Environment')
 
       # Actuator
-      actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(heating_sch, *EPlus::EMSActuatorScheduleConstantValue)
+      if heating_sch.is_a? OpenStudio::Model::ScheduleConstant
+        actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(heating_sch, *EPlus::EMSActuatorScheduleConstantValue)
+      elsif heating_sch.is_a? OpenStudio::Model::ScheduleRuleset
+        actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(heating_sch, *EPlus::EMSActuatorScheduleYearValue)
+      else
+        fail "Unexpected heating schedule type: #{heating_sch.class}."
+      end
       actuator.setName("#{heating_sch.name.to_s.gsub(' ', '_')}_act")
 
       # Program
