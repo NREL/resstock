@@ -101,7 +101,7 @@ class IRAAnalysis:
     @staticmethod
     def validate_output_directory(output_dir):
         if output_dir is None:
-            output_dir = Path(__file__).resolve().parent / "output_with_baselines"
+            output_dir = Path(__file__).resolve().parent / "output_state_1980_022723"
         else:
             output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -190,7 +190,17 @@ class IRAAnalysis:
             return emission_cols
         else:
             raise ValueError(f"output={output} unsupported")
-   
+
+    # TODO: static method for upgrade costs
+    @staticmethod
+    def get_upgrade_cost_cols():
+        # TODO: 1st - for EUSS with upgrade fully applied, grab the total upgrade cost column
+        cost_cols = [
+            f"upgrade_costs.upgrade_cost_usd",
+        ] 
+        # TODO: 2nd - for upgrade that is partial of EUSS upgrade, grab specific upgrade column cost
+        return cost_cols
+    
     def get_energy_cols(self, end_use="total", output="all"):
         cols = self.get_energy_savings_cols(end_use=end_use, output=output)
         if isinstance(cols, str):
@@ -206,6 +216,13 @@ class IRAAnalysis:
         if isinstance(cols, str):
             return cols.replace("emissions_reduction", "emissions")
         return [col.replace("emissions_reduction", "emissions") for col in cols]
+
+    # TODO: revise for inputs with static method above
+    def get_cost_cols(self):
+        cols = self.get_upgrade_cost_cols()
+        if isinstance(cols, str):
+            return cols.removesuffix(".savings")
+        return [col.removesuffix(".savings") for col in cols]
 
     @staticmethod
     def remap_building_type(df):
@@ -278,12 +295,12 @@ class IRAAnalysis:
 
     @staticmethod
     def remap_cooling(df):
-        df['cooling'] = df['in.hvac_cooling_type'].apply(lambda x: 'No' if x == ('None') else 'Yes')
+        df['cooling'] = df['build_existing_model.hvac_cooling_type'].apply(lambda x: 'No' if x == ('None') else 'Yes')
         return df
     
     @staticmethod
     def remap_washing(df):
-        df['washing_machine'] = df['in.clothes_washer_presence'].apply(lambda x: 'Yes' if x == ('Yes') else 'No')
+        df['washing_machine'] = df['build_existing_model.clothes_washer_presence'].apply(lambda x: 'Yes' if x == ('Yes') else 'No')
         return df
 
     def remap_columns(self, df):
@@ -1222,6 +1239,8 @@ class IRAAnalysis:
         total_emission_col = self.get_emission_cols(
             emission_type=self.emission_type, output="total_fuel"
         )
+        # TODO: get upgrade costs as well
+        cost_cols = self.get_cost_cols() #TODO: create input variables.
 
         # get mean consumption
         coarsening_map = self.coarsening_map if coarsening else None
@@ -1230,6 +1249,7 @@ class IRAAnalysis:
             self.groupby_cols,
             energy_cols,
             total_emission_col,
+            cost_cols,
             coarsening_map=coarsening_map,
         )
 
@@ -1253,14 +1273,15 @@ class IRAAnalysis:
         # Load the upgrade package
         df_up = self.load_results(pkg)
         # Filter to applicability and building_id
-        df_up = df_up[["bldg_id", "applicability"]]
+        df_up = df_up[["building_id", "apply_upgrade.applicable"]]
         # Merge the df by buiding_id
-        df = df.merge(df_up, left_on='bldg_id', right_on='bldg_id', suffixes=('', '_upgrade'))
+        df = df.merge(df_up, left_on='building_id', right_on='building_id', suffixes=('', '_upgrade'))
+        # Filter to only TRUE applied upgrades
+        df = df["apply_upgrade.applicable_upgrade"] == True
+
 
         # filter to tech
-        cond = (df["applicability_upgrade"] == True)
-        cond &= (df["in.vacancy_status"] == "Occupied")
-
+        cond = df["in.vacancy_status"] == "Occupied"
         # Add in applicability count from 
         df = df.loc[cond]
         
@@ -1269,6 +1290,8 @@ class IRAAnalysis:
         total_emission_col = self.get_emission_cols(
             emission_type=self.emission_type, output="total_fuel"
         )
+        # TODO: get upgrade costs as well
+        cost_cols = self.get_cost_cols() #TODO: create input variables.
 
         # get mean consumption
         coarsening_map = self.coarsening_map if coarsening else None
@@ -1277,12 +1300,13 @@ class IRAAnalysis:
             self.groupby_cols,
             energy_cols,
             total_emission_col,
+            cost_cols,
             coarsening_map=coarsening_map,
         )
 
         # save to file
         DF = self.simplify_column_names(DF)
-        output_file = f"baseline_df_for_{pkg_name}.csv"
+        output_file = f"baseline-df-{pkg_name}.csv"
         DF.to_csv(self.output_dir / output_file)
 
         if return_df:
@@ -1439,7 +1463,7 @@ def main(euss_dir):
         "AMI",  # "AMI", "FPL"
         "in.building_america_climate_zone", # BA Climate Zone
         "cooling",# TODO: need to test, new feature
-        #"washing_machine", #TODO: need to test, new feature
+        "washing_machine", #TODO: need to test, new feature
     ]
 
     coarsening_map = {"in.state": "in.ashrae_iecc_climate_zone_2004_2_a_split"}
@@ -1466,155 +1490,95 @@ def main(euss_dir):
         1, "basic_enclosure_upgrade", coarsening=coarsening
     )
     
-    # NOTE: new feature; create a baseline dataframe using bldg id that are applicable in the upgrade
+    # TODO: create a baseline dataframe using bldg id that are applicable
     IRA.get_baseline_for_upgrade(
       1, "basic_enclosure_baseline", coarsening=coarsening
     )
     
 
-    # [2] Enhanced enclosure: all (pkg 2)
-    IRA.get_baseline_consumption(
-        2,
-        "enhanced_enclosure_upgrade",
-        coarsening=coarsening,
-    )
+    # # [2] Enhanced enclosure: all (pkg 2)
+    # IRA.get_baseline_consumption(
+    #     2,
+    #     "enhanced_enclosure_upgrade",
+    #     coarsening=coarsening,
+    # )
 
-    IRA.get_baseline_for_upgrade(
-        2,
-        "enhanced_enclosure_upgrade",
-        coarsening=coarsening,
-    )
+    # # [3] Heat pump – min eff: all (pkg 3)
+    # IRA.get_baseline_consumption(
+    #     3,
+    #     "heat_pump_min_eff_with_electric_backup",
+    #     coarsening=coarsening,
+    # )
 
-    # [3] Heat pump – min eff: all (pkg 3)
-    IRA.get_baseline_consumption(
-        3,
-        "heat_pump_min_eff_with_electric_backup",
-        coarsening=coarsening,
-    )
+    # # [4] Heat pump – high eff: all (pkg 4)
+    # IRA.get_baseline_consumption(
+    #     4,
+    #     "heat_pump_high_eff_with_electric_backup",
+    #     coarsening=coarsening,
+    # )
 
-    IRA.get_baseline_for_upgrade(
-        3,
-        "heat_pump_min_eff_with_electric_backup",
-        coarsening=coarsening,
-    )
+    # # [5] Heat pump – min eff + existing backup: all (pkg 5)
+    # IRA.get_baseline_consumption(
+    #     5,
+    #     "heat_pump_min_eff_with_existing_backup",
+    #     coarsening=coarsening,
+    # )
 
-    # [4] Heat pump – high eff: all (pkg 4)
-    IRA.get_baseline_consumption(
-        4,
-        "heat_pump_high_eff_with_electric_backup",
-        coarsening=coarsening,
-    )
+    # # [6] Heat pump – high eff + basic enclosure: Heating & Cooling (pkg 9)
+    # # TODO: add in cost columns to heating and cooling
+    # IRA.get_consumption_heating_and_cooling(
+    #     9,
+    #     "heat_pump_high_eff_with_basic_enclosure",
+    #     coarsening=coarsening,
+    # )
 
-    IRA.get_baseline_for_upgrade(
-        4,
-        "heat_pump_high_eff_with_electric_backup",
-        coarsening=coarsening,
-    )
+    # # [7] Heat pump – high eff + enhanced enclosure: Heating & Cooling (pkg 10)
+    # # TODO: add in cost columns to heating and cooling
+    # IRA.get_consumption_heating_and_cooling(
+    #     10,
+    #     "heat_pump_high_eff_with_enhanced_enclosure",
+    #     coarsening=coarsening,
+    # )
 
-    # [5] Heat pump – min eff + existing backup: all (pkg 5)
-    IRA.get_baseline_consumption(
-        5,
-        "heat_pump_min_eff_with_existing_backup",
-        coarsening=coarsening,
-    )
+    # # [8] Heat pump water heater: all (pkg 6)
+    # IRA.get_baseline_consumption(
+    #     6, "heat_pump_water_heater",
+    #     coarsening=coarsening
+    # )
 
-    IRA.get_baseline_for_upgrade(
-        5,
-        "heat_pump_min_eff_with_existing_backup",
-        coarsening=coarsening,
-    )
+    # # NOTE: revised approach
+    # # [9] Electric dryer: Clothes dryer (pkg 7)
+    # # TODO: add in cost columns for dryer
+    # IRA.get_consumption_dryer(
+    #     7, "electric_clothes_dryer",
+    #     coarsening=coarsening,
+    # )
 
-    # [6] Heat pump – high eff + basic enclosure: Heating & Cooling (pkg 9)
-    IRA.get_consumption_heating_and_cooling(
-        9,
-        "heat_pump_high_eff_with_basic_enclosure",
-        coarsening=coarsening,
-    )
-    
-    # NOTE: needs revision for partial upgrade
-    IRA.get_baseline_for_upgrade(
-        9,
-        "heat_pump_high_eff_with_basic_enclosure",
-        coarsening=coarsening,
-    )
-    
-    # [7] Heat pump – high eff + enhanced enclosure: Heating & Cooling (pkg 10)
-    IRA.get_consumption_heating_and_cooling(
-        10,
-        "heat_pump_high_eff_with_enhanced_enclosure",
-        coarsening=coarsening,
-    )
+    # # NOTE: revised approach
+    # # [10] Heat pump dryer: Clothes dryer, using (pkg 8) for run though pkg 9 & 10 have them
+    # IRA.get_consumption_dryer(
+    #     [8,9,10],
+    #     "heat_pump_clothes_dryer",
+    #     coarsening=coarsening,
+    # )
 
-    # NOTE: needs revision for partial upgrade
-    IRA.get_baseline_for_upgrade(
-        10,
-        "heat_pump_high_eff_with_enhanced_enclosure",
-        coarsening=coarsening,
-    )
+    # # NOTE: revised approach
+    # # Seems unlikely and a systematic error
+    # # [11] Electric cooking: Cooking (pkg 7)
+    # # TODO: add in cost columns for cooking
+    # IRA.get_consumption_cooking(
+    #     7, "electric_cooking", 
+    #     coarsening=coarsening
+    # )
 
-    # [8] Heat pump water heater: all (pkg 6)
-    IRA.get_baseline_consumption(
-        6, "heat_pump_water_heater",
-        coarsening=coarsening
-    )
-
-    IRA.get_baseline_for_upgrade(
-        6, "heat_pump_water_heater",
-        coarsening=coarsening
-    )
-
-    # [9] Electric dryer: Clothes dryer (pkg 7)
-    IRA.get_consumption_dryer(
-        7, "electric_clothes_dryer",
-        coarsening=coarsening,
-    )
-
-    # NOTE: needs revision for partial upgrade
-    IRA.get_baseline_for_upgrade(
-        7, "electric_clothes_dryer",
-        coarsening=coarsening,
-    )
-
-
-    # [10] Heat pump dryer: Clothes dryer, using (pkg 8) for run though pkg 9 & 10 have them
-    IRA.get_consumption_dryer(
-        [8,9,10],
-        "heat_pump_clothes_dryer",
-        coarsening=coarsening,
-    )
-
-    # NOTE: needs revision for specific upgrade
-    IRA.get_baseline_for_upgrade(
-        [8],
-        "heat_pump_clothes_dryer",
-        coarsening=coarsening,
-    )
-
-    # [11] Electric cooking: Cooking (pkg 7)
-    IRA.get_consumption_cooking(
-        7, "electric_cooking", 
-        coarsening=coarsening
-    )
-    
-    # NOTE: needs revision for partial upgrade
-    IRA.get_baseline_for_upgrade(
-        7, "electric_cooking", 
-        coarsening=coarsening
-    )
-
-    # [12] Induction cooking: Cooking using (pkg 8) for run though pkg 9 & 10 have them
-    IRA.get_consumption_cooking(
-        [8,9,10],
-        "induction_cooking",
-        coarsening=coarsening,
-    )
-
-    # NOTE: needs revision for partial upgrade
-    IRA.get_baseline_for_upgrade(
-        [8],
-        "induction_cooking",
-        coarsening=coarsening,
-    )
+    # # NOTE: revised approach
+    # # [12] Induction cooking: Cooking using (pkg 8) for run though pkg 9 & 10 have them
+    # # TODO: add in cost columns for cooking
+    # IRA.get_consumption_cooking(
+    #     [8,9,10],
+    #     "induction_cooking",
+    #     coarsening=coarsening,
+    # )
 
 
     #####################################
