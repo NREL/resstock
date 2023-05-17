@@ -17,7 +17,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Install gems and software
+      - name: Install gems
         run: |
           rm -f Gemfile.lock && bundle install
 
@@ -37,7 +37,13 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           path: resources/buildstock.csv
-          name: samples
+          name: feature_samples
+
+      - name: Store code coverage
+        uses: actions/upload-artifact@v3
+        with:
+          path: coverage
+          name: coverage
 
   analysis-tests:
     runs-on: ubuntu-latest
@@ -64,7 +70,7 @@ jobs:
             project_testing/results-Baseline.csv
             project_national/results-AllUpgrades.csv
             project_testing/results-AllUpgrades.csv
-          name: run_analysis
+          name: run_analysis_results_csvs
 
   integration-tests:
     runs-on: ubuntu-latest
@@ -104,14 +110,14 @@ jobs:
           tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output
           tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output
 
-      - name: Run tests
-        run: |
-          ruby test/test_bsb_analysis.rb
-
       - name: Process results
         run: |
           pip install pandas==1.5.3
-          python test/util.py
+          python test/process_bsb_analysis.py
+
+      - name: Run tests
+        run: |
+          ruby test/test_bsb_analysis.rb
 
       - name: Upload integration results
         uses: actions/upload-artifact@v3
@@ -119,14 +125,7 @@ jobs:
           path: |
             baseline
             upgrades
-          name: results
-
-      - name: Upload output files
-        uses: actions/upload-artifact@v3
-        with:
-          path: |
-            outputs
-          name: outputs
+          name: feature_results
 
       - name: Upload buildstockbatch results
         uses: actions/upload-artifact@v3
@@ -136,11 +135,11 @@ jobs:
             project_testing/testing_baseline/results_csvs/results_up00.csv
             project_national/national_upgrades/results_csvs/results_up15.csv
             project_testing/testing_upgrades/results_csvs/results_up15.csv
-          name: buildstockbatch
+          name: buildstockbatch_results_csvs
 
   compare-tools:
     runs-on: ubuntu-latest
-    needs: [unit-tests, analysis-tests, integration-tests]
+    needs: [analysis-tests, integration-tests]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -150,22 +149,22 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: buildstockbatch
-          name: buildstockbatch
+          name: buildstockbatch_results_csvs
 
       - name: Download run_analysis results
         uses: actions/download-artifact@v3
         with:
           path: run_analysis
-          name: run_analysis
+          name: run_analysis_results_csvs
 
       - name: Run tests
         run: |
-          ruby test/test_tools.rb
+          ruby test/test_analysis_tools.rb
 
   compare-results:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: [unit-tests, analysis-tests, integration-tests]
+    needs: [integration-tests]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -191,13 +190,13 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: samples
-          name: samples
+          name: feature_samples
 
       - name: Download feature results
         uses: actions/download-artifact@v3
         with:
           path: results
-          name: results
+          name: feature_results
 
       - name: Compare samples and results
         run: |          
@@ -246,59 +245,34 @@ jobs:
 
   update-results:
     runs-on: ubuntu-latest
-    needs: [unit-tests, analysis-tests, integration-tests]
+    needs: [integration-tests]
     steps:
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Install gems and software
+      - name: Install software
         run: |
+          export DEBIAN_FRONTEND=noninteractive
           sudo apt update
-          sudo apt-get install -y wget unzip libxml2-utils python3-lxml python3-pip
-          sudo pip3 install sphinx sphinx-rtd-theme
+          sudo -E apt-get install -y wget unzip python3-sphinx-rtd-theme
 
       - name: Download feature samples
         uses: actions/download-artifact@v3
         with:
           path: samples
-          name: samples
+          name: feature_samples
 
       - name: Download feature results
         uses: actions/download-artifact@v3
         with:
           path: results
-          name: results
-
-      - name: Download output files
-        uses: actions/download-artifact@v3
-        with:
-          path: outputs
-          name: outputs
-
-      - name: Commit latest results
-        shell: bash        
-        run: |
-          branch_name="${{ github.head_ref }}"
-          git pull origin $branch_name
-          cp -r samples/buildstock*.csv test/base_results/baseline/annual
-          cp -r results/baseline/annual/results*.csv test/base_results/baseline/annual
-          cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
-          cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
-          cp -r results/upgrades/timeseries/results*.csv test/base_results/upgrades/timeseries
-          cp -r outputs/*.csv test/base_results/outputs
-          git add test/base_results
-          git status
-          if [[ $(git diff --cached --exit-code) ]]; then
-            git config --global user.email "github-action@users.noreply.github.com"
-            git config --global user.name "GitHub Action"
-            git commit -m "Latest results."
-            echo "Pushing to branch: $branch_name"
-            git push -u origin $branch_name
-          fi
+          name: feature_results
 
       - name: Build documentation
         run: |
+          ruby docs/read_the_docs/source/workflow_inputs/create_characteristics_rst.rb
+          ruby docs/read_the_docs/source/workflow_outputs/csv_tables.rb
           cd docs/read_the_docs
           make html SPHINXOPTS="-W --keep-going -n"
 
@@ -307,3 +281,24 @@ jobs:
         with:
           name: documentation
           path: docs/read_the_docs/_build/html/
+
+      - name: Commit latest results
+        shell: bash        
+        run: |
+          branch_name="${{ github.head_ref }}"
+          git pull origin $branch_name
+          cp -r samples/buildstock*.csv test/base_results/baseline/annual
+          cp -r results/baseline/annual/results*.csv test/base_results/baseline/annual
+          cp -r results/baseline/timeseries/*.csv test/base_results/baseline/timeseries
+          cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
+          cp -r results/upgrades/timeseries/*.csv test/base_results/upgrades/timeseries
+          git add test/base_results
+          git add docs
+          git status
+          if [[ $(git diff --cached --exit-code) ]]; then
+            git config --global user.email "github-action@users.noreply.github.com"
+            git config --global user.name "GitHub Action"
+            git commit -m "Latest results."
+            echo "Pushing to branch: $branch_name"
+            git push -u origin $branch_name
+          fi
