@@ -2,7 +2,7 @@
 
 class Version
   OS_HPXML_Version = '1.5.1' # Version of the OS-HPXML workflow
-  OS_Version = '3.6.0' # Required version of OpenStudio (can be 'X.X' or 'X.X.X')
+  OS_Version = '3.6.1' # Required version of OpenStudio (can be 'X.X' or 'X.X.X')
   HPXML_Version = '4.0' # HPXML schemaVersion
 
   def self.check_openstudio_version

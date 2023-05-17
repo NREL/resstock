@@ -1,7 +1,7 @@
 ## OpenStudio-HPXML v1.6.0
 
 __New Features__
-- Updates to OpenStudio 3.6.0/EnergyPlus 23.1.
+- Updates to OpenStudio 3.6.1/EnergyPlus 23.1.
 - **Breaking change**: Updates to newer proposed HPXML v4.0:
   - Replaces `VentilationFan/Quantity` and `CeilingFan/Quantity` with `Count`.
   - Replaces `PVSystem/InverterEfficiency` with `PVSystem/AttachedToInverter` and `Inverter/InverterEfficiency`.
@@ -30,7 +30,7 @@ __New Features__
   - Defaults for `CompressorLockoutTemperature`: 25F for dual-fuel, -20F for mini-split, 0F for all other heat pumps.
   - Defaults for `BackupHeatingLockoutTemperature`: 50F for dual-fuel, 40F for all other heat pumps.
   - Provides a warning if `BackupHeatingSwitchoverTemperature` or `BackupHeatingLockoutTemperature` are low and may cause unmet hours.
-  - `BackupHeatingCapacity` can now be defaulted (autosized) even when the heat pump capacities are provided (hard-sized).
+  - Autosizing is no longer all-or-none; backup heating can be autosized (defaulted) while specifying the heat pump capacities, or vice versa.
 - Infiltration changes:
   - **Breaking change**: Infiltration for SFA/MF dwelling units must include `TypeOfInfiltrationLeakage` ("unit total" or "unit exterior only").
   - **Breaking change**: Replaces `BuildingConstruction/extension/HasFlueOrChimney` with `AirInfiltration/extension/HasFlueOrChimneyInConditionedSpace`; defaults now incorporate HVAC/water heater location.
