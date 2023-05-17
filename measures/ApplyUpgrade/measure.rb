@@ -359,7 +359,13 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
           elsif not heating_system.heating_efficiency_percent.nil?
             measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_efficiency'] = heating_system.heating_efficiency_percent
           end
-          measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heating_system.heating_capacity
+
+          # Heat pump has its own built-in backup, so resize electric backup
+          if heating_system.heating_system_fuel != HPXML::FuelTypeElectricity
+            measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heating_system.heating_capacity
+          else
+            runner.registerInfo("Found '#{heating_system.heating_system_type}' heating system type with '#{heating_system.heating_system_fuel}' fuel type; using built-in heat pump backup instead.")
+          end
 
         # Separate; backup system has its own distribution system
         else
@@ -372,6 +378,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
             measures['BuildResidentialHPXML'][0]['heating_system_2_heating_efficiency'] = heating_system.heating_efficiency_percent
           end
           measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = heating_system.heating_capacity
+
         end
 
         runner.registerInfo("Found '#{heating_system.heating_system_type}' heating system type; setting it as 'heat_pump_backup_type=#{measures['BuildResidentialHPXML'][0]['heat_pump_backup_type']}'.")
