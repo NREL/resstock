@@ -377,21 +377,47 @@ Clothes Dryer
 Description
 ***********
 
-The presence, rated efficiency, fuel type, and usage level of the clothes dryer in a dwelling unit.
+The presence, rated efficiency, and fuel type of the clothes dryer in a dwelling unit.
 
 Created by
 **********
 
-Originally created with sources/ahs/2017/tsv_maker.py. Manually updated.
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-2017 American Housing Survey (AHS) microdata.; Core Based Statistical Area (CBSA) data based on the Feb 2013 CBSA delineation file.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
+Clothes dryer option is None if clothes washer not presentDue to low sample count, the tsv is constructed by downscaling a dwelling unit sub-tsv with a household sub-tsv. The sub-tsvs have the following dependencies:; Dwelling unit sub-tsv :deps=['Geometry Building Type RECS', 'State', 'Heating Fuel', 'Clothes Washer Presence'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS without AK, HI; [2] Heating Fuel coarsened to Other Fuel and Propane combined; [3] Heating Fuel coarsened to Fuel Oil, Other Fuel, and Propane combined; [4] Geometry Building Type RECS coarsened to SF/MF/MH; [5] Geometry Building Type RECS coarsened to SF and MH/MF; [6] State coarsened to Census Division RECS; [7] State coarsened to Census Region; [8] State coarsened to National; Household sub-tsv : deps=['Geometry Building Type RECS', 'Tenure', 'Federal Poverty Level'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS without AK, HI; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Federal Poverty Level coarsened every 100 percent; [5] Federal Poverty Level coarsened every 200 percent; [6] State coarsened to Census Division RECS; [7] State coarsened to Census Region; [8] State coarsened to National; In combining the dwelling unit sub-tsv and household sub-tsv, the conditional relationships are ignored across (['Heating Fuel','Clothers Washer Presence'], ['Tenure', 'Federal Poverty Level']).
+
+.. _clothes_dryer_usage_level:
+
+Clothes Dryer Usage Level
+-------------------------
+
+Description
+***********
+
+Clothes dryer energy usage level multiplier.
+
+Created by
+**********
+
+sources/other/tsv_maker.py
+
+Source
+******
+
+n/a
+
+Assumption
+**********
+
+Engineering judgement
 
 .. _clothes_washer:
 
@@ -401,21 +427,22 @@ Clothes Washer
 Description
 ***********
 
-Presence, rated efficiency, and usage level of the clothes washer.
+Presence and rated efficiency of the clothes washer.
 
 Created by
 **********
 
-manually created
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
+The 2020 recs survey does not contain EnergyStar rating of clothes washers.Energystar efficiency distributions with [Geometry Building Type,Federal Poverty Level, Tenure] as dependencies are imported from RECS 2009Due to low sample count, the tsv is constructed by downscaling a dwelling unit sub-tsv with a household sub-tsv. The sub-tsvs have the following dependencies:; Dwelling unit sub-tsv : deps=['Geometry Building Type RECS', 'State','Clothes Washer Presence', 'Vintage'] with the following fallback coarsening order; [1] Geometry Building Type RECS coarsened to SF/MF/MH; [2] Geometry Building Type RECS coarsened to SF and MH/MF; [3] Vintage coarsened to every 20 years before 2000 and every 10 years subsequently; [4] Vintage homes built before 1960 coarsened to pre1960; [5] Vintage homes built after 2000 coarsened to 2000-20; Household sub-tsv : deps=['Geometry Building Type RECS', 'State' 'Tenure', 'Federal Poverty Level'] with the following fallback coarsening order; [1] Geometry Building Type RECS coarsened to SF/MF/MH; [2] Geometry Building Type RECS coarsened to SF and MH/MF; [3] Federal Poverty Level coarsened every 100 percent; [4] Federal Poverty Level coarsened every 200 percent; In combining the dwelling unit sub-tsv and household sub-tsv, the conditional relationships are ignored across (['Clothes Washer Presence', 'Vintage'], ['Tenure', 'Federal Poverty Level']).
 
 .. _clothes_washer_presence:
 
@@ -425,21 +452,47 @@ Clothes Washer Presence
 Description
 ***********
 
-The number of bedrooms in the dwelling unit.
+The presence of a clothes washer in the dwelling unit.
 
 Created by
 **********
 
-sources/ahs/ahs2017_2019/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-2017 and 2019 American Housing Survey (AHS) microdata.; Core Based Statistical Area (CBSA) data based on the Feb 2013 CBSA delineation file.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
+Due to low sample count, the tsv is constructed by downscaling a dwelling unit sub-tsv with a household sub-tsv. The sub-tsvs have the following dependencies:; Dwelling unit sub-tsv : deps=['Geometry Building Type RECS', 'State', 'Heating Fuel', 'Vintage'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Vintage coarsened to every 20 years before 2000 and every 10 years subsequently; [5] Vintage homes built before 1960 coarsened to pre1960; [6] Vintage homes built after 2000 coarsened to 2000-20; [7] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [8] Census Division RECS to Census Region; [9] Census Region to National; Household sub-tsv : deps=['Geometry Building Type RECS', 'State' 'Tenure', 'Federal Poverty Level'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Federal Poverty Level coarsened every 100 percent; [5] Federal Poverty Level coarsened every 200 percent; [6] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [7] Census Division RECS to Census Region; [8] Census Region to National; In combining the dwelling unit sub-tsv and household sub-tsv, the conditional relationships are ignored across (['Geometry Building Type RECS', 'Vintage'], ['Tenure', 'Federal Poverty Level']).
+
+.. _clothes_washer_usage_level:
+
+Clothes Washer Usage Level
+--------------------------
+
+Description
+***********
+
+Clothes washer energy usage level multiplier.
+
+Created by
+**********
+
+sources/other/tsv_maker.py
+
+Source
+******
+
+n/a
+
+Assumption
+**********
+
+Engineering judgement
 
 .. _cooking_range:
 
@@ -449,21 +502,47 @@ Cooking Range
 Description
 ***********
 
-Presence, fuel type, and usage level of the cooking range.
+Presence and fuel type of the cooking range.
 
 Created by
 **********
 
-manually created
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-(fuel type) RECS 2009; (usage) engineering judgement
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
+For Dual Fuel Range the distribution is split equally between Electric and Natural GasDue to low sample count, the tsv is constructed by downscaling a dwelling unit sub-tsv with a household sub-tsv. The sub-tsvs have the following dependencies:; Dwelling unit sub-tsv : deps=['Geometry Building Type RECS', 'State', 'Heating Fuel', 'Vintage'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Heating Fuel coarsened to Other Fuel and Propane combined; [3] Heating Fuel coarsened to Fuel Oil, Other Fuel, and Propane combined; [4] Geometry Building Type RECS coarsened to SF/MF/MH; [5] Geometry Building Type RECS coarsened to SF and MH/MF; [6] Vintage coarsened to every 20 years before 2000 and every 10 years subsequently; [7] Vintage homes built before 1960 coarsened to pre1960; [8] Vintage homes built after 2000 coarsened to 2000-20; [9] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [10] Census Division RECS to Census Region; [11] Census Region to National; Household sub-tsv : deps=['Geometry Building Type RECS', 'State' 'Tenure', 'Federal Poverty Level'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Federal Poverty Level coarsened every 100 percent; [5] Federal Poverty Level coarsened every 200 percent; [6] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [7] Census Division RECS to Census Region; [8] Census Region to National; In combining the dwelling unit sub-tsv and household sub-tsv, the conditional relationships are ignored across (['Heating Fuel', 'Vintage'], ['Tenure', 'Federal Poverty Level']).
+
+.. _cooking_range_usage_level:
+
+Cooking Range Usage Level
+-------------------------
+
+Description
+***********
+
+Cooling range energy usage level multiplier.
+
+Created by
+**********
+
+sources/other/tsv_maker.py
+
+Source
+******
+
+n/a
+
+Assumption
+**********
+
+Engineering judgement
 
 .. _cooling_setpoint:
 
@@ -478,17 +557,17 @@ Baseline cooling setpoint with no offset applied.
 Created by
 **********
 
-sources/recs/recs2009_setpoints/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-RECS data is queried from two building type groups: 1) Single-Family Detached and Mobile Homes and 2) Single-Family Attached, Multi-family with 2-4 Units, and Multi-Family with 5+ Units; Dependencies with sample sizes < 10 used the combined data for both multifamily and single-family homes
+For dependency conditions with low samples, the following lumpings are used in progressive order until there are enough samples: 1) lumping buildings into Single-Family and Multi-Family only, 2) lumping buildings into Single-Family and Multi-Family only and lumping nearby climate zones within A/B regions and separately 7AK and 8AK 3) lumping all building types together and lumping climate zones within A/B regions and separately 7AK and 8AK, 4) Owner and Renter are is lumped together which at this point only modifies AK distributions.Vacant units (for which Tenure = 'Not Available') are assumed to follow the same distribution as occupied  units; Cooling setpoint arguments need to be assigned. A cooling setpoint of None corresponds to 95 F, but is not used by OpenStudio-HPXML. No cooling energy is expected.
 
 .. _cooling_setpoint_has_offset:
 
@@ -503,17 +582,17 @@ Presence of a cooling setpoint offset.
 Created by
 **********
 
-sources/recs/recs2009_setpoints/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-RECS data is queried from two building type groups: 1) Single-Family Detached and Mobile Homes and 2) Single-Family Attached, Multi-family with 2-4 Units, and Multi-Family with 5+ Units; Dependencies with sample sizes < 10 used the combined data for both multifamily and single-family homes
+For dependency conditions with low samples, the following lumpings are used in progressive order until there are enough samples: 1) lumping buildings into Single-Family and Multi-Family only,  2) lumping all building types together and lumping climate zones within A/B regions and separately 7AK and 8AK
 
 .. _cooling_setpoint_offset_magnitude:
 
@@ -528,17 +607,17 @@ The magnitude of cooling setpoint offset.
 Created by
 **********
 
-sources/recs/recs2009_setpoints/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-RECS data is queried from two building type groups: 1) Single-Family Detached and Mobile Homes and 2) Single-Family Attached, Multi-family with 2-4 Units, and Multi-Family with 5+ Units; Dependencies with sample sizes < 10 used the combined data for both multifamily and single-family homes
+For dependency conditions with low samples, the following lumpings are used in progressive order until there are enough samples: 1) lumping buildings into Single-Family and Multi-Family only,  2) lumping buildings into Single-Family and Multi-Family only and lumping nearby climate zones within  A/B regions and separately 7AK and 8AK 3) lumping all building types together and lumping climate zones within A/B and separately 7AK and 8AK regions
 
 .. _cooling_setpoint_offset_period:
 
@@ -553,17 +632,17 @@ The period and offset for the dwelling unit's cooling setpoint. Default for the 
 Created by
 **********
 
-sources/recs/recs2009_setpoints/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-RECS data is queried from two building type groups: 1) Single-Family Detached and Mobile Homes and 2) Single-Family Attached, Multi-family with 2-4 Units, and Multi-Family with 5+ Units; Dependencies with sample sizes < 10 used the combined data for both multifamily and single-family homes
+For dependency conditions with low samples, the following lumpings are used in progressive order until there are enough samples: 1) lumping buildings into Single-Family and Multi-Family only,  2) lumping buildings into Single-Family and Multi-Family only and lumping nearby climate zones within  A/B regions and separately 7AK and 8AK 3) lumping all building types together and lumping climate zones within A/B regions and separately 7AK and 8AK
 
 .. _corridor:
 
@@ -674,16 +753,42 @@ The presence and rated efficiency of the dishwasher.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
+The 2020 recs survey does not contain EnergyStar rating of dishwashers.Energystar efficiency distributions with [Geometry Building Type,Census Division RECS,Federal Poverty Level, Tenure] as dependencies are imported from RECS 2009Due to low sample count, the tsv is constructed with the followingfallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Federal Poverty Level coarsened every 100 percent; [5] Federal Poverty Level coarsened every 200 percent; [6] Vintage coarsened to every 20 years before 2000 and every 10 years subsequently; [7] Vintage homes built before 1960 coarsened to pre1960; [8] Vintage homes built after 2000 coarsened to 2000-20; [9] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [10] Census Division RECS to Census Region
+
+.. _dishwasher_usage_level:
+
+Dishwasher Usage Level
+----------------------
+
+Description
+***********
+
+Dishwasher energy usage level multiplier.
+
+Created by
+**********
+
+sources/other/tsv_maker.py
+
+Source
+******
+
+n/a
+
+Assumption
+**********
+
+Engineering judgement
 
 .. _door_area:
 
@@ -867,17 +972,17 @@ The dwelling unit attic type.
 Created by
 **********
 
-sources/recs/2009/tsv_maker.py (manually modified by Joe Robertson)
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-Not Applicable
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-Mobile Homes have an unfinished attic because mobile homes are modeled as single-family detached homes.; Single-Family Attached and Single-Family Attached homes with no attic are modeled with an attic. The measures are not able to model homes without an attic.; Impossible dependency combinations are set to None.
+Multi-Family building types have Flat Roof (None) only.; 1-story Single-Family building types cannot have Finished Attic/Cathedral Ceiling because that attic type is modeled as a new story and 1-story does not a second story. 4+story Single-Family and mobile homes are an impossible combination.
 
 .. _geometry_building_horizontal_location_mf:
 
@@ -966,7 +1071,7 @@ The number of dwelling units in the multi-family building.
 Created by
 **********
 
-Originally created by sources/recs/2009/tsv_maker.py. Manually updated during HPXML transition.
+sources/recs/recs2009/tsv_maker.py
 
 Source
 ******
@@ -1136,7 +1241,7 @@ The type of foundation.
 Created by
 **********
 
-sources/recs/2009/tsv_maker.py (manually modified by Joe Robertson)
+sources/recs/recs2009/tsv_maker.py
 
 Source
 ******
@@ -1309,12 +1414,12 @@ The presence and efficiency of primary cooling system in the dwelling unit.
 Created by
 **********
 
-Originally created by sources/recs/2009/tsv_maker.py. Manually updated during transition to HPXML.
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-The sample counts and sample weights are constructed using U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.; Efficiency data based on CAC-ASHP-shipments-table.tsv, room_AC_efficiency_vs_age.tsv and expanded_HESC_HVAC_efficiencies.tsv combined with age of equipment data from RECS
+The sample counts and sample weights are constructed using U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.; Efficiency data based on CAC-ASHP-shipments-table.tsv, room_AC_efficiency_vs_age.tsv and expanded_HESC_HVAC_efficiencies.tsv combined with age of equipment data from RECS
 
 Assumption
 **********
@@ -1359,17 +1464,17 @@ The presence and type of primary cooling system in the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-The sample counts and sample weights are constructed using U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-If a sample has both Central AC and Room AC, we assume it has Central AC only; If a sample indicates using a heat pump for AC but does not indicate using a heat pump for heating, then we either assign it a heat pump for heating (if electric heating was indicated), or we asssign it Central AC (if non-electric heating was indicated).; Due to low sample sizes for some Heating Types, Heating Type data for Non-Ducted Heating and None is grouped.; Due to low sample sizes for some Building Types, Building Type data are grouped into: 1) Single-Family Detached and Single-Family Attached, and 2) Multifamily 2-4 units and Multifamily 5+ units, and 3) Mobile Homes.; Due to low sample sizes for some Vintages, Vintage ACS (20-year bins) is used instead of the typical 10-year bins used for RECS data.
+Due to low sample sizes, fallback rules applied with lumping of; 1) HVAC Heating type: Non-ducted heating and None2) Geometry building SF: Mobile, Single family attached, Single family detached3) Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units4) Vintage Lump: 20yrs binsHomes having ducted heat pump for heating and electricity fuel is assumed to haveducted heat pump for cooling (seperating from central AC category); Homes having non-ducted heat pump for heating is assumed to have non-ducted heat pumpfor cooling
 
 .. _hvac_has_ducts:
 
@@ -1384,16 +1489,17 @@ The presence of ducts in the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-The sample counts and sample weights are constructed using U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+The sample counts and sample weights are constructed using U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
+Ducted Heat Pump HVAC type assumed to have ducts; Non-Ducted Heat Pump HVAC type assumed to have no ducts; There are likely homes with non-ducted heat pump having ducts (Central AC with non-ducted HP) But due to structure of ResStock we are not accounting those homes; Evaporative or swamp cooler assigned Void option
 
 .. _hvac_has_shared_system:
 
@@ -1408,17 +1514,17 @@ The presence of an HVAC system shared between multiple dwelling units.
 Created by
 **********
 
-Originally created by sources/recs/2009/tsv_maker.py. Manually updated during the HPXML transition.
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-The sample counts and sample weights are constructed using U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+The sample counts and sample weights are constructed using U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-Due to low sample sizes for some Heating Types, Heating Type data is queried from two groups:1) Ducted Heating and Ducted Heat Pump and 2) Non-Ducted Heating and Non-Ducted Heat Pump and None; Due to low sample sizes for some Cooling Types, Cooling Type data is queried from two groups:1) Central AC and Heat Pump and 2) Room AC and None
+Due to low sample sizes, the fallback rules are applied in following order; [1] Vintage: Vintage ACS 20 year bin[2] HVAC Cooling Type: Lump 1) Central AC and Ducted Heat Pump and 2) Non-Ducted Heat Pump and None[3] HVAC Heating Type: Lump 1) Ducted Heating and Ducted Heat Pump and 2) Non-Ducted Heat Pump and None[4] HVAC Cooling Type: Lump 1) Central AC and Ducted Heat Pump and 2) Non-Ducted Heat Pump, Non-Ducted Heating, and None[5] HVAC Heating Type: Lump 1) Ducted Heating and Ducted Heat Pump and 2) Non-Ducted Heat Pump, None, and Room AC[6] Vintage: Vintage pre 1960s and post 2000[7] Vintage: All vintages; Evaporative or swamp cooler Cooling Type assigned Void option; Ducted Heat Pump assigned for both heating and cooling, other combinations assigned Void option; Non-Ducted Heat Pump assigned for both heating and cooling, other combinations assigned Void option
 
 .. _hvac_has_zonal_electric_heating:
 
@@ -1457,12 +1563,12 @@ The presence and efficiency of the primary heating system in the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-The sample counts and sample weights are constructed using U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.; Shipment data based on CAC-ASHP-shipments-table.tsv and furnace-shipments-table.tsv; Efficiency data based on expanded_HESC_HVAC_efficiencies.tsv combined with age of equipment data from RECS
+The sample counts and sample weights are constructed using U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.; Shipment data based on CAC-ASHP-shipments-table.tsv and furnace-shipments-table.tsv; Efficiency data based on expanded_HESC_HVAC_efficiencies.tsv combined with age of equipment data from RECS
 
 Assumption
 **********
@@ -1482,17 +1588,17 @@ The presence and type of the primary heating system in the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-There are no mini-split heat pumps in RECS 2009; Due to low sample sizes for some heating fuel types, heating fuel data is queried from three groups:1) Electricity, 2) None, and 3) Natural Gas, Propane, Fuel Oil, and Other Fuel Data.; Assume indicated non-heat pump electric heating is a heat pump when respondents say their AC is a heat pump.
+Due to low sample sizes, fallback rules applied with lumping of; 1) Heating fuel lump: Fuel oil, Propane, and Other Fuel2) Geometry building SF: Mobile, Single family attached, Single family detached3) Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units4) Vintage Lump: 20yrs bins
 
 .. _hvac_heating_type_and_fuel:
 
@@ -1507,7 +1613,7 @@ The presence, type, and fuel of primary heating system.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
@@ -1579,12 +1685,12 @@ The presence and efficiency of the shared HVAC system.
 Created by
 **********
 
-Originally created by sources/recs/2009/tsv_maker.py. Manually updated during the HPXML transition.
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-The sample counts and sample weights are constructed using U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+The sample counts and sample weights are constructed using U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
@@ -1734,7 +1840,7 @@ ACS population and RiDER data on PV installation that combines LBNL's 2020 Track
 Assumption
 **********
 
-Imposed an upperbound of 14 kWDC, which contains 95pct of all installations. Counties with source_count<10 are backfilled with aggregates at the State level. Distribution based on all installations is applied only to occupied SFD, actual distribution for SFD may be higher.
+Imposed an upperbound of 14 kWDC, which contains 95pct of all installations. Counties with source_count<10 are backfilled with aggregates at the State level. Distribution based on all installations is applied only to occupied SFD, actual distribution for SFD may be higher.; PV is not modeled in AK and HI. No data has been identified.
 
 .. _heating_fuel:
 
@@ -1774,17 +1880,17 @@ Baseline heating setpoint with no offset applied.
 Created by
 **********
 
-sources/recs/recs2009_setpoints/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-RECS data is queried from two building type groups: 1) Single-Family Detached and Mobile Homes and 2) Single-Family Attached, Multi-family with 2-4 Units, and Multi-Family with 5+ Units; Dependencies with sample sizes < 10 used the combined data for both multifamily and single-family homes
+For dependency conditions with low samples, the following lumpings are used in progressive order until there are enough samples: 1) lumping buildings into Single-Family and Multi-Family only,  2) lumping buildings into Single-Family and Multi-Family only and lumping nearby climate zones within  A/B regions and separately 7AK and 8AK 3) lumping all building types together and lumping climate zones within A/B regions and separately 7AK and 8AK; Heating type dependency is always lumped into Heat pump / Non-heat pumps; For vacant units (for which Tenure = 'Not Available'), the heating setpoint is set to 55F
 
 .. _heating_setpoint_has_offset:
 
@@ -1799,17 +1905,17 @@ Presence of a heating setpoint offset.
 Created by
 **********
 
-sources/recs/recs2009_setpoints/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-RECS data is queried from two building type groups: 1) Single-Family Detached and Mobile Homes and 2) Single-Family Attached, Multi-family with 2-4 Units, and Multi-Family with 5+ Units; Dependencies with sample sizes < 10 used the combined data for both multifamily and single-family homes
+For dependency conditions with low samples, the following lumpings are used in progressive order until there are enough samples: 1) lumping buildings into Single-Family and Multi-Family only, 2) lumping all building types together
 
 .. _heating_setpoint_offset_magnitude:
 
@@ -1824,17 +1930,17 @@ Magnitude of the heating setpoint offset.
 Created by
 **********
 
-sources/recs/recs2009_setpoints/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-RECS data is queried from two building type groups: 1) Single-Family Detached and Mobile Homes and 2) Single-Family Attached, Multi-family with 2-4 Units, and Multi-Family with 5+ Units; Dependencies with sample sizes < 10 used the combined data for both multifamily and single-family homes
+For dependency conditions with low samples, the following lumpings are used in progressive order until there are enough samples: 1) lumping buildings into Single-Family and Multi-Family only,  2) lumping buildings into Single-Family and Multi-Family only and lumping nearby climate zones within  A/B regions and separately 7AK and 8AK 3) lumping all building types together and lumping climate zones within A/B regions and separately 7AK and 8AK
 
 .. _heating_setpoint_offset_period:
 
@@ -1849,17 +1955,17 @@ The period and offset for the dwelling unit's heating setpoint. Default for the 
 Created by
 **********
 
-sources/recs/recs2009_setpoints/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-RECS data is queried from two building type groups: 1) Single-Family Detached and Mobile Homes and 2) Single-Family Attached, Multi-family with 2-4 Units, and Multi-Family with 5+ Units; Dependencies with sample sizes < 10 used the combined data for both multifamily and single-family homes
+For dependency conditions with low samples, the following lumpings are used in progressive order until there are enough samples: 1) lumping buildings into Single-Family and Multi-Family only,  2) lumping buildings into Single-Family and Multi-Family only and lumping nearby climate zones within  A/B regions and separately 7AK and 8AK 3) lumping all building types together and lumping climate zones within A/B regions and separately 7AK and 8AK
 
 .. _holiday_lighting:
 
@@ -2080,7 +2186,7 @@ Distributions are based on the cumulative distribution functions from the Reside
 Assumption
 **********
 
-All ACH50 are based on Single-Family Detached blower door tests.; Climate zones that are copied: 2A to 1A, 6A to 7A, and 6B to 7B.; Vintage bins that are copied: 2000s to 2010s, 1950s to 1940s, 1950s to <1940s.; Homes are assumed to not be Weatherization Assistance Program (WAP) qualified and not ENERGY STAR certified.
+All ACH50 are based on Single-Family Detached blower door tests.; Climate zones that are copied: 2A to 1A, 6A to 7A, and 6B to 7B.; Vintage bins that are copied: 2000s to 2010s, 1950s to 1940s, 1950s to <1940s.; Homes are assumed to not be Weatherization Assistance Program (WAP) qualified and not ENERGY STAR certified.; Climate zones 7AK and 8AK are averages of 6A and 6B.
 
 .. _insulation_ceiling:
 
@@ -2090,12 +2196,10 @@ Insulation Ceiling
 Description
 ***********
 
-Ceiling insulation level.
 
 Created by
 **********
 
-manually created
 
 Source
 ******
@@ -2105,6 +2209,7 @@ NEEA Residential Building Stock Assessment, 2012; Nettleton, G.; Edwards, J. (20
 Assumption
 **********
 
+Vented Attic has the same distribution as Unvented Attic; CRHI is a copy of CR09; CRAK is a copy of CR02
 
 .. _insulation_floor:
 
@@ -2114,12 +2219,10 @@ Insulation Floor
 Description
 ***********
 
-Floor insulation level.
 
 Created by
 **********
 
-manually created
 
 Source
 ******
@@ -2129,6 +2232,7 @@ Derived from Home Innovation Research Labs 1982-2007 Data; (pre-1980) Engineerin
 Assumption
 **********
 
+CRHI is a copy of CR09; CRAK is a copy of CR02
 
 .. _insulation_foundation_wall:
 
@@ -2138,12 +2242,10 @@ Insulation Foundation Wall
 Description
 ***********
 
-Foundation walls insulation level.
 
 Created by
 **********
 
-manually created
 
 Source
 ******
@@ -2153,6 +2255,7 @@ Derived from Home Innovation Research Labs 1982-2007 Data; (pre-1980) Engineerin
 Assumption
 **********
 
+CRHI is a copy of CR09; CRAK is a copy of CR02
 
 .. _insulation_rim_joist:
 
@@ -2226,6 +2329,7 @@ Derived from Home Innovation Research Labs 1982-2007 Data; (pre-1980) Engineerin
 Assumption
 **********
 
+CRHI is a copy of CR09; CRAK is a copy of CR02
 
 .. _insulation_wall:
 
@@ -2284,12 +2388,11 @@ Lighting
 Description
 ***********
 
-Fraction of lighting types.
 
 Created by
 **********
 
-originally created by sources/recs/2015/tsv_maker.py. Manually updated during the HPXML transition.
+sources/recs/2015/tsv_maker.py
 
 Source
 ******
@@ -2410,17 +2513,17 @@ The presence and rated efficiency of the secondary refrigerator.
 Created by
 **********
 
-Originally created by sources/recs/2009/tsv_maker.py. Manually updated during the transition to HPXML.
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.; Age of refrigerator converted to efficiency levels using ENERGYSTAR shipment-weighted efficiencies by year data from Home Energy Score: http://hes-documentation.lbl.gov/. Check the comments in: HES-Refrigerator_Age_vs_Efficiency.tsv
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.; Age of refrigerator converted to efficiency levels using ENERGYSTAR shipment-weighted efficiencies by year data from Home Energy Score: http://hes-documentation.lbl.gov/. Check the comments in: HES-Refrigerator_Age_vs_Efficiency.tsv
 
 Assumption
 **********
 
-The current year is assumed to be 2020 (previously, it was 2016); Previously, for each year, the EF values were rounded to the nearest EF level, and then the distribution of EF levels were calculated for the age bins. Currently, each year has its own distribution and then we average out the distributions to get the distribution for the age bins. EF for all years are weighted equally when calculating the average distribution for the age bins.
+The current year is assumed to be 2022; Previously, for each year, the EF values were rounded to the nearest EF level, and then the distribution of EF levels were calculated for the age bins. Currently, each year has its own distribution and then we average out the distributions to get the distribution for the age bins. EF for all years are weighted equally when calculating the average distribution for the age bins.; EnergyStar distributions from 2009 dependent on [Geometry Building Type RECS,Federal Poverty Level,Tenure] is used to calculate efficiency distribution in RECS2020.EnergyStar Refrigerators assumed to be 10% more efficient than standard.Due to low sample count, the tsv is constructed by downscaling a dwelling unit sub-tsv with a household sub-tsv. The sub-tsvs have the following dependencies:; Dwelling unit sub-tsv : deps=['Geometry Building Type RECS', 'State', 'Vintage'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Vintage with Vintage ACS; [5] Vintage with combined 1960s; [6] Vintage with combined 1960s and post 200ss; [7] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [8] Census Division RECS to Census Region; [9] Census Region to National; Household sub-tsv : deps=['Geometry Building Type RECS', 'State' 'Tenure', 'Federal Poverty Level'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Federal Poverty Level coarsened every 100 percent; [5] Federal Poverty Level coarsened every 200 percent; [6] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [7] Census Division RECS to Census Region; [8] Census Region to National; In combining the dwelling unit sub-tsv and household sub-tsv, the conditional relationships are ignored across ('Heating Fuel', ['Tenure', 'Federal Poverty Level']).
 
 .. _misc_freezer:
 
@@ -2435,16 +2538,17 @@ The presence and rated efficiency of a standalone freezer.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
+The national average EF is 12 based on the 2014 BA house simulation protocols; Due to low sample count, the tsv is constructed with the following fallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Federal Poverty Level coarsened every 100 percent; [5] Federal Poverty Level coarsened every 200 percent; [6] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [7] Census Division RECS to Census Region; [8] Census Region to National
 
 .. _misc_gas_fireplace:
 
@@ -2531,16 +2635,17 @@ The presence and heating fuel of a hot tub/spa at the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
+Due to low sample count, the tsv is constructed by downscaling a dwelling unit sub-tsv with a household sub-tsv. The sub-tsvs have the following dependencies:; Dwelling unit sub-tsv : deps=['Geometry Building Type RECS', 'State', 'Heating Fuel'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Heating Fuel coarsened to Other Fuel and Propane combined; [3] Heating Fuel coarsened to Fuel Oil, Other Fuel, and Propane combined; [4] Geometry Building Type RECS coarsened to SF/MF/MH; [5] Geometry Building Type RECS coarsened to SF and MH/MF; [6] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [7] Census Division RECS to Census Region; [8] Census Region to National; Household sub-tsv : deps=['Geometry Building Type RECS', 'State' 'Tenure', 'Federal Poverty Level'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Federal Poverty Level coarsened every 100 percent; [5] Federal Poverty Level coarsened every 200 percent; [6] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [7] Census Division RECS to Census Region; [8] Census Region to National; In combining the dwelling unit sub-tsv and household sub-tsv, the conditional relationships are ignored across ('Heating Fuel', ['Tenure', 'Federal Poverty Level']).
 
 .. _misc_pool:
 
@@ -2555,17 +2660,17 @@ The presence of a pool at the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-Pools at mobile home and multi-family dwelling units are not modeled.
+The only valid option for multi-family homes is Nonesince the pool is most likely to be jointly ownedDue to low sample count, the tsv is constructed with the followingfallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Federal Poverty Level coarsened every 100 percent; [5] Federal Poverty Level coarsened every 200 percent; [6] Vintage coarsened to every 20 years before 2000 and every 10 years subsequently; [7] Vintage homes built before 1960 coarsened to pre1960; [8] Vintage homes built after 2000 coarsened to 2000-20; [9] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [10] Census Division RECS to Census Region; [11] Census Region to National
 
 .. _misc_pool_heater:
 
@@ -2580,12 +2685,12 @@ The heating fuel of the pool heater if there is a pool.
 Created by
 **********
 
-Originally created by sources/recs/2009/tsv_maker.py. Manually updated during the transition to HPXML.
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
@@ -2857,7 +2962,7 @@ LBNL's 2020 Tracking the Sun (TTS).
 Assumption
 **********
 
-Installations of unknown mount type are assumed rooftop. States without data are backfilled with aggregates at the Census Region. 'East South Central' assumed the same distribution as 'West South Central'.
+Installations of unknown mount type are assumed rooftop. States without data are backfilled with aggregates at the Census Region. 'East South Central' assumed the same distribution as 'West South Central'.; PV is not modeled in AK and HI. The Option=None is set so that an error is thrown if PV is modeled as an argument will be missing.
 
 .. _plug_load_diversity:
 
@@ -2993,16 +3098,42 @@ The presence and rated efficiency of the primary refrigerator.
 Created by
 **********
 
-Originally created by sources/recs/2009/tsv_maker.py. Manually updated during the HPXML transition.
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.; Age of refrigerator converted to efficiency levels using ENERGY STAR shipment-weighted efficiencies by year.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.; Age of refrigerator converted to efficiency levels using ENERGYSTAR shipment-weighted efficiencies by year data from Home Energy Score: http://hes-documentation.lbl.gov/. Check the comments in: HES-Refrigerator_Age_vs_Efficiency.tsv
 
 Assumption
 **********
 
+The current year is assumed to be 2022 (previously, it was 2016); Previously, for each year, the EF values were rounded to the nearest EF level, and then the distribution of EF levels were calculated for the age bins. Currently, each year has its own distribution and then we average out the distributions to get the distribution for the age bins. EF for all years are weighted equally when calculating the average distribution for the age bins.; EnergyStar distributions from 2009 dependent on [Geometry Building Type RECS,Federal Poverty Level,Tenure] is used to calculate efficiency distribution in RECS2020.EnergyStar Refrigerators assumed to be 10% more efficient than standard.Due to low sampling count, the following coarsening rules are incorporated[1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Vintage with Vintage ACS; [5] Vintage with combined 1960s; [6] Vintage with combined 1960s and post 200ss; [7] Federal Poverty Level coarsened every 100 percent; [8] Federal Poverty Level coarsened every 200 percent; [9] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [10] Census Division RECS to Census Region; [11] Census Region to National
+
+.. _refrigerator_usage_level:
+
+Refrigerator Usage Level
+------------------------
+
+Description
+***********
+
+Refrigerator energy usage level multiplier.
+
+Created by
+**********
+
+sources/other/tsv_maker.py
+
+Source
+******
+
+n/a
+
+Assumption
+**********
+
+Engineering judgement
 
 .. _roof_material:
 
@@ -3017,16 +3148,17 @@ Roof material and color.
 Created by
 **********
 
-sources/recs/2009/tsv_maker.py (manually collapsed from Roof Material Unfinished Attic and Roof Material Finished Roof)
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
+Multi-Family with 5+ Units is assigned 'Asphalt Shingles, Medium' only.; Due to low samples, Vintage ACS is progressively grouped into: pre-1960, 1960-1999, and 2000+.; Geometry Building Type RECS is progressively grouped into: Single-Family (including Mobile Home), and Multi-Family.; Census Division RECS is coarsened to Census Region.
 
 .. _solar_hot_water:
 
@@ -3212,17 +3344,17 @@ The efficiency, type, and heating fuel of water heater.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.; (Heat pump water heaters) 2016-17 RBSA II for CR06 and Butzbaugh et al. 2017 US HPWH Market Transformation - Where Weve Been and Where to Go Next for remainder of regions
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.; (Heat pump water heaters) 2016-17 RBSA II for WA and OR and Butzbaugh et al. 2017 US HPWH Market Transformation - Where We've Been and Where to Go Next for remainder of regions; Penetration of HPWH for Maine (6.71%) calculated based on total number of HPWH units (AWHI Stakeholder Meeting 12/08/2022) and total housing units https://www.census.gov/quickfacts/ME
 
 Assumption
 **********
 
-Due to low samples, oil water heater efficiency distribution are lumped except for CR03 and CR07.; Water heater blanket is used as a proxy for premium storage tank water heaters.; Heat Pump Water Heaters are added in manually as they are not in the survey.
+Water heater blanket is used as a proxy for premium storage tank water heaters.; Heat Pump Water Heaters are added in manually as they are not in the survey.; Default efficiency of HPWH: Electric Heat Pump, 50 gal, 3.45 UEF.; Due to low sample sizes, fallback rules applied with lumping of:; [1] State: Census Division RECS; [2] State: Census Region[3] State: National
 
 .. _water_heater_fuel:
 
@@ -3237,17 +3369,17 @@ The water heater fuel type.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-Due to low samples Single-Family Detached and Mobile Home samples have been lumped; Due to low samples Multi-Family 2-4 and Multi-Family 5+ samples have been lumped; Due to low samples the Location Region dependency has been removed for Heating Fuel None; Due to low samples the Geometry Building Type RECS dependency has been removed for Heating Fuel Propane; Due to low samples the Location Region dependency has been removed for Heating Fuel Other Fuel; Due to low samples the Location Region dependency has been removed for Heating Fuel Fuel Oil except in CR03 and CR07 (New England and Mid-Atlantic)
+Due to low sample sizes, fallback rules applied with lumping of:; [1] State: Census Division RECS; [2] Geometry building SF: Mobile, Single family attached, Single family detached; [3] Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units; [4] State: Census Region[5] State: National
 
 .. _water_heater_in_unit:
 
@@ -3262,17 +3394,17 @@ Individual water heater present or not present in the dwelling unit that solely 
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-Single-Family Detached and Mobile Homes have in unit water heaters.; If the sample counts are less than 10, then the Location Region dependency is collapsed.
+Single-Family Detached and Mobile Homes have in unit water heaters.; As Not Applicable option for Single-Family Attached option is 100%; Assuming Single-Family Attached in-unit water heater distribution from RECS 2009; Due to low sample sizes, fallback rules applied with lumping of:; [1] State: Census Division RECS; [2] Vintage ACS: Combining Vintage pre 1960s and post 2000; [3] State: Census Region
 
 .. _window_areas:
 
@@ -3312,15 +3444,15 @@ Construction type and efficiency levels of windows.
 Created by
 **********
 
-sources/recs/recs2015/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2015 Residential Energy Consumption Survey (RECS) microdata.; Source of storm windows :https://www.energy.gov/sites/prod/files/2013/11/f5/residential_windows_coverings.pdf
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-Wood and Vinyl are considered same material; Triple Pane assumed to be 100% low-e; Only breaking out clear and low-e windows for the Double, Non-Metal frame type; Source of low-e distribution is based on engineering judgement, informed by high-levelsales trends observed in Ducker Worldwide studies of the U.S. Market for Windows, Doors and Skylights.; Due to low sample sizes for some Building Types, Building Type data are grouped into: 1) Single-Family Detached, Single-Family Attached, and Mobile homes and 2) Multi-Family 2-4 units and Multi-Family 5+ units; Due to low sample sizes for Vintage, Vintage data are grouped into: 1) <1960, 2) 1960-79, 3) 1980-99, 4) 2000-15; Due to low sample size for Climate, Climate zones are grouped into: 1) 1A, 2A, and 2B, 2) 3A, 3B, 3C, and 4B, 3) 4A and 4C, 4) 5A and 5B, 5) 6A and 6B, and 6) 7A and 7B; Storm window saturations are based on D&R International, Ltd. 'Residential Windows and Window Coverings: A Detailed View of the Installed Base and User Behavior' 2013. https://www.energy.gov/sites/prod/files/2013/11/f5/residential_windows_coverings.pdf. Cut the % storm windows by factor of 55% because only 55% of storms are installed year round; Due to lack of performance data storm windows with triple-pane are modeled without the storm windows; Due to lack of performance data Double-pane, Low-E, Non-Metal, Air, M-gain, Exterior Clear Storm windows are modeled as Double-pane, Clear, Non-Metal, Air, Exterior Clear Storm windows
+Wood and Vinyl are considered same material; Triple Pane assumed to be 100% low-e; Only breaking out clear and low-e windows for the Double, Non-Metal frame type; Source of low-e distribution is based on engineering judgement, informed by high-levelsales trends observed in Ducker Worldwide studies of the U.S. Market for Windows, Doors and Skylights.; Due to low sample sizes, the following adjustments are made:; [1] Vintage data are grouped into: 1) <1960, 2) 1960-79, 3) 1980-99, 4) 2000s, 5) 2010s.; [2] Building Type data are grouped into: 1) Single-Family Detached, Single-Family Attached, and Mobile homes and 2) Multi-Family 2-4 units and Multi-Family 5+ units.; [3] Climate zones are grouped into: 1) 1A, 2A, 2B; 2) 3A, 3B, 3C, 4B; 3) 4A, 4C; 4) 5A, 5B; 5) 6A, 6B; and 6) 7A, 7B 7AK, 8AK.; [4] Federal Poverty Levels are progressively grouped together until all bins are combined.; [5] Tenure options are progressively grouped together until all bins are combined.; Storm window saturations are based on D&R International, Ltd. 'Residential Windows and Window Coverings: A Detailed View of the Installed Base and User Behavior' 2013. https://www.energy.gov/sites/prod/files/2013/11/f5/residential_windows_coverings.pdf. Cut the % storm windows by factor of 55% because only 55% of storms are installed year round; Due to lack of performance data storm windows with triple-pane are modeled without the storm windows; Due to lack of performance data Double-pane, Low-E, Non-Metal, Air, M-gain, Exterior Clear Storm windows are modeled as Double-pane, Clear, Non-Metal, Air, Exterior Clear Storm windows
 
