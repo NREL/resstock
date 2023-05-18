@@ -110,23 +110,6 @@ jobs:
           tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output
           tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output
 
-      - name: Process results
-        run: |
-          pip install pandas==1.5.3
-          python test/process_bsb_analysis.py
-
-      - name: Run tests
-        run: |
-          ruby test/test_bsb_analysis.rb
-
-      - name: Upload integration results
-        uses: actions/upload-artifact@v3
-        with:
-          path: |
-            baseline
-            upgrades
-          name: feature_results
-
       - name: Upload buildstockbatch results
         uses: actions/upload-artifact@v3
         with:
@@ -136,6 +119,26 @@ jobs:
             project_national/national_upgrades/results_csvs/results_up15.csv
             project_testing/testing_upgrades/results_csvs/results_up15.csv
           name: buildstockbatch_results_csvs
+
+      - name: Process results
+        run: |
+          pip install pandas==1.5.3
+          python test/process_bsb_analysis.py
+
+      - name: Run tests
+        run: |
+          sudo gem install minitest-reporters
+          sudo gem install simplecov
+          sudo gem install simplecov-html
+          ruby test/test_bsb_analysis.rb
+
+      - name: Upload integration results
+        uses: actions/upload-artifact@v3
+        with:
+          path: |
+            baseline
+            upgrades
+          name: feature_results
 
   compare-tools:
     runs-on: ubuntu-latest
@@ -159,6 +162,9 @@ jobs:
 
       - name: Run tests
         run: |
+          sudo gem install minitest-reporters
+          sudo gem install simplecov
+          sudo gem install simplecov-html
           ruby test/test_analysis_tools.rb
 
   compare-results:
