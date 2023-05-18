@@ -60,7 +60,7 @@ import pandas as pd
 import csv
 import re
 
-from add_ami_to_euss_annual_summary import add_ami_column_to_file
+from add_ami_to_euss_results import add_ami_column_to_file
 
 
 ### Helper settings
@@ -97,7 +97,7 @@ class SavingsExtraction:
         )
         print(
             f"""
-            Process EUSS 1.0 summary results for C-LEAP state-level dashboard.
+            Process EUSS 1.0 summary results for IRA Scenario Tool.
             """
         )
         print(
@@ -547,7 +547,7 @@ class SavingsExtraction:
             dfb = dfb.loc[cond].reset_index(drop=True)
 
         # check number of bldgs that ONLY have the end_uses upgraded
-        if len(name_cols_else)==0:
+        if len(name_cols_else) == 0:
             # no other columns, so all have the end_uses upgraded
             n_applied = len(dfu)
         else:
@@ -629,180 +629,142 @@ class SavingsExtraction:
         return self.map_col_by_bin(df_col_to_map, eb_bins, eb_labels)
 
     @staticmethod
-    def consolidate_misc_appliances(df):
-        cols = [
-            "build_existing_model.misc_extra_refrigerator",
-            "build_existing_model.misc_freezer",
-            "build_existing_model.misc_gas_fireplace",
-            "build_existing_model.misc_gas_grill",
-            "build_existing_model.misc_gas_lighting",
-            "build_existing_model.misc_hot_tub_spa",
-            "build_existing_model.misc_pool",
-            "build_existing_model.misc_pool_heater",
-            "build_existing_model.misc_pool_pump",
-            "build_existing_model.misc_well_pump",
-        ]
-        ncols = len(cols)
-        df["build_existing_model.number_misc_appliances"] = df[cols].apply(
-            lambda x: ncols - len(x.isna()), axis=1
-        )
+    def assert_true(df, para_from, para_to):
+        nf, nt = df[para_from].dropna().count(), df[para_to].dropna().count()
+        assert nf == nt, f"INVALID mapping from {para_from} to {para_to}: {nf} --> {nt}"
 
-        return df
-
-    @staticmethod
-    def consolidate_number_of_building_units(df):
-        metric = "build_existing_model.geometry_building_number_units"
-
-        df[metric] = df["build_existing_model.geometry_building_number_units_mf"]
-        cond = (
-            df["build_existing_model.geometry_building_type_recs"]
-            == "Single-Family Attached"
-        )
-        df.loc[cond, metric] = df.loc[
-            cond, "build_existing_model.geometry_building_number_units_sfa"
-        ]
-        df.loc[df[metric] == "None", metric] = "1"
-
-        return df
-
-    @staticmethod
-    def consolidate_story(df):
-        metric = "build_existing_model.geometry_story"
-        df[metric] = df["build_existing_model.geometry_stories_low_rise"].map(
+    def reprocess_metadata_columns(self, df):
+        # consolidate the follow:
+        df["build_existing_model.vintage"] = df["build_existing_model.vintage_acs"].map(
             {
-                "1": "<4",
-                "2": "<4",
-                "3": "<4",
-                "4+": "4+",
+                "<1940": "Pre-1980",
+                "1940-59": "Pre-1980",
+                "1960-79": "Pre-1980",
+                "1980-99": "1980 and After",
+                "2000-09": "1980 and After",
+                "2010s": "1980 and After",
             }
         )
-        cond = df[metric] == "4+"
-        df.loc[cond, metric] = df.loc[
-            cond, "build_existing_model.geometry_stories"
+        self.assert_true(
+            df, "build_existing_model.vintage_acs", "build_existing_model.vintage"
+        )
+
+        df["build_existing_model.urban_status"] = df["build_existing_model.city"].map(
+            lambda x: "Non-Urban"
+            if x in ["In another census Place", "Not in a census Place"]
+            else "Urban"
+        )
+        self.assert_true(
+            df, "build_existing_model.city", "build_existing_model.urban_status"
+        )
+
+        df["build_existing_model.metro_status"] = df[
+            "build_existing_model.puma_metro_status"
         ].map(
             {
-                "<8": "4-7",
-                "8+": "8+",
+                "In metro area, not/partially in principal city": "Metro",
+                "In metro area, principal city": "Metro",
+                "Not/partially in metro area": "Non/Part-Metro",
             }
         )
-        return df
-
-    @staticmethod
-    def consolidate_horizontal_location(df):
-        metric = "build_existing_model.geometry_building_horizontal_location"
-
-        df[metric] = df["build_existing_model.geometry_building_horizontal_location_mf"]
-        cond = df[metric] == "None"
-        df.loc[cond, metric] = df.loc[
-            cond, "build_existing_model.geometry_building_horizontal_location_sfa"
-        ]
-        df[metric].map(
-            {
-                "Left": "End",
-                "Right": "End",
-                "Middle": "Middle",
-                "Not Applicable": "None",
-                "None": "None",
-            }
-        )
-
-        return df
-
-    def create_state_climate_zone(self, df):
-        df["build_existing_model.state_and_iecc_climate_zone"] = (
-            df["build_existing_model.state"]
-            + " "
-            + df["build_existing_model.ashrae_iecc_climate_zone_2004"]
-        )
-        return df
-
-    @staticmethod
-    def get_key_meta_columns():
-        return [
-            "building_id",
-            "build_existing_model.sample_weight",  #
-            # 'build_existing_model.ahs_region',
-            "build_existing_model.ashrae_iecc_climate_zone_2004",  #
-            # 'build_existing_model.building_america_climate_zone',
-            # 'build_existing_model.cec_climate_zone',
-            "build_existing_model.census_division",
-            "build_existing_model.census_region",
-            "build_existing_model.city",
-            "build_existing_model.clothes_dryer",  #
-            "build_existing_model.clothes_washer",
-            "build_existing_model.cooking_range",
-            "build_existing_model.county",
-            "build_existing_model.county_and_puma",
-            "build_existing_model.dishwasher",
-            "build_existing_model.ducts",  #
-            "build_existing_model.federal_poverty_level",
-            # 'build_existing_model.generation_and_emissions_assessment_region',
-            "build_existing_model.geometry_attic_type",
-            # 'build_existing_model.geometry_building_level_mf',
-            "build_existing_model.geometry_building_type_acs",
-            "build_existing_model.geometry_building_type_height",
-            "build_existing_model.geometry_building_type_recs",  #
-            # 'build_existing_model.geometry_floor_area',
-            "build_existing_model.geometry_floor_area_bin",  #
-            "build_existing_model.geometry_foundation_type",  #
-            # 'build_existing_model.geometry_garage',
-            # 'build_existing_model.geometry_wall_exterior_finish',
-            "build_existing_model.geometry_wall_type",  #
-            "build_existing_model.has_pv",
-            "build_existing_model.heating_fuel",  #
-            # 'build_existing_model.hot_water_fixtures',
-            "build_existing_model.hvac_cooling_efficiency",  #
-            "build_existing_model.hvac_cooling_partial_space_conditioning",
-            "build_existing_model.hvac_cooling_type",  #
-            "build_existing_model.hvac_has_ducts",  #
-            "build_existing_model.hvac_has_shared_system",  #
-            # 'build_existing_model.hvac_has_zonal_electric_heating',
-            "build_existing_model.hvac_heating_efficiency",  #
-            "build_existing_model.hvac_heating_type",  #
-            "build_existing_model.hvac_heating_type_and_fuel",  #
-            "build_existing_model.hvac_secondary_heating_efficiency",  #
-            "build_existing_model.hvac_secondary_heating_type_and_fuel",  #
-            "build_existing_model.hvac_shared_efficiencies",
-            # 'build_existing_model.income',
-            # 'build_existing_model.income_recs_2015',
-            "build_existing_model.income_recs_2020",  #
-            "build_existing_model.infiltration",  #
-            "build_existing_model.insulation_ceiling",  #
-            # 'build_existing_model.insulation_floor',
-            "build_existing_model.insulation_foundation_wall",  #
-            "build_existing_model.insulation_rim_joist",  #
-            "build_existing_model.insulation_roof",  #
-            # 'build_existing_model.insulation_slab',
-            "build_existing_model.insulation_wall",  #
-            # 'build_existing_model.interior_shading',
-            # 'build_existing_model.iso_rto_region',
-            "build_existing_model.lighting",
-            # 'build_existing_model.location_region',
-            # 'build_existing_model.mechanical_ventilation',
-            "build_existing_model.occupants",
-            # 'build_existing_model.orientation',
-            # 'build_existing_model.overhangs',
-            # 'build_existing_model.plug_loads',
-            "build_existing_model.puma",
+        self.assert_true(
+            df,
             "build_existing_model.puma_metro_status",
-            # 'build_existing_model.reeds_balancing_area',
-            "build_existing_model.refrigerator",
-            # 'build_existing_model.roof_material',
-            # 'build_existing_model.solar_hot_water',
-            "build_existing_model.state",  #
-            "build_existing_model.tenure",  #
-            # 'build_existing_model.units_represented',
-            # 'build_existing_model.usage_level',
-            "build_existing_model.vacancy_status",
-            # 'build_existing_model.vintage',
-            "build_existing_model.vintage_acs",  #
-            "build_existing_model.water_heater_efficiency",
-            "build_existing_model.water_heater_fuel",  #
-            # 'build_existing_model.water_heater_in_unit',
-            # 'build_existing_model.window_areas',
-            "build_existing_model.windows",  #
-            "build_existing_model.area_median_income",  #
-        ]
+            "build_existing_model.metro_status",
+        )
+
+        df["build_existing_model.heating_fuel_type"] = df[
+            "build_existing_model.heating_fuel"
+        ].map(
+            {
+                "Electricity": "Electricity",
+                "Fuel Oil": "Fuel Oil",  # "Non-electricity",
+                "Natural Gas": "Natural Gas",  # "Non-electricity",
+                "None": "Other Fuel or None",
+                "Other Fuel": "Other Fuel or None",
+                "Propane": "Propane",  # "Non-electricity",
+            }
+        )
+        self.assert_true(
+            df,
+            "build_existing_model.heating_fuel",
+            "build_existing_model.heating_fuel_type",
+        )
+
+        df["build_existing_model.building_type"] = df[
+            "build_existing_model.geometry_building_type_recs"
+        ].map(
+            {
+                "Mobile Home": "Single-Family",
+                "Single-Family Detached": "Single-Family",
+                "Single-Family Attached": "Single-Family",
+                "Multi-Family with 2 - 4 Units": "Multi-Family",
+                "Multi-Family with 5+ Units": "Multi-Family",
+            }
+        )
+        self.assert_true(
+            df,
+            "build_existing_model.geometry_building_type_recs",
+            "build_existing_model.building_type",
+        )
+
+        df["build_existing_model.FPL"] = df[
+            "build_existing_model.federal_poverty_level"
+        ].map(
+            {
+                "0-100%": "<200% FPL",
+                "100-150%": "<200% FPL",
+                "150-200%": "<200% FPL",
+                "200-300%": "200%+ FPL",
+                "300-400%": "200%+ FPL",
+                "400%+": "200%+ FPL",
+            }
+        )
+        self.assert_true(
+            df, "build_existing_model.federal_poverty_level", "build_existing_model.FPL"
+        )
+
+        df["build_existing_model.AMI"] = df[
+            "build_existing_model.area_median_income"
+        ].map(
+            {
+                "0-30%": "<80% AMI",
+                "30-60%": "<80% AMI",
+                "60-80%": "<80% AMI",
+                "80-100%": "80-150% AMI",
+                "100-120%": "80-150% AMI",
+                "120-150%": "80-150% AMI",
+                "150%+": "150%+ AMI",
+            }
+        )
+        self.assert_true(
+            df, "build_existing_model.area_median_income", "build_existing_model.AMI"
+        )
+
+        df["build_existing_model.has_cooling"] = df[
+            "build_existing_model.hvac_cooling_type"
+        ].map(
+            {
+                "Central AC": "Yes",
+                "Heat Pump": "Yes",
+                "None": "No",
+                "Room AC": "Yes",
+            }
+        )
+        self.assert_true(
+            df,
+            "build_existing_model.hvac_cooling_type",
+            "build_existing_model.has_cooling",
+        )
+
+        df["build_existing_model.has_laundry"] = df[
+            "build_existing_model.clothes_dryer"
+        ].map(lambda x: "No" if x == "None" else "Yes")
+        self.assert_true(
+            df, "build_existing_model.clothes_dryer", "build_existing_model.has_laundry"
+        )
+
+        return df
 
     def create_new_metadata_columns(self, dfb):
 
@@ -832,8 +794,10 @@ class SavingsExtraction:
         """
         dfb = self.load_results_baseline()
 
-        dfb, new_cols = self.create_new_metadata_columns(dfb)
-        res_meta_cols = self.get_key_meta_columns() + new_cols
+        dfb = self.reprocess_metadata_columns(dfb)
+        res_meta_cols = [
+            col for col in dfb.columns if col.startswith("build_existing_model.")
+        ]
         res_energy_cols = self.get_fuel_use_cols("energy") + [
             self.get_site_total_col("energy")
         ]
@@ -948,7 +912,7 @@ class SavingsExtraction:
 
         df = df[meta_cols + metric_cols]
 
-        # df.to_csv(self.output_dir / f"baseline.csv", index=False) # <---
+        # df.to_csv(self.output_dir / f"results__baseline.csv", index=False) # <---
         print(f" - Completed baseline data complilation\n")
 
         return df
@@ -996,7 +960,9 @@ class SavingsExtraction:
         output_file = self.output_dir / f"results__{pkgn}.parquet"
 
         if output_file.exists():
-            print(f" --- Compiled data found, loading data directly for [[ {pkg_name} ]] using packages: {pkgs} --- ")
+            print(
+                f" --- Compiled data found, loading data directly for [[ {pkg_name} ]] using packages: {pkgs} --- "
+            )
             df = pd.read_parquet(output_file)
             return df
 
@@ -1024,8 +990,10 @@ class SavingsExtraction:
                 dfu, dfb, adjustment_type=adjustment_type, end_uses=end_uses
             )
 
-        dfb, new_cols = self.create_new_metadata_columns(dfb)
-        res_meta_cols = self.get_key_meta_columns() + new_cols
+        dfb = self.reprocess_metadata_columns(dfb)
+        res_meta_cols = [
+            col for col in dfb.columns if col.startswith("build_existing_model.")
+        ]
         res_energy_cols = self.get_fuel_use_cols("energy") + [
             self.get_site_total_col("energy")
         ]
@@ -1274,6 +1242,100 @@ class SavingsExtraction:
             vr_propane / hc_propane,
         ]
 
+    @staticmethod
+    def _get_metric_aggregates(df, groupby_cols, metric_cols, agg="mean"):
+        dfg = df.groupby(groupby_cols)
+        DF = dfg["sample_weight"].agg(modeled_count=len, applicable_household_count=sum)
+        DF = pd.concat(
+            [DF, dfg[metric_cols].agg(agg).rename(columns=lambda x: f"{agg}_{x}")],
+            axis=1,
+        )
+
+        return DF
+
+    def get_upgrade_saving_aggregates(self, pkg_name, df, groupby_cols, agg="mean"):
+        metric_cols = [
+            "saving_energy.electricity_kwh",
+            "saving_energy.fuel_oil_mmbtu",
+            "saving_energy.natural_gas_therm",
+            "saving_energy.propane_mmbtu",
+            "saving_energy.total_mmbtu",
+            "saving_bill.electricity_usd",
+            "saving_bill.fuel_oil_usd",
+            "saving_bill.natural_gas_usd",
+            "saving_bill.propane_usd",
+            "saving_bill.total_usd",
+            "saving_emission.total_kgCO2e",
+            "upgrade_cost_usd",
+        ]
+        DF = self._get_metric_aggregates(df, groupby_cols, metric_cols, agg=agg)
+
+        pkgn = re.sub("[^a-zA-Z0-9 \n\.]", "_", pkg_name).replace(" ", "_")
+        output_file = self.output_dir / f"{agg}_saving__{pkgn}.csv"
+
+        DF.to_csv(output_file, index=True)
+
+    def get_upgrade_baseline_aggregates(
+        self, pkg_name, dfb, df, groupby_cols, agg="mean"
+    ):
+
+        ## get size of segment
+        segment_size = dfb.groupby(groupby_cols)["sample_weight"].agg(
+            segment_household_count=sum
+        )
+
+        ## get
+        metric_cols = [
+            "baseline_energy.electricity_kwh",
+            "baseline_energy.fuel_oil_mmbtu",
+            "baseline_energy.natural_gas_therm",
+            "baseline_energy.propane_mmbtu",
+            "baseline_energy.total_mmbtu",
+            "baseline_bill.electricity_usd",
+            "baseline_bill.fuel_oil_usd",
+            "baseline_bill.natural_gas_usd",
+            "baseline_bill.propane_usd",
+            "baseline_bill.total_usd",
+            "baseline_emission.total_kgCO2e",
+        ]
+        DF = self._get_metric_aggregates(df, groupby_cols, metric_cols, agg=agg)
+
+        DF = DF.assign(
+            fraction_segment_applicable=DF["applicable_household_count"]
+            / segment_size["segment_household_count"]
+        )
+
+        pkgn = re.sub("[^a-zA-Z0-9 \n\.]", "_", pkg_name).replace(" ", "_")
+        output_file = self.output_dir / f"{agg}_baseline__{pkgn}.csv"
+
+        DF.to_csv(output_file, index=True)
+
+    def get_aggregates(
+        self,
+        pkgs,
+        pkg_name,
+        groupby_cols,
+        dfb,
+        agg="mean",
+        adjustment_type=None,
+        end_uses=None,
+    ):
+        """main func for creating aggregates for EUSS packages and subpackages
+        dfb: baseline df
+        """
+
+        df = self.get_data(
+            pkgs, pkg_name, adjustment_type=adjustment_type, end_uses=end_uses
+        )
+
+        # retain occupied only (remove vacant units):
+        df = df.loc[df["vacancy_status"] == "Occupied"].reset_index(drop=True)
+
+        self.get_upgrade_baseline_aggregates(pkg_name, dfb, df, groupby_cols, agg=agg)
+        print(f" >> get_aggregates for baseline completed for {pkg_name}")
+        self.get_upgrade_saving_aggregates(pkg_name, df, groupby_cols, agg=agg)
+        print(f" >> get_aggregates for saving completed for {pkg_name}")
+
 
 ###### main ######
 
@@ -1283,152 +1345,182 @@ class SavingsExtraction:
 def main(euss_dir):
 
     output_dir = Path(
-        "/Volumes/Lixi_Liu/cleap_dashboard_files"
+        "/Volumes/Lixi_Liu/IRA_analysis/processed_building_data/"
     )  # Path(__file__).resolve().parent / "test_output"
     emission_type = "lrmer_low_re_cost_25_2025_start"
-    bill_year = 2019
+    bill_year = 2021
+
+    groupby_cols = [
+        "state",
+        "vintage",
+        "metro_status",  # "urban_status",
+        "heating_fuel_type",
+        "building_type",
+        "tenure",
+        "AMI",
+        "building_america_climate_zone",
+        "has_cooling",
+    ]
+    agg = "mean"
 
     SE = SavingsExtraction(euss_dir, emission_type, bill_year, output_dir=output_dir)
     # SE.add_ami_to_euss_files()
 
-    DF = []
+    # [0] load baseline
+    dfb = SE.get_data_baseline()
 
     # [1] Basic enclosure: all (pkg 1)
-    DF.append(SE.get_data(1, "enclosure.basic_upgrade"))
+    SE.get_aggregates(
+        1,
+        "enclosure.basic_upgrade",
+        groupby_cols,
+        dfb,
+        agg=agg,
+    )
 
     # [2] Enhanced enclosure: all (pkg 2)
-    DF.append(
-        SE.get_data(
-            2,
-            "enclosure.enhanced_upgrade",
-        )
+    SE.get_aggregates(
+        2,
+        "enclosure.enhanced_upgrade",
+        groupby_cols,
+        dfb,
+        agg=agg,
     )
 
     # [3] Heat pump – min eff: all (pkg 3)
-    DF.append(
-        SE.get_data(
-            3,
-            "hvac.heat_pump_min_eff_electric_backup",
-        )
+    SE.get_aggregates(
+        3,
+        "hvac.heat_pump_min_eff_electric_backup",
+        groupby_cols,
+        dfb,
+        agg=agg,
     )
 
     # [4] Heat pump – high eff: all (pkg 4)
-    DF.append(
-        SE.get_data(
-            4,
-            "hvac.heat_pump_high_eff_electric_backup",
-        )
+    SE.get_aggregates(
+        4,
+        "hvac.heat_pump_high_eff_electric_backup",
+        groupby_cols,
+        dfb,
+        agg=agg,
     )
 
     # [5] Heat pump – min eff + existing backup: all (pkg 5)
-    DF.append(
-        SE.get_data(
-            5,
-            "hvac.heat_pump_min_eff_existing_backup",
-        )
+    SE.get_aggregates(
+        5,
+        "hvac.heat_pump_min_eff_existing_backup",
+        groupby_cols,
+        dfb,
+        agg=agg,
     )
 
     # [6] Heat pump – high eff + HPWH + basic enclosure: Heating & Cooling (pkg 9)
-    DF.append(
-        SE.get_data(
-            9,
-            "hvac.heat_pump_high_eff_electric_backup + HPWH + enclosure.basic_upgrade",
-            adjustment_type="extract_end_uses_by_excluding",
-            end_uses=["clothes_dryer", "range_oven"],
-        )
+    SE.get_aggregates(
+        9,
+        "hvac.heat_pump_high_eff_electric_backup + HPWH + enclosure.basic_upgrade",
+        groupby_cols,
+        dfb,
+        agg=agg,
+        adjustment_type="extract_end_uses_by_excluding",
+        end_uses=["clothes_dryer", "range_oven"],
     )
 
     # [7] Heat pump – high eff + HPWH+ enhanced enclosure: Heating & Cooling (pkg 10)
-    DF.append(
-        SE.get_data(
-            10,
-            "hvac.heat_pump_high_eff_electric_backup + HPWH + enclosure.enhanced_upgrade",
-            adjustment_type="extract_end_uses_by_excluding",
-            end_uses=["clothes_dryer", "range_oven"],
-        )
+    SE.get_aggregates(
+        10,
+        "hvac.heat_pump_high_eff_electric_backup + HPWH + enclosure.enhanced_upgrade",
+        groupby_cols,
+        dfb,
+        agg=agg,
+        adjustment_type="extract_end_uses_by_excluding",
+        end_uses=["clothes_dryer", "range_oven"],
     )
 
     # [8] Heat pump water heater: all (pkg 6)
-    DF.append(
-        SE.get_data(
-            6,
-            "water_heater.heat_pump",
-        )
+    SE.get_aggregates(
+        6,
+        "water_heater.heat_pump",
+        groupby_cols,
+        dfb,
+        agg=agg,
     )
 
     # [9] Electric dryer: Clothes dryer (pkg 7)
-    DF.append(
-        SE.get_data(
-            7,
-            "clothes_dryer.electric",
-            adjustment_type="extract_end_uses",
-            end_uses=["clothes_dryer"],
-        )
+    SE.get_aggregates(
+        7,
+        "clothes_dryer.electric",
+        groupby_cols,
+        dfb,
+        agg=agg,
+        adjustment_type="extract_end_uses",
+        end_uses=["clothes_dryer"],
     )
 
     # [10] Heat pump dryer: Clothes dryer (pkg 8, 9, 10)
-    DF.append(
-        SE.get_data(
-            [8, 9, 10],
-            "clothes_dryer.heat_pump",
-            adjustment_type="extract_end_uses",
-            end_uses=["clothes_dryer"],
-        )
+    SE.get_aggregates(
+        [8, 9, 10],
+        "clothes_dryer.heat_pump",
+        groupby_cols,
+        dfb,
+        agg=agg,
+        adjustment_type="extract_end_uses",
+        end_uses=["clothes_dryer"],
     )
 
     # [11] Electric cooking: Cooking (pkg 7)
-    DF.append(
-        SE.get_data(
-            7,
-            "cooking.electric",
-            adjustment_type="extract_end_uses",
-            end_uses=["range_oven"],
-        )
+    SE.get_aggregates(
+        7,
+        "cooking.electric",
+        groupby_cols,
+        dfb,
+        agg=agg,
+        adjustment_type="extract_end_uses",
+        end_uses=["range_oven"],
     )
 
     # [12] Induction cooking: Cooking (pkg 8, 9, 10)
-    DF.append(
-        SE.get_data(
-            [8, 9, 10],
-            "cooking.induction",
-            adjustment_type="extract_end_uses",
-            end_uses=["range_oven"],
-        )
+    SE.get_aggregates(
+        [8, 9, 10],
+        "cooking.induction",
+        groupby_cols,
+        dfb,
+        agg=agg,
+        adjustment_type="extract_end_uses",
+        end_uses=["range_oven"],
     )
 
     ## rest of the full electrification packages
     # [13] pkg 7 - all
-    DF.append(
-        SE.get_data(
-            7,
-            "whole_home.electrification_min_eff",
-        )
+    SE.get_aggregates(
+        7,
+        "whole_home.electrification_min_eff",
+        groupby_cols,
+        dfb,
+        agg=agg,
     )
     # [14] pkg 8 - all
-    DF.append(
-        SE.get_data(
-            8,
-            "whole_home.electrification_high_eff",
-        )
+    SE.get_aggregates(
+        8,
+        "whole_home.electrification_high_eff",
+        groupby_cols,
+        dfb,
+        agg=agg,
     )
     # [15] pkg 9 - all
-    DF.append(
-        SE.get_data(
-            9,
-            "whole_home.electrification_high_eff + enclosure.basic_upgrade",
-        )
+    SE.get_aggregates(
+        9,
+        "whole_home.electrification_high_eff + enclosure.basic_upgrade",
+        groupby_cols,
+        dfb,
+        agg=agg,
     )
     # [16] pkg 10 - all
-    DF.append(
-        SE.get_data(
-            10,
-            "whole_home.electrification_high_eff + enclosure.enhanced_upgrade",
-        )
-    )
-
-    pd.concat(DF, axis=0).to_csv(
-        euss_dir.parent / "cleap_dashboard_files" / "process_euss_results.csv",
-        index=False,
+    SE.get_aggregates(
+        10,
+        "whole_home.electrification_high_eff + enclosure.enhanced_upgrade",
+        groupby_cols,
+        dfb,
+        agg=agg,
     )
 
 
