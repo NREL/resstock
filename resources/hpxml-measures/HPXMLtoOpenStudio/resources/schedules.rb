@@ -740,8 +740,8 @@ class Schedule
     rule.setApplySunday(true)
   end
 
-  def self.get_unavailable_periods(schedule_name, unavailable_periods)
-    return unavailable_periods.select { |p| Schedule.unavailable_period_applies(schedule_name, p.column_name) }
+  def self.get_unavailable_periods(runner, schedule_name, unavailable_periods)
+    return unavailable_periods.select { |p| Schedule.unavailable_period_applies(runner, schedule_name, p.column_name) }
   end
 
   def self.set_unavailable_periods(schedule, sch_name, unavailable_periods, year)
@@ -1256,9 +1256,10 @@ class Schedule
     return unavailable_periods_csv_data
   end
 
-  def self.unavailable_period_applies(schedule_name, col_name)
+  def self.unavailable_period_applies(runner, schedule_name, col_name)
     if @unavailable_periods_csv_data.nil?
       @unavailable_periods_csv_data = get_unavailable_periods_csv_data
+
     end
     @unavailable_periods_csv_data.each do |csv_row|
       next if csv_row['Schedule Name'] != schedule_name
@@ -1273,6 +1274,13 @@ class Schedule
         fail "Value is not a valid integer for row='#{schedule_name}' and column='#{col_name}' in unavailable_periods.csv."
       end
       if applies == 1
+        if not runner.nil?
+          if schedule_name == SchedulesFile::ColumnHVAC
+            runner.registerWarning('It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.')
+          elsif schedule_name == SchedulesFile::ColumnWaterHeater
+            runner.registerWarning('It is not possible to eliminate all water heater energy use (e.g. parasitics) in EnergyPlus during an unavailable period.')
+          end
+        end
         return true
       elsif applies == 0
         return false
@@ -1659,7 +1667,7 @@ class SchedulesFile
         end
 
         # Skip those unaffected
-        next unless Schedule.unavailable_period_applies(schedule_name2, column_name)
+        next unless Schedule.unavailable_period_applies(@runner, schedule_name2, column_name)
 
         @tmp_schedules[column_name].each_with_index do |_ts, i|
           if schedule_name == ColumnWaterHeaterSetpoint

@@ -760,7 +760,7 @@ class Psychrometrics
     return tdp
   end
 
-  def self.CalculateSHR(dBin, wBin, p, q, cfm, ao)
+  def self.CalculateSHR(dBin, wBin, p, q, cfm, ao, win)
     '''
     Description:
     ------------
@@ -787,7 +787,6 @@ class Psychrometrics
     mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, wBin, p, cfm), 'lbm/min', 'kg/s')
     bf = Math.exp(-1.0 * ao / mfr)
 
-    win = w_fT_Twb_P(dBin, wBin, p)
     p = UnitConversions.convert(p, 'psi', 'kPa')
     tin = UnitConversions.convert(dBin, 'F', 'C')
     hin = h_fT_w_SI(tin, win)

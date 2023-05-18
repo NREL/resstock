@@ -31,6 +31,8 @@ __New Features__
   - Defaults for `BackupHeatingLockoutTemperature`: 50F for dual-fuel, 40F for all other heat pumps.
   - Provides a warning if `BackupHeatingSwitchoverTemperature` or `BackupHeatingLockoutTemperature` are low and may cause unmet hours.
   - Autosizing is no longer all-or-none; backup heating can be autosized (defaulted) while specifying the heat pump capacities, or vice versa.
+  - Allows `extension/CrankcaseHeaterPowerWatts` as an optional input; defaults to 50 W for central HPs/ACs and mini-splits.
+  - Increased consistency between variable-speed central HP and mini-split HP models for degradation coefficients, gross SHR calculations, etc.
 - Infiltration changes:
   - **Breaking change**: Infiltration for SFA/MF dwelling units must include `TypeOfInfiltrationLeakage` ("unit total" or "unit exterior only").
   - **Breaking change**: Replaces `BuildingConstruction/extension/HasFlueOrChimney` with `AirInfiltration/extension/HasFlueOrChimneyInConditionedSpace`; defaults now incorporate HVAC/water heater location.
@@ -64,6 +66,7 @@ __Bugfixes__
 - Various fixes for window/skylight/duct design loads for Manual J HVAC autosizing calculations.
 - Ensure that ductless HVAC systems do not have a non-zero airflow defect ratio specified.
 - Fixes possible "A neighbor building has an azimuth (XX) not equal to the azimuth of any wall" for SFA/MF units with neighboring buildings for shade.
+- Fixes reported loads when no/partial HVAC system (e.g., room air conditioner that meets 30% of the cooling load).
 
 ## OpenStudio-HPXML v1.5.1
 
