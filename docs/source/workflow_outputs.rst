@@ -168,7 +168,6 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Natural Gas: Clothes Dryer (MBtu)
    End Use: Natural Gas: Range/Oven (MBtu)
    End Use: Natural Gas: Mech Vent Preheating (MBtu)
-   End Use: Natural Gas: Mech Vent Precooling (MBtu)
    End Use: Natural Gas: Pool Heater (MBtu)
    End Use: Natural Gas: Hot Tub Heater (MBtu)
    End Use: Natural Gas: Grill (MBtu)
@@ -181,17 +180,16 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Fuel Oil: Clothes Dryer (MBtu)
    End Use: Fuel Oil: Range/Oven (MBtu)
    End Use: Fuel Oil: Mech Vent Preheating (MBtu)
-   End Use: Fuel Oil: Mech Vent Precooling (MBtu)
    End Use: Fuel Oil: Grill (MBtu)
    End Use: Fuel Oil: Lighting (MBtu)
    End Use: Fuel Oil: Fireplace (MBtu)
+   End Use: Fuel Oil: Generator (MBtu)                               Positive value for any fuel consumed
    End Use: Propane: Heating (MBtu)                                  Excludes heat pump backup
    End Use: Propane: Heating Heat Pump Backup (MBtu)
    End Use: Propane: Hot Water (MBtu)
    End Use: Propane: Clothes Dryer (MBtu)
    End Use: Propane: Range/Oven (MBtu)
    End Use: Propane: Mech Vent Preheating (MBtu)
-   End Use: Propane: Mech Vent Precooling (MBtu)
    End Use: Propane: Grill (MBtu)
    End Use: Propane: Lighting (MBtu)
    End Use: Propane: Fireplace (MBtu)
@@ -202,30 +200,30 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Wood Cord: Clothes Dryer (MBtu)
    End Use: Wood Cord: Range/Oven (MBtu)
    End Use: Wood Cord: Mech Vent Preheating (MBtu)
-   End Use: Wood Cord: Mech Vent Precooling (MBtu)
    End Use: Wood Cord: Grill (MBtu)
    End Use: Wood Cord: Lighting (MBtu)
    End Use: Wood Cord: Fireplace (MBtu)
+   End Use: Wood Cord: Generator (MBtu)                              Positive value for any fuel consumed
    End Use: Wood Pellets: Heating (MBtu)                             Excludes heat pump backup
    End Use: Wood Pellets: Heating Heat Pump Backup (MBtu)
    End Use: Wood Pellets: Hot Water (MBtu)
    End Use: Wood Pellets: Clothes Dryer (MBtu)
    End Use: Wood Pellets: Range/Oven (MBtu)
    End Use: Wood Pellets: Mech Vent Preheating (MBtu)
-   End Use: Wood Pellets: Mech Vent Precooling (MBtu)
    End Use: Wood Pellets: Grill (MBtu)
    End Use: Wood Pellets: Lighting (MBtu)
    End Use: Wood Pellets: Fireplace (MBtu)
+   End Use: Wood Pellets: Generator (MBtu)                           Positive value for any fuel consumed
    End Use: Coal: Heating (MBtu)                                     Excludes heat pump backup
    End Use: Coal: Heating Heat Pump Backup (MBtu)
    End Use: Coal: Hot Water (MBtu)
    End Use: Coal: Clothes Dryer (MBtu)
    End Use: Coal: Range/Oven (MBtu)
    End Use: Coal: Mech Vent Preheating (MBtu)
-   End Use: Coal: Mech Vent Precooling (MBtu)
    End Use: Coal: Grill (MBtu)
    End Use: Coal: Lighting (MBtu)
    End Use: Coal: Fireplace (MBtu)
+   End Use: Coal: Generator (MBtu)                                   Positive value for any fuel consumed
    ================================================================  ====================================================
 
 Annual Energy By System Use
@@ -310,6 +308,7 @@ Annual building loads are listed below.
    ======================================  ==================================================================
 
 Note that the "Delivered" loads represent the energy delivered by the HVAC/DHW system; if a system is significantly undersized, there will be unmet load not reflected by these values.
+If the home is not fully conditioned (e.g., a room air conditioner that only meets 30% of the cooling load), the reported load will be likewise reduced compared to a home that is fully conditioned.
 
 Annual Unmet Hours
 ~~~~~~~~~~~~~~~~~~
@@ -350,6 +349,7 @@ Peak building loads are listed below.
    =======================================  ==================================
 
 Note that the "Delivered" peak loads represent the energy delivered by the HVAC system; if a system is significantly undersized, there will be unmet peak load not reflected by these values.
+If the home is not fully conditioned (e.g., a room air conditioner that only meets 30% of the cooling load), the reported peak load will be likewise reduced compared to a home that is fully conditioned.
 
 Annual Component Building Loads
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -386,6 +386,8 @@ Component loads disaggregated by Heating/Cooling are listed below.
    Component Load: \*: Internal Gains (MBtu)          Heat gain/loss from appliances, plug loads, water heater tank losses, etc. in the conditioned space
    Component Load: \*: Lighting (MBtu)                Heat gain/loss from lighting in the conditioned space
    =================================================  =========================================================================================================
+
+If the home is not fully conditioned (e.g., a room air conditioner that only meets 30% of the cooling load), the reported component loads will be likewise reduced compared to a home that is fully conditioned.
 
 Annual Hot Water Uses
 ~~~~~~~~~~~~~~~~~~~~~
@@ -503,6 +505,8 @@ Timeseries outputs can be one of the following frequencies: hourly, daily, month
 Timestamps in the output use the start-of-period convention unless you have requested the end-of-period timestamp convention.
 Additional timestamp columns can be optionally requested that reflect daylight saving time (DST) and/or coordinated universal time (UTC).
 Most outputs will be summed over the hour (e.g., energy) but some will be averaged over the hour (e.g., temperatures, airflows).
+
+Note that if the home is not fully conditioned (e.g., a room air conditioner that only meets 30% of the cooling load), the reported zone temperature for the living space will reflect a fully conditioned home due to the way these systems are modeled in EnergyPlus.
 
 .. _bill_outputs:
 
