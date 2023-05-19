@@ -3,14 +3,14 @@ os_version: 3.5.1
 os_sha: 22e1db7be5
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_baseline
-weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+output_directory: /scratch/ylou2/buildstockbatch/test10
+#weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 250
+    n_datapoints: 5
 
 workflow_generator:
   type: residential_hpxml
@@ -52,9 +52,34 @@ baseline:
 eagle:
   n_jobs: 3
   minutes_per_sim: 30
-  account: <account you are authorized to use>
+  account: enduse
   postprocessing:
     time: 20
     n_workers: 1
   sampling:
     time: 5
+
+aws:
+  # The job_identifier should be unique, start with alpha, not include dashes, and limited to 10 chars or data loss can occur
+  job_identifier: test_proj
+  s3:
+    bucket: eulp
+    prefix: buildstock_csv_to_s3/test
+  emr:
+    worker_instance_count: 1
+  region: us-west-2
+  use_spot: true
+  batch_array_size: 10
+  # To receive email updates on job progress accept the request to receive emails that will be sent from Amazon
+  notifications_email: yingli.lou@nrel.gov
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: eulp
+      prefix: buildstock_csv_to_s3/test
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: ext_demo1
+      max_crawling_time: 300 #time to wait for the crawler to complete before aborting it
