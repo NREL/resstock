@@ -122,12 +122,29 @@ upgrades:
           - or:
             - Clothes Dryer|Electric
             - Clothes Dryer|Electric, Premium
+        costs:
+          - value: 1618.6 #price1: $749.99-1844.99 for ENERGY STAR Certified electric clothes dryer in BestBuy
+                         #price2: $899-2049 for ENERGY STAR Certified electric clothes dryer in Home Depot
+                         # 1618.6=1399.5*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor.
+                         # Anopther option: $1064. $760 for replacing electric dryer in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+            multiplier: Fixed (1)
+        lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
+                     # 18 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
+
       - &energystar_clothes_dryer_gas 
         option: Clothes Dryer|Gas, Premium, EnergyStar
         apply_logic:
           - or:
             - Clothes Dryer|Gas
             - Clothes Dryer|Gas, Premium
+        costs:
+          - value: 1394.5 #price1: $849.99-1529.99 for ENERGY STAR Certified gas clothes dryer in BestBuy
+                         #price2: $1249-1349 for ENERGY STAR Certified gas clothes  dryer in Home Depot
+                         # 1394.5=1189.99*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor.
+                         # Anopther option: $1400. $1000 for replacing electric dryer in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+            multiplier: Fixed (1)
+        lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
+                     # 18 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
 
   - upgrade_name: All ENERGYSTAR Most Efficient Appliances
     options:
@@ -233,6 +250,15 @@ upgrades:
           - or:
             - Cooking Range|Gas
             - Cooking Range|Propane
+        costs:
+          - value: 1819.8 #price1: $674.99-2499.99 for Convection Range in BestBuy
+                         #price2: $799- for Convection Range in Home Depot
+                         # 1819.8=1587.49*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor.
+                         # Anopther option: $1288. $920 for replace non electric range to electric range in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+            multiplier: Fixed (1)
+        lifetime: 13 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=279&actionId=2204&bcId=6961
+                     # 17 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
+
 
   - upgrade_name: Electric Pool Heaters
     options:
