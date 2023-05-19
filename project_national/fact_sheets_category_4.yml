@@ -160,13 +160,17 @@ upgrades:
     options:
       - &water_heater_fuel_type
         option: Water Heater Fuel|Electricity
+        apply_logic:
+          - not: Water Heater Fuel|Electricity
       - &water_heater_efficiency_electric_heat_pump_50_gal_3_pt_45_uef
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         apply_logic:
-          - or:
-            - Bedrooms|1
-            - Bedrooms|2
-            - Bedrooms|3
+          - and:
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - or:
+              - Bedrooms|1
+              - Bedrooms|2
+              - Bedrooms|3
         costs:
           - value: 100.0 #TBD
             multiplier: Size, Water Heater (gal)
@@ -174,7 +178,8 @@ upgrades:
       - &water_heater_efficiency_electric_heat_pump_66_gal_3_pt_35_uef
         option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
         apply_logic:
-          - or:
+          - and:
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
             - Bedrooms|4
         costs:
           - value: 100.0 #TBD
@@ -183,7 +188,8 @@ upgrades:
       - &water_heater_efficiency_electric_heat_pump_80_gal_3_pt_45_uef
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         apply_logic:
-          - or:
+          - and:
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
             - Bedrooms|5
         costs:
           - value: 100.0 #TBD
@@ -222,6 +228,7 @@ upgrades:
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
           - HVAC Heating Type And Fuel|Propane Fuel Furnace
           - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
 
   - upgrade_name: 96% AFUE Natural Gas Boiler
     options:
@@ -251,9 +258,10 @@ upgrades:
           - Misc Gas Grill|Gas Grill
           - Misc Gas Lighting|Gas Lighting
         - or:
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-          - HVAC Heating Type And Fuel|Propane Fuel Furnace
-          - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+          - HVAC Heating Type And Fuel|Propane Fuel Boiler
+          - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
 eagle:
   n_jobs: 3
   minutes_per_sim: 30
