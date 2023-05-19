@@ -62,12 +62,13 @@ upgrades:
             - Refrigerator|EF 15.9
             - Refrigerator|EF 17.6
         costs:
-          - value: 1136.6 # option1: $899-999 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in BestBuy https://www.bestbuy.com/site/searchpage.jsp?id=pcat17071&qp=totalcapacityrange_facet%3DCapacity%20(cu.%20ft.)~20.9%20to%2020.9&st=refrigerator
-                          # option2: $8144-8599 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in Home Depot https://www.homedepot.com/s/Refrigerator%2020.9?NCNI-5  
-                          # option3: $938. $670 for EF 19.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
-                          # 1136.6=949*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor. 
+          - value: 1992.6 # price1: $1699-1799 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in BestBuy https://www.bestbuy.com/site/searchpage.jsp?id=pcat17071&qp=totalcapacityrange_facet%3DCapacity%20(cu.%20ft.)~20.9%20to%2020.9&st=refrigerator
+                          # price2: $8144-8599 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in Home Depot https://www.homedepot.com/s/Refrigerator%2020.9?NCNI-5  
+                          # 1136.6=1749*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor. 
+                          # Anopther option: $938. $670 for EF 19.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
             multiplier: Fixed (1)
-        lifetime: 17.4 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
+        lifetime: 17.4 # 17.4 from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
+                       # 15 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
       - &energystar_extra_refrigerator
         option: Misc Extra Refrigerator|EF 19.9
         apply_logic:
@@ -82,21 +83,25 @@ upgrades:
             - Misc Extra Refrigerator|EF 15.9
             - Misc Extra Refrigerator|EF 17.6
         costs:
-          - value: 1136.6 # $899-999 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in BestBuy https://www.bestbuy.com/site/searchpage.jsp?id=pcat17071&qp=totalcapacityrange_facet%3DCapacity%20(cu.%20ft.)~20.9%20to%2020.9&st=refrigerator
-                          # $8144-8599 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in Home Depot https://www.homedepot.com/s/Refrigerator%2020.9?NCNI-5  
-                          # $938. $670 for EF 19.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
-                          # 1136.6=949*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor
+          - value: 1992.6 # price1: $1699-1799 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in BestBuy https://www.bestbuy.com/site/searchpage.jsp?id=pcat17071&qp=totalcapacityrange_facet%3DCapacity%20(cu.%20ft.)~20.9%20to%2020.9&st=refrigerator
+                          # price2: $8144-8599 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in Home Depot https://www.homedepot.com/s/Refrigerator%2020.9?NCNI-5  
+                          # 1136.6=1749*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor. 
+                          # Anopther option: $938. $670 for EF 19.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
             multiplier: Fixed (1)
-        lifetime: 17.4 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
+        lifetime: 17.4 # 17.4 from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
+                       # 15 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
       - &energystar_clothes_washer
         option: Clothes Washer|EnergyStar
         apply_logic:
           - Clothes Washer|Standard
         costs:
-          - value: 903.0 # $903. $630-660 for replacing clothes washer from MEF0.78 to MEF2 in REMDB
-                          # then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+          - value: 1532.5 #price1: $989-1299 for ENERGY STAR Certified clothes washer (<2.5 Cu.Ft) in BestBuy
+                         #price2: $1099-1649 for ENERGY STAR Certified clothes washer (<2.5 Cu.Ft) in Home Depot
+                         # 1532.5=1319*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor.
+                         # Anopther option: $903. $630-660 for replacing clothes washer from MEF0.78 to MEF2 in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
             multiplier: Fixed (1)
         lifetime: 14 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=293&actionId=1068&bcId=4538
+                     # 17 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
       - &energystar_dishwasher 
         option: Dishwasher|270 Rated kWh
         apply_logic:
@@ -104,9 +109,13 @@ upgrades:
             - Dishwasher|318 Rated kWh
             - Dishwasher|290 Rated kWh
         costs:
-          - value: 938.0 # 
+          - value: 1670.0 #price1: $494.99-2400 for ENERGY STAR Certified diswasher (270 Rated kWh) in BestBuy
+                         #price2: $509-1249 for ENERGY STAR Certified diswasher (270 Rated kWh) in Home Depot
+                         # 1670.0=1447.5*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor.
+                         # Anopther option: $1400. $1000 for replacing diswasher from 324 Rated kWh, 311 Rated kWh, 307 Rated kWh to 259 Rated kWh in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
             multiplier: Fixed (1)
-        lifetime: 14 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
+        lifetime: 11 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=291&actionId=1065&bcId=4484
+                     # 15 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
       - &energystar_clothes_dryer_electric 
         option: Clothes Dryer|Electric, Premium, EnergyStar
         apply_logic:
@@ -133,8 +142,7 @@ upgrades:
             - Refrigerator|EF 17.6
             - Refrigerator|EF 19.9
         costs:
-          - value: 1400.0 #TBD
-                          # $1400. $1000 for EF 21.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+          - value: 1400.0 # $1400. $1000 for EF 21.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
             multiplier: Fixed (1)
         lifetime: 17.4 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
       - &energystar_most_eff_extra_refrigerator
@@ -152,8 +160,7 @@ upgrades:
             - Misc Extra Refrigerator|EF 17.6
             - Misc Extra Refrigerator|EF 19.9
         costs:
-          - value: 1400.0 #TBD
-                          # $1400. $1000 for EF 21.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+          - value: 1400.0 # $1400. $1000 for EF 21.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
             multiplier: Fixed (1)
         lifetime: 17.4 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
       - &energystar_most_eff_clothes_washer
@@ -164,6 +171,11 @@ upgrades:
             - Clothes Washer|EnergyStar
             - Clothes Washer|EnergyStar, Cold Only
             - Clothes Washer|EnergyStar More Efficient
+        costs:
+          - value: 1680.0 # $1680. $1200 for replacing clothes washer to MEF2.88 in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+            multiplier: Fixed (1)
+        lifetime: 14 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=293&actionId=1068&bcId=4538
+
       - &energystar_most_eff_dishwasher 
         option: Dishwasher|240 Rated kWh
         apply_logic:
@@ -172,6 +184,13 @@ upgrades:
             - Dishwasher|290 Rated kWh
             - Dishwasher|270 Rated kWh
             - Dishwasher|255 Rated kWh
+        costs:
+          - value: 1752.4 #price1: $699.99-2499 for ENERGY STAR Certified diswasher (240 Rated kWh) in BestBuy
+                         #price2: $549.99-1299 for ENERGY STAR Certified diswasher (240 Rated kWh) in Home Depot
+                         # 1752.4=1524.5*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor.
+            multiplier: Fixed (1)
+        lifetime: 11 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=291&actionId=1065&bcId=4484
+                     # 15 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
       - &energystar_most_eff_clothes_dryer_electric 
         option: Clothes Dryer|Electric, Premium, EnergyStar Most Efficient
         apply_logic:
