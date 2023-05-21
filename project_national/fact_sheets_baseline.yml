@@ -3,18 +3,23 @@ os_version: 3.5.1
 os_sha: 22e1db7be5
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_baseline
+output_directory: /projects/abctypol/largeee/test_runs/cateory_2_20230520/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: precomputed
+  type: residential_quota_downselect_sampler
   args:
-    sample_file: ./project_national/buildstock_10k_20230520.csv
+    n_datapoints: 10000
+    logic:
+      - not: 
+        - State|Hawaii
+        - State|Alaska
+    resample: true
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
-  skip_sims: true
+  skip_sims: false
 
 eagle:
   n_jobs: 3
@@ -24,15 +29,17 @@ eagle:
     time: 20
     n_workers: 1
   sampling:
-    time: 5
+    time: 30
 
 aws:
+  job_identifier: factsheets_baseline
   s3:
     bucket: largeee
     prefix: test_runs
   region: us-west-2
   use_spot: true
   batch_array_size: 10000
+  notifications_email: lliu2@nrel.gov
 
 workflow_generator:
   type: residential_hpxml
@@ -67,36 +74,3 @@ workflow_generator:
     server_directory_cleanup:
       retain_in_idf: false
       retain_schedules_csv: false
-
-### -- References ---
-references:
-  natural_gas_boilder_fed_min: &natural_gas_boiler_fed_min
-        option: HVAC Heating Efficiency|Fuel Boiler, 90% AFUE 
-        apply_logic:
-          - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
-          - or: 
-            - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-
-  fuel_oil_boiler_fed_min: &fuel_oil_boiler_fed_min
-        option: HVAC Heating Efficiency|Fuel Boiler, 87% AFUE 
-        apply_logic:
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
-          - or: 
-            - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-
-### -- Upgrades ---
-upgrades:
-  - upgrade_name: Universal Heat Pumps
-    options:
-      - &cooling_setpoint_76
-        option: Cooling Setpoint|76F
-        apply_logic: 
-          - Cooling Setpoint|None

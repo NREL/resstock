@@ -8,18 +8,13 @@ output_directory: /projects/abctypol/largeee/test_runs/cateory_3_20230520/
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota_downselect_sampler
+  type: precomputed
   args:
-    n_datapoints: 10000
-    logic:
-      - not: 
-        - State|Hawaii
-        - State|Alaska
-    resample: true
+    sample_file: ./project_national/buildstock_10k_20230520.csv
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
-  skip_sims: false
+  skip_sims: true
 
 eagle:
   n_jobs: 3
@@ -32,12 +27,14 @@ eagle:
     time: 30
 
 aws:
+  job_identifier: factsheets_4
   s3:
     bucket: largeee
     prefix: test_runs
   region: us-west-2
   use_spot: true
   batch_array_size: 10000
+  notifications_email: lliu2@nrel.gov
 
 workflow_generator:
   type: residential_hpxml
