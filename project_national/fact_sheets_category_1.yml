@@ -10,7 +10,7 @@ weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 sampler:
   type: precomputed
   args:
-    sample_file: ../buildstock_10k_20230520.csv
+    sample_file: ../buildstock_10k_20230520.csv # relative to file
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
@@ -330,8 +330,6 @@ upgrades:
             - *logic_fed_min_heat_pump_ASHP_ducted_southern
             - *logic_fed_min_heat_pump_MSHP_ductless_southern
 
-
-
   - upgrade_name: Federal Minimum Heating and Cooling
     options:
     ####
@@ -363,14 +361,11 @@ upgrades:
       - *natural_gas_furnace_fed_min_south
       - *fuel_oil_furnace_fed_min
 
-
-
   - upgrade_name: Federal Minimum Water Heating
     options:
     ####
     
   - upgrade_name: Federal Minimum Heating, Cooling, and Water Heating
-
     options:
     ####
     # Federal minimum heat pumps
