@@ -104,7 +104,7 @@ upgrades:
         option: HVAC Heating Efficiency|Fuel Furnace, 95% AFUE 
         apply_logic:
           - &logic_northern_state_federal_minimum
-            - or:
+            or:
               - State|WA
               - State|OR
               - State|MT
@@ -150,7 +150,7 @@ upgrades:
         option: HVAC Heating Efficiency|Fuel Furnace, 90% AFUE 
         apply_logic:
           - &logic_southern_state_federal_minimum
-            - or:
+            or:
               - State|CA
               - State|NV
               - State|AZ
@@ -201,7 +201,7 @@ upgrades:
           - *logic_southern_state_federal_minimum
           - HVAC Has Ducts|Yes
           - &logic_not_ASHP_greater_than_8_8_HSPF
-            - or:
+            or:
               - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
               - HVAC Heating Efficiency|ASHP, SEER 10.3, 7.0 HSPF
               - HVAC Heating Efficiency|ASHP, SEER 11.5, 7.5 HSPF
@@ -226,7 +226,7 @@ upgrades:
           - *logic_southern_state_federal_minimum
           - HVAC Has Ducts|No
           - &logic_not_MSHP_greater_than_8_8_HSPF
-            - or:
+            or:
               - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
         costs: &costs_mshp_ductless_SEER_15_9_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
