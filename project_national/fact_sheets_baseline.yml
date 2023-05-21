@@ -8,13 +8,14 @@ output_directory: /projects/abctypol/largeee/test_runs/baseline_20230520/
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota_downselect_sampler
+  type: residential_quota_downselect
   args:
     n_datapoints: 10000
     logic:
-      - not: 
-        - State|Hawaii
-        - State|Alaska
+      not:
+        - or: 
+          - State|HI
+          - State|AK
     resample: true
 
 baseline:
