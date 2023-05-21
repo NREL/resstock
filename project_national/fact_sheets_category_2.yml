@@ -3,14 +3,38 @@ os_version: 3.5.1
 os_sha: 22e1db7be5
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_upgrades
-weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+output_directory: /projects/abctypol/largeee/test_runs/cateory_2_20230520/
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota
+  type: precomputed
   args:
-    n_datapoints: 5
+    sample_file: ../buildstock_10k_20230520.csv
+
+baseline:
+  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+  skip_sims: true
+
+eagle:
+  n_jobs: 3
+  minutes_per_sim: 4
+  account: abctypol
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 30
+
+aws:
+  job_identifier: fs_2
+  s3:
+    bucket: largeee
+    prefix: test_runs
+  region: us-west-2
+  use_spot: true
+  batch_array_size: 10000
+  notifications_email: lliu2@nrel.gov
 
 workflow_generator:
   type: residential_hpxml
@@ -46,9 +70,7 @@ workflow_generator:
       retain_in_idf: false
       retain_schedules_csv: false
 
-baseline:
-  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
-
+### -- Upgrades ---
 upgrades:
   - upgrade_name: Thin Triple Windows # TBD whether based on different cliamte locations like EnergyStar windows
     options:  
@@ -478,13 +500,3 @@ upgrades:
           - value: 6.02 # $/ft2 (4.3* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=13&component_type_id=395&actionId=2621&bcId=6283
             multiplier: Roof Area (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-
-eagle:
-  n_jobs: 3
-  minutes_per_sim: 30
-  account: <account you are authorized to use>
-  postprocessing:
-    time: 20
-    n_workers: 1
-  sampling:
-    time: 5

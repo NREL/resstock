@@ -3,14 +3,38 @@ os_version: 3.5.1
 os_sha: 22e1db7be5
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_baseline
+output_directory: /projects/abctypol/largeee/test_runs/cateory_1_20230520/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota
+  type: precomputed
   args:
-    n_datapoints: 2200000
+    sample_file: ../buildstock_10k_20230520.csv
+
+baseline:
+  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+  skip_sims: true
+
+eagle:
+  n_jobs: 3
+  minutes_per_sim: 4
+  account: abctypol
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 5
+
+aws:
+  job_identifier: fs_1
+  s3:
+    bucket: largeee
+    prefix: test_runs
+  region: us-west-2
+  use_spot: true
+  batch_array_size: 10000
+  notifications_email: lliu2@nrel.gov
 
 workflow_generator:
   type: residential_hpxml
@@ -46,12 +70,12 @@ workflow_generator:
       retain_in_idf: false
       retain_schedules_csv: false
 
+### -- Upgrades ---
 # Federal Minimum Category
 upgrades:
   - upgrade_name: Federal Minimum Heating
 
     options:
-
       # Natural Gas Boiler Federal Minimum - 90%
       - &natural_gas_boiler_fed_min
         option: HVAC Heating Efficiency|Fuel Boiler, 90% AFUE 
@@ -376,17 +400,3 @@ upgrades:
       - *natural_gas_furnace_fed_min_north
       - *natural_gas_furnace_fed_min_south
       - *fuel_oil_furnace_fed_min
-
-
-baseline:
-  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
-
-eagle:
-  n_jobs: 3
-  minutes_per_sim: 30
-  account: <account you are authorized to use>
-  postprocessing:
-    time: 20
-    n_workers: 1
-  sampling:
-    time: 5
