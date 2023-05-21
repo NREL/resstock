@@ -4,13 +4,34 @@ os_sha: 22e1db7be5
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 output_directory: national_baseline
-weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
     n_datapoints: 250
+
+baseline:
+  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+
+eagle:
+  n_jobs: 3
+  minutes_per_sim: 30
+  account: abctypol
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 5
+
+aws:
+  s3:
+    bucket: largeee
+    prefix: test_runs
+  region: us-west-2
+  use_spot: true
+  batch_array_size: 10000
 
 workflow_generator:
   type: residential_hpxml
@@ -46,6 +67,7 @@ workflow_generator:
       retain_in_idf: false
       retain_schedules_csv: false
 
+### -- References ---
 references:
   natural_gas_boilder_fed_min: &natural_gas_boiler_fed_min
         option: HVAC Heating Efficiency|Fuel Boiler, 90% AFUE 
@@ -69,20 +91,7 @@ references:
             - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
             - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
 
-baseline:
-  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
-
-eagle:
-  n_jobs: 3
-  minutes_per_sim: 30
-  account: <account you are authorized to use>
-  postprocessing:
-    time: 20
-    n_workers: 1
-  sampling:
-    time: 5
-
-
+### -- Upgrades ---
 upgrades:
   - upgrade_name: Universal Heat Pumps
     options:
