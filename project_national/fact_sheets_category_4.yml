@@ -10,7 +10,7 @@ weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 sampler:
   type: precomputed
   args:
-    sample_file: ../buildstock_10k_20230520.csv
+    sample_file: ../buildstock_10k_20230520.csv # relative to file
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
@@ -128,7 +128,7 @@ upgrades:
             - or:
               - State|WA
               - State|OR
-              - State|MY
+              - State|MT
               - State|ID
               - State|WY
               - State|UT
@@ -159,7 +159,7 @@ upgrades:
   - upgrade_name: ENERGYSTAR Room AC
     options:
       - &energystar_room_ac
-        option: HVAC Cooling Efficiency |Room AC, EER 12.0
+        option: HVAC Cooling Efficiency|Room AC, EER 12.0
         apply_logic:
           - or:
             - HVAC Cooling Efficiency|Room AC, EER 8.5
@@ -169,7 +169,7 @@ upgrades:
   - upgrade_name: ENERGYSTAR Central AC
     options:
       - &energystar_central_ac
-        option: HVAC Cooling Efficiency |AC, SEER 15.2
+        option: HVAC Cooling Efficiency|AC, SEER 15.2
         apply_logic:
           - or:
             - HVAC Cooling Efficiency|AC, SEER 8
@@ -222,7 +222,7 @@ upgrades:
     options:
       - &Furnace_fuel_type
         option: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-      - &96%AFUE_furnace
+      - &96pct_AFUE_furnace
         option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
         apply_logic:
           - or:
@@ -254,9 +254,9 @@ upgrades:
 
   - upgrade_name: 96% AFUE Natural Gas Boiler
     options:
-      - &Furnace_fuel_type
+      - &Boiler_fuel_type
         option: HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
-      - &96%AFUE_boiler
+      - &96pct_AFUE_boiler
         option: HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
         apply_logic:
           - or:

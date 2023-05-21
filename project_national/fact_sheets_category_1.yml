@@ -10,7 +10,7 @@ weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 sampler:
   type: precomputed
   args:
-    sample_file: ../buildstock_10k_20230520.csv
+    sample_file: ../buildstock_10k_20230520.csv # relative to file
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
@@ -74,7 +74,6 @@ workflow_generator:
 # Federal Minimum Category
 upgrades:
   - upgrade_name: Federal Minimum Heating
-
     options:
       # Natural Gas Boiler Federal Minimum - 90%
       - &natural_gas_boiler_fed_min
@@ -104,36 +103,37 @@ upgrades:
       - &natural_gas_furnace_fed_min_north
         option: HVAC Heating Efficiency|Fuel Furnace, 95% AFUE 
         apply_logic:
-          - or: &northern_state_federal_minimum
-            - State|WA
-            - State|OR
-            - State|MY
-            - State|ID
-            - State|WY
-            - State|UT
-            - State|CO
-            - State|ND
-            - State|SD
-            - State|NE
-            - State|KS
-            - State|MN
-            - State|IA
-            - State|MO
-            - State|WI
-            - State|IL
-            - State|MI
-            - State|IN
-            - State|OH
-            - State|WV
-            - State|PA
-            - State|NJ
-            - State|NY
-            - State|CT
-            - State|RI
-            - State|MA
-            - State|VT
-            - State|NH
-            - State|ME
+          - &logic_northern_state_federal_minimum
+            or:
+              - State|WA
+              - State|OR
+              - State|MT
+              - State|ID
+              - State|WY
+              - State|UT
+              - State|CO
+              - State|ND
+              - State|SD
+              - State|NE
+              - State|KS
+              - State|MN
+              - State|IA
+              - State|MO
+              - State|WI
+              - State|IL
+              - State|MI
+              - State|IN
+              - State|OH
+              - State|WV
+              - State|PA
+              - State|NJ
+              - State|NY
+              - State|CT
+              - State|RI
+              - State|MA
+              - State|VT
+              - State|NH
+              - State|ME
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
           - or: 
             - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
@@ -149,27 +149,28 @@ upgrades:
       - &natural_gas_furnace_fed_min_south
         option: HVAC Heating Efficiency|Fuel Furnace, 90% AFUE 
         apply_logic:
-          - or: &southern_state_federal_minimum
-            - State|CA
-            - State|NV
-            - State|AZ
-            - State|NM
-            - State|OK
-            - State|TX
-            - State|AR
-            - State|LA
-            - State|KY
-            - State|TN
-            - State|MS
-            - State|AL
-            - State|GA
-            - State|FL
-            - State|SC
-            - State|NC
-            - State|VA
-            - State|DC
-            - State|MD
-            - State|DE
+          - &logic_southern_state_federal_minimum
+            or:
+              - State|CA
+              - State|NV
+              - State|AZ
+              - State|NM
+              - State|OK
+              - State|TX
+              - State|AR
+              - State|LA
+              - State|KY
+              - State|TN
+              - State|MS
+              - State|AL
+              - State|GA
+              - State|FL
+              - State|SC
+              - State|NC
+              - State|VA
+              - State|DC
+              - State|MD
+              - State|DE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
           - or: 
             - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
@@ -196,18 +197,19 @@ upgrades:
       # southern states
       - &heat_pump_fed_min_ducted_southern
         option: HVAC Heating Efficiency|ASHP, SEER 15, 8.8 HSPF # same as base option
-        apply_logic: &fed_min_heat_pump_ASHP_ducted_southern
-          - *southern_state_federal_minimum
+        apply_logic: &logic_fed_min_heat_pump_ASHP_ducted_southern
+          - *logic_southern_state_federal_minimum
           - HVAC Has Ducts|Yes
-          - or: &not_ASHP_greater_than_8_8_HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 10.3, 7.0 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 11.5, 7.5 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 13, 8.0 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 14, 8.2 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 14.3, 8.5 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+          - &logic_not_ASHP_greater_than_8_8_HSPF
+            or:
+              - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 10.3, 7.0 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 11.5, 7.5 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 13, 8.0 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 14, 8.2 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 14.3, 8.5 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
         costs: &costs_ashp_ducted_SEER_15_9_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -220,11 +222,11 @@ upgrades:
       # MSHP
       - &heat_pump_fed_min_ductless_southern
         option: HVAC Heating Efficiency|MSHP, SEER 15, 8.8 HSPF
-        apply_logic: &fed_min_heat_pump_MSHP_ductless_southern
-          - *southern_state_federal_minimum
-          - and:
-            - HVAC Has Ducts|No
-            - or: &not_MSHP_greater_than_8_8_HSPF
+        apply_logic: &logic_fed_min_heat_pump_MSHP_ductless_southern
+          - *logic_southern_state_federal_minimum
+          - HVAC Has Ducts|No
+          - &logic_not_MSHP_greater_than_8_8_HSPF
+            or:
               - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
         costs: &costs_mshp_ductless_SEER_15_9_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
@@ -240,38 +242,35 @@ upgrades:
         lifetime: &lifetime_mshp_ductless_SEER_15_9_HSPF 
           15
       #global
-      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
-        apply_logic:
-          or:
-            - *fed_min_heat_pump_ASHP_ducted_southern
-            - *fed_min_heat_pump_MSHP_ductless_southern
+      - option: HVAC Cooling Efficiency|Ducted Heat Pump # Applied regardless of which option is applied
+        apply_logic: *logic_fed_min_heat_pump_ASHP_ducted_southern
+      - option: HVAC Cooling Efficiency|Non-Ducted Heat Pump # Applied regardless of which option is applied
+        apply_logic: *logic_fed_min_heat_pump_MSHP_ductless_southern
 
       # northern states
       - &heat_pump_fed_min_ducted_northern
         option: HVAC Heating Efficiency|ASHP, SEER 14, 8.8 HSPF # same as base option
-        apply_logic: &fed_min_heat_pump_ASHP_ducted_northern
-          - *northern_state_federal_minimum
+        apply_logic: &logic_fed_min_heat_pump_ASHP_ducted_northern
+          - *logic_northern_state_federal_minimum
           - HVAC Has Ducts|Yes
-          - or: *not_ASHP_greater_than_8_8_HSPF
+          - *logic_not_ASHP_greater_than_8_8_HSPF
         costs: *costs_ashp_ducted_SEER_15_9_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
 
       # MSHP
       - &heat_pump_fed_min_ductless_northern
         option: HVAC Heating Efficiency|MSHP, SEER 14, 8.8 HSPF
-        apply_logic: &fed_min_heat_pump_MSHP_ductless_northern
-          - *northern_state_federal_minimum
-          - and:
-            - HVAC Has Ducts|No
-            - or: *not_MSHP_greater_than_8_8_HSPF
+        apply_logic: &logic_fed_min_heat_pump_MSHP_ductless_northern
+          - *logic_northern_state_federal_minimum
+          - HVAC Has Ducts|No
+          - *logic_not_MSHP_greater_than_8_8_HSPF
         costs: *costs_mshp_ductless_SEER_15_9_HSPF
         lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF 
       #global
-      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
-        apply_logic:
-          or:
-            - *fed_min_heat_pump_ASHP_ducted_northern
-            - *fed_min_heat_pump_MSHP_ductless_northern
+      - option: HVAC Cooling Efficiency|Ducted Heat Pump # Applied regardless of which option is applied
+        apply_logic: *logic_fed_min_heat_pump_ASHP_ducted_northern
+      - option: HVAC Cooling Efficiency|Non-Ducted Heat Pump # Applied regardless of which option is applied
+        apply_logic: *logic_fed_min_heat_pump_MSHP_ductless_northern
 
 
   - upgrade_name: Federal Minimum Cooling
@@ -284,7 +283,7 @@ upgrades:
       - &central_AC_fed_min_southern
         option: HVAC Cooling Efficiency|AC, SEER 15
         apply_logic:
-          - *southern_state_federal_minimum
+          - *logic_southern_state_federal_minimum
           - or: 
             - HVAC Cooling Efficiency|AC, SEER 8
             - HVAC Cooling Efficiency|AC, SEER 10
@@ -292,12 +291,11 @@ upgrades:
             - HVAC Cooling Efficiency|AC, SEER 14
           - HVAC Cooling Type|Central AC
 
-
       # Northern states, central AC
       - &central_AC_fed_min_northern
         option: HVAC Cooling Efficiency|AC, SEER 14
         apply_logic:
-          - *northern_state_federal_minimum
+          - *logic_northern_state_federal_minimum
           - or: 
             - HVAC Cooling Efficiency|AC, SEER 8
             - HVAC Cooling Efficiency|AC, SEER 10
@@ -322,15 +320,19 @@ upgrades:
       - *heat_pump_fed_min_ducted_northern
       - *heat_pump_fed_min_ductless_northern
       #global
-      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+      - &heat_pump_ducted_cooling
+        option: HVAC Cooling Efficiency|Ducted Heat Pump # Applied regardless of which option is applied
         apply_logic:
           or:
-            - *fed_min_heat_pump_ASHP_ducted_northern
-            - *fed_min_heat_pump_MSHP_ductless_northern
-            - *fed_min_heat_pump_ASHP_ducted_southern
-            - *fed_min_heat_pump_MSHP_ductless_southern
+            - *logic_fed_min_heat_pump_ASHP_ducted_northern
+            - *logic_fed_min_heat_pump_ASHP_ducted_southern
 
-
+      - &heat_pump_ductless_cooling
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *logic_fed_min_heat_pump_MSHP_ductless_northern
+            - *logic_fed_min_heat_pump_MSHP_ductless_southern
 
   - upgrade_name: Federal Minimum Heating and Cooling
     options:
@@ -340,14 +342,8 @@ upgrades:
       - *heat_pump_fed_min_ductless_southern
       - *heat_pump_fed_min_ducted_northern
       - *heat_pump_fed_min_ductless_northern
-
-      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
-        apply_logic:
-          or:
-            - *fed_min_heat_pump_ASHP_ducted_northern
-            - *fed_min_heat_pump_MSHP_ductless_northern
-            - *fed_min_heat_pump_ASHP_ducted_southern
-            - *fed_min_heat_pump_MSHP_ductless_southern
+      - *heat_pump_ducted_cooling
+      - *heat_pump_ductless_cooling
 
     # Federal minimum AC - central and room
       - *room_AC_fed_min
@@ -363,14 +359,11 @@ upgrades:
       - *natural_gas_furnace_fed_min_south
       - *fuel_oil_furnace_fed_min
 
-
-
   - upgrade_name: Federal Minimum Water Heating
     options:
     ####
     
   - upgrade_name: Federal Minimum Heating, Cooling, and Water Heating
-
     options:
     ####
     # Federal minimum heat pumps
@@ -378,14 +371,8 @@ upgrades:
       - *heat_pump_fed_min_ductless_southern
       - *heat_pump_fed_min_ducted_northern
       - *heat_pump_fed_min_ductless_northern
-
-      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
-        apply_logic:
-          or:
-            - *fed_min_heat_pump_ASHP_ducted_northern
-            - *fed_min_heat_pump_MSHP_ductless_northern
-            - *fed_min_heat_pump_ASHP_ducted_southern
-            - *fed_min_heat_pump_MSHP_ductless_southern
+      - *heat_pump_ducted_cooling
+      - *heat_pump_ductless_cooling
 
     # Federal minimum AC - central and room
       - *room_AC_fed_min
