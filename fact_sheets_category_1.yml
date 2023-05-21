@@ -10,7 +10,7 @@ weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 sampler:
   type: precomputed
   args:
-    sample_file: ./project_national/buildstock_10k_20230520.csv
+    sample_file: ../buildstock_10k_20230520.csv
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
@@ -18,13 +18,13 @@ baseline:
 
 eagle:
   n_jobs: 3
-  minutes_per_sim: 30
+  minutes_per_sim: 4
   account: abctypol
   postprocessing:
     time: 20
     n_workers: 1
   sampling:
-    time: 30
+    time: 5
 
 aws:
   job_identifier: fs_1
