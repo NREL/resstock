@@ -517,6 +517,9 @@ class HPXMLTest < MiniTest::Test
         next if message.include? 'It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.'
         next if message.include? 'It is not possible to eliminate all water heater energy use (e.g. parasitics) in EnergyPlus during an unavailable period.'
       end
+      if hpxml_path.include? 'base-location-AMY-2012.xml'
+        next if message.include? 'No design condition info found; calculating design conditions from EPW weather data.'
+      end
 
       flunk "Unexpected run.log message found for #{File.basename(hpxml_path)}: #{message}"
     end

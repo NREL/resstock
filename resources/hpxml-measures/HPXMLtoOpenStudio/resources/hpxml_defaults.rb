@@ -1428,7 +1428,7 @@ class HPXMLDefaults
         HVAC.set_fan_power_rated(cooling_system) unless use_eer
         HVAC.set_cool_c_d(cooling_system, clg_ap.num_speeds)
         HVAC.set_cool_curves_central_air_source(cooling_system, use_eer)
-        HVAC.set_cool_rated_shrs_gross(cooling_system)
+        HVAC.set_cool_rated_shrs_gross(runner, cooling_system)
         HVAC.set_cool_rated_eirs(cooling_system) unless use_eer
 
       elsif [HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system.cooling_system_type
@@ -1438,7 +1438,7 @@ class HPXMLDefaults
 
         HVAC.set_cool_c_d(cooling_system, num_speeds)
         HVAC.set_cool_curves_mshp(cooling_system, num_speeds)
-        HVAC.set_cool_rated_shrs_gross(cooling_system)
+        HVAC.set_cool_rated_shrs_gross(runner, cooling_system)
         HVAC.set_cool_rated_eirs_mshp(cooling_system, num_speeds)
 
         HVAC.set_mshp_downselected_speed_indices(cooling_system)
@@ -1474,7 +1474,7 @@ class HPXMLDefaults
 
         HVAC.set_cool_c_d(heat_pump, hp_ap.num_speeds)
         HVAC.set_cool_curves_central_air_source(heat_pump, use_eer_cop)
-        HVAC.set_cool_rated_shrs_gross(heat_pump)
+        HVAC.set_cool_rated_shrs_gross(runner, heat_pump)
         HVAC.set_cool_rated_eirs(heat_pump) unless use_eer_cop
 
         HVAC.set_heat_c_d(heat_pump, hp_ap.num_speeds)
@@ -1489,7 +1489,7 @@ class HPXMLDefaults
 
         HVAC.set_cool_c_d(heat_pump, num_speeds)
         HVAC.set_cool_curves_mshp(heat_pump, num_speeds)
-        HVAC.set_cool_rated_shrs_gross(heat_pump)
+        HVAC.set_cool_rated_shrs_gross(runner, heat_pump)
         HVAC.set_cool_rated_eirs_mshp(heat_pump, num_speeds)
 
         HVAC.set_heat_c_d(heat_pump, num_speeds)

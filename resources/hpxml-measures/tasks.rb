@@ -1976,17 +1976,17 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.generators.add(id: "Generator#{hpxml.generators.size + 1}",
                          fuel_type: HPXML::FuelTypeNaturalGas,
                          annual_consumption_kbtu: 8500,
-                         annual_output_kwh: 500)
+                         annual_output_kwh: 1200)
     hpxml.generators.add(id: "Generator#{hpxml.generators.size + 1}",
                          fuel_type: HPXML::FuelTypeOil,
                          annual_consumption_kbtu: 8500,
-                         annual_output_kwh: 500)
+                         annual_output_kwh: 1200)
   elsif ['base-bldgtype-multifamily-shared-generator.xml'].include? hpxml_file
     hpxml.generators.add(id: "Generator#{hpxml.generators.size + 1}",
                          is_shared_system: true,
                          fuel_type: HPXML::FuelTypePropane,
                          annual_consumption_kbtu: 85000,
-                         annual_output_kwh: 5000,
+                         annual_output_kwh: 12000,
                          number_of_bedrooms_served: 18)
   end
 
