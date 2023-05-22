@@ -2990,7 +2990,7 @@ class HVAC
     end
   end
 
-  def self.set_cool_rated_shrs_gross(cooling_system)
+  def self.set_cool_rated_shrs_gross(runner, cooling_system)
     clg_ap = cooling_system.additional_properties
 
     if ((cooling_system.is_a? HPXML::CoolingSystem) && ([HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type)) ||
@@ -2999,7 +2999,7 @@ class HVAC
     else
       # rated shr gross and fan speed ratios
       dB_rated = 80.0 # deg-F
-      wB_rated = 67.0 # deg-F
+      win = 0.01118470 # Humidity ratio corresponding to 80F dry bulb/67F wet bulb (from EnergyPlus)
 
       if clg_ap.num_speeds > 1
         cool_nominal_cfm_per_ton = (clg_ap.cool_rated_airflow_rate - clg_ap.cool_rated_cfm_per_ton[0] * clg_ap.cool_capacity_ratios[0]) / (clg_ap.cool_capacity_ratios[-1] - clg_ap.cool_capacity_ratios[0]) * (1.0 - clg_ap.cool_capacity_ratios[0]) + clg_ap.cool_rated_cfm_per_ton[0] * clg_ap.cool_capacity_ratios[0]
@@ -3008,14 +3008,13 @@ class HVAC
       end
 
       p_atm = 14.696 # standard atmospheric pressure (psia)
-      win = 0.01118470 # humidity ratio at rated condition
 
-      ao = Psychrometrics.CoilAoFactor(dB_rated, wB_rated, p_atm, UnitConversions.convert(1, 'ton', 'kBtu/hr'), cool_nominal_cfm_per_ton, cooling_system.cooling_shr)
+      ao = Psychrometrics.CoilAoFactor(runner, dB_rated, p_atm, UnitConversions.convert(1, 'ton', 'kBtu/hr'), cool_nominal_cfm_per_ton, cooling_system.cooling_shr, win)
 
       clg_ap.cool_rated_shrs_gross = []
       clg_ap.cool_capacity_ratios.each_with_index do |capacity_ratio, i|
         # Calculate the SHR for each speed. Use minimum value of 0.98 to prevent E+ bypass factor calculation errors
-        clg_ap.cool_rated_shrs_gross << [Psychrometrics.CalculateSHR(dB_rated, wB_rated, p_atm, UnitConversions.convert(capacity_ratio, 'ton', 'kBtu/hr'), clg_ap.cool_rated_cfm_per_ton[i] * capacity_ratio, ao, win), 0.98].min
+        clg_ap.cool_rated_shrs_gross << [Psychrometrics.CalculateSHR(runner, dB_rated, p_atm, UnitConversions.convert(capacity_ratio, 'ton', 'kBtu/hr'), clg_ap.cool_rated_cfm_per_ton[i] * capacity_ratio, ao, win), 0.98].min
       end
     end
   end

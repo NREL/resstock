@@ -318,8 +318,8 @@
         <HVAC>
           <HVACPlant>
             <PrimarySystems>
-              <PrimaryHeatingSystem idref='HeatingSystem1'/>
-              <PrimaryCoolingSystem idref='CoolingSystem1'/>
+              <PrimaryHeatingSystem idref='HeatPump1'/>
+              <PrimaryCoolingSystem idref='HeatPump1'/>
             </PrimarySystems>
             <HeatingSystem>
               <SystemIdentifier id='HeatingSystem1'/>
@@ -328,27 +328,38 @@
                 <Furnace/>
               </HeatingSystemType>
               <HeatingSystemFuel>natural gas</HeatingSystemFuel>
-              <HeatingCapacity>36000.0</HeatingCapacity>
+              <HeatingCapacity>60000.0</HeatingCapacity>
               <AnnualHeatingEfficiency>
                 <Units>AFUE</Units>
-                <Value>0.92</Value>
+                <Value>0.8</Value>
               </AnnualHeatingEfficiency>
-              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
             </HeatingSystem>
-            <CoolingSystem>
-              <SystemIdentifier id='CoolingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <CoolingSystemType>central air conditioner</CoolingSystemType>
-              <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>24000.0</CoolingCapacity>
-              <CompressorType>single stage</CompressorType>
+            <HeatPump>
+              <SystemIdentifier id='HeatPump1'/>
+              <HeatPumpType>mini-split</HeatPumpType>
+              <HeatPumpFuel>electricity</HeatPumpFuel>
+              <HeatingCapacity>18000.0</HeatingCapacity>
+              <CoolingCapacity>18000.0</CoolingCapacity>
+              <CoolingSensibleHeatFraction>0.73</CoolingSensibleHeatFraction>
+              <BackupType>separate</BackupType>
+              <BackupSystem idref='HeatingSystem1'/>
+              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
                 <Units>SEER</Units>
-                <Value>13.0</Value>
+                <Value>19.0</Value>
               </AnnualCoolingEfficiency>
-              <SensibleHeatFraction>0.73</SensibleHeatFraction>
-            </CoolingSystem>
+              <AnnualHeatingEfficiency>
+                <Units>HSPF</Units>
+                <Value>10.0</Value>
+              </AnnualHeatingEfficiency>
+              <extension>
+                <HeatingCapacityRetention>
+                  <Fraction>0.6</Fraction>
+                  <Temperature>17.0</Temperature>
+                </HeatingCapacityRetention>
+              </extension>
+            </HeatPump>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
@@ -364,7 +375,7 @@
                   <DuctType>supply</DuctType>
                   <DuctLeakage>
                     <Units>CFM25</Units>
-                    <Value>75.0</Value>
+                    <Value>15.0</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
@@ -372,23 +383,23 @@
                   <DuctType>return</DuctType>
                   <DuctLeakage>
                     <Units>CFM25</Units>
-                    <Value>25.0</Value>
+                    <Value>5.0</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
                 <Ducts>
                   <SystemIdentifier id='Ducts1'/>
                   <DuctType>supply</DuctType>
-                  <DuctInsulationRValue>4.0</DuctInsulationRValue>
+                  <DuctInsulationRValue>0.0</DuctInsulationRValue>
                   <DuctLocation>attic - unvented</DuctLocation>
-                  <DuctSurfaceArea>150.0</DuctSurfaceArea>
+                  <DuctSurfaceArea>30.0</DuctSurfaceArea>
                 </Ducts>
                 <Ducts>
                   <SystemIdentifier id='Ducts2'/>
                   <DuctType>return</DuctType>
                   <DuctInsulationRValue>0.0</DuctInsulationRValue>
                   <DuctLocation>attic - unvented</DuctLocation>
-                  <DuctSurfaceArea>50.0</DuctSurfaceArea>
+                  <DuctSurfaceArea>10.0</DuctSurfaceArea>
                 </Ducts>
               </AirDistribution>
             </DistributionSystemType>
@@ -428,38 +439,6 @@
             <LowFlow>false</LowFlow>
           </WaterFixture>
         </WaterHeating>
-        <Batteries>
-          <Battery>
-            <SystemIdentifier id='Battery1'/>
-            <Location>outside</Location>
-            <BatteryType>Li-ion</BatteryType>
-            <NominalCapacity>
-              <Units>kWh</Units>
-              <Value>20.0</Value>
-            </NominalCapacity>
-            <UsableCapacity>
-              <Units>kWh</Units>
-              <Value>18.0</Value>
-            </UsableCapacity>
-            <RatedPowerOutput>6000.0</RatedPowerOutput>
-          </Battery>
-        </Batteries>
-        <extension>
-          <Generators>
-            <Generator>
-              <SystemIdentifier id='Generator1'/>
-              <FuelType>natural gas</FuelType>
-              <AnnualConsumptionkBtu>8500.0</AnnualConsumptionkBtu>
-              <AnnualOutputkWh>1200.0</AnnualOutputkWh>
-            </Generator>
-            <Generator>
-              <SystemIdentifier id='Generator2'/>
-              <FuelType>fuel oil</FuelType>
-              <AnnualConsumptionkBtu>8500.0</AnnualConsumptionkBtu>
-              <AnnualOutputkWh>1200.0</AnnualOutputkWh>
-            </Generator>
-          </Generators>
-        </extension>
       </Systems>
       <Appliances>
         <ClothesWasher>

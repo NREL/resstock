@@ -126,7 +126,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
       return false unless hpxml.errors.empty?
 
-      epw_path, weather = process_weather(hpxml, hpxml_path)
+      epw_path = Location.get_epw_path(hpxml, hpxml_path)
+      weather = WeatherProcess.new(epw_path: epw_path, runner: runner)
 
       if debug
         epw_output_path = File.join(output_dir, 'in.epw')
@@ -141,12 +142,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
 
     return true
-  end
-
-  def process_weather(hpxml, hpxml_path)
-    epw_path = Location.get_epw_path(hpxml, hpxml_path)
-    weather = WeatherProcess.new(epw_path: epw_path)
-    return epw_path, weather
   end
 end
 

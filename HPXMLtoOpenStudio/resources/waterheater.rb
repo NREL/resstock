@@ -108,7 +108,7 @@ class Waterheater
     max_temp = 120.0 # F
 
     # Coil:WaterHeating:AirToWaterHeatPump:Wrapped
-    coil = setup_hpwh_dxcoil(model, water_heating_system, weather, obj_name_hpwh, airflow_rate)
+    coil = setup_hpwh_dxcoil(model, runner, water_heating_system, weather, obj_name_hpwh, airflow_rate)
 
     # WaterHeater:Stratified
     tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, bottom_element_setpoint_schedule, top_element_setpoint_schedule)
@@ -665,7 +665,7 @@ class Waterheater
     return hpwh
   end
 
-  def self.setup_hpwh_dxcoil(model, water_heating_system, weather, obj_name_hpwh, airflow_rate)
+  def self.setup_hpwh_dxcoil(model, runner, water_heating_system, weather, obj_name_hpwh, airflow_rate)
     # Curves
     hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
     hpwh_cap.setName('HPWH-Cap-fT')
@@ -702,10 +702,10 @@ class Waterheater
     rated_edb_F = 67.5
     rated_edb = UnitConversions.convert(rated_edb_F, 'F', 'C')
     w_rated = Psychrometrics.w_fT_Twb_P(rated_edb_F, rated_ewb_F, 14.7)
-    dp_rated = Psychrometrics.Tdp_fP_w(14.7, w_rated)
+    dp_rated = Psychrometrics.Tdp_fP_w(runner, 14.7, w_rated)
     p_atm = Psychrometrics.Pstd_fZ(weather.header.Altitude)
     w_adj = Psychrometrics.w_fT_Twb_P(dp_rated, dp_rated, p_atm)
-    twb_adj = Psychrometrics.Twb_fT_w_P(rated_edb_F, w_adj, p_atm)
+    twb_adj = Psychrometrics.Twb_fT_w_P(runner, rated_edb_F, w_adj, p_atm)
 
     # Calculate the COP based on EF
     if not water_heating_system.energy_factor.nil?

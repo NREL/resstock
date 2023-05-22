@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>156df803-969c-4221-acc7-596ee431f28f</version_id>
-  <version_modified>20230516T035340Z</version_modified>
+  <version_id>61a17495-a6d8-4328-a2c6-341c8ef4300c</version_id>
+  <version_modified>20230519T183248Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -2722,7 +2722,7 @@
     <argument>
       <name>heat_pump_is_ducted</name>
       <display_name>Heat Pump: Is Ducted</display_name>
-      <description>Whether the heat pump is ducted or not. Only used for mini-split. It's assumed that air-to-air and ground-to-air are ducted. If not provided, assumes not ducted.</description>
+      <description>Whether the heat pump is ducted or not. Only used for mini-split. It's assumed that air-to-air and ground-to-air are ducted, and packaged terminal heat pump and room air conditioner with reverse cycle are not ducted. If not provided, assumes not ducted.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2778,6 +2778,10 @@
           <display_name>none</display_name>
         </choice>
         <choice>
+          <value>Furnace</value>
+          <display_name>Furnace</display_name>
+        </choice>
+        <choice>
           <value>WallFurnace</value>
           <display_name>WallFurnace</display_name>
         </choice>
@@ -2804,6 +2808,10 @@
         <choice>
           <value>Fireplace</value>
           <display_name>Fireplace</display_name>
+        </choice>
+        <choice>
+          <value>FixedHeater</value>
+          <display_name>FixedHeater</display_name>
         </choice>
       </choices>
     </argument>
@@ -6672,7 +6680,7 @@
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>C26172ED</checksum>
+      <checksum>010244DB</checksum>
     </file>
     <file>
       <version>
@@ -6683,7 +6691,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>5C270E67</checksum>
+      <checksum>AE26AEE7</checksum>
     </file>
   </files>
 </measure>

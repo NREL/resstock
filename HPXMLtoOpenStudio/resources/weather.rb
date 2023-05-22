@@ -22,7 +22,7 @@ class WeatherDesign
 end
 
 class WeatherProcess
-  def initialize(epw_path:, runner: nil)
+  def initialize(epw_path:, runner:)
     @header = WeatherHeader.new
     @data = WeatherData.new
     @design = WeatherDesign.new
@@ -127,7 +127,7 @@ class WeatherProcess
       if not runner.nil?
         runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
       end
-      calc_design_info(rowdata)
+      calc_design_info(runner, rowdata)
       @design.DailyTemperatureRange = @data.MonthlyAvgDailyHighDrybulbs[7] - @data.MonthlyAvgDailyLowDrybulbs[7]
     end
   end
@@ -257,7 +257,7 @@ class WeatherProcess
     return epwHasDesignData
   end
 
-  def calc_design_info(rowdata)
+  def calc_design_info(runner, rowdata)
     # Calculate design day info:
     # - Heating 99% drybulb
     # - Cooling 99% drybulb
@@ -276,7 +276,7 @@ class WeatherProcess
     for i in 0..(annual_hd_sorted_by_db.size - 1)
       next unless (annual_hd_sorted_by_db[i]['db'] > cool01per_db - 0.5) && (annual_hd_sorted_by_db[i]['db'] < cool01per_db + 0.5)
 
-      wb = Psychrometrics.Twb_fT_R_P(UnitConversions.convert(annual_hd_sorted_by_db[i]['db'], 'C', 'F'), annual_hd_sorted_by_db[i]['rh'], std_press)
+      wb = Psychrometrics.Twb_fT_R_P(runner, UnitConversions.convert(annual_hd_sorted_by_db[i]['db'], 'C', 'F'), annual_hd_sorted_by_db[i]['rh'], std_press)
       cool_wetbulb << wb
     end
     cool_design_wb = cool_wetbulb.sum(0.0) / cool_wetbulb.size
