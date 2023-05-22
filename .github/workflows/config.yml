@@ -11,7 +11,7 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:dev-3.6.1
+      image: docker://nrel/openstudio:3.6.1
     steps:
       - uses: actions/checkout@v3
         with:
@@ -48,7 +48,7 @@ jobs:
   analysis-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:dev-3.6.1
+      image: docker://nrel/openstudio:3.6.1
     steps:
       - uses: actions/checkout@v3
         with:
@@ -81,8 +81,8 @@ jobs:
 
       - name: Download and Install OpenStudio
         run: |
-          wget -q https://github.com/NREL/OpenStudio/releases/download/v3.6.1-rc1/OpenStudio-3.6.1-rc1+b5007dd5f0-Ubuntu-20.04-x86_64.deb
-          sudo apt install -y ./OpenStudio-3.6.1-rc1+b5007dd5f0-Ubuntu-20.04-x86_64.deb
+          wget -q https://github.com/NREL/OpenStudio/releases/download/v3.6.1/OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
+          sudo apt install -y ./OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
           openstudio openstudio_version
           which openstudio
 
