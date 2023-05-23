@@ -104,6 +104,11 @@ def setup(app):
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+html_logo = 'images/logo.jpg'
+html_theme_options = {
+    'logo_only': True,
+    'style_nav_header_background': 'white',
+}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
