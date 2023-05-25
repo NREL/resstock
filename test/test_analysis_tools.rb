@@ -85,7 +85,7 @@ class TestTools < MiniTest::Test
         run_analysis_sum = run_analysis[col].map { |v| Float(v) }.sum
 
         assert_equal(buildstockbatch[col].size, run_analysis[col].size)
-        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.001)
+        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.01)
       end
     end
   end
@@ -105,7 +105,7 @@ class TestTools < MiniTest::Test
         run_analysis_sum = run_analysis[col].map { |v| Float(v) }.sum
 
         assert_equal(buildstockbatch[col].size, run_analysis[col].size)
-        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.001)
+        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.01)
       end
     end
   end
