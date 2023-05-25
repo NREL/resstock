@@ -14,6 +14,7 @@ Features
 
 Fixes
 - Pulls in upstream OS-HPXML fix related to [avoiding possible OpenStudio temporary directory collision](https://github.com/NREL/OpenStudio-HPXML/pull/1316) causing random errors ([#1054](https://github.com/NREL/resstock/pull/1054))
+- Pulls in upstream OS-HPXML fix related to [falling back to a WWR calculation when window placement fails](https://github.com/NREL/OpenStudio-HPXML/pull/1385) causing errors fitting windows ([#1076](https://github.com/NREL/resstock/pull/1076))
 
 ## ResStock v3.0.0
 ###### February 3, 2023 - [Diff](https://github.com/NREL/resstock/compare/v2.5.0...v3.0.0)
