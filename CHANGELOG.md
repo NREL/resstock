@@ -1,4 +1,5 @@
-## ResStock v3.1.0 (pending)
+## ResStock v3.1.0
+###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
 
 Features
 - Include battery modeling capabilities for project_testing ([#1009](https://github.com/NREL/resstock/pull/1009))
