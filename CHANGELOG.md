@@ -9,7 +9,7 @@ Features
 - Connect ASHP to optional capacity retention temperature and fraction arguments (that already exist for MSHP) ([#1071](https://github.com/NREL/resstock/pull/1071))
 - Add data dictionary files for describing various outputs. Use these files to (1) check against integration test results, and (2) generate documentation tables ([#1058](https://github.com/NREL/resstock/pull/1058))
 - OS-HPXML now supports use of optional heat pump capacity retention temperature and fraction arguments (applicable to both ASHP and MSHP) ([#1072](https://github.com/NREL/resstock/pull/1072))
-- Update to OpenStudio v3.6.0 ([#1072](https://github.com/NREL/resstock/pull/1072))
+- Update to OpenStudio v3.6.1 ([#1072](https://github.com/NREL/resstock/pull/1076))
 
 Fixes
 - Pulls in upstream OS-HPXML fix related to [avoiding possible OpenStudio temporary directory collision](https://github.com/NREL/OpenStudio-HPXML/pull/1316) causing random errors ([#1054](https://github.com/NREL/resstock/pull/1054))
