@@ -10,14 +10,14 @@ weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 sampler:
   type: precomputed
   args:
-    sample_file: ../buildstock_10k_20230520.csv # relative to file
+    sample_file: /projects/abctypol/largeee/test_runs/buildstock_10k_20230525.csv #../buildstock_10k_20230525.csv # relative to file
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
   skip_sims: true
 
 eagle:
-  n_jobs: 3
+  n_jobs: 1
   minutes_per_sim: 4
   account: abctypol
   postprocessing:
@@ -32,7 +32,7 @@ aws:
     bucket: largeee
     prefix: test_runs
   region: us-west-2
-  use_spot: true
+  use_spot: false
   batch_array_size: 10000
   notifications_email: lliu2@nrel.gov
 
