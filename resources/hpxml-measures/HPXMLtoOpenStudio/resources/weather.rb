@@ -10,27 +10,22 @@ end
 class WeatherData
   def initialize
   end
-  ATTRS ||= [:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs, :GroundMonthlyTemps, :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs]
+  ATTRS ||= [:AnnualAvgDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :MonthlyAvgDrybulbs, :GroundMonthlyTemps, :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs]
   attr_accessor(*ATTRS)
 end
 
 class WeatherDesign
   def initialize
   end
-  ATTRS ||= [:HeatingDrybulb, :HeatingWindspeed, :CoolingDrybulb, :CoolingWetbulb, :CoolingHumidityRatio, :CoolingWindspeed, :DailyTemperatureRange, :DehumidDrybulb, :DehumidHumidityRatio, :CoolingDirectNormal, :CoolingDiffuseHorizontal]
+  ATTRS ||= [:HeatingDrybulb, :CoolingDrybulb, :CoolingWetbulb, :CoolingHumidityRatio, :DailyTemperatureRange]
   attr_accessor(*ATTRS)
 end
 
 class WeatherProcess
-  def initialize(epw_path: nil, csv_path: nil, runner: nil)
+  def initialize(epw_path:, runner:)
     @header = WeatherHeader.new
     @data = WeatherData.new
     @design = WeatherDesign.new
-
-    if not csv_path.nil?
-      load_from_csv(csv_path)
-      return
-    end
 
     if not File.exist?(epw_path)
       fail "Cannot find weather file at #{epw_path}."
@@ -39,59 +34,6 @@ class WeatherProcess
     epw_file = OpenStudio::EpwFile.new(epw_path, true)
 
     process_epw(runner, epw_file)
-  end
-
-  def dump_to_csv(csv_path)
-    require 'csv'
-
-    def to_columns(data)
-      if not data.is_a? Array
-        return [data.class, data]
-      end
-
-      return [data.class] + data
-    end
-
-    results_out = []
-    WeatherHeader::ATTRS.each do |k|
-      results_out << ["WeatherHeader.#{k}"] + to_columns(@header.send(k))
-    end
-    WeatherData::ATTRS.each do |k|
-      results_out << ["WeatherData.#{k}"] + to_columns(@data.send(k))
-    end
-    WeatherDesign::ATTRS.each do |k|
-      results_out << ["WeatherDesign.#{k}"] + to_columns(@design.send(k))
-    end
-
-    CSV.open(csv_path, 'wb') { |csv| results_out.to_a.each { |elem| csv << elem } }
-  end
-
-  def load_from_csv(csv_path)
-    require 'csv'
-    csv_data = CSV.read(csv_path, headers: false)
-
-    def to_datatype(data, dataclass)
-      if dataclass == 'String'
-        return data[0].to_s
-      elsif dataclass == 'Float'
-        return data[0].to_f
-      elsif dataclass == 'Fixnum'
-        return data[0].to_i
-      elsif dataclass == 'Array'
-        return data.map(&:to_f)
-      end
-    end
-
-    csv_data.each do |data|
-      dataname = data[0].split('.')[1]
-      if data[0].start_with? 'WeatherHeader'
-        @header.send(dataname + '=', to_datatype(data[2..-1], data[1]))
-      elsif data[0].start_with? 'WeatherData'
-        @data.send(dataname + '=', to_datatype(data[2..-1], data[1]))
-      elsif data[0].start_with? 'WeatherDesign'
-        @design.send(dataname + '=', to_datatype(data[2..-1], data[1]))
-      end
-    end
   end
 
   attr_accessor(:header, :data, :design)
@@ -111,6 +53,9 @@ class WeatherProcess
     @header.Altitude = UnitConversions.convert(epw_file.elevation, 'm', 'ft')
     @header.LocalPressure = Math::exp(-0.0000368 * @header.Altitude) # atm
     @header.RecordsPerHour = epw_file.recordsPerHour
+    if @header.RecordsPerHour != 1
+      fail "Unexpected records per hour: #{@header.RecordsPerHour}."
+    end
 
     epw_file_data = epw_file.data
 
@@ -121,41 +66,29 @@ class WeatherProcess
     dailydbs = []
     dailyhighdbs = []
     dailylowdbs = []
+    monthdbs = []
     epw_file_data.each_with_index do |epwdata, rownum|
       rowdict = {}
       rowdict['month'] = epwdata.month
       rowdict['day'] = epwdata.day
       rowdict['hour'] = epwdata.hour
-      if epwdata.dryBulbTemperature.is_initialized
+      begin
         rowdict['db'] = epwdata.dryBulbTemperature.get
-      else
+      rescue
         fail "Cannot retrieve dryBulbTemperature from the EPW for hour #{rownum + 1}."
       end
-      if epwdata.dewPointTemperature.is_initialized
-        rowdict['dp'] = epwdata.dewPointTemperature.get
-      else
-        fail "Cannot retrieve dewPointTemperature from the EPW for hour #{rownum + 1}."
-      end
-      if epwdata.relativeHumidity.is_initialized
+      begin
         rowdict['rh'] = epwdata.relativeHumidity.get / 100.0
-      else
+      rescue
         fail "Cannot retrieve relativeHumidity from the EPW for hour #{rownum + 1}."
       end
-      if epwdata.directNormalRadiation.is_initialized
-        rowdict['dirnormal'] = epwdata.directNormalRadiation.get # W/m^2
-      else
-        fail "Cannot retrieve directNormalRadiation from the EPW for hour #{rownum + 1}."
-      end
-      if epwdata.diffuseHorizontalRadiation.is_initialized
-        rowdict['diffhoriz'] = epwdata.diffuseHorizontalRadiation.get # W/m^2
-      else
-        fail "Cannot retrieve diffuseHorizontalRadiation from the EPW for hour #{rownum + 1}."
-      end
-      if epwdata.windSpeed.is_initialized
+      begin
         rowdict['ws'] = epwdata.windSpeed.get
-      else
+      rescue
         fail "Cannot retrieve windSpeed from the EPW for hour #{rownum + 1}."
       end
+      monthdbs << [] if rowdict['day'] == 1
+      monthdbs[rowdict['month'] - 1] << rowdict['db']
 
       rowdata << rowdict
 
@@ -179,11 +112,14 @@ class WeatherProcess
       dailylowdbs << mindb
     end
 
-    calc_annual_drybulbs(rowdata)
-    calc_monthly_drybulbs(rowdata)
+    @data.AnnualAvgDrybulb = UnitConversions.convert(rowdata.map { |x| x['db'] }.sum(0.0) / rowdata.length, 'C', 'F')
+    @data.MonthlyAvgDrybulbs = []
+    for i in 1..12
+      @data.MonthlyAvgDrybulbs << UnitConversions.convert(monthdbs[i - 1].sum / monthdbs[i - 1].length, 'C', 'F')
+    end
+
     calc_heat_cool_degree_days(dailydbs)
     calc_avg_monthly_highs_lows(dailyhighdbs, dailylowdbs)
-    calc_avg_windspeed(rowdata)
     calc_ground_temperatures
     @data.WSF = calc_ashrae_622_wsf(rowdata)
 
@@ -191,59 +127,9 @@ class WeatherProcess
       if not runner.nil?
         runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
       end
-      calc_design_info(rowdata)
+      calc_design_info(runner, rowdata)
       @design.DailyTemperatureRange = @data.MonthlyAvgDailyHighDrybulbs[7] - @data.MonthlyAvgDailyLowDrybulbs[7]
     end
-
-    calc_design_solar_radiation(rowdata)
-  end
-
-  def calc_annual_drybulbs(hd)
-    # Calculates and stores annual average, minimum, and maximum drybulbs
-    db = []
-    mindict = hd[0]
-    maxdict = hd[0]
-    hd.each do |x|
-      if x['db'] > maxdict['db']
-        maxdict = x
-      end
-      if x['db'] < mindict['db']
-        mindict = x
-      end
-      db << x['db']
-    end
-
-    @data.AnnualAvgDrybulb = UnitConversions.convert(db.sum(0.0) / db.length, 'C', 'F')
-
-    # Peak temperatures:
-    @data.AnnualMinDrybulb = UnitConversions.convert(mindict['db'], 'C', 'F')
-    @data.AnnualMaxDrybulb = UnitConversions.convert(maxdict['db'], 'C', 'F')
-  end
-
-  def calc_monthly_drybulbs(hd)
-    # Calculates and stores monthly average drybulbs
-    @data.MonthlyAvgDrybulbs = []
-    for month in 1..12
-      y = []
-      hd.each do |x|
-        if x['month'] == month
-          y << x['db']
-        end
-      end
-      month_dbtotal = y.sum(0.0)
-      month_hours = y.length
-      @data.MonthlyAvgDrybulbs << UnitConversions.convert(month_dbtotal / month_hours, 'C', 'F')
-    end
-  end
-
-  def calc_avg_windspeed(hd)
-    # Calculates and stores annual average windspeed
-    ws = []
-    hd.each do |x|
-      ws << x['ws']
-    end
-    avgws = ws.sum(0.0) / ws.length
-    @data.AnnualAvgWindspeed = avgws
   end
 
   def calc_heat_cool_degree_days(dailydbs)
@@ -290,7 +176,7 @@ class WeatherProcess
     elsif daily_high_dbs.size == 366 # leap year
       month_num_days = Constants.NumDaysInMonths(2000)
     else
-      fail 'Unexpected number of days.'
+      fail "Unexpected number of days: #{daily_high_dbs.size}."
     end
 
     first_day = 0
@@ -304,30 +190,6 @@ class WeatherProcess
       @data.MonthlyAvgDailyHighDrybulbs << UnitConversions.convert(avg_high, 'C', 'F')
       @data.MonthlyAvgDailyLowDrybulbs << UnitConversions.convert(avg_low, 'C', 'F')
     end
-  end
-
-  def calc_design_solar_radiation(rowdata)
-    # Calculate cooling design day info, for roof surface sol air temperature, which is used for attic temperature calculation for Manual J/ASHRAE Std 152:
-    # Max summer direct normal solar radiation
-    # Diffuse horizontal solar radiation during hour with max direct normal
-    summer_rowdata = []
-    months = [6, 7, 8, 9]
-    for hr in 0..(rowdata.size - 1)
-      next if not months.include?(rowdata[hr]['month'])
-
-      summer_rowdata << rowdata[hr]
-    end
-
-    r_d = (1 + Math::cos(26.565052 * Math::PI / 180)) / 2 # Correct diffuse horizontal for tilt. Assume 6:12 roof pitch for this calculation.
-    max_solar_radiation_hour = summer_rowdata[0]
-    for hr in 1..(summer_rowdata.size - 1)
-      next if summer_rowdata[hr]['dirnormal'] + summer_rowdata[hr]['diffhoriz'] * r_d < max_solar_radiation_hour['dirnormal'] + max_solar_radiation_hour['diffhoriz'] * r_d
-
-      max_solar_radiation_hour = summer_rowdata[hr]
-    end
-
-    @design.CoolingDirectNormal = max_solar_radiation_hour['dirnormal']
-    @design.CoolingDiffuseHorizontal = max_solar_radiation_hour['diffhoriz']
   end
 
   def calc_ashrae_622_wsf(rowdata)
@@ -386,77 +248,44 @@ class WeatherProcess
       epwHasDesignData = true
       epw_design_conditions = epw_design_conditions[0]
       @design.HeatingDrybulb = UnitConversions.convert(epw_design_conditions.heatingDryBulb99, 'C', 'F')
-      @design.HeatingWindspeed = epw_design_conditions.heatingColdestMonthWindSpeed1
       @design.CoolingDrybulb = UnitConversions.convert(epw_design_conditions.coolingDryBulb1, 'C', 'F')
       @design.CoolingWetbulb = UnitConversions.convert(epw_design_conditions.coolingMeanCoincidentWetBulb1, 'C', 'F')
-      @design.CoolingWindspeed = epw_design_conditions.coolingMeanCoincidentWindSpeed0pt4
-      @design.DailyTemperatureRange = UnitConversions.convert(epw_design_conditions.coolingDryBulbRange, 'K', 'R')
-      @design.DehumidDrybulb = UnitConversions.convert(epw_design_conditions.coolingDehumidificationMeanCoincidentDryBulb2, 'C', 'F')
-      dehum02per_dp = UnitConversions.convert(epw_design_conditions.coolingDehumidificationDewPoint2, 'C', 'F')
+      @design.DailyTemperatureRange = UnitConversions.convert(epw_design_conditions.coolingDryBulbRange, 'deltaC', 'deltaF')
       std_press = Psychrometrics.Pstd_fZ(@header.Altitude)
       @design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, design.CoolingWetbulb, std_press)
-      @design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(dehum02per_dp, dehum02per_dp, std_press)
     end
     return epwHasDesignData
   end
 
-  def calc_design_info(rowdata)
+  def calc_design_info(runner, rowdata)
     # Calculate design day info:
     # - Heating 99% drybulb
-    # - Heating mean coincident windspeed
     # - Cooling 99% drybulb
-    # - Cooling mean coincident windspeed
     # - Cooling mean coincident wetbulb
     # - Cooling mean coincident humidity ratio
 
     std_press = Psychrometrics.Pstd_fZ(@header.Altitude)
     annual_hd_sorted_by_db = rowdata.sort_by { |x| x['db'] }
-    annual_hd_sorted_by_dp = rowdata.sort_by { |x| x['dp'] }
 
     # 1%/99%/2% values
     heat99per_db = annual_hd_sorted_by_db[88 * @header.RecordsPerHour]['db']
     cool01per_db = annual_hd_sorted_by_db[8673 * @header.RecordsPerHour]['db']
-    dehum02per_dp = annual_hd_sorted_by_dp[8584 * @header.RecordsPerHour]['dp']
 
     # Mean coincident values for cooling
-    cool_windspeed = []
     cool_wetbulb = []
     for i in 0..(annual_hd_sorted_by_db.size - 1)
       next unless (annual_hd_sorted_by_db[i]['db'] > cool01per_db - 0.5) && (annual_hd_sorted_by_db[i]['db'] < cool01per_db + 0.5)
 
-      cool_windspeed << annual_hd_sorted_by_db[i]['ws']
-      wb = Psychrometrics.Twb_fT_R_P(UnitConversions.convert(annual_hd_sorted_by_db[i]['db'], 'C', 'F'), annual_hd_sorted_by_db[i]['rh'], std_press)
+      wb = Psychrometrics.Twb_fT_R_P(runner, UnitConversions.convert(annual_hd_sorted_by_db[i]['db'], 'C', 'F'), annual_hd_sorted_by_db[i]['rh'], std_press)
       cool_wetbulb << wb
     end
     cool_design_wb = cool_wetbulb.sum(0.0) / cool_wetbulb.size
 
-    # Mean coincident values for heating
-    heat_windspeed = []
-    for i in 0..(annual_hd_sorted_by_db.size - 1)
-      if (annual_hd_sorted_by_db[i]['db'] > heat99per_db - 0.5) && (annual_hd_sorted_by_db[i]['db'] < heat99per_db + 0.5)
-        heat_windspeed << annual_hd_sorted_by_db[i]['ws']
-      end
-    end
-
-    # Mean coincident values for dehumidification
-    dehum_drybulb = []
-    for i in 0..(annual_hd_sorted_by_dp.size - 1)
-      if (annual_hd_sorted_by_dp[i]['dp'] > dehum02per_dp - 0.5) && (annual_hd_sorted_by_dp[i]['dp'] < dehum02per_dp + 0.5)
-        dehum_drybulb << annual_hd_sorted_by_dp[i]['db']
-      end
-    end
-    dehum_design_db = dehum_drybulb.sum(0.0) / dehum_drybulb.size
-
     @design.CoolingDrybulb = UnitConversions.convert(cool01per_db, 'C', 'F')
     @design.CoolingWetbulb = cool_design_wb
     @design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, design.CoolingWetbulb, std_press)
-    @design.CoolingWindspeed = cool_windspeed.sum(0.0) / cool_windspeed.size
 
     @design.HeatingDrybulb = UnitConversions.convert(heat99per_db, 'C', 'F')
-    @design.HeatingWindspeed = heat_windspeed.sum(0.0) / heat_windspeed.size
-
-    @design.DehumidDrybulb = UnitConversions.convert(dehum_design_db, 'C', 'F')
-    @design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(UnitConversions.convert(dehum02per_dp, 'C', 'F'), UnitConversions.convert(dehum02per_dp, 'C', 'F'), std_press)
   end
 
   def calc_ground_temperatures
@@ -485,10 +314,11 @@ class WeatherProcess
     end
   end
 
-  def self.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, latitude)
+  def self.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, latitude, year)
+    n_days = Constants.NumDaysInYear(year)
     pi = Math::PI
     deg_rad = pi / 180
-    mainsDailyTemps = Array.new(365, 0)
+    mainsDailyTemps = Array.new(n_days, 0)
     mainsMonthlyTemps = Array.new(12, 0)
     mainsAvgTemp = 0
 
@@ -501,9 +331,9 @@ class WeatherProcess
     end
 
     # Calculate daily and annual
-    for d in 1..365
+    for d in 1..n_days
       mainsDailyTemps[d - 1] = avgOAT + 6 + tmains_ratio * maxDiffMonthlyAvgOAT / 2 * Math.sin(deg_rad * (0.986 * (d - 15 - tmains_lag) + sign * 90))
-      mainsAvgTemp += mainsDailyTemps[d - 1] / 365.0
+      mainsAvgTemp += mainsDailyTemps[d - 1] / Float(n_days)
     end
     # Calculate monthly
     for m in 1..12

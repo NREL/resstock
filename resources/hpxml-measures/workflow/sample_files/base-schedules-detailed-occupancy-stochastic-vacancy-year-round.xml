@@ -12,22 +12,21 @@
         <Timestep>60</Timestep>
       </SimulationControl>
       <SchedulesFilePath>../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv</SchedulesFilePath>
-      <AdditionalProperties>
-        <ParentHPXMLFile>base-schedules-detailed-occupancy-stochastic.xml</ParentHPXMLFile>
-      </AdditionalProperties>
       <UtilityBillScenarios>
         <UtilityBillScenario>
           <Name>Bills</Name>
         </UtilityBillScenario>
       </UtilityBillScenarios>
-      <VacancyPeriods>
-        <VacancyPeriod>
+      <UnavailablePeriods>
+        <UnavailablePeriod>
+          <ColumnName>Vacancy</ColumnName>
           <BeginMonth>1</BeginMonth>
           <BeginDayOfMonth>1</BeginDayOfMonth>
           <EndMonth>12</EndMonth>
           <EndDayOfMonth>31</EndDayOfMonth>
-        </VacancyPeriod>
-      </VacancyPeriods>
+          <NaturalVentilation>always unavailable</NaturalVentilation>
+        </UnavailablePeriod>
+      </UnavailablePeriods>
     </extension>
   </SoftwareInfo>
   <Building>
@@ -53,9 +52,6 @@
             <Fuel>natural gas</Fuel>
           </FuelTypesAvailable>
         </Site>
-        <BuildingOccupancy>
-          <NumberofResidents>3.0</NumberofResidents>
-        </BuildingOccupancy>
         <BuildingConstruction>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
           <NumberofConditionedFloors>2.0</NumberofConditionedFloors>
@@ -123,7 +119,7 @@
           <Roof>
             <SystemIdentifier id='Roof1'/>
             <InteriorAdjacentTo>attic - unvented</InteriorAdjacentTo>
-            <Area>1509.4</Area>
+            <Area>1509.3</Area>
             <RoofType>asphalt or fiberglass shingles</RoofType>
             <SolarAbsorptance>0.7</SolarAbsorptance>
             <Emittance>0.92</Emittance>
@@ -502,26 +498,26 @@
         </LightingGroup>
         <LightingGroup>
           <SystemIdentifier id='LightingGroup2'/>
-          <Location>exterior</Location>
-          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
-          <LightingType>
-            <CompactFluorescent/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup3'/>
-          <Location>garage</Location>
-          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
-          <LightingType>
-            <CompactFluorescent/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup4'/>
           <Location>interior</Location>
           <FractionofUnitsInLocation>0.1</FractionofUnitsInLocation>
           <LightingType>
             <FluorescentTube/>
+          </LightingType>
+        </LightingGroup>
+        <LightingGroup>
+          <SystemIdentifier id='LightingGroup3'/>
+          <Location>interior</Location>
+          <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
+          <LightingType>
+            <LightEmittingDiode/>
+          </LightingType>
+        </LightingGroup>
+        <LightingGroup>
+          <SystemIdentifier id='LightingGroup4'/>
+          <Location>exterior</Location>
+          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
+          <LightingType>
+            <CompactFluorescent/>
           </LightingType>
         </LightingGroup>
         <LightingGroup>
@@ -534,31 +530,7 @@
         </LightingGroup>
         <LightingGroup>
           <SystemIdentifier id='LightingGroup6'/>
-          <Location>garage</Location>
-          <FractionofUnitsInLocation>0.1</FractionofUnitsInLocation>
-          <LightingType>
-            <FluorescentTube/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup7'/>
-          <Location>interior</Location>
-          <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
-          <LightingType>
-            <LightEmittingDiode/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup8'/>
           <Location>exterior</Location>
-          <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
-          <LightingType>
-            <LightEmittingDiode/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup9'/>
-          <Location>garage</Location>
           <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
           <LightingType>
             <LightEmittingDiode/>

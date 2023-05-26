@@ -1618,7 +1618,7 @@ class Constructions
   end
 
   def self.apply_window_skylight_shading(model, window_or_skylight, index, shading_vertices, parent_surface, sub_surface, shading_group,
-                                         shading_schedules, shading_ems, name, cooling_season)
+                                         shading_schedules, shading_ems, name, hpxml)
     sf_summer = window_or_skylight.interior_shading_factor_summer * window_or_skylight.exterior_shading_factor_summer
     sf_winter = window_or_skylight.interior_shading_factor_winter * window_or_skylight.exterior_shading_factor_winter
     if (sf_summer < 1.0) || (sf_winter < 1.0)
@@ -1633,16 +1633,46 @@ class Constructions
       shading_surface.additionalProperties.setFeature('Azimuth', window_or_skylight.azimuth)
       shading_surface.additionalProperties.setFeature('ParentSurface', parent_surface.name.to_s)
 
-      # Create transmittance schedule for heating/cooling seasons
-      trans_values = cooling_season.map { |c| c == 1 ? sf_summer : sf_winter }
+      # Determine transmittance values throughout the year
+      trans_values = []
+      num_days_in_year = Constants.NumDaysInYear(hpxml.header.sim_calendar_year)
+      if not hpxml.header.shading_summer_begin_month.nil?
+        summer_start_day_num = Schedule.get_day_num_from_month_day(hpxml.header.sim_calendar_year,
+                                                                   hpxml.header.shading_summer_begin_month,
+                                                                   hpxml.header.shading_summer_begin_day)
+        summer_end_day_num = Schedule.get_day_num_from_month_day(hpxml.header.sim_calendar_year,
+                                                                 hpxml.header.shading_summer_end_month,
+                                                                 hpxml.header.shading_summer_end_day)
+        for i in 0..(num_days_in_year - 1)
+          day_num = i + 1
+          if summer_end_day_num >= summer_start_day_num
+            if (day_num >= summer_start_day_num) && (day_num <= summer_end_day_num)
+              trans_values << [sf_summer] * 24
+              next
+            end
+          else
+            if (day_num >= summer_start_day_num) || (day_num <= summer_end_day_num)
+              trans_values << [sf_summer] * 24
+              next
+            end
+          end
+          # If we got this far, winter
+          trans_values << [sf_winter] * 24
+        end
+      else
+        # No summer (year-round winter)
+        trans_values = [[sf_winter] * 24] * num_days_in_year
+      end
+
+      # Create transmittance schedule
       if shading_schedules[trans_values].nil?
         sch_name = "trans schedule winter=#{sf_winter} summer=#{sf_summer}"
-        if trans_values.uniq.size == 1
+        if trans_values.flatten.uniq.size == 1
           trans_sch = OpenStudio::Model::ScheduleConstant.new(model)
-          trans_sch.setValue(trans_values[0])
+          trans_sch.setValue(trans_values[0][0])
           trans_sch.setName(sch_name)
         else
-          trans_sch = MonthWeekdayWeekendSchedule.new(model, sch_name, Array.new(24, 1), Array.new(24, 1), trans_values, Constants.ScheduleTypeLimitsFraction, false).schedule
+          trans_sch = HourlyByDaySchedule.new(model, sch_name, trans_values, trans_values, Constants.ScheduleTypeLimitsFraction, false).schedule
         end
         shading_schedules[trans_values] = trans_sch
       end

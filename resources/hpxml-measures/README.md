@@ -5,7 +5,7 @@
 [![Documentation Status](https://readthedocs.org/projects/openstudio-hpxml/badge/?version=latest)](https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest)
 
 OpenStudio-HPXML allows running residential EnergyPlus simulations using an [HPXML file](https://hpxml.nrel.gov/) for the building description.
-A Schematron document (`HPXMLtoOpenStudio/resources/hpxml_schematron/EPvalidator.xml`) for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
+It is intended to be used by user interfaces or other automated software workflows that automatically produce the HPXML file. A [Schematron](http://schematron.com/) document for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
 
 OpenStudio-HPXML can accommodate a wide range of different building technologies and geometries.
 End-to-end simulations typically run in 3-10 seconds, depending on complexity, computer platform and speed, etc.
@@ -14,7 +14,7 @@ For more information on running simulations, generating HPXML files, etc., pleas
 
 ## Workflows
 
-A simple [run_simulation.rb script](https://github.com/NREL/OpenStudio-HPXML/blob/master/workflow/run_simulation.rb) is provided to run a residential EnergyPlus simulation from an HPXML file.
+A simple `run_simulation.rb` script is provided to run a residential EnergyPlus simulation from an HPXML file.
 See the [Usage Instructions](https://openstudio-hpxml.readthedocs.io/en/latest/usage_instructions.html) for documentation on running the workflow.
 
 Since [OpenStudio measures](http://nrel.github.io/OpenStudio-user-documentation/getting_started/about_measures/) are used for model generation, additional OpenStudio-based workflows and interfaces can instead be used if desired.

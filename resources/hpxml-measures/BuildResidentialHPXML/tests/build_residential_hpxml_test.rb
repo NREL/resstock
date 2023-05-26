@@ -10,10 +10,11 @@ require 'fileutils'
 class BuildResidentialHPXMLTest < MiniTest::Test
   def setup
     @output_path = File.join(File.dirname(__FILE__), 'extra_files')
+    @model_save = false # true helpful for debugging, i.e., can render osm in 3D
   end
 
   def teardown
-    FileUtils.rm_rf(@output_path)
+    FileUtils.rm_rf(@output_path) if !@model_save
   end
 
   def test_workflows
@@ -152,6 +153,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-ducts-location-and-areas-not-same-type.xml' => 'base-sfd.xml',
       'error-second-heating-system-serves-total-heat-load.xml' => 'base-sfd.xml',
       'error-second-heating-system-but-no-primary-heating.xml' => 'base-sfd.xml',
+      'error-second-heating-system-ducted-with-ducted-primary-heating.xml' => 'base-sfd.xml',
       'error-sfa-no-building-num-units.xml' => 'base-sfa.xml',
       'error-sfa-above-apartment.xml' => 'base-sfa.xml',
       'error-sfa-below-apartment.xml' => 'base-sfa.xml',
@@ -182,6 +184,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-invalid-window-aspect-ratio.xml' => 'base-sfd.xml',
       'error-garage-too-wide.xml' => 'base-sfd.xml',
       'error-garage-too-deep.xml' => 'base-sfd.xml',
+      'error-vented-attic-with-zero-floor-insulation.xml' => 'base-sfd.xml',
 
       'warning-non-electric-heat-pump-water-heater.xml' => 'base-sfd.xml',
       'warning-sfd-slab-non-zero-foundation-height.xml' => 'base-sfd.xml',
@@ -208,6 +211,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-ducts-location-and-areas-not-same-type.xml' => 'Duct location and surface area not both defaulted or not both specified.',
       'error-second-heating-system-serves-total-heat-load.xml' => 'The fraction of heat load served by the second heating system is 100%.',
       'error-second-heating-system-but-no-primary-heating.xml' => 'A second heating system was specified without a primary heating system.',
+      'error-second-heating-system-ducted-with-ducted-primary-heating.xml' => "A ducted heat pump with 'separate' ducted backup is not supported.",
       'error-sfa-no-building-num-units.xml' => 'Did not specify the number of units in the building for single-family attached or apartment units.',
       'error-sfa-above-apartment.xml' => 'Single-family attached units cannot be above another unit.',
       'error-sfa-below-apartment.xml' => 'Single-family attached units cannot be below another unit.',
@@ -237,7 +241,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-invalid-door-area.xml' => 'Door area cannot be negative.',
       'error-invalid-window-aspect-ratio.xml' => 'Window aspect ratio must be greater than zero.',
       'error-garage-too-wide.xml' => 'Garage is as wide as the single-family detached unit.',
-      'error-garage-too-deep.xml' => 'Garage is as deep as the single-family detached unit.'
+      'error-garage-too-deep.xml' => 'Garage is as deep as the single-family detached unit.',
+      'error-vented-attic-with-zero-floor-insulation.xml' => "Element 'AssemblyEffectiveRValue': [facet 'minExclusive'] The value '0.0' must be greater than '0'."
     }
 
     expected_warnings = {
@@ -286,6 +291,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
         # Apply measure
         success = apply_measures(measures_dir, measures, runner, model)
+        model.save(File.absolute_path(File.join(@output_path, hpxml_file.gsub('.xml', '.osm')))) if @model_save
 
         _test_measure(runner, expected_errors[hpxml_file], expected_warnings[hpxml_file])
 
@@ -300,7 +306,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         end
 
         hpxml_path = File.absolute_path(File.join(@output_path, hpxml_file))
-        hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
+        hpxml = HPXML.new(hpxml_path: hpxml_path)
         hpxml.header.xml_generated_by = 'build_residential_hpxml_test.rb'
         hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
 
@@ -329,7 +335,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
   def _set_measure_argument_values(hpxml_file, args)
     args['hpxml_path'] = File.join(File.dirname(__FILE__), "extra_files/#{hpxml_file}")
     args['apply_defaults'] = true
-    args['apply_validation'] = true
 
     # Base
     if ['base-sfd.xml'].include? hpxml_file
@@ -616,6 +621,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['window_area_back'] = 0
       args['window_area_left'] = 0
       args['window_area_right'] = 0
+      args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
     elsif ['base-mf.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
       args['geometry_unit_cfa'] = 900.0
@@ -640,6 +646,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['ducts_return_insulation_r'] = 0.0
       args['ducts_number_of_return_registers'] = 1
       args['door_area'] = 20.0
+      args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
     end
 
     # Extras
@@ -692,7 +699,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['heating_system_type'] = 'none'
       args['cooling_system_type'] = 'none'
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
-      args['heat_pump_heating_capacity_17_f'] = 22680.0
       args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
       args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
       args['heat_pump_heating_capacity'] = 48000.0
@@ -1010,6 +1016,13 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['error-second-heating-system-but-no-primary-heating.xml'].include? hpxml_file
       args['heating_system_type'] = 'none'
       args['heating_system_2_type'] = HPXML::HVACTypeFireplace
+    elsif ['error-second-heating-system-ducted-with-ducted-primary-heating.xml'].include? hpxml_file
+      args['heating_system_type'] = 'none'
+      args['cooling_system_type'] = 'none'
+      args['heat_pump_type'] = HPXML::HVACTypeHeatPumpMiniSplit
+      args['heat_pump_is_ducted'] = true
+      args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
+      args['heating_system_2_type'] = HPXML::HVACTypeFurnace
     elsif ['error-sfa-no-building-num-units.xml'].include? hpxml_file
       args.delete('geometry_building_num_units')
     elsif ['error-sfa-above-apartment.xml'].include? hpxml_file
@@ -1090,6 +1103,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['error-garage-too-deep.xml'].include? hpxml_file
       args['geometry_garage_width'] = 12
       args['geometry_garage_depth'] = 40
+    elsif ['error-vented-attic-with-zero-floor-insulation.xml'].include? hpxml_file
+      args['ceiling_assembly_r'] = 0
     end
 
     # Warning
@@ -1150,20 +1165,20 @@ class BuildResidentialHPXMLTest < MiniTest::Test
   def _test_measure(runner, expected_error, expected_warning)
     # check warnings/errors
     if not expected_error.nil?
-      if runner.result.stepErrors.select { |s| s == expected_error }.size <= 0
+      if runner.result.stepErrors.select { |s| s.include?(expected_error) }.size <= 0
         runner.result.stepErrors.each do |s|
           puts "ERROR: #{s}"
         end
       end
-      assert(runner.result.stepErrors.select { |s| s == expected_error }.size > 0)
+      assert(runner.result.stepErrors.select { |s| s.include?(expected_error) }.size > 0)
     end
     if not expected_warning.nil?
-      if runner.result.stepWarnings.select { |s| s == expected_warning }.size <= 0
+      if runner.result.stepWarnings.select { |s| s.include?(expected_warning) }.size <= 0
         runner.result.stepWarnings.each do |s|
           puts "WARNING: #{s}"
         end
       end
-      assert(runner.result.stepWarnings.select { |s| s == expected_warning }.size > 0)
+      assert(runner.result.stepWarnings.select { |s| s.include?(expected_warning) }.size > 0)
     end
   end
 end

@@ -302,6 +302,8 @@ def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_
     if (not row[0].nil?) && (not row[1].nil?)
       current_option = nil # reset
       option_names.each do |option_name|
+        next unless not option_name.nil?
+
         if (row[0].downcase == parameter_name.downcase) && (row[1].downcase == option_name.downcase)
           current_option = option_name
           break
@@ -327,12 +329,20 @@ def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_
       break if found_options.values.all? { |elem| elem == true }
     end
   end
+
+  errors = []
   option_names.each do |option_name|
-    if not found_options[option_name]
-      register_error("Could not find parameter '#{parameter_name}' and option '#{option_name}' in #{lookup_file}.", runner)
+    next unless not found_options[option_name]
+
+    msg = "Could not find parameter '#{parameter_name}' and option '#{option_name}' in #{lookup_file}."
+    if runner.nil?
+      errors << msg
+    else
+      register_error(msg, runner)
     end
   end
-  return options_measure_args
+
+  return options_measure_args, errors
 end
 
 def print_option_assignment(parameter_name, option_name, runner)
@@ -533,8 +543,8 @@ class RunOSWs
 end
 
 class Version
-  ResStock_Version = '3.0.0' # Version of ResStock
-  BuildStockBatch_Version = '2023.1.0' # Minimum required version of BuildStockBatch
+  ResStock_Version = '3.1.0' # Version of ResStock
+  BuildStockBatch_Version = '2023.5.0' # Minimum required version of BuildStockBatch
 
   def self.check_buildstockbatch_version
     if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed

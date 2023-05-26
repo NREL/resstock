@@ -8,7 +8,7 @@ Setup
 
 To get started:
 
-#. Download `OpenStudio 3.5.0 <https://github.com/NREL/OpenStudio/releases/tag/v3.5.0>`_ and install the Command Line Interface/EnergyPlus/C++ API components, or use the `nrel/openstudio docker image <https://hub.docker.com/r/nrel/openstudio>`_.
+#. Download `OpenStudio 3.6.1 <https://github.com/NREL/OpenStudio/releases/tag/v3.6.1>`_ and install the Command Line Interface/EnergyPlus/C++ API components, or use the `nrel/openstudio docker image <https://hub.docker.com/r/nrel/openstudio>`_.
 #. Download the `latest release <https://github.com/NREL/OpenStudio-HPXML/releases>`_.
 
 Running
@@ -18,7 +18,7 @@ To programatically run simulations, it's recommended to use the OpenStudio `Comm
 Two general approaches (basic and advanced) for running via the CLI are described below.
 The OpenStudio measures can also be run from user interfaces (e.g., the OpenStudio Application or OpenStudio Parametric Analysis Tool (PAT)).
 
-.. note:: 
+.. note::
 
   If the ``openstudio`` command is not found, it's because the executable is not in your PATH. Either add the executable to your PATH or point directly to the executable found in the openstudio-X.X.X/bin directory.
 

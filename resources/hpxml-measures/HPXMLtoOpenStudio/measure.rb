@@ -109,13 +109,15 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     begin
       if skip_validation
-        xsd_path = nil
-        stron_path = nil
+        schema_validator = nil
+        schematron_validator = nil
       else
-        xsd_path = File.join(File.dirname(__FILE__), 'resources', 'hpxml_schema', 'HPXML.xsd')
-        stron_path = File.join(File.dirname(__FILE__), 'resources', 'hpxml_schematron', 'EPvalidator.xml')
+        schema_path = File.join(File.dirname(__FILE__), 'resources', 'hpxml_schema', 'HPXML.xsd')
+        schema_validator = XMLValidator.get_schema_validator(schema_path)
+        schematron_path = File.join(File.dirname(__FILE__), 'resources', 'hpxml_schematron', 'EPvalidator.xml')
+        schematron_validator = XMLValidator.get_schematron_validator(schematron_path)
       end
-      hpxml = HPXML.new(hpxml_path: hpxml_path, schema_path: xsd_path, schematron_path: stron_path, building_id: building_id)
+      hpxml = HPXML.new(hpxml_path: hpxml_path, schema_validator: schema_validator, schematron_validator: schematron_validator, building_id: building_id)
       hpxml.errors.each do |error|
         runner.registerError(error)
       end
@@ -124,14 +126,15 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
       return false unless hpxml.errors.empty?
 
-      epw_path, cache_path = process_weather(hpxml, runner, hpxml_path)
+      epw_path = Location.get_epw_path(hpxml, hpxml_path)
+      weather = WeatherProcess.new(epw_path: epw_path, runner: runner)
 
       if debug
         epw_output_path = File.join(output_dir, 'in.epw')
         FileUtils.cp(epw_path, epw_output_path)
       end
 
-      OSModel.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir,
+      OSModel.create(hpxml, runner, model, hpxml_path, epw_path, weather, output_dir,
                      add_component_loads, building_id, debug)
     rescue Exception => e
       runner.registerError("#{e.message}\n#{e.backtrace.join("\n")}")
@@ -140,39 +143,13 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     return true
   end
-
-  def process_weather(hpxml, runner, hpxml_path)
-    epw_path = Location.get_epw_path(hpxml, hpxml_path)
-
-    cache_path = epw_path.gsub('.epw', '-cache.csv')
-    if not File.exist?(cache_path)
-      # Process weather file to create cache .csv
-      begin
-        File.open(cache_path, 'wb') do |file|
-          runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
-          weather = WeatherProcess.new(epw_path: epw_path)
-          weather.dump_to_csv(file)
-        end
-      rescue SystemCallError
-        runner.registerWarning("#{cache_path} could not be written, skipping.")
-      end
-    end
-
-    return epw_path, cache_path
-  end
 end
 
 class OSModel
-  def self.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir,
+  def self.create(hpxml, runner, model, hpxml_path, epw_path, weather, output_dir,
                   add_component_loads, building_id, debug)
     @hpxml = hpxml
     @debug = debug
-
-    # Set the working directory so that any files OS creates (e.g., external files
-    # in the 'files' dir) end up in a writable directory.
-    # Has a secondary benefit of creating the 'files' dir next to the 'run' dir.
-    # See https://github.com/NREL/OpenStudio/issues/4763
-    Dir.chdir(File.dirname(hpxml_path))
 
     @eri_version = @hpxml.header.eri_calculation_version # Hidden feature
     @eri_version = 'latest' if @eri_version.nil?
@@ -190,20 +167,19 @@ class OSModel
     model.setStrictnessLevel('None'.to_StrictnessLevel)
 
     # Init
-
     check_file_references(hpxml_path)
-    weather, epw_file = Location.apply_weather_file(model, epw_path, cache_path)
+    epw_file = Location.apply_weather_file(model, epw_path)
     @schedules_file = SchedulesFile.new(runner: runner, model: model,
                                         schedules_paths: @hpxml.header.schedules_filepaths,
                                         year: Location.get_sim_calendar_year(@hpxml.header.sim_calendar_year, epw_file),
-                                        vacancy_periods: @hpxml.header.vacancy_periods)
+                                        unavailable_periods: @hpxml.header.unavailable_periods,
+                                        output_path: File.join(output_dir, 'in.schedules.csv'))
     set_defaults_and_globals(runner, output_dir, epw_file, weather, @schedules_file)
     validate_emissions_files()
     Location.apply(model, weather, epw_file, @hpxml)
     add_simulation_params(model)
 
     # Conditioned space/zone
-
     spaces = {}
     create_or_get_space(model, spaces, HPXML::LocationLivingSpace)
     set_foundation_and_walls_top()
@@ -216,7 +192,6 @@ class OSModel
     add_rim_joists(runner, model, spaces)
     add_floors(runner, model, spaces)
     add_foundation_walls_slabs(runner, model, weather, spaces)
-    add_shading_schedule(model, weather)
     add_windows(model, spaces)
     add_doors(model, spaces)
     add_skylights(model, spaces)
@@ -227,21 +202,19 @@ class OSModel
     add_num_occupants(model, runner, spaces)
 
     # HVAC
-
+    @hvac_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::ColumnHVAC, @hpxml.header.unavailable_periods)
     airloop_map = {} # Map of HPXML System ID -> AirLoopHVAC (or ZoneHVACFourPipeFanCoil)
     add_ideal_system(model, spaces, epw_path)
     add_cooling_system(model, spaces, airloop_map)
     add_heating_system(runner, model, spaces, airloop_map)
     add_heat_pump(runner, model, weather, spaces, airloop_map)
-    add_dehumidifiers(model, spaces)
+    add_dehumidifiers(runner, model, spaces)
     add_ceiling_fans(runner, model, weather, spaces)
 
     # Hot Water
-
     add_hot_water_and_appliances(runner, model, weather, spaces)
 
     # Plug Loads & Fuel Loads & Lighting
-
     add_mels(runner, model, spaces)
     add_mfls(runner, model, spaces)
     add_lighting(runner, model, epw_file, spaces)
@@ -250,15 +223,14 @@ class OSModel
     add_pools_and_hot_tubs(runner, model, spaces)
 
     # Other
-
+    add_cooling_season(model, weather)
     add_airflow(runner, model, weather, spaces, airloop_map)
     add_photovoltaics(model)
     add_generators(model)
     add_batteries(runner, model, spaces)
-    add_additional_properties(model, hpxml_path, building_id)
+    add_additional_properties(model, hpxml_path, building_id, epw_file)
 
     # Output
-
     add_unmet_hours_output(model, spaces)
     add_loads_output(model, spaces, add_component_loads)
     set_output_files(model)
@@ -326,8 +298,6 @@ class OSModel
     # Apply defaults to HPXML object
     HPXMLDefaults.apply(runner, @hpxml, @eri_version, weather, epw_file: epw_file, schedules_file: schedules_file)
 
-    @frac_windows_operable = @hpxml.fraction_of_windows_operable()
-
     # Write updated HPXML object (w/ defaults) to file for inspection
     @hpxml_defaults_path = File.join(output_dir, 'in.xml')
     XMLHelper.write_file(@hpxml.to_oga, @hpxml_defaults_path)
@@ -336,14 +306,28 @@ class OSModel
     # are zero in order to prevent potential E+ errors.
     HVAC.ensure_nonzero_sizing_values(@hpxml)
 
-    # Handle zero occupants when operational calculation
-    occ_calc_type = @hpxml.header.occupancy_calculation_type
-    noccs = @hpxml.building_occupancy.number_of_residents
-    if occ_calc_type == HPXML::OccupancyCalculationTypeOperational && noccs == 0
-      @hpxml.header.vacancy_periods.add(begin_month: @hpxml.header.sim_begin_month,
-                                        begin_day: @hpxml.header.sim_begin_day,
-                                        end_month: @hpxml.header.sim_end_month,
-                                        end_day: @hpxml.header.sim_end_day)
+    # Now that we've written in.xml, make adjustments for modeling purposes.
+    @frac_windows_operable = @hpxml.fraction_of_windows_operable()
+    @hpxml.collapse_enclosure_surfaces() # Speeds up simulation
+    @hpxml.delete_adiabatic_subsurfaces() # EnergyPlus doesn't allow this
+
+    # We don't want this to be written to in.xml, because then if you ran the in.xml
+    # file, you would get different results (operational calculation) relative to the
+    # original file (asset calculation).
+    if @hpxml.building_occupancy.number_of_residents.nil?
+      @hpxml.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(@nbeds)
+    end
+
+    # If zero occupants, ensure end uses of interest are zeroed out
+    if (@hpxml.building_occupancy.number_of_residents == 0) && (not @apply_ashrae140_assumptions)
+      @hpxml.header.unavailable_periods.add(column_name: 'Vacancy',
+                                            begin_month: @hpxml.header.sim_begin_month,
+                                            begin_day: @hpxml.header.sim_begin_day,
+                                            begin_hour: 0,
+                                            end_month: @hpxml.header.sim_end_month,
+                                            end_day: @hpxml.header.sim_end_day,
+                                            end_hour: 24,
+                                            natvent_availability: HPXML::ScheduleUnavailable)
     end
   end
 
@@ -357,7 +341,7 @@ class OSModel
     return if num_occ <= 0
 
     Geometry.apply_occupants(model, runner, @hpxml, num_occ, spaces[HPXML::LocationLivingSpace],
-                             @schedules_file, @hpxml.header.vacancy_periods)
+                             @schedules_file, @hpxml.header.unavailable_periods)
   end
 
   def self.create_or_get_space(model, spaces, location)
@@ -1090,12 +1074,13 @@ class OSModel
     end
   end
 
-  def self.add_shading_schedule(model, weather)
-    # Use BAHSP cooling season, and not year-round or user-specified cooling season, to ensure windows use appropriate interior shading factors
-    _default_heating_months, @default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
-
+  def self.add_cooling_season(model, weather)
     # Create cooling season schedule
-    clg_season_sch = MonthWeekdayWeekendSchedule.new(model, 'cooling season schedule', Array.new(24, 1), Array.new(24, 1), @default_cooling_months, Constants.ScheduleTypeLimitsFraction)
+    # Applies to natural ventilation and calculation of component loads, not HVAC equipment
+    # Uses BAHSP cooling season, not user-specified cooling season (which may be, e.g., year-round)
+    _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+
+    clg_season_sch = MonthWeekdayWeekendSchedule.new(model, 'cooling season schedule', Array.new(24, 1), Array.new(24, 1), default_cooling_months, Constants.ScheduleTypeLimitsFraction)
     @clg_ssn_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     @clg_ssn_sensor.setName('cool_season')
     @clg_ssn_sensor.setKeyName(clg_season_sch.schedule.name.to_s)
@@ -1166,7 +1151,7 @@ class OSModel
         # Apply interior/exterior shading (as needed)
         shading_vertices = Geometry.create_wall_vertices(window_length, window_height, z_origin, window.azimuth)
         shading_group = Constructions.apply_window_skylight_shading(model, window, i, shading_vertices, surface, sub_surface, shading_group,
-                                                                    shading_schedules, shading_ems, Constants.ObjectNameWindowShade, @default_cooling_months)
+                                                                    shading_schedules, shading_ems, Constants.ObjectNameWindowShade, @hpxml)
       else
         # Window is on an interior surface, which E+ does not allow. Model
         # as a door instead so that we can get the appropriate conduction
@@ -1244,7 +1229,7 @@ class OSModel
       # Apply interior/exterior shading (as needed)
       shading_vertices = Geometry.create_roof_vertices(length, width, z_origin, skylight.azimuth, tilt)
       shading_group = Constructions.apply_window_skylight_shading(model, skylight, i, shading_vertices, surface, sub_surface, shading_group,
-                                                                  shading_schedules, shading_ems, Constants.ObjectNameSkylightShade, @default_cooling_months)
+                                                                  shading_schedules, shading_ems, Constants.ObjectNameSkylightShade, @hpxml)
     end
 
     apply_adiabatic_construction(model, surfaces, 'roof')
@@ -1350,6 +1335,7 @@ class OSModel
     end
 
     # Water Heater
+    unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::ColumnWaterHeater, @hpxml.header.unavailable_periods)
     has_uncond_bsmnt = @hpxml.has_location(HPXML::LocationBasementUnconditioned)
     plantloop_map = {}
     @hpxml.water_heating_systems.each do |water_heating_system|
@@ -1359,14 +1345,14 @@ class OSModel
 
       sys_id = water_heating_system.id
       if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage
-        plantloop_map[sys_id] = Waterheater.apply_tank(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file)
+        plantloop_map[sys_id] = Waterheater.apply_tank(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless
-        plantloop_map[sys_id] = Waterheater.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file)
+        plantloop_map[sys_id] = Waterheater.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
         living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
-        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, living_zone, @eri_version, @schedules_file)
+        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, living_zone, @eri_version, @schedules_file, unavailable_periods)
       elsif [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
-        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file)
+        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods)
       else
         fail "Unhandled water heater (#{water_heating_system.water_heater_type})."
       end
@@ -1375,7 +1361,7 @@ class OSModel
     # Hot water fixtures and appliances
     HotWaterAndAppliances.apply(model, runner, @hpxml, weather, spaces, hot_water_distribution,
                                 solar_thermal_system, @eri_version, @schedules_file, plantloop_map,
-                                @hpxml.header.vacancy_periods)
+                                @hpxml.header.unavailable_periods)
 
     if (not solar_thermal_system.nil?) && (not solar_thermal_system.collector_area.nil?) # Detailed solar water heater
       loc_space, loc_schedule = get_space_or_schedule_from_location(solar_thermal_system.water_heating_system.location, model, spaces)
@@ -1421,12 +1407,12 @@ class OSModel
 
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, cooling_system, heating_system,
                                                                  sequential_cool_load_fracs, sequential_heat_load_fracs,
-                                                                 living_zone)
+                                                                 living_zone, @hvac_unavailable_periods)
 
       elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
 
         airloop_map[sys_id] = HVAC.apply_evaporative_cooler(model, cooling_system,
-                                                            sequential_cool_load_fracs, living_zone)
+                                                            sequential_cool_load_fracs, living_zone, @hvac_unavailable_periods)
       end
     end
   end
@@ -1465,17 +1451,17 @@ class OSModel
 
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, nil, heating_system,
                                                                  [0], sequential_heat_load_fracs,
-                                                                 living_zone)
+                                                                 living_zone, @hvac_unavailable_periods)
 
       elsif [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
 
         airloop_map[sys_id] = HVAC.apply_boiler(model, runner, heating_system,
-                                                sequential_heat_load_fracs, living_zone)
+                                                sequential_heat_load_fracs, living_zone, @hvac_unavailable_periods)
 
       elsif [HPXML::HVACTypeElectricResistance].include? heating_system.heating_system_type
 
         HVAC.apply_electric_baseboard(model, heating_system,
-                                      sequential_heat_load_fracs, living_zone)
+                                      sequential_heat_load_fracs, living_zone, @hvac_unavailable_periods)
 
       elsif [HPXML::HVACTypeStove,
              HPXML::HVACTypePortableHeater,
@@ -1485,13 +1471,13 @@ class OSModel
              HPXML::HVACTypeFireplace].include? heating_system.heating_system_type
 
         HVAC.apply_unit_heater(model, heating_system,
-                               sequential_heat_load_fracs, living_zone)
+                               sequential_heat_load_fracs, living_zone, @hvac_unavailable_periods)
       end
 
       next unless heating_system.is_heat_pump_backup_system
 
       # Store OS object for later use
-      equipment_list = model.getZoneHVACEquipmentLists.select { |el| el.thermalZone == living_zone }[0]
+      equipment_list = model.getZoneHVACEquipmentLists.find { |el| el.thermalZone == living_zone }
       @heat_pump_backup_system_object = equipment_list.equipment[-1]
     end
   end
@@ -1520,7 +1506,7 @@ class OSModel
 
         airloop_map[sys_id] = HVAC.apply_water_loop_to_air_heat_pump(model, heat_pump,
                                                                      sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                                                     living_zone)
+                                                                     living_zone, @hvac_unavailable_periods)
 
       elsif [HPXML::HVACTypeHeatPumpAirToAir,
              HPXML::HVACTypeHeatPumpMiniSplit,
@@ -1528,18 +1514,18 @@ class OSModel
              HPXML::HVACTypeHeatPumpRoom].include? heat_pump.heat_pump_type
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, heat_pump, heat_pump,
                                                                  sequential_cool_load_fracs, sequential_heat_load_fracs,
-                                                                 living_zone)
+                                                                 living_zone, @hvac_unavailable_periods)
       elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
 
         airloop_map[sys_id] = HVAC.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
                                                                  sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                                                 living_zone, @hpxml.site.ground_conductivity)
+                                                                 living_zone, @hpxml.site.ground_conductivity, @hvac_unavailable_periods)
 
       end
 
       next unless not heat_pump.backup_system.nil?
 
-      equipment_list = model.getZoneHVACEquipmentLists.select { |el| el.thermalZone == living_zone }[0]
+      equipment_list = model.getZoneHVACEquipmentLists.find { |el| el.thermalZone == living_zone }
 
       # Set priority to be last (i.e., after the heat pump that it is backup for)
       equipment_list.setHeatingPriority(@heat_pump_backup_system_object, 99)
@@ -1567,27 +1553,27 @@ class OSModel
         end
       end
       HVAC.apply_ideal_air_loads(model, obj_name, [cooling_load_frac], [heating_load_frac],
-                                 living_zone)
+                                 living_zone, @hvac_unavailable_periods)
       return
     end
 
     if (@hpxml.total_fraction_heat_load_served < 1.0) && (@hpxml.total_fraction_heat_load_served > 0.0)
-      sequential_heat_load_frac = @remaining_heat_load_frac - @hpxml.total_fraction_heat_load_served
-      @remaining_heat_load_frac -= sequential_heat_load_frac
+      sequential_heat_load_fracs = HVAC.calc_sequential_load_fractions(@remaining_heat_load_frac - @hpxml.total_fraction_heat_load_served, @remaining_heat_load_frac, @heating_days)
+      @remaining_heat_load_frac -= (1.0 - @hpxml.total_fraction_heat_load_served)
     else
-      sequential_heat_load_frac = 0.0
+      sequential_heat_load_fracs = [0.0]
     end
 
     if (@hpxml.total_fraction_cool_load_served < 1.0) && (@hpxml.total_fraction_cool_load_served > 0.0)
-      sequential_cool_load_frac = @remaining_cool_load_frac - @hpxml.total_fraction_cool_load_served
-      @remaining_cool_load_frac -= sequential_cool_load_frac
+      sequential_cool_load_fracs = HVAC.calc_sequential_load_fractions(@remaining_cool_load_frac - @hpxml.total_fraction_cool_load_served, @remaining_cool_load_frac, @cooling_days)
+      @remaining_cool_load_frac -= (1.0 - @hpxml.total_fraction_cool_load_served)
     else
-      sequential_cool_load_frac = 0.0
+      sequential_cool_load_fracs = [0.0]
     end
 
-    if (sequential_heat_load_frac > 0.0) || (sequential_cool_load_frac > 0.0)
-      HVAC.apply_ideal_air_loads(model, obj_name, [sequential_cool_load_frac], [sequential_heat_load_frac],
-                                 living_zone)
+    if (sequential_heat_load_fracs.sum > 0.0) || (sequential_cool_load_fracs.sum > 0.0)
+      HVAC.apply_ideal_air_loads(model, obj_name, sequential_cool_load_fracs, sequential_heat_load_fracs,
+                                 living_zone, @hvac_unavailable_periods)
     end
   end
 
@@ -1606,13 +1592,13 @@ class OSModel
 
     ceiling_fan = @hpxml.ceiling_fans[0]
     HVAC.apply_ceiling_fans(model, runner, weather, ceiling_fan, spaces[HPXML::LocationLivingSpace],
-                            @schedules_file, @hpxml.header.vacancy_periods)
+                            @schedules_file, @hpxml.header.unavailable_periods)
   end
 
-  def self.add_dehumidifiers(model, spaces)
+  def self.add_dehumidifiers(runner, model, spaces)
     return if @hpxml.dehumidifiers.size == 0
 
-    HVAC.apply_dehumidifiers(model, @hpxml.dehumidifiers, spaces[HPXML::LocationLivingSpace])
+    HVAC.apply_dehumidifiers(runner, model, @hpxml.dehumidifiers, spaces[HPXML::LocationLivingSpace], @hpxml.header.unavailable_periods)
   end
 
   def self.check_distribution_system(hvac_distribution, system_type)
@@ -1651,7 +1637,7 @@ class OSModel
       end
 
       MiscLoads.apply_plug(model, runner, plug_load, obj_name, spaces[HPXML::LocationLivingSpace], @apply_ashrae140_assumptions,
-                           @schedules_file, @hpxml.header.vacancy_periods)
+                           @schedules_file, @hpxml.header.unavailable_periods)
     end
   end
 
@@ -1671,13 +1657,13 @@ class OSModel
       end
 
       MiscLoads.apply_fuel(model, runner, fuel_load, obj_name, spaces[HPXML::LocationLivingSpace],
-                           @schedules_file, @hpxml.header.vacancy_periods)
+                           @schedules_file, @hpxml.header.unavailable_periods)
     end
   end
 
   def self.add_lighting(runner, model, epw_file, spaces)
     Lighting.apply(runner, model, epw_file, spaces, @hpxml.lighting_groups, @hpxml.lighting, @eri_version,
-                   @schedules_file, @cfa, @hpxml.header.vacancy_periods)
+                   @schedules_file, @cfa, @hpxml.header.unavailable_periods)
   end
 
   def self.add_pools_and_hot_tubs(runner, model, spaces)
@@ -1685,22 +1671,22 @@ class OSModel
       next if pool.type == HPXML::TypeNone
 
       MiscLoads.apply_pool_or_hot_tub_heater(runner, model, pool, Constants.ObjectNameMiscPoolHeater, spaces[HPXML::LocationLivingSpace],
-                                             @schedules_file, @hpxml.header.vacancy_periods)
+                                             @schedules_file, @hpxml.header.unavailable_periods)
       next if pool.pump_type == HPXML::TypeNone
 
       MiscLoads.apply_pool_or_hot_tub_pump(runner, model, pool, Constants.ObjectNameMiscPoolPump, spaces[HPXML::LocationLivingSpace],
-                                           @schedules_file, @hpxml.header.vacancy_periods)
+                                           @schedules_file, @hpxml.header.unavailable_periods)
     end
 
     @hpxml.hot_tubs.each do |hot_tub|
       next if hot_tub.type == HPXML::TypeNone
 
       MiscLoads.apply_pool_or_hot_tub_heater(runner, model, hot_tub, Constants.ObjectNameMiscHotTubHeater, spaces[HPXML::LocationLivingSpace],
-                                             @schedules_file, @hpxml.header.vacancy_periods)
+                                             @schedules_file, @hpxml.header.unavailable_periods)
       next if hot_tub.pump_type == HPXML::TypeNone
 
       MiscLoads.apply_pool_or_hot_tub_pump(runner, model, hot_tub, Constants.ObjectNameMiscHotTubPump, spaces[HPXML::LocationLivingSpace],
-                                           @schedules_file, @hpxml.header.vacancy_periods)
+                                           @schedules_file, @hpxml.header.unavailable_periods)
     end
   end
 
@@ -1735,9 +1721,21 @@ class OSModel
       end
     end
 
+    # Create HVAC availability sensor
+    @hvac_availability_sensor = nil
+    if not @hvac_unavailable_periods.empty?
+      avail_sch = ScheduleConstant.new(model, SchedulesFile::ColumnHVAC, 1.0, Constants.ScheduleTypeLimitsFraction, unavailable_periods: @hvac_unavailable_periods)
+      avail_sch = avail_sch.schedule
+
+      @hvac_availability_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+      @hvac_availability_sensor.setName('availability s')
+      @hvac_availability_sensor.setKeyName(avail_sch.name.to_s)
+    end
+
     Airflow.apply(model, runner, weather, spaces, @hpxml, @cfa, @nbeds,
                   @ncfl_ag, duct_systems, airloop_map, @clg_ssn_sensor, @eri_version,
-                  @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file, @hpxml.header.vacancy_periods)
+                  @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file,
+                  @hpxml.header.unavailable_periods, @hvac_availability_sensor)
   end
 
   def self.create_ducts(model, hvac_distribution, spaces)
@@ -1787,7 +1785,8 @@ class OSModel
         fail "#{ducts.duct_type.capitalize} ducts exist but leakage was not specified for distribution system '#{hvac_distribution.id}'."
       end
 
-      air_ducts << Duct.new(ducts.duct_type, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm25, duct_leakage_cfm50, ducts.duct_surface_area * ducts.duct_surface_area_multiplier, ducts.duct_insulation_r_value)
+      air_ducts << Duct.new(ducts.duct_type, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm25, duct_leakage_cfm50,
+                            ducts.duct_surface_area * ducts.duct_surface_area_multiplier, ducts.duct_effective_r_value, ducts.duct_buried_insulation_level)
     end
 
     # If all ducts are in conditioned space, model leakage as going to outside
@@ -1795,7 +1794,7 @@ class OSModel
       next unless (leakage_to_outside[duct_side][0] > 0) && (total_unconditioned_duct_area[duct_side] == 0)
 
       duct_area = 0.0
-      duct_rvalue = 0.0
+      duct_effective_r_value = 99 # arbitrary
       duct_loc_space = nil # outside
       duct_loc_schedule = nil # outside
       duct_leakage_value = leakage_to_outside[duct_side][0]
@@ -1811,7 +1810,8 @@ class OSModel
         fail "#{duct_side.capitalize} ducts exist but leakage was not specified for distribution system '#{hvac_distribution.id}'."
       end
 
-      air_ducts << Duct.new(duct_side, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm25, duct_leakage_cfm50, duct_area, duct_rvalue)
+      air_ducts << Duct.new(duct_side, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm25, duct_leakage_cfm50, duct_area,
+                            duct_effective_r_value, HPXML::DuctBuriedInsulationNone)
     end
 
     return air_ducts
@@ -1842,7 +1842,7 @@ class OSModel
     end
   end
 
-  def self.add_additional_properties(model, hpxml_path, building_id)
+  def self.add_additional_properties(model, hpxml_path, building_id, epw_file)
     # Store some data for use in reporting measure
     additionalProperties = model.getBuilding.additionalProperties
     additionalProperties.setFeature('hpxml_path', hpxml_path)
@@ -1852,10 +1852,9 @@ class OSModel
     additionalProperties.setFeature('emissions_scenario_names', emissions_scenario_names)
     emissions_scenario_types = @hpxml.header.emissions_scenarios.map { |s| s.emissions_type }.to_s
     additionalProperties.setFeature('emissions_scenario_types', emissions_scenario_types)
-    has_heating = (@hpxml.total_fraction_heat_load_served > 0)
-    additionalProperties.setFeature('has_heating', has_heating)
-    has_cooling = (@hpxml.total_fraction_cool_load_served > 0)
-    additionalProperties.setFeature('has_cooling', has_cooling)
+    additionalProperties.setFeature('has_heating', @hpxml.total_fraction_heat_load_served > 0)
+    additionalProperties.setFeature('has_cooling', @hpxml.total_fraction_cool_load_served > 0)
+    additionalProperties.setFeature('is_southern_hemisphere', epw_file.latitude < 0)
   end
 
   def self.add_unmet_hours_output(model, spaces)
@@ -1890,19 +1889,23 @@ class OSModel
     program.addLine("Set #{clg_hrs} = 0")
     if @hpxml.total_fraction_heat_load_served > 0
       if htg_end_day >= htg_start_day
-        program.addLine("If (DayOfYear >= #{htg_start_day}) && (DayOfYear <= #{htg_end_day})")
+        line = "If ((DayOfYear >= #{htg_start_day}) && (DayOfYear <= #{htg_end_day}))"
       else
-        program.addLine("If (DayOfYear >= #{htg_start_day}) || (DayOfYear <= #{htg_end_day})")
+        line = "If ((DayOfYear >= #{htg_start_day}) || (DayOfYear <= #{htg_end_day}))"
       end
+      line += " && (#{@hvac_availability_sensor.name} == 1)" if not @hvac_availability_sensor.nil?
+      program.addLine(line)
       program.addLine("  Set #{htg_hrs} = #{htg_hrs} + #{htg_sensor.name}")
       program.addLine('EndIf')
     end
     if @hpxml.total_fraction_cool_load_served > 0
       if clg_end_day >= clg_start_day
-        program.addLine("If (DayOfYear >= #{clg_start_day}) && (DayOfYear <= #{clg_end_day})")
+        line = "If ((DayOfYear >= #{clg_start_day}) && (DayOfYear <= #{clg_end_day}))"
       else
-        program.addLine("If (DayOfYear >= #{clg_start_day}) || (DayOfYear <= #{clg_end_day})")
+        line = "If ((DayOfYear >= #{clg_start_day}) || (DayOfYear <= #{clg_end_day}))"
       end
+      line += " && (#{@hvac_availability_sensor.name} == 1)" if not @hvac_availability_sensor.nil?
+      program.addLine(line)
       program.addLine("  Set #{clg_hrs} = #{clg_hrs} + #{clg_sensor.name}")
       program.addLine('EndIf')
     end
@@ -1917,13 +1920,21 @@ class OSModel
   def self.add_loads_output(model, spaces, add_component_loads)
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
 
-    liv_load_sensors, intgain_dehumidifier = add_total_loads_output(model, living_zone)
+    if @apply_ashrae140_assumptions
+      total_heat_load_served = 1.0
+      total_cool_load_served = 1.0
+    else
+      total_heat_load_served = @hpxml.total_fraction_heat_load_served
+      total_cool_load_served = @hpxml.total_fraction_cool_load_served
+    end
+
+    liv_load_sensors, intgain_dehumidifier = add_total_loads_output(model, living_zone, total_heat_load_served, total_cool_load_served)
     return unless add_component_loads
 
-    add_component_loads_output(model, living_zone, liv_load_sensors, intgain_dehumidifier)
+    add_component_loads_output(model, living_zone, liv_load_sensors, intgain_dehumidifier, total_heat_load_served, total_cool_load_served)
   end
 
-  def self.add_total_loads_output(model, living_zone)
+  def self.add_total_loads_output(model, living_zone, total_heat_load_served, total_cool_load_served)
     # Energy transferred in the conditioned space, used for determining heating (winter) vs cooling (summer)
     liv_load_sensors = {}
     liv_load_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Heating:EnergyTransfer:Zone:#{living_zone.name.to_s.upcase}")
@@ -1956,13 +1967,13 @@ class OSModel
     program.addLine('Set loads_htg_tot = 0')
     program.addLine('Set loads_clg_tot = 0')
     program.addLine("If #{liv_load_sensors[:htg].name} > 0")
-    s = "  Set loads_htg_tot = #{tot_load_sensors[:htg].name} - #{tot_load_sensors[:clg].name}"
+    s = "  Set loads_htg_tot = (#{tot_load_sensors[:htg].name} - #{tot_load_sensors[:clg].name}) * #{total_heat_load_served}"
     if not intgain_dehumidifier.nil?
       s += " - #{intgain_dehumidifier.name}"
     end
     program.addLine(s)
     program.addLine("ElseIf #{liv_load_sensors[:clg].name} > 0")
-    s = "  Set loads_clg_tot = #{tot_load_sensors[:clg].name} - #{tot_load_sensors[:htg].name}"
+    s = "  Set loads_clg_tot = (#{tot_load_sensors[:clg].name} - #{tot_load_sensors[:htg].name}) * #{total_cool_load_served}"
     if not intgain_dehumidifier.nil?
       s += " + #{intgain_dehumidifier.name}"
     end
@@ -1978,7 +1989,7 @@ class OSModel
     return liv_load_sensors, intgain_dehumidifier
   end
 
-  def self.add_component_loads_output(model, living_zone, liv_load_sensors, intgain_dehumidifier)
+  def self.add_component_loads_output(model, living_zone, liv_load_sensors, intgain_dehumidifier, total_heat_load_served, total_cool_load_served)
     # Prevent certain objects (e.g., OtherEquipment) from being counted towards both, e.g., ducts and internal gains
     objects_already_processed = []
 
@@ -2342,7 +2353,13 @@ class OSModel
       s = "Set hr_#{loadtype} = hr_#{loadtype}"
       sensors.each do |sensor|
         if sensor.name.to_s.include? 'gain'
-          s += " - #{sensor.name}"
+          # FIXME: Workaround for https://github.com/NREL/EnergyPlus/issues/9934
+          # Remove when the issue is resolved
+          if loadtype == 'infil'
+            s += " - (#{sensor.name} * 3600)"
+          else
+            s += " - #{sensor.name}"
+          end
         elsif sensor.name.to_s.include? 'loss'
           s += " + #{sensor.name}"
         end
@@ -2368,13 +2385,13 @@ class OSModel
     program.addLine('Set htg_mode = 0')
     program.addLine('Set clg_mode = 0')
     program.addLine("If (#{liv_load_sensors[:htg].name} > 0)") # Assign hour to heating if heating load
-    program.addLine('  Set htg_mode = 1')
+    program.addLine("  Set htg_mode = #{total_heat_load_served}")
     program.addLine("ElseIf (#{liv_load_sensors[:clg].name} > 0)") # Assign hour to cooling if cooling load
-    program.addLine('  Set clg_mode = 1')
+    program.addLine("  Set clg_mode = #{total_cool_load_served}")
     program.addLine("ElseIf (#{@clg_ssn_sensor.name} > 0)") # No load, assign hour to cooling if in cooling season definition (Note: natural ventilation & whole house fan only operate during the cooling season)
-    program.addLine('  Set clg_mode = 1')
+    program.addLine("  Set clg_mode = #{total_cool_load_served}")
     program.addLine('Else') # No load, assign hour to heating if not in cooling season definition
-    program.addLine('  Set htg_mode = 1')
+    program.addLine("  Set htg_mode = #{total_heat_load_served}")
     program.addLine('EndIf')
 
     [:htg, :clg].each do |mode|
@@ -2414,6 +2431,7 @@ class OSModel
     ocf.setOutputMTR(@debug)
     ocf.setOutputRDD(@debug)
     ocf.setOutputSHD(@debug)
+    ocf.setOutputSQLite(@debug)
     ocf.setOutputPerfLog(@debug)
   end
 

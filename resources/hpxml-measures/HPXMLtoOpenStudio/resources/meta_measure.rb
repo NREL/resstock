@@ -498,6 +498,7 @@ def report_os_warnings(os_log, rundir)
       next if s.logMessage.include? 'Valid instance'
       next if s.logMessage.include? 'xsdValidate'
       next if s.logMessage.include? 'xsltValidate'
+      next if s.logLevel == 0 && s.logMessage.include?('not within the expected limits') # Ignore EpwFile warnings
 
       f << "OS Message: #{s.logMessage}\n"
     end
@@ -536,31 +537,32 @@ end
 def get_argument_values(runner, arguments, user_arguments)
   args = {}
   arguments.each do |argument|
+    key = argument.name.to_sym
     if argument.required
       case argument.type
       when 'Choice'.to_OSArgumentType
-        args[argument.name] = runner.getStringArgumentValue(argument.name, user_arguments)
+        args[key] = runner.getStringArgumentValue(argument.name, user_arguments)
       when 'Boolean'.to_OSArgumentType
-        args[argument.name] = runner.getBoolArgumentValue(argument.name, user_arguments)
+        args[key] = runner.getBoolArgumentValue(argument.name, user_arguments)
       when 'Double'.to_OSArgumentType
-        args[argument.name] = runner.getDoubleArgumentValue(argument.name, user_arguments)
+        args[key] = runner.getDoubleArgumentValue(argument.name, user_arguments)
       when 'Integer'.to_OSArgumentType
-        args[argument.name] = runner.getIntegerArgumentValue(argument.name, user_arguments)
+        args[key] = runner.getIntegerArgumentValue(argument.name, user_arguments)
       when 'String'.to_OSArgumentType
-        args[argument.name] = runner.getStringArgumentValue(argument.name, user_arguments)
+        args[key] = runner.getStringArgumentValue(argument.name, user_arguments)
       end
     else
       case argument.type
       when 'Choice'.to_OSArgumentType
-        args[argument.name] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
+        args[key] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
       when 'Boolean'.to_OSArgumentType
-        args[argument.name] = runner.getOptionalBoolArgumentValue(argument.name, user_arguments)
+        args[key] = runner.getOptionalBoolArgumentValue(argument.name, user_arguments)
       when 'Double'.to_OSArgumentType
-        args[argument.name] = runner.getOptionalDoubleArgumentValue(argument.name, user_arguments)
+        args[key] = runner.getOptionalDoubleArgumentValue(argument.name, user_arguments)
       when 'Integer'.to_OSArgumentType
-        args[argument.name] = runner.getOptionalIntegerArgumentValue(argument.name, user_arguments)
+        args[key] = runner.getOptionalIntegerArgumentValue(argument.name, user_arguments)
       when 'String'.to_OSArgumentType
-        args[argument.name] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
+        args[key] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
       end
     end
   end

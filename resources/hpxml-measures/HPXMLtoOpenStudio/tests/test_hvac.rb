@@ -479,19 +479,45 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     end
   end
 
-  def test_air_to_air_heat_pump_1_speed_backup_lockout_temperature
-    args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml'))
-    model, hpxml = _test_measure(args_hash)
+  def test_heat_pump_temperatures
+    ['base-hvac-air-to-air-heat-pump-1-speed.xml',
+     'base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml',
+     'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml',
+     'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
+     'base-hvac-mini-split-heat-pump-ductless.xml',
+     'base-hvac-mini-split-heat-pump-ductless-backup-baseboard.xml'].each do |hpxml_name|
+      args_hash = {}
+      args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, hpxml_name))
+      model, hpxml = _test_measure(args_hash)
 
-    # Get HPXML values
-    heat_pump = hpxml.heat_pumps[0]
-    lockout_temperature = UnitConversions.convert(heat_pump.backup_heating_lockout_temp, 'F', 'C')
+      # Get HPXML values
+      heat_pump = hpxml.heat_pumps[0]
+      if not heat_pump.backup_heating_switchover_temp.nil?
+        backup_lockout_temp = UnitConversions.convert(heat_pump.backup_heating_switchover_temp, 'F', 'C')
+        compressor_lockout_temp = UnitConversions.convert(heat_pump.backup_heating_switchover_temp, 'F', 'C')
+      else
+        if not heat_pump.backup_heating_lockout_temp.nil?
+          backup_lockout_temp = UnitConversions.convert(heat_pump.backup_heating_lockout_temp, 'F', 'C')
+        end
+        if not heat_pump.compressor_lockout_temp.nil?
+          compressor_lockout_temp = UnitConversions.convert(heat_pump.compressor_lockout_temp, 'F', 'C')
+        end
+      end
 
-    # Check unitary system
-    assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
-    unitary_system = model.getAirLoopHVACUnitarySystems[0]
-    assert_in_delta(lockout_temperature, unitary_system.maximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation, 0.01)
+      # Check unitary system
+      assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
+      unitary_system = model.getAirLoopHVACUnitarySystems[0]
+      if not backup_lockout_temp.nil?
+        assert_in_delta(backup_lockout_temp, unitary_system.maximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation, 0.01)
+      end
+
+      # Check coil
+      assert_equal(1, model.getCoilHeatingDXSingleSpeeds.size + model.getCoilHeatingDXMultiSpeeds.size)
+      if not compressor_lockout_temp.nil?
+        heating_coil = model.getCoilHeatingDXSingleSpeeds.size > 0 ? model.getCoilHeatingDXSingleSpeeds[0] : model.getCoilHeatingDXMultiSpeeds[0]
+        assert_in_delta(compressor_lockout_temp, heating_coil.minimumOutdoorDryBulbTemperatureforCompressorOperation, 0.01)
+      end
+    end
   end
 
   def test_air_to_air_heat_pump_2_speed
@@ -1103,6 +1129,20 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     end
     assert_includes(start_dates, start_date)
     assert_includes(end_dates, end_date)
+  end
+
+  def test_crankcase_heater_watts
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-crankcase-heater-40w.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    cooling_system = hpxml.cooling_systems[0]
+    crankcase_heater_watts = cooling_system.crankcase_heater_watts
+
+    # Check cooling coil
+    clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
+    assert_in_epsilon(crankcase_heater_watts, clg_coil.crankcaseHeaterCapacity, 0.01)
   end
 
   def _test_measure(args_hash)

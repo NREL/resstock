@@ -270,7 +270,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         register_value(runner, 'option_%02d_lifetime_to_apply' % option_num, lifetime.to_s)
 
         # Get measure name and arguments associated with the option
-        options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
+        options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
         options_measure_args[option_name].each do |measure_subdir, args_hash|
           system_upgrades = get_system_upgrades(hpxml, system_upgrades, args_hash)
           update_args_hash(measures, measure_subdir, args_hash, false)
@@ -289,7 +289,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         parameters.each do |parameter_name|
           existing_option_name = values[OpenStudio::toUnderscoreCase(parameter_name)]
 
-          options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
+          options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
           options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|
             next if measure_subdir != measure_subdir2
 

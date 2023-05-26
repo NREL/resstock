@@ -180,7 +180,6 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
-    args = Hash[args.collect { |k, v| [k.to_sym, v] }]
     output_format = args[:output_format].get
 
     output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
@@ -252,10 +251,10 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
         segment = new_segment
       end
 
-      results_out << ["#{bill_scenario_name}: #{fuel_type}: Fixed (USD)", bill.annual_fixed_charge.round(2)] if bill.annual_fixed_charge != 0
-      results_out << ["#{bill_scenario_name}: #{fuel_type}: Energy (USD)", bill.annual_energy_charge.round(2)] if bill.annual_energy_charge != 0
-      results_out << ["#{bill_scenario_name}: #{fuel_type}: PV Credit (USD)", bill.annual_production_credit.round(2)] if [FT::Elec].include?(fuel_type) && bill.annual_production_credit != 0
-      results_out << ["#{bill_scenario_name}: #{fuel_type}: Total (USD)", bill.annual_total.round(2)] if bill.annual_total != 0
+      results_out << ["#{bill_scenario_name}: #{fuel_type}: Fixed (USD)", bill.annual_fixed_charge.round(2)]
+      results_out << ["#{bill_scenario_name}: #{fuel_type}: Energy (USD)", bill.annual_energy_charge.round(2)]
+      results_out << ["#{bill_scenario_name}: #{fuel_type}: PV Credit (USD)", bill.annual_production_credit.round(2)] if [FT::Elec].include?(fuel_type)
+      results_out << ["#{bill_scenario_name}: #{fuel_type}: Total (USD)", bill.annual_total.round(2)]
     end
 
     if ['csv'].include? output_format
@@ -311,9 +310,9 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
           tariff = tariff[:items][0]
           fields = tariff.keys
 
+          rate.fixedmonthlycharge = 0.0
           if fields.include?(:fixedchargeunits)
             if tariff[:fixedchargeunits] == '$/month'
-              rate.fixedmonthlycharge = 0.0 if fields.include?(:fixedchargefirstmeter) || fields.include?(:fixedchargeeaaddl)
               rate.fixedmonthlycharge += tariff[:fixedchargefirstmeter] if fields.include?(:fixedchargefirstmeter)
               rate.fixedmonthlycharge += tariff[:fixedchargeeaaddl] if fields.include?(:fixedchargeeaaddl)
             else
