@@ -543,8 +543,8 @@ class RunOSWs
 end
 
 class Version
-  ResStock_Version = '3.0.0' # Version of ResStock
-  BuildStockBatch_Version = '2023.1.0' # Minimum required version of BuildStockBatch
+  ResStock_Version = '3.1.0' # Version of ResStock
+  BuildStockBatch_Version = '2023.5.0' # Minimum required version of BuildStockBatch
 
   def self.check_buildstockbatch_version
     if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed
