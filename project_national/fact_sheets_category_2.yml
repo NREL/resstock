@@ -25,16 +25,18 @@ eagle:
     n_workers: 1
   sampling:
     time: 5
-
-aws:
-  job_identifier: fs_2
-  s3:
-    bucket: largeee
-    prefix: test_runs
-  region: us-west-2
-  use_spot: false
-  batch_array_size: 10000
-  notifications_email: lliu2@nrel.gov
+  
+postprocessing:
+  keep_individual_timeseries: false
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: largeee
+      prefix: test_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: largeee_test_runs
+      max_crawling_time: 1200
 
 workflow_generator:
   type: residential_hpxml

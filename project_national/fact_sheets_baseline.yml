@@ -13,7 +13,7 @@ sampler:
     sample_file: /projects/abctypol/largeee/test_runs/buildstock_10k_20230525.csv #../buildstock_10k_20230525.csv # relative to file
 
 #sampler:
-#  type: residential_quota #_downselect
+#  type: residential_quota_downselect
 #  args:
 #    n_datapoints: 10000
 #    logic:
@@ -37,15 +37,17 @@ eagle:
   sampling:
     time: 30
 
-aws:
-  job_identifier: fs_bl # starts with letter, up to 10 chars
-  s3:
-    bucket: largeee
-    prefix: test_runs
-  region: us-west-2
-  use_spot: false
-  batch_array_size: 10000
-  notifications_email: lliu2@nrel.gov
+postprocessing:
+  keep_individual_timeseries: false
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: largeee
+      prefix: test_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: largeee_test_runs
+      max_crawling_time: 1200
 
 workflow_generator:
   type: residential_hpxml
