@@ -38,7 +38,7 @@ class XMLHelper
 
   # Adds the child element with 'element_name' to a single extension element and
   # sets its value. Returns the extension element.
-  def self.add_extension(parent, element_name, value, datatype, defaulted = false)
+  def self.add_extension(parent, element_name, value = nil, datatype = nil, defaulted = false)
     extension = XMLHelper.create_elements_as_needed(parent, ['extension'])
     return XMLHelper.add_element(extension, element_name, value, datatype, defaulted)
   end
