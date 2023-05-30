@@ -43,6 +43,12 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue('csv')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_monthly_costs', false)
+    arg.setDisplayName('Generate Monthly Bills')
+    arg.setDescription('Generates Monthly bills in addition to annual ones.')
+    arg.setDefaultValue(true)
+    args << arg
+
     return args
   end
 
@@ -182,6 +188,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     args = get_argument_values(runner, arguments(model), user_arguments)
     args = Hash[args.collect { |k, v| [k.to_sym, v] }]
     output_format = args[:output_format].get
+    include_monthly_costs = args[:include_monthly_costs].get
 
     output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
 
@@ -232,18 +239,26 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
       get_utility_bills(fuels, utility_rates, utility_bills, utility_bill_scenario, @hpxml.header)
 
       # Write/report results
-      report_runperiod_output_results(runner, utility_bills, output_format, output_path, utility_bill_scenario.name)
+      report_runperiod_output_results(runner, utility_bills, output_format, output_path, utility_bill_scenario.name, include_monthly_costs)
     end
 
     return true
   end
 
-  def report_runperiod_output_results(runner, utility_bills, output_format, output_path, bill_scenario_name)
+  def report_runperiod_output_results(runner, utility_bills, output_format, output_path, bill_scenario_name, include_monthly_costs)
     segment = utility_bills.keys[0].split(':', 2)[0]
     segment = segment.strip
 
     results_out = []
     results_out << ["#{bill_scenario_name}: Total (USD)", utility_bills.values.sum { |bill| bill.annual_total.round(2) }.round(2)]
+
+    if include_monthly_costs
+      fext = File.extname(output_path)
+      monthly_output_path = File.join(File.dirname(output_path), File.basename(output_path, fext) + "_monthly" + fext)
+      months = 12.times.map{|i| OpenStudio::MonthOfYear.new(i+1).valueDescription}
+      monthly_results_out = [[nil] + months]
+      register_monthly_values = []
+    end
 
     utility_bills.each do |fuel_type, bill|
       new_segment = fuel_type.split(':', 2)[0]
@@ -252,14 +267,34 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
         segment = new_segment
       end
 
-      results_out << ["#{bill_scenario_name}: #{fuel_type}: Fixed (USD)", bill.annual_fixed_charge.round(2)] if bill.annual_fixed_charge != 0
-      results_out << ["#{bill_scenario_name}: #{fuel_type}: Energy (USD)", bill.annual_energy_charge.round(2)] if bill.annual_energy_charge != 0
-      results_out << ["#{bill_scenario_name}: #{fuel_type}: PV Credit (USD)", bill.annual_production_credit.round(2)] if [FT::Elec].include?(fuel_type) && bill.annual_production_credit != 0
-      results_out << ["#{bill_scenario_name}: #{fuel_type}: Total (USD)", bill.annual_total.round(2)] if bill.annual_total != 0
+      # Skip fuels without any costs
+      next if bill.annual_total == 0
+      results_out << ["#{bill_scenario_name}: #{fuel_type}: Fixed (USD)", bill.annual_fixed_charge.round(2)]
+      results_out << ["#{bill_scenario_name}: #{fuel_type}: Energy (USD)", bill.annual_energy_charge.round(2)]
+      results_out << ["#{bill_scenario_name}: #{fuel_type}: PV Credit (USD)", bill.annual_production_credit.round(2)] if [FT::Elec].include?(fuel_type)
+      results_out << ["#{bill_scenario_name}: #{fuel_type}: Total (USD)", bill.annual_total.round(2)]
+
+      next if !include_monthly_costs
+
+      monthly_values = ["#{bill_scenario_name}: #{fuel_type}"]
+      bill.monthly_fixed_charge.zip(
+        bill.monthly_energy_charge,
+        bill.monthly_production_credit
+      ).each_with_index do |(fixed, energy, production_credit), i|
+        monthly_total = fixed + energy + production_credit
+        month = OpenStudio::MonthOfYear.new(i+1).valueDescription
+        register_monthly_values << ["#{bill_scenario_name}: #{fuel_type}: #{month} Total (USD)", monthly_total.round(2)]
+        monthly_values << monthly_total.round(2)
+      end
+      monthly_results_out << monthly_values
     end
+
 
     if ['csv'].include? output_format
       CSV.open(output_path, 'a') { |csv| results_out.to_a.each { |elem| csv << elem } }
+      if include_monthly_costs
+        CSV.open(monthly_output_path, 'a') { |csv| monthly_results_out.to_a.each { |elem| csv << elem } }
+      end
     elsif ['json', 'msgpack'].include? output_format
       h = {}
       results_out.each do |out|
@@ -272,15 +307,39 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
         end
       end
 
+      h_monthly = {}
+      if include_monthly_costs
+        monthly_results_out[1..].each do |out|
+          if out[0].include? ':'
+            grp, name = out[0].split(':', 2)
+            h_monthly[grp] = {} if h_monthly[grp].nil?
+            # Array of 12 Floats, Alternatively: `[months, out[1..]].transpose.to_h`
+            h_monthly[grp][name.strip] = out[1..]
+          else
+            h_monthly[out[0]] = out[1..]
+          end
+        end
+      end
+
       if output_format == 'json'
         require 'json'
         File.open(output_path, 'a') { |json| json.write(JSON.pretty_generate(h)) }
+        if include_monthly_costs
+          File.open(monthly_output_path, 'a') { |json| json.write(JSON.pretty_generate(h_monthly)) }
+        end
       elsif output_format == 'msgpack'
         File.open(output_path, 'a') { |json| h.to_msgpack(json) }
+        if include_monthly_costs
+          File.open(monthly_output_path, 'a') { |json| h_monthly.to_msgpack(json) }
+        end
       end
     end
+
     runner.registerInfo("Wrote bills output to #{output_path}.")
 
+    if include_monthly_costs
+      results_out += register_monthly_values
+    end
     results_out.each do |name, value|
       next if name.nil? || value.nil?
 
