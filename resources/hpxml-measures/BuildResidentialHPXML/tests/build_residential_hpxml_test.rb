@@ -153,6 +153,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-ducts-location-and-areas-not-same-type.xml' => 'base-sfd.xml',
       'error-second-heating-system-serves-total-heat-load.xml' => 'base-sfd.xml',
       'error-second-heating-system-but-no-primary-heating.xml' => 'base-sfd.xml',
+      'error-second-heating-system-ducted-with-ducted-primary-heating.xml' => 'base-sfd.xml',
       'error-sfa-no-building-num-units.xml' => 'base-sfa.xml',
       'error-sfa-above-apartment.xml' => 'base-sfa.xml',
       'error-sfa-below-apartment.xml' => 'base-sfa.xml',
@@ -210,6 +211,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-ducts-location-and-areas-not-same-type.xml' => 'Duct location and surface area not both defaulted or not both specified.',
       'error-second-heating-system-serves-total-heat-load.xml' => 'The fraction of heat load served by the second heating system is 100%.',
       'error-second-heating-system-but-no-primary-heating.xml' => 'A second heating system was specified without a primary heating system.',
+      'error-second-heating-system-ducted-with-ducted-primary-heating.xml' => "A ducted heat pump with 'separate' ducted backup is not supported.",
       'error-sfa-no-building-num-units.xml' => 'Did not specify the number of units in the building for single-family attached or apartment units.',
       'error-sfa-above-apartment.xml' => 'Single-family attached units cannot be above another unit.',
       'error-sfa-below-apartment.xml' => 'Single-family attached units cannot be below another unit.',
@@ -1014,6 +1016,13 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['error-second-heating-system-but-no-primary-heating.xml'].include? hpxml_file
       args['heating_system_type'] = 'none'
       args['heating_system_2_type'] = HPXML::HVACTypeFireplace
+    elsif ['error-second-heating-system-ducted-with-ducted-primary-heating.xml'].include? hpxml_file
+      args['heating_system_type'] = 'none'
+      args['cooling_system_type'] = 'none'
+      args['heat_pump_type'] = HPXML::HVACTypeHeatPumpMiniSplit
+      args['heat_pump_is_ducted'] = true
+      args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
+      args['heating_system_2_type'] = HPXML::HVACTypeFurnace
     elsif ['error-sfa-no-building-num-units.xml'].include? hpxml_file
       args.delete('geometry_building_num_units')
     elsif ['error-sfa-above-apartment.xml'].include? hpxml_file

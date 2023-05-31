@@ -52,7 +52,7 @@ class HotWaterAndAppliances
         cw_power_schedule = schedules_file.create_schedule_file(col_name: cw_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if cw_power_schedule.nil?
-        cw_unavailable_periods = Schedule.get_unavailable_periods(cw_col_name, unavailable_periods)
+        cw_unavailable_periods = Schedule.get_unavailable_periods(runner, cw_col_name, unavailable_periods)
         cw_weekday_sch = clothes_washer.weekday_fractions
         cw_weekend_sch = clothes_washer.weekend_fractions
         cw_monthly_sch = clothes_washer.monthly_multipliers
@@ -83,7 +83,7 @@ class HotWaterAndAppliances
         cd_schedule = schedules_file.create_schedule_file(col_name: cd_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if cd_schedule.nil?
-        cd_unavailable_periods = Schedule.get_unavailable_periods(cd_col_name, unavailable_periods)
+        cd_unavailable_periods = Schedule.get_unavailable_periods(runner, cd_col_name, unavailable_periods)
         cd_weekday_sch = clothes_dryer.weekday_fractions
         cd_weekend_sch = clothes_dryer.weekend_fractions
         cd_monthly_sch = clothes_dryer.monthly_multipliers
@@ -115,7 +115,7 @@ class HotWaterAndAppliances
         dw_power_schedule = schedules_file.create_schedule_file(col_name: dw_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if dw_power_schedule.nil?
-        dw_unavailable_periods = Schedule.get_unavailable_periods(dw_col_name, unavailable_periods)
+        dw_unavailable_periods = Schedule.get_unavailable_periods(runner, dw_col_name, unavailable_periods)
         dw_weekday_sch = dishwasher.weekday_fractions
         dw_weekend_sch = dishwasher.weekend_fractions
         dw_monthly_sch = dishwasher.monthly_multipliers
@@ -145,7 +145,7 @@ class HotWaterAndAppliances
         fridge_schedule = schedules_file.create_schedule_file(col_name: fridge_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if fridge_schedule.nil?
-        fridge_unavailable_periods = Schedule.get_unavailable_periods(fridge_col_name, unavailable_periods)
+        fridge_unavailable_periods = Schedule.get_unavailable_periods(runner, fridge_col_name, unavailable_periods)
         fridge_weekday_sch = refrigerator.weekday_fractions
         fridge_weekend_sch = refrigerator.weekend_fractions
         fridge_monthly_sch = refrigerator.monthly_multipliers
@@ -175,7 +175,7 @@ class HotWaterAndAppliances
         freezer_schedule = schedules_file.create_schedule_file(col_name: freezer_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if freezer_schedule.nil?
-        freezer_unavailable_periods = Schedule.get_unavailable_periods(freezer_col_name, unavailable_periods)
+        freezer_unavailable_periods = Schedule.get_unavailable_periods(runner, freezer_col_name, unavailable_periods)
         freezer_weekday_sch = freezer.weekday_fractions
         freezer_weekend_sch = freezer.weekend_fractions
         freezer_monthly_sch = freezer.monthly_multipliers
@@ -206,7 +206,7 @@ class HotWaterAndAppliances
         cook_schedule = schedules_file.create_schedule_file(col_name: cook_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if cook_schedule.nil?
-        cook_unavailable_periods = Schedule.get_unavailable_periods(cook_col_name, unavailable_periods)
+        cook_unavailable_periods = Schedule.get_unavailable_periods(runner, cook_col_name, unavailable_periods)
         cook_weekday_sch = cooking_range.weekday_fractions
         cook_weekend_sch = cooking_range.weekend_fractions
         cook_monthly_sch = cooking_range.monthly_multipliers
@@ -268,7 +268,7 @@ class HotWaterAndAppliances
         fixtures_schedule = schedules_file.create_schedule_file(col_name: fixtures_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if fixtures_schedule.nil?
-        fixtures_unavailable_periods = Schedule.get_unavailable_periods(fixtures_col_name, unavailable_periods)
+        fixtures_unavailable_periods = Schedule.get_unavailable_periods(runner, fixtures_col_name, unavailable_periods)
         fixtures_weekday_sch = hpxml.water_heating.water_fixtures_weekday_fractions
         fixtures_weekend_sch = hpxml.water_heating.water_fixtures_weekend_fractions
         fixtures_monthly_sch = hpxml.water_heating.water_fixtures_monthly_multipliers

@@ -126,7 +126,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
       return false unless hpxml.errors.empty?
 
-      epw_path, weather = process_weather(hpxml, hpxml_path)
+      epw_path = Location.get_epw_path(hpxml, hpxml_path)
+      weather = WeatherProcess.new(epw_path: epw_path, runner: runner)
 
       if debug
         epw_output_path = File.join(output_dir, 'in.epw')
@@ -141,12 +142,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
 
     return true
-  end
-
-  def process_weather(hpxml, hpxml_path)
-    epw_path = Location.get_epw_path(hpxml, hpxml_path)
-    weather = WeatherProcess.new(epw_path: epw_path)
-    return epw_path, weather
   end
 end
 
@@ -207,13 +202,13 @@ class OSModel
     add_num_occupants(model, runner, spaces)
 
     # HVAC
-    @hvac_unavailable_periods = Schedule.get_unavailable_periods(SchedulesFile::ColumnHVAC, @hpxml.header.unavailable_periods)
+    @hvac_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::ColumnHVAC, @hpxml.header.unavailable_periods)
     airloop_map = {} # Map of HPXML System ID -> AirLoopHVAC (or ZoneHVACFourPipeFanCoil)
     add_ideal_system(model, spaces, epw_path)
     add_cooling_system(model, spaces, airloop_map)
     add_heating_system(runner, model, spaces, airloop_map)
     add_heat_pump(runner, model, weather, spaces, airloop_map)
-    add_dehumidifiers(model, spaces)
+    add_dehumidifiers(runner, model, spaces)
     add_ceiling_fans(runner, model, weather, spaces)
 
     # Hot Water
@@ -1340,7 +1335,7 @@ class OSModel
     end
 
     # Water Heater
-    unavailable_periods = Schedule.get_unavailable_periods(SchedulesFile::ColumnWaterHeater, @hpxml.header.unavailable_periods)
+    unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::ColumnWaterHeater, @hpxml.header.unavailable_periods)
     has_uncond_bsmnt = @hpxml.has_location(HPXML::LocationBasementUnconditioned)
     plantloop_map = {}
     @hpxml.water_heating_systems.each do |water_heating_system|
@@ -1600,10 +1595,10 @@ class OSModel
                             @schedules_file, @hpxml.header.unavailable_periods)
   end
 
-  def self.add_dehumidifiers(model, spaces)
+  def self.add_dehumidifiers(runner, model, spaces)
     return if @hpxml.dehumidifiers.size == 0
 
-    HVAC.apply_dehumidifiers(model, @hpxml.dehumidifiers, spaces[HPXML::LocationLivingSpace], @hpxml.header.unavailable_periods)
+    HVAC.apply_dehumidifiers(runner, model, @hpxml.dehumidifiers, spaces[HPXML::LocationLivingSpace], @hpxml.header.unavailable_periods)
   end
 
   def self.check_distribution_system(hvac_distribution, system_type)
@@ -1925,13 +1920,21 @@ class OSModel
   def self.add_loads_output(model, spaces, add_component_loads)
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
 
-    liv_load_sensors, intgain_dehumidifier = add_total_loads_output(model, living_zone)
+    if @apply_ashrae140_assumptions
+      total_heat_load_served = 1.0
+      total_cool_load_served = 1.0
+    else
+      total_heat_load_served = @hpxml.total_fraction_heat_load_served
+      total_cool_load_served = @hpxml.total_fraction_cool_load_served
+    end
+
+    liv_load_sensors, intgain_dehumidifier = add_total_loads_output(model, living_zone, total_heat_load_served, total_cool_load_served)
     return unless add_component_loads
 
-    add_component_loads_output(model, living_zone, liv_load_sensors, intgain_dehumidifier)
+    add_component_loads_output(model, living_zone, liv_load_sensors, intgain_dehumidifier, total_heat_load_served, total_cool_load_served)
   end
 
-  def self.add_total_loads_output(model, living_zone)
+  def self.add_total_loads_output(model, living_zone, total_heat_load_served, total_cool_load_served)
     # Energy transferred in the conditioned space, used for determining heating (winter) vs cooling (summer)
     liv_load_sensors = {}
     liv_load_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Heating:EnergyTransfer:Zone:#{living_zone.name.to_s.upcase}")
@@ -1964,13 +1967,13 @@ class OSModel
     program.addLine('Set loads_htg_tot = 0')
     program.addLine('Set loads_clg_tot = 0')
     program.addLine("If #{liv_load_sensors[:htg].name} > 0")
-    s = "  Set loads_htg_tot = #{tot_load_sensors[:htg].name} - #{tot_load_sensors[:clg].name}"
+    s = "  Set loads_htg_tot = (#{tot_load_sensors[:htg].name} - #{tot_load_sensors[:clg].name}) * #{total_heat_load_served}"
     if not intgain_dehumidifier.nil?
       s += " - #{intgain_dehumidifier.name}"
     end
     program.addLine(s)
     program.addLine("ElseIf #{liv_load_sensors[:clg].name} > 0")
-    s = "  Set loads_clg_tot = #{tot_load_sensors[:clg].name} - #{tot_load_sensors[:htg].name}"
+    s = "  Set loads_clg_tot = (#{tot_load_sensors[:clg].name} - #{tot_load_sensors[:htg].name}) * #{total_cool_load_served}"
     if not intgain_dehumidifier.nil?
       s += " + #{intgain_dehumidifier.name}"
     end
@@ -1986,7 +1989,7 @@ class OSModel
     return liv_load_sensors, intgain_dehumidifier
   end
 
-  def self.add_component_loads_output(model, living_zone, liv_load_sensors, intgain_dehumidifier)
+  def self.add_component_loads_output(model, living_zone, liv_load_sensors, intgain_dehumidifier, total_heat_load_served, total_cool_load_served)
     # Prevent certain objects (e.g., OtherEquipment) from being counted towards both, e.g., ducts and internal gains
     objects_already_processed = []
 
@@ -2382,13 +2385,13 @@ class OSModel
     program.addLine('Set htg_mode = 0')
     program.addLine('Set clg_mode = 0')
     program.addLine("If (#{liv_load_sensors[:htg].name} > 0)") # Assign hour to heating if heating load
-    program.addLine('  Set htg_mode = 1')
+    program.addLine("  Set htg_mode = #{total_heat_load_served}")
     program.addLine("ElseIf (#{liv_load_sensors[:clg].name} > 0)") # Assign hour to cooling if cooling load
-    program.addLine('  Set clg_mode = 1')
+    program.addLine("  Set clg_mode = #{total_cool_load_served}")
     program.addLine("ElseIf (#{@clg_ssn_sensor.name} > 0)") # No load, assign hour to cooling if in cooling season definition (Note: natural ventilation & whole house fan only operate during the cooling season)
-    program.addLine('  Set clg_mode = 1')
+    program.addLine("  Set clg_mode = #{total_cool_load_served}")
     program.addLine('Else') # No load, assign hour to heating if not in cooling season definition
-    program.addLine('  Set htg_mode = 1')
+    program.addLine("  Set htg_mode = #{total_heat_load_served}")
     program.addLine('EndIf')
 
     [:htg, :clg].each do |mode|

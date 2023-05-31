@@ -1145,6 +1145,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_crankcase_heater_watts', false)
+    arg.setDisplayName('Cooling System: Crankcase Heater Power Watts')
+    arg.setDescription("Cooling system crankcase heater power consumption in Watts. Applies only to #{HPXML::HVACTypeCentralAirConditioner}, #{HPXML::HVACTypeMiniSplitAirConditioner}, #{HPXML::HVACTypePTAC} and #{HPXML::HVACTypeRoomAirConditioner}. If not provided, the OS-HPXML default is used.")
+    arg.setUnits('W')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('cooling_system_integrated_heating_system_fuel', heating_system_fuel_choices, false)
     arg.setDisplayName('Cooling System: Integrated Heating System Fuel Type')
     arg.setDescription("The fuel type of the heating system integrated into cooling system. Only used for #{HPXML::HVACTypePTAC} and #{HPXML::HVACTypeRoomAirConditioner}.")
@@ -1322,7 +1328,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_is_ducted', false)
     arg.setDisplayName('Heat Pump: Is Ducted')
-    arg.setDescription("Whether the heat pump is ducted or not. Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}. It's assumed that #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpGroundToAir} are ducted. If not provided, assumes not ducted.")
+    arg.setDescription("Whether the heat pump is ducted or not. Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}. It's assumed that #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpGroundToAir} are ducted, and #{HPXML::HVACTypeHeatPumpPTHP} and #{HPXML::HVACTypeHeatPumpRoom} are not ducted. If not provided, assumes not ducted.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_airflow_defect_ratio', false)
@@ -1337,8 +1343,15 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_crankcase_heater_watts', false)
+    arg.setDisplayName('Heat Pump: Crankcase Heater Power Watts')
+    arg.setDescription("Heat Pump crankcase heater power consumption in Watts. Applies only to #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, #{HPXML::HVACTypeHeatPumpPTHP} and #{HPXML::HVACTypeHeatPumpRoom}. If not provided, the OS-HPXML default is used.")
+    arg.setUnits('W')
+    args << arg
+
     heating_system_2_type_choices = OpenStudio::StringVector.new
     heating_system_2_type_choices << 'none'
+    heating_system_2_type_choices << HPXML::HVACTypeFurnace
     heating_system_2_type_choices << HPXML::HVACTypeWallFurnace
     heating_system_2_type_choices << HPXML::HVACTypeFloorFurnace
     heating_system_2_type_choices << HPXML::HVACTypeBoiler
@@ -1346,6 +1359,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heating_system_2_type_choices << HPXML::HVACTypeStove
     heating_system_2_type_choices << HPXML::HVACTypePortableHeater
     heating_system_2_type_choices << HPXML::HVACTypeFireplace
+    heating_system_2_type_choices << HPXML::HVACTypeFixedHeater
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heating_system_2_type', heating_system_2_type_choices, true)
     arg.setDisplayName('Heating System 2: Type')
@@ -3214,6 +3228,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = (args[:heating_system_type] == 'none') && (args[:heat_pump_type] == 'none') && (args[:heating_system_2_type] != 'none')
     errors << 'A second heating system was specified without a primary heating system.' if error
 
+    if ((args[:heat_pump_backup_type] == HPXML::HeatPumpBackupTypeSeparate) && (args[:heating_system_2_type] == HPXML::HVACTypeFurnace)) # separate ducted backup
+      if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include?(args[:heat_pump_type]) ||
+         ((args[:heat_pump_type] == HPXML::HVACTypeHeatPumpMiniSplit) && args[:heat_pump_is_ducted]) # ducted heat pump
+        errors << "A ducted heat pump with '#{HPXML::HeatPumpBackupTypeSeparate}' ducted backup is not supported."
+      end
+    end
+
     error = [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type]) && !args[:geometry_building_num_units].is_initialized
     errors << 'Did not specify the number of units in the building for single-family attached or apartment units.' if error
 
@@ -3337,7 +3358,7 @@ class HPXMLFile
   def self.create(runner, model, args, epw_path, hpxml_path)
     epw_file = OpenStudio::EpwFile.new(epw_path)
     if (args[:hvac_control_heating_season_period].to_s == HPXML::BuildingAmerica) || (args[:hvac_control_cooling_season_period].to_s == HPXML::BuildingAmerica) || (args[:apply_defaults])
-      weather = WeatherProcess.new(epw_path: epw_path)
+      weather = WeatherProcess.new(epw_path: epw_path, runner: nil)
     end
 
     success = create_geometry_envelope(runner, model, args)
@@ -4709,6 +4730,12 @@ class HPXMLFile
       end
     end
 
+    if args[:cooling_system_crankcase_heater_watts].is_initialized
+      if [HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypeMiniSplitAirConditioner, HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypePTAC].include?(cooling_system_type)
+        cooling_system_crankcase_heater_watts = args[:cooling_system_crankcase_heater_watts].get
+      end
+    end
+
     if [HPXML::HVACTypePTAC, HPXML::HVACTypeRoomAirConditioner].include?(cooling_system_type)
       if args[:cooling_system_integrated_heating_system_fuel].is_initialized
         integrated_heating_system_fuel = args[:cooling_system_integrated_heating_system_fuel].get
@@ -4740,6 +4767,7 @@ class HPXMLFile
                               cooling_efficiency_ceer: cooling_efficiency_ceer,
                               airflow_defect_ratio: airflow_defect_ratio,
                               charge_defect_ratio: charge_defect_ratio,
+                              crankcase_heater_watts: cooling_system_crankcase_heater_watts,
                               primary_system: true,
                               integrated_heating_system_fuel: integrated_heating_system_fuel,
                               integrated_heating_system_capacity: integrated_heating_system_capacity,
@@ -4841,6 +4869,12 @@ class HPXMLFile
       charge_defect_ratio = args[:heat_pump_charge_defect_ratio].get
     end
 
+    if args[:heat_pump_crankcase_heater_watts].is_initialized
+      if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include?(heat_pump_type)
+        heat_pump_crankcase_heater_watts = args[:heat_pump_crankcase_heater_watts].get
+      end
+    end
+
     fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
     fraction_cool_load_served = args[:heat_pump_fraction_cool_load_served]
 
@@ -4884,6 +4918,7 @@ class HPXMLFile
                          cooling_efficiency_eer: cooling_efficiency_eer,
                          airflow_defect_ratio: airflow_defect_ratio,
                          charge_defect_ratio: charge_defect_ratio,
+                         crankcase_heater_watts: heat_pump_crankcase_heater_watts,
                          primary_heating_system: primary_heating_system,
                          primary_cooling_system: primary_cooling_system)
   end

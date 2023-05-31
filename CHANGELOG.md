@@ -1,4 +1,5 @@
-## ResStock v3.1.0 (pending)
+## ResStock v3.1.0
+###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
 
 Features
 - Include battery modeling capabilities for project_testing ([#1009](https://github.com/NREL/resstock/pull/1009))
@@ -9,10 +10,11 @@ Features
 - Connect ASHP to optional capacity retention temperature and fraction arguments (that already exist for MSHP) ([#1071](https://github.com/NREL/resstock/pull/1071))
 - Add data dictionary files for describing various outputs. Use these files to (1) check against integration test results, and (2) generate documentation tables ([#1058](https://github.com/NREL/resstock/pull/1058))
 - OS-HPXML now supports use of optional heat pump capacity retention temperature and fraction arguments (applicable to both ASHP and MSHP) ([#1072](https://github.com/NREL/resstock/pull/1072))
-- Update to OpenStudio v3.6.0 ([#1072](https://github.com/NREL/resstock/pull/1072))
+- Update to OpenStudio v3.6.1 ([#1076](https://github.com/NREL/resstock/pull/1076))
 
 Fixes
 - Pulls in upstream OS-HPXML fix related to [avoiding possible OpenStudio temporary directory collision](https://github.com/NREL/OpenStudio-HPXML/pull/1316) causing random errors ([#1054](https://github.com/NREL/resstock/pull/1054))
+- Pulls in upstream OS-HPXML fix related to [falling back to a WWR calculation when window placement fails](https://github.com/NREL/OpenStudio-HPXML/pull/1385) causing errors fitting windows ([#1076](https://github.com/NREL/resstock/pull/1076))
 
 ## ResStock v3.0.0
 ###### February 3, 2023 - [Diff](https://github.com/NREL/resstock/compare/v2.5.0...v3.0.0)
