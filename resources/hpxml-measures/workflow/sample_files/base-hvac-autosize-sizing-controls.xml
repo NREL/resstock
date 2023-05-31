@@ -8,17 +8,21 @@
   </XMLTransactionHeaderInformation>
   <SoftwareInfo>
     <extension>
-      <OccupancyCalculationType>operational</OccupancyCalculationType>
       <SimulationControl>
         <Timestep>60</Timestep>
-        <BeginMonth>2</BeginMonth>
-        <BeginDayOfMonth>1</BeginDayOfMonth>
-        <EndMonth>2</EndMonth>
-        <EndDayOfMonth>28</EndDayOfMonth>
       </SimulationControl>
-      <AdditionalProperties>
-        <ParentHPXMLFile>base-calctype-operational-residents-0.xml</ParentHPXMLFile>
-      </AdditionalProperties>
+      <HVACSizingControl>
+        <ManualJInputs>
+          <HeatingDesignTemperature>0.0</HeatingDesignTemperature>
+          <CoolingDesignTemperature>100.0</CoolingDesignTemperature>
+          <HeatingSetpoint>60.0</HeatingSetpoint>
+          <CoolingSetpoint>80.0</CoolingSetpoint>
+          <HumiditySetpoint>0.55</HumiditySetpoint>
+          <InternalLoadsSensible>4000.0</InternalLoadsSensible>
+          <InternalLoadsLatent>200.0</InternalLoadsLatent>
+          <NumberofOccupants>5</NumberofOccupants>
+        </ManualJInputs>
+      </HVACSizingControl>
       <UtilityBillScenarios>
         <UtilityBillScenario>
           <Name>Bills</Name>
@@ -50,7 +54,7 @@
           </FuelTypesAvailable>
         </Site>
         <BuildingOccupancy>
-          <NumberofResidents>0.0</NumberofResidents>
+          <NumberofResidents>5.0</NumberofResidents>
         </BuildingOccupancy>
         <BuildingConstruction>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
@@ -119,7 +123,7 @@
           <Roof>
             <SystemIdentifier id='Roof1'/>
             <InteriorAdjacentTo>attic - unvented</InteriorAdjacentTo>
-            <Area>1509.4</Area>
+            <Area>1509.3</Area>
             <RoofType>asphalt or fiberglass shingles</RoofType>
             <SolarAbsorptance>0.7</SolarAbsorptance>
             <Emittance>0.92</Emittance>
@@ -339,7 +343,6 @@
                 <Furnace/>
               </HeatingSystemType>
               <HeatingSystemFuel>natural gas</HeatingSystemFuel>
-              <HeatingCapacity>36000.0</HeatingCapacity>
               <AnnualHeatingEfficiency>
                 <Units>AFUE</Units>
                 <Value>0.92</Value>
@@ -351,7 +354,6 @@
               <DistributionSystem idref='HVACDistribution1'/>
               <CoolingSystemType>central air conditioner</CoolingSystemType>
               <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>24000.0</CoolingCapacity>
               <CompressorType>single stage</CompressorType>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
@@ -363,8 +365,8 @@
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
-            <SetpointTempHeatingSeason>68.0</SetpointTempHeatingSeason>
-            <SetpointTempCoolingSeason>78.0</SetpointTempCoolingSeason>
+            <SetpointTempHeatingSeason>60.0</SetpointTempHeatingSeason>
+            <SetpointTempCoolingSeason>80.0</SetpointTempCoolingSeason>
           </HVACControl>
           <HVACDistribution>
             <SystemIdentifier id='HVACDistribution1'/>

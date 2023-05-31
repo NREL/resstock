@@ -173,8 +173,8 @@ class TesBuildStockBatch < MiniTest::Test
         terms << annual_name if ix == sums_to_ix
       end
 
-      sums_to_val = actual_outputs[sums_to].map { |x| Float(x) }.sum
-      terms_val = terms.collect { |t| actual_outputs[t].map { |x| Float(x) }.sum }.sum
+      sums_to_val = actual_outputs[sums_to].map { |x| !x.nil? ? Float(x) : 0.0 }.sum
+      terms_val = terms.collect { |t| actual_outputs[t].map { |x| !x.nil? ? Float(x) : 0.0 }.sum }.sum
 
       assert_in_epsilon(sums_to_val, terms_val, tol, "Summed value #{terms_val} does not equal #{sums_to} (#{sums_to_val})")
     end
@@ -212,8 +212,8 @@ class TesBuildStockBatch < MiniTest::Test
         terms << annual_name if ix == sums_to_ix
       end
 
-      sums_to_val = actual_outputs[sums_to].map { |x| Float(x) }.sum
-      terms_val = terms.collect { |t| actual_outputs[t].map { |x| Float(x) }.sum }.sum
+      sums_to_val = actual_outputs[sums_to].map { |x| !x.nil? ? Float(x) : 0.0 }.sum
+      terms_val = terms.collect { |t| actual_outputs[t].map { |x| !x.nil? ? Float(x) : 0.0 }.sum }.sum
 
       assert_in_epsilon(sums_to_val, terms_val, tol, "Summed value #{terms_val} does not equal #{sums_to} (#{sums_to_val})")
     end
