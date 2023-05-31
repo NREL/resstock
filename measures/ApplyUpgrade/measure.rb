@@ -348,13 +348,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       # Only set the backup if the heat pump is applied and there is an existing heating system
       if (heat_pump_type != 'none') && (not heating_system.nil?)
-        ducted_backup = [HPXML::HVACTypeFurnace, HPXML::HVACTypeFixedHeater].include?(heating_system.heating_system_type)
+        ducted_backup = [HPXML::HVACTypeFurnace].include?(heating_system.heating_system_type)
 
         # Integrated; heat pump's distribution system and blower fan power applies to the backup heating
+        # e.g., ducted heat pump (e.g., ashp, gshp, ducted minisplit) with ducted (e.g., furnace) backup
         if (ducted_backup && (heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit) && (heat_pump_is_ducted == 'true')) ||
-           (ducted_backup && (heat_pump_type != HPXML::HVACTypeHeatPumpMiniSplit))
+           (ducted_backup && [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type))
 
-          # Likely would not have electric furnace or fixed heater as integrated backup
+          # Likely only fuel-fired furnace as integrated backup
           if heating_system.heating_system_fuel != HPXML::FuelTypeElectricity
             measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
             measures['BuildResidentialHPXML'][0]['heat_pump_backup_fuel'] = heating_system.heating_system_fuel
@@ -366,11 +367,13 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
             measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heating_system.heating_capacity
 
             runner.registerInfo("Found '#{heating_system.heating_system_type}' heating system type; setting it as 'heat_pump_backup_type=#{measures['BuildResidentialHPXML'][0]['heat_pump_backup_type']}'.")
-          else
+          else # Likely would not have electric furnace as integrated backup
             runner.registerInfo("Found '#{heating_system.heating_system_type}' heating system type with '#{heating_system.heating_system_fuel}' fuel type; not setting it as integrated backup.")
           end
 
         # Separate; backup system has its own distribution system
+        # e.g., ductless heat pump (e.g., ductless minisplit) with ducted (e.g., furnace) or ductless (e.g., boiler) backup
+        # e.g., ducted heat pump (e.g., ashp, gshp) with ductless (e.g., boiler) backup
         else
           measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
           measures['BuildResidentialHPXML'][0]['heating_system_2_type'] = heating_system.heating_system_type
