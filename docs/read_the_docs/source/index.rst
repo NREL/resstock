@@ -20,7 +20,7 @@ ResStock Documentation
    :maxdepth: 2
    :caption: Contents:
    
-   tutorial/index
+   basic_tutorial/index
    advanced_tutorial/index
-   upgrade_scenario_config
-   outputs/index
+   workflow_inputs/index
+   workflow_outputs/index   

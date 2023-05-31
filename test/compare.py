@@ -232,6 +232,13 @@ class MoreCompare(BaseCompare):
 
       cols = sorted(list(set(base_df.columns) & set(feature_df.columns)))
 
+      for time_col in ['Time', 'time']:
+        if time_col in cols:
+          cols.remove(time_col)
+
+      if not cols:
+        return
+
       g = base_df.groupby('PROJECT')
       groups = g.groups.keys()
 
@@ -255,7 +262,7 @@ class MoreCompare(BaseCompare):
         dfs.append(df)
 
       df = pd.concat(dfs).transpose()
-      df.to_csv(os.path.join(self.export_folder, 'cvrmse_nmbe.csv'))
+      df.to_csv(os.path.join(self.export_folder, 'cvrmse_nmbe_{}'.format(file)))
 
 if __name__ == '__main__':
 

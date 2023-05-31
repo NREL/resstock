@@ -192,7 +192,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
 
   def test_operational_defaults
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-calctype-operational-misc-defaults.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-5.xml'))
     model, _hpxml = _test_measure(args_hash)
 
     # Check misc plug loads
@@ -253,7 +253,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
 
   def test_operational_large_uncommon_loads
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-calctype-operational-misc-loads-large-uncommon.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-1-misc-loads-large-uncommon.xml'))
     model, _hpxml = _test_measure(args_hash)
 
     # Check misc plug loads
@@ -314,7 +314,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
 
   def test_operational_large_uncommon_loads2
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-calctype-operational-misc-loads-large-uncommon2.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-1-misc-loads-large-uncommon2.xml'))
     model, _hpxml = _test_measure(args_hash)
 
     # Check misc plug loads

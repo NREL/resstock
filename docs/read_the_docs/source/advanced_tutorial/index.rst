@@ -10,10 +10,10 @@ At this point in the tutorial, it is assumed that you have checked out a new bra
 If your changes are intended to be merged into the ``develop`` branch of the `ResStock <https://github.com/NREL/resstock>`_ repository, a pull request review is required.
 
 .. toctree::
+   :maxdepth: 2
 
-   modifying_probability_distributions
-   writing_housing_characteristics
    installer_setup
    tasks
    options_lookup
    increasing_upgrade_options
+   upgrade_scenario_config

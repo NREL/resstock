@@ -1,14 +1,27 @@
-## ResStock v3.1.0 (pending)
+## ResStock v3.2.0 (pending)
+
+Features
+
+Fixes
+- Model a wood storage water heater when "Other Fuel" is sampled from Water Heater Efficiency.tsv. This allow downstream modeling of clothes washer/dryer. ([#947](https://github.com/NREL/resstock/pull/947))
+
+## ResStock v3.1.0
+###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
 
 Features
 - Include battery modeling capabilities for project_testing ([#1009](https://github.com/NREL/resstock/pull/1009))
 - Ability to check buildstock csv against an options lookup as a command line utility ([#1042](https://github.com/NREL/resstock/pull/1042))
 - Demonstrate new power outage modeling feature using upgrades specified in example project yml files ([#1054](https://github.com/NREL/resstock/pull/1054))
 - Ability to specify a "sample_weight" column in the precomputed buildstock.csv ([#1056](https://github.com/NREL/resstock/pull/1056))
+- Add descriptions to the housing characteristics ([#1069](https://github.com/NREL/resstock/pull/1069))
+- Connect ASHP to optional capacity retention temperature and fraction arguments (that already exist for MSHP) ([#1071](https://github.com/NREL/resstock/pull/1071))
+- Add data dictionary files for describing various outputs. Use these files to (1) check against integration test results, and (2) generate documentation tables ([#1058](https://github.com/NREL/resstock/pull/1058))
+- OS-HPXML now supports use of optional heat pump capacity retention temperature and fraction arguments (applicable to both ASHP and MSHP) ([#1072](https://github.com/NREL/resstock/pull/1072))
+- Update to OpenStudio v3.6.1 ([#1076](https://github.com/NREL/resstock/pull/1076))
 
 Fixes
 - Pulls in upstream OS-HPXML fix related to [avoiding possible OpenStudio temporary directory collision](https://github.com/NREL/OpenStudio-HPXML/pull/1316) causing random errors ([#1054](https://github.com/NREL/resstock/pull/1054))
-- Model a wood storage water heater when "Other Fuel" is sampled from Water Heater Efficiency.tsv. This allow downstream modeling of clothes washer/dryer. ([#947](https://github.com/NREL/resstock/pull/947))
+- Pulls in upstream OS-HPXML fix related to [falling back to a WWR calculation when window placement fails](https://github.com/NREL/OpenStudio-HPXML/pull/1385) causing errors fitting windows ([#1076](https://github.com/NREL/resstock/pull/1076))
 
 ## ResStock v3.0.0
 ###### February 3, 2023 - [Diff](https://github.com/NREL/resstock/compare/v2.5.0...v3.0.0)
@@ -43,7 +56,7 @@ Fixes
 - Rename sources subfolders so all tsv_makers can be imported as packages ([#959](https://github.com/NREL/resstock/pull/959))
 - Fix heating and cooling auto-season inputs ([#975](https://github.com/NREL/resstock/pull/975))
 - Remove Void from dependency columns in TSVs and update tests.([#981](https://github.com/NREL/resstock/pull/981))
-- Update low-sample downscaling logic to use raw source_weight, which leads to minor changes to Geometry Floor Area and HVAC Partial Sapce Conditioning ([#982](https://github.com/NREL/resstock/pull/982))
+- Update low-sample downscaling logic to use raw source_weight, which leads to minor changes to Geometry Floor Area and HVAC Partial Space Conditioning ([#982](https://github.com/NREL/resstock/pull/982))
 
 ## ResStock v2.5.0
 ###### February 9, 2022 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.4.0...v2.5.0)
