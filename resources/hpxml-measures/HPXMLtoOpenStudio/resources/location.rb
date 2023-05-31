@@ -8,26 +8,10 @@ class Location
     apply_ground_temps(model, weather)
   end
 
-  def self.apply_weather_file(model, weather_file_path, weather_cache_path)
-    if File.exist?(weather_file_path) && weather_file_path.downcase.end_with?('.epw')
-      epw_file = OpenStudio::EpwFile.new(weather_file_path)
-    else
-      fail "'#{weather_file_path}' does not exist or is not an .epw file."
-    end
-
+  def self.apply_weather_file(model, epw_path)
+    epw_file = OpenStudio::EpwFile.new(epw_path)
     OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
-
-    # Obtain weather object
-    # Load from cache .csv file if exists, as this is faster and doesn't require
-    # parsing the weather file.
-    if File.exist? weather_cache_path
-      weather = WeatherProcess.new(csv_path: weather_cache_path)
-    end
-    if weather.nil? || weather.data.AnnualAvgDrybulb.nil?
-      weather = WeatherProcess.new(epw_path: weather_file_path)
-    end
-
-    return weather, epw_file
+    return epw_file
   end
 
   private

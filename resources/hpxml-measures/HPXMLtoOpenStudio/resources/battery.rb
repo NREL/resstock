@@ -144,7 +144,7 @@ class Battery
     loss_adj_object_def.setFractionLost(frac_lost)
     loss_adj_object.setSchedule(model.alwaysOnDiscreteSchedule)
 
-    battery_adj_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(loss_adj_object, *EPlus::EMSActuatorOtherEquipmentPower)
+    battery_adj_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(loss_adj_object, *EPlus::EMSActuatorOtherEquipmentPower, loss_adj_object.space.get)
     battery_adj_actuator.setName('battery loss_adj_act')
 
     battery_losses_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)

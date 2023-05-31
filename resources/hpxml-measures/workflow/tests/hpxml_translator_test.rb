@@ -11,6 +11,11 @@ class HPXMLTest < MiniTest::Test
     @this_dir = File.dirname(__FILE__)
     @results_dir = File.join(@this_dir, 'results')
     FileUtils.mkdir_p @results_dir
+
+    schema_path = File.join(File.dirname(__FILE__), '..', '..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
+    @schema_validator = XMLValidator.get_schema_validator(schema_path)
+    schematron_path = File.join(File.dirname(__FILE__), '..', '..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schematron', 'EPvalidator.xml')
+    @schematron_validator = XMLValidator.get_schematron_validator(schematron_path)
   end
 
   def test_simulations
@@ -164,6 +169,7 @@ class HPXMLTest < MiniTest::Test
       # Check for output files
       assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
       assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'in.schedules.csv'))
       assert(File.exist? File.join(File.dirname(xml), 'run', 'stochastic.csv'))
 
       # Check stochastic.csv headers
@@ -216,6 +222,29 @@ class HPXMLTest < MiniTest::Test
       log_lines = File.readlines(File.join(File.dirname(xml), 'run', 'run.log')).map(&:strip)
       assert(log_lines.include? "Warning: Request for output variable 'Foobar Variable' returned no key values.")
     end
+  end
+
+  def test_run_defaulted_in_xml
+    # Check that if we simulate the in.xml file (HPXML w/ defaults), we get
+    # the same results as the original HPXML.
+
+    # Run base.xml
+    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+    xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
+    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\""
+    system(command, err: File::NULL)
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+    base_results = CSV.read(File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+
+    # Run in.xml (generated from base.xml)
+    xml2 = File.join(File.dirname(xml), 'run', 'in.xml')
+    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml2}\""
+    system(command, err: File::NULL)
+    assert(File.exist? File.join(File.dirname(xml2), 'run', 'results_annual.csv'))
+    default_results = CSV.read(File.join(File.dirname(xml2), 'run', 'results_annual.csv'))
+
+    # Check two output files are identical
+    assert_equal(base_results, default_results)
   end
 
   def test_template_osws
@@ -278,17 +307,20 @@ class HPXMLTest < MiniTest::Test
     system(command, err: File::NULL)
     assert_equal(true, File.exist?(csv_output_path))
 
+    # Check that we have exactly one warning (i.e., check we are only validating a single Building element against schematron)
+    assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.' }.size)
+
     # Check unsuccessful simulation when providing incorrect building ID
     command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyFoo"
     system(command, err: File::NULL)
     assert_equal(false, File.exist?(csv_output_path))
-    assert(File.readlines(run_log).select { |l| l.include? "Could not find Building element with ID 'MyFoo'." }.size > 0)
+    assert_equal(1, File.readlines(run_log).select { |l| l.include? "Could not find Building element with ID 'MyFoo'." }.size)
 
     # Check unsuccessful simulation when not providing building ID
     command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\""
     system(command, err: File::NULL)
     assert_equal(false, File.exist?(csv_output_path))
-    assert(File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.' }.size > 0)
+    assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.' }.size)
   end
 
   def test_release_zips
@@ -346,9 +378,7 @@ class HPXMLTest < MiniTest::Test
 
     # Check outputs
     hpxml_defaults_path = File.join(rundir, 'in.xml')
-    xsd_path = File.join(File.dirname(__FILE__), '..', '..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
-    stron_path = File.join(File.dirname(__FILE__), '..', '..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schematron', 'EPvalidator.xml')
-    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, schema_path: xsd_path, schematron_path: stron_path) # Validate in.xml to ensure it can be run back through OS-HPXML
+    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, schema_validator: @schema_validator, schematron_validator: @schematron_validator) # Validate in.xml to ensure it can be run back through OS-HPXML
     if not hpxml.errors.empty?
       puts 'ERRORS:'
       hpxml.errors.each do |error|
@@ -357,17 +387,19 @@ class HPXMLTest < MiniTest::Test
       flunk "EPvalidator.xml error in #{hpxml_defaults_path}."
     end
     bill_results = _get_bill_results(bills_csv_path)
-    results = _get_simulation_results(annual_csv_path, xml, hpxml)
+    results = _get_simulation_results(annual_csv_path, xml)
     _verify_outputs(rundir, xml, results, hpxml)
 
     return results, bill_results
   end
 
-  def _get_simulation_results(annual_csv_path, xml, hpxml)
+  def _get_simulation_results(annual_csv_path, xml)
     # Grab all outputs from reporting measure CSV annual results
     results = {}
     CSV.foreach(annual_csv_path) do |row|
       next if row.nil? || (row.size < 2)
+      next if row[0].start_with? 'System Use:'
+      next if row[0].start_with? 'Emissions:'
 
       results[row[0]] = Float(row[1])
     end
@@ -389,12 +421,8 @@ class HPXMLTest < MiniTest::Test
         abs_clg_load_frac = abs_clg_load_delta / avg_clg_load
       end
       # Check that the difference is less than 1.5 MBtu or less than 10%
-      if hpxml.total_fraction_heat_load_served > 0
-        assert((abs_htg_load_delta < 1.5) || (!abs_htg_load_frac.nil? && abs_htg_load_frac < 0.1))
-      end
-      if hpxml.total_fraction_cool_load_served > 0
-        assert((abs_clg_load_delta < 1.5) || (!abs_clg_load_frac.nil? && abs_clg_load_frac < 0.1))
-      end
+      assert((abs_htg_load_delta < 1.5) || (!abs_htg_load_frac.nil? && abs_htg_load_frac < 0.1))
+      assert((abs_clg_load_delta < 1.5) || (!abs_clg_load_frac.nil? && abs_clg_load_frac < 0.1))
     end
 
     return results
@@ -427,159 +455,172 @@ class HPXMLTest < MiniTest::Test
     hpxml.delete_adiabatic_subsurfaces()
 
     # Check run.log warnings
-    File.readlines(File.join(rundir, 'run.log')).each do |log_line|
-      next if log_line.strip.empty?
-      next if log_line.start_with? 'Info: '
-      next if log_line.start_with? 'Executing command'
-      next if log_line.include? "-cache.csv' could not be found; regenerating it."
-      next if log_line.include? 'Could not find state average'
+    File.readlines(File.join(rundir, 'run.log')).each do |message|
+      next if message.strip.empty?
+      next if message.start_with? 'Info: '
+      next if message.start_with? 'Executing command'
+      next if message.include? 'Could not find state average'
 
       if hpxml_path.include? 'base-atticroof-conditioned.xml'
-        next if log_line.include?('Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.')
+        next if message.include?('Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.')
       end
       if hpxml.clothes_washers.empty?
-        next if log_line.include? 'No clothes washer specified, the model will not include clothes washer energy use.'
+        next if message.include? 'No clothes washer specified, the model will not include clothes washer energy use.'
       end
       if hpxml.clothes_dryers.empty?
-        next if log_line.include? 'No clothes dryer specified, the model will not include clothes dryer energy use.'
+        next if message.include? 'No clothes dryer specified, the model will not include clothes dryer energy use.'
       end
       if hpxml.dishwashers.empty?
-        next if log_line.include? 'No dishwasher specified, the model will not include dishwasher energy use.'
+        next if message.include? 'No dishwasher specified, the model will not include dishwasher energy use.'
       end
       if hpxml.refrigerators.empty?
-        next if log_line.include? 'No refrigerator specified, the model will not include refrigerator energy use.'
+        next if message.include? 'No refrigerator specified, the model will not include refrigerator energy use.'
       end
       if hpxml.cooking_ranges.empty?
-        next if log_line.include? 'No cooking range specified, the model will not include cooking range/oven energy use.'
+        next if message.include? 'No cooking range specified, the model will not include cooking range/oven energy use.'
       end
       if hpxml.water_heating_systems.empty?
-        next if log_line.include? 'No water heating specified, the model will not include water heating energy use.'
+        next if message.include? 'No water heating specified, the model will not include water heating energy use.'
       end
       if (hpxml.heating_systems + hpxml.heat_pumps).select { |h| h.fraction_heat_load_served.to_f > 0 }.empty?
-        next if log_line.include? 'No space heating specified, the model will not include space heating energy use.'
+        next if message.include? 'No space heating specified, the model will not include space heating energy use.'
       end
       if (hpxml.cooling_systems + hpxml.heat_pumps).select { |c| c.fraction_cool_load_served.to_f > 0 }.empty?
-        next if log_line.include? 'No space cooling specified, the model will not include space cooling energy use.'
+        next if message.include? 'No space cooling specified, the model will not include space cooling energy use.'
       end
       if hpxml.plug_loads.select { |p| p.plug_load_type == HPXML::PlugLoadTypeOther }.empty?
-        next if log_line.include? "No '#{HPXML::PlugLoadTypeOther}' plug loads specified, the model will not include misc plug load energy use."
+        next if message.include? "No '#{HPXML::PlugLoadTypeOther}' plug loads specified, the model will not include misc plug load energy use."
       end
       if hpxml.plug_loads.select { |p| p.plug_load_type == HPXML::PlugLoadTypeTelevision }.empty?
-        next if log_line.include? "No '#{HPXML::PlugLoadTypeTelevision}' plug loads specified, the model will not include television plug load energy use."
+        next if message.include? "No '#{HPXML::PlugLoadTypeTelevision}' plug loads specified, the model will not include television plug load energy use."
       end
       if hpxml.lighting_groups.empty?
-        next if log_line.include? 'No interior lighting specified, the model will not include interior lighting energy use.'
-        next if log_line.include? 'No exterior lighting specified, the model will not include exterior lighting energy use.'
-        next if log_line.include? 'No garage lighting specified, the model will not include garage lighting energy use.'
+        next if message.include? 'No interior lighting specified, the model will not include interior lighting energy use.'
+        next if message.include? 'No exterior lighting specified, the model will not include exterior lighting energy use.'
+        next if message.include? 'No garage lighting specified, the model will not include garage lighting energy use.'
       end
       if hpxml.windows.empty?
-        next if log_line.include? 'No windows specified, the model will not include window heat transfer.'
+        next if message.include? 'No windows specified, the model will not include window heat transfer.'
       end
       if hpxml.pv_systems.empty? && !hpxml.batteries.empty? && hpxml.header.schedules_filepaths.empty?
-        next if log_line.include? 'Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.'
+        next if message.include? 'Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.'
       end
       if hpxml_path.include? 'base-location-capetown-zaf.xml'
-        next if log_line.include? 'OS Message: Minutes field (60) on line 9 of EPW file'
-        next if log_line.include? 'Could not find a marginal Electricity rate.'
-        next if log_line.include? 'Could not find a marginal Natural Gas rate.'
+        next if message.include? 'OS Message: Minutes field (60) on line 9 of EPW file'
+        next if message.include? 'Could not find a marginal Electricity rate.'
+        next if message.include? 'Could not find a marginal Natural Gas rate.'
       end
       if !hpxml.hvac_distributions.select { |d| d.distribution_system_type == HPXML::HVACDistributionTypeDSE }.empty?
-        next if log_line.include? 'DSE is not currently supported when calculating utility bills.'
+        next if message.include? 'DSE is not currently supported when calculating utility bills.'
       end
-      if !hpxml.header.power_outage_periods.empty?
-        next if log_line.include? 'It is not possible to eliminate all desired end uses (e.g. crankcase/defrost energy, water heater parasitics) in EnergyPlus during a power outage.'
+      if !hpxml.header.unavailable_periods.select { |up| up.column_name == 'Power Outage' }.empty?
+        next if message.include? 'It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.'
+        next if message.include? 'It is not possible to eliminate all water heater energy use (e.g. parasitics) in EnergyPlus during an unavailable period.'
+      end
+      if hpxml_path.include? 'base-location-AMY-2012.xml'
+        next if message.include? 'No design condition info found; calculating design conditions from EPW weather data.'
       end
 
-      flunk "Unexpected run.log warning found for #{File.basename(hpxml_path)}: #{log_line}"
+      flunk "Unexpected run.log message found for #{File.basename(hpxml_path)}: #{message}"
     end
 
-    # Check for unexpected warnings
+    # Check for unexpected eplusout.err messages
+    messages = []
+    message = nil
     File.readlines(File.join(rundir, 'eplusout.err')).each do |err_line|
-      next unless err_line.include? '** Warning **'
+      if err_line.include?('** Warning **') || err_line.include?('** Severe  **') || err_line.include?('**  Fatal  **')
+        messages << message unless message.nil?
+        message = err_line
+      else
+        message += err_line unless message.nil?
+      end
+    end
 
+    messages.each do |message|
       # General
-      next if err_line.include? 'Schedule:Constant="ALWAYS ON CONTINUOUS", Blank Schedule Type Limits Name input'
-      next if err_line.include? 'Schedule:Constant="ALWAYS OFF DISCRETE", Blank Schedule Type Limits Name input'
-      next if err_line.include? 'Entered Zone Volumes differ from calculated zone volume'
-      next if err_line.include? 'PerformancePrecisionTradeoffs: Carroll MRT radiant exchange method is selected.'
-      next if err_line.include?('CalculateZoneVolume') && err_line.include?('not fully enclosed')
-      next if err_line.include? 'do not define an enclosure'
-      next if err_line.include? 'Pump nominal power or motor efficiency is set to 0'
-      next if err_line.include? 'volume flow rate per watt of rated total cooling capacity is out of range'
-      next if err_line.include? 'volume flow rate per watt of rated total heating capacity is out of range'
-      next if err_line.include? 'Timestep: Requested number'
-      next if err_line.include? 'The Standard Ratings is calculated for'
-      next if err_line.include?('WetBulb not converged after') && err_line.include?('iterations(PsyTwbFnTdbWPb)')
-      next if err_line.include? 'Inside surface heat balance did not converge with Max Temp Difference'
-      next if err_line.include? 'Inside surface heat balance convergence problem continues'
-      next if err_line.include? 'Missing temperature setpoint for LeavingSetpointModulated mode' # These warnings are fine, simulation continues with assigning plant loop setpoint to boiler, which is the expected one
-      next if err_line.include?('Glycol: Temperature') && err_line.include?('out of range (too low) for fluid')
-      next if err_line.include?('Glycol: Temperature') && err_line.include?('out of range (too high) for fluid')
-      next if err_line.include? 'Plant loop exceeding upper temperature limit'
-      next if err_line.include? 'Plant loop falling below lower temperature limit'
-      next if err_line.include?('Foundation:Kiva') && err_line.include?('wall surfaces with more than four vertices') # TODO: Check alternative approach
-      next if err_line.include? 'Temperature out of range [-100. to 200.] (PsyPsatFnTemp)'
-      next if err_line.include? 'Enthalpy out of range (PsyTsatFnHPb)'
-      next if err_line.include? 'Full load outlet air dry-bulb temperature < 2C. This indicates the possibility of coil frost/freeze.'
-      next if err_line.include? 'Full load outlet temperature indicates a possibility of frost/freeze error continues.'
-      next if err_line.include? 'Air-cooled condenser inlet dry-bulb temperature below 0 C.'
-      next if err_line.include? 'Low condenser dry-bulb temperature error continues.'
-      next if err_line.include? 'Coil control failed'
-      next if err_line.include? 'sensible part-load ratio out of range error continues'
-      next if err_line.include? 'Iteration limit exceeded in calculating sensible part-load ratio error continues'
-      next if err_line.include?('setupIHGOutputs: Output variables=Zone Other Equipment') && err_line.include?('are not available.')
-      next if err_line.include?('setupIHGOutputs: Output variables=Space Other Equipment') && err_line.include?('are not available')
-      next if err_line.include? 'Actual air mass flow rate is smaller than 25% of water-to-air heat pump coil rated air flow rate.' # FUTURE: Remove this when https://github.com/NREL/EnergyPlus/issues/9125 is resolved
-      next if err_line.include? 'DetailedSkyDiffuseModeling is chosen but not needed as either the shading transmittance for shading devices does not change throughout the year'
-      next if err_line.include? 'View factors not complete'
-      next if err_line.include?('CheckSimpleWAHPRatedCurvesOutputs') && err_line.include?('WaterToAirHeatPump:EquationFit') # FIXME: Check these
+      next if message.include? 'Schedule:Constant="ALWAYS ON CONTINUOUS", Blank Schedule Type Limits Name input'
+      next if message.include? 'Schedule:Constant="ALWAYS OFF DISCRETE", Blank Schedule Type Limits Name input'
+      next if message.include? 'Entered Zone Volumes differ from calculated zone volume'
+      next if message.include? 'PerformancePrecisionTradeoffs: Carroll MRT radiant exchange method is selected.'
+      next if message.include?('CalculateZoneVolume') && message.include?('not fully enclosed')
+      next if message.include? 'do not define an enclosure'
+      next if message.include? 'Pump nominal power or motor efficiency is set to 0'
+      next if message.include? 'volume flow rate per watt of rated total cooling capacity is out of range'
+      next if message.include? 'volume flow rate per watt of rated total heating capacity is out of range'
+      next if message.include? 'Timestep: Requested number'
+      next if message.include? 'The Standard Ratings is calculated for'
+      next if message.include?('WetBulb not converged after') && message.include?('iterations(PsyTwbFnTdbWPb)')
+      next if message.include? 'Inside surface heat balance did not converge with Max Temp Difference'
+      next if message.include? 'Inside surface heat balance convergence problem continues'
+      next if message.include? 'Missing temperature setpoint for LeavingSetpointModulated mode' # These warnings are fine, simulation continues with assigning plant loop setpoint to boiler, which is the expected one
+      next if message.include?('Glycol: Temperature') && message.include?('out of range (too low) for fluid')
+      next if message.include?('Glycol: Temperature') && message.include?('out of range (too high) for fluid')
+      next if message.include? 'Plant loop exceeding upper temperature limit'
+      next if message.include? 'Plant loop falling below lower temperature limit'
+      next if message.include?('Foundation:Kiva') && message.include?('wall surfaces with more than four vertices') # TODO: Check alternative approach
+      next if message.include? 'Temperature out of range [-100. to 200.] (PsyPsatFnTemp)'
+      next if message.include? 'Enthalpy out of range (PsyTsatFnHPb)'
+      next if message.include? 'Full load outlet air dry-bulb temperature < 2C. This indicates the possibility of coil frost/freeze.'
+      next if message.include? 'Full load outlet temperature indicates a possibility of frost/freeze error continues.'
+      next if message.include? 'Air-cooled condenser inlet dry-bulb temperature below 0 C.'
+      next if message.include? 'Low condenser dry-bulb temperature error continues.'
+      next if message.include? 'Coil control failed'
+      next if message.include? 'sensible part-load ratio out of range error continues'
+      next if message.include? 'Iteration limit exceeded in calculating sensible part-load ratio error continues'
+      next if message.include?('setupIHGOutputs: Output variables=Zone Other Equipment') && message.include?('are not available.')
+      next if message.include?('setupIHGOutputs: Output variables=Space Other Equipment') && message.include?('are not available')
+      next if message.include? 'Actual air mass flow rate is smaller than 25% of water-to-air heat pump coil rated air flow rate.' # FUTURE: Remove this when https://github.com/NREL/EnergyPlus/issues/9125 is resolved
+      next if message.include? 'DetailedSkyDiffuseModeling is chosen but not needed as either the shading transmittance for shading devices does not change throughout the year'
+      next if message.include? 'View factors not complete'
+      next if message.include?('CheckSimpleWAHPRatedCurvesOutputs') && message.include?('WaterToAirHeatPump:EquationFit') # FIXME: Check these
 
       # HPWHs
       if hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
-        next if err_line.include? 'Recovery Efficiency and Energy Factor could not be calculated during the test for standard ratings'
-        next if err_line.include? 'SimHVAC: Maximum iterations (20) exceeded for all HVAC loops'
-        next if err_line.include? 'Rated air volume flow rate per watt of rated total water heating capacity is out of range'
-        next if err_line.include? 'For object = Coil:WaterHeating:AirToWaterHeatPump:Wrapped'
-        next if err_line.include? 'Enthalpy out of range (PsyTsatFnHPb)'
+        next if message.include? 'Recovery Efficiency and Energy Factor could not be calculated during the test for standard ratings'
+        next if message.include? 'SimHVAC: Maximum iterations (20) exceeded for all HVAC loops'
+        next if message.include? 'Rated air volume flow rate per watt of rated total water heating capacity is out of range'
+        next if message.include? 'For object = Coil:WaterHeating:AirToWaterHeatPump:Wrapped'
+        next if message.include? 'Enthalpy out of range (PsyTsatFnHPb)'
+        next if message.include?('CheckWarmupConvergence: Loads Initialization') && message.include?('did not converge after 25 warmup days')
       end
       if hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump && wh.location == HPXML::LocationOtherExterior }.size > 0
-        next if err_line.include? 'Water heater tank set point temperature is greater than or equal to the cut-in temperature of the heat pump water heater.'
+        next if message.include? 'Water heater tank set point temperature is greater than or equal to the cut-in temperature of the heat pump water heater.'
       end
       # Stratified tank WHs
       if hpxml.water_heating_systems.select { |wh| wh.tank_model_type == HPXML::WaterHeaterTankModelTypeStratified }.size > 0
-        next if err_line.include? 'Recovery Efficiency and Energy Factor could not be calculated during the test for standard ratings'
+        next if message.include? 'Recovery Efficiency and Energy Factor could not be calculated during the test for standard ratings'
       end
       # HP defrost curves
       if hpxml.heat_pumps.select { |hp| [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include? hp.heat_pump_type }.size > 0
-        next if err_line.include?('GetDXCoils: Coil:Heating:DX') && err_line.include?('curve values')
+        next if message.include?('GetDXCoils: Coil:Heating:DX') && message.include?('curve values')
       end
       if hpxml.cooling_systems.select { |c| c.cooling_system_type == HPXML::HVACTypeEvaporativeCooler }.size > 0
         # Evap cooler model is not really using Controller:MechanicalVentilation object, so these warnings of ignoring some features are fine.
         # OS requires a Controller:MechanicalVentilation to be attached to the oa controller, however it's not required by E+.
         # Manually removing Controller:MechanicalVentilation from idf eliminates these two warnings.
         # FUTURE: Can we update OS to allow removing it?
-        next if err_line.include?('Zone') && err_line.include?('is not accounted for by Controller:MechanicalVentilation object')
-        next if err_line.include?('PEOPLE object for zone') && err_line.include?('is not accounted for by Controller:MechanicalVentilation object')
+        next if message.include?('Zone') && message.include?('is not accounted for by Controller:MechanicalVentilation object')
+        next if message.include?('PEOPLE object for zone') && message.include?('is not accounted for by Controller:MechanicalVentilation object')
         # "The only valid controller type for an AirLoopHVAC is Controller:WaterCoil.", evap cooler doesn't need one.
-        next if err_line.include?('GetAirPathData: AirLoopHVAC') && err_line.include?('has no Controllers')
+        next if message.include?('GetAirPathData: AirLoopHVAC') && message.include?('has no Controllers')
         # input "Autosize" for Fixed Minimum Air Flow Rate is added by OS translation, now set it to 0 to skip potential sizing process, though no way to prevent this warning.
-        next if err_line.include? 'Since Zone Minimum Air Flow Input Method = CONSTANT, input for Fixed Minimum Air Flow Rate will be ignored'
+        next if message.include? 'Since Zone Minimum Air Flow Input Method = CONSTANT, input for Fixed Minimum Air Flow Rate will be ignored'
       end
       if hpxml.hvac_distributions.select { |d| d.air_type.to_s == HPXML::AirTypeFanCoil }.size > 0
-        next if err_line.include? 'In calculating the design coil UA for Coil:Cooling:Water' # Warning for unused cooling coil for fan coil
+        next if message.include? 'In calculating the design coil UA for Coil:Cooling:Water' # Warning for unused cooling coil for fan coil
       end
       if hpxml_path.include?('ground-to-air-heat-pump-cooling-only.xml') || hpxml_path.include?('ground-to-air-heat-pump-heating-only.xml')
-        next if err_line.include? 'COIL:HEATING:WATERTOAIRHEATPUMP:EQUATIONFIT' # heating capacity is > 20% different than cooling capacity; safe to ignore
+        next if message.include? 'COIL:HEATING:WATERTOAIRHEATPUMP:EQUATIONFIT' # heating capacity is > 20% different than cooling capacity; safe to ignore
       end
       if hpxml.solar_thermal_systems.size > 0
-        next if err_line.include? 'Supply Side is storing excess heat the majority of the time.'
+        next if message.include? 'Supply Side is storing excess heat the majority of the time.'
       end
-      if !hpxml.header.power_outage_periods.empty?
-        next if err_line.include? 'Target water temperature is greater than the hot water temperature'
-        next if err_line.include? 'Target water temperature should be less than or equal to the hot water temperature'
+      if !hpxml.header.unavailable_periods.empty?
+        next if message.include? 'Target water temperature is greater than the hot water temperature'
+        next if message.include? 'Target water temperature should be less than or equal to the hot water temperature'
       end
 
-      flunk "Unexpected eplusout.err warning found for #{File.basename(hpxml_path)}: #{err_line}"
+      flunk "Unexpected eplusout.err message found for #{File.basename(hpxml_path)}: #{message}"
     end
 
     # Check for unused objects/schedules/constructions warnings
@@ -699,24 +740,22 @@ class HPXMLTest < MiniTest::Test
       # nop
     elsif hpxml_path.include? 'real_homes'
       # nop
-    elsif hpxml_path.include? 'base-bldgtype-multifamily'
-      assert_equal(0, num_kiva_instances)                                                # no foundation, above dwelling unit
+    elsif hpxml.building_construction.residential_facility_type == HPXML::ResidentialTypeApartment
+      # no foundation, above dwelling unit
+      assert_equal(0, num_kiva_instances)
+    elsif hpxml.slabs.empty?
+      assert_equal(0, num_kiva_instances)
     else
-      num_expected_kiva_instances = { 'base-foundation-ambient.xml' => 0,                # no foundation in contact w/ ground
-                                      'base-enclosure-floortypes.xml' => 0,              # no foundation in contact w/ ground
-                                      'base-foundation-multiple.xml' => 2,               # additional instance for 2nd foundation type
+      num_expected_kiva_instances = { 'base-foundation-multiple.xml' => 2,               # additional instance for 2nd foundation type
                                       'base-enclosure-2stories-garage.xml' => 2,         # additional instance for garage
                                       'base-foundation-basement-garage.xml' => 2,        # additional instance for garage
                                       'base-enclosure-garage.xml' => 2,                  # additional instance for garage
                                       'base-foundation-walkout-basement.xml' => 4,       # 3 foundation walls plus a no-wall exposed perimeter
                                       'base-foundation-complex.xml' => 10,               # lots of foundations for testing
                                       'base-pv-battery-garage.xml' => 2 }                # additional instance for garage
-
-      if not num_expected_kiva_instances[File.basename(hpxml_path)].nil?
-        assert_equal(num_expected_kiva_instances[File.basename(hpxml_path)], num_kiva_instances)
-      else
-        assert_equal(1, num_kiva_instances)
-      end
+      num_expected = num_expected_kiva_instances[File.basename(hpxml_path)]
+      num_expected = 1 if num_expected.nil?
+      assert_equal(num_expected, num_kiva_instances)
     end
 
     # Enclosure Foundation Slabs
