@@ -382,7 +382,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = values['simulation_control_run_period_calendar_year']
 
     # Emissions
-    if values['emissions']
+    if values.keys.include?('emissions_electricity_values_or_filepaths')
       measures['BuildResidentialHPXML'][0]['emissions_scenario_names'] = values['emissions_scenario_names']
       measures['BuildResidentialHPXML'][0]['emissions_types'] = values['emissions_types']
       measures['BuildResidentialHPXML'][0]['emissions_electricity_units'] = values['emissions_electricity_units']

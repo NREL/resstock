@@ -1,3 +1,10 @@
+## ResStock v3.2.0 (pending)
+
+Features
+- Update characteristics to use EIA 2020 RECS ([#1031](https://github.com/NREL/resstock/pull/1031))
+
+Fixes
+
 ## ResStock v3.1.0
 ###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
 
