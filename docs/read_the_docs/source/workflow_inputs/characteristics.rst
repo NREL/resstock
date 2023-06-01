@@ -910,6 +910,31 @@ Assumption
 **********
 
 
+.. _energystar_climate_zone_2023:
+
+Energystar Climate Zone 2023
+----------------------------
+
+Description
+***********
+
+Climate zones for windows, doors, and skylights per EnergyStar guidelines as of 2023.
+
+Created by
+**********
+
+sources/spatial/tsv_maker.py
+
+Source
+******
+
+Area definition approximated based on published map retrieved May 2023 from: https://www.energystar.gov/products/residential_windows_doors_and_skylights/key_product_criteria.; by Brian Booher of D+R International, a support contractor for the ENERGY STAR windows, doors, and skylights program.
+
+Assumption
+**********
+
+EnergyStar Climate Zones assigned based on CEC Climate Zone for CA and based on County everywhere else.
+
 .. _federal_poverty_level:
 
 Federal Poverty Level
