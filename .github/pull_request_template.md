@@ -7,7 +7,7 @@
 Not all may apply:
 
 - [ ] Tests (and test files) have been updated
-- [ ] Documentation has been updated
+- [ ] Documentation (e.g., data dictionary) has been updated
 - [ ] Changelog has been updated
 - [ ] `openstudio tasks.rb update_measures` has been run
 - [ ] No unexpected regression test changes on CI (checked comparison artifacts)
