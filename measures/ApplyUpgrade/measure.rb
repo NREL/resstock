@@ -341,6 +341,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
     # Retain Existing Heating System as Heat Pump Backup
     heat_pump_backup_use_existing_system = measures['ResStockArguments'][0]['heat_pump_backup_use_existing_system']
+    retain_heat_pump_backup_heating_capacity = false
     if heat_pump_backup_use_existing_system == 'true'
       heating_system = get_heating_system(hpxml)
       heat_pump_type = measures['BuildResidentialHPXML'][0]['heat_pump_type']
@@ -366,6 +367,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
             measures['BuildResidentialHPXML'][0]['heat_pump_backup_fuel'] = heat_pump_backup_fuel
             measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_efficiency'] = heat_pump_backup_heating_efficiency
             measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heat_pump_backup_heating_capacity
+            retain_heat_pump_backup_heating_capacity = true
 
             runner.registerInfo("Found '#{heating_system_type}' heating system type; setting it as 'heat_pump_backup_type=#{measures['BuildResidentialHPXML'][0]['heat_pump_backup_type']}'.")
           else # Likely would not have electric furnace as integrated backup
@@ -381,6 +383,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
           measures['BuildResidentialHPXML'][0]['heating_system_2_fuel'] = heat_pump_backup_fuel
           measures['BuildResidentialHPXML'][0]['heating_system_2_heating_efficiency'] = heat_pump_backup_heating_efficiency
           measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = heat_pump_backup_heating_capacity
+          retain_heat_pump_backup_heating_capacity = true
 
           runner.registerInfo("Found '#{heating_system_type}' heating system type; setting it as 'heat_pump_backup_type=#{measures['BuildResidentialHPXML'][0]['heat_pump_backup_type']}'.")
         else
@@ -393,11 +396,11 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Retain HVAC capacities
     capacities = get_system_capacities(hpxml, system_upgrades)
     measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = capacities['heating_system_heating_capacity']
-    measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = capacities['heating_system_2_heating_capacity']
+    measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = capacities['heating_system_2_heating_capacity'] unless retain_heat_pump_backup_heating_capacity
     measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = capacities['cooling_system_cooling_capacity']
     measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = capacities['heat_pump_heating_capacity']
     measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = capacities['heat_pump_cooling_capacity']
-    measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = capacities['heat_pump_backup_heating_capacity']
+    measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = capacities['heat_pump_backup_heating_capacity'] unless retain_heat_pump_backup_heating_capacity
 
     # Get software program used and version
     measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
