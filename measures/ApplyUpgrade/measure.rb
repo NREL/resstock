@@ -339,7 +339,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
     measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
-    # Heat Pump Backup
+    # Retain Existing Heating System as Heat Pump Backup
     heat_pump_backup_use_existing_system = measures['ResStockArguments'][0]['heat_pump_backup_use_existing_system']
     if heat_pump_backup_use_existing_system == 'true'
       heating_system = get_heating_system(hpxml)
@@ -349,8 +349,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Only set the backup if the heat pump is applied and there is an existing heating system
       if (heat_pump_type != 'none') && (not heating_system.nil?)
         heat_pump_backup_type = get_heat_pump_backup_type(heating_system, heat_pump_type, heat_pump_is_ducted)
-
         heat_pump_backup_values = get_heat_pump_backup_values(heating_system)
+
         heating_system_type = heat_pump_backup_values['heating_system_type']
         heat_pump_backup_fuel = heat_pump_backup_values['heat_pump_backup_fuel']
         heat_pump_backup_heating_efficiency = heat_pump_backup_values['heat_pump_backup_heating_efficiency']

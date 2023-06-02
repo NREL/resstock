@@ -38,23 +38,18 @@ class ApplyUpgradeTest < MiniTest::Test
     _test_retaining_capacities(args_hash, expected_capacities)
 
     puts 'Retaining existing heating system:'
-    expected_values = {
-      'heating_system_type' => HPXML::HVACTypeFurnace,
-      'heat_pump_backup_fuel' => HPXML::FuelTypeNaturalGas,
-      'heat_pump_backup_heating_efficiency' => 0.92,
-      'heat_pump_backup_heating_capacity' => 100000.0
-    }
+    expected_values = {}
 
-    expected_values['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
+    expected_values['heat_pump_backup_type'] = nil
     _test_heat_pump_backup(HPXML::HVACTypeHeatPumpAirToAir, nil, expected_values)
 
-    expected_values['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
+    expected_values['heat_pump_backup_type'] = nil
     _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, nil, expected_values)
 
-    expected_values['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
+    expected_values['heat_pump_backup_type'] = nil
     _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, 'false', expected_values)
 
-    expected_values['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
+    expected_values['heat_pump_backup_type'] = nil
     _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, 'true', expected_values)
   end
 
@@ -324,12 +319,13 @@ class ApplyUpgradeTest < MiniTest::Test
     measure = ApplyUpgrade.new
 
     heating_system = measure.get_heating_system(hpxml)
-    return if heating_system.nil?
+    if heating_system.nil?
+      assert_nil(expected_values['heat_pump_backup_type'])
+      puts "\thpxml.heating_systems.size=#{hpxml.heating_systems.size}..."
+      return
+    end
 
-    str = "\t#{heat_pump_type}"
-    str += ", is_ducted=#{heat_pump_is_ducted}" if !heat_pump_is_ducted.nil?
-    str += '...'
-    puts str
+    puts "\theat_pump_type='#{heat_pump_type}', heat_pump_is_ducted='#{heat_pump_is_ducted}'..."
 
     heat_pump_backup_type = measure.get_heat_pump_backup_type(heating_system, heat_pump_type, heat_pump_is_ducted)
     actual_values = measure.get_heat_pump_backup_values(heating_system)
