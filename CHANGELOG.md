@@ -1,3 +1,10 @@
+## ResStock v3.2.0 (pending)
+
+Features
+- For heat pump upgrades, adds the ability to set the existing primary (non-shared) heating system as the backup system using only a single option from the lookup ([#1074](https://github.com/NREL/resstock/pull/1074))
+
+Fixes
+
 ## ResStock v3.1.0
 ###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
 
