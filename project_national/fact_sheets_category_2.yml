@@ -160,6 +160,7 @@ upgrades:
               - Insulation Ceiling|Uninsulated
               - Insulation Ceiling|R-7
               - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
         costs:
           - value: 0.0482 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019)
                           # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.0344 https://www.bls.gov/data/inflation_calculator.htm
@@ -185,6 +186,7 @@ upgrades:
               - Insulation Ceiling|R-13
               - Insulation Ceiling|R-19
               - Insulation Ceiling|R-30
+              - Insulation Ceiling|R-38
         costs:
           - value: 0.0482 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019)
                           # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.0344 https://www.bls.gov/data/inflation_calculator.htm
@@ -215,6 +217,7 @@ upgrades:
               - Insulation Ceiling|R-19
               - Insulation Ceiling|R-30
               - Insulation Ceiling|R-38
+              - Insulation Ceiling|R-49
         costs:
           - value: 0.0482 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019)
                           # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.0344 https://www.bls.gov/data/inflation_calculator.htm
@@ -339,7 +342,19 @@ upgrades:
                         # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-      #Drill-and-fill insulation (R-13) for homes with no insulation and wood stud walls
+      - &ducts_category8 #improving insulation only
+        option: Ducts|0% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|0% Leakage, Uninsulated
+        costs:
+          - value: 1.96 # 1.4 $/(ft^2) Mid-value from REMDB, 10% Leakage, Uninsulated to 10% Leakage, R-8
+                        # REMDB doesn't have the option for replace - Ducts|0% Leakage, Uninsulated to - Ducts|0% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2144&bcId=6725
+                        # REMDB doesn't have the data for 10% Leakage, R-4 and 10% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf#Drill-and-fill insulation (R-13) for homes with no insulation and wood stud walls
       - &Drill-and-fill
         option: Insulation Wall|Wood Stud, R-13
         apply_logic:
@@ -417,6 +432,7 @@ upgrades:
       #- *ducts_category5
       #- *ducts_category6
       - *ducts_category7
+      - *ducts_category8
       - *Drill-and-fill
       - *foundation_wall_insulation
       - *foundation_wall_insulation_finished_basement
@@ -498,6 +514,7 @@ upgrades:
               - Insulation Roof|Finished, Uninsulated
               - Insulation Roof|Finished, R-7
               - Insulation Roof|Finished, R-13
+              - Insulation Roof|Finished, R-19
         costs:
           - value: 6.02 # $/ft2 (4.3* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=13&component_type_id=395&actionId=2621&bcId=6283
             multiplier: Roof Area (ft^2)

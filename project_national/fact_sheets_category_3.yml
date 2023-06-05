@@ -127,16 +127,17 @@ upgrades:
         lifetime: 14 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=293&actionId=1068&bcId=4538
                      # 17 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
       - &energystar_dishwasher 
-        option: Dishwasher|270 Rated kWh
+        option: Dishwasher|240 Rated kWh # Based on the EnergyStarV7
         apply_logic:
           - or:
             - Dishwasher|318 Rated kWh
             - Dishwasher|290 Rated kWh
+            - Dishwasher|270 Rated kWh
+            - Dishwasher|255 Rated kWh
         costs:
-          - value: 1670.0 #price1: $494.99-2400 for ENERGY STAR Certified diswasher (270 Rated kWh) in BestBuy
-                         #price2: $509-1249 for ENERGY STAR Certified diswasher (270 Rated kWh) in Home Depot
-                         # 1670.0=1447.5*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor.
-                         # Anopther option: $1400. $1000 for replacing diswasher from 324 Rated kWh, 311 Rated kWh, 307 Rated kWh to 259 Rated kWh in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+          - value: 1752.4 #price1: $699.99-2499 for ENERGY STAR Certified diswasher (240 Rated kWh) in BestBuy
+                         #price2: $549.99-1299 for ENERGY STAR Certified diswasher (240 Rated kWh) in Home Depot
+                         # 1752.4=1524.5*1.07+94*1.289, price*1.07 sales tax + 94*1.289 labor.
             multiplier: Fixed (1)
         lifetime: 11 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=291&actionId=1065&bcId=4484
                      # 15 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
