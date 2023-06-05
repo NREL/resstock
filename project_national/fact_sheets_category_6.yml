@@ -110,7 +110,7 @@ upgrades:
       - &ng_boiler_secondary_heating_type_fuel
         option: HVAC Secondary Heating Type And Fuel|Natural Gas Boiler
         apply_logic:
-          - HVAC Heating Type And Fuel|Natural Gas Boiler
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
       - &propane_boiler_secondary_heating_type_fuel
         option: HVAC Secondary Heating Type And Fuel|Propane Boiler
         apply_logic:
@@ -279,8 +279,8 @@ upgrades:
         lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
 
 
-      - &HP_cooling_efficiency
-        option: HVAC Cooling Efficiency|Heat Pump
+      - &HP_cooling_efficiency_ducted
+        option: HVAC Cooling Efficiency|Ducted Heat Pump
         apply_logic:
           - or:
             - *dualfuel_ASHP_no_ducted_furnace_apply_logic
@@ -296,9 +296,11 @@ upgrades:
             - *dual-fuel_76pctAFUE_FO_furnace_apply_logic
             - *dual-fuel_80pctAFUE_FO_furnace_apply_logic
             - *dual-fuel_92-5pctAFUE_FO_furnace_apply_logic
-            - *ductless_MSHP_elec_backup
 
-      - &100_percent_conditioned
+
+
+
+      - &100_percent_conditioned_ducted
         option: HVAC Cooling Partial Space Conditioning|100% Conditioned
         apply_logic:
           - or:
@@ -315,7 +317,7 @@ upgrades:
             - *dual-fuel_76pctAFUE_FO_furnace_apply_logic
             - *dual-fuel_80pctAFUE_FO_furnace_apply_logic
             - *dual-fuel_92-5pctAFUE_FO_furnace_apply_logic
-            - *ductless_MSHP_elec_backup
+
 
 
 
@@ -339,8 +341,8 @@ upgrades:
         lifetime: &lifetime_ashp_ducted_SEER_16_9-5_HSPF 15
 
 
-      - *HP_cooling_efficiency
-      - *100_percent_conditioned
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned_ducted
 
       - *ng_boiler_secondary_heating_type_fuel
       - *propane_boiler_secondary_heating_type_fuel
@@ -481,8 +483,8 @@ upgrades:
         lifetime: &lifetime_ashp_ducted_SEER_20_11_HSPF 15
 
 
-      - *HP_cooling_efficiency
-      - *100_percent_conditioned
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned_ducted
 
       - *ng_boiler_secondary_heating_type_fuel
       - *propane_boiler_secondary_heating_type_fuel
@@ -582,11 +584,12 @@ upgrades:
       # MSHP
       - &ductless_MSHP_EnergyStar_exist_backup
         option: HVAC Heating Efficiency|MSHP, SEER 16, 9.2 HSPF, Separate Backup # Changed to Max Load
-        apply_logic: &ductless_MSHP_elec_backup
+        apply_logic: &ductless_MSHP_elec_backup_apply_logic
           - and:
             - HVAC Has Ducts|No
-            - or: &not_MSHP_greater_than_SEER_16_9-2_HSPF
-              - not: HVAC Cooling Efficiency|Heat Pump
+            - or:
+              - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+              - not: HVAC Cooling Efficiency|Ducted Heat Pump
               - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
         costs: &costs_mshp_ductless_SEER_16_9-2_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
@@ -602,8 +605,14 @@ upgrades:
         lifetime: &lifetime_mshp_ductless_SEER_16_9-2_HSPF 
           15
 
-      - *HP_cooling_efficiency
-      - *100_percent_conditioned
+      - &HP_cooling_efficiency_ductless
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+        apply_logic: *ductless_MSHP_elec_backup_apply_logic
+
+      - &100_percent_conditioned_ductless
+        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
+        apply_logic: *ductless_MSHP_elec_backup_apply_logic
+
 
       - *ng_boiler_secondary_heating_type_fuel
       - *propane_boiler_secondary_heating_type_fuel
@@ -622,19 +631,37 @@ upgrades:
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
 
-      - *cooling_setpoint_no_offset
-      - *cooling_setpoint_offset_magnitude_0     
-      - *cooling_setpoint_offset_period_none
-      - *heating_setpoint_no_offset
-      - *heating_setpoint_offset_magnitude_0
-      - *heating_setpoint_offset_period_none
+      - &cooling_setpoint_no_offset_ductless
+        option: Cooling Setpoint Has Offset|No
+        apply_logic: *ductless_MSHP_elec_backup_apply_logic
+
+
+      - &cooling_setpoint_offset_magnitude_0_ductless
+        option: Cooling Setpoint Offset Magnitude|0F
+        apply_logic: *ductless_MSHP_elec_backup_apply_logic
+      
+      - &cooling_setpoint_offset_period_none_ductless
+        option: Cooling Setpoint Offset Period|None
+        apply_logic: *ductless_MSHP_elec_backup_apply_logic
+
+      - &heating_setpoint_no_offset_ductless
+        option: Heating Setpoint Has Offset|No
+        apply_logic: *ductless_MSHP_elec_backup_apply_logic
+
+      - &heating_setpoint_offset_magnitude_0_ductless
+        option: Heating Setpoint Offset Magnitude|0F
+        apply_logic: *ductless_MSHP_elec_backup_apply_logic
+      
+      - &heating_setpoint_offset_period_none_ductless
+        option: Heating Setpoint Offset Period|None
+        apply_logic: *ductless_MSHP_elec_backup_apply_logic
 
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup  #also provides SEER 15 cooling measure profile
     # Measure 5
     options:
       - &ductless_MSHP_EnergyStarCC_exist_backup
         option: HVAC Heating Efficiency|MSHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup # Changed to Max Load
-        apply_logic: *ductless_MSHP_elec_backup
+        apply_logic: *ductless_MSHP_elec_backup_apply_logic
         costs: &costs_mshp_ductless_SEER_16_9-5_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -649,8 +676,8 @@ upgrades:
         lifetime: &lifetime_mshp_ductless_SEER_16_9-5_HSPF 
           15
 
-      - *HP_cooling_efficiency
-      - *100_percent_conditioned
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned_ductless
 
       - *ng_boiler_secondary_heating_type_fuel
       - *propane_boiler_secondary_heating_type_fuel
@@ -669,19 +696,19 @@ upgrades:
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
 
-      - *cooling_setpoint_no_offset
-      - *cooling_setpoint_offset_magnitude_0     
-      - *cooling_setpoint_offset_period_none
-      - *heating_setpoint_no_offset
-      - *heating_setpoint_offset_magnitude_0
-      - *heating_setpoint_offset_period_none
+      - *cooling_setpoint_no_offset_ductless
+      - *cooling_setpoint_offset_magnitude_0_ductless     
+      - *cooling_setpoint_offset_period_none_ductless
+      - *heating_setpoint_no_offset_ductless
+      - *heating_setpoint_offset_magnitude_0_ductless
+      - *heating_setpoint_offset_period_none_ductless
 
   - upgrade_name: Higher efficiency ductless MSHP w/ elec backup  #also provides SEER 15 cooling measure profile
     # Measure 6
     options:
-      - &ductless_MSHP_EnergyStarCC_exist_backup
+      - &ductless_MSHP_HigherEfficiency_exist_backup
         option: HVAC Heating Efficiency|MSHP, SEER 20, 11 HSPF, CCHP, Separate Backup # Changed to Max Load
-        apply_logic: *ductless_MSHP_elec_backup
+        apply_logic: *ductless_MSHP_elec_backup_apply_logic
         costs: &costs_mshp_ductless_SEER_20_11_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -696,8 +723,8 @@ upgrades:
         lifetime: &lifetime_mshp_ductless_SEER_20_11_HSPF 
           15
 
-      - *HP_cooling_efficiency
-      - *100_percent_conditioned
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned_ductless
 
       - *ng_boiler_secondary_heating_type_fuel
       - *propane_boiler_secondary_heating_type_fuel
@@ -716,9 +743,9 @@ upgrades:
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
 
-      - *cooling_setpoint_no_offset
-      - *cooling_setpoint_offset_magnitude_0     
-      - *cooling_setpoint_offset_period_none
-      - *heating_setpoint_no_offset
-      - *heating_setpoint_offset_magnitude_0
-      - *heating_setpoint_offset_period_none
+      - *cooling_setpoint_no_offset_ductless
+      - *cooling_setpoint_offset_magnitude_0_ductless     
+      - *cooling_setpoint_offset_period_none_ductless
+      - *heating_setpoint_no_offset_ductless
+      - *heating_setpoint_offset_magnitude_0_ductless
+      - *heating_setpoint_offset_period_none_ductless
