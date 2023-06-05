@@ -1,0 +1,95 @@
+schema_version: '0.3'
+os_version: 3.6.1
+os_sha: bb9481519e
+buildstock_directory: ../ # Relative to this file or absolute
+project_directory: project_testing # Relative to buildstock_directory
+output_directory: testing_baseline
+weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 100
+
+# sampler:
+  # type: precomputed
+  # args:
+    # sample_file: ../buildstock.csv
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+      add_component_loads: true
+
+    emissions:
+      - scenario_name: LRMER_MidCase_15
+        type: CO2e
+        elec_folder: data/cambium/LRMER_MidCase_15
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+
+    utility_bills:
+      - scenario_name: Bills
+        elec_fixed_charge: 10.0
+        elec_marginal_rate: 0.12
+        gas_fixed_charge: 11.0
+        gas_marginal_rate: 1.1
+        propane_fixed_charge: 0.0
+        propane_marginal_rate: 2.0
+        oil_fixed_charge: 0.0
+        oil_marginal_rate: 2.1
+        wood_fixed_charge: 0.0
+        wood_marginal_rate: 0.015
+        pv_compensation_type: NetMetering
+        pv_net_metering_annual_excess_sellback_rate_type: User-Specified
+        pv_net_metering_annual_excess_sellback_rate: 0.035
+        pv_monthly_grid_connection_fee_units: $/kW
+        pv_monthly_grid_connection_fee: 2.5
+
+    simulation_output_report:
+      timeseries_frequency: hourly
+      include_timeseries_total_consumptions: true
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_emission_fuels: true
+      include_timeseries_emission_end_uses: true
+      include_timeseries_hot_water_uses: true
+      include_timeseries_total_loads: true
+      include_timeseries_component_loads: true
+      include_timeseries_unmet_hours: true
+      include_timeseries_zone_temperatures: true
+      include_timeseries_airflows: true
+      include_timeseries_weather: true
+      timeseries_timestamp_convention: end
+      timeseries_num_decimal_places: 4
+      output_variables:
+        - name: Zone People Occupant Count
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    debug: true
+
+baseline:
+  n_buildings_represented: 110000000
+
+eagle:
+  n_jobs: 2
+  minutes_per_sim: 1
+  account: <account you are authorized to use>
+  sampling:
+    time: 10
+  postprocessing:
+    time: 10
+    n_workers: 1
