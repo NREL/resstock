@@ -228,7 +228,7 @@ if __name__ == "__main__":
         "--community_name",
         action="store",
         default="San Jose",
-        help="name of community, for adding extension to output file, defaults to 'test'",
+        help="name of community, for pulling files containing community name for validation.",
     )
     parser.add_argument(
         "-p",
