@@ -164,6 +164,7 @@ def process_euss_upgrade_files(
         ]
         cost_cols.append("upgrade_costs.upgrade_cost_usd")
         df[cost_cols] *= local_multiplier * inflation_multiplier
+        return df
 
     def process_upgrade_costs(df, upgrade_number=0):
         """assign process_upgrade_XX_costs function according to upgrade_number"""
@@ -195,7 +196,6 @@ def process_euss_upgrade_files(
         raise ValueError(f"Unknown upgrade_number={upgrade_number}, valid: 0-10")
 
     def calculate_bills(dfi):
-
         df = dfi.copy()
         bill_cols = []
         for fuel, month_cost, var_cost, conversion in zip(
