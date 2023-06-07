@@ -3,14 +3,14 @@ os_version: 3.6.1
 os_sha: bb9481519e
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_upgrades
+output_directory: national_upgrades2
 weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 # weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 5
+    n_datapoints: 100
 
 workflow_generator:
   type: residential_hpxml
@@ -58,9 +58,10 @@ baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
 
 upgrades:
-  - upgrade_name: Heat pumps, min-efficiency, existing heating as backup
-
+  - upgrade_name: Heat pumps 1
     options:
+
+      # Ductless - Ductless
       - option: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
         apply_logic:
           - HVAC Has Ducts|No
@@ -73,9 +74,42 @@ upgrades:
         lifetime: &lifetime
           30
 
+      # Ducted - Ducted
       - option: HVAC Heating Efficiency|ASHP, SEER 17, 8.7 HSPF
         apply_logic:
           - HVAC Has Ducts|Yes
+          - or:
+            - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+            - not: HVAC Cooling Efficiency|Heat Pump
+        costs: *costs
+        lifetime: *lifetime
+
+      # global
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+      - option: Heat Pump Backup|Use Existing System
+
+  - upgrade_name: Heat pumps 2
+    options:
+
+      # Ductless - Ducted
+      - option: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
+        apply_logic:
+          - HVAC Has Ducts|Yes
+          - or:
+            - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+            - not: HVAC Cooling Efficiency|Heat Pump
+        costs: &costs
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime
+          30
+
+      # Ducted - Ductless
+      - option: HVAC Heating Efficiency|ASHP, SEER 17, 8.7 HSPF
+        apply_logic:
+          - HVAC Has Ducts|No
           - or:
             - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
             - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
