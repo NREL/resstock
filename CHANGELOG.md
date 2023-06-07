@@ -1,6 +1,7 @@
 ## ResStock v3.2.0 (pending)
 
 Features
+- Add 2022 Cambium emissions data ([#1038](https://github.com/NREL/resstock/pull/1038))
 - Update characteristics to use EIA 2020 RECS ([#1031](https://github.com/NREL/resstock/pull/1031))
 
 Fixes
