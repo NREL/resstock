@@ -234,7 +234,7 @@ if __name__ == "__main__":
         "-p",
         "--as_percentage",
         action="store_true",
-        help="whether to show change in option_cost in percentage (as opposed to absolute) where change in total upgrade_cost > 50%",
+        help="whether to show change in option_cost in percentage (as opposed to absolute) where change in total upgrade_cost > 50 percent",
     )
     parser.add_argument(
         "-t",
