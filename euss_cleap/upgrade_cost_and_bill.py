@@ -1214,8 +1214,7 @@ def process_euss_upgrade_files(
         ext = "__" + community_name.lower().replace(" ", "_")
         print(f"Processing data for [[ {community_name} ]] ...")
 
-    # TODO: @yingli add up00 file and change range to range(11)
-    for upn in range(1, 11):
+    for upn in range(11):
         process_upgrade_file(
             datadir / f"up{upn:02d}_sample.csv",
             outdir / f"up{upn:02d}{ext}.csv",
