@@ -243,11 +243,6 @@ upgrades:
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: &lifetime_mshp_ductless_SEER_15_9_HSPF 
           15
-      #global
-      - option: HVAC Cooling Efficiency|Ducted Heat Pump # Applied regardless of which option is applied
-        apply_logic: *logic_fed_min_heat_pump_ASHP_ducted_southern
-      - option: HVAC Cooling Efficiency|Non-Ducted Heat Pump # Applied regardless of which option is applied
-        apply_logic: *logic_fed_min_heat_pump_MSHP_ductless_southern
 
       # northern states
       - &heat_pump_fed_min_ducted_northern
@@ -269,10 +264,20 @@ upgrades:
         costs: *costs_mshp_ductless_SEER_15_9_HSPF
         lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF 
       #global
-      - option: HVAC Cooling Efficiency|Ducted Heat Pump # Applied regardless of which option is applied
-        apply_logic: *logic_fed_min_heat_pump_ASHP_ducted_northern
-      - option: HVAC Cooling Efficiency|Non-Ducted Heat Pump # Applied regardless of which option is applied
-        apply_logic: *logic_fed_min_heat_pump_MSHP_ductless_northern
+      - &heat_pump_ducted_cooling
+        option: HVAC Cooling Efficiency|Ducted Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *logic_fed_min_heat_pump_ASHP_ducted_northern
+            - *logic_fed_min_heat_pump_ASHP_ducted_southern
+
+      - &heat_pump_ductless_cooling
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *logic_fed_min_heat_pump_MSHP_ductless_northern
+            - *logic_fed_min_heat_pump_MSHP_ductless_southern
+
 
 
   - upgrade_name: Federal Minimum Cooling
@@ -322,19 +327,8 @@ upgrades:
       - *heat_pump_fed_min_ducted_northern
       - *heat_pump_fed_min_ductless_northern
       #global
-      - &heat_pump_ducted_cooling
-        option: HVAC Cooling Efficiency|Ducted Heat Pump # Applied regardless of which option is applied
-        apply_logic:
-          or:
-            - *logic_fed_min_heat_pump_ASHP_ducted_northern
-            - *logic_fed_min_heat_pump_ASHP_ducted_southern
-
-      - &heat_pump_ductless_cooling
-        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump # Applied regardless of which option is applied
-        apply_logic:
-          or:
-            - *logic_fed_min_heat_pump_MSHP_ductless_northern
-            - *logic_fed_min_heat_pump_MSHP_ductless_southern
+      - *heat_pump_ducted_cooling
+      - *heat_pump_ductless_cooling
 
   - upgrade_name: Federal Minimum Heating and Cooling
     options:
