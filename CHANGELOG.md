@@ -1,3 +1,11 @@
+## ResStock v3.2.0 (pending)
+
+Features
+- Add 2022 Cambium emissions data ([#1038](https://github.com/NREL/resstock/pull/1038))
+- Update characteristics to use EIA 2020 RECS ([#1031](https://github.com/NREL/resstock/pull/1031))
+
+Fixes
+
 ## ResStock v3.1.0
 ###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
 
@@ -11,6 +19,7 @@ Features
 - Add data dictionary files for describing various outputs. Use these files to (1) check against integration test results, and (2) generate documentation tables ([#1058](https://github.com/NREL/resstock/pull/1058))
 - OS-HPXML now supports use of optional heat pump capacity retention temperature and fraction arguments (applicable to both ASHP and MSHP) ([#1072](https://github.com/NREL/resstock/pull/1072))
 - Update to OpenStudio v3.6.1 ([#1076](https://github.com/NREL/resstock/pull/1076))
+- Add Energystar Climate Zone for window upgrade specification ([#1080](https://github.com/NREL/resstock/pull/1080))
 
 Fixes
 - Pulls in upstream OS-HPXML fix related to [avoiding possible OpenStudio temporary directory collision](https://github.com/NREL/OpenStudio-HPXML/pull/1316) causing random errors ([#1054](https://github.com/NREL/resstock/pull/1054))
