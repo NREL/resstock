@@ -1,5 +1,5 @@
 schema_version: '0.3'
-os_version: 3.5.1
+os_version: 3.6.1
 os_sha: 22e1db7be5
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
@@ -78,17 +78,19 @@ workflow_generator:
 upgrades:
   - upgrade_name: EnergyStar ducted ASHP w/ elec backup  #also provides SEER 15 cooling measure profile
     # Measure 1
-    options:
       #ASHP
+    package_apply_logic: &ducted_ASHP_elec_backup
+      - HVAC Has Ducts|Yes
+      - or: &not_ASHP_greater_than_SEER_15_9_HSPF
+        - not: HVAC Cooling Efficiency|Ducted Heat Pump
+        - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+        - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+        - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+
+    options:
+
       - &ducted_ASHP_EnergyStar_elec_backup
         option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF # same as base option
-        apply_logic: &ducted_ASHP_elec_backup
-          - HVAC Has Ducts|Yes
-          - or: &not_ASHP_greater_than_SEER_15_9_HSPF
-            - not: HVAC Cooling Efficiency|Heat Pump
-            - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
         costs: &costs_ashp_ducted_SEER_16_9-2_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -99,27 +101,20 @@ upgrades:
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: &lifetime_ducted_ASHP_elec_backup 15
 
-      - &HP_cooling_efficiency
-        option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic:
-          - or:
-            - *ducted_ASHP_elec_backup
-            - *ductless_MSHP_elec_backup
+      - &HP_cooling_efficiency_ducted
+        option: HVAC Cooling Efficiency|Ducted Heat Pump
 
       - &100_percent_conditioned
         option: HVAC Cooling Partial Space Conditioning|100% Conditioned
-        apply_logic:
-          - or:
-            - *ducted_ASHP_elec_backup
-            - *ductless_MSHP_elec_backup
+
 
   - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup  #also provides SEER 15 cooling measure profile
     # Measure 2
+    package_apply_logic: *ducted_ASHP_elec_backup
     options:
       #ASHP
       - &ducted_ASHP_EnergyStarCC_elec_backup
         option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP # same as base option
-        apply_logic: *ducted_ASHP_elec_backup
         costs: &costs_ashp_ducted_SEER_16_9-5_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -130,41 +125,35 @@ upgrades:
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_ducted_ASHP_elec_backup
 
-      - *HP_cooling_efficiency
+      - *HP_cooling_efficiency_ducted
       - *100_percent_conditioned
 
       - &cooling_setpoint_no_offset
         option: Cooling Setpoint Has Offset|No
-        apply_logic: *ducted_ASHP_elec_backup
 
       - &cooling_setpoint_offset_magnitude_0
         option: Cooling Setpoint Offset Magnitude|0F
-        apply_logic: *ducted_ASHP_elec_backup
       
       - &cooling_setpoint_offset_period_none
         option: Cooling Setpoint Offset Period|None
-        apply_logic: *ducted_ASHP_elec_backup
 
       - &heating_setpoint_no_offset
         option: Heating Setpoint Has Offset|No
-        apply_logic: *ducted_ASHP_elec_backup
 
       - &heating_setpoint_offset_magnitude_0
         option: Heating Setpoint Offset Magnitude|0F
-        apply_logic: *ducted_ASHP_elec_backup
       
       - &heating_setpoint_offset_period_none
         option: Heating Setpoint Offset Period|None
-        apply_logic: *ducted_ASHP_elec_backup
 
 
   - upgrade_name: Higher efficiency ducted ASHP w/ elec backup  #also provides SEER 15 cooling measure profile
     # Measure 3
+    package_apply_logic: *ducted_ASHP_elec_backup
     options:
       #ASHP
       - &ducted_ASHP_HigherEfficiency_elec_backup
         option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP # same as base option
-        apply_logic: *ducted_ASHP_elec_backup
         costs: &costs_ashp_ducted_SEER_20_11_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -175,9 +164,8 @@ upgrades:
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_ducted_ASHP_elec_backup
 
-      - *HP_cooling_efficiency
+      - *HP_cooling_efficiency_ducted
       - *100_percent_conditioned
-
       - *cooling_setpoint_no_offset
       - *cooling_setpoint_offset_magnitude_0
       - *cooling_setpoint_offset_period_none
@@ -187,16 +175,16 @@ upgrades:
 
   - upgrade_name: EnergyStar ductless MSHP w/ elec backup  #also provides SEER 15 cooling measure profile
     # Measure 4
+    package_apply_logic: &ductless_MSHP_elec_backup
+      - and:
+        - HVAC Has Ducts|No
+        - or: &not_MSHP_greater_than_SEER_16_9-2_HSPF
+          - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+          - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
     options:
       # MSHP
       - &ductless_MSHP_EnergyStar_elec_backup
         option: HVAC Heating Efficiency|MSHP, SEER 16, 9.2 HSPF # Changed to Max Load
-        apply_logic: &ductless_MSHP_elec_backup
-          - and:
-            - HVAC Has Ducts|No
-            - or: &not_MSHP_greater_than_SEER_16_9-2_HSPF
-              - not: HVAC Cooling Efficiency|Heat Pump
-              - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
         costs: &costs_mshp_ductless_SEER_16_9-2_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -211,16 +199,18 @@ upgrades:
         lifetime: &lifetime_ductless_MSHP_elec_backup 
           15
 
-      - *HP_cooling_efficiency
+      - &HP_cooling_efficiency_nonducted
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+
       - *100_percent_conditioned
 
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup  #also provides SEER 15 cooling measure profile
     # Measure 5
+    package_apply_logic: *ductless_MSHP_elec_backup
     options:
       # MSHP
       - &ductless_MSHP_EnergyStarCC_elec_backup
         option: HVAC Heating Efficiency|MSHP, SEER 16, 9.5 HSPF, CCHP # Changed to Max Load
-        apply_logic: *ductless_MSHP_elec_backup
         costs: &costs_mshp_ductless_SEER_15_9-5_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -234,9 +224,8 @@ upgrades:
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_ductless_MSHP_elec_backup 
 
-      - *HP_cooling_efficiency
+      - *HP_cooling_efficiency_nonducted
       - *100_percent_conditioned
-
       - *cooling_setpoint_no_offset
       - *cooling_setpoint_offset_magnitude_0
       - *cooling_setpoint_offset_period_none
@@ -246,11 +235,11 @@ upgrades:
 
   - upgrade_name: Higher efficiency ductless MSHP w/ elec backup  #also provides SEER 15 cooling measure profile
     # Measure 6
+    package_apply_logic: *ductless_MSHP_elec_backup
     options:
       # MSHP
       - &ductless_MSHP_HigherEfficiency_elec_backup
         option: HVAC Heating Efficiency|MSHP, SEER 20, 11 HSPF, CCHP # Changed to Max Load
-        apply_logic: *ductless_MSHP_elec_backup
         costs: &costs_mshp_ductless_SEER_20_11_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -264,9 +253,8 @@ upgrades:
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_ductless_MSHP_elec_backup 
 
-      - *HP_cooling_efficiency
+      - *HP_cooling_efficiency_nonducted
       - *100_percent_conditioned
-
       - *cooling_setpoint_no_offset
       - *cooling_setpoint_offset_magnitude_0
       - *cooling_setpoint_offset_period_none

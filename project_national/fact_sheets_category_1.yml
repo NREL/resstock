@@ -1,5 +1,5 @@
 schema_version: '0.3'
-os_version: 3.5.1
+os_version: 3.6.1
 os_sha: 22e1db7be5
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
@@ -58,7 +58,7 @@ workflow_generator:
       - scenario_name: Bills
 
     simulation_output_report:
-      timeseries_frequency: hourly
+      timeseries_frequency: monthly
       include_timeseries_total_consumptions: true
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
@@ -365,6 +365,11 @@ upgrades:
           - or:
             - Bedrooms|1
             - Bedrooms|2
+          - not:
+              or:
+                - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+                - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+                - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
 
       - &HPWH_fed_min_50_gal
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.3 UEF
@@ -373,31 +378,31 @@ upgrades:
           - or:
             - Bedrooms|3
             - Bedrooms|4
+          - not:
+              or:
+                - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+                - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+                - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
 
       - &HPWH_fed_min_66_gal
         option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.3 UEF
         apply_logic:
           - Water Heater Fuel|Electricity
           - Bedrooms|5
+          - not:
+              or:
+                - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+                - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+                - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
 
     #### Gas storage
-      - &gas_wh_fed_min_30_gal
+      - &gas_wh_fed_min_30_and_40_gal
         option: Water Heater Efficiency|Natural Gas Storage, UEF 0.64
         apply_logic:
           - Water Heater Fuel|Natural Gas
           - or:
             - Bedrooms|1
             - Bedrooms|2
-          - or:
-            - Water Heater Efficiency|Natural Gas Standard
-            - Water Heater Efficiency|Natural Gas Premium
-            - Water Heater Efficiency|Natural Gas Premium, Condensing
-
-      - &gas_wh_fed_min_40_gal
-        option: Water Heater Efficiency|Natural Gas Storage, UEF 0.64
-        apply_logic:
-          - Water Heater Fuel|Natural Gas
-          - or:
             - Bedrooms|3
             - Bedrooms|4
           - or:
@@ -455,7 +460,6 @@ upgrades:
       - *HPWH_fed_min_30_gal
       - *HPWH_fed_min_50_gal
       - *HPWH_fed_min_66_gal
-      - *gas_wh_fed_min_30_gal
-      - *gas_wh_fed_min_40_gal
+      - *gas_wh_fed_min_30_and_40_gal
       - *gas_wh_fed_min_50_gal
       - *gas_tankless_fed_min
