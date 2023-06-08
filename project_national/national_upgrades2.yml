@@ -63,31 +63,40 @@ upgrades:
 
       # Ductless - Ductless
       - option: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
-        apply_logic:
+        apply_logic: &apply_mshp_has_ducts_no
           - HVAC Has Ducts|No
           - or:
             - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
-            - not: HVAC Cooling Efficiency|Heat Pump
+            - not:
+              - or:
+                - HVAC Cooling Efficiency|Ducted Heat Pump
+                - HVAC Cooling Efficiency|Non-Ducted Heat Pump
         costs: &costs
           - value: 50.0
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: &lifetime
           30
+      - option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+        apply_logic: *apply_mshp_has_ducts_no
 
       # Ducted - Ducted
       - option: HVAC Heating Efficiency|ASHP, SEER 17, 8.7 HSPF
-        apply_logic:
+        apply_logic: &apply_ashp_has_ducts_yes
           - HVAC Has Ducts|Yes
           - or:
             - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
             - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
             - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
-            - not: HVAC Cooling Efficiency|Heat Pump
+            - not:
+              - or:
+                - HVAC Cooling Efficiency|Ducted Heat Pump
+                - HVAC Cooling Efficiency|Non-Ducted Heat Pump
         costs: *costs
         lifetime: *lifetime
+      - option: HVAC Cooling Efficiency|Ducted Heat Pump
+        apply_logic: *apply_ashp_has_ducts_yes
 
       # global
-      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
       - option: Heat Pump Backup|Use Existing System
 
   - upgrade_name: Heat pumps 2
@@ -95,29 +104,38 @@ upgrades:
 
       # Ductless - Ducted
       - option: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
-        apply_logic:
+        apply_logic: &apply_mshp_has_ducts_yes
           - HVAC Has Ducts|Yes
           - or:
             - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
-            - not: HVAC Cooling Efficiency|Heat Pump
+            - not:
+              - or:
+                - HVAC Cooling Efficiency|Ducted Heat Pump
+                - HVAC Cooling Efficiency|Non-Ducted Heat Pump
         costs: *costs
         lifetime: *lifetime
+      - option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+        apply_logic: *apply_mshp_has_ducts_yes
 
       # Ducted - Ductless
       - option: HVAC Heating Efficiency|ASHP, SEER 17, 8.7 HSPF
-        apply_logic:
+        apply_logic: &apply_ashp_has_ducts_no
           - HVAC Has Ducts|No
           - or:
             - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
             - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
             - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
-            - not: HVAC Cooling Efficiency|Heat Pump
+            - not:
+              - or:
+                - HVAC Cooling Efficiency|Ducted Heat Pump
+                - HVAC Cooling Efficiency|Non-Ducted Heat Pump
         costs: *costs
         lifetime: *lifetime
+      - option: HVAC Cooling Efficiency|Ducted Heat Pump
 
       # global
-      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
       - option: Heat Pump Backup|Use Existing System
+        apply_logic: *apply_ashp_has_ducts_no
 
 eagle:
   n_jobs: 3
