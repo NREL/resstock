@@ -181,8 +181,10 @@ upgrades:
 
   - upgrade_name: Refrigerator
     options:
-      - &refrigerator_ef_21_pt_9_100_percent_usage
-        option: Refrigerator|EF 21.9, 100% Usage
+      - &refrigerator_ef_21_pt_9
+        option: Refrigerator|EF 21.9
+      - &refrigerator_100_percent_usage
+        option: Refrigerator Usage Level|100% Usage
         costs:
           - value: 2500.0
             multiplier: Fixed (1)
@@ -211,8 +213,8 @@ upgrades:
           - value: 50.0
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
-      - &hvac_cooling_efficiency_heat_pump
-        option: HVAC Cooling Efficiency|Heat Pump
+      - &hvac_cooling_efficiency_ducted_heat_pump
+        option: HVAC Cooling Efficiency|Ducted Heat Pump
 
   - upgrade_name: MSHP
     options:
@@ -224,7 +226,8 @@ upgrades:
           - value: 50.0
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
-      - *hvac_cooling_efficiency_heat_pump
+      - &hvac_cooling_efficiency_non_ducted_heat_pump
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
 
   - upgrade_name: HPWH
     options:
@@ -271,13 +274,15 @@ upgrades:
       - *insulation_rim_joist_r_13_interior
       - *insulation_ceiling_r_60
       - *infiltration_reduction_25_percent
-      - *refrigerator_ef_21_pt_9_100_percent_usage
+      - *refrigerator_ef_21_pt_9
+      - *refrigerator_100_percent_usage
       - *lighting_100_percent_led
       - *lighting_interior_use_100_percent_usage
       - *lighting_other_use_100_percent_usage
       - *holiday_lighting_no_exterior_use
       - *hvac_heating_efficiency_ashp_seer_22_10_hspf
-      - *hvac_cooling_efficiency_heat_pump
+      - *hvac_cooling_efficiency_ducted_heat_pump
+      - *hvac_cooling_efficiency_non_ducted_heat_pump
       - *water_heater_efficiency_electric_heat_pump_66_gal_3_pt_35_uef
       - *solar_hot_water_40_sqft_south_roof_pitch
       - *has_pv_yes
