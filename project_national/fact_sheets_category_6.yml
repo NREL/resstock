@@ -78,24 +78,23 @@ workflow_generator:
 # Category 6:  Heat Pumps with Existing Backup
 # To do: costing interpolation from Less for 9.2, 9.5, and 11 HSPF
 upgrades:
-  - upgrade_name: EnergyStar ducted ASHP w/ existing backup  
+  - upgrade_name: EnergyStar ducted ASHP w/ existing natural gas backup
     # Measure 1
+
+    package_apply_logic: &dualfuel_ASHP_apply_logic_NG
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Natural Gas
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
+
     options:
       #ASHP
       - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts
-        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF, Separate Backup 
-        apply_logic: &dualfuel_ASHP_no_ducted_furnace_apply_logic
-          - HVAC Has Ducts|Yes
-          - or:
-            - Heating Fuel|Natural Gas
-            - Heating Fuel|Propane
-            - Heating Fuel|Fuel Oil
-          - not:
-              or:
-                - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-                - HVAC Heating Type And Fuel|Propane Fuel Furnace
-                - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-                - HVAC Heating Efficiency|Shared Heating
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF, Separate Backup
+        apply_logic: &dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
+          - not: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
         costs: &costs_ashp_ducted_SEER_16_9-2_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -112,19 +111,7 @@ upgrades:
         option: HVAC Secondary Heating Type And Fuel|Natural Gas Boiler
         apply_logic:
           - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
-      - &propane_boiler_secondary_heating_type_fuel
-        option: HVAC Secondary Heating Type And Fuel|Propane Boiler
-        apply_logic:
-          - HVAC Heating Type And Fuel|Propane Fuel Boiler
-      - &fuel_oil_boiler_secondary_heating_type_fuel
-        option: HVAC Secondary Heating Type And Fuel|Fuel Oil Boiler
-        apply_logic:
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
   # Set secondary fuel boiler efficiency levels
-      - &secondary_boiler_72
-        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
       - &secondary_boiler_76
         option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
         apply_logic:
@@ -133,26 +120,11 @@ upgrades:
         option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
         apply_logic:
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-      - &secondary_boiler_82
-        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-      - &secondary_boiler_85
-        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
       - &secondary_boiler_90
         option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
         apply_logic:
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-      - &secondary_boiler_95
-        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-      - &secondary_boiler_96
-        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
+
 
   # Wall/Floor Furnace as secondary systems
   # Set secondary Wall/Floor Furnace fuel type
@@ -160,14 +132,7 @@ upgrades:
         option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
         apply_logic:
           - HVAC Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
-      - &propane_wallfloor_furnace_secondary_heating_type_fuel
-        option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
-        apply_logic:
-          - HVAC Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
-      - &fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
-        option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
-        apply_logic:
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+
   # Set secondary fuel Wall/Floor Furnace efficiency levels
       - &secondary_wallfloor_furnace_60
         option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
@@ -183,7 +148,6 @@ upgrades:
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_60_ng
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 60% AFUE NG, 5F-40F switchover band
         apply_logic: &dual-fuel_60pctAFUE_NG_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
@@ -191,7 +155,6 @@ upgrades:
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_76_ng
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 76% AFUE NG, 5F-40F switchover band
         apply_logic: &dual-fuel_76pctAFUE_NG_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
@@ -199,7 +162,6 @@ upgrades:
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_80_ng
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 80% AFUE NG, 5F-40F switchover band
         apply_logic: &dual-fuel_80pctAFUE_NG_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
@@ -207,16 +169,84 @@ upgrades:
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_92-5_ng
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 92.5% AFUE NG, 5F-40F switchover band
         apply_logic: &dual-fuel_92-5pctAFUE_NG_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
 
+
+      - &HP_cooling_efficiency_ducted_ng
+        option: HVAC Cooling Efficiency|Ducted Heat Pump
+        apply_logic:
+          - or:
+            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
+            - *dual-fuel_60pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_76pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_80pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_92-5pctAFUE_NG_furnace_apply_logic
+
+
+
+
+      - &100_percent_conditioned_ducted_ng
+        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
+        apply_logic:
+          - or:
+            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
+            - *dual-fuel_60pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_76pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_80pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_92-5pctAFUE_NG_furnace_apply_logic
+
+  - upgrade_name: EnergyStar ducted ASHP w/ existing propane backup
+    # Measure 1
+
+    package_apply_logic: &dualfuel_ASHP_apply_logic_propane
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Propane
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
+
+    options:
+      #ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF, Separate Backup 
+        apply_logic: &dualfuel_ASHP_no_ducted_furnace_apply_logic_propane
+          - not: HVAC Heating Type And Fuel|Propane Fuel Furnace
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+
+  # Boilers as secondary systems
+  # Set secondary boiler fuel type
+      - &propane_boiler_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Type And Fuel|Propane Boiler
+        apply_logic:
+          - HVAC Heating Type And Fuel|Propane Fuel Boiler
+  # Set secondary fuel boiler efficiency levels
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+
+
+
+  # Wall/Floor Furnace as secondary systems
+  # Set secondary Wall/Floor Furnace fuel type
+      - &propane_wallfloor_furnace_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+        apply_logic:
+          - HVAC Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+  # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+
+#### ducted furnace ####
+  # - upgrade_name: Dual-Fuel Natural Gas Furnace 60% AFUE
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_60_propane
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 60% AFUE Propane, 5F-40F switchover band
         apply_logic: &dual-fuel_60pctAFUE_propane_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
@@ -224,7 +254,6 @@ upgrades:
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_76_propane
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 76% AFUE Propane, 5F-40F switchover band
         apply_logic: &dual-fuel_76pctAFUE_propane_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
@@ -232,7 +261,6 @@ upgrades:
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_80_propane
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 80% AFUE Propane, 5F-40F switchover band
         apply_logic: &dual-fuel_80pctAFUE_propane_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
@@ -240,16 +268,86 @@ upgrades:
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_92-5_propane
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 92.5% AFUE Propane, 5F-40F switchover band
         apply_logic: &dual-fuel_92-5pctAFUE_propane_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
 
+
+
+      - &HP_cooling_efficiency_ducted_propane
+        option: HVAC Cooling Efficiency|Ducted Heat Pump
+        apply_logic:
+          - or:
+            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_propane
+            - *dual-fuel_60pctAFUE_propane_furnace_apply_logic
+            - *dual-fuel_76pctAFUE_propane_furnace_apply_logic
+            - *dual-fuel_80pctAFUE_propane_furnace_apply_logic
+            - *dual-fuel_92-5pctAFUE_propane_furnace_apply_logic
+
+
+
+
+
+      - &100_percent_conditioned_ducted_propane
+        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
+        apply_logic:
+          - or:
+            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_propane
+            - *dual-fuel_60pctAFUE_propane_furnace_apply_logic
+            - *dual-fuel_76pctAFUE_propane_furnace_apply_logic
+            - *dual-fuel_80pctAFUE_propane_furnace_apply_logic
+            - *dual-fuel_92-5pctAFUE_propane_furnace_apply_logic
+
+
+  - upgrade_name: EnergyStar ducted ASHP w/ existing fuel oil backup
+    # Measure 1
+
+    package_apply_logic: &dualfuel_ASHP_apply_logic_FO
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Fuel Oil
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
+
+    options:
+      #ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF, Separate Backup 
+        apply_logic: &dualfuel_ASHP_no_ducted_furnace_apply_logic_FO
+          - not: HVAC Heating Type And Fuel|Propane Fuel Furnace
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+
+  # Boilers as secondary systems
+  # Set secondary boiler fuel type
+      - &fuel_oil_boiler_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Type And Fuel|Fuel Oil Boiler
+        apply_logic:
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+  # Set secondary fuel boiler efficiency levels
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+
+
+  # Wall/Floor Furnace as secondary systems
+  # Set secondary Wall/Floor Furnace fuel type
+      - &fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+        apply_logic:
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+
+  # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+#### ducted furnace ####
+  # - upgrade_name: Dual-Fuel Natural Gas Furnace 60% AFUE
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_60_FO
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 60% AFUE Fuel Oil, 5F-40F switchover band
         apply_logic: &dual-fuel_60pctAFUE_FO_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
@@ -257,7 +355,6 @@ upgrades:
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_76_FO
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 76% AFUE Fuel Oil, 5F-40F switchover band
         apply_logic: &dual-fuel_76pctAFUE_FO_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
@@ -265,7 +362,6 @@ upgrades:
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_80_FO
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 80% AFUE Fuel Oil, 5F-40F switchover band
         apply_logic: &dual-fuel_80pctAFUE_FO_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
@@ -273,26 +369,17 @@ upgrades:
       - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_92-5_FO
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 92.5% AFUE Fuel Oil, 5F-40F switchover band
         apply_logic: &dual-fuel_92-5pctAFUE_FO_furnace_apply_logic
-          - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
 
 
-      - &HP_cooling_efficiency_ducted
+      - &HP_cooling_efficiency_ducted_FO
         option: HVAC Cooling Efficiency|Ducted Heat Pump
         apply_logic:
           - or:
-            - *dualfuel_ASHP_no_ducted_furnace_apply_logic
-            - *dual-fuel_60pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_60pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_propane_furnace_apply_logic
+            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_FO
             - *dual-fuel_60pctAFUE_FO_furnace_apply_logic
             - *dual-fuel_76pctAFUE_FO_furnace_apply_logic
             - *dual-fuel_80pctAFUE_FO_furnace_apply_logic
@@ -301,27 +388,15 @@ upgrades:
 
 
 
-      - &100_percent_conditioned_ducted
+      - &100_percent_conditioned_ducted_FO
         option: HVAC Cooling Partial Space Conditioning|100% Conditioned
         apply_logic:
           - or:
-            - *dualfuel_ASHP_no_ducted_furnace_apply_logic
-            - *dual-fuel_60pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_60pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_propane_furnace_apply_logic
+            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_FO
             - *dual-fuel_60pctAFUE_FO_furnace_apply_logic
             - *dual-fuel_76pctAFUE_FO_furnace_apply_logic
             - *dual-fuel_80pctAFUE_FO_furnace_apply_logic
             - *dual-fuel_92-5pctAFUE_FO_furnace_apply_logic
-
-
-
-
 
 
   - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup 
@@ -348,14 +423,9 @@ upgrades:
       - *ng_boiler_secondary_heating_type_fuel
       - *propane_boiler_secondary_heating_type_fuel
       - *fuel_oil_boiler_secondary_heating_type_fuel
-      - *secondary_boiler_72
       - *secondary_boiler_76
       - *secondary_boiler_80
-      - *secondary_boiler_82
-      - *secondary_boiler_85
       - *secondary_boiler_90
-      - *secondary_boiler_95
-      - *secondary_boiler_96
       - *ng_wallfloor_furnace_secondary_heating_type_fuel
       - *propane_wallfloor_furnace_secondary_heating_type_fuel
       - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
@@ -490,14 +560,9 @@ upgrades:
       - *ng_boiler_secondary_heating_type_fuel
       - *propane_boiler_secondary_heating_type_fuel
       - *fuel_oil_boiler_secondary_heating_type_fuel
-      - *secondary_boiler_72
       - *secondary_boiler_76
       - *secondary_boiler_80
-      - *secondary_boiler_82
-      - *secondary_boiler_85
       - *secondary_boiler_90
-      - *secondary_boiler_95
-      - *secondary_boiler_96
       - *ng_wallfloor_furnace_secondary_heating_type_fuel
       - *propane_wallfloor_furnace_secondary_heating_type_fuel
       - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
@@ -618,14 +683,9 @@ upgrades:
       - *ng_boiler_secondary_heating_type_fuel
       - *propane_boiler_secondary_heating_type_fuel
       - *fuel_oil_boiler_secondary_heating_type_fuel
-      - *secondary_boiler_72
       - *secondary_boiler_76
       - *secondary_boiler_80
-      - *secondary_boiler_82
-      - *secondary_boiler_85
       - *secondary_boiler_90
-      - *secondary_boiler_95
-      - *secondary_boiler_96
       - *ng_wallfloor_furnace_secondary_heating_type_fuel
       - *propane_wallfloor_furnace_secondary_heating_type_fuel
       - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
@@ -683,14 +743,9 @@ upgrades:
       - *ng_boiler_secondary_heating_type_fuel
       - *propane_boiler_secondary_heating_type_fuel
       - *fuel_oil_boiler_secondary_heating_type_fuel
-      - *secondary_boiler_72
       - *secondary_boiler_76
       - *secondary_boiler_80
-      - *secondary_boiler_82
-      - *secondary_boiler_85
       - *secondary_boiler_90
-      - *secondary_boiler_95
-      - *secondary_boiler_96
       - *ng_wallfloor_furnace_secondary_heating_type_fuel
       - *propane_wallfloor_furnace_secondary_heating_type_fuel
       - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
@@ -730,14 +785,9 @@ upgrades:
       - *ng_boiler_secondary_heating_type_fuel
       - *propane_boiler_secondary_heating_type_fuel
       - *fuel_oil_boiler_secondary_heating_type_fuel
-      - *secondary_boiler_72
       - *secondary_boiler_76
       - *secondary_boiler_80
-      - *secondary_boiler_82
-      - *secondary_boiler_85
       - *secondary_boiler_90
-      - *secondary_boiler_95
-      - *secondary_boiler_96
       - *ng_wallfloor_furnace_secondary_heating_type_fuel
       - *propane_wallfloor_furnace_secondary_heating_type_fuel
       - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
