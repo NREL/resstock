@@ -77,7 +77,7 @@ workflow_generator:
 # Category 5:  Heat Pumps with Electric Backup
 # To do: costing interpolation from Less for 9.2, 9.5, and 11 HSPF
 upgrades:
-  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing elec  #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing elec  
     # Measure 1
       #ASHP
     package_apply_logic: &ducted_ASHP_elec_backup_existing_elec
@@ -92,7 +92,7 @@ upgrades:
     options:
 
       - &ducted_ASHP_EnergyStar_elec_backup
-        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF # same as base option
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF 
         costs: &costs_ashp_ducted_SEER_16_9-2_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -109,7 +109,7 @@ upgrades:
       - &100_percent_conditioned
         option: HVAC Cooling Partial Space Conditioning|100% Conditioned
 
-  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing natural gas  #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing natural gas  
     # Measure 1
       #ASHP
     package_apply_logic: &ducted_ASHP_elec_backup_existing_NG
@@ -123,7 +123,7 @@ upgrades:
       - *100_percent_conditioned
 
 
-  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing propane  #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing propane  
     # Measure 1
       #ASHP
     package_apply_logic: &ducted_ASHP_elec_backup_existing_propane
@@ -137,7 +137,7 @@ upgrades:
       - *HP_cooling_efficiency_ducted
       - *100_percent_conditioned
 
-  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing fuel oil  #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing fuel oil  
     # Measure 1
       #ASHP
     package_apply_logic: &ducted_ASHP_elec_backup_existing_FO
@@ -153,13 +153,13 @@ upgrades:
 
 
 
-  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing elec #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing elec 
     # Measure 2
     package_apply_logic: *ducted_ASHP_elec_backup_existing_elec
     options:
       #ASHP
       - &ducted_ASHP_EnergyStarCC_elec_backup
-        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP # same as base option
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP 
         costs: &costs_ashp_ducted_SEER_16_9-5_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -191,7 +191,7 @@ upgrades:
       - &heating_setpoint_offset_period_none
         option: Heating Setpoint Offset Period|None
 
-  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing natural gas  #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing natural gas  
     # Measure 2
     package_apply_logic: *ducted_ASHP_elec_backup_existing_NG
     options:
@@ -208,7 +208,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0      
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing propane  #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing propane  
     # Measure 2
     package_apply_logic: *ducted_ASHP_elec_backup_existing_propane
     options:
@@ -225,7 +225,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0      
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing fuel oil  #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing fuel oil  
     # Measure 2
     package_apply_logic: *ducted_ASHP_elec_backup_existing_FO
     options:
@@ -243,13 +243,13 @@ upgrades:
 
 
 
-  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing elec #also provides SEER 15 cooling measure profile
+  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing elec 
     # Measure 3
     package_apply_logic: *ducted_ASHP_elec_backup_existing_elec
     options:
       #ASHP
       - &ducted_ASHP_HigherEfficiency_elec_backup
-        option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP # same as base option
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP 
         costs: &costs_ashp_ducted_SEER_20_11_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -269,7 +269,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing natural gas #also provides SEER 15 cooling measure profile
+  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing natural gas 
     # Measure 3
     package_apply_logic: *ducted_ASHP_elec_backup_existing_NG
     options:
@@ -286,7 +286,7 @@ upgrades:
       - *heating_setpoint_offset_period_none
 
 
-  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing propane #also provides SEER 15 cooling measure profile
+  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing propane 
     # Measure 3
     package_apply_logic: *ducted_ASHP_elec_backup_existing_propane
     options:
@@ -302,7 +302,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing fuel oil #also provides SEER 15 cooling measure profile
+  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing fuel oil 
     # Measure 3
     package_apply_logic: *ducted_ASHP_elec_backup_existing_FO
     options:
@@ -319,7 +319,7 @@ upgrades:
       - *heating_setpoint_offset_period_none
 
 
-  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing elec #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing elec 
     # Measure 4
     package_apply_logic: &ductless_MSHP_elec_backup_existing_elec
       - HVAC Has Ducts|No
@@ -330,7 +330,7 @@ upgrades:
     options:
       # MSHP
       - &ductless_MSHP_EnergyStar_elec_backup
-        option: HVAC Heating Efficiency|MSHP, SEER 16, 9.2 HSPF # Changed to Max Load
+        option: HVAC Heating Efficiency|MSHP, SEER 16, 9.2 HSPF 
         costs: &costs_mshp_ductless_SEER_16_9-2_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -356,7 +356,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing natural gas #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing natural gas 
     # Measure 4
     package_apply_logic: &ductless_MSHP_elec_backup_existing_NG
       - HVAC Has Ducts|No
@@ -377,7 +377,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing propane #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing propane 
     # Measure 4
     package_apply_logic: &ductless_MSHP_elec_backup_existing_propane
       - HVAC Has Ducts|No
@@ -397,7 +397,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing fuel oil #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing fuel oil 
     # Measure 4
     package_apply_logic: &ductless_MSHP_elec_backup_existing_FO
       - HVAC Has Ducts|No
@@ -417,13 +417,13 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing elec #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing elec 
     # Measure 5
     package_apply_logic: *ductless_MSHP_elec_backup_existing_elec
     options:
       # MSHP
       - &ductless_MSHP_EnergyStarCC_elec_backup
-        option: HVAC Heating Efficiency|MSHP, SEER 16, 9.5 HSPF, CCHP # Changed to Max Load
+        option: HVAC Heating Efficiency|MSHP, SEER 16, 9.5 HSPF, CCHP 
         costs: &costs_mshp_ductless_SEER_16_9-5_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -446,7 +446,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing natural gas #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing natural gas
     # Measure 5
     package_apply_logic: *ductless_MSHP_elec_backup_existing_NG
     options:
@@ -462,7 +462,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing propane #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing propane 
     # Measure 5
     package_apply_logic: *ductless_MSHP_elec_backup_existing_propane
     options:
@@ -478,7 +478,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing fuel oil #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing fuel oil 
     # Measure 5
     package_apply_logic: *ductless_MSHP_elec_backup_existing_FO
     options:
@@ -494,13 +494,13 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing elec #also provides SEER 15 cooling measure profile
+  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing elec 
     # Measure 6
     package_apply_logic: *ductless_MSHP_elec_backup_existing_elec
     options:
       # MSHP
       - &ductless_MSHP_HigherEfficiency_elec_backup
-        option: HVAC Heating Efficiency|MSHP, SEER 20, 11 HSPF, CCHP # Changed to Max Load
+        option: HVAC Heating Efficiency|MSHP, SEER 20, 11 HSPF, CCHP 
         costs: &costs_mshp_ductless_SEER_20_11_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -523,7 +523,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing natural gas #also provides SEER 15 cooling measure profile
+  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing natural gas
     # Measure 6
     package_apply_logic: *ductless_MSHP_elec_backup_existing_NG
     options:
@@ -539,7 +539,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
       
-  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing propane #also provides SEER 15 cooling measure profile
+  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing propane 
     # Measure 6
     package_apply_logic: *ductless_MSHP_elec_backup_existing_propane
     options:
@@ -555,7 +555,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing fuel oil #also provides SEER 15 cooling measure profile
+  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing fuel oil 
     # Measure 6
     package_apply_logic: *ductless_MSHP_elec_backup_existing_FO
     options:
