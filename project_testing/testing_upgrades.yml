@@ -56,6 +56,12 @@ workflow_generator:
         pv_monthly_grid_connection_fee_units: $/kW
         pv_monthly_grid_connection_fee: 2.5
 
+      - scenario_name: Bills2
+        simple_filepath: data/simple_rates/State.tsv
+
+      - scenario_name: Bills3
+        simple_filepath: data/simple_rates/County.tsv
+
     simulation_output_report:
       timeseries_frequency: hourly
       include_timeseries_total_consumptions: true
@@ -222,8 +228,7 @@ upgrades:
           - value: 50.0
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
-      - &hvac_cooling_efficiency_non_ducted_heat_pump
-        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+      - *hvac_cooling_efficiency_ducted_heat_pump
       - *heat_pump_backup_use_existing_system
 
   - upgrade_name: Ductless MSHP
@@ -234,7 +239,8 @@ upgrades:
           - value: 50.0
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
-      - *hvac_cooling_efficiency_non_ducted_heat_pump
+      - &hvac_cooling_efficiency_non_ducted_heat_pump
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
       - *heat_pump_backup_use_existing_system
 
   - upgrade_name: HPWH
