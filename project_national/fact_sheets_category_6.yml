@@ -175,28 +175,10 @@ upgrades:
         lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
 
 
-      - &HP_cooling_efficiency_ducted_ng
+      - &HP_cooling_efficiency_ducted
         option: HVAC Cooling Efficiency|Ducted Heat Pump
-        apply_logic:
-          - or:
-            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
-            - *dual-fuel_60pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_NG_furnace_apply_logic
-
-
-
-
-      - &100_percent_conditioned_ducted_ng
+      - &100_percent_conditioned
         option: HVAC Cooling Partial Space Conditioning|100% Conditioned
-        apply_logic:
-          - or:
-            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
-            - *dual-fuel_60pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_NG_furnace_apply_logic
 
   - upgrade_name: EnergyStar ducted ASHP w/ existing propane backup
     # Measure 1
@@ -273,32 +255,8 @@ upgrades:
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
 
-
-
-      - &HP_cooling_efficiency_ducted_propane
-        option: HVAC Cooling Efficiency|Ducted Heat Pump
-        apply_logic:
-          - or:
-            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_propane
-            - *dual-fuel_60pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_propane_furnace_apply_logic
-
-
-
-
-
-      - &100_percent_conditioned_ducted_propane
-        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
-        apply_logic:
-          - or:
-            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_propane
-            - *dual-fuel_60pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_propane_furnace_apply_logic
-
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
 
   - upgrade_name: EnergyStar ducted ASHP w/ existing fuel oil backup
     # Measure 1
@@ -374,33 +332,12 @@ upgrades:
         costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
 
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
 
-      - &HP_cooling_efficiency_ducted_FO
-        option: HVAC Cooling Efficiency|Ducted Heat Pump
-        apply_logic:
-          - or:
-            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_FO
-            - *dual-fuel_60pctAFUE_FO_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_FO_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_FO_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_FO_furnace_apply_logic
-
-
-
-
-      - &100_percent_conditioned_ducted_FO
-        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
-        apply_logic:
-          - or:
-            - *dualfuel_ASHP_no_ducted_furnace_apply_logic_FO
-            - *dual-fuel_60pctAFUE_FO_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_FO_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_FO_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_FO_furnace_apply_logic
-
-
-  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup 
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing natural gas backup 
     # Measure 2
+    package_apply_logic: *dualfuel_ASHP_apply_logic_NG
     options:
       #ASHP
       - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts
@@ -416,59 +353,33 @@ upgrades:
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: &lifetime_ashp_ducted_SEER_16_9-5_HSPF 15
 
-
       - *HP_cooling_efficiency_ducted
-      - *100_percent_conditioned_ducted
-
+      - *100_percent_conditioned
       - *ng_boiler_secondary_heating_type_fuel
-      - *propane_boiler_secondary_heating_type_fuel
-      - *fuel_oil_boiler_secondary_heating_type_fuel
       - *secondary_boiler_76
       - *secondary_boiler_80
       - *secondary_boiler_90
       - *ng_wallfloor_furnace_secondary_heating_type_fuel
-      - *propane_wallfloor_furnace_secondary_heating_type_fuel
-      - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
 
       - &cooling_setpoint_no_offset
         option: Cooling Setpoint Has Offset|No
-        apply_logic: &all_dualfuel_ASHP_apply_logic
-          - or:
-            - *dualfuel_ASHP_no_ducted_furnace_apply_logic
-            - *dual-fuel_60pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_NG_furnace_apply_logic
-            - *dual-fuel_60pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_propane_furnace_apply_logic
-            - *dual-fuel_60pctAFUE_FO_furnace_apply_logic
-            - *dual-fuel_76pctAFUE_FO_furnace_apply_logic
-            - *dual-fuel_80pctAFUE_FO_furnace_apply_logic
-            - *dual-fuel_92-5pctAFUE_FO_furnace_apply_logic
 
       - &cooling_setpoint_offset_magnitude_0
         option: Cooling Setpoint Offset Magnitude|0F
-        apply_logic: *all_dualfuel_ASHP_apply_logic
       
       - &cooling_setpoint_offset_period_none
         option: Cooling Setpoint Offset Period|None
-        apply_logic: *all_dualfuel_ASHP_apply_logic
 
       - &heating_setpoint_no_offset
         option: Heating Setpoint Has Offset|No
-        apply_logic: *all_dualfuel_ASHP_apply_logic
 
       - &heating_setpoint_offset_magnitude_0
         option: Heating Setpoint Offset Magnitude|0F
-        apply_logic: *all_dualfuel_ASHP_apply_logic
       
       - &heating_setpoint_offset_period_none
         option: Heating Setpoint Offset Period|None
-        apply_logic: *all_dualfuel_ASHP_apply_logic
 
 #### ducted furnace ####
   # - upgrade_name: Dual-Fuel Natural Gas Furnace 60% AFUE
@@ -493,6 +404,39 @@ upgrades:
         costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
 
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing propane backup 
+    # Measure 2
+    package_apply_logic: *dualfuel_ASHP_apply_logic_propane
+    options:
+      #ASHP
+      - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup 
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+
+      - *propane_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *propane_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0    
+      - *heating_setpoint_offset_period_none
+
+
+#### ducted furnace ####
+  # - upgrade_name: Dual-Fuel Natural Gas Furnace 60% AFUE
       - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_60_propane
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 60% AFUE Propane, 5F-40F switchover band
         apply_logic: *dual-fuel_60pctAFUE_propane_furnace_apply_logic       
@@ -514,6 +458,38 @@ upgrades:
         costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
 
+
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing fuel oil backup 
+    # Measure 2
+    package_apply_logic: *dualfuel_ASHP_apply_logic_FO
+
+    options:
+      #ASHP
+      - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup 
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF 
+
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *fuel_oil_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0    
+      - *heating_setpoint_offset_period_none
+
+#### ducted furnace ####
+  # - upgrade_name: Dual-Fuel Natural Gas Furnace 60% AFUE
       - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_60_FO
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 60% AFUE Fuel Oil, 5F-40F switchover band
         apply_logic: *dual-fuel_60pctAFUE_FO_furnace_apply_logic
@@ -536,8 +512,9 @@ upgrades:
         lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
 
 
-  - upgrade_name: Higher efficiency ducted ASHP w/ exist backup  
+  - upgrade_name: Higher efficiency ducted ASHP w/ existing natural gas backup  
     # Measure 3
+    package_apply_logic: *dualfuel_ASHP_apply_logic_NG
     options:
       #ASHP
       - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts
@@ -555,20 +532,14 @@ upgrades:
 
 
       - *HP_cooling_efficiency_ducted
-      - *100_percent_conditioned_ducted
-
+      - *100_percent_conditioned
       - *ng_boiler_secondary_heating_type_fuel
-      - *propane_boiler_secondary_heating_type_fuel
-      - *fuel_oil_boiler_secondary_heating_type_fuel
       - *secondary_boiler_76
       - *secondary_boiler_80
       - *secondary_boiler_90
       - *ng_wallfloor_furnace_secondary_heating_type_fuel
-      - *propane_wallfloor_furnace_secondary_heating_type_fuel
-      - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
-
       - *cooling_setpoint_no_offset
       - *cooling_setpoint_offset_magnitude_0     
       - *cooling_setpoint_offset_period_none
@@ -602,6 +573,39 @@ upgrades:
         costs: *costs_ashp_ducted_SEER_20_11_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
 
+  - upgrade_name: Higher efficiency ducted ASHP w/ existing propane backup  
+    # Measure 3
+    package_apply_logic: *dualfuel_ASHP_apply_logic_propane
+    options:
+      #ASHP
+      - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Separate Backup 
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *propane_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *propane_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+
+ 
+
+#### ducted furnace ####
+  # - upgrade_name: Dual-Fuel Natural Gas Furnace 60% AFUE
       - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_60_propane
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 60% AFUE Propane, 5F-40F switchover band
         apply_logic: *dual-fuel_60pctAFUE_propane_furnace_apply_logic       
@@ -623,6 +627,39 @@ upgrades:
         costs: *costs_ashp_ducted_SEER_20_11_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
 
+  - upgrade_name: Higher efficiency ducted ASHP w/ existing fuel oil backup  
+    # Measure 3
+    package_apply_logic: *dualfuel_ASHP_apply_logic_FO
+    options:
+      #ASHP
+      - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Separate Backup 
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *fuel_oil_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+
+ 
+
+#### ducted furnace ####
+  # - upgrade_name: Dual-Fuel Natural Gas Furnace 60% AFUE
       - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_60_FO
         option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 60% AFUE Fuel Oil, 5F-40F switchover band
         apply_logic: *dual-fuel_60pctAFUE_FO_furnace_apply_logic   
@@ -644,19 +681,24 @@ upgrades:
         costs: *costs_ashp_ducted_SEER_20_11_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
 
-  - upgrade_name: EnergyStar ductless MSHP w/ exist backup  
+  - upgrade_name: EnergyStar ductless MSHP w/ existing natural gas backup  
     # Measure 4
+    package_apply_logic: &dualfuel_MSHP_apply_logic_NG
+      - HVAC Has Ducts|No
+      - Heating Fuel|Natural Gas
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
     options:
       # MSHP
       - &ductless_MSHP_EnergyStar_exist_backup
         option: HVAC Heating Efficiency|MSHP, SEER 16, 9.2 HSPF, Separate Backup 
-        apply_logic: &ductless_MSHP_elec_backup_apply_logic
-          - and:
-            - HVAC Has Ducts|No
-            - or:
-              - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
-              - not: HVAC Cooling Efficiency|Ducted Heat Pump
-              - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+        apply_logic: &ductless_MSHP_exist_backup_apply_logic
+          - or:
+            - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+            - not: HVAC Cooling Efficiency|Ducted Heat Pump
+            - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
         costs: &costs_mshp_ductless_SEER_16_9-2_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -673,52 +715,85 @@ upgrades:
 
       - &HP_cooling_efficiency_ductless
         option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
-        apply_logic: *ductless_MSHP_elec_backup_apply_logic
-
-      - &100_percent_conditioned_ductless
-        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
-        apply_logic: *ductless_MSHP_elec_backup_apply_logic
-
+      - *100_percent_conditioned
 
       - *ng_boiler_secondary_heating_type_fuel
-      - *propane_boiler_secondary_heating_type_fuel
-      - *fuel_oil_boiler_secondary_heating_type_fuel
       - *secondary_boiler_76
       - *secondary_boiler_80
       - *secondary_boiler_90
       - *ng_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: EnergyStar ductless MSHP w/ existing propane backup  
+    # Measure 4
+    package_apply_logic: &dualfuel_MSHP_apply_logic_propane
+      - HVAC Has Ducts|No
+      - Heating Fuel|Propane
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
+    options:
+      # MSHP
+      - *ductless_MSHP_EnergyStar_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *propane_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
       - *propane_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: EnergyStar ductless MSHP w/ existing fuel oil backup  
+    # Measure 4
+    package_apply_logic: &dualfuel_MSHP_apply_logic_FO
+      - HVAC Has Ducts|No
+      - Heating Fuel|Fuel Oil
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
+    options:
+      # MSHP
+      - *ductless_MSHP_EnergyStar_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+      - *fuel_oil_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
       - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
 
-      - &cooling_setpoint_no_offset_ductless
-        option: Cooling Setpoint Has Offset|No
-        apply_logic: *ductless_MSHP_elec_backup_apply_logic
 
-
-      - &cooling_setpoint_offset_magnitude_0_ductless
-        option: Cooling Setpoint Offset Magnitude|0F
-        apply_logic: *ductless_MSHP_elec_backup_apply_logic
-      
-      - &cooling_setpoint_offset_period_none_ductless
-        option: Cooling Setpoint Offset Period|None
-        apply_logic: *ductless_MSHP_elec_backup_apply_logic
-
-      - &heating_setpoint_no_offset_ductless
-        option: Heating Setpoint Has Offset|No
-        apply_logic: *ductless_MSHP_elec_backup_apply_logic
-
-      - &heating_setpoint_offset_magnitude_0_ductless
-        option: Heating Setpoint Offset Magnitude|0F
-        apply_logic: *ductless_MSHP_elec_backup_apply_logic
-      
-      - &heating_setpoint_offset_period_none_ductless
-        option: Heating Setpoint Offset Period|None
-        apply_logic: *ductless_MSHP_elec_backup_apply_logic
-
-  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup  
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing natural gas backup  
     # Measure 5
+    package_apply_logic: *dualfuel_MSHP_apply_logic_NG
     options:
       - &ductless_MSHP_EnergyStarCC_exist_backup
         option: HVAC Heating Efficiency|MSHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup 
@@ -738,16 +813,60 @@ upgrades:
           15
 
       - *HP_cooling_efficiency_ductless
-      - *100_percent_conditioned_ductless
+      - *100_percent_conditioned
 
       - *ng_boiler_secondary_heating_type_fuel
-      - *propane_boiler_secondary_heating_type_fuel
-      - *fuel_oil_boiler_secondary_heating_type_fuel
       - *secondary_boiler_76
       - *secondary_boiler_80
       - *secondary_boiler_90
       - *ng_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset_ductless
+      - *cooling_setpoint_offset_magnitude_0_ductless     
+      - *cooling_setpoint_offset_period_none_ductless
+      - *heating_setpoint_no_offset_ductless
+      - *heating_setpoint_offset_magnitude_0_ductless
+      - *heating_setpoint_offset_period_none_ductless
+
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing propane backup  
+    # Measure 5
+    package_apply_logic: *dualfuel_MSHP_apply_logic_propane
+    options:
+      - *ductless_MSHP_EnergyStarCC_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *propane_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
       - *propane_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset_ductless
+      - *cooling_setpoint_offset_magnitude_0_ductless     
+      - *cooling_setpoint_offset_period_none_ductless
+      - *heating_setpoint_no_offset_ductless
+      - *heating_setpoint_offset_magnitude_0_ductless
+      - *heating_setpoint_offset_period_none_ductless
+
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing fuel oil backup  
+    # Measure 5
+    package_apply_logic: *dualfuel_MSHP_apply_logic_FO
+    options:
+      - *ductless_MSHP_EnergyStarCC_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *fuel_oil_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
       - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
@@ -759,8 +878,9 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0_ductless
       - *heating_setpoint_offset_period_none_ductless
 
-  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup  
+  - upgrade_name: Higher efficiency ductless MSHP w/ existing natural gas backup  
     # Measure 6
+    package_apply_logic: *dualfuel_MSHP_apply_logic_NG
     options:
       - &ductless_MSHP_HigherEfficiency_exist_backup
         option: HVAC Heating Efficiency|MSHP, SEER 20, 11 HSPF, CCHP, Separate Backup 
@@ -780,16 +900,60 @@ upgrades:
           15
 
       - *HP_cooling_efficiency_ductless
-      - *100_percent_conditioned_ductless
+      - *100_percent_conditioned
 
       - *ng_boiler_secondary_heating_type_fuel
-      - *propane_boiler_secondary_heating_type_fuel
-      - *fuel_oil_boiler_secondary_heating_type_fuel
       - *secondary_boiler_76
       - *secondary_boiler_80
       - *secondary_boiler_90
       - *ng_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset_ductless
+      - *cooling_setpoint_offset_magnitude_0_ductless     
+      - *cooling_setpoint_offset_period_none_ductless
+      - *heating_setpoint_no_offset_ductless
+      - *heating_setpoint_offset_magnitude_0_ductless
+      - *heating_setpoint_offset_period_none_ductless
+
+  - upgrade_name: Higher efficiency ductless MSHP w/ existing propane backup  
+    # Measure 6
+    package_apply_logic: *dualfuel_MSHP_apply_logic_propane
+    options:
+      - *ductless_MSHP_HigherEfficiency_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *propane_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
       - *propane_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset_ductless
+      - *cooling_setpoint_offset_magnitude_0_ductless     
+      - *cooling_setpoint_offset_period_none_ductless
+      - *heating_setpoint_no_offset_ductless
+      - *heating_setpoint_offset_magnitude_0_ductless
+      - *heating_setpoint_offset_period_none_ductless
+
+  - upgrade_name: Higher efficiency ductless MSHP w/ existing fuel oil backup  
+    # Measure 6
+    package_apply_logic: *dualfuel_MSHP_apply_logic_FO
+    options:
+      - *ductless_MSHP_HigherEfficiency_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *fuel_oil_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
       - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
