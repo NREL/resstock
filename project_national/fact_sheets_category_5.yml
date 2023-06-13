@@ -77,11 +77,12 @@ workflow_generator:
 # Category 5:  Heat Pumps with Electric Backup
 # To do: costing interpolation from Less for 9.2, 9.5, and 11 HSPF
 upgrades:
-  - upgrade_name: EnergyStar ducted ASHP w/ elec backup  #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing elec  #also provides SEER 15 cooling measure profile
     # Measure 1
       #ASHP
-    package_apply_logic: &ducted_ASHP_elec_backup
+    package_apply_logic: &ducted_ASHP_elec_backup_existing_elec
       - HVAC Has Ducts|Yes
+      - Heating Fuel|Electricity
       - or: &not_ASHP_greater_than_SEER_15_9_HSPF
         - not: HVAC Cooling Efficiency|Ducted Heat Pump
         - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
@@ -108,10 +109,65 @@ upgrades:
       - &100_percent_conditioned
         option: HVAC Cooling Partial Space Conditioning|100% Conditioned
 
+  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing natural gas  #also provides SEER 15 cooling measure profile
+    # Measure 1
+      #ASHP
+    package_apply_logic: &ducted_ASHP_elec_backup_existing_NG
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Natural Gas
+      - or: &not_ASHP_greater_than_SEER_15_9_HSPF
+        - not: HVAC Cooling Efficiency|Ducted Heat Pump
+        - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+        - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+        - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
 
-  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup  #also provides SEER 15 cooling measure profile
+    options:
+      - *ducted_ASHP_EnergyStar_elec_backup
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+
+
+  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing propane  #also provides SEER 15 cooling measure profile
+    # Measure 1
+      #ASHP
+    package_apply_logic: &ducted_ASHP_elec_backup_existing_propane
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Propane
+      - or: &not_ASHP_greater_than_SEER_15_9_HSPF
+        - not: HVAC Cooling Efficiency|Ducted Heat Pump
+        - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+        - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+        - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+
+    options:
+
+      - *ducted_ASHP_EnergyStar_elec_backup
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+
+  - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing fuel oil  #also provides SEER 15 cooling measure profile
+    # Measure 1
+      #ASHP
+    package_apply_logic: &ducted_ASHP_elec_backup_existing_FO
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Fuel Oil
+      - or: &not_ASHP_greater_than_SEER_15_9_HSPF
+        - not: HVAC Cooling Efficiency|Ducted Heat Pump
+        - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+        - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+        - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+
+    options:
+
+      - *ducted_ASHP_EnergyStar_elec_backup
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+
+
+
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing elec #also provides SEER 15 cooling measure profile
     # Measure 2
-    package_apply_logic: *ducted_ASHP_elec_backup
+    package_apply_logic: *ducted_ASHP_elec_backup_existing_elec
     options:
       #ASHP
       - &ducted_ASHP_EnergyStarCC_elec_backup
@@ -147,10 +203,61 @@ upgrades:
       - &heating_setpoint_offset_period_none
         option: Heating Setpoint Offset Period|None
 
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing natural gas  #also provides SEER 15 cooling measure profile
+    # Measure 2
+    package_apply_logic: *ducted_ASHP_elec_backup_existing_NG
+    options:
+      #ASHP
+      - *ducted_ASHP_EnergyStarCC_elec_backup
 
-  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup  #also provides SEER 15 cooling measure profile
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0      
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing propane  #also provides SEER 15 cooling measure profile
+    # Measure 2
+    package_apply_logic: *ducted_ASHP_elec_backup_existing_propane
+    options:
+      #ASHP
+      - *ducted_ASHP_EnergyStarCC_elec_backup
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0      
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing fuel oil  #also provides SEER 15 cooling measure profile
+    # Measure 2
+    package_apply_logic: *ducted_ASHP_elec_backup_existing_FO
+    options:
+      #ASHP
+      - *ducted_ASHP_EnergyStarCC_elec_backup
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0      
+      - *heating_setpoint_offset_period_none
+
+
+
+  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing elec #also provides SEER 15 cooling measure profile
     # Measure 3
-    package_apply_logic: *ducted_ASHP_elec_backup
+    package_apply_logic: *ducted_ASHP_elec_backup_existing_elec
     options:
       #ASHP
       - &ducted_ASHP_HigherEfficiency_elec_backup
@@ -174,14 +281,64 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: EnergyStar ductless MSHP w/ elec backup  #also provides SEER 15 cooling measure profile
+  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing natural gas #also provides SEER 15 cooling measure profile
+    # Measure 3
+    package_apply_logic: *ducted_ASHP_elec_backup_existing_NG
+    options:
+      #ASHP
+      - *ducted_ASHP_HigherEfficiency_elec_backup
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+
+  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing propane #also provides SEER 15 cooling measure profile
+    # Measure 3
+    package_apply_logic: *ducted_ASHP_elec_backup_existing_propane
+    options:
+      #ASHP
+      - *ducted_ASHP_HigherEfficiency_elec_backup
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing fuel oil #also provides SEER 15 cooling measure profile
+    # Measure 3
+    package_apply_logic: *ducted_ASHP_elec_backup_existing_FO
+    options:
+      #ASHP
+      - *ducted_ASHP_HigherEfficiency_elec_backup
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+
+  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing elec #also provides SEER 15 cooling measure profile
     # Measure 4
-    package_apply_logic: &ductless_MSHP_elec_backup
-      - and:
-        - HVAC Has Ducts|No
-        - or: &not_MSHP_greater_than_SEER_16_9-2_HSPF
-          - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
-          - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+    package_apply_logic: &ductless_MSHP_elec_backup_existing_elec
+      - HVAC Has Ducts|No
+      - Heating Fuel|Electricity
+      - or: &not_MSHP_greater_than_SEER_16_9-2_HSPF
+        - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+        - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
     options:
       # MSHP
       - &ductless_MSHP_EnergyStar_elec_backup
@@ -204,15 +361,87 @@ upgrades:
         option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
 
       - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
 
-  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup  #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing natural gas #also provides SEER 15 cooling measure profile
+    # Measure 4
+    package_apply_logic: &ductless_MSHP_elec_backup_existing_NG
+      - HVAC Has Ducts|No
+      - Heating Fuel|Natural Gas
+      - or: &not_MSHP_greater_than_SEER_16_9-2_HSPF
+        - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+        - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+
+    options:
+      # MSHP
+      - *ductless_MSHP_EnergyStar_elec_backup
+
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing propane #also provides SEER 15 cooling measure profile
+    # Measure 4
+    package_apply_logic: &ductless_MSHP_elec_backup_existing_propane
+      - HVAC Has Ducts|No
+      - Heating Fuel|Propane
+      - or: &not_MSHP_greater_than_SEER_16_9-2_HSPF
+        - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+        - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+
+    options:
+      # MSHP
+      - *ductless_MSHP_EnergyStar_elec_backup
+
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing fuel oil #also provides SEER 15 cooling measure profile
+    # Measure 4
+    package_apply_logic: &ductless_MSHP_elec_backup_existing_FO
+      - HVAC Has Ducts|No
+      - Heating Fuel|Fuel Oil
+      - or: &not_MSHP_greater_than_SEER_16_9-2_HSPF
+        - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+        - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+
+    options:
+      # MSHP
+      - *ductless_MSHP_EnergyStar_elec_backup
+
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing elec #also provides SEER 15 cooling measure profile
     # Measure 5
-    package_apply_logic: *ductless_MSHP_elec_backup
+    package_apply_logic: *ductless_MSHP_elec_backup_existing_elec
     options:
       # MSHP
       - &ductless_MSHP_EnergyStarCC_elec_backup
         option: HVAC Heating Efficiency|MSHP, SEER 16, 9.5 HSPF, CCHP # Changed to Max Load
-        costs: &costs_mshp_ductless_SEER_15_9-5_HSPF
+        costs: &costs_mshp_ductless_SEER_16_9-5_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
         # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
@@ -234,9 +463,57 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup  #also provides SEER 15 cooling measure profile
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing natural gas #also provides SEER 15 cooling measure profile
+    # Measure 5
+    package_apply_logic: *ductless_MSHP_elec_backup_existing_NG
+    options:
+      # MSHP
+      - *ductless_MSHP_EnergyStarCC_elec_backup
+
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing propane #also provides SEER 15 cooling measure profile
+    # Measure 5
+    package_apply_logic: *ductless_MSHP_elec_backup_existing_propane
+    options:
+      # MSHP
+      - *ductless_MSHP_EnergyStarCC_elec_backup
+
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing fuel oil #also provides SEER 15 cooling measure profile
+    # Measure 5
+    package_apply_logic: *ductless_MSHP_elec_backup_existing_FO
+    options:
+      # MSHP
+      - *ductless_MSHP_EnergyStarCC_elec_backup
+
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing elec #also provides SEER 15 cooling measure profile
     # Measure 6
-    package_apply_logic: *ductless_MSHP_elec_backup
+    package_apply_logic: *ductless_MSHP_elec_backup_existing_elec
     options:
       # MSHP
       - &ductless_MSHP_HigherEfficiency_elec_backup
@@ -263,4 +540,50 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-      #global
+  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing natural gas #also provides SEER 15 cooling measure profile
+    # Measure 6
+    package_apply_logic: *ductless_MSHP_elec_backup_existing_NG
+    options:
+      # MSHP
+      - *ductless_MSHP_HigherEfficiency_elec_backup
+
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+      
+  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing propane #also provides SEER 15 cooling measure profile
+    # Measure 6
+    package_apply_logic: *ductless_MSHP_elec_backup_existing_propane
+    options:
+      # MSHP
+      - *ductless_MSHP_HigherEfficiency_elec_backup
+
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing fuel oil #also provides SEER 15 cooling measure profile
+    # Measure 6
+    package_apply_logic: *ductless_MSHP_elec_backup_existing_FO
+    options:
+      # MSHP
+      - *ductless_MSHP_HigherEfficiency_elec_backup
+
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
