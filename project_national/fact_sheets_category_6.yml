@@ -91,7 +91,7 @@ upgrades:
 
     options:
       #ASHP
-      - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts
+      - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts_NG
         option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF, Separate Backup
         apply_logic: &dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
           - not: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
@@ -193,7 +193,7 @@ upgrades:
 
     options:
       #ASHP
-      - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts
+      - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts_propane
         option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF, Separate Backup 
         apply_logic: &dualfuel_ASHP_no_ducted_furnace_apply_logic_propane
           - not: HVAC Heating Type And Fuel|Propane Fuel Furnace
@@ -271,7 +271,7 @@ upgrades:
 
     options:
       #ASHP
-      - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts
+      - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts_FO
         option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF, Separate Backup 
         apply_logic: &dualfuel_ASHP_no_ducted_furnace_apply_logic_FO
           - not: HVAC Heating Type And Fuel|Propane Fuel Furnace
@@ -340,9 +340,9 @@ upgrades:
     package_apply_logic: *dualfuel_ASHP_apply_logic_NG
     options:
       #ASHP
-      - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts
+      - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts_NG
         option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup 
-        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
         costs: &costs_ashp_ducted_SEER_16_9-5_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -409,9 +409,9 @@ upgrades:
     package_apply_logic: *dualfuel_ASHP_apply_logic_propane
     options:
       #ASHP
-      - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts
+      - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts_propane
         option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup 
-        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_propane
         costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
 
@@ -465,9 +465,9 @@ upgrades:
 
     options:
       #ASHP
-      - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts
+      - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts_FO
         option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup 
-        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_FO
         costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF 
 
@@ -517,9 +517,9 @@ upgrades:
     package_apply_logic: *dualfuel_ASHP_apply_logic_NG
     options:
       #ASHP
-      - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts
+      - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts_NG
         option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Separate Backup 
-        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
         costs: &costs_ashp_ducted_SEER_20_11_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -578,9 +578,9 @@ upgrades:
     package_apply_logic: *dualfuel_ASHP_apply_logic_propane
     options:
       #ASHP
-      - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts
+      - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts_propane
         option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Separate Backup 
-        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_propane
         costs: *costs_ashp_ducted_SEER_20_11_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
 
@@ -632,9 +632,9 @@ upgrades:
     package_apply_logic: *dualfuel_ASHP_apply_logic_FO
     options:
       #ASHP
-      - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts
+      - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts_FO
         option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Separate Backup 
-        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_FO
         costs: *costs_ashp_ducted_SEER_20_11_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
 
@@ -797,7 +797,7 @@ upgrades:
     options:
       - &ductless_MSHP_EnergyStarCC_exist_backup
         option: HVAC Heating Efficiency|MSHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup 
-        apply_logic: *ductless_MSHP_elec_backup_apply_logic
+        apply_logic: *ductless_MSHP_exist_backup_apply_logic
         costs: &costs_mshp_ductless_SEER_16_9-5_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -823,12 +823,12 @@ upgrades:
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
 
-      - *cooling_setpoint_no_offset_ductless
-      - *cooling_setpoint_offset_magnitude_0_ductless     
-      - *cooling_setpoint_offset_period_none_ductless
-      - *heating_setpoint_no_offset_ductless
-      - *heating_setpoint_offset_magnitude_0_ductless
-      - *heating_setpoint_offset_period_none_ductless
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
 
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing propane backup  
     # Measure 5
@@ -847,12 +847,12 @@ upgrades:
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
 
-      - *cooling_setpoint_no_offset_ductless
-      - *cooling_setpoint_offset_magnitude_0_ductless     
-      - *cooling_setpoint_offset_period_none_ductless
-      - *heating_setpoint_no_offset_ductless
-      - *heating_setpoint_offset_magnitude_0_ductless
-      - *heating_setpoint_offset_period_none_ductless
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
 
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing fuel oil backup  
     # Measure 5
@@ -871,12 +871,12 @@ upgrades:
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
 
-      - *cooling_setpoint_no_offset_ductless
-      - *cooling_setpoint_offset_magnitude_0_ductless     
-      - *cooling_setpoint_offset_period_none_ductless
-      - *heating_setpoint_no_offset_ductless
-      - *heating_setpoint_offset_magnitude_0_ductless
-      - *heating_setpoint_offset_period_none_ductless
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
 
   - upgrade_name: Higher efficiency ductless MSHP w/ existing natural gas backup  
     # Measure 6
@@ -884,7 +884,7 @@ upgrades:
     options:
       - &ductless_MSHP_HigherEfficiency_exist_backup
         option: HVAC Heating Efficiency|MSHP, SEER 20, 11 HSPF, CCHP, Separate Backup 
-        apply_logic: *ductless_MSHP_elec_backup_apply_logic
+        apply_logic: *ductless_MSHP_exist_backup_apply_logic
         costs: &costs_mshp_ductless_SEER_20_11_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
@@ -910,12 +910,12 @@ upgrades:
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
 
-      - *cooling_setpoint_no_offset_ductless
-      - *cooling_setpoint_offset_magnitude_0_ductless     
-      - *cooling_setpoint_offset_period_none_ductless
-      - *heating_setpoint_no_offset_ductless
-      - *heating_setpoint_offset_magnitude_0_ductless
-      - *heating_setpoint_offset_period_none_ductless
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
 
   - upgrade_name: Higher efficiency ductless MSHP w/ existing propane backup  
     # Measure 6
@@ -934,12 +934,12 @@ upgrades:
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
 
-      - *cooling_setpoint_no_offset_ductless
-      - *cooling_setpoint_offset_magnitude_0_ductless     
-      - *cooling_setpoint_offset_period_none_ductless
-      - *heating_setpoint_no_offset_ductless
-      - *heating_setpoint_offset_magnitude_0_ductless
-      - *heating_setpoint_offset_period_none_ductless
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
 
   - upgrade_name: Higher efficiency ductless MSHP w/ existing fuel oil backup  
     # Measure 6
@@ -958,9 +958,9 @@ upgrades:
       - *secondary_wallfloor_furnace_60
       - *secondary_wallfloor_furnace_68
 
-      - *cooling_setpoint_no_offset_ductless
-      - *cooling_setpoint_offset_magnitude_0_ductless     
-      - *cooling_setpoint_offset_period_none_ductless
-      - *heating_setpoint_no_offset_ductless
-      - *heating_setpoint_offset_magnitude_0_ductless
-      - *heating_setpoint_offset_period_none_ductless
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
