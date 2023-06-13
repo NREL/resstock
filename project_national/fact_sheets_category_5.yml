@@ -83,7 +83,7 @@ upgrades:
     package_apply_logic: &ducted_ASHP_elec_backup_existing_elec
       - HVAC Has Ducts|Yes
       - Heating Fuel|Electricity
-      - or: &not_ASHP_greater_than_SEER_15_9_HSPF
+      - or: &not_ASHP_greater_than_SEER_16_9_HSPF
         - not: HVAC Cooling Efficiency|Ducted Heat Pump
         - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
         - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
@@ -115,11 +115,7 @@ upgrades:
     package_apply_logic: &ducted_ASHP_elec_backup_existing_NG
       - HVAC Has Ducts|Yes
       - Heating Fuel|Natural Gas
-      - or: &not_ASHP_greater_than_SEER_15_9_HSPF
-        - not: HVAC Cooling Efficiency|Ducted Heat Pump
-        - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
-        - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
-        - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+      - or: *not_ASHP_greater_than_SEER_16_9_HSPF
 
     options:
       - *ducted_ASHP_EnergyStar_elec_backup
@@ -133,11 +129,7 @@ upgrades:
     package_apply_logic: &ducted_ASHP_elec_backup_existing_propane
       - HVAC Has Ducts|Yes
       - Heating Fuel|Propane
-      - or: &not_ASHP_greater_than_SEER_15_9_HSPF
-        - not: HVAC Cooling Efficiency|Ducted Heat Pump
-        - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
-        - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
-        - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+      - or: *not_ASHP_greater_than_SEER_16_9_HSPF
 
     options:
 
@@ -151,11 +143,7 @@ upgrades:
     package_apply_logic: &ducted_ASHP_elec_backup_existing_FO
       - HVAC Has Ducts|Yes
       - Heating Fuel|Fuel Oil
-      - or: &not_ASHP_greater_than_SEER_15_9_HSPF
-        - not: HVAC Cooling Efficiency|Ducted Heat Pump
-        - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
-        - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
-        - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+      - or: *not_ASHP_greater_than_SEER_16_9_HSPF
 
     options:
 
@@ -373,9 +361,8 @@ upgrades:
     package_apply_logic: &ductless_MSHP_elec_backup_existing_NG
       - HVAC Has Ducts|No
       - Heating Fuel|Natural Gas
-      - or: &not_MSHP_greater_than_SEER_16_9-2_HSPF
-        - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
-        - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+      - or: *not_MSHP_greater_than_SEER_16_9-2_HSPF
+
 
     options:
       # MSHP
@@ -395,9 +382,7 @@ upgrades:
     package_apply_logic: &ductless_MSHP_elec_backup_existing_propane
       - HVAC Has Ducts|No
       - Heating Fuel|Propane
-      - or: &not_MSHP_greater_than_SEER_16_9-2_HSPF
-        - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
-        - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+      - or: *not_MSHP_greater_than_SEER_16_9-2_HSPF
 
     options:
       # MSHP
@@ -417,9 +402,7 @@ upgrades:
     package_apply_logic: &ductless_MSHP_elec_backup_existing_FO
       - HVAC Has Ducts|No
       - Heating Fuel|Fuel Oil
-      - or: &not_MSHP_greater_than_SEER_16_9-2_HSPF
-        - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
-        - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+      - or: *not_MSHP_greater_than_SEER_16_9-2_HSPF
 
     options:
       # MSHP
