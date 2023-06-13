@@ -109,10 +109,10 @@ for dp in dps:
 
   df_testings.append(df_testing)
 
-df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals).round(2)
+df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals).round(1)
 df_national['PROJECT'] = 'project_national'
 
-df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings).round(2)
+df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings).round(1)
 df_testing['PROJECT'] = 'project_testing'
 
 results_output = pd.concat([df_national, df_testing]).fillna(0)
@@ -144,10 +144,10 @@ for group in groups:
 
     df_testings.append(df_testing)
 
-df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals).round(2)
+df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals).round(1)
 df_national['PROJECT'] = 'project_national'
 
-df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings).round(2)
+df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings).round(1)
 df_testing['PROJECT'] = 'project_testing'
 
 buildstockbatch = pd.concat([df_national, df_testing]).fillna(0)
