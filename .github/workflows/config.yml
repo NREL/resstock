@@ -81,8 +81,10 @@ jobs:
 
       - name: Download and Install OpenStudio
         run: |
-          wget -q https://github.com/NREL/OpenStudio/releases/download/v3.6.1/OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
-          sudo apt install -y ./OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
+          # wget -q https://github.com/NREL/OpenStudio/releases/download/v3.6.1/OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
+          # sudo apt install -y ./OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
+          wget -q http://openstudio-ci-builds.s3-website-us-west-2.amazonaws.com/PR-4903/OpenStudio-3.7.0-alpha+97e9c03894-Ubuntu-20.04-x86_64.deb
+          sudo apt install -y ./OpenStudio-3.7.0-alpha+97e9c03894-Ubuntu-20.04-x86_64.deb
           openstudio openstudio_version
           which openstudio
 
