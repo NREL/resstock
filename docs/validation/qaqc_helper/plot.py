@@ -224,7 +224,7 @@ def plot_histogram_saving(
         axes[0].set_xlim(xmin=xmin, xmax=xmax)
     xmax = axes[0].get_xlim()[1]
     ymax = axes[0].get_ylim()[1]
-    if len(by_cols) == 2:
+    if len(by_cols) == 1:
         for i, ax in enumerate(axes):
             data = df[cols[i]].dropna()
             ndata = len(data)
@@ -253,13 +253,11 @@ def plot_histogram_saving(
 
             row_index = i // ncols
             col_index = i % ncols
-            if row_index == 0:
-                ax.set_title(cols[i][1:])
             if col_index == ncols - 1:
                 h, _ = ax.get_legend_handles_labels()
                 ax.legend(
                     h,
-                    [cols[i][0]],
+                    [cols[i]],
                     loc="center left",
                     bbox_to_anchor=(1.01, 0.5),
                     frameon=False,
