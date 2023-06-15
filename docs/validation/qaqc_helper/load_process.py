@@ -191,6 +191,83 @@ def get_upgrade_saving_dataframe(
 
     return DF
 
+def get_upgrade_relative_saving_dataframe(
+    dfb, DFU, metric, output_type="relative_saving_percentage", add_metadata=True
+):
+    """Calculate saving or delta for metric for each upgrade, concatenate into a single dataframe with baseline metadata
+    saving = baseline - upgrade
+    delta = upgrade - baseline
+    None is used for metrics only available in DFU, such as upgrade_cost
+    """
+    if output_type not in ["relative_saving_percentage", "saving", "delta", None]:
+        raise ValueError(
+            f"Unsupported output_type={output_type}, valid options = ['relative_saving_percentage', 'saving', 'delta', None]"
+        )
+
+    DF = []
+    for dfu in DFU.values():
+        dfu = dfu.rename(columns={"apply_upgrade.upgrade_name": "upgrade"})
+        if output_type is None:
+            df = dfu[["upgrade", metric]]
+        else:
+            delta = (dfu[metric] - dfb.loc[dfu.index, metric])/dfb.loc[dfu.index, metric]
+            if output_type == "relative_saving_percentage":
+                delta *= -100
+
+            df = pd.concat(
+                [
+                    dfu["upgrade"],
+                    delta.rename(metric + f"_{output_type}"),
+                ],
+                axis=1,
+            )
+
+        if add_metadata:
+            df = add_metadata_from_baseline(df, dfb)
+        DF.append(df.reset_index())
+
+    DF = pd.concat(DF, axis=0, ignore_index=True)
+
+    return DF
+
+def get_upgrade_saving_list_dataframe(
+    dfb, DFU, metric_list, output_type="saving", add_metadata=True
+):
+    """Calculate saving or delta for metric for each upgrade, concatenate into a single dataframe with baseline metadata
+    saving = baseline - upgrade
+    delta = upgrade - baseline
+    None is used for metrics only available in DFU, such as upgrade_cost
+    """
+    if output_type not in ["saving", "delta", None]:
+        raise ValueError(
+            f"Unsupported output_type={output_type}, valid options = ['saving', 'delta', None]"
+        )
+
+    DF = []
+    for metric in metric_list:
+        for dfu in DFU.values():
+            dfu = dfu.rename(columns={"apply_upgrade.upgrade_name": "upgrade"})
+            if output_type is None:
+                df = dfu[["upgrade", metric]]
+            else:
+                delta = dfu[metric] - dfb.loc[dfu.index, metric]
+                if output_type == "saving":
+                    delta *= -1
+
+                df = pd.concat(
+                    [
+                        dfu["upgrade"],
+                        delta.rename(metric + f"_{output_type}"),
+                    ],
+                    axis=1,
+                )
+
+            if add_metadata:
+                df = add_metadata_from_baseline(df, dfb)
+            DF.append(df.reset_index())
+
+    DF = pd.concat(DF, axis=0, ignore_index=True)
+    return DF
 
 def add_metadata_from_baseline(dfu, dfb):
     not_cols = [
