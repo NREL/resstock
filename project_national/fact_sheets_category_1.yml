@@ -89,6 +89,13 @@ upgrades:
             - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
             - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
             - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
+        costs: &NG_boiler_fed_min_90_percent_cost
+        # Source: 3100 * 1.4 inflation + 43 * 1.4 inflation from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=367&actionId=1900&bcId=5778
+          - value: 4340
+            multiplier: Fixed (1)
+          - value: 60.2
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &natural_gas_boiler_fed_min_90_percent_lifetime 15 # do we need a lifetime here?
 
       # Fuel Oil Boiler Federal Minimum - 87%
       - &fuel_oil_boiler_fed_min
@@ -101,6 +108,13 @@ upgrades:
             - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
             - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
             - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
+        costs: &FO_boiler_fed_min_90_percent_cost
+        # Source: 3100 * 1.4 inflation + 27 * 1.4 inflation from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=367&actionId=1900&bcId=5790
+          - value: 4340
+            multiplier: Fixed (1)
+          - value: 37.8
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &FO_boiler_fed_min_90_percent_lifetime 15 # do we need a lifetime here?
 
       # Natural Gas Furnace Federal Minimum North - 95%
       - &natural_gas_furnace_fed_min_north
@@ -147,6 +161,13 @@ upgrades:
             - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
             - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
             - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs: &NG_furnace_fed_min_north_95_cost
+        # Source: 2500 * 1.4 inflation +  * 1.4 inflation from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=308&actionId=1104&bcId=4812
+          - value: 3500
+            multiplier: Fixed (1)
+          - value: 5.46
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &NG_furnace_fed_min_north_95_cost_lifetime 15 # do we need a lifetime here?
 
       # Natural Gas Furnace Federal Minimum South - 90%
       - &natural_gas_furnace_fed_min_south
@@ -182,6 +203,13 @@ upgrades:
             - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
             - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
             - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
+        costs: &NG_furnace_fed_min_south_90_cost
+        # Source: 2100 * 1.4 inflation + 3.90 * 1.4 inflation from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=308&actionId=1104&bcId=4812
+          - value: 2940
+            multiplier: Fixed (1)
+          - value: 5.46
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &NG_furnace_fed_min_south_90_cost_lifetime 15 # do we need a lifetime here?
 
       # Fuel Oil Furnace Federal Minimum - 85%
       - &fuel_oil_furnace_fed_min
@@ -194,6 +222,13 @@ upgrades:
             - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
             - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
             - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+        costs: &FO_furnace_fed_min_85_cost
+        # Source: 2500 * 1.4 inflation + 2.7 * 1.4 inflation from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=308&actionId=1104&bcId=4822
+          - value: 3500
+            multiplier: Fixed (1)
+          - value: 3.78
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &FO_furnace_fed_min_85_cost_lifetime 15 # do we need a lifetime here?
       
       ####
       # HSPF >= 8.8 for heat pumps, this includes the constraint of SEER 14 for northern states and SEER 15 for southern states 
@@ -203,7 +238,7 @@ upgrades:
         apply_logic: &logic_fed_min_heat_pump_ASHP_ducted_southern
           - *logic_southern_state_federal_minimum
           - HVAC Has Ducts|Yes
-          - &logic_not_ASHP_greater_than_8_8_HSPF
+          - &logic_not_ASHP_greater_than_SEER_15_8_8_HSPF
             or:
               - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
               - HVAC Heating Efficiency|ASHP, SEER 10.3, 7.0 HSPF
@@ -213,15 +248,15 @@ upgrades:
               - HVAC Heating Efficiency|ASHP, SEER 14, 8.2 HSPF
               - HVAC Heating Efficiency|ASHP, SEER 14.3, 8.5 HSPF
               - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
-        costs: &costs_ashp_ducted_SEER_15_9_HSPF
+        costs: &costs_ashp_ducted_8-8_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
         # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
-          - value: 3907.01 # for HSPF 9
+          - value: 3620.10 # for HSPF 8.8
             multiplier: Fixed (1)
-          - value: 155.17
+          - value: 167.64
             multiplier: Size, Heating System Primary (kBtu/h)
-        lifetime: &lifetime_ashp_ducted_SEER_15_9_HSPF 15
+        lifetime: &lifetime_ashp_ducted_8-8_HSPF 15
       # MSHP
       - &heat_pump_fed_min_ductless_southern
         option: HVAC Heating Efficiency|MSHP, SEER 15, 8.8 HSPF
@@ -231,39 +266,58 @@ upgrades:
           - &logic_not_MSHP_greater_than_8_8_HSPF
             or:
               - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
-        costs: &costs_mshp_ductless_SEER_15_9_HSPF
+        costs: &costs_mshp_ductless_8-8_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
         # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
         # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
         # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
-        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB (https://remdb.nrel.gov/).
-          - value: 2472.60
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
+        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
+          - value: 2708.62
             multiplier: Fixed (1)
-          - value: 320.42
+          - value: 351.74
             multiplier: Size, Heating System Primary (kBtu/h)
-        lifetime: &lifetime_mshp_ductless_SEER_15_9_HSPF 
-          15
+        lifetime: &lifetime_mshp_ductless_8-8_HSPF 15
 
       # northern states
-      - &heat_pump_fed_min_ducted_northern
+      # ASHP
+      - &heat_pump_fed_min_ducted_northern_SEER_14
         option: HVAC Heating Efficiency|ASHP, SEER 14, 8.8 HSPF # same as base option
-        apply_logic: &logic_fed_min_heat_pump_ASHP_ducted_northern
+        apply_logic: &logic_fed_min_heat_pump_ASHP_ducted_northern_SEER_14
           - *logic_northern_state_federal_minimum
           - HVAC Has Ducts|Yes
-          - *logic_not_ASHP_greater_than_8_8_HSPF
-        costs: *costs_ashp_ducted_SEER_15_9_HSPF
-        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+          - &logic_not_ASHP_greater_than_SEER_14_and_8_8_HSPF
+            or:
+              - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 10.3, 7.0 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 11.5, 7.5 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 13, 8.0 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 14, 8.2 HSPF
+              - HVAC Heating Efficiency|ASHP, SEER 14.3, 8.5 HSPF
+        costs: *costs_ashp_ducted_8-8_HSPF
+        lifetime: *lifetime_ashp_ducted_8-8_HSPF
+
+      - &heat_pump_fed_min_ducted_northern_SEER_15
+        option: HVAC Heating Efficiency|ASHP, SEER 15, 8.8 HSPF # same as base option
+        apply_logic: &logic_fed_min_heat_pump_ASHP_ducted_northern_SEER_15
+          - *logic_northern_state_federal_minimum
+          - HVAC Has Ducts|Yes
+          - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+        costs: *costs_ashp_ducted_8-8_HSPF
+        lifetime: *lifetime_ashp_ducted_8-8_HSPF
 
       # MSHP
       - &heat_pump_fed_min_ductless_northern
-        option: HVAC Heating Efficiency|MSHP, SEER 14, 8.8 HSPF
+        option: HVAC Heating Efficiency|MSHP, SEER 14.5, 8.8 HSPF
         apply_logic: &logic_fed_min_heat_pump_MSHP_ductless_northern
           - *logic_northern_state_federal_minimum
           - HVAC Has Ducts|No
           - *logic_not_MSHP_greater_than_8_8_HSPF
-        costs: *costs_mshp_ductless_SEER_15_9_HSPF
-        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF 
+        costs: *costs_mshp_ductless_8-8_HSPF
+        lifetime: *ifetime_mshp_ductless_8-8_HSPF
+
       #global
       - &heat_pump_ducted_cooling
         option: HVAC Cooling Efficiency|Ducted Heat Pump # Applied regardless of which option is applied
@@ -298,6 +352,13 @@ upgrades:
             - HVAC Cooling Efficiency|AC, SEER 13
             - HVAC Cooling Efficiency|AC, SEER 14
           - HVAC Cooling Type|Central AC
+        costs: &AC_fed_min_southern_state_SEER_15_cost
+        # Source: 2800 * 1.4 inflation + 42 * 1.4 inflation from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=375&actionId=1933&bcId=5852
+          - value: 3920
+            multiplier: Fixed (1)
+          - value: 58.8
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &AC_fed_min_southern_state_SEER_15_lifetime 15 # do we need a lifetime here?
 
       # Northern states, central AC
       - &central_AC_fed_min_northern
@@ -309,6 +370,13 @@ upgrades:
             - HVAC Cooling Efficiency|AC, SEER 10
             - HVAC Cooling Efficiency|AC, SEER 13
           - HVAC Cooling Type|Central AC
+        costs: &AC_fed_min_southern_state_SEER_14_cost
+        # Source: 2700 * 1.4 inflation + 42 * 1.4 inflation from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=375&actionId=1933&bcId=5852
+          - value: 3780
+            multiplier: Fixed (1)
+          - value: 58.8
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &AC_fed_min_southern_state_SEER_14_lifetime 15 # do we need a lifetime here?
 
       # Room AC
       - &room_AC_fed_min
@@ -371,6 +439,9 @@ upgrades:
                 - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
                 - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
                 - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        costs:
+          - value: 1433.44 # Interpolated from 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+            multiplier: Fixed (1)
 
       - &HPWH_fed_min_50_gal
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.3 UEF
@@ -384,6 +455,9 @@ upgrades:
                 - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
                 - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
                 - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        costs:
+          - value: 2712.82 # Median installed cost for 50 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+            multiplier: Fixed (1)
 
       - &HPWH_fed_min_66_gal
         option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.3 UEF
@@ -395,6 +469,9 @@ upgrades:
                 - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
                 - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
                 - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        costs:
+          - value: 3736.48  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+            multiplier: Fixed (1)
 
     #### Gas storage
       - &gas_wh_fed_min_30_and_40_gal
@@ -408,8 +485,11 @@ upgrades:
             - Bedrooms|4
           - or:
             - Water Heater Efficiency|Natural Gas Standard
-            - Water Heater Efficiency|Natural Gas Premium
-            - Water Heater Efficiency|Natural Gas Premium, Condensing
+        costs:
+          - value: 955.5  # Interpolated using REMDB values for EF 0.59 and 0.67, inflation adjusted with 1.4 factor
+            multiplier: Fixed (1)
+          - value: 14.88 # Interpolated using REMDB values for EF 0.59 and 0.67, inflation adjusted with 1.4 factor
+            multiplier: Size, Water Heater (gal)
 
       - &gas_wh_fed_min_50_gal
         option: Water Heater Efficiency|Natural Gas Storage, UEF 0.68
@@ -419,7 +499,11 @@ upgrades:
           - or:
             - Water Heater Efficiency|Natural Gas Standard
             - Water Heater Efficiency|Natural Gas Premium
-            - Water Heater Efficiency|Natural Gas Premium, Condensing
+        costs:
+          - value: 1025.5  # Interpolated using REMDB values for EF 0.59 and 0.67, inflation adjusted with 1.4 factor
+            multiplier: Fixed (1)
+          - value: 15.58 # Interpolated using REMDB values for EF 0.59 and 0.67, inflation adjusted with 1.4 factor
+            multiplier: Size, Water Heater (gal)
 
 
     #### Gas Tankless
@@ -429,7 +513,9 @@ upgrades:
           - Water Heater Fuel|Natural Gas
           - or:
             - Water Heater Efficiency|Natural Gas Tankless
-            - Water Heater Efficiency|Natural Gas Tankless, Condensing
+        costs:
+          - value: 2600 # Interpolated using REMDB values for EF 0.82 and 0.96, inflation adjusted with 1.4 factor
+            multiplier: Fixed (1)
 
     #### Solar Water Heaters - Hawaii only (not sure if included in our fact sheets run), if so we will need to understand the solar water heater args in options_lookup.tsv
     
