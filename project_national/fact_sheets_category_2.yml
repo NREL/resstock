@@ -75,16 +75,14 @@ workflow_generator:
 
 ### -- Upgrades ---
 upgrades:
-  - upgrade_name: Thin Triple Windows # TBD whether based on different cliamte locations like EnergyStar windows
+  - upgrade_name: Thin Triple Windows 
     options:  
       - &thin_triple_windows_northern
         option: Windows|Triple, Thin, Northern
         apply_logic:
           - and:
             - Energystar Climate Zone 2023|Northern
-            - not: Windows|No Windows
-            - not: Windows|Triple, Low-E, Insulated, Argon, H-Gain
-            - not: Windows|Triple, Low-E, Insulated, Argon, L-Gain
+            - not: Windows|Triple, Low-E, Non-metal, Air, L-Gain
         costs:
           - value: 46.30 
             multiplier: Window Area (ft^2)
@@ -94,9 +92,7 @@ upgrades:
         apply_logic:
           - and:
             - Energystar Climate Zone 2023|North-Central
-            - not: Windows|No Windows
-            - not: Windows|Triple, Low-E, Insulated, Argon, H-Gain
-            - not: Windows|Triple, Low-E, Insulated, Argon, L-Gain
+            - not: Windows|Triple, Low-E, Non-metal, Air, L-Gain
         costs:
           - value: 46.30 
             multiplier: Window Area (ft^2)
@@ -106,9 +102,7 @@ upgrades:
         apply_logic:
           - and:
             - Energystar Climate Zone 2023|South-Central
-            - not: Windows|No Windows
-            - not: Windows|Triple, Low-E, Insulated, Argon, H-Gain
-            - not: Windows|Triple, Low-E, Insulated, Argon, L-Gain
+            - not: Windows|Triple, Low-E, Non-metal, Air, L-Gain
         costs:
           - value: 46.30 
             multiplier: Window Area (ft^2)
@@ -118,9 +112,7 @@ upgrades:
         apply_logic:
           - and:
             - Energystar Climate Zone 2023|Southern
-            - not: Windows|No Windows
-            - not: Windows|Triple, Low-E, Insulated, Argon, H-Gain
-            - not: Windows|Triple, Low-E, Insulated, Argon, L-Gain
+            - not: Windows|Triple, Low-E, Non-metal, Air, L-Gain
         costs:
           - value: 46.30 
             multiplier: Window Area (ft^2)
@@ -132,8 +124,6 @@ upgrades:
             - not: Vintage|2000s
             - not: Vintage|2010s
             - or:
-              - Windows|Single, Clear, Metal, Exterior Low-E Storm
-              - Windows|Single, Clear, Non-metal, Exterior Low-E Storm
               - Windows|Single, Clear, Metal
               - Windows|Single, Clear, Metal, Exterior Clear Storm
               - Windows|Single, Clear, Non-metal
@@ -144,24 +134,18 @@ upgrades:
                         # then used 1.2052 multiplier to inflate from Jan 2019 to April 2023 https://www.bls.gov/data/inflation_calculator.htm
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-      - &infiltration_15pct_reduction_windows_thin_triple
+      - &infiltration_15pct_reduction_windows
         option: Infiltration Reduction|15%
         apply_logic:
           - and:
             - not: Vintage|2000s
             - not: Vintage|2010s
             - or:
-              - Windows|Double, Clear, Thermal-Break, Air
-              - Windows|Double, Low-E, H-Gain
-              - Windows|Double, Low-E, L-Gain
-              - Windows|Double, Clear, Metal, Exterior Low-E Storm
-              - Windows|Double, Clear, Non-metal, Exterior Low-E Storm
               - Windows|Double, Clear, Metal, Air
               - Windows|Double, Clear, Metal, Air, Exterior Clear Storm
               - Windows|Double, Clear, Non-metal, Air
               - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm
               - Windows|Double, Low-E, Non-metal, Air, M-Gain
-              - Windows|Double, Low-E, Non-metal, Air, L-Gain
         costs: &costs_infiltration_15pct_reduction
           - value: 0.35 # from LBNL data for general air sealing (https://doi.org/10.20357/B7FP4D).
                         # liinear Interpolated for the 20% (0.34) and 40% reductions (0.54) to get $0.29/ft2,
@@ -176,9 +160,6 @@ upgrades:
         apply_logic:
           - and:
             - Energystar Climate Zone 2023|Northern
-            - not: Windows|No Windows
-            - not: Windows|Triple, Low-E, Insulated, Argon, H-Gain
-            - not: Windows|Triple, Low-E, Insulated, Argon, L-Gain
         costs:
           - value: 44.40
             multiplier: Window Area (ft^2)
@@ -188,9 +169,6 @@ upgrades:
         apply_logic:
           - and:
             - Energystar Climate Zone 2023|North-Central
-            - not: Windows|No Windows
-            - not: Windows|Triple, Low-E, Insulated, Argon, H-Gain
-            - not: Windows|Triple, Low-E, Insulated, Argon, L-Gain
         costs:
           - value: 41.50
             multiplier: Window Area (ft^2)
@@ -200,10 +178,6 @@ upgrades:
         apply_logic:
           - and:
             - Energystar Climate Zone 2023|South-Central
-            - not: Windows|No Windows
-            - not: Windows|Double, Low-E, L-Gain
-            - not: Windows|Triple, Low-E, Insulated, Argon, H-Gain
-            - not: Windows|Triple, Low-E, Insulated, Argon, L-Gain
         costs:
           - value: 38.70
             multiplier: Window Area (ft^2)
@@ -213,98 +187,13 @@ upgrades:
         apply_logic:
           - and:
             - Energystar Climate Zone 2023|Southern
-            - not: Windows|No Windows
-            - not: Windows|Double, Low-E, H-Gain
-            - not: Windows|Double, Low-E, L-Gain
-            - not: Windows|Double, Clear, Non-metal, Exterior Low-E Storm
             - not: Windows|Triple, Low-E, Non-metal, Air, L-Gain
-            - not: Windows|Triple, Low-E, Insulated, Argon, H-Gain
-            - not: Windows|Triple, Low-E, Insulated, Argon, L-Gain
         costs:
           - value: 32.50
             multiplier: Window Area (ft^2)
         lifetime: 30  
       - *infiltration_30pct_reduction_windows
-      - &infiltration_15pct_reduction_windows_energystar_northern
-        option: Infiltration Reduction|15%
-        apply_logic:
-          - and:
-            - Energystar Climate Zone 2023|Northern
-            - not: Vintage|2000s
-            - not: Vintage|2010s
-            - or:
-              - Windows|Double, Clear, Thermal-Break, Air
-              - Windows|Double, Low-E, H-Gain
-              - Windows|Double, Low-E, L-Gain
-              - Windows|Double, Clear, Metal, Exterior Low-E Storm
-              - Windows|Double, Clear, Non-metal, Exterior Low-E Storm
-              - Windows|Double, Clear, Metal, Air
-              - Windows|Double, Clear, Metal, Air, Exterior Clear Storm
-              - Windows|Double, Clear, Non-metal, Air
-              - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm
-              - Windows|Double, Low-E, Non-metal, Air, M-Gain
-              - Windows|Double, Low-E, Non-metal, Air, L-Gain
-        costs: *costs_infiltration_15pct_reduction
-        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf      
-      - &infiltration_15pct_reduction_windows_energystar_north_central
-        option: Infiltration Reduction|15%
-        apply_logic:
-          - and:
-            - Energystar Climate Zone 2023|North-Central
-            - not: Vintage|2000s
-            - not: Vintage|2010s
-            - or:
-              - Windows|Double, Clear, Thermal-Break, Air
-              - Windows|Double, Low-E, H-Gain
-              - Windows|Double, Low-E, L-Gain
-              - Windows|Double, Clear, Metal, Exterior Low-E Storm
-              - Windows|Double, Clear, Non-metal, Exterior Low-E Storm
-              - Windows|Double, Clear, Metal, Air
-              - Windows|Double, Clear, Metal, Air, Exterior Clear Storm
-              - Windows|Double, Clear, Non-metal, Air
-              - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm
-              - Windows|Double, Low-E, Non-metal, Air, M-Gain
-              - Windows|Double, Low-E, Non-metal, Air, L-Gain
-        costs: *costs_infiltration_15pct_reduction
-        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf      
-      - &infiltration_15pct_reduction_windows_energystar_south_central
-        option: Infiltration Reduction|15%
-        apply_logic:
-          - and:
-            - Energystar Climate Zone 2023|South-Central
-            - not: Vintage|2000s
-            - not: Vintage|2010s
-            - or:
-              - Windows|Double, Clear, Thermal-Break, Air
-              - Windows|Double, Low-E, H-Gain
-              - Windows|Double, Clear, Metal, Exterior Low-E Storm
-              - Windows|Double, Clear, Non-metal, Exterior Low-E Storm
-              - Windows|Double, Clear, Metal, Air
-              - Windows|Double, Clear, Metal, Air, Exterior Clear Storm
-              - Windows|Double, Clear, Non-metal, Air
-              - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm
-              - Windows|Double, Low-E, Non-metal, Air, M-Gain
-              - Windows|Double, Low-E, Non-metal, Air, L-Gain
-        costs: *costs_infiltration_15pct_reduction
-        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf      
-      - &infiltration_15pct_reduction_windows_energystar_southern
-        option: Infiltration Reduction|15%
-        apply_logic:
-          - and:
-            - Energystar Climate Zone 2023|Southern
-            - not: Vintage|2000s
-            - not: Vintage|2010s
-            - or:
-              - Windows|Double, Clear, Thermal-Break, Air
-              - Windows|Double, Clear, Metal, Exterior Low-E Storm
-              - Windows|Double, Clear, Metal, Air
-              - Windows|Double, Clear, Metal, Air, Exterior Clear Storm
-              - Windows|Double, Clear, Non-metal, Air
-              - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm
-              - Windows|Double, Low-E, Non-metal, Air, M-Gain
-              - Windows|Double, Low-E, Non-metal, Air, L-Gain
-        costs: *costs_infiltration_15pct_reduction
-        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf      
+      - *infiltration_15pct_reduction_windows
 
   - upgrade_name: Light Touch Envelope
     options:
@@ -662,7 +551,6 @@ upgrades:
               - Mechanical Ventilation|None
               - Mechanical Ventilation|Exhaust
               - Mechanical Ventilation|Supply
-            - or: *infiltration_higher_than_3ACH50
         costs:
           - value: 0.50 # To be decided
             multiplier: Floor Area, Conditioned (ft^2)
