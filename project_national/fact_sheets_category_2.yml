@@ -4,7 +4,7 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/small_run_category_2_20230609/
+output_directory: /projects/abctypol/largeee/test_runs/small_run_category_2_20230616/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -28,7 +28,7 @@ eagle:
     time: 5
   
 postprocessing:
-  keep_individual_timeseries: false
+  keep_individual_timeseries: true # false
   aws:
     region_name: us-west-2
     s3:
@@ -51,12 +51,30 @@ workflow_generator:
       simulation_control_run_period_calendar_year: 2007
 
     emissions:
-      - scenario_name: LRMER_MidCase_15
+      - scenario_name: LRMER_HighRECost_2030boxavg
         type: CO2e
-        elec_folder: data/cambium/LRMER_MidCase_15
+        elec_folder: data/cambium/2022/LRMER_HighRECost_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+      - scenario_name: LRMER_LowRECost_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_LowRECost_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+      - scenario_name: LRMER_MidCase_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_MidCase_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
 
     utility_bills:
-      - scenario_name: Bills
+      - scenario_name: Utility Rates - Fixed + Variable
+        simple_filepath: data/simple_rates/State.tsv
 
     simulation_output_report:
       timeseries_frequency: timestep #monthly
@@ -492,10 +510,9 @@ upgrades:
       - *EnergyStar_window_south_central
       - *EnergyStar_window_southern
       - *infiltration_30pct_reduction_windows
-      - *infiltration_15pct_reduction_windows_energystar_northern
-      - *infiltration_15pct_reduction_windows_energystar_north_central
-      - *infiltration_15pct_reduction_windows_energystar_south_central
-      - *infiltration_15pct_reduction_windows_energystar_southern
+      - *infiltration_15pct_reduction_windows
+
+      
       #1” XPS (R-5/in) Exterior wall insulation for dwelling units with wall insulation of less than R-19  
       - &exterior_wall_insulation
         option: Insulation Sheathing|R-5
