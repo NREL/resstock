@@ -116,10 +116,6 @@ upgrades:
         option: Misc Extra Refrigerator|EF 19.9
         apply_logic:
           - or:
-            - Misc Extra Refrigerator|EF 6.9, National Average
-            - Misc Extra Refrigerator|EF 6.9, Average Installed
-            - Misc Extra Refrigerator|EF 15.9, Fed Standard, bottom freezer-reference fridge
-            - Misc Extra Refrigerator|EF 19.8, bottom freezer
             - Misc Extra Refrigerator|EF 6.7
             - Misc Extra Refrigerator|EF 10.2
             - Misc Extra Refrigerator|EF 10.5
@@ -150,8 +146,6 @@ upgrades:
           - or:
             - Dishwasher|318 Rated kWh
             - Dishwasher|290 Rated kWh
-            - Dishwasher|270 Rated kWh
-            - Dishwasher|255 Rated kWh
         costs:
           - value: 1762.8 #price1: $699.99-2499 for ENERGY STAR Certified diswasher (240 Rated kWh) in BestBuy
                          #price2: $549.99-1299 for ENERGY STAR Certified diswasher (240 Rated kWh) in Home Depot
@@ -164,7 +158,6 @@ upgrades:
         apply_logic:
           - or:
             - Clothes Dryer|Electric
-            - Clothes Dryer|Electric, Premium
         costs:
           - value: 1274.7 #price: $449-1687.53 for ENERGY STAR Certified electric clothes dryer (>4.4 Cu.Ft, and CEF<4.3) in EnergyStar product database
                          # 1274.7=1068.3*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor. 1068.3 = (449+1687.53)/2
@@ -178,7 +171,6 @@ upgrades:
         apply_logic:
           - or:
             - Clothes Dryer|Gas
-            - Clothes Dryer|Gas, Premium
         costs:
           - value: 1415.1 #price1: $849.99-1799.99 for ENERGY STAR Certified gas clothes dryer (>4.4 Cu.Ft) in BestBuy
                          #price2: $879-1249 for ENERGY STAR Certified gas clothes  dryer (>4.4 Cu.Ft) in Home Depot
@@ -214,10 +206,6 @@ upgrades:
         option: Misc Extra Refrigerator|EF 21.9
         apply_logic:
           - or:
-            - Misc Extra Refrigerator|EF 6.9, National Average
-            - Misc Extra Refrigerator|EF 6.9, Average Installed
-            - Misc Extra Refrigerator|EF 15.9, Fed Standard, bottom freezer-reference fridge
-            - Misc Extra Refrigerator|EF 19.8, bottom freezer
             - Misc Extra Refrigerator|EF 6.7
             - Misc Extra Refrigerator|EF 10.2
             - Misc Extra Refrigerator|EF 10.5
@@ -238,8 +226,6 @@ upgrades:
         - or:
             - Clothes Washer|Standard
             - Clothes Washer|EnergyStar
-            - Clothes Washer|EnergyStar, Cold Only
-            - Clothes Washer|EnergyStar More Efficient
         costs:
           - value: 1537.0  #price: $ 628-$1999 for ENERGY STAR most efficient front load clothes washer (>2.5 Cu.Ft) in EnergyStar product database
                          # 1537.0=1313.5*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor. 1313.5=(628+1999)/2
@@ -253,8 +239,6 @@ upgrades:
           - or:
             - Dishwasher|318 Rated kWh
             - Dishwasher|290 Rated kWh
-            - Dishwasher|270 Rated kWh
-            - Dishwasher|255 Rated kWh
         costs:
           - value: 1762.8 #price1: $699.99-2499 for ENERGY STAR Certified diswasher (240 Rated kWh) in BestBuy
                          #price2: $549.99-1299 for ENERGY STAR Certified diswasher (240 Rated kWh) in Home Depot
@@ -267,8 +251,6 @@ upgrades:
         apply_logic:
           - or: &energystar_most_eff_clothes_dryer_electric_applicability
             - Clothes Dryer|Electric
-            - Clothes Dryer|Electric, Premium
-            - Clothes Dryer|Electric, Premium, EnergyStar
         costs:
           - value: 2184.4 #price: $1838-1999 for ENERGY STAR most efficient heat pump clothes dryer (>4.4 Cu.Ft, and CEF>4.3) in EnergyStar product database
                          # 2184.4=1918.5*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor. 1918.5 = (1838+1999)/2
@@ -281,8 +263,6 @@ upgrades:
         apply_logic:
           - or: &energystar_most_eff_clothes_dryer_gas_applicability
             - Clothes Dryer|Gas
-            - Clothes Dryer|Gas, Premium
-            - Clothes Dryer|Gas, Premium, EnergyStar
         costs:
           - value: 1415.1 #price1: $849.99-1799.99 for ENERGY STAR Certified gas clothes dryer (>4.4 Cu.Ft) in BestBuy
                          #price2: $879-1249 for ENERGY STAR Certified gas clothes  dryer (>4.4 Cu.Ft) in Home Depot
@@ -318,7 +298,6 @@ upgrades:
               - *energystar_most_eff_clothes_dryer_electric_applicability
               - *energystar_most_eff_clothes_dryer_gas_applicability
 
-
   - upgrade_name: ENERGYSTAR Electric Dryer for Non-electric Dryer
     options:
       - &energystar_electric_dryer_for_non-electric_dryer
@@ -326,7 +305,6 @@ upgrades:
         apply_logic:
           - or:
             - Clothes Dryer|Gas
-            - Clothes Dryer|Gas, Premium
             - Clothes Dryer|Propane
         costs:
           - value: 1274.7 #price: $449-1687.53 for ENERGY STAR Certified electric clothes dryer (>4.4 Cu.Ft, and CEF<4.3) in EnergyStar product database
@@ -389,7 +367,6 @@ upgrades:
         apply_logic:
           - or:
             - Lighting|100% Incandescent
-            - Lighting|60% CFL
             - Lighting|100% CFL
         costs:
           - value: 0.75
