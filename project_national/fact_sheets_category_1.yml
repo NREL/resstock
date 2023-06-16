@@ -406,7 +406,14 @@ upgrades:
             - HVAC Cooling Efficiency|Room AC, EER 9.8
             - HVAC Cooling Efficiency|Room AC, EER 10.7
           - HVAC Cooling Type|Room AC
-
+        costs: &Room_AC_cost
+        # Source: survey of big box stores best-selling Room AC units with a linear regression for cost (y) and tons of refrigeration (x)
+        # Resulting equation - y = 16.87 + 396.17x
+          - value: 16.87
+            multiplier: Fixed (1)
+          - value: 33.01
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &Room_AC_lifetime 5 # dummy value
       # Heat Pumps
       # SEER 14 for northern states and SEER 15 for southern states, comes with HSPF == 8.8 which is the federal minimum
       # southern states
