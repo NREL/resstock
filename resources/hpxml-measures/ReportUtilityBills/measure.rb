@@ -391,6 +391,8 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
               rate.minmonthlycharge = tariff[:mincharge] if fields.include?(:mincharge)
             elsif tariff[:minchargeunits] == '$/year'
               rate.minannualcharge = tariff[:mincharge] if fields.include?(:mincharge)
+            elsif tariff[:minchargeunits] == '$/day'
+              rate.minmonthlycharge = tariff[:mincharge] * 365 / 12 if fields.include?(:mincharge)
             else
               warnings << 'Min charge units must be either $/month or $/year.'
             end
