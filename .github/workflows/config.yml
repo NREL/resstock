@@ -300,6 +300,8 @@ jobs:
           cp -r results/upgrades/timeseries/*.csv test/base_results/upgrades/timeseries
           git add test/base_results
           git add docs
+          sed -i 's/^[ \t]*//;s/[ \t]*$// resources/options_lookup.tsv
+          git add resources/options_lookup.tsv
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"
