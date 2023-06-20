@@ -288,6 +288,13 @@ jobs:
           name: documentation
           path: docs/read_the_docs/_build/html/
 
+      - name: Clean options_lookup
+        shell: bash
+        run: |
+          sed -i 's/^[ \t]*//;s/[ \t]*$// resources/options_lookup.tsv # Remove whitespace
+          (sed -u 1q ; sort -k1 -k2) < resources/options_lookup.tsv > sorted_options_lookup.tsv
+          mv sorted_options_lookup.tsv resources/options_lookup.tsv # Sort on first two columns
+
       - name: Commit latest results
         shell: bash        
         run: |
@@ -300,7 +307,6 @@ jobs:
           cp -r results/upgrades/timeseries/*.csv test/base_results/upgrades/timeseries
           git add test/base_results
           git add docs
-          sed -i 's/^[ \t]*//;s/[ \t]*$// resources/options_lookup.tsv
           git add resources/options_lookup.tsv
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
