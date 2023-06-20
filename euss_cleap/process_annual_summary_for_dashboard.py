@@ -1,4 +1,6 @@
 """
+This script requires resstock-estimation conda env and access to resstock-estimation GitHub repo
+
 Purpose: 
 Estimate energy savings using EUSS 2018 AMY results
 Results available for download as a .csv here:
@@ -59,8 +61,9 @@ import numpy as np
 import pandas as pd
 import csv
 import re
+import argparse
 
-from add_ami_to_euss_annual_summary import add_ami_column_to_file
+from add_ami_to_euss_annual_summary import add_ami_column_to_file, read_file
 
 
 ### Helper settings
@@ -211,11 +214,35 @@ class SavingsExtraction:
 
         return df
 
-    def load_results_baseline(self):
-        filename = "results_up00.parquet"
-        df = pd.read_parquet(self.euss_dir / filename)
+    def load_file(self, pkg):
+        if isinstance(pkg, int):
+            pkg = str(pkg).zfill(2)
+        if isinstance(pkg, str):
+            assert isinstance(int(pkg), int), f"Non-digit pkg = {pkg}"
+            assert len(pkg) == 2, f"pkg does not have 2 digit = {pkg}"
+        found = sorted(self.euss_dir.rglob(f"results_up{pkg}.*"))
+
+        if found:
+            pqt_file = [file for file in found if file.suffix==".parquet"]
+            csv_file = [file for file in found if file.suffix==".csv"]
+            if len(pqt_file)==1:
+                file = pqt_file[0]
+            elif len(csv_file)==1:
+                file = csv_file[0]
+            else:
+                raise ValueError(f"Multiple possible files found for {pkg}: {found}. "
+                    f"Please keep files in {self.euss_dir} in original naming conventions. "
+                    "e.g., results_up00.parquet (preferred) or results_up00.csv")
+
+        print(f"Loading {file}...")
+        df = read_file(file, valid_only=True)
 
         return df
+
+
+    def load_results_baseline(self):
+        return self.load_file(0)
+
 
     def load_results_upgrade(self, pkgs: list):
 
@@ -226,8 +253,7 @@ class SavingsExtraction:
                 raise ValueError(
                     f"pkg={0} indicates baseline results, use self.load_results_baseline() instead"
                 )
-            filename = f"results_up{pkgs:02d}.parquet"
-            df = pd.read_parquet(self.euss_dir / filename).set_index("building_id")
+            df = self.load_file(pkgs).set_index("building_id")
 
             meta_cols = [col for col in dfb.columns if col not in df.columns]
             cond = dfb.index.intersection(df.index)
@@ -241,8 +267,7 @@ class SavingsExtraction:
                 )
             DFB, DF = [], []
             for pkg in pkgs:
-                filename = f"results_up{pkg:02d}.parquet"
-                df = pd.read_parquet(self.euss_dir / filename).set_index("building_id")
+                df = self.load_file(pkg).set_index("building_id")
                 cond = dfb.index.intersection(df.index)
                 DF.append(df.loc[cond])
                 DFB.append(dfb.loc[cond])
@@ -817,6 +842,7 @@ class SavingsExtraction:
         new_cols = [col for col in dfb.columns if col not in cols]
 
         return dfb, new_cols
+        
 
     def get_data_baseline(self):
         """Extract technology savings based on input pkg lists
@@ -849,22 +875,6 @@ class SavingsExtraction:
         energy_cols = [f"baseline_energy.{fu}_{converted_units[fu]}" for fu in fuels]
         emission_cols = [f"baseline_emission.{fu}_kgCO2e" for fu in fuels]
         bill_cols = [f"baseline_bill.{fu}_usd" for fu in fuels]
-
-        # Metered costs
-        # fuel order: [electricity, NG, fuel oil, propane]
-        fixed_annum = [
-            10 * 12,  # Nov 2021 Utility Rate Database
-            11.25 * 12,  # American Gas Association (2015)
-            0 * 12,
-            0 * 12,
-        ]  # $/year # based on fixed charges derived for Res Facades (Elaina.Present@nrel.gov)
-
-        variable_rates_2019 = self.load_utility_variable_rates(
-            year=2019
-        )  # list of pd.Series, $/kWh, $/therm, $/mmbtu, $/mmbtu
-        variable_rates = self.load_utility_variable_rates(
-            year=self.bill_year
-        )  # list of pd.Series, $/kWh, $/therm, $/mmbtu, $/mmbtu
 
         # assemble
         df = dfb[res_meta_cols].rename(columns=dict(zip(res_meta_cols, meta_cols)))
@@ -1286,7 +1296,7 @@ def main(euss_dir):
         "/Volumes/Lixi_Liu/cleap_dashboard_files"
     )  # Path(__file__).resolve().parent / "test_output"
     emission_type = "lrmer_low_re_cost_25_2025_start"
-    bill_year = 2019
+    bill_year = "auto" #2019
 
     SE = SavingsExtraction(euss_dir, emission_type, bill_year, output_dir=output_dir)
     # SE.add_ami_to_euss_files()
@@ -1433,19 +1443,10 @@ def main(euss_dir):
 
 
 if __name__ == "__main__":
-
-    if len(sys.argv) == 2:
-        euss_dir = sys.argv[1]
-    elif len(sys.argv) == 1:
-        # set working directory if no path is provided
-        euss_dir = Path("/Volumes/Lixi_Liu/euss_result_summary")
-    else:
-        print(
-            """
-            usage: python process_annual_summary_for_dashboard.py [optional] <path_to_downloaded_euss_round1_sightglass_files>
-            check code for default path_to_downloaded_euss_round1_sightglass_files
-            """
-        )
-        sys.exit(1)
-
-    main(euss_dir)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "upgrade_run_result_directory",
+        help=f"path to directory containing EUSS result csv files",
+    )
+    args = parser.parse_args()
+    main(args.upgrade_run_result_directory)

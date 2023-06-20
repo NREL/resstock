@@ -12,6 +12,7 @@ import sys
 import numpy as np
 import pandas as pd
 from functools import cache
+import argparse
 
 resstock_estimation = Path(__file__).resolve().parents[2] / "resstock-estimation"
 sys.path.append(resstock_estimation)
@@ -20,7 +21,7 @@ from utils.parameter_option_maps import ParameterOptionMaps
 POM = ParameterOptionMaps()
 
 
-data_dir = Path(__file__).resolve().parent / "data"
+data_dir = Path(__file__).resolve().parent / "data_ami"
 
 ### Add AMI tags to EUSS
 def process_ami_lookup(geography):
@@ -241,6 +242,9 @@ def read_file(file_path: Path, valid_only=True):
     file_type = file_path.suffix
     if file_type == ".csv":
         df = pd.read_csv(file_path, low_memory=False)
+        for col in df.columns: 
+            if col.startswith("build_existing_model."):
+                df[col] = df[col].astype(str)
     elif file_type == ".parquet":
         df = pd.read_parquet(file_path)
     else:
@@ -307,14 +311,15 @@ def add_ami_column_to_file(file_path):
 
 def main():
     """
-    This
     Usage: python add_ami_to_euss_results.py path_to_euss_result_file.csv
     """
-    if len(sys.argv) != 2:
-        print("Usage: python add_ami_to_euss_results.py <path_to_euss_result_file.csv>")
-        sys.exit(1)
-    else:
-        add_ami_column_to_file(sys.argv[1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "result_csv_file",
+        help=f"path to EUSS result csv file",
+    )
+    args = parser.parse_args()
+    add_ami_column_to_file(args.result_csv_file)
 
 
 if __name__ == "__main__":
