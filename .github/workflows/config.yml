@@ -291,7 +291,7 @@ jobs:
       - name: Clean options_lookup
         shell: bash
         run: |
-          sed -i 's/^[ \t]*//;s/[ \t]*$// resources/options_lookup.tsv # Remove whitespace
+          sed -i '' -e's/[[:space:]]*$//' resources/options_lookup.tsv # Remove whitespace
           (sed -u 1q ; sort -k1 -k2) < resources/options_lookup.tsv > sorted_options_lookup.tsv
           mv sorted_options_lookup.tsv resources/options_lookup.tsv # Sort on first two columns
 
