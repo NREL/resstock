@@ -370,8 +370,8 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
           tariff = tariff[:items][0]
           fields = tariff.keys
 
+          rate.fixedmonthlycharge = 0.0
           if fields.include?(:fixedchargeunits)
-            rate.fixedmonthlycharge = 0.0 if fields.include?(:fixedchargefirstmeter) || fields.include?(:fixedchargeeaaddl)
             if tariff[:fixedchargeunits] == '$/month'
               rate.fixedmonthlycharge += tariff[:fixedchargefirstmeter] if fields.include?(:fixedchargefirstmeter)
               rate.fixedmonthlycharge += tariff[:fixedchargeeaaddl] if fields.include?(:fixedchargeeaaddl)
