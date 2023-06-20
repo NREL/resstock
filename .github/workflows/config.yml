@@ -89,21 +89,12 @@ jobs:
       - name: Run buildstockbatch
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@v2023.06.0
+                    
+          buildstock_local project_national/national_baseline.yml
+          buildstock_local project_testing/testing_baseline.yml
           
-          buildstock_local project_national/national_upgrades2.yml
-          
-          # buildstock_local project_national/national_baseline.yml
-          # buildstock_local project_testing/testing_baseline.yml
-          
-          # buildstock_local project_national/national_upgrades.yml
-          # buildstock_local project_testing/testing_upgrades.yml
-
-      - name: Upload national_upgrades2
-        uses: actions/upload-artifact@v3
-        with:
-          path: |
-            project_national/national_upgrades2
-          name: national_upgrades2
+          buildstock_local project_national/national_upgrades.yml
+          buildstock_local project_testing/testing_upgrades.yml
 
       - name: Unzip results
         run: |
