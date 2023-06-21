@@ -83,6 +83,47 @@ upgrades:
           - and:
             - HVAC Has Ducts|No
             - HVAC Cooling Type|None
+      - &add_room_ac_add_27%_partial_space_conditioning
+        option: HVAC Cooling Partial Space Conditioning|27% Conditioned
+        apply_logic:
+          - and:
+            - HVAC Has Ducts|No
+            - HVAC Cooling Type|None
+            - Geometry Floor Area Bin|4000+
+            - or:
+              - HVAC Cooling Partial Space Conditioning|<10% Conditioned
+              - HVAC Cooling Partial Space Conditioning|20% Conditioned
+      - &add_room_ac_add_36%_partial_space_conditioning
+        option: HVAC Cooling Partial Space Conditioning|36% Conditioned
+        apply_logic:
+          - and:
+            - HVAC Has Ducts|No
+            - HVAC Cooling Type|None
+            - Geometry Floor Area Bin|2500-3999
+            - or:
+              - HVAC Cooling Partial Space Conditioning|<10% Conditioned
+              - HVAC Cooling Partial Space Conditioning|20% Conditioned
+      - &add_room_ac_add_37%_partial_space_conditioning
+        option: HVAC Cooling Partial Space Conditioning|37% Conditioned
+        apply_logic:
+          - and:
+            - HVAC Has Ducts|No
+            - HVAC Cooling Type|None
+            - Geometry Floor Area Bin|1500-2499
+            - or:
+              - HVAC Cooling Partial Space Conditioning|<10% Conditioned
+              - HVAC Cooling Partial Space Conditioning|20% Conditioned
+      - &add_room_ac_add_52%_partial_space_conditioning
+        option: HVAC Cooling Partial Space Conditioning|37% Conditioned
+        apply_logic:
+          - and:
+            - HVAC Has Ducts|No
+            - HVAC Cooling Type|None
+            - Geometry Floor Area Bin|0-1499
+            - or:
+              - HVAC Cooling Partial Space Conditioning|<10% Conditioned
+              - HVAC Cooling Partial Space Conditioning|20% Conditioned
+              - HVAC Cooling Partial Space Conditioning|40% Conditioned
       - &add_central_ac
         option: HVAC Cooling Type|Central AC
         apply_logic:
