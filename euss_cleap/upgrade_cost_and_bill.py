@@ -1225,7 +1225,7 @@ def process_euss_upgrade_files(
 
 
 if __name__ == "__main__":
-    default_cost_file = datadir / "cost_Sanjose.csv"
+    default_cost_file = datadir / "cost_san_jose.csv"
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -1238,7 +1238,7 @@ if __name__ == "__main__":
         "-c",
         "--community_name",
         action="store",
-        default="San Jose",
+        default="san_jose",
         help="name of community, for adding extension to output file",
     )
     parser.add_argument(

@@ -238,17 +238,25 @@ def assign_representative_occupants(df):
     return df
 
 
-def read_file(file_path: Path, valid_only=True):
+def read_file(file_path: Path, valid_only=False, fix_dtypes=False):
     file_type = file_path.suffix
     if file_type == ".csv":
         df = pd.read_csv(file_path, low_memory=False)
-        for col in df.columns: 
-            if col.startswith("build_existing_model."):
-                df[col] = df[col].astype(str)
     elif file_type == ".parquet":
         df = pd.read_parquet(file_path)
     else:
-        raise ValueError(f"file_type={file_type} not supported")
+        raise TypeError(f"file_type={file_type} not supported")
+        
+    if fix_dtypes:
+        for col in df.columns: 
+            x = df[col].astype(str)
+            try:
+                df[col] = x.astype(int).astype(str)
+            except ValueError:
+                try:
+                    df[col] = x.astype(float)
+                except ValueError:
+                    df[col] = x
 
     if valid_only:
         print("Retaining successfully simulated building_id only.")
@@ -264,7 +272,7 @@ def write_to_file(df, file_path: Path):
     elif file_type == ".parquet":
         df.to_parquet(file_path)
     else:
-        raise ValueError(f"file_type={file_type} not supported")
+        raise TypeError(f"file_type={file_type} not supported")
 
     print("File modified and saved in place of original file.")
 
@@ -293,8 +301,9 @@ def add_ami_column_to_file(file_path):
         "=============================================================================="
     )
     file_path = Path(file_path)
-    df = read_file(file_path, valid_only=True)
+    df = read_file(file_path, valid_only=False, fix_dtypes=False)
     if len([col for col in df.columns if "build_existing_model." in col]) > 0:
+        df = read_file(file_path, valid_only=True, fix_dtypes=True)
         df = assign_representative_income(df)
         df = assign_representative_occupants(df)
         df = map_ami_by_income_limits_by_county(df)
@@ -303,6 +312,7 @@ def add_ami_column_to_file(file_path):
         cols_to_drop = list(cols_to_drop.intersection(set(df.columns)))
         df = df.drop(columns=cols_to_drop)
     else:
+        df = read_file(file_path, valid_only=True, fix_dtypes=False)
         print(f"file={file_path} is not a results_up00 file, no AMI added.")
 
     df = df.sort_values(by=["building_id"])

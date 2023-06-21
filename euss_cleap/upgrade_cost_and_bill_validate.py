@@ -227,7 +227,7 @@ if __name__ == "__main__":
         "-c",
         "--community_name",
         action="store",
-        default="San Jose",
+        default="san_jose",
         help="name of community, for pulling files containing community name for validation.",
     )
     parser.add_argument(

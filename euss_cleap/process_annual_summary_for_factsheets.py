@@ -90,31 +90,41 @@ converted_units = {
     "propane": "mmbtu",
     "total": "mmbtu",
 }
+PROPANE_HEAT_CONTENT = (
+    91452 * 1e6  # MMBTU/gal - https://www.eia.gov/energyexplained/units-and-calculators/
+)
+FUEL_OIL_HEAT_CONTENT = (
+    6287000 / 42 * 1e6
+)  # MMBTU/gal - https://www.eia.gov/energyexplained/units-and-calculators/
+CENTS_TO_DOLLARS = 1e-2
+
 na_rep = {"None": np.nan, None: np.nan, "nan": np.nan, "NAN": np.nan}
 
 class SavingsExtraction:
     def __init__(self, euss_dir, emission_type, bill_year, output_dir=None):
-
-        print(
-            "========================================================================="
-        )
-        print(
-            f"""
-            Process EUSS 1.0 summary results for C-LEAP state-level dashboard.
-            """
-        )
-        print(
-            "========================================================================="
-        )
 
         # initialize
         self.euss_dir = self.validate_euss_directory(euss_dir)
         self.data_dir = Path(__file__).resolve().parent / "data"
         self.output_dir = self.validate_directory(output_dir)
         self.emission_type = emission_type
-        self.bill_year = bill_year
+        self.bill_year = bill_year # controls state-avg bills
+        self.community = self.euss_dir.stem
 
         self.fuels = ["electricity", "natural_gas", "fuel_oil", "propane"]
+
+        print(
+            "========================================================================="
+        )
+        print(
+            f"""
+            Process preprocessed EUSS 1.0 summary results for C-LEAP factsheets
+                                       {self.community}
+            """
+        )
+        print(
+            "========================================================================="
+        )
 
     @staticmethod
     def validate_directory(output_dir=None):
@@ -141,14 +151,9 @@ class SavingsExtraction:
 
     def add_ami_to_euss_files(self):
         for file_path in self.euss_dir.iterdir():
-            if file_path.suffix != ".csv":
-                continue
-            with open(file_path, newline="") as f:
-                reader = csv.reader(f)
-                columns = next(reader)  # gets the first line
-
-                if "build_existing_model.area_median_income" not in columns:
-                    add_ami_column_to_file(file_path)  # modify file in-place
+            columns = read_file(file_path).columns
+            if "build_existing_model.area_median_income" not in columns:
+                add_ami_column_to_file(file_path)  # modify file in-place
 
     def get_fuel_use_cols(self, metric_type="energy"):
         if metric_type == "energy":
@@ -165,11 +170,14 @@ class SavingsExtraction:
                 for fu in self.fuels
             ]
 
+        if metric_type == "cbill":
+            return [f"report_utility_bills.bills_{fu}_total_usd" for fu in self.fuels]
+
         if metric_type == "bill":
             return [f"bill_{fu}_usd" for fu in self.fuels]
 
         raise ValueError(
-            f"metric_type={metric_type} unsupported. Valid only: [energy, emission, bill]"
+            f"metric_type={metric_type} unsupported. Valid only: [energy, emission, cbill, bill]"
         )
 
     @staticmethod
@@ -178,6 +186,8 @@ class SavingsExtraction:
             return "report_simulation_output.energy_use_total_m_btu"
         if metric_type == "emission":
             return "report_simulation_output.emissions_co_2_e_lrmer_low_re_cost_25_2025_start_total_lb"
+        if metric_type == "cbill":
+            return "report_utility_bills.bills_total_usd" # from community input
         if metric_type == "bill":
             return "bill_total_usd"
         raise ValueError(f"metric_type={metric_type} unsupported")
@@ -220,7 +230,7 @@ class SavingsExtraction:
         if isinstance(pkg, str):
             assert isinstance(int(pkg), int), f"Non-digit pkg = {pkg}"
             assert len(pkg) == 2, f"pkg does not have 2 digit = {pkg}"
-        found = sorted(self.euss_dir.rglob(f"results_up{pkg}.*"))
+        found = sorted(self.euss_dir.rglob(f"up{pkg}__*"))
 
         if found:
             pqt_file = [file for file in found if file.suffix == ".parquet"]
@@ -237,7 +247,7 @@ class SavingsExtraction:
                 )
 
             print(f"Loading {file}...")
-            df = read_file(file, valid_only=True)
+            df = read_file(file, valid_only=True, fix_dtypes=True)
             return df
         raise FileNotFoundError(f"Cannot locate file for pkg={pkg}")
 
@@ -277,6 +287,7 @@ class SavingsExtraction:
 
             # adjust weight by number of package
             DFB["build_existing_model.sample_weight"] /= len(pkgs)
+            DFB["sample_weight"] /= len(pkgs)
 
             return DF.reset_index(), DFB.reset_index()
 
@@ -341,7 +352,7 @@ class SavingsExtraction:
         dfu2.loc[cond] = dfu.loc[cond]
 
         # QC
-        for metric in ["energy", "emission"]:
+        for metric in ["energy", "emission", "cbill"]:
             total_col = self.get_site_total_col(metric)
             cond2 = dfu2[total_col] == dfu[total_col]
             print(
@@ -502,6 +513,7 @@ class SavingsExtraction:
             dfb = dfb.loc[cond].reset_index(drop=True)
 
         # check number of bldgs that do NOT have any of the excluded end_uses upgraded
+
         cond = dfu[name_cols].replace(na_rep).fillna("").sum(axis=1)  # replace None with ""
         cond = cond == ""  # where all cols are None
         print(
@@ -858,15 +870,18 @@ class SavingsExtraction:
         res_emission_cols = self.get_fuel_use_cols("emission") + [
             self.get_site_total_col("emission")
         ]
-
+        res_cbill_cols = self.get_fuel_use_cols("cbill") + [
+            self.get_site_total_col("cbill")
+        ]
         fuels = self.fuels + ["total"]
 
         # output cols
-        meta_cols = [x.removeprefix("build_existing_model.") for x in res_meta_cols]
+        meta_cols = res_meta_cols #[x.removeprefix("build_existing_model.") for x in res_meta_cols]
 
         energy_cols = [f"baseline_energy.{fu}_{converted_units[fu]}" for fu in fuels]
         emission_cols = [f"baseline_emission.{fu}_kgCO2e" for fu in fuels]
         bill_cols = [f"baseline_bill.{fu}_usd" for fu in fuels]
+        cbill_cols = [f"baseline_cbill.{fu}_usd" for fu in fuels]
 
         # Metered costs
         # fuel order: [electricity, NG, fuel oil, propane]
@@ -880,7 +895,8 @@ class SavingsExtraction:
         )  # list of pd.Series, $/kWh, $/therm, $/mmbtu, $/mmbtu
 
         # assemble
-        df = dfb[res_meta_cols].rename(columns=dict(zip(res_meta_cols, meta_cols)))
+        # df = dfb[res_meta_cols].rename(columns=dict(zip(res_meta_cols, meta_cols)))
+        df = dfb.copy()
         df["upgrade_name"] = "baseline"
 
         baseline_bill_for_energy_burden_tag = []
@@ -892,6 +908,8 @@ class SavingsExtraction:
 
             conv = LB_TO_KG
             df[emission_cols[i]] = dfb[res_emission_cols[i]] * conv
+
+            df[cbill_cols[i]] = dfb[res_cbill_cols[i]]
 
             if fu == "total":
                 baseline_bill_for_energy_burden_tag = pd.concat(
@@ -952,6 +970,16 @@ class SavingsExtraction:
                 df["baseline_bill.total_usd"] == 0,
                 np.nan,
                 np.where(df["baseline_bill.total_usd"] > 0, np.inf, -np.inf),
+            ),
+        )
+        # energy burden based on community bills
+        df[f"baseline_energy_burden_2023_cbills.%"] = np.where(
+            dfb["rep_income"] > 0,
+            (df["baseline_cbill.total_usd"].divide(dfb["rep_income"]) * 100).round(2),
+            np.where(
+                df["baseline_cbill.total_usd"] == 0,
+                np.nan,
+                np.where(df["baseline_cbill.total_usd"] > 0, np.inf, -np.inf),
             ),
         )
 
@@ -1032,6 +1060,7 @@ class SavingsExtraction:
             del fu, fb
             # adjust weight by number of package
             dfb["build_existing_model.sample_weight"] /= len(pkgs)
+            dfb["sample_weight"] /= len(pkgs)
 
         else:
             dfu, dfb = self.load_results_upgrade(pkgs)
@@ -1047,11 +1076,10 @@ class SavingsExtraction:
         res_emission_cols = self.get_fuel_use_cols("emission") + [
             self.get_site_total_col("emission")
         ]
-
         fuels = self.fuels + ["total"]
 
         # output cols
-        meta_cols = [x.removeprefix("build_existing_model.") for x in res_meta_cols]
+        meta_cols = res_meta_cols #[x.removeprefix("build_existing_model.") for x in res_meta_cols]
 
         energy_cols = [f"baseline_energy.{fu}_{converted_units[fu]}" for fu in fuels]
         energy_svg_cols = [f"saving_energy.{fu}_{converted_units[fu]}" for fu in fuels]
@@ -1065,8 +1093,13 @@ class SavingsExtraction:
         bill_svg_cols = [f"saving_bill.{fu}_usd" for fu in fuels]
         bill_svg_pct_cols = [f"pct_saving_bill.{fu}_%" for fu in fuels]
 
-        # Metered costs
-        # fuel order: [electricity, NG, fuel oil, propane]
+        # these will be calculated similarly to (state) bills
+        cbill_cols = [f"baseline_cbill.{fu}_usd" for fu in fuels]
+        cbill_svg_cols = [f"saving_cbill.{fu}_usd" for fu in fuels] # calc same as bill_svg_cols
+        cbill_svg_pct_cols = [f"pct_saving_cbill.{fu}_%" for fu in fuels] # calc same as bill_svg_cols
+
+        # State-level rates
+        # Metered costs in fuel order: [electricity, NG, fuel oil, propane]
         fixed_annum = self.load_utility_fixed_metered_rates()
 
         variable_rates_2019 = self.load_utility_variable_rates(
@@ -1076,8 +1109,12 @@ class SavingsExtraction:
             year=self.bill_year
         )  # list of pd.Series, $/kWh, $/therm, $/mmbtu, $/mmbtu
 
+        # Community-level rates:
+        comm_fixed_annum, comm_variable_rates = self.load_community_fixed_and_variable_rates()
+
         # assemble
-        df = dfb[res_meta_cols].rename(columns=dict(zip(res_meta_cols, meta_cols)))
+        # df = dfb[res_meta_cols].rename(columns=dict(zip(res_meta_cols, meta_cols)))
+        df = dfb.copy()
         df["upgrade_name"] = pkg_name
         df["upgrade_cost_usd"] = dfu[self.get_upgrade_cost_col()]  # TODO fix to subset
 
@@ -1170,6 +1207,41 @@ class SavingsExtraction:
                 ),
             )
 
+
+            # community bills
+            if fu == "total":
+                df[cbill_cols[i]] = df[cbill_cols[:i]].sum(axis=1)
+                df[cbill_svg_cols[i]] = df[cbill_svg_cols[:i]].sum(axis=1)
+            else:
+                conv = conversion_factors_from_mmbtu[fu]
+
+                # get variable rates
+                cvar_rate = comm_variable_rates[i]
+                cbill_baseline = np.where(
+                    dfb[res_energy_cols[i]] > 0,
+                    dfb[res_energy_cols[i]] * conv * cvar_rate + comm_fixed_annum[i],
+                    0,
+                )
+                cbill_upgrade = np.where(
+                    dfu[res_energy_cols[i]] > 0,
+                    dfu[res_energy_cols[i]] * conv * cvar_rate + comm_fixed_annum[i],
+                    0,
+                )
+                df[cbill_cols[i]] = cbill_baseline
+                df[cbill_svg_cols[i]] = (
+                    cbill_baseline - cbill_upgrade
+                )  # positive saving = net decrease
+
+            df[cbill_svg_pct_cols[i]] = np.where(
+                df[cbill_cols[i]] > 0,
+                (df[cbill_svg_cols[i]].divide(df[cbill_cols[i]]) * 100).round(2),
+                np.where(
+                    df[cbill_svg_cols[i]] == 0,
+                    np.nan,
+                    np.where(df[cbill_svg_cols[i]] > 0, np.inf, -np.inf),
+                ),
+            )
+
         baseline_energy_burden_2019 = pd.Series(
             np.where(
                 dfb["rep_income"] > 0,
@@ -1209,6 +1281,25 @@ class SavingsExtraction:
             ),
         )
 
+        # energy burden based on community bills
+        df[f"baseline_energy_burden_2023_cbills.%"] = np.where(
+            dfb["rep_income"] > 0,
+            (df["baseline_cbill.total_usd"].divide(dfb["rep_income"]) * 100).round(2),
+            np.where(
+                df["baseline_cbill.total_usd"] == 0,
+                np.nan,
+                np.where(df["baseline_cbill.total_usd"] > 0, np.inf, -np.inf),
+            ),
+        )
+        upgraded_bill = df["baseline_cbill.total_usd"] - df["saving_cbill.total_usd"]
+        df[f"post-upgrade_energy_burden_2023_cbills.%"] = np.where(
+            dfb["rep_income"] > 0,
+            (upgraded_bill.divide(dfb["rep_income"]) * 100).round(2),
+            np.where(
+                upgraded_bill == 0, np.nan, np.where(upgraded_bill > 0, np.inf, -np.inf)
+            ),
+        )
+
         # rearrange cols
         meta_cols = meta_cols + ["rep_income", "energy_burden", "upgrade_name"]
         metric_cols = [col for col in df.columns if col not in meta_cols]
@@ -1218,9 +1309,10 @@ class SavingsExtraction:
         # retain only 1 pkg worth of data by averaging
         if isinstance(pkgs, list):
             df = df.groupby(meta_cols)[metric_cols].mean().reset_index()
+            df["build_existing_model.sample_weight"] *= len(pkgs)
             df["sample_weight"] *= len(pkgs)  # redo weight
 
-        df.to_parquet(output_file)
+        # df.to_parquet(output_file)
         print(f" - Completed {pkg_name} using packages: {pkgs}\n")
 
         return df
@@ -1285,7 +1377,6 @@ class SavingsExtraction:
             vr_propane / hc_propane,
         ]
 
-
     @staticmethod
     def load_utility_fixed_metered_rates():
         """ by state """
@@ -1297,33 +1388,45 @@ class SavingsExtraction:
         ]  # $/year # based on fixed charges derived for Res Facades (Elaina.Present@nrel.gov)
         return fixed_annum
 
+    def load_community_fixed_and_variable_rates(self):
+        cost = pd.read_csv(self.output_dir.parents[1] / "community_cost" / f"cost_{self.community}.csv")
+
+        ele_price = cost.iat[38, 1] * CENTS_TO_DOLLARS  # c/kwh -> $/kwh
+        ele_month_fix = cost.iat[38, 3]  # $/month
+        gas_price = cost.iat[39, 1]  # $/therm
+        gas_month_fix = cost.iat[39, 3]  # $/month
+        propane_price = cost.iat[40, 1]  # $/gal
+        propane_month_fix = cost.iat[40, 3]  # $/month
+        oil_price = cost.iat[41, 1]  # $/gal
+        oil_month_fix = cost.iat[41, 3]  # $/month
+
+        # fuel order: [electricity, NG, fuel oil, propane]
+        fixed_annum = [ele_month_fix, gas_month_fix, oil_month_fix, propane_month_fix]*12
+        # $/kWh, $/therm, $/mmbtu, $/mmbtu
+        var_rates = [ele_price, gas_price, oil_price/FUEL_OIL_HEAT_CONTENT, propane_price/PROPANE_HEAT_CONTENT]
+        return fixed_annum, var_rates
 
 ###### main ######
 
-# calculated unit count, rep unit count, savings by fuel, carbon saving
-
-
 def main(euss_dir):
-
-    output_dir = Path(
-        "/Volumes/Lixi_Liu/cleap_dashboard_files"
-    )  # Path(__file__).resolve().parent / "test_output"
+    output_dir = Path(euss_dir)
     emission_type = "lrmer_low_re_cost_25_2025_start"
     bill_year = 2019
 
     SE = SavingsExtraction(euss_dir, emission_type, bill_year, output_dir=output_dir)
     # SE.add_ami_to_euss_files()
 
-    DF = []
+    # baseline
+    DF = [SE.get_data_baseline()]
 
     # [1] Basic enclosure: all (pkg 1)
-    DF.append(SE.get_data(1, "enclosure.basic_upgrade"))
+    DF.append(SE.get_data(1, "Basic Enclosure"))
 
     # [2] Enhanced enclosure: all (pkg 2)
     DF.append(
         SE.get_data(
             2,
-            "enclosure.enhanced_upgrade",
+            "Enhanced Enclosure",
         )
     )
 
@@ -1331,7 +1434,7 @@ def main(euss_dir):
     DF.append(
         SE.get_data(
             3,
-            "hvac.heat_pump_min_eff_electric_backup",
+            "Mininum Efficiency Heat Pump with Electric Heat Backup",
         )
     )
 
@@ -1339,7 +1442,7 @@ def main(euss_dir):
     DF.append(
         SE.get_data(
             4,
-            "hvac.heat_pump_high_eff_electric_backup",
+            "High Efficiency Heat Pump with Electric Heat Backup",
         )
     )
 
@@ -1347,7 +1450,7 @@ def main(euss_dir):
     DF.append(
         SE.get_data(
             5,
-            "hvac.heat_pump_min_eff_existing_backup",
+            "Mininum Efficiency Heat Pump with Existing Heat Backup",
         )
     )
 
@@ -1355,7 +1458,7 @@ def main(euss_dir):
     DF.append(
         SE.get_data(
             9,
-            "hvac.heat_pump_high_eff_electric_backup + HPWH + enclosure.basic_upgrade",
+            "Basic Enclosure + HPWH + High Efficiency HP/Electric Backup",
             adjustment_type="extract_end_uses_by_excluding",
             end_uses=["clothes_dryer", "range_oven"],
         )
@@ -1365,7 +1468,7 @@ def main(euss_dir):
     DF.append(
         SE.get_data(
             10,
-            "hvac.heat_pump_high_eff_electric_backup + HPWH + enclosure.enhanced_upgrade",
+            "Enhanced Enclosure + HPWH + High Efficiency HP/Electric Backup",
             adjustment_type="extract_end_uses_by_excluding",
             end_uses=["clothes_dryer", "range_oven"],
         )
@@ -1375,7 +1478,7 @@ def main(euss_dir):
     DF.append(
         SE.get_data(
             6,
-            "water_heater.heat_pump",
+            "Heat Pump Water Heater",
         )
     )
 
@@ -1383,7 +1486,7 @@ def main(euss_dir):
     DF.append(
         SE.get_data(
             7,
-            "clothes_dryer.electric",
+            "Electric Clothes Dryer",
             adjustment_type="extract_end_uses",
             end_uses=["clothes_dryer"],
         )
@@ -1393,7 +1496,7 @@ def main(euss_dir):
     DF.append(
         SE.get_data(
             [8, 9, 10],
-            "clothes_dryer.heat_pump",
+            "Heat Pump Clothes Dryer",
             adjustment_type="extract_end_uses",
             end_uses=["clothes_dryer"],
         )
@@ -1403,7 +1506,7 @@ def main(euss_dir):
     DF.append(
         SE.get_data(
             7,
-            "cooking.electric",
+            "Electric Cooking",
             adjustment_type="extract_end_uses",
             end_uses=["range_oven"],
         )
@@ -1413,7 +1516,7 @@ def main(euss_dir):
     DF.append(
         SE.get_data(
             [8, 9, 10],
-            "cooking.induction",
+            "Induction Cooking",
             adjustment_type="extract_end_uses",
             end_uses=["range_oven"],
         )
@@ -1424,36 +1527,36 @@ def main(euss_dir):
     DF.append(
         SE.get_data(
             7,
-            "whole_home.electrification_min_eff",
+            "Mininum Efficiency Whole Home Electrification",
         )
     )
     # [14] pkg 8 - all
     DF.append(
         SE.get_data(
             8,
-            "whole_home.electrification_high_eff",
+            "High Efficiency Whole Home Electrification",
         )
     )
     # [15] pkg 9 - all
     DF.append(
         SE.get_data(
             9,
-            "whole_home.electrification_high_eff + enclosure.basic_upgrade",
+            "Basic Enclosure + High Efficiency Whole Home Electrification",
         )
     )
     # [16] pkg 10 - all
     DF.append(
         SE.get_data(
             10,
-            "whole_home.electrification_high_eff + enclosure.enhanced_upgrade",
+            "Enhanced Enclosure + High Efficiency Whole Home Electrification",
         )
     )
 
-    pd.concat(DF, axis=0).to_csv(
-        euss_dir.parent / "cleap_dashboard_files" / "process_euss_results.csv",
-        index=False,
-    )
+    DF = pd.concat(DF, axis=0)
 
+    # save to file
+    DF.to_parquet(output_dir / "process_upgrade_results.parquet")
+    DF.to_csv(output_dir / "process_upgrade_results.csv", index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -1462,4 +1565,5 @@ if __name__ == "__main__":
         help=f"path to directory containing EUSS result csv files",
     )
     args = parser.parse_args()
-    main(args.upgrade_run_result_directory)
+    euss_dir = args.upgrade_run_result_directory
+    main(euss_dir)
