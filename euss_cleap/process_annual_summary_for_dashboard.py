@@ -223,26 +223,26 @@ class SavingsExtraction:
         found = sorted(self.euss_dir.rglob(f"results_up{pkg}.*"))
 
         if found:
-            pqt_file = [file for file in found if file.suffix==".parquet"]
-            csv_file = [file for file in found if file.suffix==".csv"]
-            if len(pqt_file)==1:
+            pqt_file = [file for file in found if file.suffix == ".parquet"]
+            csv_file = [file for file in found if file.suffix == ".csv"]
+            if len(pqt_file) == 1:
                 file = pqt_file[0]
-            elif len(csv_file)==1:
+            elif len(csv_file) == 1:
                 file = csv_file[0]
             else:
-                raise ValueError(f"Multiple possible files found for {pkg}: {found}. "
+                raise ValueError(
+                    f"Multiple possible files found for {pkg}: {found}. "
                     f"Please keep files in {self.euss_dir} in original naming conventions. "
-                    "e.g., results_up00.parquet (preferred) or results_up00.csv")
+                    "e.g., results_up00.parquet (preferred) or results_up00.csv"
+                )
 
         print(f"Loading {file}...")
         df = read_file(file, valid_only=True)
 
         return df
 
-
     def load_results_baseline(self):
         return self.load_file(0)
-
 
     def load_results_upgrade(self, pkgs: list):
 
@@ -572,7 +572,7 @@ class SavingsExtraction:
             dfb = dfb.loc[cond].reset_index(drop=True)
 
         # check number of bldgs that ONLY have the end_uses upgraded
-        if len(name_cols_else)==0:
+        if len(name_cols_else) == 0:
             # no other columns, so all have the end_uses upgraded
             n_applied = len(dfu)
         else:
@@ -842,7 +842,6 @@ class SavingsExtraction:
         new_cols = [col for col in dfb.columns if col not in cols]
 
         return dfb, new_cols
-        
 
     def get_data_baseline(self):
         """Extract technology savings based on input pkg lists
@@ -875,6 +874,22 @@ class SavingsExtraction:
         energy_cols = [f"baseline_energy.{fu}_{converted_units[fu]}" for fu in fuels]
         emission_cols = [f"baseline_emission.{fu}_kgCO2e" for fu in fuels]
         bill_cols = [f"baseline_bill.{fu}_usd" for fu in fuels]
+
+        # Metered costs
+        # fuel order: [electricity, NG, fuel oil, propane]
+        fixed_annum = [
+            10 * 12,  # Nov 2021 Utility Rate Database
+            11.25 * 12,  # American Gas Association (2015)
+            0 * 12,
+            0 * 12,
+        ]  # $/year # based on fixed charges derived for Res Facades (Elaina.Present@nrel.gov)
+
+        variable_rates_2019 = self.load_utility_variable_rates(
+            year=2019
+        )  # list of pd.Series, $/kWh, $/therm, $/mmbtu, $/mmbtu
+        variable_rates = self.load_utility_variable_rates(
+            year=self.bill_year
+        )  # list of pd.Series, $/kWh, $/therm, $/mmbtu, $/mmbtu
 
         # assemble
         df = dfb[res_meta_cols].rename(columns=dict(zip(res_meta_cols, meta_cols)))
@@ -1006,7 +1021,9 @@ class SavingsExtraction:
         output_file = self.output_dir / f"results__{pkgn}.parquet"
 
         if output_file.exists():
-            print(f" --- Compiled data found, loading data directly for [[ {pkg_name} ]] using packages: {pkgs} --- ")
+            print(
+                f" --- Compiled data found, loading data directly for [[ {pkg_name} ]] using packages: {pkgs} --- "
+            )
             df = pd.read_parquet(output_file)
             return df
 
@@ -1296,7 +1313,7 @@ def main(euss_dir):
         "/Volumes/Lixi_Liu/cleap_dashboard_files"
     )  # Path(__file__).resolve().parent / "test_output"
     emission_type = "lrmer_low_re_cost_25_2025_start"
-    bill_year = "auto" #2019
+    bill_year = 2019
 
     SE = SavingsExtraction(euss_dir, emission_type, bill_year, output_dir=output_dir)
     # SE.add_ami_to_euss_files()
