@@ -150,7 +150,7 @@ class SavingsExtraction:
         return euss_dir
 
     def add_ami_to_euss_files(self):
-        for file_path in self.euss_dir.iterdir():
+        for file_path in self.euss_dir.rglob("*up??__*"):
             columns = read_file(file_path).columns
             if "build_existing_model.area_median_income" not in columns:
                 add_ami_column_to_file(file_path)  # modify file in-place
@@ -1414,7 +1414,7 @@ def main(euss_dir):
     bill_year = 2019
 
     SE = SavingsExtraction(euss_dir, emission_type, bill_year, output_dir=output_dir)
-    # SE.add_ami_to_euss_files()
+    SE.add_ami_to_euss_files()
 
     # baseline
     DF = [SE.get_data_baseline()]

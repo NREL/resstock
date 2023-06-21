@@ -262,7 +262,7 @@ def read_file(file_path: Path, valid_only=False, fix_dtypes=False):
         print("Retaining successfully simulated building_id only.")
         df = df.loc[df["completed_status"] == "Success"].reset_index(drop=True)
 
-        return df
+    return df
 
 
 def write_to_file(df, file_path: Path):
