@@ -1555,8 +1555,8 @@ def main(euss_dir):
     DF = pd.concat(DF, axis=0)
 
     # save to file
-    DF.to_parquet(output_dir / "process_upgrade_results.parquet")
-    DF.to_csv(output_dir / "process_upgrade_results.csv", index=False)
+    DF.to_parquet(output_dir / "processed_upgrade_results.parquet")
+    DF.to_csv(output_dir / "processed_upgrade_results.csv", index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

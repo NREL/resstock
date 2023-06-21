@@ -633,7 +633,7 @@ key_HC = [
 ]
 
 ## [0] setup input
-communities = ["louisville", "san_jose", "columbia", "north_birmingham", ] #"jackson_county", "duluth", "hill_district",]
+communities = ["louisville", "san_jose", "columbia", "north_birmingham", "jackson_county", "duluth", "hill_district",]
 method = 1 # <--- TODO
 n = 1000 # <----
 # community = "hill_district" # <--- # 
