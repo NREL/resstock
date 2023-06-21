@@ -8,22 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  clean-files:
-    runs-on: ubuntu-latest    
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
-      - name: Clean Files
-        shell: bash
-        run: |
-          ls ${{ github.workspace }}
-          echo
-          ls ${{ github.workspace }}/resources
-          sed -i -e 's/[[:space:]]*$//' ${{ github.workspace }}/resources/options_lookup.tsv # Remove whitespace
-          # (sed -u 1q ; sort -k1 -k2) < ${{ github.workspace }}/resources/options_lookup.tsv > sorted_options_lookup.tsv
-          # mv sorted_options_lookup.tsv ${{ github.workspace }}/resources/options_lookup.tsv # Sort on first two columns
-
   unit-tests:
     runs-on: ubuntu-latest
     container:
@@ -316,7 +300,6 @@ jobs:
           cp -r results/upgrades/timeseries/*.csv test/base_results/upgrades/timeseries
           git add test/base_results
           git add docs
-          git add resources/options_lookup.tsv
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"
