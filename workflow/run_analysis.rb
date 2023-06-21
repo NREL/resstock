@@ -140,6 +140,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
     if workflow_args.keys.include?('utility_bills')
       utility_bills = workflow_args['utility_bills']
       bld_exist_model_args['utility_bill_scenario_names'] = utility_bills.collect { |s| s['scenario_name'] }.join(',')
+      bld_exist_model_args['utility_bill_simple_filepaths'] = utility_bills.collect { |s| s['simple_filepath'] }.join(',')
       bld_exist_model_args['utility_bill_electricity_fixed_charges'] = utility_bills.collect { |s| s['elec_fixed_charge'] }.join(',')
       bld_exist_model_args['utility_bill_electricity_marginal_rates'] = utility_bills.collect { |s| s['elec_marginal_rate'] }.join(',')
       bld_exist_model_args['utility_bill_natural_gas_fixed_charges'] = utility_bills.collect { |s| s['gas_fixed_charge'] }.join(',')
@@ -164,10 +165,25 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
 
     sim_out_rep_args = {
       'output_format' => 'csv',
+      'include_annual_total_consumptions' => true,
+      'include_annual_fuel_consumptions' => true,
+      'include_annual_end_use_consumptions' => true,
+      'include_annual_system_use_consumptions' => false,
+      'include_annual_emissions' => true,
+      'include_annual_emission_fuels' => true,
+      'include_annual_emission_end_uses' => true,
+      'include_annual_total_loads' => true,
+      'include_annual_unmet_hours' => true,
+      'include_annual_peak_fuels' => true,
+      'include_annual_peak_loads' => true,
+      'include_annual_component_loads' => true,
+      'include_annual_hot_water_uses' => true,
+      'include_annual_hvac_summary' => true,
       'timeseries_frequency' => 'none',
       'include_timeseries_total_consumptions' => false,
       'include_timeseries_fuel_consumptions' => false,
       'include_timeseries_end_use_consumptions' => true,
+      'include_timeseries_system_use_consumptions' => false,
       'include_timeseries_emissions' => false,
       'include_timeseries_emission_fuels' => false,
       'include_timeseries_emission_end_uses' => false,
@@ -243,7 +259,8 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
           'hpxml_path' => '',
           'output_dir' => '',
           'debug' => debug,
-          'add_component_loads' => add_component_loads
+          'add_component_loads' => add_component_loads,
+          'skip_validation' => true
         }
       }
     ]

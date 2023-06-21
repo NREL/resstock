@@ -17,7 +17,7 @@ This repository contains:
   - v2.2.5 and prior: [Project folder openable in PAT](https://github.com/NREL/resstock/tree/v2.2.5/project_singlefamilydetached)
 - Unit-level OpenStudio Measures for automatically constructing OpenStudio Models of each representative dwelling unit model:
   - v3.0.0 and later: [OpenStudio-HPXML Measures](https://github.com/NREL/resstock/tree/main/resources/hpxml-measures)
-  - v2.5.0 and prior: [OpenStudio Measures](https://github.com/NREL/resstock/tree/main/resources/measures)
+  - v2.5.0 and prior: [OpenStudio Measures](https://github.com/NREL/resstock/tree/v2.5.0/resources/measures)
 - [Higher-level OpenStudio Measures](https://github.com/NREL/resstock/tree/main/measures) for controlling simulation inputs and outputs
 
 This repository does not contain software for running ResStock simulations, which can be found as follows:

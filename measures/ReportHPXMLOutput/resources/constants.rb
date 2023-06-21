@@ -21,39 +21,6 @@ class BO
   SystemsWaterHeaterVolume = 'Systems: Water Heater Tank Volume'
   SystemsMechanicalVentilationFlowRate = 'Systems: Mechanical Ventilation Flow Rate'
 
-  DesignTemperatureHeating = 'Design Temperature: Heating'
-  DesignTemperatureCooling = 'Design Temperature: Cooling'
-
-  DesignLoadsHeatingTotal = 'Design Loads Heating: Total'
-  DesignLoadsHeatingDucts = 'Design Loads Heating: Ducts'
-  DesignLoadsHeatingWindows = 'Design Loads Heating: Windows'
-  DesignLoadsHeatingSkylights = 'Design Loads Heating: Skylights'
-  DesignLoadsHeatingDoors = 'Design Loads Heating: Doors'
-  DesignLoadsHeatingWalls = 'Design Loads Heating: Walls'
-  DesignLoadsHeatingRoofs = 'Design Loads Heating: Roofs'
-  DesignLoadsHeatingFloors = 'Design Loads Heating: Floors'
-  DesignLoadsHeatingSlabs = 'Design Loads Heating: Slabs'
-  DesignLoadsHeatingCeilings = 'Design Loads Heating: Ceilings'
-  DesignLoadsHeatingInfilVent = 'Design Loads Heating: Infiltration/Ventilation'
-
-  DesignLoadsCoolingSensibleTotal = 'Design Loads Cooling Sensible: Total'
-  DesignLoadsCoolingSensibleDucts = 'Design Loads Cooling Sensible: Ducts'
-  DesignLoadsCoolingSensibleWindows = 'Design Loads Cooling Sensible: Windows'
-  DesignLoadsCoolingSensibleSkylights = 'Design Loads Cooling Sensible: Skylights'
-  DesignLoadsCoolingSensibleDoors = 'Design Loads Cooling Sensible: Doors'
-  DesignLoadsCoolingSensibleWalls = 'Design Loads Cooling Sensible: Walls'
-  DesignLoadsCoolingSensibleRoofs = 'Design Loads Cooling Sensible: Roofs'
-  DesignLoadsCoolingSensibleFloors = 'Design Loads Cooling Sensible: Floors'
-  DesignLoadsCoolingSensibleSlabs = 'Design Loads Cooling Sensible: Slabs'
-  DesignLoadsCoolingSensibleCeilings = 'Design Loads Cooling Sensible: Ceilings'
-  DesignLoadsCoolingSensibleInfilVent = 'Design Loads Cooling Sensible: Infiltration/Ventilation'
-  DesignLoadsCoolingSensibleIntGains = 'Design Loads Cooling Sensible: Internal Gains'
-
-  DesignLoadsCoolingLatentTotal = 'Design Loads Cooling Latent: Total'
-  DesignLoadsCoolingLatentDucts = 'Design Loads Cooling Latent: Ducts'
-  DesignLoadsCoolingLatentInfilVent = 'Design Loads Cooling Latent: Infiltration/Ventilation'
-  DesignLoadsCoolingLatentIntGains = 'Design Loads Cooling Latent: Internal Gains'
-
   def self.get_units(bldg_type)
     if bldg_type.include? 'Area'
       return 'ft^2'
@@ -67,10 +34,6 @@ class BO
       return 'cfm'
     elsif bldg_type == 'Fixed'
       return '1'
-    elsif bldg_type.include? 'Design Temperature'
-      return 'F'
-    elsif bldg_type.include? 'Design Loads'
-      return 'Btu/h'
     end
 
     fail "Unable to assign units to: #{bldg_type}"

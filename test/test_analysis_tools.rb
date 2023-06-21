@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/autorun'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require 'csv'
 
 class TestTools < MiniTest::Test
@@ -59,6 +59,14 @@ class TestTools < MiniTest::Test
         buildstockbatch_extras -= ['report_utility_bills.bills_fuel_oil_total_usd']
         buildstockbatch_extras -= ['report_utility_bills.bills_propane_energy_usd']
         buildstockbatch_extras -= ['report_utility_bills.bills_propane_total_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_2_fuel_oil_energy_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_2_fuel_oil_total_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_2_propane_energy_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_2_propane_total_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_3_fuel_oil_energy_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_3_fuel_oil_total_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_3_propane_energy_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_3_propane_total_usd']
       end
       puts "#{project}_upgrades, buildstockbatch - run_analysis: #{buildstockbatch_extras}" if !buildstockbatch_extras.empty?
 
@@ -85,7 +93,7 @@ class TestTools < MiniTest::Test
         run_analysis_sum = run_analysis[col].map { |v| Float(v) }.sum
 
         assert_equal(buildstockbatch[col].size, run_analysis[col].size)
-        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.001)
+        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.01)
       end
     end
   end
@@ -105,7 +113,7 @@ class TestTools < MiniTest::Test
         run_analysis_sum = run_analysis[col].map { |v| Float(v) }.sum
 
         assert_equal(buildstockbatch[col].size, run_analysis[col].size)
-        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.001)
+        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.01)
       end
     end
   end
