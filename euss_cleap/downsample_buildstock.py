@@ -10,9 +10,6 @@ import logging
 
 from utils.sampling_probability import level_calc
 
-
-logger = logging.getLogger(__name__)
-
 def downselect_buildstock(bst_to_match, bst_to_search, HC_list, HC_fallback=None, n=1000, method=1):
     """ downselect buildings in bst_to_search based on bst_to_match 
     by matching the marginal for HC_to_match as much as possible
@@ -39,7 +36,8 @@ def downselect_buildstock(bst_to_match, bst_to_search, HC_list, HC_fallback=None
         weight_map : a subset of bst_to_search based on matching criteria
     """
     ### Input processing 
-    HC_check_additional = ["Vacancy Status", "Federal Poverty Level", "Tenure"]
+    HC_check_additional = ["Vacancy Status", "Tenure", "Federal Poverty Level"]
+    HC_check_additional_results = [f"build_existing_model.{x.lower().replace(' ','_')}" for x in HC_check_additional]
     HCM_all, HCMF, bst_to_match_type, _, bst_to_match = process_input(bst_to_match, HC_list+HC_check_additional, HC_fallback=HC_fallback)
     HCS_all, HCSF, bst_to_search_type, bldg_col_name, bst_to_search = process_input(bst_to_search, HC_list+HC_check_additional, HC_fallback=HC_fallback)
 
@@ -49,6 +47,10 @@ def downselect_buildstock(bst_to_match, bst_to_search, HC_list, HC_fallback=None
         logger.info(f"bst_to_match has {len(bst_to_match)} samples and over threshold n={n}, returning building_id and weight directly.")
         weight_map = _aggregate_weight(bst_to_match, [bldg_col_name], value_name="sample_weight", normalize=True)
         weight_map *= len(weight_map)
+
+        check_results(bst_to_match)
+        for hc in HC_check_additional_results:
+            check_results(bst_to_match, groupby_truth=hc)
         return weight_map.to_frame().reset_index()
 
     # QC
@@ -119,10 +121,10 @@ def downselect_buildstock(bst_to_match, bst_to_search, HC_list, HC_fallback=None
 
     if bst_to_match_type == "result" and bst_to_search_type == "result":
         bst_to_search = bst_to_search.join(weight_map.set_index(bldg_col_name), on=bldg_col_name, how="right")
-        check_results(bst_to_match, bst_to_search)
+        check_results(bst_to_match, df_matched=bst_to_search)
 
-        for hc in ["build_existing_model.vacancy_status", "build_existing_model.tenure", "build_existing_model.federal_poverty_level"]:
-            check_results(bst_to_match, bst_to_search, groupby_truth=hc, groupby_matched=hc)
+        for hc in HC_check_additional_results:
+            check_results(bst_to_match, df_matched=bst_to_search, groupby_truth=hc, groupby_matched=hc)
 
     
     return weight_map.sort_values(by=bldg_col_name)
@@ -319,19 +321,28 @@ def check_marginals(dfm, dfs, weight_map, HCM, HCS, bldg_col_name):
         _check_marginal(truth, matched, hcm)
         
 
-def check_results(df_truth, df_matched, groupby_truth=None, groupby_matched=None):
-    df = df_matched.copy()
+def check_results(df_truth, df_matched=None, groupby_truth=None, groupby_matched=None):
+    cols_to_check_renamed = [x.split(".")[1] for x in cols_to_check]
+    dft = df_truth.rename(columns=dict(zip(cols_to_check, cols_to_check_renamed)))
 
-    df[cols_to_check] = df[cols_to_check].mul(df["sample_weight"], axis=0)
     if groupby_truth is not None:
-        df_truth = df_truth.groupby(groupby_truth)
-        df = df.groupby(groupby_matched)
-
-    truth = df_truth[cols_to_check].mean().sort_index()
-    matched = (df[cols_to_check].sum().div(df["sample_weight"].sum(), axis=0)).sort_index()
-
+        dft = dft.groupby(groupby_truth)
+    truth = dft[cols_to_check_renamed].mean().sort_index()
     if groupby_truth is not None:
         truth = truth.unstack().swaplevel().sort_index()
+
+    if df_matched is None:
+        logger.info("truth = matched - per dwelling unit energy:" )
+        logger.info(f"\n{truth} \n")
+        return
+
+    # if df_matched is not None
+    df = df_matched.rename(columns=dict(zip(cols_to_check, cols_to_check_renamed)))
+    df[cols_to_check_renamed] = df[cols_to_check_renamed].mul(df["sample_weight"], axis=0)
+    if groupby_matched is not None:
+        df = df.groupby(groupby_matched)
+    matched = (df[cols_to_check_renamed].sum().div(df["sample_weight"].sum(), axis=0)).sort_index()
+    if groupby_matched is not None:
         matched = matched.unstack().swaplevel().sort_index()
 
     pct_diff = round(((matched - truth) / truth)*100, 6)
@@ -523,6 +534,7 @@ def modulate_weight(dfm, dfs, hcm: str, hcs: str):
 
 def modulate_weight_2(dfm, dfs, hcm: str, hcs: str):
     """ Normalize housing characteristic (HC) in df_to_search based on prevalence of the HC in df_to_match
+    unused
 
     Args:
         dfm : pd.DataFrame
@@ -564,12 +576,12 @@ def modulate_weight_2(dfm, dfs, hcm: str, hcs: str):
     return weight
 
 def setup_logging(
-        filename, file_level=logging.INFO, console_level=logging.INFO
+        name, filename, file_level=logging.INFO, console_level=logging.INFO
         ):
     global logger
-    logger = logging.getLogger("downsampling")
+    logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
-    fh = logging.FileHandler(filename, mode="w+")
+    fh = logging.FileHandler(filename, mode="w")
     fh.setLevel(file_level)
     ch = logging.StreamHandler()
     ch.setLevel(console_level)
@@ -638,14 +650,14 @@ method = 1 # <--- TODO
 n = 1000 # <----
 # community = "hill_district" # <--- # 
 
-for community in communities:
 
-    ## [1] define buildstock to search:
-    # EUSS buildstock
-    # buildstock_database = Path("/Users/lliu2/Documents/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_buildstock.csv")
-    # df_main = pd.read_csv(buildstock_database, dtype=str)
-    buildstock_database = Path("/Users/lliu2/Documents/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")
-    df_main = pd.read_parquet(buildstock_database)
+
+## [1] define buildstock to search:
+# EUSS buildstock
+# buildstock_database = Path("/Users/lliu2/Documents/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_buildstock.csv")
+# df_main = pd.read_csv(buildstock_database, dtype=str)
+buildstock_database = Path("/Users/lliu2/Documents/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")
+df_main = pd.read_parquet(buildstock_database)
 
     ## [2] define buildstock to match:
     # 2.1. new buildstock
@@ -654,13 +666,12 @@ for community in communities:
     # buildstock_to_match = Path("/Users/lliu2/Documents/GitHub/ResStock/euss_cleap/data/results_up00-duluth-county.csv")  # <---
     # df_match = pd.read_csv(buildstock_to_match, low_memory=False)
 
+for community in communities:
     # 2.1. hard down-selected EUSS buildstock
-
     # set up logger
-    setup_logging(datadir / f"output__method{method}__{community}.log")
+    setup_logging(community, datadir / f"output__method{method}__{community}.log")
 
     if community == "duluth":
-        # df_match = df_main.loc[df_main["PUMA"]=="MN, 00500"].reset_index(drop=True)
         df_match = df_main.loc[df_main["build_existing_model.puma"]=="MN, 00500"].reset_index(drop=True)
     elif community == "hill_district":
         df_match = df_main.loc[df_main["build_existing_model.puma"]=="PA, 01701"].reset_index(drop=True)
@@ -676,12 +687,12 @@ for community in communities:
             "CA, 08520",
             "CA, 08521",
 
-            "CA, 08506", # secondary
-            "CA, 08507", # secondary
-            "CA, 08515", # secondary
-            "CA, 08516", # secondary
-            "CA, 08517", # secondary
-            "CA, 08522", # secondary
+            # "CA, 08506", # secondary
+            # "CA, 08507", # secondary
+            # "CA, 08515", # secondary
+            # "CA, 08516", # secondary
+            # "CA, 08517", # secondary
+            # "CA, 08522", # secondary
         ]
         df_match = df_main.loc[df_main["build_existing_model.puma"].isin(puma_list)].reset_index(drop=True)
     elif community == "columbia":
@@ -689,17 +700,17 @@ for community in communities:
         puma_list = [
             "SC, 00604",
 
-            "SC, 00602", # secondary
-            "SC, 00603", # secondary
-            "SC, 00605", # secondary
+            # "SC, 00602", # secondary
+            # "SC, 00603", # secondary
+            # "SC, 00605", # secondary
         ]
         df_match = df_main.loc[df_main["build_existing_model.puma"].isin(puma_list)].reset_index(drop=True)
     elif community == "north_birmingham":
-        df_match = df_main.loc[df_main["build_existing_model.county"]=="AL, Jefferson County"].reset_index(drop=True)
-        # df_match = df_main.loc[df_main["build_existing_model.city"]=="AL, Birmingham"].reset_index(drop=True)
+        # df_match = df_main.loc[df_main["build_existing_model.county"]=="AL, Jefferson County"].reset_index(drop=True)
+        df_match = df_main.loc[df_main["build_existing_model.city"]=="AL, Birmingham"].reset_index(drop=True)
     elif community == "louisville":
-        df_match = df_main.loc[df_main["build_existing_model.city"]=="KY, Louisville Jefferson County Metro Government Balance"].reset_index(drop=True)
-        # df_match = df_main.loc[df_main["build_existing_model.county"]=="KY, Jefferson County"].reset_index(drop=True)
+        # df_match = df_main.loc[df_main["build_existing_model.city"]=="KY, Louisville Jefferson County Metro Government Balance"].reset_index(drop=True)
+        df_match = df_main.loc[df_main["build_existing_model.county"]=="KY, Jefferson County"].reset_index(drop=True)
     elif community == "jackson_county":
         df_match = df_main.loc[df_main["build_existing_model.county"]=="IL, Jackson County"].reset_index(drop=True)
     else:
