@@ -117,9 +117,12 @@ class SavingsExtraction:
         hc_dir = Path(__file__).resolve().parents[1] / "project_national" / "housing_characteristics"
         hc = [x.stem for x in hc_dir.rglob("*.tsv")]
         hc = ["_".join([x for x in chain(*[re.split('(\d+)',x) for x in y.lower().split(" ")]) if x not in ["", "-"]]) for y in hc]
-        self.res_meta_cols = ["building_id", "build_existing_model.sample_weight"]
+        self.res_meta_cols = [
+            "building_id", 
+            "build_existing_model.sample_weight",
+            ]
         self.res_meta_cols += [f"build_existing_model.{x}" for x in hc]
-        self.res_meta_cols += ["build_existing_model.area_median_income", "rep_income"]
+        self.res_meta_cols += ["build_existing_model.area_median_income", "rep_income", "sample_weight"]
 
         print(
             "========================================================================="
@@ -165,16 +168,19 @@ class SavingsExtraction:
 
     @staticmethod
     def get_metric_cols(df):
-        prefixes = ["report_simulation_output.", "upgrade_costs.", "report_utility_bills."]
+        prefixes = [
+            "report_simulation_output.emissions", 
+            "report_simulation_output.end_use", 
+            "report_simulation_output.energy_use", 
+            "report_simulation_output.fuel_use", 
+            "upgrade_costs.", 
+            "report_utility_bills."]
         metric_cols = []
         for pfx in prefixes:
             if pfx == "upgrade_costs.":
                 metric_cols += [col for col in df.columns if col.startswith(pfx) and not col.startswith("upgrade_costs.option_")]
             else:
                 metric_cols += [col for col in df.columns if col.startswith(pfx)]
-
-        # add sample_weight
-        metric_cols.append("sample_weight")
 
         return metric_cols
 
@@ -813,11 +819,12 @@ class SavingsExtraction:
         )
 
         # rearrange cols
-        meta_cols += ["energy_burden"]
-        df = df[meta_cols + self.get_metric_cols(df)]
+        meta_cols += ["energy_burden", "upgrade_name"]
+        new_cols = [col for col in df.columns if col not in dfb.columns and col not in meta_cols]
+        df = df[meta_cols + new_cols]
 
         # df.to_csv(self.output_dir / f"baseline.csv", index=False) # <---
-        print(f" - Completed baseline data complilation\n")
+        print(f" - Completed baseline data complilation, df.shape={df.shape}\n")
 
         return df
 
@@ -1125,18 +1132,18 @@ class SavingsExtraction:
         )
 
         # rearrange cols
-        meta_cols = meta_cols + ["energy_burden", "upgrade_name"]
-        metric_cols = self.get_metric_cols(df)
-        df = df[meta_cols + metric_cols]
+        meta_cols += ["energy_burden", "upgrade_name"]
+        new_cols = [col for col in df.columns if col not in dfb.columns and col not in meta_cols]
+        df = df[meta_cols+new_cols]
 
         # retain only 1 pkg worth of data by averaging
         if isinstance(pkgs, list):
-            df = df.groupby(meta_cols)[metric_cols].mean().reset_index()
+            df = df.groupby(meta_cols)[new_cols].mean().reset_index()
             df["build_existing_model.sample_weight"] *= len(pkgs)
             df["sample_weight"] *= len(pkgs)  # redo weight
 
         # df.to_parquet(output_file)
-        print(f" - Completed {pkg_name} using packages: {pkgs}\n")
+        print(f" - Completed {pkg_name} using packages: {pkgs}, df.shape={df.shape}\n")
 
         return df
 

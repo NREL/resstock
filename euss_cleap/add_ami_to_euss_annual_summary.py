@@ -248,15 +248,16 @@ def read_file(file_path: Path, valid_only=False, fix_dtypes=False):
         raise TypeError(f"file_type={file_type} not supported")
         
     if fix_dtypes:
-        for col in df.columns: 
-            x = df[col].astype(str)
-            try:
-                df[col] = x.astype(int).astype(str)
-            except ValueError:
+        for col in df.columns:
+            if col.startswith("build_existing_model."):
+                x = df[col].astype(str)
                 try:
-                    df[col] = x.astype(float)
+                    df[col] = x.astype(int).astype(str)
                 except ValueError:
-                    df[col] = x
+                    try:
+                        df[col] = x.astype(float)
+                    except ValueError:
+                        df[col] = x
 
     if valid_only:
         print("Retaining successfully simulated building_id only.")
