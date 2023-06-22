@@ -248,6 +248,7 @@ def read_file(file_path: Path, valid_only=False, fix_dtypes=False):
         raise TypeError(f"file_type={file_type} not supported")
         
     if fix_dtypes:
+        df["building_id"] = df["building_id"].astype(int)
         for col in df.columns:
             if col.startswith("build_existing_model."):
                 x = df[col].astype(str)
