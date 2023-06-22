@@ -1135,7 +1135,7 @@ class SavingsExtraction:
             df["build_existing_model.sample_weight"] *= len(pkgs)
             df["sample_weight"] *= len(pkgs)  # redo weight
 
-        # df.to_parquet(output_file)
+        df.to_parquet(output_file)
         print(f" - Completed {pkg_name} using packages: {pkgs}\n")
 
         return df
