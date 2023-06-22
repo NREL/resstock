@@ -61,6 +61,7 @@ import numpy as np
 import pandas as pd
 import csv
 import re
+from itertools import chain
 import argparse
 
 from add_ami_to_euss_annual_summary import add_ami_column_to_file, read_file
@@ -113,6 +114,13 @@ class SavingsExtraction:
 
         self.fuels = ["electricity", "natural_gas", "fuel_oil", "propane"]
 
+        hc_dir = Path(__file__).resolve().parents[1] / "project_national" / "housing_characteristics"
+        hc = [x.stem for x in hc_dir.rglob("*.tsv")]
+        hc = ["_".join([x for x in chain(*[re.split('(\d+)',x) for x in y.lower().split(" ")]) if x not in ["", "-"]]) for y in hc]
+        self.res_meta_cols = ["building_id", "build_existing_model.sample_weight"]
+        self.res_meta_cols += [f"build_existing_model.{x}" for x in hc]
+        self.res_meta_cols += ["build_existing_model.area_median_income", "rep_income"]
+
         print(
             "========================================================================="
         )
@@ -131,14 +139,14 @@ class SavingsExtraction:
         if output_dir is None:
             output_dir = Path(__file__).resolve().parent / "output_by_technology"
         else:
-            output_dir = Path(output_dir)
+            output_dir = Path(output_dir).resolve()
         output_dir.mkdir(parents=True, exist_ok=True)
         print(f"Analysis output will be exported to: {output_dir}")
         return output_dir
 
     @staticmethod
     def validate_euss_directory(euss_dir):
-        euss_dir = Path(euss_dir)
+        euss_dir = Path(euss_dir).resolve()
         if not euss_dir.exists():
             print(f"Cannot find EUSS data folder:\n{euss_dir}")
             print(
@@ -154,6 +162,21 @@ class SavingsExtraction:
             columns = read_file(file_path).columns
             if "build_existing_model.area_median_income" not in columns:
                 add_ami_column_to_file(file_path)  # modify file in-place
+
+    @staticmethod
+    def get_metric_cols(df):
+        prefixes = ["report_simulation_output.", "upgrade_costs.", "report_utility_bills."]
+        metric_cols = []
+        for pfx in prefixes:
+            if pfx == "upgrade_costs.":
+                metric_cols += [col for col in df.columns if col.startswith(pfx) and not col.startswith("upgrade_costs.option_")]
+            else:
+                metric_cols += [col for col in df.columns if col.startswith(pfx)]
+
+        # add sample_weight
+        metric_cols.append("sample_weight")
+
+        return metric_cols
 
     def get_fuel_use_cols(self, metric_type="energy"):
         if metric_type == "energy":
@@ -265,7 +288,7 @@ class SavingsExtraction:
                 )
             df = self.load_file(pkgs).set_index("building_id")
 
-            meta_cols = [col for col in dfb.columns if col not in df.columns]
+            meta_cols = self.res_meta_cols.copy()
             cond = dfb.index.intersection(df.index)
 
             return df.loc[cond].reset_index(), dfb.loc[cond].reset_index()
@@ -658,196 +681,6 @@ class SavingsExtraction:
 
         return self.map_col_by_bin(df_col_to_map, eb_bins, eb_labels)
 
-    @staticmethod
-    def consolidate_misc_appliances(df):
-        cols = [
-            "build_existing_model.misc_extra_refrigerator",
-            "build_existing_model.misc_freezer",
-            "build_existing_model.misc_gas_fireplace",
-            "build_existing_model.misc_gas_grill",
-            "build_existing_model.misc_gas_lighting",
-            "build_existing_model.misc_hot_tub_spa",
-            "build_existing_model.misc_pool",
-            "build_existing_model.misc_pool_heater",
-            "build_existing_model.misc_pool_pump",
-            "build_existing_model.misc_well_pump",
-        ]
-        ncols = len(cols)
-        df["build_existing_model.number_misc_appliances"] = df[cols].apply(
-            lambda x: ncols - len(x.isna()), axis=1
-        )
-
-        return df
-
-    @staticmethod
-    def consolidate_number_of_building_units(df):
-        metric = "build_existing_model.geometry_building_number_units"
-
-        df[metric] = df["build_existing_model.geometry_building_number_units_mf"]
-        cond = (
-            df["build_existing_model.geometry_building_type_recs"]
-            == "Single-Family Attached"
-        )
-        df.loc[cond, metric] = df.loc[
-            cond, "build_existing_model.geometry_building_number_units_sfa"
-        ]
-        df.loc[df[metric] == "None", metric] = "1"
-
-        return df
-
-    @staticmethod
-    def consolidate_story(df):
-        metric = "build_existing_model.geometry_story"
-        df[metric] = df["build_existing_model.geometry_stories_low_rise"].map(
-            {
-                "1": "<4",
-                "2": "<4",
-                "3": "<4",
-                "4+": "4+",
-            }
-        )
-        cond = df[metric] == "4+"
-        df.loc[cond, metric] = df.loc[
-            cond, "build_existing_model.geometry_stories"
-        ].map(
-            {
-                "<8": "4-7",
-                "8+": "8+",
-            }
-        )
-        return df
-
-    @staticmethod
-    def consolidate_horizontal_location(df):
-        metric = "build_existing_model.geometry_building_horizontal_location"
-
-        df[metric] = df["build_existing_model.geometry_building_horizontal_location_mf"]
-        cond = df[metric] == "None"
-        df.loc[cond, metric] = df.loc[
-            cond, "build_existing_model.geometry_building_horizontal_location_sfa"
-        ]
-        df[metric].map(
-            {
-                "Left": "End",
-                "Right": "End",
-                "Middle": "Middle",
-                "Not Applicable": "None",
-                "None": "None",
-            }
-        )
-
-        return df
-
-    def create_state_climate_zone(self, df):
-        df["build_existing_model.state_and_iecc_climate_zone"] = (
-            df["build_existing_model.state"]
-            + " "
-            + df["build_existing_model.ashrae_iecc_climate_zone_2004"]
-        )
-        return df
-
-    @staticmethod
-    def get_key_meta_columns():
-        return [
-            "building_id",
-            "build_existing_model.sample_weight",  #
-            # 'build_existing_model.ahs_region',
-            "build_existing_model.ashrae_iecc_climate_zone_2004",  #
-            # 'build_existing_model.building_america_climate_zone',
-            # 'build_existing_model.cec_climate_zone',
-            "build_existing_model.census_division",
-            "build_existing_model.census_region",
-            "build_existing_model.city",
-            "build_existing_model.clothes_dryer",  #
-            "build_existing_model.clothes_washer",
-            "build_existing_model.cooking_range",
-            "build_existing_model.county",
-            "build_existing_model.county_and_puma",
-            "build_existing_model.dishwasher",
-            "build_existing_model.ducts",  #
-            "build_existing_model.federal_poverty_level",
-            # 'build_existing_model.generation_and_emissions_assessment_region',
-            "build_existing_model.geometry_attic_type",
-            # 'build_existing_model.geometry_building_level_mf',
-            "build_existing_model.geometry_building_type_acs",
-            "build_existing_model.geometry_building_type_height",
-            "build_existing_model.geometry_building_type_recs",  #
-            # 'build_existing_model.geometry_floor_area',
-            "build_existing_model.geometry_floor_area_bin",  #
-            "build_existing_model.geometry_foundation_type",  #
-            # 'build_existing_model.geometry_garage',
-            # 'build_existing_model.geometry_wall_exterior_finish',
-            "build_existing_model.geometry_wall_type",  #
-            "build_existing_model.has_pv",
-            "build_existing_model.heating_fuel",  #
-            # 'build_existing_model.hot_water_fixtures',
-            "build_existing_model.hvac_cooling_efficiency",  #
-            "build_existing_model.hvac_cooling_partial_space_conditioning",
-            "build_existing_model.hvac_cooling_type",  #
-            "build_existing_model.hvac_has_ducts",  #
-            "build_existing_model.hvac_has_shared_system",  #
-            # 'build_existing_model.hvac_has_zonal_electric_heating',
-            "build_existing_model.hvac_heating_efficiency",  #
-            "build_existing_model.hvac_heating_type",  #
-            "build_existing_model.hvac_heating_type_and_fuel",  #
-            "build_existing_model.hvac_secondary_heating_efficiency",  #
-            "build_existing_model.hvac_secondary_heating_type_and_fuel",  #
-            "build_existing_model.hvac_shared_efficiencies",
-            # 'build_existing_model.income',
-            # 'build_existing_model.income_recs_2015',
-            "build_existing_model.income_recs_2020",  #
-            "build_existing_model.infiltration",  #
-            "build_existing_model.insulation_ceiling",  #
-            # 'build_existing_model.insulation_floor',
-            "build_existing_model.insulation_foundation_wall",  #
-            "build_existing_model.insulation_rim_joist",  #
-            "build_existing_model.insulation_roof",  #
-            # 'build_existing_model.insulation_slab',
-            "build_existing_model.insulation_wall",  #
-            # 'build_existing_model.interior_shading',
-            # 'build_existing_model.iso_rto_region',
-            "build_existing_model.lighting",
-            # 'build_existing_model.location_region',
-            # 'build_existing_model.mechanical_ventilation',
-            "build_existing_model.occupants",
-            # 'build_existing_model.orientation',
-            # 'build_existing_model.overhangs',
-            # 'build_existing_model.plug_loads',
-            "build_existing_model.puma",
-            "build_existing_model.puma_metro_status",
-            # 'build_existing_model.reeds_balancing_area',
-            "build_existing_model.refrigerator",
-            # 'build_existing_model.roof_material',
-            # 'build_existing_model.solar_hot_water',
-            "build_existing_model.state",  #
-            "build_existing_model.tenure",  #
-            # 'build_existing_model.units_represented',
-            # 'build_existing_model.usage_level',
-            "build_existing_model.vacancy_status",
-            # 'build_existing_model.vintage',
-            "build_existing_model.vintage_acs",  #
-            "build_existing_model.water_heater_efficiency",
-            "build_existing_model.water_heater_fuel",  #
-            # 'build_existing_model.water_heater_in_unit',
-            # 'build_existing_model.window_areas',
-            "build_existing_model.windows",  #
-            "build_existing_model.area_median_income",  #
-        ]
-
-    def create_new_metadata_columns(self, dfb):
-
-        cols = dfb.columns
-
-        # dfb = self.consolidate_misc_appliances(dfb)
-        dfb = self.consolidate_number_of_building_units(dfb)
-        dfb = self.consolidate_story(dfb)
-        # dfb = self.consolidate_horizontal_location(dfb)
-        dfb = self.create_state_climate_zone(dfb)
-
-        new_cols = [col for col in dfb.columns if col not in cols]
-
-        return dfb, new_cols
-
     def get_data_baseline(self):
         """Extract technology savings based on input pkg lists
 
@@ -861,9 +694,6 @@ class SavingsExtraction:
 
         """
         dfb = self.load_results_baseline()
-
-        dfb, new_cols = self.create_new_metadata_columns(dfb)
-        res_meta_cols = self.get_key_meta_columns() + new_cols
         res_energy_cols = self.get_fuel_use_cols("energy") + [
             self.get_site_total_col("energy")
         ]
@@ -876,7 +706,7 @@ class SavingsExtraction:
         fuels = self.fuels + ["total"]
 
         # output cols
-        meta_cols = res_meta_cols #[x.removeprefix("build_existing_model.") for x in res_meta_cols]
+        meta_cols = self.res_meta_cols.copy()
 
         energy_cols = [f"baseline_energy.{fu}_{converted_units[fu]}" for fu in fuels]
         emission_cols = [f"baseline_emission.{fu}_kgCO2e" for fu in fuels]
@@ -895,7 +725,6 @@ class SavingsExtraction:
         )  # list of pd.Series, $/kWh, $/therm, $/mmbtu, $/mmbtu
 
         # assemble
-        # df = dfb[res_meta_cols].rename(columns=dict(zip(res_meta_cols, meta_cols)))
         df = dfb.copy()
         df["upgrade_name"] = "baseline"
 
@@ -984,10 +813,8 @@ class SavingsExtraction:
         )
 
         # rearrange cols
-        meta_cols = meta_cols + ["rep_income", "energy_burden"]
-        metric_cols = [col for col in df.columns if col not in meta_cols]
-
-        df = df[meta_cols + metric_cols]
+        meta_cols += ["energy_burden"]
+        df = df[meta_cols + self.get_metric_cols(df)]
 
         # df.to_csv(self.output_dir / f"baseline.csv", index=False) # <---
         print(f" - Completed baseline data complilation\n")
@@ -1068,8 +895,6 @@ class SavingsExtraction:
                 dfu, dfb, adjustment_type=adjustment_type, end_uses=end_uses
             )
 
-        dfb, new_cols = self.create_new_metadata_columns(dfb)
-        res_meta_cols = self.get_key_meta_columns() + new_cols
         res_energy_cols = self.get_fuel_use_cols("energy") + [
             self.get_site_total_col("energy")
         ]
@@ -1079,7 +904,7 @@ class SavingsExtraction:
         fuels = self.fuels + ["total"]
 
         # output cols
-        meta_cols = res_meta_cols #[x.removeprefix("build_existing_model.") for x in res_meta_cols]
+        meta_cols = self.res_meta_cols.copy()
 
         energy_cols = [f"baseline_energy.{fu}_{converted_units[fu]}" for fu in fuels]
         energy_svg_cols = [f"saving_energy.{fu}_{converted_units[fu]}" for fu in fuels]
@@ -1098,7 +923,7 @@ class SavingsExtraction:
         cbill_svg_cols = [f"saving_cbill.{fu}_usd" for fu in fuels] # calc same as bill_svg_cols
         cbill_svg_pct_cols = [f"pct_saving_cbill.{fu}_%" for fu in fuels] # calc same as bill_svg_cols
 
-        # State-level rates
+        # State-level avg rates
         # Metered costs in fuel order: [electricity, NG, fuel oil, propane]
         fixed_annum = self.load_utility_fixed_metered_rates()
 
@@ -1113,7 +938,6 @@ class SavingsExtraction:
         comm_fixed_annum, comm_variable_rates = self.load_community_fixed_and_variable_rates()
 
         # assemble
-        # df = dfb[res_meta_cols].rename(columns=dict(zip(res_meta_cols, meta_cols)))
         df = dfb.copy()
         df["upgrade_name"] = pkg_name
         df["upgrade_cost_usd"] = dfu[self.get_upgrade_cost_col()]  # TODO fix to subset
@@ -1301,9 +1125,8 @@ class SavingsExtraction:
         )
 
         # rearrange cols
-        meta_cols = meta_cols + ["rep_income", "energy_burden", "upgrade_name"]
-        metric_cols = [col for col in df.columns if col not in meta_cols]
-
+        meta_cols = meta_cols + ["energy_burden", "upgrade_name"]
+        metric_cols = self.get_metric_cols(df)
         df = df[meta_cols + metric_cols]
 
         # retain only 1 pkg worth of data by averaging
