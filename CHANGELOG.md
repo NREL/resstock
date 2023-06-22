@@ -3,8 +3,10 @@
 Features
 - Add 2022 Cambium emissions data ([#1038](https://github.com/NREL/resstock/pull/1038))
 - Update characteristics to use EIA 2020 RECS ([#1031](https://github.com/NREL/resstock/pull/1031))
+- Include HVAC secondary heating capabilities for project_testing ([#1090](https://github.com/NREL/resstock/pull/1090))
 
 Fixes
+- Update ResStockArguments to support nonzero fraction of heat load served by the secondary heating system ([#1090](https://github.com/NREL/resstock/pull/1090))
 
 ## ResStock v3.1.0
 ###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
