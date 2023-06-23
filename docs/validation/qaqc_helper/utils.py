@@ -120,24 +120,8 @@ def sort_index(df, axis="index", **kwargs):
 def get_conversion_factor(metric):
     factor = 1
     new_metric = metric
-    if "electricity" in metric:
-        if "m_btu" in metric:
-            factor = MBTU_TO_KWH
-            new_metric = metric.replace("m_btu", "kwh")
-        elif "k_btu" in metric:
-            factor = KBTU_TO_KWH
-            new_metric = metric.replace("k_btu", "kwh")
-    elif "natural_gas" in metric:
-        if "m_btu" in metric:
-            factor = MBTU_TO_THERM
-            new_metric = metric.replace("m_btu", "therm")
-        elif "k_btu" in metric:
-            factor = KBTU_TO_THERM
-            new_metric = metric.replace("k_btu", "therm")
-
     if "." in new_metric:
         new_metric = new_metric.split(".")[-1]
-
     return factor, new_metric
 
 
