@@ -1,4 +1,6 @@
 """
+Requires env with python >= 3.10
+-**
 Electrical Panel Project: Estimate panel capacity using NEC (2023)
 Standard method: 220 Part III. Feeder and Service Load Calculations
 Optional method: 220 Part IV. Optional Feeder and Service Load Calculations
@@ -155,6 +157,11 @@ geometry_unit_aspect_ratio = {
     "Mobile Home": 1.8,
 } #  = front_back_length / left_right_width #TODO: check to see if it gets recalculated
 
+
+hvac_fan_motor = 3*115*0.87 # 3A x 115V x PF (condenser fan motor) # TODO check value
+hvac_blower_motor = 460 # TODO check value
+KBTU_H_TO_W = 293.07103866
+
 # --- funcs ---
 
 def apply_demand_factor_to_general_load(x):
@@ -170,6 +177,17 @@ def apply_demand_factor_to_general_load(x):
         + 0.25 * max(0, x - 120000)
     )
 
+def apply_demand_factor_to_general_load_optm(x):
+    """
+    Split load into the following tiers and apply associated multiplier factor
+        <= 10kVA : 1.00
+        > 10kVA : 0.4
+    """
+    return (
+        1 * min(10000, x) +
+        0.4 * max(0, x - 10000)
+    )
+
 def _general_load_lighting(row):
     """General Lighting & Receptacle Loads. NEC 220.41
     Accounts for motors < 1/8HP and connected to lighting circuit is covered by lighting load
@@ -180,6 +198,9 @@ def _general_load_lighting(row):
         by_perimeter: bool
             Whether calculation is based on 
     """
+    if row["completed_status"] != "Success":
+        return np.nan
+
     garage_depth = 24 # ft
     match row["build_existing_model.geometry_garage"]:
         case "1 Car":
@@ -208,8 +229,11 @@ def _general_load_lighting(row):
 
     return 3 * floor_area
 
-def _optional_load_lighting(row): 
+def _general_load_lighting_optm(row): 
     """Not including open porches, garages, unused or unfinished spaces not adaptable for future use"""
+    if row["completed_status"] != "Success":
+        return np.nan
+
     return 3 * row["upgrade_costs.floor_area_conditioned_ft_2"]
 
 def _general_load_kitchen(row, n=2):
@@ -249,7 +273,8 @@ def _general_load_laundry(row, n=1):
     """Laundry Branch Circuit(s). NEC 210-11(c)2, 220-16(b), 220-4(c)
         At least 1 laundry branch circuit must be included.
 
-        Type of dryers affect voltage service and # of circuits
+        Pecan St clothes washers: 600-1440 W (1165 wt avg)
+        Pecan St gas dryers: 600-2760 W (800 wt avg)
 
     Args:
         n: int | "auto"
@@ -260,57 +285,20 @@ def _general_load_laundry(row, n=1):
     
     if n == "auto":
         if "Single-Family" in row["build_existing_model.geometry_building_type_recs"]:
-            n = 1 # TODO, can expand based on floor_area, vintage, etc
-        elif (row["build_existing_model.clothes_washer_presence"] == "Yes") or (
-            row["build_existing_model.clothes_dryer"] != "None"
-            ):
+            n = 1165 # TODO, can expand based on floor_area, vintage, etc
+        elif row["build_existing_model.clothes_washer_presence"] == "Yes":
             # for non-SF, if there's in-unit WD, then there's a branch
-            n = 1
+            n = 1165
         else:
             n = 0
+
+        if "Electric" not in row["build_existing_model.clothes_dryer"] and row["build_existing_model.clothes_dryer"] != "None":
+            n += 800 # add additional laundry circuit for non-electric dryer
     
     if "Single-Family" in row["build_existing_model.geometry_building_type_recs"] and n < 1:
-        raise ValueError(f"n={n}, at least 1 laundry branch circuit for General Load")
+        raise ValueError(f"n={n}, at least 1 laundry branch circuit for Laundry Load")
    
-    return n*1500
-
-def _optional_load_laundry(row):
-    """Clothes Dryers. NEC 220-18
-    Use 5000 watts or nameplate rating whichever is larger (in another version, use DF=1 for # appliance <=4)
-    240V, 22/24/30A breaker (vented), 30/40A (ventless heat pump), 30A (ventless electric)
-    """
-    if row["completed_status"] != "Success":
-        return np.nan
-
-    if "Electric" not in row["build_existing_model.clothes_dryer"] or row["build_existing_model.clothes_dryer"] == "None":
-        return 0
-
-    if "Ventless" in row["build_existing_model.clothes_dryer"]:
-        rating = 30 * 240
-    else:
-        rating = 24 * 240
-    rating += 2500 # washer rating
-    return max(5000, rating)
-
-def general_load_total(row, n_kit=2, n_ldr=1):
-    """Total general load, has tiered demand factors
-        General load: 15-20A breaker / branch, 120V
-
-    Args:
-        n_kit: int | "auto"
-            number of branches for small appliances, minimum 2
-        n_ldr: int | "auto"
-            number of branches for general laundry load (exclude dryer), minimum 1
-    """
-    if row["completed_status"] != "Success":
-        return np.nan
-
-    general_loads = [
-        _general_load_lighting(row),
-        _general_load_kitchen(row, n=n_kit),
-        _general_load_laundry(row, n=n_ldr),
-    ]
-    return apply_demand_factor_to_general_load(sum(general_loads))
+    return max(1500, n)
 
 def _fixed_load_water_heater(row):
     if row["completed_status"] != "Success":
@@ -320,8 +308,10 @@ def _fixed_load_water_heater(row):
         row["build_existing_model.water_heater_fuel"] == "Electricity"
     ):
         if row["build_existing_model.water_heater_efficiency"] == "Electric Tankless":
-            return 36000
-        return 5500
+            return 24000 * 1 # 18-36k
+        if "Heat Pump" in row["build_existing_model.water_heater_efficiency"]:
+            return 5000 * 0.97
+        return 5500 * 1
     return 0
 
 def _fixed_load_dishwasher(row):
@@ -339,12 +329,14 @@ def _fixed_load_dishwasher(row):
         or "290" in row["build_existing_model.dishwasher"]
         or "318" in row["build_existing_model.dishwasher"]
     ):
-        return 15 * 120
-    return 12 * 120
+        return 1440 * 0.99
+    return 1400 * 0.99
 
 def _fixed_load_garbage_disposal(row):
     """
     garbage disposal: 0.8 - 1.5 kVA (1.2kVA avg), typically second largest motor, after AC compressor
+
+    pump/motor nameplates taken from NEC tables based on HP, not PF needed
 
     We do not currently model disposal, will use vintage and floor area as proxy for now
     there could be a jurisdition restriction as well as dep to dwelling type
@@ -372,9 +364,9 @@ def _fixed_load_garbage_disposal(row):
             "1500-1999",
             "2000-2499",
         ]:
-            return 5.4 * 120  # 1/2 HP
+            return 650  # 1/2 HP
         else:
-            return 7.6 * 120 # .75 HP
+            return 912 # .75 HP
     return 0
 
 def _fixed_load_garbage_compactor(row):
@@ -393,45 +385,24 @@ def _fixed_load_hot_tub_spa(row):
         return np.nan
 
     if row["build_existing_model.misc_hot_tub_spa"] == "Electric":
-        return 11520 
+        return 11520 * 1
     return 0
 
 def _fixed_load_well_pump(row):
+    """ pump/motor nameplates taken from NEC tables based on HP, not PF needed """
     if row["completed_status"] != "Success":
         return np.nan
 
     # TODO: verify
     if row["build_existing_model.misc_well_pump"] != "None":
-        return 2000
+        return 2000 
     return 0
 
-def fixed_load_total(row):
-    """Fastened-In-Place Appliances. NEC 220-17
-    Use nameplate rating. Do not include electric ranges, clothes dryers, space-heating or A/C equipment
-
-    Sum(fixed_load) * Demand Factor (1.0 if number of fixed_load < 4 else 0.75)
-    In 2020 NEC, only count appliances rated at least 1/4HP or 500W
-    """
-    if row["completed_status"] != "Success":
-        return np.nan
-
-    fixed_loads = np.array(
-        [
-            _fixed_load_water_heater(row),
-            _fixed_load_dishwasher(row),
-            _fixed_load_garbage_disposal(row),
-            _fixed_load_garbage_compactor(row),
-            _fixed_load_hot_tub_spa(row),
-            _fixed_load_well_pump(row),
-        ]
-    )
-
-    n_fixed_loads = len(fixed_loads[fixed_loads >= 500])
-    demand_factor = 1 if n_fixed_loads < 4 else 0.75
-
-    return sum(fixed_loads) * demand_factor
-
 def _special_load_electric_dryer(row):
+    """Clothes Dryers. NEC 220-18
+    Use 5000 watts or nameplate rating whichever is larger (in another version, use DF=1 for # appliance <=4)
+    240V, 22/24/30A breaker (vented), 30/40A (ventless heat pump), 30A (ventless electric)
+    """
     if row["completed_status"] != "Success":
         return np.nan
 
@@ -439,13 +410,14 @@ def _special_load_electric_dryer(row):
         return 0
 
     if "Ventless" in row["build_existing_model.clothes_dryer"]:
-        rating = 5400
+        rating = 5400 * 1
     else:
-        rating = 5600
+        rating = 5600 * 1
 
-    return rating
+    return max(5000, rating)
 
-def _special_load_electric_range(row): # Assuming a single electric range (combined oven/stovetop) for each dwelling unit
+def _special_load_electric_range(row): 
+    """ Assuming a single electric range (combined oven/stovetop) for each dwelling unit """
     if row["completed_status"] != "Success":
         return np.nan
 
@@ -474,6 +446,46 @@ def _special_load_electric_range(row): # Assuming a single electric range (combi
     
     return range_power_w_df
 
+def hvac_heating_conversion(nom_heat_cap, system_type=None):
+    """ 
+    Relationship between either minimum breaker or minimum circuit amp (x voltage) and nameplate capacity
+    Args :
+        nom_heat_cap : float
+            nominal heating capacity in kbtu/h
+        system_type : str
+            system type
+    Returns : 
+        W = Amp*V
+    """
+    if system_type == "Ducted Heat Pump":
+        return (0.6*nom_heat_cap + 7.2471) * 230 * 0.84
+    if system_type == "Non-Ducted Heat Pump":
+        return (0.8*nom_heat_cap + 2.2825) * 230 * 0.84
+
+    return nom_heat_cap * KBTU_H_TO_W
+
+def hvac_cooling_conversion(nom_cool_cap, system_type=None):
+    """ 
+    Relationship between either minimum breaker or minimum circuit amp (x voltage) and nameplate capacity
+    Args :
+        nom_cool_cap : float
+            nominal cooling capacity in kbtu/h
+        system_type : str
+            system type
+    Returns : 
+        W = Amp*V*PF
+    """
+    if system_type == "Ducted Heat Pump":
+        return (0.6*nom_cool_cap + 7.2471) * 230 * 0.96
+    if system_type == "Non-Ducted Heat Pump":
+        return (1*nom_cool_cap + 0.2909) * 230 * 0.96
+    if system_type == "Central AC":
+        return (0.7*nom_cool_cap + 1.8978) * 230 * 0.96
+    if system_type == "Room AC":
+        return (0.4*nom_cool_cap + 3.4647) * 230 * 0.96
+
+    return nom_cool_cap * KBTU_H_TO_W
+
 def _special_load_space_conditioning(row):
     """Heating or Air Conditioning. NEC 220-19.
     Take the larger between heating and cooling. Demand Factor = 1
@@ -492,41 +504,42 @@ def _special_load_space_conditioning(row):
             = 0 when heating is max load
     """
     if row["completed_status"] != "Success":
-        return np.nan
+        return np.nan, np.nan
 
     if row["build_existing_model.heating_fuel"] == "Electricity": 
-        heating_load = (
-            row["upgrade_costs.size_heating_system_primary_k_btu_h"]
-            + row["upgrade_costs.size_heating_system_secondary_k_btu_h"]
-            + row["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"]
-        ) * 293.07103866
+
+        heating_cols = [
+            row["upgrade_costs.size_heating_system_primary_k_btu_h"],
+            row["upgrade_costs.size_heating_system_secondary_k_btu_h"],
+            row["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"]
+            ]
+        system_cols = [
+            row["build_existing_model.hvac_heating_type"],
+            row["build_existing_model.hvac_secondary_heating_efficiency"],
+            "Electric",
+            ]
+
+        heating_load = sum(
+            [hvac_heating_conversion(x, system_type=y) for x, y in zip(heating_cols, system_cols)]
+        )
     else:
         heating_load = 0
+
     
-
-
     if row["build_existing_model.hvac_has_ducts"] == "Yes":
-        heating_load += 3 * 115  # 3A x 115V (air-handler motor) TODO: Check this value
+        heating_load += hvac_fan_motor
 
-    cooling_load = (
-        row["upgrade_costs.size_cooling_system_primary_k_btu_h"] * 293.07103866
+    cooling_load = hvac_cooling_conversion(
+        row["upgrade_costs.size_cooling_system_primary_k_btu_h"],
+        system_type=row["build_existing_model.hvac_heating_type"]
     )
     cooling_motor = cooling_load
     cooling_is_window_unit = True
-    if row["build_existing_model.hvac_cooling_type"] == "Central AC" or (
-        row["build_existing_model.hvac_has_ducts"] == "Yes"
-        and row["build_existing_model.hvac_cooling_type"] == "Heat Pump"
-    ):
-        cooling_load += (
-            3 * 115 + 460
-        )  # 3A x 115V (condenser fan motor) + 460 (blower motor) TODO: Check this value
+    if row["build_existing_model.hvac_has_ducts"] == "Yes":
+        cooling_load += hvac_fan_motor + hvac_blower_motor
         cooling_is_window_unit = False
     
-    # add efficiency factor to cooling load
-    if row['build_existing_model.hvac_cooling_type'] == 'Central AC':
-        cooling_eff_factor = re.findall(
-            "\d+\.\d+", row['build_existing_model.hvac_cooling_efficiency'])
-
+    # combine
     loads = np.array([heating_load, cooling_load])
 
     if cooling_is_window_unit:
@@ -550,13 +563,13 @@ def _special_load_motor(row):
     motor_size = max(
         cooling_motor,
         _fixed_load_garbage_disposal(row),
-        _special_load_pool_pump(row),
+        _special_load_pool_pump(row, apply_df=False),
         _fixed_load_well_pump(row),
     )
 
     return 0.25 * motor_size
 
-def _special_load_pool_heater(row): # This is a continuous load so 125% factor must be applied
+def _special_load_pool_heater(row, apply_df=True): # This is a continuous load so 125% factor must be applied
     """NEC 680.9
     Pool heater (~3kW), is considered continous load, demand factor = 1.25
     https://twphamilton.com/wp/wp-content/uploads/doc033548.pdf
@@ -565,10 +578,10 @@ def _special_load_pool_heater(row): # This is a continuous load so 125% factor m
         return np.nan
 
     if isinstance(row["build_existing_model.misc_pool_heater"], str) and "Electric" in row["build_existing_model.misc_pool_heater"]:
-        return 3000 * 1.25
+        return 3000
     return 0
 
-def _special_load_pool_pump(row):
+def _special_load_pool_pump(row, apply_df=True):
     """NEC 680
     Pool pump (0.75-1HP), 15A or 20A, 120V or 240V
     1HP = 746W
@@ -577,12 +590,70 @@ def _special_load_pool_pump(row):
         return np.nan
 
     if row["build_existing_model.misc_pool_pump"] == "1.0 HP Pump":
-        return 1.25* 1 * 746 #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
+        return 1 * 746 #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
     if row["build_existing_model.misc_pool_pump"] == "0.75 HP Pump":
-        return 1.25 * 0.75 * 746 #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
+        return 0.75 * 746 #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
     return 0
 
-def special_load_total(row):
+def _special_load_EVSE(row):
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    if row["build_existing_model.electric_vehicle"] == "None":
+        EV_load = 0
+    else: 
+        EV_load = 7200 # TODO: Insert EV charger load, NEC code says use max of nameplate rating and 7200 W, add 1.25 factor since continuous load
+    return EV_load
+
+# --- aggregated loads ---
+
+def standard_general_load_total(row, n_kit=2, n_ldr=1):
+    """Total general load, has tiered demand factors
+        General load: 15-20A breaker / branch, 120V
+
+    Args:
+        n_kit: int | "auto"
+            number of branches for small appliances, minimum 2
+        n_ldr: int | "auto"
+            number of branches for general laundry load (exclude dryer), minimum 1
+    """
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    general_loads = [
+        _general_load_lighting(row),
+        _general_load_kitchen(row, n=n_kit),
+        _general_load_laundry(row, n=n_ldr),
+    ]
+    return apply_demand_factor_to_general_load(sum(general_loads))
+
+def standard_fixed_load_total(row):
+    """Fastened-In-Place Appliances. NEC 220-17
+    Use nameplate rating. Do not include electric ranges, clothes dryers, space-heating or A/C equipment
+
+    Sum(fixed_load) * Demand Factor (1.0 if number of fixed_load < 4 else 0.75)
+    In 2020 NEC, only count appliances rated at least 1/4HP or 500W
+    """
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    fixed_loads = np.array(
+        [
+            _fixed_load_water_heater(row),
+            _fixed_load_dishwasher(row),
+            _fixed_load_garbage_disposal(row),
+            _fixed_load_garbage_compactor(row),
+            _fixed_load_hot_tub_spa(row),
+            _fixed_load_well_pump(row),
+        ]
+    )
+
+    n_fixed_loads = len(fixed_loads[fixed_loads >= 500])
+    demand_factor = 1 if n_fixed_loads < 4 else 0.75
+
+    return sum(fixed_loads) * demand_factor
+
+def standard_special_load_total(row):
     if row["completed_status"] != "Success":
         return np.nan
 
@@ -593,22 +664,19 @@ def special_load_total(row):
             _special_load_electric_range(row),
             space_cond_load,
             _special_load_motor(row),
-            _special_load_pool_heater(row),
-            _special_load_pool_pump(row),
-            EVSE_load(row)
+            _special_load_pool_heater(row)*1.25,
+            _special_load_pool_pump(row)*1.25,
+            _special_load_EVSE(row)*1.25
         ]
     )
     return special_loads
 
-def apply_opt_demand_factor(x):
-    return (
-        1 * min(10000, x) +
-        0.4 * max(0, x - 10000)
-    )
+def optional_general_load_total(row, n_kit=2):
+    if row["completed_status"] != "Success":
+        return np.nan
 
-def optional_general_load(row, n_kit=2):
     general_loads = [
-        _optional_load_lighting(row),
+        _general_load_lighting_optm(row),
         _general_load_kitchen(row, n=n_kit),
         _fixed_load_water_heater(row),
         _fixed_load_dishwasher(row),
@@ -620,41 +688,51 @@ def optional_general_load(row, n_kit=2):
         _general_load_laundry(row),
         _special_load_electric_dryer(row)
     ]
-    return apply_opt_demand_factor(sum(general_loads))
+    return apply_demand_factor_to_general_load_optm(sum(general_loads))
 
-def optional_continuous_load(row):
-    continuous_loads = [
-        _special_load_pool_heater(row),
-        _special_load_pool_pump(row),
-        EVSE_load(row)
-    ]
-    return(sum(continuous_loads))
+def optional_special_load_space_conditioning(row):
+    if row["completed_status"] != "Success":
+        return np.nan
 
-def optional_space_cond_load(row):
-    AC_load = row["upgrade_costs.size_cooling_system_primary_k_btu_h"] * 293.07103866
+    AC_load = hvac_cooling_conversion(
+        row["upgrade_costs.size_cooling_system_primary_k_btu_h"],
+        row["build_existing_model.hvac_cooling_type"]
+        )
 
-    if row["build_existing_model.hvac_cooling_type"] == "Central AC" or (
-        row["build_existing_model.hvac_has_ducts"] == "Yes"
-        and row["build_existing_model.hvac_cooling_type"] == "Heat Pump"
-    ):
-        AC_load += (3 * 115 + 460)  # 3A x 115V (condenser fan motor) + 460 (blower motor) TODO: Check this value
+    if row["build_existing_model.hvac_has_ducts"] == "Yes":
+        AC_load += hvac_fan_motor + hvac_blower_motor
     
     if row["build_existing_model.heating_fuel"] == "Electricity":
-        heating_load = (
-            row["upgrade_costs.size_heating_system_primary_k_btu_h"]
-            + row["upgrade_costs.size_heating_system_secondary_k_btu_h"]
-            + .65*row["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"]
-        ) * 293.07103866
+        heating_cols = [
+            row["upgrade_costs.size_heating_system_primary_k_btu_h"],
+            row["upgrade_costs.size_heating_system_secondary_k_btu_h"],
+            row["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"]
+            ]
+        system_cols = [
+            row["build_existing_model.hvac_heating_type"],
+            row["build_existing_model.hvac_secondary_heating_efficiency"],
+            "Electric",
+            ]
+        fractions = [1, 0.65, 0.65]
+
+        heating_load = sum(
+            [hvac_heating_conversion(x, system_type=y)*z for x, y, z in zip(heating_cols, system_cols, fractions)]
+        )
     else:
         heating_load = 0
     if row["build_existing_model.hvac_has_ducts"] == "Yes":
-        heating_load += 3 * 115  # 3A x 115V (air-handler motor)
+        heating_load += hvac_fan_motor
     
     if row["build_existing_model.hvac_has_zonal_electric_heating"] == "Yes":
+        # only applies to "Electric Baseboard, 100% Efficiency"
+        sep_controlled_heaters = hvac_heating_conversion(
+                row["upgrade_costs.size_heating_system_primary_k_btu_h"],
+                row["build_existing_model.hvac_heating_type"]
+                )
         if  row["build_existing_model.bedrooms"] >= 3: # determine number of individually controlled heating units using number of bedrooms, assuming total = # bedrooms + 1
-            sep_controlled_heaters = row["upgrade_costs.size_heating_system_primary_k_btu_h"]*293.07103866*.4 
+            sep_controlled_heaters *= 0.4
         else: 
-            sep_controlled_heaters = row["upgrade_costs.size_heating_system_primary_k_btu_h"]*293.07103866*.65 
+            sep_controlled_heaters *= 0.65 
     else:
         sep_controlled_heaters = 0
 
@@ -669,16 +747,21 @@ def optional_space_cond_load(row):
     
     return(max(space_cond_loads))
 
-def EVSE_load(row):
-    if row["build_existing_model.electric_vehicle"] == "None":
-        EV_load = 0
-    else: 
-        EV_load = 1.25*7200 # TODO: Insert EV charger load, NEC code says use max of nameplate rating and 7200 W, add 1.25 factor since continuous load
-    return EV_load
+def optional_continuous_load(row):
+    if row["completed_status"] != "Success":
+        return np.nan
 
-def min_amperage_nec(row, n_kit=2, n_ldr=1):
+    continuous_load = sum([
+        _special_load_pool_heater(row),
+        _special_load_pool_pump(row),
+        _special_load_EVSE(row)
+    ]) * 1.25
+    return continuous_load
+
+
+def min_amperage_nec_standard(row, n_kit=2, n_ldr=1):
     """
-    Min Amperes for Service
+    Min Amperes for Service - Standard Method
     Min Amperage (A) = Demand Load (total, VA) / Voltage Service (V)
     """
     if row["completed_status"] != "Success":
@@ -686,9 +769,9 @@ def min_amperage_nec(row, n_kit=2, n_ldr=1):
 
     total_demand_load = sum(
         [
-            general_load_total(row, n_kit=n_kit, n_ldr=n_ldr),
-            fixed_load_total(row),
-            special_load_total(row),
+            standard_general_load_total(row, n_kit=n_kit, n_ldr=n_ldr),
+            standard_fixed_load_total(row),
+            standard_special_load_total(row),
         ]
     )  # [VA]
 
@@ -696,8 +779,32 @@ def min_amperage_nec(row, n_kit=2, n_ldr=1):
 
     return total_demand_load / voltage_service
 
+
+def min_amperage_nec_optional(df):
+    """
+    Min Amperes for Service - Standard Method
+    Min Amperage (A) = Demand Load (total, VA) / Voltage Service (V)
+    """
+    # Sum _general_load_lighting, _general_load_kitchen and _general_load_laundry, fixed_load_total, _special_load_electric_range
+    #  _special_load_hot_tub_spa, _special_load_pool_heater, _special_load_pool_pump, _special_load_well_pump
+
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    total_demand_load = sum(
+        [
+            optional_general_load_total(row, n_kit="auto"),
+            optional_special_load_space_conditioning(row),
+            optional_continuous_load(row),
+            ]
+    )
+
+    voltage_service = 240  # [V]
+
+    return total_demand_load / voltage_service
+
 def min_amperage_main_breaker(x):
-    """Convert min_amperage_nec into standard panel size
+    """Convert min_amperage_nec_standard into standard panel size
     http://www.naffainc.com/x/CB2/Elect/EHtmFiles/StdPanelSizes.htm
     """
     if pd.isnull(x):
@@ -723,7 +830,9 @@ def main(filename: str = None, plot_only=False, sfd_only=False):
         filename : input ResStock results file
         plot_only : if true, directly make plots from expected output file
     """
+    ext = ""
     if filename is None:
+        ext = "_test"
         filename = (
             Path(__file__).resolve().parent
             / "test_data"
@@ -734,7 +843,7 @@ def main(filename: str = None, plot_only=False, sfd_only=False):
 
     output_filename = filename.parent / (filename.stem + "__nec_panels" + filename.suffix)
 
-    plot_dir_name = "plots_sfd" if sfd_only else "plots"
+    plot_dir_name = f"plots_sfd{ext}" if sfd_only else f"plots{ext}"
     output_dir = filename.parent / plot_dir_name
     output_dir.mkdir(parents=True, exist_ok=True) 
 
@@ -788,19 +897,19 @@ def main(filename: str = None, plot_only=False, sfd_only=False):
     print(f"File output to: {output_filename}")
 
     # --- plot ---
-    # plot_output(df, output_dir)
+    plot_output(df, output_dir)
     plot_output_saturation(df, "std_m_nec_electrical_panel_amp", output_dir, sfd_only=False)
     plot_output_saturation(df, "opt_m_nec_electrical_panel_amp", output_dir, sfd_only=False)
 
 
 def apply_standard_method(df):
         df["std_m_demand_load_general_VA"] = df.apply(
-            lambda x: general_load_total(x, n_kit="auto", n_ldr="auto"), axis=1
+            lambda x: standard_general_load_total(x, n_kit="auto", n_ldr="auto"), axis=1
         )
-        df["std_m_demand_load_fixed_VA"] = df.apply(lambda x: fixed_load_total(x), axis=1)
-        df["std_m_demand_load_special_VA"] = df.apply(lambda x: special_load_total(x), axis=1)
+        df["std_m_demand_load_fixed_VA"] = df.apply(lambda x: standard_fixed_load_total(x), axis=1)
+        df["std_m_demand_load_special_VA"] = df.apply(lambda x: standard_special_load_total(x), axis=1)
 
-        # df["nec_min_amp"] = df.apply(lambda x: min_amperage_nec(x, n_kit="auto", n_ldr="auto"), axis=1) # this is daisy-ed
+        # df["nec_min_amp"] = df.apply(lambda x: min_amperage_nec_standard(x, n_kit="auto", n_ldr="auto"), axis=1) # this is daisy-ed
         df["std_m_nec_min_amp"] = (
             df[
                 ["std_m_demand_load_general_VA", "std_m_demand_load_fixed_VA", "std_m_demand_load_special_VA"]
@@ -821,7 +930,7 @@ def apply_standard_method_exploded(df):
         df["std_m_general_laundry_VA"] = df.apply(lambda row: _general_load_laundry(row, n="auto"), axis=1)
 
         df["std_m_demand_load_general_VA"] = df.apply(
-            lambda x: general_load_total(x, n_kit="auto", n_ldr="auto"), axis=1
+            lambda x: standard_general_load_total(x, n_kit="auto", n_ldr="auto"), axis=1
         )
         # Fixed Load:
         df["std_m_fixed_water_heater_VA"] = df.apply(lambda row: _fixed_load_water_heater(row), axis=1)
@@ -831,7 +940,7 @@ def apply_standard_method_exploded(df):
         df["std_m_fixed_hot_tub_VA"] = df.apply(lambda row: _fixed_load_hot_tub_spa(row), axis=1)
         df["std_m_fixed_well_pump_VA"] = df.apply(lambda row:  _fixed_load_well_pump(row), axis=1)
 
-        df["std_m_demand_load_fixed_VA"] = df.apply(lambda x: fixed_load_total(x), axis=1)
+        df["std_m_demand_load_fixed_VA"] = df.apply(lambda x: standard_fixed_load_total(x), axis=1)
 
         # Special Load:
         df["std_m_special_dryer_VA"] = df.apply(lambda row: _special_load_electric_dryer(row), axis=1)
@@ -840,9 +949,9 @@ def apply_standard_method_exploded(df):
         df["std_m_special_motor_VA"] = df.apply(lambda row: _special_load_motor(row), axis=1)
         df["std_m_special_pool_heater_VA"] = df.apply(lambda row: _special_load_pool_heater(row), axis=1)
         df["std_m_special_pool_pump_VA"] = df.apply(lambda row: _special_load_pool_pump(row), axis=1)
-        df["std_m_special_evse_VA"] = df.apply(lambda row: EVSE_load(row), axis=1)
+        df["std_m_special_evse_VA"] = df.apply(lambda row: _special_load_EVSE(row), axis=1)
 
-        df["std_m_demand_load_special_VA"] = df.apply(lambda x: special_load_total(x), axis=1)
+        df["std_m_demand_load_special_VA"] = df.apply(lambda x: standard_special_load_total(x), axis=1)
 
         # Total
         df["std_m_nec_min_amp"] = (
@@ -858,12 +967,12 @@ def apply_standard_method_exploded(df):
         return df
 
 def apply_optional_method(df):
-        # Sum _general_load_lighting, _general_load_kitchen and _general_load_laundry, _fixed_load_total, _special_load_electric_range
+        # Sum _general_load_lighting, _general_load_kitchen and _general_load_laundry, fixed_load_total, _special_load_electric_range
         #  _special_load_hot_tub_spa, _special_load_pool_heater, _special_load_pool_pump, _special_load_well_pump
     
-        df["opt_m_demand_load_general_VA"] = df.apply(lambda x: optional_general_load(x, n_kit="auto"), axis=1) # 100 / 40 for 10/10+ kVA demand factor function
-        df["opt_m_demand_load_space_cond_VA"] = df.apply(lambda x: optional_space_cond_load(x), axis=1) # compute space conditioning load
-        df["opt_m_demand_load_continuous_VA"] = df.apply(lambda x: optional_continuous_load(x), axis=1) #continuous loads
+        df["opt_m_demand_load_general_VA"] = df.apply(lambda x: optional_general_load_total(x, n_kit="auto"), axis=1) # 100 / 40 for 10/10+ kVA demand factor function
+        df["opt_m_demand_load_space_cond_VA"] = df.apply(lambda x: optional_special_load_space_conditioning(x), axis=1) # compute space conditioning load
+        df["opt_m_demand_load_continuous_VA"] = df.apply(lambda x: optional_continuous_load(x), axis=1) # continuous loads
 
         df["opt_m_nec_min_amp"] = (
             df[
