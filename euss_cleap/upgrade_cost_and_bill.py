@@ -15,8 +15,9 @@ import argparse
 
 
 datadir = Path(__file__).resolve().parent / "data_"
-outdir = Path(__file__).resolve().parent / "results"
-outdir.mkdir(parents=True, exist_ok=True)
+bst_dir = datadir / "community_building_samples"
+cost_dir = datadir / "community_cost"
+output_dir = Path(__file__).resolve().parent / "data_" / "community_building_samples_with_upgrade_cost_and_bill"
 
 # conversion
 NG_HEAT_CONTENT = (
@@ -138,7 +139,7 @@ def process_euss_upgrade_files(
 
         # load
         df = (
-            pd.read_csv(input_filename)
+            pd.read_parquet(input_filename)
             .sort_values(by=["building_id"])
             .reset_index(drop=True)
         )
@@ -154,7 +155,8 @@ def process_euss_upgrade_files(
         df = calculate_bills(df)
 
         # save
-        df.to_csv(output_filename, index=False)
+        output_filename.parent.mkdir(parents=True, exist_ok=True)
+        df.to_parquet(output_filename)
 
     def update_costs_with_multipliers_only(df):
         cost_cols = [
@@ -1209,36 +1211,22 @@ def process_euss_upgrade_files(
         return up10
 
     ## -- [3] Apply processing --
-    ext = ""
-    if community_name is not None:
-        ext = "__" + community_name.lower().replace(" ", "_")
-        print(f"Processing data for [[ {community_name} ]] ...")
+    print(f"Processing data for [[ {community_name} ]] ...")
 
     for upn in range(11):
         process_upgrade_file(
-            datadir / f"up{upn:02d}_sample.csv",
-            outdir / f"up{upn:02d}{ext}.csv",
+            bst_dir / community_name / f"up{upn:02d}.parquet",
+            output_dir / community_name / f"up{upn:02d}__{community_name}.parquet",
             upgrade_number=upn,
             use_multipliers_only=use_multipliers_only,
         )
-    print(f"Output files exported to: {outdir}")
+    print(f"Output files exported to: {output_dir}")
 
 
 if __name__ == "__main__":
-    default_cost_file = datadir / "cost_san_jose.csv"
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "cost_file",
-        nargs="?",
-        default=default_cost_file,
-        help=f"path of input cost file, defaults to {default_cost_file}",
-    )
-    parser.add_argument(
-        "-c",
-        "--community_name",
-        action="store",
-        default="san_jose",
+        "community_name",
         help="name of community, for adding extension to output file",
     )
     parser.add_argument(
@@ -1256,11 +1244,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if args.test:
-        cost_file = datadir / "cost_test.csv"
         community_name = "Test"
+        cost_file = cost_dir / "cost_test.csv"
     else:
-        cost_file = args.cost_file
-        community_name = args.community_name
+        community_name = args.community_name.lower().replace(" ", "_")
+        cost_file = cost_dir / f"cost_{community_name}.csv"
+
 
     process_euss_upgrade_files(
         cost_file,

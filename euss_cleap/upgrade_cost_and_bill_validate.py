@@ -17,8 +17,8 @@ import argparse
 
 
 def main(community_name="Test", as_percentage=False):
-    datadir = Path(__file__).resolve().parent / "data_"
-    outdir = Path(__file__).resolve().parent / "results"
+    datadir = Path(__file__).resolve().parent / "data_" / "community_building_samples" / community_name
+    outdir = Path(__file__).resolve().parent / "data_" / "community_building_samples_with_upgrade_cost_and_bill" / community_name
     ext = ""
 
     if community_name is not None:
@@ -31,8 +31,8 @@ def main(community_name="Test", as_percentage=False):
         )
         sys.exit(1)
 
-    in_files = sorted(datadir.rglob("up*.csv"))
-    out_files = sorted(outdir.rglob(f"up*{ext}.csv"))
+    in_files = sorted(datadir.rglob("up*.parquet"))
+    out_files = sorted(outdir.rglob(f"up*{ext}.parquet"))
 
     assert len(in_files) == len(
         out_files
@@ -45,8 +45,8 @@ def main(community_name="Test", as_percentage=False):
         print(f"For upgrade = {upni}:")
         print("---------------------")
 
-        dfi = pd.read_csv(fi).sort_values(by=["building_id"]).reset_index(drop=True)
-        dfo = pd.read_csv(fo).sort_values(by=["building_id"]).reset_index(drop=True)
+        dfi = pd.read_parquet(fi).sort_values(by=["building_id"]).reset_index(drop=True)
+        dfo = pd.read_parquet(fo).sort_values(by=["building_id"]).reset_index(drop=True)
 
         # check df len
         assert len(dfi) == len(dfo), f"dfi and dfo are not equal in length"
@@ -224,11 +224,8 @@ def get_max_option_cost_change(df_option, top_n=5, as_percentage=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-c",
-        "--community_name",
-        action="store",
-        default="san_jose",
-        help="name of community, for pulling files containing community name for validation.",
+        "community_name",
+        help="name of community, for adding extension to output file",
     )
     parser.add_argument(
         "-p",
@@ -244,7 +241,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    community_name = args.community_name
+    community_name = args.community_name.lower().replace(" ", "_")
     if args.test:
         community_name = "test"
 

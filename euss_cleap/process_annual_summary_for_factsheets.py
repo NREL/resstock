@@ -130,7 +130,7 @@ class SavingsExtraction:
         print(
             f"""
             Process preprocessed EUSS 1.0 summary results for C-LEAP factsheets
-                                       {self.community}
+                                    [[ {self.community} ]]
             """
         )
         print(
@@ -1138,7 +1138,7 @@ class SavingsExtraction:
 
         # retain only 1 pkg worth of data by averaging
         if isinstance(pkgs, list):
-            df = df.groupby(meta_cols)[new_cols].mean().reset_index()
+            df = df.copy().groupby(meta_cols)[new_cols].mean().reset_index()
             df["build_existing_model.sample_weight"] *= len(pkgs)
             df["sample_weight"] *= len(pkgs)  # redo weight
 
@@ -1246,8 +1246,10 @@ def main(euss_dir):
     SE = SavingsExtraction(euss_dir, emission_type, bill_year, output_dir=output_dir)
     SE.add_ami_to_euss_files()
 
+    DF = []
+
     # baseline
-    DF = [SE.get_data_baseline()]
+    DF.append(SE.get_data_baseline())
 
     # [1] Basic enclosure: all (pkg 1)
     DF.append(SE.get_data(1, "Basic Enclosure"))
@@ -1387,13 +1389,16 @@ def main(euss_dir):
     # save to file
     DF.to_parquet(output_dir / "processed_upgrade_results.parquet")
     DF.to_csv(output_dir / "processed_upgrade_results.csv", index=False)
+    print("All packages compiled!")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "upgrade_run_result_directory",
-        help=f"path to directory containing EUSS result csv files",
+        "community_name",
+        help="name of community, for adding extension to output file",
     )
+
     args = parser.parse_args()
-    euss_dir = args.upgrade_run_result_directory
+    community_name = args.community_name.lower().replace(" ", "_")
+    euss_dir = Path(__file__).resolve().parent / "data_" / "community_building_samples_with_upgrade_cost_and_bill" / community_name
     main(euss_dir)
