@@ -6,6 +6,7 @@ Features
 - Include HVAC secondary heating capabilities for project_testing ([#1090](https://github.com/NREL/resstock/pull/1090))
 
 Fixes
+- Set standard format for options_lookup ([#962](https://github.com/NREL/resstock/pull/962))
 - Update ResStockArguments to support nonzero fraction of heat load served by the secondary heating system ([#1090](https://github.com/NREL/resstock/pull/1090))
 
 ## ResStock v3.1.0
