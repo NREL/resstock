@@ -4,7 +4,7 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/small_run_category_4_20230622/
+output_directory: /projects/abctypol/largeee/test_runs/small_run_category_4_20230627_v1/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -28,7 +28,7 @@ eagle:
     time: 5
 
 postprocessing:
-  keep_individual_timeseries: false
+  keep_individual_timeseries: true
   aws:
     region_name: us-west-2
     s3:
@@ -83,12 +83,15 @@ workflow_generator:
       include_timeseries_end_use_consumptions: true
       include_timeseries_emissions: true
       include_timeseries_total_loads: false
+      output_variables:
+        - name: Site Outdoor Air Drybulb Temperature
+        - name: Zone Mean Air Temperature
 
     reporting_measures:
       - measure_dir_name: QOIReport
 
     server_directory_cleanup:
-      retain_in_idf: false
+      retain_in_idf: true
       retain_schedules_csv: false
 
 ### -- Upgrades ---
