@@ -10,7 +10,7 @@ import logging
 
 from utils.sampling_probability import level_calc
 
-def downselect_buildstock(bst_to_match, bst_to_search, HC_list, HC_fallback=None, n=1000, method=1):
+def downselect_buildstock(bst_to_match, bst_to_search, HC_list, HC_fallback=None, n=1000, n_represented=1000, method=1):
     """ downselect buildings in bst_to_search based on bst_to_match 
     by matching the marginal for HC_to_match as much as possible
 
@@ -106,7 +106,9 @@ def downselect_buildstock(bst_to_match, bst_to_search, HC_list, HC_fallback=None
                 tree_search=True)
 
     ## Finalize weights and QC
-    weight_map = step3_postprocess_weight(weight, bst_to_search, bldg_col_name)
+    if n_represented is None:
+        n_represented = len(weight)
+    weight_map = step3_postprocess_weight(weight, bst_to_search, bldg_col_name, n_represented=n_represented)
 
     HC_to_match = HC_to_match[:len(HC_to_search)]
     check_marginals(bst_to_match, bst_to_search, weight_map, HC_to_match, HC_to_search, bldg_col_name)
@@ -247,12 +249,14 @@ def step2_recalculate_weight(bst_to_match, bst_to_search, HC_to_match, HC_to_sea
     n_valid = (weight>0).sum()
     return n_valid, weight
 
-def step3_postprocess_weight(weight, bst_to_search, bldg_col_name):
+def step3_postprocess_weight(weight, bst_to_search, bldg_col_name, n_represented=None):
     """ return pd.DataFrame contain building id col and sample_weight col """
     # Step 3: Finalize weight map by pairing them back to building_id and remove 0 or NA weighted rows
+    if n_represented is None:
+        n_represented = len(weight)
     logger.info(f"\n -> Step 3 : Weight Normalization")
     weight_map = pd.concat([bst_to_search[bldg_col_name], weight], axis=1).dropna()
-    weight_map["sample_weight"] *= len(weight_map)/weight_map["sample_weight"].sum() # normalize to len()
+    weight_map["sample_weight"] *= n_represented/weight_map["sample_weight"].sum() # normalize to n_rep
     return weight_map
 
 def apply_downsampling(bst_to_match, bst_to_search, HC_to_match, HC_to_search, n=1000, method=1, tree_search=False):
@@ -490,7 +494,7 @@ def renormalize_joint_probability(dfs, wt_s, wt_m):
     return weight
 
 
-def modulate_weight(dfm, dfs, hcm: str, hcs: str):
+def modulate_weight(dfm, dfs, hcm: str, hcs: str, n_represented=None):
     """ Normalize housing characteristic (HC) in df_to_search based on prevalence of the HC in df_to_match
 
     Args:
@@ -507,6 +511,8 @@ def modulate_weight(dfm, dfs, hcm: str, hcs: str):
         weight : pd.Series
         normalized weight of housing characteristic such that it sums to len(dfs), indexed to dfs
     """
+    if n_represented is None:
+        n_represented = len(dfs)
     df = dfm.copy()
     if diff := list(set(df[hcm].unique()) - set(dfs[hcs].unique())):
         logger.info(f"- WARNING: For hc={hcm}, dfm has {len(diff)} extra keys not in dfs, removing those keys...")
@@ -526,8 +532,7 @@ def modulate_weight(dfm, dfs, hcm: str, hcs: str):
         # raise KeyError(f"No overlap in hc={hcm} keys between dfm and dfs: {wt_map.index} vs. {denom.index}")
     
     weight = dfs[hcs].map(wt_map / denom).fillna(0)
-    weight = (weight / weight.sum()) * len(dfs) # normalize such that after mapping, sum of weight = len(dfs)
-    assert round(weight.sum()) == len(dfs), f"sum of weight != len(dfs) for hcs={hcs}"
+    weight = (weight / weight.sum()) * n_represented # normalize such that after mapping, sum of weight = len(dfs)
 
     return weight
 
@@ -550,6 +555,8 @@ def modulate_weight_2(dfm, dfs, hcm: str, hcs: str):
         weight : pd.Series
         normalized weight of housing characteristic such that it sums to len(dfs), indexed to dfs
     """
+    if n_represented is None:
+        n_represented = len(dfs)
     df = dfm.copy()
     if diff := list(set(df[hcm].unique()) - set(dfs[hcs].unique())):
         logger.info(f"- WARNING: For hc={hcm}, dfm has {len(diff)} extra keys not in dfs, removing those keys...")
@@ -568,10 +575,10 @@ def modulate_weight_2(dfm, dfs, hcm: str, hcs: str):
         breakpoint()
         # raise KeyError(f"No overlap in hc={hcm} keys between dfm and dfs: {wt_map.index} vs. {denom.index}")
     
-    wt_map = wt_map / denom * len(dfs) # weight such that after mapping, sum of weight = len(dfs)
+    wt_map = wt_map / denom * n_represented # weight such that after mapping, sum of weight = n_rep
     weight = dfs[hcs].map(wt_map).fillna(0)
 
-    assert round(weight.sum()) == len(dfs), "sum of weight != len(dfs)"
+    assert round(weight.sum()) == n_represented, "sum of weight != n_rep"
 
     return weight
 
@@ -673,46 +680,58 @@ for community in communities:
 
     if community == "duluth":
         df_match = df_main.loc[df_main["build_existing_model.puma"]=="MN, 00500"].reset_index(drop=True)
+        n_represented = 39762 # TODO source?
     elif community == "hill_district":
+        # Will have its own simulations
         df_match = df_main.loc[df_main["build_existing_model.puma"]=="PA, 01701"].reset_index(drop=True)
+        n_represented = 100324 # 2020 count of PUMA
     elif community == "san_jose":
-        puma_list = [
-            "CA, 08505",
-            "CA, 08508",
-            "CA, 08510",
-            "CA, 08511",
-            "CA, 08512",
-            "CA, 08518",
-            "CA, 08519",
-            "CA, 08520",
-            "CA, 08521",
+        # Use primary
+        puma_dict = {
+            "CA, 08505": 29109,
+            "CA, 08508": 56552,
+            "CA, 08510": 56747,
+            "CA, 08511": 40794,
+            "CA, 08512": 39242,
+            "CA, 08518": 0, # TODO
+            "CA, 08519": 0, # TODO
+            "CA, 08520": 0, # TODO
+            "CA, 08521": 0, # TODO
 
-            # "CA, 08506", # secondary
-            # "CA, 08507", # secondary
-            # "CA, 08515", # secondary
-            # "CA, 08516", # secondary
-            # "CA, 08517", # secondary
-            # "CA, 08522", # secondary
-        ]
-        df_match = df_main.loc[df_main["build_existing_model.puma"].isin(puma_list)].reset_index(drop=True)
+            # "CA, 08506": 0, # TODO secondary
+            # "CA, 08507": 0, # TODO secondary
+            # "CA, 08515": 0, # TODO secondary
+            # "CA, 08516": 0, # TODO secondary
+            # "CA, 08517": 0, # TODO secondary
+            # "CA, 08522": 0, # TODO secondary
+        }
+        df_match = df_main.loc[df_main["build_existing_model.puma"].isin(puma_dict.keys())].reset_index(drop=True)
+        n_represented = sum(puma_dict.values())
     elif community == "columbia":
+        # Use primary PUMA
         # df_match = df_main.loc[df_main["build_existing_model.city"]=="SC, Columbia"].reset_index(drop=True)
-        puma_list = [
-            "SC, 00604",
+        puma_dict = {
+            "SC, 00604": 93698,
 
-            # "SC, 00602", # secondary
-            # "SC, 00603", # secondary
-            # "SC, 00605", # secondary
-        ]
-        df_match = df_main.loc[df_main["build_existing_model.puma"].isin(puma_list)].reset_index(drop=True)
+            # "SC, 00602": 61021, # secondary
+            # "SC, 00603": 80063, # secondary
+            # "SC, 00605": 50306, # secondary
+        }
+        df_match = df_main.loc[df_main["build_existing_model.puma"].isin(puma_dict.keys())].reset_index(drop=True)
+        n_represented = sum(puma_dict.values())
     elif community == "north_birmingham":
+        # TBD
         # df_match = df_main.loc[df_main["build_existing_model.county"]=="AL, Jefferson County"].reset_index(drop=True)
         df_match = df_main.loc[df_main["build_existing_model.city"]=="AL, Birmingham"].reset_index(drop=True)
+        n_represented = 471 # TODO (n_households: https://www.point2homes.com/US/Neighborhood/AL/Birmingham/North-Birmingham-Demographics.html)
     elif community == "louisville":
+        # Use county
         # df_match = df_main.loc[df_main["build_existing_model.city"]=="KY, Louisville Jefferson County Metro Government Balance"].reset_index(drop=True)
         df_match = df_main.loc[df_main["build_existing_model.county"]=="KY, Jefferson County"].reset_index(drop=True)
+        n_represented = 357900
     elif community == "jackson_county":
         df_match = df_main.loc[df_main["build_existing_model.county"]=="IL, Jackson County"].reset_index(drop=True)
+        n_represented = 27723 # https://www.census.gov/quickfacts/jacksoncountyillinois
     else:
         raise ValueError(f"unsupported community = {community}, "
             "valid: [duluth, hill_district, san_jose, columbia, north_birmingham, louisville, jackson_county]")
@@ -734,7 +753,7 @@ for community in communities:
     # HC = [hc] + list(graph.successors(hc))
 
     ## [3] downselect EUSS results
-    dfd = downselect_buildstock(df_match, df_main, key_HC, HC_fallback=HC_fallback, n=n, method=method)
+    dfd = downselect_buildstock(df_match, df_main, key_HC, HC_fallback=HC_fallback, n=n, n_represented=n_represented, method=method)
 
     ## [4] save to file
     output_file = datadir / ( # buildstock_database.parent
