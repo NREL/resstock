@@ -688,21 +688,22 @@ for community in communities:
     elif community == "san_jose":
         # Use primary
         puma_dict = {
-            "CA, 08505": 29109,
-            "CA, 08508": 56552,
             "CA, 08510": 56747,
-            "CA, 08511": 40794,
-            "CA, 08512": 39242,
-            "CA, 08518": 0, # TODO
-            "CA, 08519": 0, # TODO
-            "CA, 08520": 0, # TODO
-            "CA, 08521": 0, # TODO
+            "CA, 08514": 26404,
 
+            # "CA, 08505": 0, # TODO secondary
             # "CA, 08506": 0, # TODO secondary
             # "CA, 08507": 0, # TODO secondary
+            # "CA, 08508": 0, # TODO secondary
+            # "CA, 08511": 0, # TODO secondary
+            # "CA, 08512": 0, # TODO secondary
             # "CA, 08515": 0, # TODO secondary
             # "CA, 08516": 0, # TODO secondary
             # "CA, 08517": 0, # TODO secondary
+            # "CA, 08518": 0, # TODO secondary
+            # "CA, 08519": 0, # TODO secondary
+            # "CA, 08520": 0, # TODO secondary
+            # "CA, 08521": 0, # TODO secondary
             # "CA, 08522": 0, # TODO secondary
         }
         df_match = df_main.loc[df_main["build_existing_model.puma"].isin(puma_dict.keys())].reset_index(drop=True)
