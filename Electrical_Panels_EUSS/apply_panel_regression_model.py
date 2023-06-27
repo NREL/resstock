@@ -145,7 +145,7 @@ def create_input_tsv(model):
     }
     categorical_columns = list(input_cols_map.values())[1:]
 
-    dfi = dfi[input_cols_map].rename(columns=input_cols_map)
+    dfi = dfi[input_cols_map.keys()].rename(columns=input_cols_map)
 
     # special mapping for heating fuels:
     dfi["has_elec_heating"] = dfi["has_elec_heating"].map({
@@ -245,8 +245,6 @@ def apply_model_to_results(df, model, predict_proba=False, retain_proba=False):
     if predict_proba:
         panel_prob = model.predict_proba(dfii[model.feature_names], check_input=True)
         panel_labels = model.classes_
-
-        breakpoint()
 
         if retain_proba:
             dfii = dfi[["building_id"]].copy()
@@ -348,6 +346,18 @@ def _plot_bar_stacked(df, groupby_cols, metric_cols, output_dir=None):
         fig.savefig(output_dir / f"stacked_bar_{metric}.png", dpi=400, bbox_inches="tight")
 
 
+def read_file(filename, low_memory=True):
+    """ If file is large, use low_memory=False"""
+    filename = Path(filename)
+    if filename.suffix == ".csv":
+        df = pd.read_csv(filename, low_memory=low_memory)
+    elif filename.suffix == ".parquet":
+        df = pd.read_parquet(filename)
+    else:
+        raise TypeError(f"Unsupported file type, cannot read file: {filename}")
+    return df
+
+
 def main(filename=None, predict_proba=False, retain_proba=False, plot_only=False, sfd_only=False):
 
     if filename is None:
@@ -366,15 +376,15 @@ def main(filename=None, predict_proba=False, retain_proba=False, plot_only=False
         panel_metrics = list(model.classes_)
 
     if predict_proba and retain_proba:
-        ext = "__predicted_panels_in_probability"
+        ext = "predicted_panels_in_probability"
     elif predict_proba and not retain_proba:
-        ext = "__predicted_panels_probablistically_assigned"
+        ext = "predicted_panels_probablistically_assigned"
     else:
-        ext = "__predicted_panels"
+        ext = "predicted_panels"
 
-    output_filename = filename.parent / (filename.stem + ext + filename.suffix)
+    output_filename = filename.parent / (filename.stem + "__" + ext + ".csv")
     plot_dir_name = "plots_sfd" if sfd_only else "plots"
-    output_dir = filename.parent / plot_dir_name
+    output_dir = filename.parent / plot_dir_name / ext
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if plot_only:
@@ -385,7 +395,7 @@ def main(filename=None, predict_proba=False, retain_proba=False, plot_only=False
         plot_output_saturation(df, output_dir, panel_metrics, sfd_only=sfd_only)
         sys.exit()
 
-    df = pd.read_csv(filename, low_memory=False)
+    df = read_file(filename, low_memory=False)
     df = apply_model_to_results(df, model, predict_proba=predict_proba, retain_proba=retain_proba)
 
     ## -- export --

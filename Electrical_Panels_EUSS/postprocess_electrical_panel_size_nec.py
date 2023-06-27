@@ -147,6 +147,7 @@ import argparse
 import sys
 
 from plotting_functions import plot_output, plot_output_saturation
+from clean_up00_file import get_housing_char_cols
 
 # --- lookup ---
 geometry_unit_aspect_ratio = {
@@ -823,6 +824,19 @@ def min_amperage_main_breaker(x):
 
     return cond[0]
 
+def read_file(filename, low_memory=True):
+    """ If file is large, use low_memory=False"""
+    filename = Path(filename)
+    if filename.suffix == ".csv":
+        df = pd.read_csv(filename, low_memory=low_memory)
+    elif filename.suffix == ".parquet":
+        df = pd.read_parquet(filename)
+    else:
+        raise TypeError(f"Unsupported file type, cannot read file: {filename}")
+
+    df["build_existing_model.bedrooms"] = df["build_existing_model.bedrooms"].astype(int)
+    return df
+
 def main(filename: str = None, plot_only=False, sfd_only=False):
     """ 
     Main execution
@@ -841,24 +855,29 @@ def main(filename: str = None, plot_only=False, sfd_only=False):
     else:
         filename = Path(filename)
 
-    output_filename = filename.parent / (filename.stem + "__nec_panels" + filename.suffix)
+    output_filename = filename.parent / (filename.stem + "__nec_panels" + ".csv")
 
     plot_dir_name = f"plots_sfd{ext}" if sfd_only else f"plots{ext}"
-    output_dir = filename.parent / plot_dir_name
+    output_dir = filename.parent / plot_dir_name / "nec_calculations"
     output_dir.mkdir(parents=True, exist_ok=True) 
 
     if plot_only:
         if not output_filename.exists():
             raise FileNotFoundError(f"Cannot create plots, output_filename not found: {output_filename}")
-        df = pd.read_csv(output_filename, low_memory=False)
+        df = read_file(output_filename, low_memory=False)
         plot_output(df, output_dir)
         sys.exit()
         
-    df = pd.read_csv(filename, low_memory=False)
+    df = read_file(filename, low_memory=False)
 
-    # remove emission and option cols FOR NOW
-    df_columns = [col for col in df.columns if ("emission" not in col) and ("option" not in col)] # TODO: remove eventually
-    df = df[df_columns]
+    # reduce df
+    peak_cols = [
+                    "report_simulation_output.peak_electricity_summer_total_w",
+                    "report_simulation_output.peak_electricity_winter_total_w",
+                ]
+    cols_to_keep = ["building_id", "completed_status", "build_existing_model.sample_weight"]
+    cols_to_keep += get_housing_char_cols(search=False)+peak_cols+[col for col in df.columns if col.startswith("upgrade_costs.")]
+    df = df[cols_to_keep]
 
     # --- [1] NEC - STANDARD METHOD ----
     df = apply_standard_method_exploded(df) # <---
@@ -867,15 +886,7 @@ def main(filename: str = None, plot_only=False, sfd_only=False):
     df = apply_optional_method(df)
         
     # --- compare with simulated peak ---
-    df["peak_amp"] = (
-        df[
-            [
-                "report_simulation_output.peak_electricity_summer_total_w",
-                "report_simulation_output.peak_electricity_winter_total_w",
-            ]
-        ].max(axis=1)
-        / 240
-    )
+    df["peak_amp"] = df[peak_cols].max(axis=1) / 240
 
     df["std_m_amp_pct_delta"] = np.nan
     cond = df["peak_amp"] > df["std_m_nec_electrical_panel_amp"]
@@ -889,7 +900,7 @@ def main(filename: str = None, plot_only=False, sfd_only=False):
         df["peak_amp"] - df["opt_m_nec_electrical_panel_amp"]
     ) / df["opt_m_nec_electrical_panel_amp"]
 
-    new_columns = [x for x in df.columns if x not in df_columns]
+    new_columns = [x for x in df.columns if x not in cols_to_keep]
     print(df.loc[cond, ["building_id"] + new_columns])
 
     # --- save to file ---
