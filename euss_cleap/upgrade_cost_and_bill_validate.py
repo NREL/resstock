@@ -64,7 +64,9 @@ def main(community_name="Test", as_percentage=False):
 
         # check upgrade cost
         print("\n --- Check Upgrade Costs --- ")
-        check_upgrade_cost_change(dfi, dfo, as_percentage=as_percentage)
+        has_change = check_upgrade_cost_change(dfi, dfo, as_percentage=as_percentage)
+        if not has_change:
+            breakpoint()
 
         # check bills
         print("\n --- Check Bills --- ")
@@ -103,6 +105,8 @@ def check_bills(dfo):
 
 def check_upgrade_cost_change(dfi, dfo, as_percentage=False):
     """check changes in upgrade costs"""
+    threshold = 25 # [%] TODO
+
     change_type = "absolute"
     if as_percentage:
         change_type = "percent"
@@ -110,18 +114,22 @@ def check_upgrade_cost_change(dfi, dfo, as_percentage=False):
     metric = "upgrade_costs.upgrade_cost_usd"
     uc_pct_diff = ((dfo[metric] - dfi[metric]) / dfi[metric]) * 100
     has_change = False
+    beyond_threshold = False
 
-    cond = uc_pct_diff > 50
-    if cond.sum() > 0:
+    if (uc_pct_diff!=0).sum() > 0:
         has_change = True
+
+    cond = uc_pct_diff > threshold
+    if cond.sum() > 0:
+        beyond_threshold = True
         n1, n2 = cond.sum(), len(dfi)
         print(
-            f" * {n1} / {n2} ( {n1/n2*100:.02f}% ) building_id see upgrade_cost INCREASED by 50%+ after processing"
+            f" * {n1} / {n2} ( {n1/n2*100:.02f}% ) building_id see upgrade_cost INCREASED by {threshold}%+ after processing"
         )
         df_opt = calculate_option_cost_change(
             dfi, dfo, cond, as_percentage=as_percentage
         )
-        top_n = 5
+        top_n = 4
         df_max, df_idxmax = get_max_option_cost_change(
             df_opt, top_n=top_n, as_percentage=as_percentage
         )
@@ -141,17 +149,17 @@ def check_upgrade_cost_change(dfi, dfo, as_percentage=False):
         print(df_namemax)
         print()
 
-    cond = uc_pct_diff < -50
+    cond = uc_pct_diff < -threshold
     if cond.sum() > 0:
-        has_change = True
+        beyond_threshold = True
         n1, n2 = cond.sum(), len(dfi)
         print(
-            f" * {n1} / {n2} ( {n1/n2*100:.02f}% ) building_id see upgrade_cost DECREASED by 50%+ after processing"
+            f" * {n1} / {n2} ( {n1/n2*100:.02f}% ) building_id see upgrade_cost DECREASED by {threshold}%+ after processing"
         )
         df_opt = calculate_option_cost_change(
             dfi, dfo, cond, as_percentage=as_percentage
         )
-        top_n = 5
+        top_n = 4
         df_max, df_idxmax = get_max_option_cost_change(
             df_opt, top_n=top_n, as_percentage=as_percentage
         )
@@ -171,8 +179,13 @@ def check_upgrade_cost_change(dfi, dfo, as_percentage=False):
         print(df_namemax)
         print()
 
+    if not beyond_threshold:
+        print(f"Upgrade cost changes are ALL less than {threshold}%")
+
     if not has_change:
         print("No change to upgrade costs!")
+
+    return has_change
 
 
 def get_max_option_cost_change_name(df_idxmax, dfo):
