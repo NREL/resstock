@@ -5,6 +5,7 @@ Features
 - Update characteristics to use EIA 2020 RECS ([#1031](https://github.com/NREL/resstock/pull/1031))
 
 Fixes
+- Set standard format for options_lookup ([#962](https://github.com/NREL/resstock/pull/962))
 
 ## ResStock v3.1.0
 ###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
