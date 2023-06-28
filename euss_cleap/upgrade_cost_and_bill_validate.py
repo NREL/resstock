@@ -65,8 +65,6 @@ def main(community_name="Test", as_percentage=False):
         # check upgrade cost
         print("\n --- Check Upgrade Costs --- ")
         has_change = check_upgrade_cost_change(dfi, dfo, as_percentage=as_percentage)
-        if not has_change:
-            breakpoint()
 
         # check bills
         print("\n --- Check Bills --- ")
@@ -112,7 +110,7 @@ def check_upgrade_cost_change(dfi, dfo, as_percentage=False):
         change_type = "percent"
 
     metric = "upgrade_costs.upgrade_cost_usd"
-    uc_pct_diff = ((dfo[metric] - dfi[metric]) / dfi[metric]) * 100
+    uc_pct_diff = (((dfo[metric] - dfi[metric]) / dfi[metric]) * 100).fillna(0)
     has_change = False
     beyond_threshold = False
 
@@ -179,11 +177,10 @@ def check_upgrade_cost_change(dfi, dfo, as_percentage=False):
         print(df_namemax)
         print()
 
-    if not beyond_threshold:
-        print(f"Upgrade cost changes are ALL less than {threshold}%")
-
     if not has_change:
         print("No change to upgrade costs!")
+    if has_change and not beyond_threshold:
+        print(f"Upgrade cost changes are ALL less than {threshold}%")
 
     return has_change
 
