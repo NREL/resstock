@@ -46,7 +46,9 @@ def downselect_buildstock(bst_to_match, bst_to_search, HC_list, HC_fallback=None
     if len(bst_to_match) >= n:
         logger.info(f"bst_to_match has {len(bst_to_match)} samples and over threshold n={n}, returning building_id and weight directly.")
         weight_map = _aggregate_weight(bst_to_match, [bldg_col_name], value_name="sample_weight", normalize=True)
-        weight_map *= len(weight_map)
+        if n_represented is None:
+            n_represented = len(weight_map)
+        weight_map *= n_represented
 
         check_results(bst_to_match)
         for hc in HC_check_additional_results:
