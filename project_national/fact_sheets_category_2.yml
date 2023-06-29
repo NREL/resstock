@@ -512,9 +512,9 @@ upgrades:
           - value: 0.0443 # TBD
             multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value) # TBD
         lifetime: 60
-      - &infiltration_IECC2021_with_ERV_added_IECC_CZ1A-2A-2B
+      - &infiltration_IECC2021_CZ1A-2A-2B
         option: Infiltration|5 ACH50
-        apply_logic: &infiltration_higher_than_5ACH50
+        apply_logic:
           - or:
             - ASHRAE IECC Climate Zone 2004|1A
             - ASHRAE IECC Climate Zone 2004|2A
@@ -537,9 +537,9 @@ upgrades:
                         # then used 1.14 multiplier to inflate from Jan 2019 to Mar 2022
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-      - &infiltration_IECC2021_with_ERV_added_IECC_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B
         option: Infiltration|3 ACH50
-        apply_logic: &infiltration_higher_than_3ACH50
+        apply_logic:
           - or:
             - ASHRAE IECC Climate Zone 2004|3A
             - ASHRAE IECC Climate Zone 2004|3B
@@ -573,7 +573,7 @@ upgrades:
                         # then used 1.14 multiplier to inflate from Jan 2019 to Mar 2022
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-      - &infiltration_IECC2021_add_ERV
+      - &add_ERV_all_climates
         option: Mechanical Ventilation|ERV, 72%
         costs:
           - value: 0.50 # To be decided
@@ -626,9 +626,9 @@ upgrades:
       
       #1” XPS (R-5/in) Exterior wall insulation for dwelling units with wall insulation of less than R-19  
       - *exterior_wall_insulation
-      - *infiltration_IECC2021_with_ERV_added_IECC_CZ1A-2A-2B
-      - *infiltration_IECC2021_with_ERV_added_IECC_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - &infiltration_IECC2021_add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_IECC2021_CZ1A-2A-2B
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - &add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
         option: Mechanical Ventilation|ERV, 72%
         apply_logic:
           - or:
@@ -645,7 +645,7 @@ upgrades:
           - value: 0.50 # To be decided
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 60
-      - &infiltration_IECC2021_add_Exhaust_ventilation_IECC_CZ1A-2A-2B-3A-3B-3C
+      - &add_exhaust_ventilation_IECC_CZ1A-2A-2B-3A-3B-3C
         option: Mechanical Ventilation|Exhaust
         apply_logic:
           - or:
