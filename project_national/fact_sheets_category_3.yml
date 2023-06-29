@@ -4,7 +4,7 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/small_run_category_3_20230615/
+output_directory: /projects/abctypol/largeee/test_runs/small_run_category_3_20230629/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -274,23 +274,23 @@ upgrades:
         lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
                      # 18 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
       - &dryer_usage_increase_from_80
-        option: Clothes Dryer Usage Level|150%
+        option: Clothes Dryer Usage Level|150% Usage
         apply_logic:
-          - Clothes Dryer Usage Level|80%
+          - Clothes Dryer Usage Level|80% Usage
           - or:
             - *energystar_most_eff_clothes_dryer_electric_applicability
             - *energystar_most_eff_clothes_dryer_gas_applicability
       - &dryer_usage_increase_from_100
-        option: Clothes Dryer Usage Level|187.5%
+        option: Clothes Dryer Usage Level|187.5% Usage
         apply_logic:
-          - Clothes Dryer Usage Level|100%
+          - Clothes Dryer Usage Level|100% Usage
           - or:
             - *energystar_most_eff_clothes_dryer_electric_applicability
             - *energystar_most_eff_clothes_dryer_gas_applicability
       - &dryer_usage_increase_from_120
-        option: Clothes Dryer Usage Level|225%
+        option: Clothes Dryer Usage Level|225% Usage
         apply_logic:
-          - Clothes Dryer Usage Level|120%
+          - Clothes Dryer Usage Level|120% Usage
           - or:
             - *energystar_most_eff_clothes_dryer_electric_applicability
             - *energystar_most_eff_clothes_dryer_gas_applicability
