@@ -500,14 +500,18 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if args[:heating_system_2_type] != 'none'
       if args[:heating_system_type] != 'none'
         if ((args[:heating_system_fraction_heat_load_served] + args[:heating_system_2_fraction_heat_load_served]) > 1.0)
-          info_msg = "Adjusted fraction of heat load served by the first heating system (#{args[:heating_system_fraction_heat_load_served]}"
+          info_msg = "Adjusted fraction of heat load served by the primary heating system (#{args[:heating_system_fraction_heat_load_served]}"
           args[:heating_system_fraction_heat_load_served] -= (args[:heating_system_2_fraction_heat_load_served] - (1.0 - args[:heating_system_fraction_heat_load_served]))
-          info_msg += " to #{args[:heating_system_fraction_heat_load_served]}) to allow for a second heating system (#{args[:heating_system_2_fraction_heat_load_served]})."
+          info_msg += " to #{args[:heating_system_fraction_heat_load_served]}) to allow for a secondary heating system (#{args[:heating_system_2_fraction_heat_load_served]})."
           runner.registerInfo(info_msg)
         end
       elsif args[:heat_pump_type] != 'none'
-        args[:heat_pump_backup_type] = HPXML::HeatPumpBackupTypeSeparate
-        runner.registerInfo("Ignoring fraction of heat load served by the second heating system (#{args[:heating_system_2_fraction_heat_load_served]}) because it is a heat pump backup system.")
+        if ((args[:heat_pump_fraction_heat_load_served] + args[:heating_system_2_fraction_heat_load_served]) > 1.0)
+          info_msg = "Adjusted fraction of heat load served by the primary heating system (#{args[:heat_pump_fraction_heat_load_served]}"
+          args[:heat_pump_fraction_heat_load_served] -= (args[:heating_system_2_fraction_heat_load_served] - (1.0 - args[:heat_pump_fraction_heat_load_served]))
+          info_msg += " to #{args[:heat_pump_fraction_heat_load_served]}) to allow for a secondary heating system (#{args[:heating_system_2_fraction_heat_load_served]})."
+          runner.registerInfo(info_msg)
+        end
       end
     end
 
