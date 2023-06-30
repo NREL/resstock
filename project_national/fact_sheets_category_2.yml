@@ -4,7 +4,7 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/small_run_category_2_20230629/
+output_directory: /projects/abctypol/largeee/test_runs/small_run_category_2_20230630/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -514,7 +514,7 @@ upgrades:
         lifetime: 60
       - &infiltration_IECC2021_CZ1A-2A-2B
         option: Infiltration|5 ACH50
-        apply_logic:
+        apply_logic: &air_sealing_dwellings_1_through_2
           - or:
             - ASHRAE IECC Climate Zone 2004|1A
             - ASHRAE IECC Climate Zone 2004|2A
@@ -539,7 +539,7 @@ upgrades:
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B
         option: Infiltration|3 ACH50
-        apply_logic:
+        apply_logic: &air_sealing_dwellings_3_through_7
           - or:
             - ASHRAE IECC Climate Zone 2004|3A
             - ASHRAE IECC Climate Zone 2004|3B
@@ -575,6 +575,10 @@ upgrades:
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &add_ERV_all_climates
         option: Mechanical Ventilation|ERV, 72%
+        apply_logic:       
+          - or:
+            - *air_sealing_dwellings_1_through_2
+            - *air_sealing_dwellings_3_through_7
         costs:
           - value: 0.50 # To be decided
             multiplier: Floor Area, Conditioned (ft^2)
@@ -641,20 +645,65 @@ upgrades:
             - ASHRAE IECC Climate Zone 2004|6B
             - ASHRAE IECC Climate Zone 2004|7A
             - ASHRAE IECC Climate Zone 2004|7B
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|15 ACH50
+            - Infiltration|10 ACH50
+            - Infiltration|8 ACH50
+            - Infiltration|7 ACH50
+            - Infiltration|6 ACH50
+            - Infiltration|5 ACH50
+            - Infiltration|4 ACH50
         costs:
           - value: 0.50 # To be decided
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 60
-      - &add_exhaust_ventilation_IECC_CZ1A-2A-2B-3A-3B-3C
+      - &add_exhaust_ventilation_IECC_CZ1A-2A-2B
         option: Mechanical Ventilation|Exhaust
         apply_logic:
           - or:
             - ASHRAE IECC Climate Zone 2004|1A
             - ASHRAE IECC Climate Zone 2004|2A
             - ASHRAE IECC Climate Zone 2004|2B
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|15 ACH50
+            - Infiltration|10 ACH50
+            - Infiltration|8 ACH50
+            - Infiltration|7 ACH50
+            - Infiltration|6 ACH50
+        costs:
+          - value: 0.50 # To be decided
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &add_exhaust_ventilation_IECC_3A-3B-3C
+        option: Mechanical Ventilation|Exhaust
+        apply_logic:
+          - or:
             - ASHRAE IECC Climate Zone 2004|3A
             - ASHRAE IECC Climate Zone 2004|3B
             - ASHRAE IECC Climate Zone 2004|3C
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|15 ACH50
+            - Infiltration|10 ACH50
+            - Infiltration|8 ACH50
+            - Infiltration|7 ACH50
+            - Infiltration|6 ACH50
+            - Infiltration|5 ACH50
+            - Infiltration|4 ACH50
         costs:
           - value: 0.50 # To be decided
             multiplier: Floor Area, Conditioned (ft^2)
