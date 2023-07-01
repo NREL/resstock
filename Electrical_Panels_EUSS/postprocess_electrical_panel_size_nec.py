@@ -876,7 +876,7 @@ def main(filename: str = None, plot_only=False, sfd_only=False):
                     "report_simulation_output.peak_electricity_winter_total_w",
                 ]
     cols_to_keep = ["building_id", "completed_status", "build_existing_model.sample_weight"]
-    cols_to_keep += get_housing_char_cols(search=False)+peak_cols+[col for col in df.columns if col.startswith("upgrade_costs.")]
+    cols_to_keep += get_housing_char_cols(search=False, get_ami=False)+peak_cols+[col for col in df.columns if col.startswith("upgrade_costs.")]
     df = df[cols_to_keep]
 
     # --- [1] NEC - STANDARD METHOD ----

@@ -59,7 +59,7 @@ def get_metric_cols(df, emission_type=None):
 
         return metric_cols
 
-def get_housing_char_cols(search=False):
+def get_housing_char_cols(search=False, get_ami=True):
 	if search:
 		hc_dir = Path(__file__).resolve().parents[1] / "project_national" / "housing_characteristics"
 		hc = [x.stem for x in hc_dir.rglob("*.tsv")]
@@ -202,6 +202,8 @@ def get_housing_char_cols(search=False):
 			'window_areas',
 			'windows'
 			]
+		if not get_ami:
+			hc = [x for x in hc if x != "area_median_income"]
 	return [f"build_existing_model.{x}" for x in hc]
 
 def main():
