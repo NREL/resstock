@@ -654,7 +654,8 @@ key_HC = [
 ]
 
 ## [0] setup input
-communities = ["louisville", "san_jose", "columbia", "north_birmingham", "jackson_county", "duluth", "hill_district",]
+communities = ["louisville", "san_jose", "columbia", "north_birmingham", "jackson_county", "duluth", ] 
+# excluding: "hill_district" as it has its own run
 method = 1 # <--- TODO
 n = 1000 # <----
 # community = "hill_district" # <--- # 
@@ -737,7 +738,7 @@ for community in communities:
         n_represented = 27723 # https://www.census.gov/quickfacts/jacksoncountyillinois
     else:
         raise ValueError(f"unsupported community = {community}, "
-            "valid: [duluth, hill_district, san_jose, columbia, north_birmingham, louisville, jackson_county]")
+            "valid: [duluth, san_jose, columbia, north_birmingham, louisville, jackson_county]")
 
     if len(df_match) == 0:
         logger.info("df_match is empty!")
