@@ -3,17 +3,22 @@ Community list: ["louisville", "san_jose", "columbia", "north_birmingham", "jack
 1. downsample_buildstock.py
 input data directory: requires results_up00 file
 output data directory:data_/downsampled_buildings_id/euss1_2018_results_up00__downsampled_method1_{community}.csv
+# Not available for hill_district as a small EUSS run is done separately with ~2k samples to add XPS for masonry walls.
 
 2. get_community_results_from_euss.ipynb
 input data directory: data_/downsampled_buildings_id/euss1_2018_results_up00__downsampled_method1_{community}.csv 
                       data_/euss_res_final_2018_550k_20220901/
 output data directory: data_/community_building_samples/{community}/
+# Not needed for hill_district.
 
 3. upgrade_cost_and_bill.py <community>
 Use upgrade_cost_and_bill_validate.py <community> to validate
 input data directory: data_/community_building_samples/{community}/
                       data_/community_cost/cost_{community}.csv
 output data directory: data_/community_building_samples_with_upgrade_cost_and_bill/{community}/
+# A separate processing script is available for hill_district due to the addition of XPS for masonry walls.
+# $ python upgrade_cost_and_bill_hill_district.py
+
 
 4. process_annual_summary_for_factsheets.py <community>
 input data directory: data_/community_building_samples_with_upgrade_cost_and_bill/{community}/

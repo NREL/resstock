@@ -64,7 +64,12 @@ import re
 from itertools import chain
 import argparse
 
-from add_ami_to_euss_annual_summary import add_ami_column_to_file, read_file
+from add_ami_to_euss_annual_summary import (
+    add_ami_column_to_file, 
+    assign_representative_income,
+    read_file, 
+    write_to_file
+    )
 
 
 ### Helper settings
@@ -122,7 +127,7 @@ class SavingsExtraction:
             "build_existing_model.sample_weight",
             ]
         self.res_meta_cols += [f"build_existing_model.{x}" for x in hc]
-        self.res_meta_cols += ["build_existing_model.area_median_income", "rep_income", "sample_weight"]
+        self.res_meta_cols += ["rep_income", "sample_weight"]
 
         print(
             "========================================================================="
@@ -163,8 +168,16 @@ class SavingsExtraction:
     def add_ami_to_euss_files(self):
         for file_path in self.euss_dir.rglob("*up??__*"):
             columns = read_file(file_path).columns
-            if "build_existing_model.area_median_income" not in columns:
-                add_ami_column_to_file(file_path)  # modify file in-place
+            if len([col for col in columns if "build_existing_model." in col]) > 0:
+                if "build_existing_model.area_median_income" not in columns:
+                    add_ami_column_to_file(file_path)  # modify file in-place
+                elif "rep_income" not in columns:
+                    print(f"Mapping rep_income for file: {file_path}")
+                    df = read_file(file_path, valid_only=True, fix_dtypes=True)
+                    df = assign_representative_income(df)
+                    write_to_file(df, file_path)
+                else:
+                    print("nothing to do")
 
     @staticmethod
     def get_metric_cols(df):
@@ -209,12 +222,11 @@ class SavingsExtraction:
             f"metric_type={metric_type} unsupported. Valid only: [energy, emission, cbill, bill]"
         )
 
-    @staticmethod
-    def get_site_total_col(metric_type="energy"):
+    def get_site_total_col(self, metric_type="energy"):
         if metric_type == "energy":
             return "report_simulation_output.energy_use_total_m_btu"
         if metric_type == "emission":
-            return "report_simulation_output.emissions_co_2_e_lrmer_low_re_cost_25_2025_start_total_lb"
+            return f"report_simulation_output.emissions_co_2_e_{self.emission_type}_total_lb"
         if metric_type == "cbill":
             return "report_utility_bills.bills_total_usd" # from community input
         if metric_type == "bill":
@@ -1238,9 +1250,8 @@ class SavingsExtraction:
 
 ###### main ######
 
-def main(euss_dir):
+def main(euss_dir, emission_type):
     output_dir = Path(euss_dir)
-    emission_type = "lrmer_low_re_cost_25_2025_start"
     bill_year = 2019
 
     SE = SavingsExtraction(euss_dir, emission_type, bill_year, output_dir=output_dir)
@@ -1401,4 +1412,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     community_name = args.community_name.lower().replace(" ", "_")
     euss_dir = Path(__file__).resolve().parent / "data_" / "community_building_samples_with_upgrade_cost_and_bill" / community_name
-    main(euss_dir)
+
+    if community_name == "hill_district":
+        emission_type = "lrmer_low_re_cost_30" # 25 not availble for hill_district due to the yaml referencing a different EUSS yml to start
+    else:
+        emission_type = "lrmer_low_re_cost_25_2025_start"
+
+    main(euss_dir, emission_type)

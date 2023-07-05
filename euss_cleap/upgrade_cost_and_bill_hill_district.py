@@ -42,7 +42,7 @@ CENTS_TO_DOLLARS = 1e-2
 
 # local cost for cummunity
 def process_euss_upgrade_files(
-    cost_file, community_name=None, use_multipliers_only=False
+    cost_file, community_name=None, use_multipliers_only=False, testing=False,
 ):
     """main call function for processing EUSS Round 1 annual files for CLEAP communities
     Args:
@@ -132,6 +132,12 @@ def process_euss_upgrade_files(
     local_multiplier = cost.iat[42, 1]  # local cost multiplier
     inflation_multiplier = cost.iat[43, 1]  # inflation multiplier
 
+    # for testing purpose:
+    if testing:
+        local_multiplier = 1
+        inflation_multiplier = 1
+        use_multipliers_only = True
+
     ## -- [2] Helper functions --
     def process_upgrade_file(
         input_filename, output_filename, upgrade_number="00", use_multipliers_only=False
@@ -145,11 +151,7 @@ def process_euss_upgrade_files(
         )
 
         # recalculate upgrade costs
-        if upgrade_number > 0:
-            if use_multipliers_only:
-                df = update_costs_with_multipliers_only(df)
-            else:
-                df = process_upgrade_costs(df, upgrade_number=upgrade_number)
+        df = process_upgrade_costs(df, upgrade_number=upgrade_number, use_multipliers_only=use_multipliers_only)
 
         # calculate bills
         df = calculate_bills(df)
@@ -168,12 +170,18 @@ def process_euss_upgrade_files(
         df[cost_cols] *= local_multiplier * inflation_multiplier
         return df
 
-    def process_upgrade_costs(df, upgrade_number=0):
+    def process_upgrade_costs(df, upgrade_number=0, use_multipliers_only=False):
         """assign process_upgrade_XX_costs function according to upgrade_number"""
         upgrade_number = int(upgrade_number)
 
         if upgrade_number == 0:
+            df = df.assign(sample_weight=df["build_existing_model.sample_weight"])
+            print("sample_weight added")
             return df
+
+        if use_multipliers_only:
+            return update_costs_with_multipliers_only(df)
+
         if upgrade_number == 1:
             return process_upgrade_01_costs(df)
         if upgrade_number == 2:
@@ -329,7 +337,8 @@ def process_euss_upgrade_files(
         ] = (
             wall_r13 * up01["upgrade_costs.wall_area_above_grade_conditioned_ft_2"]
         )
-
+        # option 11 is XPS
+        
         # update total cost
         up01 = _update_total_upgrade_cost(up01)
         return up01
@@ -418,39 +427,40 @@ def process_euss_upgrade_files(
         ] = (
             wall_r13 * up02["upgrade_costs.wall_area_above_grade_conditioned_ft_2"]
         )
+        # option 11 is XPS
 
         # Insulate interior foundation wall to R-10
         up02.loc[
-            up02["upgrade_costs.option_11_cost_usd"] > 0,
-            "upgrade_costs.option_11_cost_usd",
+            up02["upgrade_costs.option_12_cost_usd"] > 0,
+            "upgrade_costs.option_12_cost_usd",
         ] = (
             wall_foundation * up02["upgrade_costs.wall_area_below_grade_ft_2"]
         )
         # Insulate interior finished basement wall to R-10
         up02.loc[
-            up02["upgrade_costs.option_12_cost_usd"] > 0,
-            "upgrade_costs.option_12_cost_usd",
+            up02["upgrade_costs.option_13_cost_usd"] > 0,
+            "upgrade_costs.option_13_cost_usd",
         ] = (
             wall_basement * up02["upgrade_costs.wall_area_below_grade_ft_2"]
         )
         # Insulation Rim Joist|R-10, Exterior
         up02.loc[
-            up02["upgrade_costs.option_13_cost_usd"] > 0,
-            "upgrade_costs.option_13_cost_usd",
+            up02["upgrade_costs.option_14_cost_usd"] > 0,
+            "upgrade_costs.option_14_cost_usd",
         ] = (
             rim * up02["upgrade_costs.rim_joist_area_above_grade_exterior_ft_2"]
         )
         # Geometry Foundation Type|Unvented Crawlspace
         up02.loc[
-            up02["upgrade_costs.option_14_cost_usd"] > 0,
-            "upgrade_costs.option_14_cost_usd",
+            up02["upgrade_costs.option_15_cost_usd"] > 0,
+            "upgrade_costs.option_15_cost_usd",
         ] = (
             crawlspaces * up02["upgrade_costs.floor_area_foundation_ft_2"]
         )
         # Insulation Roof|Finished, R-30
         up02.loc[
-            up02["upgrade_costs.option_15_cost_usd"] > 0,
-            "upgrade_costs.option_15_cost_usd",
+            up02["upgrade_costs.option_16_cost_usd"] > 0,
+            "upgrade_costs.option_16_cost_usd",
         ] = (
             roof * up02["upgrade_costs.roof_area_ft_2"]
         )
@@ -601,13 +611,13 @@ def process_euss_upgrade_files(
             furnace_cost1
             + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
         )
-        up05.loc[
-            up05["upgrade_costs.option_39_cost_usd"] > 0,
-            "upgrade_costs.option_39_cost_usd",
-        ] = (
-            furnace_cost1
-            + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
-        )
+        # up05.loc[
+        #     up05["upgrade_costs.option_39_cost_usd"] > 0,
+        #     "upgrade_costs.option_39_cost_usd",
+        # ] = (
+        #     furnace_cost1
+        #     + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
+        # )
         up05.loc[
             up05["upgrade_costs.option_42_cost_usd"] > 0,
             "upgrade_costs.option_42_cost_usd",
@@ -643,13 +653,13 @@ def process_euss_upgrade_files(
             furnace_cost1
             + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
         )
-        up05.loc[
-            up05["upgrade_costs.option_55_cost_usd"] > 0,
-            "upgrade_costs.option_55_cost_usd",
-        ] = (
-            furnace_cost1
-            + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
-        )
+        # up05.loc[
+        #     up05["upgrade_costs.option_55_cost_usd"] > 0,
+        #     "upgrade_costs.option_55_cost_usd",
+        # ] = (
+        #     furnace_cost1
+        #     + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
+        # )
 
         # shared heating
         up05.loc[
@@ -960,11 +970,12 @@ def process_euss_upgrade_files(
         ] = (
             wall_r13 * up09["upgrade_costs.wall_area_above_grade_conditioned_ft_2"]
         )
+        # option 11 is XPS
 
         # HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF
         up09.loc[
-            up09["upgrade_costs.option_11_cost_usd"] > 0,
-            "upgrade_costs.option_11_cost_usd",
+            up09["upgrade_costs.option_12_cost_usd"] > 0,
+            "upgrade_costs.option_12_cost_usd",
         ] = (
             ducted_MSHP_cost1
             + ducted_MSHP_cost2
@@ -972,8 +983,8 @@ def process_euss_upgrade_files(
         )
         # HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load
         up09.loc[
-            up09["upgrade_costs.option_13_cost_usd"] > 0,
-            "upgrade_costs.option_13_cost_usd",
+            up09["upgrade_costs.option_14_cost_usd"] > 0,
+            "upgrade_costs.option_14_cost_usd",
         ] = (
             MSHP_max_14_cost1
             + MSHP_max_14_cost2
@@ -982,50 +993,50 @@ def process_euss_upgrade_files(
 
         # Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         up09.loc[
-            up09["upgrade_costs.option_15_cost_usd"] > 0,
-            "upgrade_costs.option_15_cost_usd",
+            up09["upgrade_costs.option_16_cost_usd"] > 0,
+            "upgrade_costs.option_16_cost_usd",
         ] = HPWH_50
         # Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
         up09.loc[
-            up09["upgrade_costs.option_16_cost_usd"] > 0,
-            "upgrade_costs.option_16_cost_usd",
+            up09["upgrade_costs.option_17_cost_usd"] > 0,
+            "upgrade_costs.option_17_cost_usd",
         ] = HPWH_66
         # Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         up09.loc[
-            up09["upgrade_costs.option_17_cost_usd"] > 0,
-            "upgrade_costs.option_17_cost_usd",
+            up09["upgrade_costs.option_18_cost_usd"] > 0,
+            "upgrade_costs.option_18_cost_usd",
         ] = HPWH_80
 
         # Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 80% Usage
         up09.loc[
-            up09["upgrade_costs.option_18_cost_usd"] > 0,
-            "upgrade_costs.option_18_cost_usd",
-        ] = dryer_HP
-        # Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 100% Usage
-        up09.loc[
             up09["upgrade_costs.option_19_cost_usd"] > 0,
             "upgrade_costs.option_19_cost_usd",
         ] = dryer_HP
-        # Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 120% Usage
+        # Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 100% Usage
         up09.loc[
             up09["upgrade_costs.option_20_cost_usd"] > 0,
             "upgrade_costs.option_20_cost_usd",
         ] = dryer_HP
-
-        # Cooking Range|Electric, Induction, 80% Usage
+        # Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 120% Usage
         up09.loc[
             up09["upgrade_costs.option_21_cost_usd"] > 0,
             "upgrade_costs.option_21_cost_usd",
-        ] = induction_range
-        # Cooking Range|Electric, Induction, 100% Usage
+        ] = dryer_HP
+
+        # Cooking Range|Electric, Induction, 80% Usage
         up09.loc[
             up09["upgrade_costs.option_22_cost_usd"] > 0,
             "upgrade_costs.option_22_cost_usd",
         ] = induction_range
-        # Cooking Range|Electric, Induction, 120% Usage
+        # Cooking Range|Electric, Induction, 100% Usage
         up09.loc[
             up09["upgrade_costs.option_23_cost_usd"] > 0,
             "upgrade_costs.option_23_cost_usd",
+        ] = induction_range
+        # Cooking Range|Electric, Induction, 120% Usage
+        up09.loc[
+            up09["upgrade_costs.option_24_cost_usd"] > 0,
+            "upgrade_costs.option_24_cost_usd",
         ] = induction_range
 
         # update total cost
@@ -1116,33 +1127,34 @@ def process_euss_upgrade_files(
         ] = (
             wall_r13 * up10["upgrade_costs.wall_area_above_grade_conditioned_ft_2"]
         )
+        # option 11 is XPS
 
         # Insulate interior foundation wall to R-10
         up10.loc[
-            up10["upgrade_costs.option_11_cost_usd"] > 0,
-            "upgrade_costs.option_11_cost_usd",
+            up10["upgrade_costs.option_12_cost_usd"] > 0,
+            "upgrade_costs.option_12_cost_usd",
         ] = (
             wall_foundation * up10["upgrade_costs.wall_area_below_grade_ft_2"]
         )
         # Geometry Foundation Type|Unvented Crawlspace
         up10.loc[
-            up10["upgrade_costs.option_12_cost_usd"] > 0,
-            "upgrade_costs.option_12_cost_usd",
+            up10["upgrade_costs.option_13_cost_usd"] > 0,
+            "upgrade_costs.option_13_cost_usd",
         ] = (
             crawlspaces * up10["upgrade_costs.floor_area_foundation_ft_2"]
         )
         # Insulation Roof|Finished, R-30
         up10.loc[
-            up10["upgrade_costs.option_13_cost_usd"] > 0,
-            "upgrade_costs.option_13_cost_usd",
+            up10["upgrade_costs.option_14_cost_usd"] > 0,
+            "upgrade_costs.option_14_cost_usd",
         ] = (
             roof * up10["upgrade_costs.roof_area_ft_2"]
         )
 
         # HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF
         up10.loc[
-            up10["upgrade_costs.option_14_cost_usd"] > 0,
-            "upgrade_costs.option_14_cost_usd",
+            up10["upgrade_costs.option_15_cost_usd"] > 0,
+            "upgrade_costs.option_15_cost_usd",
         ] = (
             ducted_MSHP_cost1
             + ducted_MSHP_cost2
@@ -1150,8 +1162,8 @@ def process_euss_upgrade_files(
         )
         # HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load
         up10.loc[
-            up10["upgrade_costs.option_16_cost_usd"] > 0,
-            "upgrade_costs.option_16_cost_usd",
+            up10["upgrade_costs.option_17_cost_usd"] > 0,
+            "upgrade_costs.option_17_cost_usd",
         ] = (
             MSHP_max_14_cost1
             + MSHP_max_14_cost2
@@ -1160,50 +1172,50 @@ def process_euss_upgrade_files(
 
         # Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         up10.loc[
-            up10["upgrade_costs.option_18_cost_usd"] > 0,
-            "upgrade_costs.option_18_cost_usd",
+            up10["upgrade_costs.option_19_cost_usd"] > 0,
+            "upgrade_costs.option_19_cost_usd",
         ] = HPWH_50
         # Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
         up10.loc[
-            up10["upgrade_costs.option_19_cost_usd"] > 0,
-            "upgrade_costs.option_19_cost_usd",
+            up10["upgrade_costs.option_20_cost_usd"] > 0,
+            "upgrade_costs.option_20_cost_usd",
         ] = HPWH_66
         # Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         up10.loc[
-            up10["upgrade_costs.option_20_cost_usd"] > 0,
-            "upgrade_costs.option_20_cost_usd",
+            up10["upgrade_costs.option_21_cost_usd"] > 0,
+            "upgrade_costs.option_21_cost_usd",
         ] = HPWH_80
 
         # Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 80% Usage
         up10.loc[
-            up10["upgrade_costs.option_21_cost_usd"] > 0,
-            "upgrade_costs.option_21_cost_usd",
-        ] = dryer_HP
-        # Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 100% Usage
-        up10.loc[
             up10["upgrade_costs.option_22_cost_usd"] > 0,
             "upgrade_costs.option_22_cost_usd",
         ] = dryer_HP
-        # Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 120% Usage
+        # Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 100% Usage
         up10.loc[
             up10["upgrade_costs.option_23_cost_usd"] > 0,
             "upgrade_costs.option_23_cost_usd",
         ] = dryer_HP
-
-        # Cooking Range|Electric, Induction, 80% Usage
+        # Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 120% Usage
         up10.loc[
             up10["upgrade_costs.option_24_cost_usd"] > 0,
             "upgrade_costs.option_24_cost_usd",
-        ] = induction_range
-        # Cooking Range|Electric, Induction, 100% Usage
+        ] = dryer_HP
+
+        # Cooking Range|Electric, Induction, 80% Usage
         up10.loc[
             up10["upgrade_costs.option_25_cost_usd"] > 0,
             "upgrade_costs.option_25_cost_usd",
         ] = induction_range
-        # Cooking Range|Electric, Induction, 120% Usage
+        # Cooking Range|Electric, Induction, 100% Usage
         up10.loc[
             up10["upgrade_costs.option_26_cost_usd"] > 0,
             "upgrade_costs.option_26_cost_usd",
+        ] = induction_range
+        # Cooking Range|Electric, Induction, 120% Usage
+        up10.loc[
+            up10["upgrade_costs.option_27_cost_usd"] > 0,
+            "upgrade_costs.option_27_cost_usd",
         ] = induction_range
 
         # update total cost
@@ -1211,7 +1223,10 @@ def process_euss_upgrade_files(
         return up10
 
     ## -- [3] Apply processing --
-    print(f"Processing data for [[ {community_name} ]] ...")
+    ext = ""
+    if testing:
+        ext = " TESTING with multipliers=1"
+    print(f"Processing data for [[ {community_name} ]] {ext}...\n'build_existing_model.sample_weight' is copied as 'sample_weight' in this script")
 
     for upn in range(11):
         process_upgrade_file(
@@ -1224,11 +1239,9 @@ def process_euss_upgrade_files(
 
 
 if __name__ == "__main__":
+    # for hill_district only, copy "build_existing_model.sample_weight" as "sample_weight"
+
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "community_name",
-        help="name of community, for adding extension to output file",
-    )
     parser.add_argument(
         "-m",
         "--use_multipliers_only",
@@ -1239,20 +1252,16 @@ if __name__ == "__main__":
         "-t",
         "--test",
         action="store_true",
-        help="whether to use EUSS default costs (cost_test.csv) as input file for testing",
+        help="whether to test script with multipliers=1 as input, testing WILL override results, please be sure to rerun without -t for final results",
     )
 
     args = parser.parse_args()
-    if args.test:
-        community_name = "Test"
-        cost_file = cost_dir / "cost_test.csv"
-    else:
-        community_name = args.community_name.lower().replace(" ", "_")
-        cost_file = cost_dir / f"cost_{community_name}.csv"
-
+    community_name = "hill_district"
+    cost_file = cost_dir / f"cost_{community_name}.csv"
 
     process_euss_upgrade_files(
         cost_file,
         community_name=community_name,
         use_multipliers_only=args.use_multipliers_only,
+        testing=args.test,
     )
