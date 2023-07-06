@@ -184,6 +184,9 @@ upgrades:
 
   - upgrade_name: All ENERGYSTAR Most Efficient Appliances
     options:
+      - *energystar_dishwasher 
+      - *energystar_clothes_dryer_electric 
+      - *energystar_clothes_dryer_gas
       - &energystar_most_eff_refrigerator
         option: Refrigerator|EF 21.9 #TBD
         apply_logic:
@@ -231,69 +234,7 @@ upgrades:
                          # 1537.0=1313.5*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor. 1313.5=(628+1999)/2
                            # Another option: $1680. $1200 for replacing clothes washer to MEF2.88 in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
             multiplier: Fixed (1)
-        lifetime: 14 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=293&actionId=1068&bcId=4538
-
-      - &energystar_most_eff_dishwasher 
-        option: Dishwasher|240 Rated kWh
-        apply_logic:
-          - or:
-            - Dishwasher|318 Rated kWh
-            - Dishwasher|290 Rated kWh
-        costs:
-          - value: 1762.8 #price1: $699.99-2499 for ENERGY STAR Certified diswasher (240 Rated kWh) in BestBuy
-                         #price2: $549.99-1299 for ENERGY STAR Certified diswasher (240 Rated kWh) in Home Depot
-                         # 1762.8=1524.5*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor.
-            multiplier: Fixed (1)
-        lifetime: 11 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=291&actionId=1065&bcId=4484
-                     # 15 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
-      - &energystar_most_eff_clothes_dryer_electric 
-        option: Clothes Dryer|Electric, Premium, EnergyStar Most Efficient
-        apply_logic:
-          - or: &energystar_most_eff_clothes_dryer_electric_applicability
-            - Clothes Dryer|Electric
-        costs:
-          - value: 2184.4 #price: $1838-1999 for ENERGY STAR most efficient heat pump clothes dryer (>4.4 Cu.Ft, and CEF>4.3) in EnergyStar product database
-                         # 2184.4=1918.5*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor. 1918.5 = (1838+1999)/2
-                         # Another option: $1064. $760 for replacing electric dryer in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
-            multiplier: Fixed (1)
-        lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
-                     # 18 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
-      - &energystar_most_eff_clothes_dryer_gas 
-        option: Clothes Dryer|Gas, Premium, EnergyStar Most Efficient
-        apply_logic:
-          - or: &energystar_most_eff_clothes_dryer_gas_applicability
-            - Clothes Dryer|Gas
-        costs:
-          - value: 1415.1 #price1: $849.99-1799.99 for ENERGY STAR Certified gas clothes dryer (>4.4 Cu.Ft) in BestBuy
-                         #price2: $879-1249 for ENERGY STAR Certified gas clothes  dryer (>4.4 Cu.Ft) in Home Depot
-                         #price3: $599-1619 for ENERGY STAR Certified gas clothes  dryer (>4.4 Cu.Ft) in EnergyStar product database
-                         # 1415.1=1199.5*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor. (599+1799.99)/2
-                         # Another option: $1400. $1000 for replacing electric dryer in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
-                         # Did not find ENERGY STAR most efficient gas dryer in the EnergyStar products database or online stores. Suggest use the same price for EnergryStar and ENERGY STAR most efficient gas dryer
-            multiplier: Fixed (1)
-        lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
-                     # 18 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
-      - &dryer_usage_increase_from_80
-        option: Clothes Dryer Usage Level|150% Usage
-        apply_logic:
-          - Clothes Dryer Usage Level|80% Usage
-          - or:
-            - *energystar_most_eff_clothes_dryer_electric_applicability
-            - *energystar_most_eff_clothes_dryer_gas_applicability
-      - &dryer_usage_increase_from_100
-        option: Clothes Dryer Usage Level|187.5% Usage
-        apply_logic:
-          - Clothes Dryer Usage Level|100% Usage
-          - or:
-            - *energystar_most_eff_clothes_dryer_electric_applicability
-            - *energystar_most_eff_clothes_dryer_gas_applicability
-      - &dryer_usage_increase_from_120
-        option: Clothes Dryer Usage Level|225% Usage
-        apply_logic:
-          - Clothes Dryer Usage Level|120% Usage
-          - or:
-            - *energystar_most_eff_clothes_dryer_electric_applicability
-            - *energystar_most_eff_clothes_dryer_gas_applicability
+        lifetime: 14 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=293&actionId=1068&bcId=4538 
 
   - upgrade_name: ENERGYSTAR Electric Dryer for Non-electric Dryer
     options:
