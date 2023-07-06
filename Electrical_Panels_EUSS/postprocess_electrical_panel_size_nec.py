@@ -884,7 +884,7 @@ def read_file(filename, low_memory=True):
 
     return df
 
-def main(filename: str = None, plot_only=False, sfd_only=False):
+def main(filename: str = None, plot_only=False, sfd_only=False, explode_result=False):
     """ 
     Main execution
     Args :
@@ -928,10 +928,13 @@ def main(filename: str = None, plot_only=False, sfd_only=False):
     df = df[cols_to_keep]
 
     # --- [1] NEC - STANDARD METHOD ----
-    df = apply_standard_method_exploded(df) # <---
+    if explode_result:
+        df = apply_standard_method_exploded(df)
+    else:
+        df = apply_standard_method(df)
 
     # --- [2] NEC - OPTIONAL METHOD ----
-    df = apply_optional_method(df)
+    df = apply_optional_method(df, new_load_calc=False)
         
     # --- compare with simulated peak ---
     df["peak_amp"] = df["qoi_report.qoi_peak_magnitude_use_kw"] / 240
@@ -1079,6 +1082,13 @@ if __name__ == "__main__":
         default=False,
         help="Apply calculation to Single-Family Detached only (this is only on plotting for now)",
     )
+    parser.add_argument(
+        "-x",
+        "--explode_result",
+        action="store_true",
+        default=False,
+        help="Whether to export intermediate calculations as part of the results",
+    )
 
     args = parser.parse_args()
-    main(args.filename, plot_only=args.plot_only, sfd_only=args.sfd_only)
+    main(args.filename, plot_only=args.plot_only, sfd_only=args.sfd_only, explode_result=args.explode_result)
