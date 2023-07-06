@@ -145,7 +145,7 @@ class SavingsExtraction:
     @staticmethod
     def validate_directory(output_dir=None):
         if output_dir is None:
-            output_dir = Path(__file__).resolve().parent / "output_by_technology"
+            output_dir = Path(__file__).resolve().parent / "processed_upgrade_results"
         else:
             output_dir = Path(output_dir).resolve()
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -1400,7 +1400,7 @@ def main(euss_dir, emission_type):
     # save to file
     DF.to_parquet(output_dir / "processed_upgrade_results.parquet")
     DF.to_csv(output_dir / "processed_upgrade_results.csv", index=False)
-    print("All packages compiled!")
+    print(f"All packages compiled and saved to {output_dir}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
