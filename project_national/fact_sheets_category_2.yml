@@ -580,9 +580,10 @@ upgrades:
             - *air_sealing_dwellings_1_through_2
             - *air_sealing_dwellings_3_through_7
         costs:
-          - value: 0.50 # To be decided
-            multiplier: Floor Area, Conditioned (ft^2)
-        lifetime: 60
+          - value: 1820 # remdb has 2010 prices for ERV 70%;
+                        #ERV, 70% Unit value: $1820 (1300 * 1.4) + $6.72/cfm (4.8 * 1.4)
+            multiplier: Fixed (1)
+        lifetime: 18 # remdb
       - &roof_insulation_to_R30
         option: Insulation Roof|Finished, R-30
         apply_logic: 
@@ -659,9 +660,10 @@ upgrades:
             - Infiltration|5 ACH50
             - Infiltration|4 ACH50
         costs:
-          - value: 0.50 # To be decided
-            multiplier: Floor Area, Conditioned (ft^2)
-        lifetime: 60
+          - value: 1820 # remdb has 2010 prices for ERV 70%;
+                        #ERV, 70% Unit value: $1820 (1300 * 1.4) + $6.72/cfm (4.8 * 1.4)
+            multiplier: Fixed (1)
+        lifetime: 18 # remdb
       - &add_exhaust_ventilation_IECC_CZ1A-2A-2B
         option: Mechanical Ventilation|Exhaust
         apply_logic:
@@ -681,9 +683,10 @@ upgrades:
             - Infiltration|7 ACH50
             - Infiltration|6 ACH50
         costs:
-          - value: 0.50 # To be decided
-            multiplier: Floor Area, Conditioned (ft^2)
-        lifetime: 60
+          - value: 504 # remdb as 2020 prices for "install exhaust"
+                       # 360*1.4 = $504
+            multiplier: Fixed (1)
+        lifetime: 18 # remdb
       - &add_exhaust_ventilation_IECC_3A-3B-3C
         option: Mechanical Ventilation|Exhaust
         apply_logic:
@@ -705,9 +708,10 @@ upgrades:
             - Infiltration|5 ACH50
             - Infiltration|4 ACH50
         costs:
-          - value: 0.50 # To be decided
-            multiplier: Floor Area, Conditioned (ft^2)
-        lifetime: 60
+          - value: 504 # remdb as 2020 prices for "install exhaust"
+                       # 360*1.4 = $504
+            multiplier: Fixed (1)
+        lifetime: 18 # remdb
       - *roof_insulation_to_R30
 
   - upgrade_name: Duct Sealing and Insulation Test
