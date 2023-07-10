@@ -20,7 +20,7 @@ Reactive power is phantom in that there may be current draw or voltage drop but 
 (Inductors and capacitors have this behavior)
 
 Continous load := max current continues for 3+ hrs
-Branch circuit rating for continous load >= 1.25 x nameplate rating
+Branch circuit rating for continous load >= 1.25 x nameplate rating, does not apply to service load calc
 
 -----------------
 
@@ -544,7 +544,7 @@ def _special_load_space_conditioning(row):
         system_cols = [
             row["build_existing_model.hvac_heating_type"],
             row["build_existing_model.hvac_secondary_heating_efficiency"],
-            "Electric",
+            "Electric", # TODO this depends on package
             ]
 
         heating_load = sum(
@@ -597,9 +597,8 @@ def _special_load_motor(row):
 
     return 0.25 * motor_size
 
-def _special_load_pool_heater(row, apply_df=True): # This is a continuous load so 125% factor must be applied
+def _special_load_pool_heater(row, apply_df=True):
     """NEC 680.9
-    Pool heater (~3kW), is considered continous load, demand factor = 1.25
     https://twphamilton.com/wp/wp-content/uploads/doc033548.pdf
     """
     if row["completed_status"] != "Success":
@@ -630,7 +629,7 @@ def _special_load_EVSE(row):
     if row["build_existing_model.electric_vehicle"] == "None":
         EV_load = 0
     else: 
-        EV_load = 7200 # TODO: Insert EV charger load, NEC code says use max of nameplate rating and 7200 W, add 1.25 factor since continuous load
+        EV_load = 7200 # TODO: Insert EV charger load, NEC code says use max of nameplate rating and 7200 W
     return EV_load
 
 # --- aggregated loads ---
@@ -692,9 +691,9 @@ def standard_special_load_total(row):
             _special_load_electric_range(row),
             space_cond_load,
             _special_load_motor(row),
-            _special_load_pool_heater(row)*1.25,
-            _special_load_pool_pump(row)*1.25,
-            _special_load_EVSE(row)*1.25
+            _special_load_pool_heater(row),
+            _special_load_pool_pump(row),
+            _special_load_EVSE(row)
         ]
     )
     return special_loads
@@ -754,7 +753,7 @@ def optional_special_load_space_conditioning(row, new_load_calc=False):
         system_cols = [
             row["build_existing_model.hvac_heating_type"],
             row["build_existing_model.hvac_secondary_heating_efficiency"],
-            "Electric",
+            "Electric", # TODO this depends on package
             ]
         fractions = [1, 0.65, 0.65]
 
@@ -804,7 +803,7 @@ def optional_continuous_load(row):
         _special_load_pool_heater(row),
         _special_load_pool_pump(row),
         _special_load_EVSE(row)
-    ]) * 1.25
+    ])
     return continuous_load
 
 

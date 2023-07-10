@@ -102,7 +102,10 @@ for upn in range(1, 11):
 		pct_high_delta = n_high_delta / n_applicable
 		delta_pct_above.append(pct_high_delta)
 
-	df_delta = pd.Series(delta_pct_above, index=[f"peak_increase>={x}%" for x in delta_thresholds]).rename(upgrade_name)
+	df_delta = pd.Series(
+		[int(n_applicable)]+delta_pct_above, 
+		index=["n_applicable"]+[f"peak_increase>={x}%" for x in delta_thresholds]
+		).rename(upgrade_name)
 	DF_by_peak_delta.append(df_delta)
 
 	# --- new load calc ---
@@ -134,17 +137,20 @@ for upn in range(1, 11):
 	pct_replace_opt_method = n_replace_opt_method / n_applicable
 	
 	# --- NEC 220.87 (Load Study) ---
-	new_panel_amp_load_study = (bl_peak_kw*1000*1.25 + new_loads) / 240 # W/V = [A]
+	new_panel_amp_load_study = (bl_peak_kw*1000*1.25 + new_loads) / 240 # W/V = [A] # TODO: new load should be at 100% DF
 
 	cond_replace_load_study = (new_loads > 0) & (new_panel_amp_load_study >= baseline_panel_amp)
 	cond_replace_load_study = df.loc[cond_replace_load_study, "sample_weight"].sum()
 	pct_replace_load_study = cond_replace_load_study / n_applicable
 
-	# if upgrade_name == "Heat pump water heaters":
-	# 	breakpoint()
+	if "Heat pumps, min-efficiency, existing heating as" in upgrade_name:
+		breakpoint()
 
 	# combine
-	df_replace = pd.Series([pct_replace_opt_method, pct_replace_load_study], index=["optional method", "load_study"]).rename(upgrade_name)
+	df_replace = pd.Series(
+		[int(n_applicable), pct_replace_opt_method, pct_replace_load_study], 
+		index=["n_applicable", "optional method", "load_study"]
+		).rename(upgrade_name)
 	DF_by_nec.append(df_replace)
 
 
@@ -158,7 +164,7 @@ DF_by_peak_delta.to_csv(datadir / community_name /  f"fraction_of_peak_increase_
 # Based on NEC calc, assuming baseline_amp
 DF_by_nec = pd.concat(DF_by_nec, axis=1).transpose()
 DF_by_nec.index.name = "upgrade_name"
-DF_by_nec["average"] = DF_by_nec[DF_by_nec.columns].mean(axis=1)
+DF_by_nec["average"] = DF_by_nec[DF_by_nec.columns[1:]].mean(axis=1)
 print("Of those applicable to each upgrade package, the fraction likely requiring panel upgrade based on NEC calculation:")
 print(DF_by_nec)
 
