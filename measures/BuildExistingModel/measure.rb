@@ -656,11 +656,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       return true
     end
 
-    epw_path = Location.get_epw_path(hpxml, hpxml_path)
-    epw_file = OpenStudio::EpwFile.new(epw_path)
-    register_value(runner, 'weather_file_city', epw_file.city)
-    register_value(runner, 'weather_file_latitude', epw_file.latitude)
-    register_value(runner, 'weather_file_longitude', epw_file.longitude)
+    if not run_hescore_workflow
+      epw_path = Location.get_epw_path(hpxml, hpxml_path)
+      epw_file = OpenStudio::EpwFile.new(epw_path)
+      register_value(runner, 'weather_file_city', epw_file.city)
+      register_value(runner, 'weather_file_latitude', epw_file.latitude)
+      register_value(runner, 'weather_file_longitude', epw_file.longitude)
+    end
 
     if bldg_data.keys.include?('sample_weight')
       sample_weight = bldg_data['sample_weight']
