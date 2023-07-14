@@ -294,7 +294,7 @@ upgrades:
 
   - upgrade_name: 96% AFUE Natural Gas Furnace
 
-    package_apply_logic: &natural_gas_hookup  
+    package_apply_logic: &natural_gas_hookup_furnace  
       - or:
         - Heating Fuel|Natural Gas
         - Water Heater Fuel|Natural Gas
@@ -330,7 +330,21 @@ upgrades:
         lifetime: &NG_furnace_96_lifetime 15 # do we need a lifetime here?
 
   - upgrade_name: 96% AFUE Natural Gas Boiler
-    package_apply_logic: *natural_gas_hookup
+    package_apply_logic: &natural_gas_hookup_boiler 
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - or:
+        - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+        - HVAC Heating Type And Fuel|Propane Fuel Boiler
+        - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
+        - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
 
     options:
       - &Boiler_fuel_type
