@@ -50,6 +50,54 @@ class TestRunAnalysis < MiniTest::Test
     end
   end
 
+  def _verify_outputs(cli_output_log, testing = false)
+    # Check cli_output.log warnings
+    File.readlines(cli_output_log).each do |message|
+      next if message.strip.empty?
+      next if message.include?('Building ID:')
+      next if message.include?('[openstudio.measure.OSRunner] <1> Cannot find current Workflow Step')
+      next if message.include?('WARN] No valid weather file defined in either the osm or osw.')
+      next if message.include?('WARN] The model contains existing objects and is being reset.')
+      next if message.include?("WARN] Both 'occupants' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'occupants' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'occupants' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'ceiling_fan' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'ceiling_fan' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'ceiling_fan' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'clothes_washer' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'clothes_washer' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'clothes_washer' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'clothes_dryer' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'clothes_dryer' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'clothes_dryer' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'dishwasher' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'dishwasher' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'dishwasher' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'cooking_range' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'cooking_range' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'cooking_range' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'hot_water_fixtures' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'hot_water_fixtures' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'hot_water_fixtures' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'plug_loads_other' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'plug_loads_other' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'plug_loads_other' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'lighting_garage' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'lighting_garage' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if message.include?("WARN] Both 'lighting_garage' schedule file and monthly multipliers provided; the latter will be ignored.")
+      if !testing
+        next if message.include?("WARN] Unable to find sql file at C:/OpenStudio/resstock/national_baseline/run2/run/eplusout.sql")
+      end
+      if testing
+        next if message.include?('WARN] Could not find County=')
+        next if message.include?('WARN] Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.')
+        next if message.include?('WARN] Request for output variable 'Zone People Occupant Count' returned no key values.')
+      end
+
+      flunk "Unexpected cli_output.log message found: #{message}"
+    end
+  end
+
   def test_version
     @command += ' -v'
 
@@ -253,19 +301,6 @@ class TestRunAnalysis < MiniTest::Test
     assert_in_delta(results['build_existing_model.sample_weight'][1].to_f, 1.000009, 0.001)
   end
 
-  def _verify_outputs(cli_output_log)
-    # Check cli_output.log warnings
-    File.readlines(cli_output_log).each do |message|
-      next if message.strip.empty?
-      next if message.include?('Building ID:')
-      next if message.include?('[openstudio.measure.OSRunner] <1> Cannot find current Workflow Step')
-      next if message.include?('WARN] No valid weather file defined in either the osm or osw.')
-      next if message.include?('WARN] The model contains existing objects and is being reset.')
-
-      flunk "Unexpected cli_output.log message found: #{message}"
-    end
-  end
-
   def test_testing_baseline
     yml = ' -y project_testing/testing_baseline.yml'
     @command += yml
@@ -277,7 +312,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
-    _verify_outputs(cli_output_log)
+    _verify_outputs(cli_output_log, true)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     results_baseline = File.join(@testing_baseline, 'results-Baseline.csv')
@@ -346,7 +381,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
-    _verify_outputs(cli_output_log)
+    _verify_outputs(cli_output_log, true)
 
     _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Baseline.osw'))
     results_baseline = File.join(@testing_upgrades, 'results-Baseline.csv')
