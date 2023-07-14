@@ -58,6 +58,7 @@ class TestRunAnalysis < MiniTest::Test
       next if message.include?('[openstudio.measure.OSRunner] <1> Cannot find current Workflow Step')
       next if message.include?('WARN] No valid weather file defined in either the osm or osw.')
       next if message.include?('WARN] The model contains existing objects and is being reset.')
+      next if message.include?('WARN] HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
       next if message.include?("WARN] Both 'occupants' schedule file and weekday fractions provided; the latter will be ignored.")
       next if message.include?("WARN] Both 'occupants' schedule file and weekend fractions provided; the latter will be ignored.")
       next if message.include?("WARN] Both 'occupants' schedule file and monthly multipliers provided; the latter will be ignored.")
@@ -88,12 +89,13 @@ class TestRunAnalysis < MiniTest::Test
 
       if !testing
         next if message.include?('WARN] Unable to find sql file at')
+        next if message.include?('WARN] No design condition info found; calculating design conditions from EPW weather data.')
       end
       if testing
         next if message.include?('WARN] Could not find County=')
         next if message.include?('WARN] Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.')
         next if message.include?("WARN] Request for output variable 'Zone People Occupant Count' returned no key values.")
-        next if message.include?('WARN] HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
+        next if message.include('WARN] It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.')
       end
 
       flunk "Unexpected cli_output.log message found: #{message}"
