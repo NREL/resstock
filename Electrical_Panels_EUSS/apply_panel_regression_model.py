@@ -268,8 +268,8 @@ def apply_model_to_results(df, model, predict_proba=False, retain_proba=False):
     
 
 def validate_model_with_dummy_data(model):
-    df = pd.read_excel(local_dir / "model_input_example.xlsx", sheet_name="inputs", header=1)
-    output = pd.read_excel(local_dir / "model_input_example.xlsx", sheet_name="outputs", dtype=str)
+    df = pd.read_excel(local_dir / "helper files" / "model_input_example.xlsx", sheet_name="inputs", header=1)
+    output = pd.read_excel(local_dir / "helper files" / "model_input_example.xlsx", sheet_name="outputs", dtype=str)
 
     # -- check predicted values against dummy data --
     panel_amp = model.predict(df[model.feature_names], check_input=True)
