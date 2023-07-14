@@ -87,12 +87,13 @@ class TestRunAnalysis < MiniTest::Test
       next if message.include?("WARN] Both 'lighting_garage' schedule file and monthly multipliers provided; the latter will be ignored.")
 
       if !testing
-        next if message.include?('WARN] Unable to find sql file at C:/OpenStudio/resstock/national_baseline/run2/run/eplusout.sql')
+        next if message.include?('WARN] Unable to find sql file at')
       end
       if testing
         next if message.include?('WARN] Could not find County=')
         next if message.include?('WARN] Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.')
         next if message.include?("WARN] Request for output variable 'Zone People Occupant Count' returned no key values.")
+        next if message.include?('WARN] HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
       end
 
       flunk "Unexpected cli_output.log message found: #{message}"
