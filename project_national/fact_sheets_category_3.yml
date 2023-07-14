@@ -4,26 +4,26 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/small_run_category_3_20230629/
+output_directory: /projects/abctypol/largeee/test_runs/medium_run_category_3_20230713/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: precomputed
   args:
-    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_100_20230609.csv #../buildstock_100_20230609.csv # relative to file
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230609.csv #../buildstock_100_20230609.csv # relative to file
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
   skip_sims: true
 
 eagle:
-  n_jobs: 1
+  n_jobs: 50
   minutes_per_sim: 4
   account: abctypol
   postprocessing:
-    time: 20
-    n_workers: 1
+    time: 60
+    n_workers: 10
   sampling:
     time: 5
 
@@ -77,7 +77,7 @@ workflow_generator:
         simple_filepath: data/simple_rates/State.tsv
 
     simulation_output_report:
-      timeseries_frequency: timestep #monthly
+      timeseries_frequency: monthly
       include_timeseries_total_consumptions: true
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
@@ -105,10 +105,8 @@ upgrades:
             - Refrigerator|EF 15.9
             - Refrigerator|EF 17.6
         costs:
-          - value: 2003.0 # price1: $1699-1799 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in BestBuy
-                          # price2: $8144-8599 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in Home Depot. This price is too high. Therefore, will not refer these prices. 
-                          # 2003.0=1749*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor. 1749=(1699+1799)/2
-                          # Another option: $938. $670 for EF 19.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+          - value: 700 # The first top-freezer, no through-the-door-ice model listed by Wirecutter (7/7/23) is 
+                       # https://www.lowes.com/pd/LG-20-2-cu-ft-Top-Freezer-Refrigerator-White-ENERGY-STAR/1002886012, an LG LTCS20020*
             multiplier: Fixed (1)
         lifetime: 17.4 # 17.4 from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
                        # 15 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
@@ -122,10 +120,8 @@ upgrades:
             - Misc Extra Refrigerator|EF 15.9
             - Misc Extra Refrigerator|EF 17.6
         costs:
-          - value: 2003.0 # price1: $1699-1799 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in BestBuy
-                          # price2: $8144-8599 for ENERGY STAR Certified 20.9 Cu.Ft. Refrigerator in Home Depot. This price is too high. Therefore, will not refer these prices. 
-                          # 2003.0=1749*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor. 1749=(1699+1799)/2
-                          # Another option: $938. $670 for EF 19.9 20.9 Cu.Ft. Refrigerator in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+          - value: 700 # The first top-freezer, no through-the-door-ice model listed by Wirecutter (7/7/23) is 
+                       # https://www.lowes.com/pd/LG-20-2-cu-ft-Top-Freezer-Refrigerator-White-ENERGY-STAR/1002886012, an LG LTCS20020*
             multiplier: Fixed (1)
         lifetime: 17.4 # 17.4 from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=278&actionId=1044&bcId=4261
                        # 15 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
@@ -134,9 +130,8 @@ upgrades:
         apply_logic:
           - Clothes Washer|Standard
         costs:
-          - value: 1174.3 #price: $ 549.9-$1399 for ENERGY STAR top load clothes washer (>2.5 Cu.Ft) in EnergyStar product databaseprice
-                         # 1174.3=974.45*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor. 974.45=(549.9+1399)/2
-                         # Another option: $903. $630-660 for replacing clothes washer from MEF0.78 to MEF2 in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+          - value: 800 # Consumer Reports top-rated top-loading agitator washer, rounded. 
+                       # https://www.homedepot.com/p/LG-5-3-cu-ft-Large-Capacity-Smart-Top-Load-Washer-with-4-Way-Agitator-NeveRust-Drum-TurboWash3D-in-White-WT7405CW/320251256
             multiplier: Fixed (1)
         lifetime: 14 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=293&actionId=1068&bcId=4538
                      # 17 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
@@ -147,9 +142,8 @@ upgrades:
             - Dishwasher|318 Rated kWh
             - Dishwasher|290 Rated kWh
         costs:
-          - value: 1762.8 #price1: $699.99-2499 for ENERGY STAR Certified diswasher (240 Rated kWh) in BestBuy
-                         #price2: $549.99-1299 for ENERGY STAR Certified diswasher (240 Rated kWh) in Home Depot
-                         # 1762.8=1524.5*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor.
+          - value: 750   # the lowest-priced Wirecutter recommended diwshwasher sas of 7/7/23 is this, a Maytag Model # MDB8959SKZ which is Energy Star certified and currently $748. 
+                         # https://www.homedepot.com/p/Maytag-24-in-Fingerprint-Resistant-Stainless-Steel-Top-Control-Built-in-Tall-Tub-Dishwasher-with-Dual-Power-Filtration-47-dBA-MDB8959SKZ/312291562
             multiplier: Fixed (1)
         lifetime: 11 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=291&actionId=1065&bcId=4484
                      # 15 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
@@ -159,9 +153,8 @@ upgrades:
           - or:
             - Clothes Dryer|Electric
         costs:
-          - value: 1274.7 #price: $449-1687.53 for ENERGY STAR Certified electric clothes dryer (>4.4 Cu.Ft, and CEF<4.3) in EnergyStar product database
-                         # 1274.7=1068.3*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor. 1068.3 = (449+1687.53)/2
-                         # Another option: $1064. $760 for replacing electric dryer in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+          - value: 650 # Cheaper of top-ranked electric dryer on Consumer Reports, is full-size and Energy Star rated
+                       # https://www.homedepot.com/p/LG-7-4-cu-ft-Large-Capacity-Vented-Stackable-Electric-Dryer-with-Sensor-Dry-in-White-DLE3400W/312429301
             multiplier: Fixed (1)
         lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
                      # 18 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
@@ -172,12 +165,8 @@ upgrades:
           - or:
             - Clothes Dryer|Gas
         costs:
-          - value: 1415.1 #price1: $849.99-1799.99 for ENERGY STAR Certified gas clothes dryer (>4.4 Cu.Ft) in BestBuy
-                         #price2: $879-1249 for ENERGY STAR Certified gas clothes  dryer (>4.4 Cu.Ft) in Home Depot
-                         #price3: $599-1619 for ENERGY STAR Certified gas clothes  dryer (>4.4 Cu.Ft) in EnergyStar product database
-                         # 1415.1=1199.5*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor. (599+1799.99)/2
-                         # Another option: $1400. $1000 for replacing electric dryer in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
-                         # Did not find ENERGY STAR most efficient gas dryer in the EnergyStar products database or online stores. Suggest use the same price for EnergryStar and ENERGY STAR most efficient gas dryer
+          - value: 750 # Cheapest of top-ranked gas dryers on Consumer Reports (7/11/23), is full size and Energy Star rated. 
+                       # https://www.homedepot.com/p/LG-7-4-cu-ft-Large-Capacity-Vented-Stackable-Gas-Dryer-with-Sensor-Dry-in-White-DLG3401W/312429905
             multiplier: Fixed (1)
         lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
                      # 18 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
@@ -261,7 +250,9 @@ upgrades:
             - Cooking Range|Gas
             - Cooking Range|Propane
         costs:
-          - value: 1628.53 #($1399*1.07 sales tax+ 94*1.4 labor) https://www.ikea.com/us/en/p/tvaersaeker-range-with-induction-cooktop-stainless-steel-40466006/
+          - value: 1400 # Ikea Tvarsaker, which is one of the more affordable options towards the top of the Consumer Review recommended list for electric oven with induction cooktop (7/10/23), 
+                        # and same manufacturer as Wirecutter's most affordable induction cooktop (they don't seem to have combos) (7/7/23) - 
+                        # https://www.ikea.com/us/en/p/tvaersaeker-range-with-induction-cooktop-stainless-steel-40466006/
             multiplier: Fixed (1)
         lifetime: 13 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=279&actionId=2204&bcId=6961
                      # 17 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
@@ -275,10 +266,8 @@ upgrades:
             - Cooking Range|Gas
             - Cooking Range|Propane
         costs:
-          - value: 1830.2 #price1: $674.99-2499.99 for Convection Range in BestBuy
-                         #price2: $799- for Convection Range in Home Depot. The upper end of the range is missing because the search engine of home depot for electric convection range are induction range with convection oven. kind of difficult to find the highest price for convection range
-                         # 1830.2=1587.49*1.07+94*1.4, price*1.07 sales tax + 94*1.4 labor.
-                         # Anopther option: $1288. $920 for replace non electric range to electric range in REMDB, then apply 1.4 inflation factor (Jan 2010 to Apr 2023)
+          - value: 630 # Lowest-priced electric range and oven from wirecutter on 7/7/23, GE Model #JB645DKWW (black is same price)
+                       # https://www.lowes.com/pd/GE-Smooth-Surface-4-Elements-5-3-cu-ft-Self-Cleaning-Freestanding-Electric-Range-White-Common-30-in-Actual-29-875-in/1000014250
             multiplier: Fixed (1)
         lifetime: 13 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=279&actionId=2204&bcId=6961
                      # 17 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
@@ -290,6 +279,11 @@ upgrades:
         option: Misc Pool Heater|Electricity
         apply_logic:
           - Misc Pool Heater|Natural Gas
+        costs:
+          - value: 4310 # https://lesliespool.com/jacuzzi-127000-btu-pro-grade-electric-pool-heat-pump/85451.html
+                        # installation $310 - varies on state and zip code between 228 and 400 USD
+            multiplier: Fixed (1)
+        lifetime: 15
 
   - upgrade_name: Electric Spa Heaters
     options:
@@ -297,6 +291,11 @@ upgrades:
         option: Misc Hot Tub Spa|Electricity
         apply_logic:
           - Misc Hot Tub Spa|Natural Gas
+        costs:
+          - value: 2600 # https://lesliespool.com/raypak-model-0018-e3t-electric-3-series-titanium-pool-spa-heater---18kw---61419-btu-hr/382735.html
+                        # installation $310 - varies on state and zip code between 228 and 400 USD
+            multiplier: Fixed (1)
+        lifetime: 15
 
   - upgrade_name: High-Efficacy LED Lighting
     options:
@@ -307,6 +306,6 @@ upgrades:
             - Lighting|100% Incandescent
             - Lighting|100% CFL
         costs:
-          - value: 0.75
+          - value: 0.07
             multiplier: Floor Area, Lighting (ft^2)
         lifetime: 25
