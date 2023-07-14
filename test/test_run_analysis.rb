@@ -253,6 +253,19 @@ class TestRunAnalysis < MiniTest::Test
     assert_in_delta(results['build_existing_model.sample_weight'][1].to_f, 1.000009, 0.001)
   end
 
+  def _verify_outputs(cli_output_log)
+    # Check cli_output.log warnings
+    File.readlines(cli_output_log).each do |message|
+      next if message.strip.empty?
+      next if message.include?('Building ID:')
+      next if message.include?('[openstudio.measure.OSRunner] <1> Cannot find current Workflow Step')
+      next if message.include?('WARN] No valid weather file defined in either the osm or osw.')
+      next if message.include?('WARN] The model contains existing objects and is being reset.')
+
+      flunk "Unexpected cli_output.log message found: #{message}"
+    end
+  end
+
   def test_testing_baseline
     yml = ' -y project_testing/testing_baseline.yml'
     @command += yml
@@ -264,6 +277,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
+    _verify_outputs(cli_output_log)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     results_baseline = File.join(@testing_baseline, 'results-Baseline.csv')
@@ -297,6 +311,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
+    _verify_outputs(cli_output_log)
 
     _test_measure_order(File.join(@national_baseline, 'national_baseline-Baseline.osw'))
     results_baseline = File.join(@national_baseline, 'results-Baseline.csv')
@@ -331,6 +346,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
+    _verify_outputs(cli_output_log)
 
     _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Baseline.osw'))
     results_baseline = File.join(@testing_upgrades, 'results-Baseline.csv')
@@ -384,6 +400,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
+    _verify_outputs(cli_output_log)
 
     _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Baseline.osw'))
     results_baseline = File.join(@national_upgrades, 'results-Baseline.csv')
