@@ -60,7 +60,7 @@ class TestRunAnalysis < MiniTest::Test
       next if message.include?('WARN] No valid weather file defined in either the osm or osw.')
       next if message.include?('WARN] The model contains existing objects and is being reset.')
       next if message.include?('WARN] HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
-      next if message.include('WARN] It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.')
+      next if message.include?('WARN] It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.')
       next if message.include?("WARN] Both 'occupants' schedule file and weekday fractions provided; the latter will be ignored.")
       next if message.include?("WARN] Both 'occupants' schedule file and weekend fractions provided; the latter will be ignored.")
       next if message.include?("WARN] Both 'occupants' schedule file and monthly multipliers provided; the latter will be ignored.")
