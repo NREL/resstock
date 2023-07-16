@@ -61,6 +61,7 @@ class TestRunAnalysis < MiniTest::Test
       next if message.include?('WARN] The model contains existing objects and is being reset.')
       next if message.include?('WARN] HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
       next if message.include?('WARN] It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.')
+      next if message.include?('WARN] It is not possible to eliminate all water heater energy use (e.g. parasitics) in EnergyPlus during an unavailable period.')
       next if message.include?("WARN] Both 'occupants' schedule file and weekday fractions provided; the latter will be ignored.")
       next if message.include?("WARN] Both 'occupants' schedule file and weekend fractions provided; the latter will be ignored.")
       next if message.include?("WARN] Both 'occupants' schedule file and monthly multipliers provided; the latter will be ignored.")
@@ -92,6 +93,7 @@ class TestRunAnalysis < MiniTest::Test
       if !testing
         next if message.include?('WARN] Unable to find sql file at')
         next if message.include?('WARN] No design condition info found; calculating design conditions from EPW weather data.')
+        next if message.include?('WARN] Not calculating emissions because an electricity filepath for at least one emissions scenario could not be located.')
       end
       if testing
         next if message.include?('WARN] Could not find County=')
