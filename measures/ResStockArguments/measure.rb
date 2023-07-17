@@ -496,6 +496,25 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[:air_leakage_has_flue_or_chimney_in_conditioned_space] = true
     end
 
+    # HVAC Secondary
+    if args[:heating_system_2_type] != 'none'
+      if args[:heating_system_type] != 'none'
+        if ((args[:heating_system_fraction_heat_load_served] + args[:heating_system_2_fraction_heat_load_served]) > 1.0)
+          info_msg = "Adjusted fraction of heat load served by the primary heating system (#{args[:heating_system_fraction_heat_load_served]}"
+          args[:heating_system_fraction_heat_load_served] = 1.0 - args[:heating_system_2_fraction_heat_load_served]
+          info_msg += " to #{args[:heating_system_fraction_heat_load_served]}) to allow for a secondary heating system (#{args[:heating_system_2_fraction_heat_load_served]})."
+          runner.registerInfo(info_msg)
+        end
+      elsif args[:heat_pump_type] != 'none'
+        if ((args[:heat_pump_fraction_heat_load_served] + args[:heating_system_2_fraction_heat_load_served]) > 1.0)
+          info_msg = "Adjusted fraction of heat load served by the primary heating system (#{args[:heat_pump_fraction_heat_load_served]}"
+          args[:heat_pump_fraction_heat_load_served] = 1.0 - args[:heating_system_2_fraction_heat_load_served]
+          info_msg += " to #{args[:heat_pump_fraction_heat_load_served]}) to allow for a secondary heating system (#{args[:heating_system_2_fraction_heat_load_served]})."
+          runner.registerInfo(info_msg)
+        end
+      end
+    end
+
     # HVAC Faults
     if args[:heating_system_rated_cfm_per_ton].is_initialized && args[:heating_system_actual_cfm_per_ton].is_initialized
       args[:heating_system_airflow_defect_ratio] = (args[:heating_system_actual_cfm_per_ton].get - args[:heating_system_rated_cfm_per_ton].get) / args[:heating_system_rated_cfm_per_ton].get

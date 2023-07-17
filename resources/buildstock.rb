@@ -353,6 +353,19 @@ def register_value(runner, parameter_name, option_name)
   runner.registerValue(parameter_name, option_name)
 end
 
+def register_logs(runner, new_runner)
+  # Register logs from measures called by meta measures
+  new_runner.result.warnings.each do |warning|
+    runner.registerWarning(warning.logMessage)
+  end
+  new_runner.result.info.each do |info|
+    runner.registerInfo(info.logMessage)
+  end
+  new_runner.result.errors.each do |error|
+    runner.registerError(error.logMessage)
+  end
+end
+
 # Accepts string option_apply_logic and tries to evaluate it based on
 # (parameter_name, option_name) pairs stored in runner.
 #
