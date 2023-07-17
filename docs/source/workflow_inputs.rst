@@ -762,7 +762,7 @@ The presence of a flue or chimney with combustion air from conditioned space can
   ================================================  =======  =====  ===========  =========  ========  ===============================================
 
   .. [#] | If HasFlueOrChimneyInConditionedSpace not provided, defaults to true if any of the following conditions are met, otherwise false:
-         | - heating system is non-electric Furnace, Boiler, WallFurnace, FloorFurnace, Stove, PortableHeater, or FixedHeater located in conditioned space and AFUE/Percent is less than 0.89,
+         | - heating system is non-electric Furnace, Boiler, WallFurnace, FloorFurnace, Stove, or SpaceHeater located in conditioned space and AFUE/Percent is less than 0.89,
          | - heating system is non-electric Fireplace located in conditioned space, or
          | - water heater is non-electric with energy factor (or equivalent calculated from uniform energy factor) less than 0.63 and located in conditioned space.
   
@@ -795,6 +795,12 @@ If the dwelling unit has a vented crawlspace, crawlspace ventilation information
 
   .. [#] UnitofMeasure only choice is "SLA" (specific leakage area).
   .. [#] Value default based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+
+If the dwelling has a manufactured home belly-and-wing foundation, whether a
+skirt is present can be optionally entered in
+``/HPXML/Building/BuildingDetails/Enclosure/Foundations/Foundation/FoundationType/BellyAndWing/SkirtPresent``.
+The default, if that value is missing, is to assume there is a skirt present and
+the floors above that foundation do not have exposure to the wind. 
 
 HPXML Roofs
 ***********
@@ -1000,14 +1006,18 @@ Each floor/ceiling surface that is not in contact with the ground (Slab) nor adj
   ``Insulation/AssemblyEffectiveRValue``  double    F-ft2-hr/Btu  > 0          Yes                 Assembly R-value [#]_
   ======================================  ========  ============  ===========  ========  ========  ============================
 
-  .. [#] ExteriorAdjacentTo choices are "outside", "attic - vented", "attic - unvented", "basement - conditioned", "basement - unconditioned", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space".
+  .. [#] ExteriorAdjacentTo choices are "outside", "attic - vented", "attic - unvented", "basement - conditioned", "basement - unconditioned", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", or "manufactured home underbelly".
          See :ref:`hpxmllocations` for descriptions.
   .. [#] InteriorAdjacentTo choices are "living space", "attic - vented", "attic - unvented", "basement - conditioned", "basement - unconditioned", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", or "garage".
          See :ref:`hpxmllocations` for descriptions.
   .. [#] FloorType child element choices are ``WoodFrame``, ``StructuralInsulatedPanel``, ``SteelFrame``, or ``SolidConcrete``.
   .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
   .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is living space and the surface is a ceiling, otherwise "none".
-  .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
+  .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior
+    air films, and insulation installation grade. For a manufactured home belly
+    where the area of the belly wrap is different and usually greater than the
+    floor area, the AssemblyEffectiveRValue should be adjusted to account for
+    the surface area of the belly wrap and insulation.
 
 For floors adjacent to "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space", additional information is entered in ``Floor``.
 
@@ -1032,7 +1042,7 @@ Each space type that borders the ground (i.e., basement, crawlspace, garage, and
   ``Area``                                                 double    ft2           > 0          Yes                  Gross area
   ``Thickness``                                            double    in            >= 0         No         See [#]_  Thickness [#]_
   ``ExposedPerimeter``                                     double    ft            >= 0         Yes                  Perimeter exposed to ambient conditions [#]_
-  ``DepthBelowGrade``                                      double    ft            >= 0         See [#]_             Depth from the top of the slab surface to grade
+  ``DepthBelowGrade``                                      double    ft            >= 0         No         See [#]_  Depth from the top of the slab surface to grade
   ``PerimeterInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
   ``PerimeterInsulation/Layer/NominalRValue``              double    F-ft2-hr/Btu  >= 0         Yes                  R-value of vertical insulation
   ``PerimeterInsulation/Layer/InsulationDepth``            double    ft            >= 0         Yes                  Depth from top of slab to bottom of vertical insulation
@@ -1050,8 +1060,8 @@ Each space type that borders the ground (i.e., basement, crawlspace, garage, and
   .. [#] For a crawlspace with a dirt floor, enter a thickness of zero.
   .. [#] ExposedPerimeter includes any slab length that falls along the perimeter of the building's footprint (i.e., is exposed to ambient conditions).
          So a basement slab edge adjacent to a garage or crawlspace, for example, should not be included.
-  .. [#] DepthBelowGrade only required if the attached foundation has no ``FoundationWalls``.
-         For foundation types with walls, the the slab's position relative to grade is determined by the ``FoundationWall/DepthBelowGrade`` value.
+  .. [#] If DepthBelowGrade not provided, defaults to zero for foundation types without walls.
+         For foundation types with walls, DepthBelowGrade is ignored as the slab's position relative to grade is determined by the ``FoundationWall/DepthBelowGrade`` value(s).
   .. [#] InsulationWidth only required if InsulationSpansEntireSlab=true is not provided.
   .. [#] InsulationSpansEntireSlab=true only required if InsulationWidth is not provided.
   .. [#] If CarpetFraction not provided, defaults to 0.8 when adjacent to conditioned space, otherwise 0.0.
@@ -1320,13 +1330,13 @@ Each heating system (other than a heat pump) is entered as an ``/HPXML/Building/
   ``FractionHeatLoadServed``         double    frac    0 - 1 [#]_   See [#]_                  Fraction of heating load served
   =================================  ========  ======  ===========  ========  ==============  ===============================
 
-  .. [#] UnitLocation choices are "living space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "roof deck", or "unconditioned space".
+  .. [#] UnitLocation choices are "living space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "roof deck", "manufactured home belly", or "unconditioned space".
   .. [#] | If UnitLocation not provided, defaults based on the distribution system:
          | - **none**: "living space"
          | - **air**: supply duct location with the largest area, otherwise "living space"
          | - **hydronic**: same default logic as :ref:`waterheatingsystems`
          | - **dse**: "living space" if ``FractionHeatLoadServed`` is 1, otherwise "unconditioned space"
-  .. [#] HeatingSystemType child element choices are ``ElectricResistance``, ``Furnace``, ``WallFurnace``, ``FloorFurnace``, ``Boiler``, ``Stove``, ``PortableHeater``, ``FixedHeater``, or ``Fireplace``.
+  .. [#] HeatingSystemType child element choices are ``ElectricResistance``, ``Furnace``, ``WallFurnace``, ``FloorFurnace``, ``Boiler``, ``Stove``, ``SpaceHeater``, or ``Fireplace``.
   .. [#] HeatingSystemFuel choices are "electricity", "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "wood", or "wood pellets".
          For ``ElectricResistance``, "electricity" is required.
   .. [#] Heating capacity autosized per ACCA Manual J/S based on heating design load.
@@ -1462,10 +1472,10 @@ If a stove is specified, additional information is entered in ``HeatingSystem``.
   ``extension/FanPowerWatts``                           double   W       >= 0         No        40         Fan power
   ====================================================  =======  ======  ===========  ========  =========  ===================
 
-Portable/Fixed Heater
-~~~~~~~~~~~~~~~~~~~~~
+Space Heater
+~~~~~~~~~~~~
 
-If a portable heater or fixed heater is specified, additional information is entered in ``HeatingSystem``.
+If a space heater (portable or fixed) is specified, additional information is entered in ``HeatingSystem``.
 
   ==================================================  ======  =====  ===========  ========  =========  ===================
   Element                                             Type    Units  Constraints  Required  Default    Notes
@@ -1505,7 +1515,7 @@ Each cooling system (other than a heat pump) is entered as an ``/HPXML/Building/
   ``FractionCoolLoadServed``  double    frac    0 - 1 [#]_   Yes                 Fraction of cooling load served
   ==========================  ========  ======  ===========  ========  ========  ===============================
 
-  .. [#] UnitLocation choices are "living space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "roof deck", or "unconditioned space".
+  .. [#] UnitLocation choices are "living space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "roof deck", "manufactured home belly", or "unconditioned space".
   .. [#] | If UnitLocation not provided, defaults based on the distribution system:
          | - **none**: "living space"
          | - **air**: supply duct location with the largest area, otherwise "living space"
@@ -1726,7 +1736,7 @@ Each heat pump is entered as an ``/HPXML/Building/BuildingDetails/Systems/HVAC/H
   ``BackupType``                     string            See [#]_     No        <none>     Type of backup heating
   =================================  ========  ======  ===========  ========  =========  ===============================================
 
-  .. [#] UnitLocation choices are "living space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "roof deck", or "unconditioned space".
+  .. [#] UnitLocation choices are "living space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "roof deck", "manufactured home belly", or "unconditioned space".
   .. [#] | If UnitLocation not provided, defaults based on the distribution system:
          | - **none**: "living space"
          | - **air**: supply duct location with the largest area, otherwise "living space"
@@ -1980,7 +1990,7 @@ If a backup type ("integrated" or "separate") is provided, additional informatio
   =============================================================================  ========  ======  ===========  ========  =========  ==========================================
 
   .. [#] If neither BackupHeatingSwitchoverTemperature nor CompressorLockoutTemperature provided, CompressorLockoutTemperature defaults as described above for individual heat pump types.
-  .. [#] If both BackupHeatingLockoutTemperature and CompressorLockoutTemperature provided, BackupHeatingLockoutTemperature must be greater than CompressorLockoutTemperature.
+  .. [#] If both BackupHeatingLockoutTemperature and CompressorLockoutTemperature provided, BackupHeatingLockoutTemperature must be greater than or equal to CompressorLockoutTemperature.
   .. [#] If neither BackupHeatingSwitchoverTemperature nor BackupHeatingLockoutTemperature provided, BackupHeatingLockoutTemperature defaults to 40F for electric backup and 50F for fossil fuel backup.
 
   .. note::
@@ -2202,7 +2212,7 @@ Additional information is entered in each ``Ducts``.
          Fully buried ducts have insulation that just covers the top of the ducts.
          Deeply buried ducts have insulation that continues above the top of the ducts.
          See the `Building America Solution Center <https://basc.pnnl.gov/resource-guides/ducts-buried-attic-insulation>`_ for more information.
-  .. [#] DuctLocation choices are "living space", "basement - conditioned", "basement - unconditioned", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "attic - unvented", "attic - vented", "garage", "outside", "exterior wall", "under slab", "roof deck", "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space".
+  .. [#] DuctLocation choices are "living space", "basement - conditioned", "basement - unconditioned", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "attic - unvented", "attic - vented", "garage", "outside", "exterior wall", "under slab", "roof deck", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", or "manufactured home belly".
          See :ref:`hpxmllocations` for descriptions.
   .. [#] If DuctLocation not provided, defaults to the first present space type: "basement - conditioned", "basement - unconditioned", "crawlspace - conditioned", "crawlspace - vented", "crawlspace - unvented", "attic - vented", "attic - unvented", "garage", or "living space".
          If NumberofConditionedFloorsAboveGrade > 1, secondary ducts will be located in "living space".
@@ -3563,9 +3573,9 @@ HPXML Locations
 
 The various locations used in an HPXML file are defined as follows:
 
-  ==============================  =======================================================  =======================================  =============
+  ==============================  =======================================================  =======================================  =================
   Value                           Description                                              Temperature                              Building Type
-  ==============================  =======================================================  =======================================  =============
+  ==============================  =======================================================  =======================================  =================
   outside                         Ambient environment                                      Weather data                             Any
   ground                                                                                   EnergyPlus calculation                   Any
   living space                    Above-grade conditioned space maintained at setpoint     EnergyPlus calculation                   Any
@@ -3577,6 +3587,8 @@ The various locations used in an HPXML file are defined as follows:
   crawlspace - unvented                                                                    EnergyPlus calculation                   Any
   crawlspace - conditioned        Below-grade conditioned space maintained at setpoint     EnergyPlus calculation                   Any
   garage                          Single-family garage (not shared parking)                EnergyPlus calculation                   Any
+  manufactured home underbelly    Underneath the belly, ambient environment                Weather data                             Manufactured only
+  manufactured home belly         Within the belly                                         Same as living space                     Manufactured only              
   other housing unit              E.g., conditioned adjacent unit or conditioned corridor  Same as living space                     SFA/MF only
   other heated space              E.g., shared laundry/equipment space                     Avg of living space/outside; min of 68F  SFA/MF only
   other multifamily buffer space  E.g., enclosed unconditioned stairwell                   Avg of living space/outside; min of 50F  SFA/MF only
@@ -3585,7 +3597,7 @@ The various locations used in an HPXML file are defined as follows:
   exterior wall                   Ducts in exterior wall                                   Avg of living space/outside              Any
   under slab                      Ducts under slab (ground)                                EnergyPlus calculation                   Any
   roof deck                       Ducts on roof deck (outside)                             Weather data                             Any
-  ==============================  =======================================================  =======================================  =============
+  ==============================  =======================================================  =======================================  =================
 
 Validating & Debugging Errors
 -----------------------------

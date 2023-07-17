@@ -110,7 +110,7 @@
 			<xs:element name="ReceivingSystemIdentifierType" type="ReceivingSystemIdentifierType" minOccurs="0"/>
 			<xs:element name="ReceivingSystemIdentifierValue" type="ReceivingSystemIdentifierValue" minOccurs="0"/>
 		</xs:sequence>
-		<xs:attribute name="id" type="xs:IDREF">
+		<xs:attribute name="idref" type="xs:IDREF">
 			<xs:annotation>
 				<xs:documentation>Id reference in the current document. Optional. If the element isn't available in the current document, don't use this.</xs:documentation>
 			</xs:annotation>
@@ -1252,11 +1252,6 @@
 									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"/>
 									<xs:element minOccurs="0" maxOccurs="1" name="Insulation" type="InsulationInfo"/>
 									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
-									<xs:element minOccurs="0" name="MobileHomeBellyOrWing" type="MobileHomeBellyOrWing">
-										<xs:annotation>
-											<xs:documentation>Indicate whether the floor section is a mobile home belly or wing section. Omit if not applicable. For a mobile home, if the foundation type is a belly and wing, ExteriorAdjacentTo should be set to 'outside'.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -1615,6 +1610,7 @@
 														<xs:documentation>Does the system serve multiple building/dwelling units?</xs:documentation>
 													</xs:annotation>
 												</xs:element>
+												<xs:element minOccurs="0" name="NumberofUnitsServed" type="HPXMLInteger"/>
 												<xs:element minOccurs="0" name="FractionRecirculation" type="Fraction">
 													<xs:annotation>
 														<xs:documentation>The fraction of supply air that is from recirculation.</xs:documentation>
@@ -3123,6 +3119,11 @@
 			<xs:element minOccurs="0" name="CombustionAppliances">
 				<xs:complexType>
 					<xs:sequence>
+						<xs:element name="MaxAmbientCOinLivingSpaceDuringAudit" minOccurs="0" type="HPXMLDouble">
+							<xs:annotation>
+								<xs:documentation>Monitored throughout assessment, not just appliance testing</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element minOccurs="0" name="CombustionApplianceZone" maxOccurs="unbounded">
 							<xs:complexType>
 								<xs:sequence>
@@ -3210,11 +3211,6 @@
 														<xs:complexContent>
 															<xs:extension base="CAZApplianceReading">
 																<xs:sequence>
-																	<xs:element name="MaxAmbientCOinLivingSpaceDuringAudit" minOccurs="0" type="HPXMLDouble">
-																		<xs:annotation>
-																			<xs:documentation>Monitored throughout assessment, not just appliance testing</xs:documentation>
-																		</xs:annotation>
-																	</xs:element>
 																	<xs:element minOccurs="0" name="AmbientCOActionDuringCAZTesting" type="HPXMLString">
 																		<xs:annotation>
 																			<xs:documentation>BPI Gold Sheet is one example that shows action levels based upon decision logic</xs:documentation>
@@ -3856,17 +3852,10 @@
 					<xs:attribute name="dataSource" type="DataSource"/>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="PortableHeater">
+			<xs:element name="SpaceHeater">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element minOccurs="0" ref="extension"/>
-					</xs:sequence>
-					<xs:attribute name="dataSource" type="DataSource"/>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="FixedHeater">
-				<xs:complexType>
-					<xs:sequence>
+						<xs:element minOccurs="0" name="Portable" type="HPXMLBoolean"/>
 						<xs:element minOccurs="0" name="AtmosphericBurner" type="HPXMLBoolean"/>
 						<xs:element minOccurs="0" name="AutomaticVentDamper" type="HPXMLBoolean"/>
 						<xs:element minOccurs="0" name="PilotLight" type="HPXMLBoolean"/>
@@ -4566,6 +4555,7 @@
 									<xs:element minOccurs="0" name="GaragePresent" type="HPXMLBoolean"/>
 									<xs:element minOccurs="0" name="GarageLocation" type="GarageLocation"/>
 									<xs:element minOccurs="0" name="SpaceAboveGarage" type="SpaceAboveGarage"/>
+									<xs:element minOccurs="0" name="ManufacturedHomeSections" type="ManufacturedHomeSections"/>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -5674,13 +5664,12 @@
 			</xs:element>
 			<xs:element name="BellyAndWing">
 				<xs:annotation>
-					<xs:documentation>The floor is supported on a pair of I-beams spanning across the length of the mobile home. The floor wing is the part of the floor outside the supports, and the floor belly is the part between the supports. The floor wing and belly sections are protected from outside elements including water, wind, and rodents using a wrap attached to the underside of floor joists, and may contain insulation. Use separate Floor elements to describe the floor insulation above the belly and wing sections respsectively.
-</xs:documentation>
+					<xs:documentation>The floor is supported on a pair of I-beams spanning across the length of the manufactured home. The floor wing is the part of the floor outside the supports, and the floor belly is the part between the supports. The floor wing and belly sections are protected from outside elements including water, wind, and rodents using a wrap attached to the underside of floor joists, and may contain insulation.</xs:documentation>
 				</xs:annotation>
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element minOccurs="0" name="SkirtPresent" type="HPXMLBoolean"/>
-						<xs:element minOccurs="0" name="BellyWrapCondition" type="MobileHomeBellyWrapCondition">
+						<xs:element minOccurs="0" name="BellyWrapCondition" type="ManufacturedHomeBellyWrapCondition">
 							<xs:annotation>
 								<xs:documentation>Use the 'none' choice for cases where the belly wrap is functionally missing even if pieces of the wrap are still present. </xs:documentation>
 							</xs:annotation>
@@ -7210,6 +7199,21 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="ManufacturedHomeSections_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="single-wide"/>
+			<xs:enumeration value="double-wide"/>
+			<xs:enumeration value="triple-wide"/>
+			<xs:enumeration value="CrossMod"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="ManufacturedHomeSections">
+		<xs:simpleContent>
+			<xs:extension base="ManufacturedHomeSections_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="HouseholdType_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="family household"/>
@@ -7631,6 +7635,7 @@
 			<xs:enumeration value="garage - unconditioned"/>
 			<xs:enumeration value="ground"/>
 			<xs:enumeration value="living space"/>
+			<xs:enumeration value="manufactured home underbelly"/>
 			<xs:enumeration value="other"/>
 			<xs:enumeration value="other heated space"/>
 			<xs:enumeration value="other housing unit"/>
@@ -8496,7 +8501,7 @@
 			<xs:enumeration value="crawlspace - unconditioned"/>
 			<xs:enumeration value="crawlspace - unvented"/>
 			<xs:enumeration value="crawlspace - vented"/>
-			<xs:enumeration value="mobile home belly"/>
+			<xs:enumeration value="manufactured home belly"/>
 			<xs:enumeration value="exterior wall"/>
 			<xs:enumeration value="garage"/>
 			<xs:enumeration value="garage - conditioned"/>
@@ -8682,6 +8687,7 @@
 			<xs:enumeration value="crawlspace - unconditioned"/>
 			<xs:enumeration value="crawlspace - unvented"/>
 			<xs:enumeration value="crawlspace - vented"/>
+			<xs:enumeration value="manufactured home belly"/>
 			<xs:enumeration value="garage"/>
 			<xs:enumeration value="garage - conditioned"/>
 			<xs:enumeration value="garage - unconditioned"/>
@@ -9912,7 +9918,7 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<xs:simpleType name="MobileHomeBellyWrapCondition_simple">
+	<xs:simpleType name="ManufacturedHomeBellyWrapCondition_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="good"/>
 			<xs:enumeration value="fair"/>
@@ -9920,23 +9926,9 @@
 			<xs:enumeration value="none"/>
 		</xs:restriction>
 	</xs:simpleType>
-	<xs:complexType name="MobileHomeBellyWrapCondition">
+	<xs:complexType name="ManufacturedHomeBellyWrapCondition">
 		<xs:simpleContent>
-			<xs:extension base="MobileHomeBellyWrapCondition_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="MobileHomeBellyOrWing_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="belly"/>
-			<xs:enumeration value="wing"/>
-			<xs:enumeration value="other"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="MobileHomeBellyOrWing">
-		<xs:simpleContent>
-			<xs:extension base="MobileHomeBellyOrWing_simple">
+			<xs:extension base="ManufacturedHomeBellyWrapCondition_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>

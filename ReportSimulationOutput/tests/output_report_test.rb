@@ -144,6 +144,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     "Unmet Hours: #{UHT::Cooling} (hr)",
     "Peak Electricity: #{PFT::Winter} #{TE::Total} (W)",
     "Peak Electricity: #{PFT::Summer} #{TE::Total} (W)",
+    "Peak Electricity: #{PFT::Annual} #{TE::Total} (W)",
     "Peak Load: #{PLT::Heating} (kBtu/hr)",
     "Peak Load: #{PLT::Cooling} (kBtu/hr)",
     "Component Load: Heating: #{CLT::Roofs} (MBtu)",
@@ -190,6 +191,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     "Hot Water: #{HWT::Dishwasher} (gal)",
     "Hot Water: #{HWT::Fixtures} (gal)",
     "Hot Water: #{HWT::DistributionWaste} (gal)",
+    'Resilience: Battery (hr)',
     'HVAC Capacity: Cooling (Btu/h)',
     'HVAC Capacity: Heating (Btu/h)',
     'HVAC Capacity: Heat Pump Backup (Btu/h)',
@@ -263,6 +265,10 @@ class ReportSimulationOutputTest < MiniTest::Test
     "Hot Water: #{HWT::Dishwasher}",
     "Hot Water: #{HWT::Fixtures}",
     "Hot Water: #{HWT::DistributionWaste}",
+  ]
+
+  BaseHPXMLTimeseriesColsResilience = [
+    'Resilience: Battery'
   ]
 
   BaseHPXMLTimeseriesColsTotalLoads = [
@@ -581,7 +587,8 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_component_loads' => false,
                   'include_timeseries_zone_temperatures' => false,
                   'include_timeseries_airflows' => false,
-                  'include_timeseries_weather' => false }
+                  'include_timeseries_weather' => false,
+                  'include_timeseries_resilience' => false }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
@@ -609,7 +616,8 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_component_loads' => true,
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
-                  'include_timeseries_weather' => true }
+                  'include_timeseries_weather' => true,
+                  'include_timeseries_resilience' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
@@ -635,7 +643,8 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_annual_peak_loads' => false,
                   'include_annual_component_loads' => false,
                   'include_annual_hot_water_uses' => false,
-                  'include_annual_hvac_summary' => false }
+                  'include_annual_hvac_summary' => false,
+                  'include_annual_resilience' => false }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
@@ -1155,7 +1164,8 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_component_loads' => true,
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
-                  'include_timeseries_weather' => true }
+                  'include_timeseries_weather' => true,
+                  'include_timeseries_resilience' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
@@ -1164,7 +1174,8 @@ class ReportSimulationOutputTest < MiniTest::Test
                                emissions_timeseries_cols +
                                emission_fuels_timeseries_cols +
                                emission_end_uses_timeseries_cols +
-                               pv_battery_timeseries_cols
+                               pv_battery_timeseries_cols +
+                               BaseHPXMLTimeseriesColsResilience
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
@@ -1192,7 +1203,8 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_component_loads' => true,
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
-                  'include_timeseries_weather' => true }
+                  'include_timeseries_weather' => true,
+                  'include_timeseries_resilience' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
@@ -1201,7 +1213,8 @@ class ReportSimulationOutputTest < MiniTest::Test
                                emissions_timeseries_cols +
                                emission_fuels_timeseries_cols +
                                emission_end_uses_timeseries_cols +
-                               pv_battery_timeseries_cols
+                               pv_battery_timeseries_cols +
+                               BaseHPXMLTimeseriesColsResilience
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
@@ -1229,7 +1242,8 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_component_loads' => true,
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
-                  'include_timeseries_weather' => true }
+                  'include_timeseries_weather' => true,
+                  'include_timeseries_resilience' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
@@ -1238,13 +1252,30 @@ class ReportSimulationOutputTest < MiniTest::Test
                                emissions_timeseries_cols +
                                emission_fuels_timeseries_cols +
                                emission_end_uses_timeseries_cols +
-                               pv_battery_timeseries_cols
+                               pv_battery_timeseries_cols +
+                               BaseHPXMLTimeseriesColsResilience
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
     assert_equal(12, timeseries_rows.size - 2)
     _check_for_nonzero_avg_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
     _check_for_nonzero_timeseries_values(timeseries_csv, ["End Use: #{FT::Elec}: #{EUT::Refrigerator}"])
+  end
+
+  def test_timeseries_monthly_resilience
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-pv-battery-scheduled.xml'),
+                  'skip_validation' => true,
+                  'timeseries_frequency' => 'monthly',
+                  'include_timeseries_resilience' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] +
+                               BaseHPXMLTimeseriesColsResilience
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(12, timeseries_rows.size - 2)
   end
 
   def test_timeseries_timestep

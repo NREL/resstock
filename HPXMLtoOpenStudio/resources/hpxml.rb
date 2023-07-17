@@ -120,6 +120,7 @@ class HPXML < Object
   FoundationTypeCrawlspaceConditioned = 'ConditionedCrawlspace'
   FoundationTypeCrawlspaceUnvented = 'UnventedCrawlspace'
   FoundationTypeCrawlspaceVented = 'VentedCrawlspace'
+  FoundationTypeBellyAndWing = 'BellyAndWing'
   FoundationTypeSlab = 'SlabOnGrade'
   FoundationWallTypeConcreteBlock = 'concrete block'
   FoundationWallTypeConcreteBlockFoamCore = 'concrete block foam core'
@@ -179,7 +180,6 @@ class HPXML < Object
   HVACTypeElectricResistance = 'ElectricResistance'
   HVACTypeEvaporativeCooler = 'evaporative cooler'
   HVACTypeFireplace = 'Fireplace'
-  HVACTypeFixedHeater = 'FixedHeater'
   HVACTypeFloorFurnace = 'FloorFurnace'
   HVACTypeFurnace = 'Furnace'
   HVACTypeHeatPumpAirToAir = 'air-to-air'
@@ -189,9 +189,9 @@ class HPXML < Object
   HVACTypeHeatPumpPTHP = 'packaged terminal heat pump'
   HVACTypeHeatPumpRoom = 'room air conditioner with reverse cycle'
   HVACTypeMiniSplitAirConditioner = 'mini-split'
-  HVACTypePortableHeater = 'PortableHeater'
-  HVACTypeRoomAirConditioner = 'room air conditioner'
   HVACTypePTAC = 'packaged terminal air conditioner'
+  HVACTypeRoomAirConditioner = 'room air conditioner'
+  HVACTypeSpaceHeater = 'SpaceHeater'
   HVACTypeStove = 'Stove'
   HVACTypeWallFurnace = 'WallFurnace'
   HydronicTypeBaseboard = 'baseboard'
@@ -227,6 +227,8 @@ class HPXML < Object
   LocationInterior = 'interior'
   LocationKitchen = 'kitchen'
   LocationLivingSpace = 'living space'
+  LocationManufacturedHomeBelly = 'manufactured home belly'
+  LocationManufacturedHomeUnderBelly = 'manufactured home underbelly'
   LocationOtherExterior = 'other exterior'
   LocationOtherHousingUnit = 'other housing unit'
   LocationOtherHeatedSpace = 'other heated space'
@@ -1978,8 +1980,9 @@ class HPXML < Object
 
   class Foundation < BaseElement
     ATTRS = [:id, :foundation_type, :vented_crawlspace_sla, :within_infiltration_volume,
-             :attached_to_slab_idrefs, :attached_to_floor_idrefs, :attached_to_foundation_wall_idrefs,
-             :attached_to_wall_idrefs, :attached_to_rim_joist_idrefs]
+             :belly_wing_skirt_present, :attached_to_slab_idrefs, :attached_to_floor_idrefs,
+             :attached_to_foundation_wall_idrefs, :attached_to_wall_idrefs,
+             :attached_to_rim_joist_idrefs]
     attr_accessor(*ATTRS)
 
     def attached_slabs
@@ -2056,6 +2059,8 @@ class HPXML < Object
         return LocationCrawlspaceConditioned
       elsif @foundation_type == FoundationTypeSlab
         return LocationLivingSpace
+      elsif @foundation_type == FoundationTypeBellyAndWing
+        return LocationManufacturedHomeUnderBelly
       else
         fail "Unexpected foundation type: '#{@foundation_type}'."
       end
@@ -2122,6 +2127,9 @@ class HPXML < Object
         elsif @foundation_type == FoundationTypeCrawlspaceConditioned
           crawlspace = XMLHelper.add_element(foundation_type_el, 'Crawlspace')
           XMLHelper.add_element(crawlspace, 'Conditioned', true, :boolean)
+        elsif @foundation_type == FoundationTypeBellyAndWing
+          belly_and_wing = XMLHelper.add_element(foundation_type_el, 'BellyAndWing')
+          XMLHelper.add_element(belly_and_wing, 'SkirtPresent', @belly_wing_skirt_present, :boolean, @belly_wing_skirt_present_isdefaulted) unless @belly_wing_skirt_present.nil?
         else
           fail "Unhandled foundation type '#{@foundation_type}'."
         end
@@ -2179,6 +2187,9 @@ class HPXML < Object
         @foundation_type = FoundationTypeAmbient
       elsif XMLHelper.has_element(foundation, 'FoundationType/AboveApartment')
         @foundation_type = FoundationTypeAboveApartment
+      elsif XMLHelper.has_element(foundation, 'FoundationType/BellyAndWing')
+        @foundation_type = FoundationTypeBellyAndWing
+        @belly_wing_skirt_present = XMLHelper.get_value(foundation, 'FoundationType/BellyAndWing/SkirtPresent', :boolean)
       end
       if @foundation_type == FoundationTypeCrawlspaceVented
         @vented_crawlspace_sla = XMLHelper.get_value(foundation, "VentilationRate[UnitofMeasure='#{UnitsSLA}']/Value", :float)
@@ -2417,6 +2428,10 @@ class HPXML < Object
 
     def is_conditioned
       return HPXML::is_conditioned(self)
+    end
+
+    def net_area
+      return area
     end
 
     def delete
@@ -2727,6 +2742,26 @@ class HPXML < Object
       return val
     end
 
+    def connected_slabs
+      return @hpxml_object.slabs.select { |s| s.connected_foundation_walls.include? self }
+    end
+
+    def exposed_fraction
+      # Calculate total slab exposed perimeter
+      slab_exposed_length = connected_slabs.select { |s| s.interior_adjacent_to == interior_adjacent_to }.map { |s| s.exposed_perimeter }.sum
+
+      # Calculate total length of exterior foundation walls
+      ext_adjacent_fnd_walls = connected_slabs.map { |s| s.connected_foundation_walls.select { |fw| fw.is_exterior } }.flatten.uniq
+      wall_total_length = ext_adjacent_fnd_walls.map { |fw| fw.area / fw.height }.sum
+
+      # Calculate exposed fraction
+      if slab_exposed_length < wall_total_length
+        return slab_exposed_length / wall_total_length
+      end
+
+      return 1.0
+    end
+
     def is_exterior
       if @exterior_adjacent_to == LocationGround
         return true
@@ -2896,11 +2931,7 @@ class HPXML < Object
     end
 
     def is_exterior
-      if @exterior_adjacent_to == LocationOutside
-        return true
-      end
-
-      return false
+      return [LocationOutside, LocationManufacturedHomeUnderBelly].include?(@exterior_adjacent_to)
     end
 
     def is_interior
@@ -3062,6 +3093,10 @@ class HPXML < Object
       return HPXML::is_conditioned(self)
     end
 
+    def connected_foundation_walls
+      return @hpxml_object.foundation_walls.select { |fw| interior_adjacent_to == fw.interior_adjacent_to || interior_adjacent_to == fw.exterior_adjacent_to }
+    end
+
     def delete
       @hpxml_object.slabs.delete(self)
       @hpxml_object.foundations.each do |foundation|
@@ -3085,7 +3120,7 @@ class HPXML < Object
       XMLHelper.add_element(slab, 'Area', @area, :float) unless @area.nil?
       XMLHelper.add_element(slab, 'Thickness', @thickness, :float, @thickness_isdefaulted) unless @thickness.nil?
       XMLHelper.add_element(slab, 'ExposedPerimeter', @exposed_perimeter, :float) unless @exposed_perimeter.nil?
-      XMLHelper.add_element(slab, 'DepthBelowGrade', @depth_below_grade, :float) unless @depth_below_grade.nil?
+      XMLHelper.add_element(slab, 'DepthBelowGrade', @depth_below_grade, :float, @depth_below_grade_isdefaulted) unless @depth_below_grade.nil?
       insulation = XMLHelper.add_element(slab, 'PerimeterInsulation')
       sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
       if not @perimeter_insulation_id.nil?
@@ -6770,6 +6805,7 @@ class HPXML < Object
                        :exposed_perimeter]
 
     # Look for pairs of surfaces that can be collapsed
+    like_foundation_walls = {}
     surf_types.each do |surf_type, surfaces|
       next unless surf_types_of_interest.nil? || surf_types_of_interest.include?(surf_type)
 
@@ -6786,12 +6822,20 @@ class HPXML < Object
             next if attribute.to_s.end_with? '_isdefaulted'
             next if attrs_to_ignore.include? attribute
             next if (surf_type == :foundation_walls) && ([:azimuth, :orientation].include? attribute) # Azimuth of foundation walls is irrelevant
+            next if (surf_type == :foundation_walls) && (attribute == :depth_below_grade) # Ignore BG depth difference; we will later calculate an effective BG depth for the combined surface
             next if surf.send(attribute) == surf2.send(attribute)
 
             match = false
             break
           end
           next unless match
+
+          if (surf_type == :foundation_walls) && (surf.depth_below_grade != surf2.depth_below_grade)
+            if like_foundation_walls[surf].nil?
+              like_foundation_walls[surf] = [{ bgdepth: surf.depth_below_grade, length: surf.area / surf.height }]
+            end
+            like_foundation_walls[surf] << { bgdepth: surf2.depth_below_grade, length: surf2.area / surf2.height }
+          end
 
           # Update values
           if (not surf.area.nil?) && (not surf2.area.nil?)
@@ -6820,6 +6864,11 @@ class HPXML < Object
           surfaces[j].delete
         end
       end
+    end
+
+    like_foundation_walls.each do |foundation_wall, properties|
+      # Calculate weighted-average (by length) below-grade depth
+      foundation_wall.depth_below_grade = properties.map { |p| p[:bgdepth] * p[:length] }.sum(0.0) / properties.map { |p| p[:length] }.sum
     end
   end
 

@@ -729,26 +729,26 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.foundation_walls.add(id: "FoundationWall#{hpxml.foundation_walls.size + 1}",
                                exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
-                               height: 4,
-                               area: 120,
+                               height: 8,
+                               area: 240,
                                thickness: 8,
                                depth_below_grade: 3,
                                interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_exterior_distance_to_top: 0,
-                               insulation_exterior_distance_to_bottom: 4,
+                               insulation_exterior_distance_to_bottom: 8,
                                insulation_exterior_r_value: 8.9)
     hpxml.foundation_walls.add(id: "FoundationWall#{hpxml.foundation_walls.size + 1}",
                                exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
-                               height: 2,
-                               area: 60,
+                               height: 8,
+                               area: 240,
                                thickness: 8,
                                depth_below_grade: 1,
                                interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_exterior_distance_to_top: 0,
-                               insulation_exterior_distance_to_bottom: 2,
+                               insulation_exterior_distance_to_bottom: 8,
                                insulation_exterior_r_value: 8.9)
     hpxml.foundation_walls.each do |foundation_wall|
       hpxml.foundations[0].attached_to_foundation_wall_idrefs << foundation_wall.id
@@ -849,8 +849,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.foundation_walls.add(id: "FoundationWall#{hpxml.foundation_walls.size + 1}",
                                exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
-                               height: 4,
-                               area: 160,
+                               height: 8,
+                               area: 320,
                                thickness: 8,
                                depth_below_grade: 3,
                                interior_finish_type: HPXML::InteriorFinishGypsumBoard,
@@ -859,14 +859,14 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.foundation_walls.add(id: "FoundationWall#{hpxml.foundation_walls.size + 1}",
                                exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
-                               height: 4,
-                               area: 200,
+                               height: 8,
+                               area: 400,
                                thickness: 8,
                                depth_below_grade: 3,
                                interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_exterior_distance_to_top: 0,
-                               insulation_exterior_distance_to_bottom: 4,
+                               insulation_exterior_distance_to_bottom: 8,
                                insulation_exterior_r_value: 8.9)
     hpxml.foundation_walls.each do |foundation_wall|
       hpxml.foundations[0].attached_to_foundation_wall_idrefs << foundation_wall.id
@@ -876,9 +876,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     end
     hpxml.slabs.add(id: "Slab#{hpxml.slabs.size + 1}",
                     interior_adjacent_to: HPXML::LocationBasementConditioned,
-                    area: 675,
+                    area: 1150,
                     thickness: 4,
-                    exposed_perimeter: 75,
+                    exposed_perimeter: 120,
                     perimeter_insulation_depth: 0,
                     under_slab_insulation_width: 0,
                     perimeter_insulation_r_value: 0,
@@ -887,9 +887,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     carpet_r_value: 0)
     hpxml.slabs.add(id: "Slab#{hpxml.slabs.size + 1}",
                     interior_adjacent_to: HPXML::LocationBasementConditioned,
-                    area: 675,
+                    area: 200,
                     thickness: 4,
-                    exposed_perimeter: 75,
+                    exposed_perimeter: 30,
                     perimeter_insulation_depth: 1,
                     under_slab_insulation_width: 0,
                     perimeter_insulation_r_value: 5,
@@ -936,7 +936,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     exposed_perimeter: 40,
                     perimeter_insulation_depth: 0,
                     under_slab_insulation_width: 0,
-                    depth_below_grade: 0,
                     perimeter_insulation_r_value: 0,
                     under_slab_insulation_r_value: 0,
                     carpet_fraction: 0,
@@ -1179,8 +1178,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     elsif [HPXML::HVACTypeFloorFurnace,
            HPXML::HVACTypeWallFurnace,
            HPXML::HVACTypeFireplace,
-           HPXML::HVACTypeFixedHeater,
-           HPXML::HVACTypePortableHeater].include? heating_system.heating_system_type
+           HPXML::HVACTypeSpaceHeater].include? heating_system.heating_system_type
       heating_system.fan_watts = 0
     elsif [HPXML::HVACTypeStove].include? heating_system.heating_system_type
       heating_system.fan_watts = 40
@@ -1229,7 +1227,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       end
     end
   end
-  if hpxml_file.include?('water-loop-heat-pump') || hpxml_file.include?('fan-coil')
+  if hpxml_file.include?('water-loop-heat-pump') || (hpxml_file.include?('fan-coil') && !hpxml_file.include?('fireplace-elec'))
     # Handle WLHP/ducted fan coil
     hpxml.hvac_distributions.reverse_each do |hvac_distribution|
       hvac_distribution.delete
@@ -1676,6 +1674,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.heat_pumps[0].heating_capacity_17F = hpxml.heat_pumps[0].heating_capacity * hpxml.heat_pumps[0].heating_capacity_retention_fraction
     hpxml.heat_pumps[0].heating_capacity_retention_fraction = nil
     hpxml.heat_pumps[0].heating_capacity_retention_temp = nil
+  end
+  if hpxml_file.include? 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler-switchover-temperature2.xml'
+    hpxml.heat_pumps[0].compressor_lockout_temp = hpxml.heat_pumps[0].backup_heating_switchover_temp
+    hpxml.heat_pumps[0].backup_heating_lockout_temp = hpxml.heat_pumps[0].backup_heating_switchover_temp
+    hpxml.heat_pumps[0].backup_heating_switchover_temp = nil
   end
 
   # ------------------ #
