@@ -5001,6 +5001,8 @@ class HPXMLFile
     # FanCoil?
     fan_coil_distribution_systems = []
     hpxml.heating_systems.each do |heating_system|
+      next unless heating_system.primary_system
+
       if args[:heating_system_type].include?('Fan Coil')
         fan_coil_distribution_systems << heating_system
       end

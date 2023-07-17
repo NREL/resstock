@@ -729,8 +729,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.foundation_walls.add(id: "FoundationWall#{hpxml.foundation_walls.size + 1}",
                                exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
-                               height: 4,
-                               area: 120,
+                               height: 8,
+                               area: 240,
                                thickness: 8,
                                depth_below_grade: 3,
                                interior_finish_type: HPXML::InteriorFinishGypsumBoard,
@@ -741,8 +741,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.foundation_walls.add(id: "FoundationWall#{hpxml.foundation_walls.size + 1}",
                                exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
-                               height: 2,
-                               area: 60,
+                               height: 8,
+                               area: 240,
                                thickness: 8,
                                depth_below_grade: 1,
                                interior_finish_type: HPXML::InteriorFinishGypsumBoard,
@@ -849,8 +849,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.foundation_walls.add(id: "FoundationWall#{hpxml.foundation_walls.size + 1}",
                                exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
-                               height: 4,
-                               area: 160,
+                               height: 8,
+                               area: 320,
                                thickness: 8,
                                depth_below_grade: 3,
                                interior_finish_type: HPXML::InteriorFinishGypsumBoard,
@@ -859,8 +859,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.foundation_walls.add(id: "FoundationWall#{hpxml.foundation_walls.size + 1}",
                                exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
-                               height: 4,
-                               area: 200,
+                               height: 8,
+                               area: 400,
                                thickness: 8,
                                depth_below_grade: 3,
                                interior_finish_type: HPXML::InteriorFinishGypsumBoard,
@@ -876,9 +876,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     end
     hpxml.slabs.add(id: "Slab#{hpxml.slabs.size + 1}",
                     interior_adjacent_to: HPXML::LocationBasementConditioned,
-                    area: 675,
+                    area: 1150,
                     thickness: 4,
-                    exposed_perimeter: 75,
+                    exposed_perimeter: 120,
                     perimeter_insulation_depth: 0,
                     under_slab_insulation_width: 0,
                     perimeter_insulation_r_value: 0,
@@ -887,9 +887,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     carpet_r_value: 0)
     hpxml.slabs.add(id: "Slab#{hpxml.slabs.size + 1}",
                     interior_adjacent_to: HPXML::LocationBasementConditioned,
-                    area: 675,
+                    area: 200,
                     thickness: 4,
-                    exposed_perimeter: 75,
+                    exposed_perimeter: 30,
                     perimeter_insulation_depth: 1,
                     under_slab_insulation_width: 0,
                     perimeter_insulation_r_value: 5,
@@ -1229,7 +1229,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       end
     end
   end
-  if hpxml_file.include?('water-loop-heat-pump') || hpxml_file.include?('fan-coil')
+  if hpxml_file.include?('water-loop-heat-pump') || (hpxml_file.include?('fan-coil') && !hpxml_file.include?('fireplace-elec'))
     # Handle WLHP/ducted fan coil
     hpxml.hvac_distributions.reverse_each do |hvac_distribution|
       hvac_distribution.delete
