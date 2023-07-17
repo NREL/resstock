@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <measure>
-  <schema_version>3.0</schema_version>
+  <schema_version>3.1</schema_version>
   <name>report_simulation_output</name>
   <uid>df9d170c-c21a-4130-866d-0d46b06073fd</uid>
-  <version_id>5362758c-ff55-4684-b0aa-16341d1ada75</version_id>
-  <version_modified>20230502T172559Z</version_modified>
+  <version_id>c14b1c1f-b326-4821-a167-07d751dc2be7</version_id>
+  <version_modified>2023-07-14T21:39:21Z</version_modified>
   <xml_checksum>9BF1E6AC</xml_checksum>
   <class_name>ReportSimulationOutput</class_name>
   <display_name>HPXML Simulation Output Report</display_name>
@@ -289,6 +289,25 @@
       <name>include_annual_hvac_summary</name>
       <display_name>Generate Annual Output: HVAC Summary</display_name>
       <description>Generates HVAC capacities, design temperatures, and design loads.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_resilience</name>
+      <display_name>Generate Annual Output: Resilience</display_name>
+      <description>Generates annual resilience outputs.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -602,6 +621,25 @@
       </choices>
     </argument>
     <argument>
+      <name>include_timeseries_resilience</name>
+      <display_name>Generate Timeseries Output: Resilience</display_name>
+      <description>Generates timeseries resilience outputs.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>timeseries_timestamp_convention</name>
       <display_name>Generate Timeseries Output: Timestamp Convention</display_name>
       <description>Determines whether timeseries timestamps use the start-of-period or end-of-period convention. Doesn't apply if the output format is 'csv_dview'.</description>
@@ -715,12 +753,6 @@
   </attributes>
   <files>
     <file>
-      <filename>output_report_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>5CECB67A</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.1</identifier>
@@ -729,7 +761,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>E24243D5</checksum>
+      <checksum>FA98256B</checksum>
+    </file>
+    <file>
+      <filename>output_report_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1A9EB26C</checksum>
     </file>
   </files>
 </measure>
