@@ -458,9 +458,6 @@ class HPXMLTest < MiniTest::Test
       next if message.start_with? 'Executing command'
       next if message.include? 'Could not find state average'
 
-      if hpxml_path.include? 'base-atticroof-conditioned.xml'
-        next if message.include?('Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.')
-      end
       if hpxml.clothes_washers.empty?
         next if message.include? 'No clothes washer specified, the model will not include clothes washer energy use.'
       end
