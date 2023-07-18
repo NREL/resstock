@@ -9,6 +9,7 @@ Fixes
 - Set standard format for options_lookup ([#962](https://github.com/NREL/resstock/pull/962))
 - Model a wood storage water heater when "Other Fuel" is sampled from Water Heater Efficiency.tsv (allowing downstream modeling of clothes washer/dryer). Similarly, model a wood wall/floor furnace when "Other" is sampled from HVAC Heating Efficiency.tsv ([#947](https://github.com/NREL/resstock/pull/947))
 - Update ResStockArguments to support nonzero fraction of heat load served by the secondary heating system ([#1090](https://github.com/NREL/resstock/pull/1090))
+- Fix/clarify duct location assignment by defining Duct Location.tsv and make Duct Leakage to Outside.tsv (formerly Duct.tsv) dependent on Duct Location ([#1104](https://github.com/NREL/resstock/pull/1104))
 
 ## ResStock v3.1.0
 ###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
