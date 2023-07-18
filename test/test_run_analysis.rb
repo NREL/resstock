@@ -67,6 +67,7 @@ class TestRunAnalysis < MiniTest::Test
       next if _expected_warning_message(message, 'No clothes dryer specified, the model will not include clothes dryer energy use. [context: /HPXML/Building/BuildingDetails]')
       next if _expected_warning_message(message, 'No dishwasher specified, the model will not include dishwasher energy use. [context: /HPXML/Building/BuildingDetails]')
       next if _expected_warning_message(message, 'No refrigerator specified, the model will not include refrigerator energy use. [context: /HPXML/Building/BuildingDetails]')
+      next if _expected_warning_message(message, 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.')
       next if _expected_warning_message(message, "Foundation type of 'AboveApartment' cannot have a non-zero height. Assuming height is zero.")
       next if _expected_warning_message(message, "Both 'occupants' schedule file and weekday fractions provided; the latter will be ignored.")
       next if _expected_warning_message(message, "Both 'occupants' schedule file and weekend fractions provided; the latter will be ignored.")
@@ -100,9 +101,9 @@ class TestRunAnalysis < MiniTest::Test
         next if _expected_warning_message(message, 'Unable to find sql file at')
         next if _expected_warning_message(message, 'No design condition info found; calculating design conditions from EPW weather data.')
         next if _expected_warning_message(message, 'Not calculating emissions because an electricity filepath for at least one emissions scenario could not be located.')
-        next if _expected_warning_message(message, 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.')
         next if _expected_warning_message(message, 'Home with conditioned basement has floor insulation.')
         next if _expected_warning_message(message, 'The garage pitch was changed to accommodate garage ridge >= house ridge')
+        next if _expected_warning_message(message, 'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units. [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0]')
       end
       if testing
         next if _expected_warning_message(message, 'Could not find County=')
@@ -111,6 +112,7 @@ class TestRunAnalysis < MiniTest::Test
         next if _expected_warning_message(message, 'The fraction of heat load served by the second heating system is greater than or equal to 50%.')
         next if _expected_warning_message(message, 'Could not find state average fuel oil rate based on Illinois; using region (PADD 2) average.')
         next if _expected_warning_message(message, 'Could not find state average propane rate based on Texas; using region (PADD 3) average.')
+        next if _expected_warning_message(message, 'Could not find state average fuel oil rate based on Texas; using national average.')
         next if _expected_warning_message(message, 'No windows specified, the model will not include window heat transfer. [context: /HPXML/Building/BuildingDetails]')
       end
 
