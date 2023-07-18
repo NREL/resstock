@@ -1676,6 +1676,32 @@ class OSModel
       end
     end
 
+    # Duct leakage to outside warnings?
+    # Need to check here instead of in schematron in case duct locations are defaulted
+    @hpxml.hvac_distributions.each do |hvac_distribution|
+      next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
+      next if hvac_distribution.duct_leakage_measurements.empty?
+
+      # Skip if there's a duct outside conditioned space
+      next if hvac_distribution.ducts.select { |d| !HPXML::conditioned_locations_this_unit.include?(d.duct_location) }.size > 0
+
+      # Issue warning if duct leakage to outside above a certain threshold and ducts completely in conditioned space
+      issue_warning = false
+      units = hvac_distribution.duct_leakage_measurements[0].duct_leakage_units
+      lto_measurements = hvac_distribution.duct_leakage_measurements.select { |dlm| dlm.duct_leakage_total_or_to_outside == HPXML::DuctLeakageToOutside }
+      sum_lto = lto_measurements.map { |dlm| dlm.duct_leakage_value }.sum(0.0)
+      if units == HPXML::UnitsCFM25
+        issue_warning = true if sum_lto > 0.04 * @cfa
+      elsif units == HPXML::UnitsCFM50
+        issue_warning = true if sum_lto > 0.06 * @cfa
+      elsif units == HPXML::UnitsPercent
+        issue_warning = true if sum_lto > 0.05
+      end
+      next unless issue_warning
+
+      runner.registerWarning('Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.')
+    end
+
     # Create HVAC availability sensor
     @hvac_availability_sensor = nil
     if not @hvac_unavailable_periods.empty?
