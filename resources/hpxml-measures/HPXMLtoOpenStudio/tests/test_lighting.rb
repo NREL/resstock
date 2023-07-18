@@ -81,10 +81,12 @@ class HPXMLtoOpenStudioLightingTest < MiniTest::Test
 
     # Check interior lighting
     int_kwh_yr = hpxml.lighting_groups.find { |lg| lg.location == HPXML::LocationInterior }.kwh_per_year
+    int_kwh_yr *= hpxml.lighting.interior_usage_multiplier unless hpxml.lighting.interior_usage_multiplier.nil?
     assert_in_delta(int_kwh_yr, get_kwh_per_year(model, Constants.ObjectNameInteriorLighting), 1.0)
 
     # Check exterior lighting
     ext_kwh_yr = hpxml.lighting_groups.find { |lg| lg.location == HPXML::LocationExterior }.kwh_per_year
+    ext_kwh_yr *= hpxml.lighting.exterior_usage_multiplier unless hpxml.lighting.exterior_usage_multiplier.nil?
     assert_in_delta(ext_kwh_yr, get_kwh_per_year(model, Constants.ObjectNameExteriorLighting), 1.0)
   end
 

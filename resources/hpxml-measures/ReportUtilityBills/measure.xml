@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>report_utility_bills</name>
   <uid>ca88a425-e59a-4bc4-af51-c7e7d1e960fe</uid>
-  <version_id>e79da44c-7f73-4c11-83f6-422f701b7b15</version_id>
-  <version_modified>2023-06-16T20:47:18Z</version_modified>
+  <version_id>279e9ac9-8a85-4425-9d87-6683d723e839</version_id>
+  <version_modified>2023-06-23T23:58:03Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>ReportUtilityBills</class_name>
   <display_name>Utility Bills Report</display_name>
@@ -34,6 +34,79 @@
         </choice>
       </choices>
     </argument>
+    <argument>
+      <name>include_annual_bills</name>
+      <display_name>Generate Annual Utility Bills</display_name>
+      <description>Generates annual utility bills.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_monthly_bills</name>
+      <display_name>Generate Monthly Utility Bills</display_name>
+      <description>Generates monthly utility bills.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>monthly_timestamp_convention</name>
+      <display_name>Generate Monthly Output: Timestamp Convention</display_name>
+      <description>Determines whether monthly timestamps use the start-of-period or end-of-period convention.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>start</default_value>
+      <choices>
+        <choice>
+          <value>start</value>
+          <display_name>start</display_name>
+        </choice>
+        <choice>
+          <value>end</value>
+          <display_name>end</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>annual_output_file_name</name>
+      <display_name>Annual Output File Name</display_name>
+      <description>If not provided, defaults to 'results_bills.csv' (or 'results_bills.json' or 'results_bills.msgpack').</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>monthly_output_file_name</name>
+      <display_name>Monthly Output File Name</display_name>
+      <description>If not provided, defaults to 'results_bills_monthly.csv' (or 'results_bills_monthly.json' or 'results_bills_monthly.msgpack').</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
   </arguments>
   <outputs />
   <provenances />
@@ -57,7 +130,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>13808DAA</checksum>
+      <checksum>E7C1ABA5</checksum>
     </file>
     <file>
       <filename>detailed_rates/Sample Flat Rate Min Annual Charge.json</filename>
@@ -195,7 +268,7 @@
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>041AE7DE</checksum>
+      <checksum>70347ABF</checksum>
     </file>
     <file>
       <filename>Contains Demand Charges.json</filename>
@@ -234,16 +307,10 @@
       <checksum>F96CB80F</checksum>
     </file>
     <file>
-      <filename>results_bills.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>test</usage_type>
-      <checksum>ED0D6618</checksum>
-    </file>
-    <file>
       <filename>utility_bills_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>08FABF5F</checksum>
+      <checksum>8AAE9CCC</checksum>
     </file>
   </files>
 </measure>
