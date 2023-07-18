@@ -50,6 +50,73 @@ class TestRunAnalysis < MiniTest::Test
     end
   end
 
+  def _verify_outputs(cli_output_log, testing = false)
+    # Check cli_output.log warnings
+    File.readlines(cli_output_log).each do |message|
+      next if message.strip.empty?
+      next if message.include?('Building ID:')
+      next if message.include?('[openstudio.measure.OSRunner] <1> Cannot find current Workflow Step')
+      next if message.include?('[openstudio.model.Surface] <1> Initial area of other surface')
+      next if _expected_warning_message(message, 'No valid weather file defined in either the osm or osw.')
+      next if _expected_warning_message(message, 'The model contains existing objects and is being reset.')
+      next if _expected_warning_message(message, 'HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
+      next if _expected_warning_message(message, 'It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.')
+      next if _expected_warning_message(message, 'It is not possible to eliminate all water heater energy use (e.g. parasitics) in EnergyPlus during an unavailable period.')
+      next if _expected_warning_message(message, 'No space cooling specified, the model will not include space cooling energy use. [context: /HPXML/Building/BuildingDetails]')
+      next if _expected_warning_message(message, 'No clothes washer specified, the model will not include clothes washer energy use. [context: /HPXML/Building/BuildingDetails]')
+      next if _expected_warning_message(message, 'No dishwasher specified, the model will not include dishwasher energy use. [context: /HPXML/Building/BuildingDetails]')
+      next if _expected_warning_message(message, "Foundation type of 'AboveApartment' cannot have a non-zero height. Assuming height is zero.")
+      next if _expected_warning_message(message, "Both 'occupants' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'occupants' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'occupants' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'ceiling_fan' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'ceiling_fan' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'ceiling_fan' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'clothes_washer' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'clothes_washer' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'clothes_washer' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'clothes_dryer' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'clothes_dryer' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'clothes_dryer' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'dishwasher' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'dishwasher' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'dishwasher' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'cooking_range' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'cooking_range' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'cooking_range' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'hot_water_fixtures' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'hot_water_fixtures' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'hot_water_fixtures' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'plug_loads_other' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'plug_loads_other' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'plug_loads_other' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'lighting_garage' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'lighting_garage' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'lighting_garage' schedule file and monthly multipliers provided; the latter will be ignored.")
+
+      if !testing
+        next if _expected_warning_message(message, 'Unable to find sql file at')
+        next if _expected_warning_message(message, 'No design condition info found; calculating design conditions from EPW weather data.')
+        next if _expected_warning_message(message, 'Not calculating emissions because an electricity filepath for at least one emissions scenario could not be located.')
+        next if _expected_warning_message(message, 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.')
+      end
+      if testing
+        next if _expected_warning_message(message, 'Could not find County=')
+        next if _expected_warning_message(message, 'Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.')
+        next if _expected_warning_message(message, "Request for output variable 'Zone People Occupant Count' returned no key values.")
+        next if _expected_warning_message(message, 'The fraction of heat load served by the second heating system is greater than or equal to 50%.')
+      end
+
+      flunk "Unexpected cli_output.log message found: #{message}"
+    end
+  end
+
+  def _expected_warning_message(message, txt)
+    return true if message.include?('WARN') && message.include?(txt)
+
+    return false
+  end
+
   def test_version
     @command += ' -v'
 
@@ -264,6 +331,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
+    _verify_outputs(cli_output_log, true)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     results_baseline = File.join(@testing_baseline, 'results-Baseline.csv')
@@ -297,6 +365,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
+    _verify_outputs(cli_output_log)
 
     _test_measure_order(File.join(@national_baseline, 'national_baseline-Baseline.osw'))
     results_baseline = File.join(@national_baseline, 'results-Baseline.csv')
@@ -331,6 +400,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
+    _verify_outputs(cli_output_log, true)
 
     _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Baseline.osw'))
     results_baseline = File.join(@testing_upgrades, 'results-Baseline.csv')
@@ -384,6 +454,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(cli_output_log))
     cli_output = File.read(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
+    _verify_outputs(cli_output_log)
 
     _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Baseline.osw'))
     results_baseline = File.join(@national_upgrades, 'results-Baseline.csv')
