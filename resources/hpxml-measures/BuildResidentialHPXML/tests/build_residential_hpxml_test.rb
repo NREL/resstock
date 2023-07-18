@@ -680,7 +680,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['ducts_return_leakage_to_outside_value'] = 0.0
       args['ducts_supply_location'] = HPXML::LocationLivingSpace
       args['ducts_return_location'] = HPXML::LocationLivingSpace
-      args['heating_system_2_type'] = HPXML::HVACTypePortableHeater
+      args['heating_system_2_type'] = HPXML::HVACTypeSpaceHeater
       args['heating_system_2_heating_capacity'] = 16000.0
     elsif ['extra-second-heating-system-fireplace-to-heating-system.xml'].include? hpxml_file
       args['heating_system_type'] = HPXML::HVACTypeElectricResistance
@@ -707,7 +707,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['ducts_return_leakage_to_outside_value'] = 0.0
       args['ducts_supply_location'] = HPXML::LocationLivingSpace
       args['ducts_return_location'] = HPXML::LocationLivingSpace
-      args['heating_system_2_type'] = HPXML::HVACTypePortableHeater
+      args['heating_system_2_type'] = HPXML::HVACTypeSpaceHeater
       args['heating_system_2_heating_capacity'] = 16000.0
     elsif ['extra-second-heating-system-fireplace-to-heat-pump.xml'].include? hpxml_file
       args['heating_system_type'] = 'none'
