@@ -15,6 +15,7 @@ import numpy as np
 relevant_input_columns = [
     'building_id',
     'build_existing_model.ashrae_iecc_climate_zone_2004_2_a_split',
+    'build_existing_model.state',
     'build_existing_model.county',
     'build_existing_model.heating_fuel',
     'qoi_report.qoi_peak_magnitude_use_kw']
@@ -22,7 +23,6 @@ relevant_input_columns = [
 # List of columns that need to be renamed for each input file, as data changes from package to package.
     # (Same as relevant_input_columns but without building_id and location data.)
 needs_renaming = [
-    'build_existing_model.heating_fuel',
     'qoi_report.qoi_peak_magnitude_use_kw']
 
 # Blank array (to be filled with dataframes)
@@ -69,6 +69,20 @@ def determine_package_number(filename):
 
     return pkg_prefix
 
+def create_state_and_county_columns(dataframe):
+    """ Split build_existing_model.county into two columns, one for state and one for county. """
+
+    # Split current column into two
+    new_columns = dataframe['build_existing_model.county'].str.split(
+        pat = ', ',
+        expand = True)
+    
+    # Add resulting dataframe of new columns back to old dataframe (state = new column, county = replaces column)
+    dataframe.insert(2, "build_existing_model.state", new_columns[0], True)
+    dataframe['build_existing_model.county'] = new_columns[1]
+    
+    return dataframe
+
 def eliminate_irrelevant_columns(dataframe):
     """ Sort columns (eliminating extras) to those relevant for panel sizing and analysis. """
 
@@ -90,14 +104,16 @@ def rename_pkg_specific_columns(pkgprefix, dataframe):
 
     return dataframe
 
-def clean_up_data_files(filename, low_memory = True):
+def clean_up_data_files(filename, dataframe, low_memory = True):
     """ Combines previous functions to create a dataframe with only necessary columns, correctly named. """
 
     # Determine what package and create a dataframe from file
     pkg_prefix = determine_package_number(filename)
-    pddf = read_file(filename, low_memory = low_memory)
+    # dataframe = read_file(filename, low_memory = low_memory)
+    # If using read_file function, delete dataframe input from function.
 
     # Clean up dataframe columns.
+    pddf = create_state_and_county_columns(dataframe)
     pddf = eliminate_irrelevant_columns(pddf)
     pddf = rename_pkg_specific_columns(pkg_prefix, pddf)
 
@@ -159,16 +175,37 @@ def export_dataframe_as_parquet(filename, location, dataframe):
 
     return f"Export completed. Check {location} for {filename} to confirm."
 
-"""
-TO DO:
-- variables to sort by (for analysis)
-    * Heating fuel type (electric, natural gas, propane, other)
-    * Dwelling unit size (200 square foot boxes? may want to analyze further to determine box size)
-    * IECC Climate zone
-    * State
-    * Make each category a function; function input is which option within that category you want to choose
-    * Input option, get out a dataframe with ONLY that option (ie, study heating fuel type, input electric, get out all regions but only buildings w/ electric)
-- main function down here
-    * Find a good way to input multiple files (since it's needed to combine all relevant packages into one file)
 
-"""
+def main():
+
+    """
+    TO DO:
+    - For analysis, create sorting functions. Could sort by:
+        * Heating fuel type (electric, natural gas, propane, other)
+        * Dwelling unit size (200 square foot increments?)
+        * IECC Climate zone
+        * State (for regional or national datasets)
+
+    """
+
+    # Open relevant files into dataframes
+    pkg_00_file_path = "LOCATION HERE"
+    pkg_02_file_path = "LOCATION HERE"
+
+    df_00 = pd.read_parquet(pkg_00_file_path)
+    df_02 = pd.read_parquet(pkg_02_file_path)
+
+    # Tidy up relevant dataframes
+    df_00 = clean_up_data_files('results_up00.parquet', df_00, low_memory = True)
+    df_02 = clean_up_data_files('results_up02.parquet', df_02, low_memory = True)
+
+    # Save smaller dataframes to a list
+    save_dataframes_to_list(list_of_df, df_00, 'pkg_00.')
+    save_dataframes_to_list(list_of_df, df_02, 'pkg_02.')
+    
+    # Combine dataframes into one and export final dataframe as a parquet file.
+    final_df = combine_dataframes_into_one(list_of_df)
+    export_dataframe_as_parquet('IL_220_87_input.parquet', 'LOCATION HERE', final_df)
+
+if __name__ == '__main__':
+    main()
