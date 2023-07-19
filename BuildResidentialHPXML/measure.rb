@@ -5110,7 +5110,16 @@ class HPXMLFile
 
     # If duct surface areas are defaulted, set CFA served
     if hvac_distribution.ducts.select { |d| d.duct_surface_area.nil? }.size > 0
-      hvac_distribution.conditioned_floor_area_served = args[:geometry_unit_cfa]
+      max_fraction_load_served = 0.0
+      hvac_distribution.hvac_systems.each do |hvac_system|
+        if hvac_system.respond_to?(:fraction_heat_load_served)
+          max_fraction_load_served = [max_fraction_load_served, hvac_system.fraction_heat_load_served].max
+        end
+        if hvac_system.respond_to?(:fraction_cool_load_served)
+          max_fraction_load_served = [max_fraction_load_served, hvac_system.fraction_cool_load_served].max
+        end
+      end
+      hvac_distribution.conditioned_floor_area_served = args[:geometry_unit_cfa] * max_fraction_load_served
     end
   end
 
