@@ -1494,7 +1494,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_surface_area', false)
     arg.setDisplayName('Ducts: Supply Surface Area')
-    arg.setDescription('The surface area of the supply ducts. If not provided, the OS-HPXML default is used.')
+    arg.setDescription('The surface area of the supply ducts. If not provided, values are calculated using OS-HPXML default.')
     arg.setUnits('ft^2')
     args << arg
 
@@ -1517,7 +1517,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_surface_area', false)
     arg.setDisplayName('Ducts: Return Surface Area')
-    arg.setDescription('The surface area of the return ducts. If not provided, the OS-HPXML default is used.')
+    arg.setDescription('The surface area of the return ducts. If not provided, values are calculated using OS-HPXML default.')
     arg.setUnits('ft^2')
     args << arg
 
@@ -5012,6 +5012,11 @@ class HPXMLFile
 
     if args[:ducts_number_of_return_registers].is_initialized
       number_of_return_registers = args[:ducts_number_of_return_registers].get
+    else
+      # OS-HPXML default
+      number_of_return_registers = args[:geometry_unit_num_floors_above_grade]
+      if args[:geometry_foundation_type] == 'ConditionedBasement'
+        number_of_return_registers += 1
     end
 
     if [HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && hpxml.heating_systems.size == 0 && hpxml.heat_pumps.size == 0
@@ -5066,10 +5071,41 @@ class HPXMLFile
 
     if args[:ducts_supply_surface_area].is_initialized
       ducts_supply_surface_area = args[:ducts_supply_surface_area].get
+    else
+      # OS-HPXML default calculation
+      f_out = (args[:geometry_unit_num_floors_above_grade] <= 1) ? 1.0 : 0.75
+      cfa_served = args[:geometry_unit_cfa] * [
+        args[:heating_system_fraction_heat_load_served] if args[:heating_system_type]=='Furnace', 
+        args[:cooling_system_fraction_cool_load_served] if args[:cooling_system_type]=='central air conditioner',
+        args[:heat_pump_fraction_heat_load_served] if args[:heat_pump_type]=='air-to-air',
+        args[:heat_pump_fraction_cool_load_served] if args[:heat_pump_type]=='air-to-air',
+      ].max
+      primary_duct_area = 0.27 * cfa_served * f_out
+      secondary_duct_area = 0.27 * cfa_served * (1.0 - f_out)
+      if args[:ducts_supply_location] == 'Living Space'
+        ducts_supply_surface_area = primary_duct_area + secondary_duct_area
+      else
+        ducts_supply_surface_area = primary_duct_area
     end
 
     if args[:ducts_return_surface_area].is_initialized
       ducts_return_surface_area = args[:ducts_return_surface_area].get
+    else
+      # OS-HPXML default calculation
+      f_out = (args[:geometry_unit_num_floors_above_grade] <= 1) ? 1.0 : 0.75
+      cfa_served = args[:geometry_unit_cfa] * [
+        args[:heating_system_fraction_heat_load_served] if args[:heating_system_type]=='Furnace', 
+        args[:cooling_system_fraction_cool_load_served] if args[:cooling_system_type]=='central air conditioner',
+        args[:heat_pump_fraction_heat_load_served] if args[:heat_pump_type]=='air-to-air',
+        args[:heat_pump_fraction_cool_load_served] if args[:heat_pump_type]=='air-to-air',
+      ].max
+      b_r = (args[:ducts_number_of_return_registers] < 6) ? (0.05 * args[:ducts_number_of_return_registers]) : 0.25
+      primary_duct_area = b_r * cfa_served * f_out
+      secondary_duct_area = b_r * cfa_served * (1.0 - f_out)
+      if args[:ducts_supply_location] == 'Living Space'
+        ducts_supply_surface_area = primary_duct_area + secondary_duct_area
+      else
+        ducts_supply_surface_area = primary_duct_area
     end
 
     if args[:ducts_supply_buried_insulation_level].is_initialized
@@ -5098,7 +5134,12 @@ class HPXMLFile
 
     # If duct surface areas are defaulted, set CFA served
     if hvac_distribution.ducts.select { |d| d.duct_surface_area.nil? }.size > 0
-      hvac_distribution.conditioned_floor_area_served = args[:geometry_unit_cfa]
+      hvac_distribution.conditioned_floor_area_served = args[:geometry_unit_cfa] * [
+        args[:heating_system_fraction_heat_load_served] if args[:heating_system_type]=='Furnace', 
+        args[:cooling_system_fraction_cool_load_served] if args[:cooling_system_type]=='central air conditioner',
+        args[:heat_pump_fraction_heat_load_served] if args[:heat_pump_type]=='air-to-air',
+        args[:heat_pump_fraction_cool_load_served] if args[:heat_pump_type]=='air-to-air',
+      ].max
     end
   end
 
