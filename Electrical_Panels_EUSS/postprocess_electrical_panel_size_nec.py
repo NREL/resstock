@@ -20,7 +20,7 @@ Reactive power is phantom in that there may be current draw or voltage drop but 
 (Inductors and capacitors have this behavior)
 
 Continous load := max current continues for 3+ hrs
-Branch circuit rating for continous load >= 1.25 x nameplate rating
+Branch circuit rating for continous load >= 1.25 x nameplate rating, but not applicable to load calc
 
 -----------------
 
@@ -104,7 +104,6 @@ Detailed description:
 
     *electric vehicle supply equipment (NEC 220.57)
         - 7200 W or nameplate rating whichever is larger
-        - continuous load
         - Level 1 (slow): 1.2kW @ 120V (no special circuit) - receptacle plugs
         - Level 2 (fast): 6.2-19.2kW (7.6kW avg) @ 240V (likely dedicated circuit)
             -> same as 240V appliance plugs
@@ -599,7 +598,6 @@ def _special_load_motor(row):
 
 def _special_load_pool_heater(row, apply_df=True): # This is a continuous load so 125% factor must be applied
     """NEC 680.9
-    Pool heater (~3kW), is considered continous load, demand factor = 1.25
     https://twphamilton.com/wp/wp-content/uploads/doc033548.pdf
     """
     if row["completed_status"] != "Success":
@@ -630,7 +628,7 @@ def _special_load_EVSE(row):
     if row["build_existing_model.electric_vehicle"] == "None":
         EV_load = 0
     else: 
-        EV_load = 7200 # TODO: Insert EV charger load, NEC code says use max of nameplate rating and 7200 W, add 1.25 factor since continuous load
+        EV_load = 7200 # TODO: Insert EV charger load, NEC code says use max of nameplate rating and 7200 W
     return EV_load
 
 # --- aggregated loads ---
@@ -692,9 +690,9 @@ def standard_special_load_total(row):
             _special_load_electric_range(row),
             space_cond_load,
             _special_load_motor(row),
-            _special_load_pool_heater(row)*1.25,
-            _special_load_pool_pump(row)*1.25,
-            _special_load_EVSE(row)*1.25
+            _special_load_pool_heater(row),
+            _special_load_pool_pump(row),
+            _special_load_EVSE(row)
         ]
     )
     return special_loads
@@ -714,7 +712,10 @@ def optional_general_load_total(row, n_kit=2, new_load_calc=False):
         _fixed_load_hot_tub_spa(row),
         _fixed_load_well_pump(row),
         _general_load_laundry(row),
-        _special_load_electric_dryer(row)
+        _special_load_electric_dryer(row),
+        _special_load_pool_heater(row),
+        _special_load_pool_pump(row),
+        _special_load_EVSE(row),
     ]
     if new_load_calc:
         threshold_load=8000 #[VA]
@@ -796,18 +797,6 @@ def optional_special_load_space_conditioning(row, new_load_calc=False):
     return(max(space_cond_loads))
 
 
-def optional_continuous_load(row):
-    if row["completed_status"] != "Success":
-        return np.nan
-
-    continuous_load = sum([
-        _special_load_pool_heater(row),
-        _special_load_pool_pump(row),
-        _special_load_EVSE(row)
-    ]) * 1.25
-    return continuous_load
-
-
 def min_amperage_nec_standard(row, n_kit=2, n_ldr=1):
     """
     Min Amperes for Service - Standard Method
@@ -844,7 +833,6 @@ def min_amperage_nec_optional(df, new_load_calc=False):
         [
             optional_general_load_total(row, n_kit="auto", new_load_calc=new_load_calc),
             optional_special_load_space_conditioning(row, new_load_calc=new_load_calc),
-            optional_continuous_load(row),
             ]
     )
 
@@ -923,7 +911,10 @@ def main(filename: str = None, plot_only=False, sfd_only=False, explode_result=F
                     "report_simulation_output.peak_electricity_winter_total_w",
                     "qoi_report.qoi_peak_magnitude_use_kw",
                 ]
-    cols_to_keep = ["building_id", "completed_status", "build_existing_model.sample_weight"]
+    cols_to_keep = [
+        "building_id", "completed_status", "build_existing_model.sample_weight", 
+        "report_simulation_output.unmet_hours_cooling_hr", "report_simulation_output.unmet_hours_heating_hr"
+        ]
     cols_to_keep += get_housing_char_cols(search=False, get_ami=False)+peak_cols+[col for col in df.columns if col.startswith("upgrade_costs.")]
     df = df[cols_to_keep]
 
@@ -937,7 +928,7 @@ def main(filename: str = None, plot_only=False, sfd_only=False, explode_result=F
     df = apply_optional_method(df, new_load_calc=False)
         
     # --- compare with simulated peak ---
-    df["peak_amp"] = df["qoi_report.qoi_peak_magnitude_use_kw"] / 240
+    df["peak_amp"] = df["qoi_report.qoi_peak_magnitude_use_kw"] * 1000 / 240
 
     df["std_m_amp_pct_delta"] = np.nan
     cond = df["peak_amp"] > df["std_m_nec_electrical_panel_amp"]
@@ -974,15 +965,10 @@ def apply_standard_method(dfi):
         )
         df["std_m_demand_load_fixed_VA"] = df.apply(lambda x: standard_fixed_load_total(x), axis=1)
         df["std_m_demand_load_special_VA"] = df.apply(lambda x: standard_special_load_total(x), axis=1)
-        df["std_m_demand_load_total_VA"] = df[list(set(df.columns)-set(df_cols))].sum(axis=1)
+        df["std_m_demand_load_total_VA"] = df[["std_m_demand_load_general_VA", "std_m_demand_load_fixed_VA", "std_m_demand_load_special_VA"]].sum(axis=1)
 
         # df["nec_min_amp"] = df.apply(lambda x: min_amperage_nec_standard(x, n_kit="auto", n_ldr="auto"), axis=1) # this is daisy-ed
-        df["std_m_nec_min_amp"] = (
-            df[
-                ["std_m_demand_load_general_VA", "std_m_demand_load_fixed_VA", "std_m_demand_load_special_VA"]
-            ].sum(axis=1)
-            / 240
-        )
+        df["std_m_nec_min_amp"] = df["std_m_demand_load_total_VA"] / 240
         df["std_m_nec_electrical_panel_amp"] = df["std_m_nec_min_amp"].apply(
             lambda x: min_amperage_main_breaker(x)
         )
@@ -1022,12 +1008,8 @@ def apply_standard_method_exploded(dfi):
         df["std_m_demand_load_special_VA"] = df.apply(lambda x: standard_special_load_total(x), axis=1)
 
         # Total
-        df["std_m_nec_min_amp"] = (
-            df[
-                ["std_m_demand_load_general_VA", "std_m_demand_load_fixed_VA", "std_m_demand_load_special_VA"]
-            ].sum(axis=1)
-            / 240
-        )
+        df["std_m_demand_load_total_VA"] = df[["std_m_demand_load_general_VA", "std_m_demand_load_fixed_VA", "std_m_demand_load_special_VA"]].sum(axis=1)
+        df["std_m_nec_min_amp"] = df["std_m_demand_load_total_VA"] / 240
         df["std_m_nec_electrical_panel_amp"] = df["std_m_nec_min_amp"].apply(
             lambda x: min_amperage_main_breaker(x)
         )
@@ -1043,15 +1025,9 @@ def apply_optional_method(dfi, new_load_calc=False):
         df_cols = df.columns
         df["opt_m_demand_load_general_VA"] = df.apply(lambda x: optional_general_load_total(x, n_kit="auto", new_load_calc=new_load_calc), axis=1) # 100% of first 10 kVA + 40% additional
         df["opt_m_demand_load_space_cond_VA"] = df.apply(lambda x: optional_special_load_space_conditioning(x, new_load_calc=new_load_calc), axis=1) # compute space conditioning load
-        df["opt_m_demand_load_continuous_VA"] = df.apply(lambda x: optional_continuous_load(x), axis=1) # continuous loads
-        df["opt_m_demand_load_total_VA"] = df[list(set(df.columns)-set(df_cols))].sum(axis=1)
+        df["opt_m_demand_load_total_VA"] = df[["opt_m_demand_load_general_VA", "opt_m_demand_load_space_cond_VA"]].sum(axis=1)
 
-        df["opt_m_nec_min_amp"] = (
-            df[
-                ["opt_m_demand_load_general_VA", "opt_m_demand_load_space_cond_VA", "opt_m_demand_load_continuous_VA"]
-            ].sum(axis=1)
-            / 240
-        )
+        df["opt_m_nec_min_amp"] = df["opt_m_demand_load_total_VA"] / 240
         df["opt_m_nec_electrical_panel_amp"] = df["opt_m_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
 
         return df

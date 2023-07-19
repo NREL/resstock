@@ -37,6 +37,7 @@ def clean_up00_file(input_file):
 
 def get_metric_cols(df, emission_type=None):
         prefixes = [
+        	"qoi_report.qoi_peak_magnitude_use_kw",
             # "report_simulation_output.emissions", 
             "report_simulation_output.end_use", 
             "report_simulation_output.fuel_use", 
