@@ -72,7 +72,7 @@ def create_hpxmls
     end
 
     if not success
-      puts "\nError: Did not successfully generate #{hpxml_file}."
+      puts "\nError: Did not successfully generate #{hpxml_filename}."
       exit!
     end
 
