@@ -15,15 +15,28 @@ import numpy as np
 relevant_input_columns = [
     'building_id',
     'build_existing_model.ashrae_iecc_climate_zone_2004_2_a_split',
-    'build_existing_model.state',
+    'build_existing_model.state', # NOT PART OF INITIAL DATASET, CREATED BY SPLITTING COUNTY COLUMN
     'build_existing_model.county',
+    'build_existing_model.clothes_dryer',
+    'build_existing_model.cooking_range',
     'build_existing_model.heating_fuel',
-    'qoi_report.qoi_peak_magnitude_use_kw']
+    'build_existing_model.water_heater_efficiency',
+    'build_existing_model.water_heater_fuel',
+    'build_existing_model.water_heater_in_unit',
+    'qoi_report.qoi_peak_magnitude_use_kw',
+    'upgrade_costs.size_heating_system_primary_k_btu_h',
+    'upgrade_costs.size_heating_system_secondary_k_btu_h',
+    'upgrade_costs.size_heat_pump_backup_primary_k_btu_h'
+]
 
 # List of columns that need to be renamed for each input file, as data changes from package to package.
     # (Same as relevant_input_columns but without building_id and location data.)
 needs_renaming = [
-    'qoi_report.qoi_peak_magnitude_use_kw']
+    'qoi_report.qoi_peak_magnitude_use_kw',
+    'upgrade_costs.size_heating_system_primary_k_btu_h',
+    'upgrade_costs.size_heating_system_secondary_k_btu_h',
+    'upgrade_costs.size_heat_pump_backup_primary_k_btu_h'
+]
 
 # Blank array (to be filled with dataframes)
 list_of_df = []
@@ -179,7 +192,7 @@ def export_dataframe_as_parquet(filename, location, dataframe):
 def main():
 
     """
-    TO DO:
+    TODO:
     - For analysis, create sorting functions. Could sort by:
         * Heating fuel type (electric, natural gas, propane, other)
         * Dwelling unit size (200 square foot increments?)
@@ -189,23 +202,31 @@ def main():
     """
 
     # Open relevant files into dataframes
-    pkg_00_file_path = "LOCATION HERE"
-    pkg_02_file_path = "LOCATION HERE"
+    pkg_00_file_path = "LOCATION/HERE/results_up00.parquet"
+    pkg_02_file_path = "LOCATION/HERE/results_up02.parquet"
+    pkg_07_file_path = "LOCATION/HERE/results_up07.parquet"
+    pkg_08_file_path = "LOCATION/HERE/results_up08.parquet"
 
     df_00 = pd.read_parquet(pkg_00_file_path)
     df_02 = pd.read_parquet(pkg_02_file_path)
+    df_07 = pd.read_parquet(pkg_07_file_path)
+    df_08 = pd.read_parquet(pkg_08_file_path)
 
     # Tidy up relevant dataframes
     df_00 = clean_up_data_files('results_up00.parquet', df_00, low_memory = True)
     df_02 = clean_up_data_files('results_up02.parquet', df_02, low_memory = True)
+    df_07 = clean_up_data_files('results_up07.parquet', df_07, low_memory = True)
+    df_08 = clean_up_data_files('results_up08.parquet', df_08, low_memory = True)
 
     # Save smaller dataframes to a list
     save_dataframes_to_list(list_of_df, df_00, 'pkg_00.')
     save_dataframes_to_list(list_of_df, df_02, 'pkg_02.')
+    save_dataframes_to_list(list_of_df, df_07, 'pkg_07.')
+    save_dataframes_to_list(list_of_df, df_08, 'pkg_08.')
     
     # Combine dataframes into one and export final dataframe as a parquet file.
     final_df = combine_dataframes_into_one(list_of_df)
-    export_dataframe_as_parquet('IL_220_87_input.parquet', 'LOCATION HERE', final_df)
+    export_dataframe_as_parquet('IL_220_87_input.parquet', 'LOCATION/HERE', final_df)
 
 if __name__ == '__main__':
     main()
