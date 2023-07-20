@@ -460,7 +460,7 @@ def main():
 
     # Open data file
     # df = read_file('FILE NAME HERE', low_memory = True)
-    df = pd.read_parquet('C:/Users/jehlers/Desktop/git/IL_220_87_input.parquet')
+    df = pd.read_parquet('LOCATION/HERE/IL_220_87_input.parquet')
 
 
     # --- PANEL CAPACITY DATA ---
@@ -537,13 +537,10 @@ def main():
     
     
     # Export .csv file with results
-    df.to_csv('C:/Users/jehlers/Desktop/panel_sizing_results.csv')
-    geography.to_csv('C:/Users/jehlers/Desktop/supported_electrification_results.csv')
+    df.to_csv('LOCATION/HERE/panel_sizing_results.csv')
+    geography.to_csv('LOCATION/HERE/supported_electrification_results.csv')
 
-       
     
-    # REVIEW AND DELETE SECTION BELOW
-
     """
     TODO:
     * Create a function to find individual loads of commonly electrified appliances
