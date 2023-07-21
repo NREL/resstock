@@ -635,8 +635,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Run HEScore Measures
     if run_hescore_workflow
+      hes_xml_path = File.expand_path('../hes.xml')
+      FileUtils.mv(in_path, hes_xml_path)
       hes_json_path = File.expand_path('../hes.json')
-      measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => in_path, 'output_path' => hes_json_path }]
+      measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => hes_xml_path, 'output_path' => hes_json_path }]
       measures['HEScoreRuleset'] = [{ 'json_path' => hes_json_path, 'hpxml_output_path' => in_path }]
 
       # HPXMLtoHEScore and HEScoreRuleset

@@ -3,17 +3,17 @@ os_version: 3.6.1
 os_sha: bb9481519e
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_baseline
-weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+output_directory: ../../national_baseline_hes
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: ../../weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 250
+    n_datapoints: 5000
 
 workflow_generator:
-  type: residential_hpxml
+  type: residential_hpxml_hes
   args:
     build_existing_model:
       simulation_control_timestep: 60
@@ -22,6 +22,7 @@ workflow_generator:
       simulation_control_run_period_end_month: 12
       simulation_control_run_period_end_day_of_month: 31
       simulation_control_run_period_calendar_year: 2007
+      os_hescore_directory: /Users/nmerket/projects/hescore/OpenStudio-HEScore
 
     emissions:
       - scenario_name: LRMER_MidCase_15
@@ -66,3 +67,20 @@ eagle:
     n_workers: 1
   sampling:
     time: 5
+
+# aws:
+#   job_identifier: noeltest01
+#   s3:
+#     bucket: asdf
+#     prefix: jkl
+#   region: us-west-2
+#   use_spot: true
+#   batch_array_size: 100
+#   dask:
+#     scheduler_cpu: 2048
+#     scheduler_memory: 8192
+#     n_workers: 4
+#   tags:
+#     billingId: 210039
+#     org: eulp
+#     owner: nmerket
