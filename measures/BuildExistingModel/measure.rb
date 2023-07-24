@@ -131,6 +131,16 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Relative paths of simple utility rates. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. Files must contain the name of the Parameter as the column header.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_detailed_filepaths', false)
+    arg.setDisplayName('Utility Bills: Detailed Filepaths')
+    arg.setDescription('Relative paths of detailed utility rates. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. Files must contain the name of the Parameter as the column header.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_electricity_filepaths', false)
+    arg.setDisplayName('Utility Bills: Electricity Filepaths')
+    arg.setDescription('Electricity tariff file specified as an absolute/relative path to a file with utility rate structure information. Tariff file must be formatted to OpenEI API version 7. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_electricity_fixed_charges', false)
     arg.setDisplayName('Utility Bills: Electricity Fixed Charges')
     arg.setDescription('Electricity utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
@@ -425,6 +435,16 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         utility_bill_simple_filepaths = [nil] * utility_bill_scenario_names.size
       end
 
+      utility_bill_detailed_filepaths = args[:utility_bill_detailed_filepaths].get.split(',').map(&:strip)
+      if utility_bill_detailed_filepaths.empty?
+        utility_bill_detailed_filepaths = [nil] * utility_bill_scenario_names.size
+      end
+
+      utility_bill_electricity_filepaths = args[:utility_bill_electricity_filepaths].get.split(',').map(&:strip)
+      if utility_bill_electricity_filepaths.empty?
+        utility_bill_electricity_filepaths = [nil] * utility_bill_scenario_names.size
+      end
+
       utility_bill_electricity_fixed_charges = args[:utility_bill_electricity_fixed_charges].get.split(',').map(&:strip)
       if utility_bill_electricity_fixed_charges.empty?
         utility_bill_electricity_fixed_charges = [nil] * utility_bill_scenario_names.size
@@ -476,6 +496,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
 
       utility_bill_scenarios = utility_bill_scenario_names.zip(utility_bill_simple_filepaths,
+                                                               utility_bill_detailed_filepaths,
+                                                               utility_bill_electricity_filepaths,
                                                                utility_bill_electricity_fixed_charges,
                                                                utility_bill_electricity_marginal_rates,
                                                                utility_bill_natural_gas_fixed_charges,
@@ -487,6 +509,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
                                                                utility_bill_wood_fixed_charges,
                                                                utility_bill_wood_marginal_rates)
 
+      utility_bill_electricity_filepaths = []
       utility_bill_electricity_fixed_charges = []
       utility_bill_electricity_marginal_rates = []
       utility_bill_natural_gas_fixed_charges = []
@@ -498,33 +521,21 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       utility_bill_wood_fixed_charges = []
       utility_bill_wood_marginal_rates = []
       utility_bill_scenarios.each do |utility_bill_scenario|
-        _name, simple_filepath, electricity_fixed_charge, electricity_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate = utility_bill_scenario
+        _name, simple_filepath, detailed_filepath, electricity_filepath, electricity_fixed_charge, electricity_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate = utility_bill_scenario
 
-        if !simple_filepath.nil? && !simple_filepath.empty?
-          simple_filepath = File.join(resources_dir, simple_filepath)
-          if !File.exist?(simple_filepath)
-            runner.registerError("Utility bill scenario file '#{simple_filepath}' does not exist.")
-            return false
+        if (!simple_filepath.nil? && !simple_filepath.empty?) || (!detailed_filepath.nil? && !detailed_filepath.empty?)
+
+          if !simple_filepath.nil? && !simple_filepath.empty?
+            simple_filepath = File.join(resources_dir, simple_filepath)
+            utility_rate = get_utility_rate(runner, simple_filepath, bldg_data)
+
+          elsif !detailed_filepath.nil? && !detailed_filepath.empty?
+            detailed_filepath = File.join(resources_dir, detailed_filepath)
+            utility_rate = get_utility_rate(runner, detailed_filepath, bldg_data)
+
           end
 
-          rows = CSV.read(simple_filepath, headers: true, col_sep: "\t")
-          utility_rates = rows.map { |d| d.to_hash }
-          parameter = utility_rates[0].keys[0]
-
-          if !bldg_data.keys.include?(parameter)
-            runner.registerError("Utility bill scenario(s) were specified, but could not find #{parameter}.")
-            return false
-          end
-
-          utility_rates = utility_rates.select { |r| r[parameter] == bldg_data[parameter] }
-
-          if utility_rates.size != 1
-            runner.registerWarning("Could not find #{parameter}=#{bldg_data[parameter]} in #{simple_filepath}.")
-            utility_rate = Hash[rows.headers.map { |x| [x, nil] }]
-          else
-            utility_rate = utility_rates[0]
-          end
-
+          utility_bill_electricity_filepaths << utility_rate['electricity_filepath']
           utility_bill_electricity_fixed_charges << utility_rate['electricity_fixed_charge']
           utility_bill_electricity_marginal_rates << utility_rate['electricity_marginal_rate']
           utility_bill_natural_gas_fixed_charges << utility_rate['natural_gas_fixed_charge']
@@ -536,6 +547,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
           utility_bill_wood_fixed_charges << utility_rate['wood_fixed_charge']
           utility_bill_wood_marginal_rates << utility_rate['wood_marginal_rate']
         else
+          utility_bill_electricity_filepaths << electricity_filepath
           utility_bill_electricity_fixed_charges << electricity_fixed_charge
           utility_bill_electricity_marginal_rates << electricity_marginal_rate
           utility_bill_natural_gas_fixed_charges << natural_gas_fixed_charge
@@ -551,6 +563,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
       utility_bill_scenario_names = utility_bill_scenario_names.join(',')
       measures['BuildResidentialHPXML'][0]['utility_bill_scenario_names'] = utility_bill_scenario_names
+
+      utility_bill_electricity_filepaths = utility_bill_electricity_filepaths.join(',')
+      measures['BuildResidentialHPXML'][0]['utility_bill_electricity_filepaths'] = utility_bill_electricity_filepaths
+      register_value(runner, 'utility_bill_electricity_filepaths', utility_bill_electricity_filepaths)
 
       utility_bill_electricity_fixed_charges = utility_bill_electricity_fixed_charges.join(',')
       measures['BuildResidentialHPXML'][0]['utility_bill_electricity_fixed_charges'] = utility_bill_electricity_fixed_charges
@@ -670,6 +686,32 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     register_logs(runner, new_runner)
 
     return true
+  end
+
+  def get_utility_rate(runner, filepath, bldg_data)
+    if !File.exist?(filepath)
+      runner.registerError("Utility bill scenario file '#{filepath}' does not exist.")
+      return false
+    end
+
+    rows = CSV.read(filepath, headers: true, col_sep: "\t")
+    utility_rates = rows.map { |d| d.to_hash }
+    parameter = utility_rates[0].keys[0]
+
+    if !bldg_data.keys.include?(parameter)
+      runner.registerError("Utility bill scenario(s) were specified, but could not find #{parameter}.")
+      return false
+    end
+
+    utility_rates = utility_rates.select { |r| r[parameter] == bldg_data[parameter] }
+
+    if utility_rates.size != 1
+      runner.registerWarning("Could not find #{parameter}=#{bldg_data[parameter]} in #{filepath}.")
+      utility_rate = Hash[rows.headers.map { |x| [x, nil] }]
+    else
+      utility_rate = utility_rates[0]
+    end
+    return utility_rate
   end
 end
 
