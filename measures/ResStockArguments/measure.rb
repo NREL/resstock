@@ -730,28 +730,19 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if (args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area] == Constants.Auto)
       # set surface area based on OS-HPXML defaults
       f_out = (args[:geometry_unit_num_floors_above_grade] <= 1) ? 1.0 : 0.75
-      cfa_served = args[:geometry_unit_cfa] * [
-        args[:heating_system_fraction_heat_load_served] if args[:heating_system_type]=='Furnace', 
-        args[:cooling_system_fraction_cool_load_served] if args[:cooling_system_type]=='central air conditioner',
-        args[:heat_pump_fraction_heat_load_served] if args[:heat_pump_type]=='air-to-air',
-        args[:heat_pump_fraction_cool_load_served] if args[:heat_pump_type]=='air-to-air',
-      ].max
+      cfa_served = args[:geometry_unit_cfa] * get_max_heat_cool_load_served(args)
       primary_duct_area = 0.27 * cfa_served * f_out
       secondary_duct_area = 0.27 * cfa_served * (1.0 - f_out)
       if args[:ducts_supply_location] == 'Living Space'
         ducts_supply_surface_area = primary_duct_area + secondary_duct_area
       else
         ducts_supply_surface_area = primary_duct_area
+      end
     end
     if (args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area] == Constants.Auto)
       # set surface area based on OS-HPXML defaults
       f_out = (args[:geometry_unit_num_floors_above_grade] <= 1) ? 1.0 : 0.75
-      cfa_served = args[:geometry_unit_cfa] * [
-        args[:heating_system_fraction_heat_load_served] if args[:heating_system_type]=='Furnace', 
-        args[:cooling_system_fraction_cool_load_served] if args[:cooling_system_type]=='central air conditioner',
-        args[:heat_pump_fraction_heat_load_served] if args[:heat_pump_type]=='air-to-air',
-        args[:heat_pump_fraction_cool_load_served] if args[:heat_pump_type]=='air-to-air',
-      ].max
+      cfa_served = args[:geometry_unit_cfa] * get_max_heat_cool_load_served(args)
       b_r = (args[:ducts_number_of_return_registers] < 6) ? (0.05 * args[:ducts_number_of_return_registers]) : 0.25
       primary_duct_area = b_r * cfa_served * f_out
       secondary_duct_area = b_r * cfa_served * (1.0 - f_out)
@@ -759,8 +750,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         ducts_supply_surface_area = primary_duct_area + secondary_duct_area
       else
         ducts_supply_surface_area = primary_duct_area
+      end
     end
-    
+
     args.each do |arg_name, arg_value|
       begin
         if arg_value.is_initialized
@@ -780,6 +772,22 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     return true
   end
+
+  def get_max_heat_cool_load_served(args):
+    load_served = []
+    if args[:heating_system_type] == 'Furnace'
+      load_served << args[:heating_system_fraction_heat_load_served]
+    end
+    if args[:cooling_system_type]=='central air conditioner'
+      load_served << args[:cooling_system_fraction_cool_load_served]
+    end
+    if args[:heat_pump_type]=='air-to-air'
+      load_served << args[:heat_pump_fraction_heat_load_served]
+    end
+    if args[:heat_pump_type]=='air-to-air'
+      load_served << args[:heat_pump_fraction_cool_load_served]
+    end
+    return load_served.max
 
   def modify_setpoint_schedule(schedule, offset_magnitude, offset_schedule)
     offset_schedule.each_with_index do |direction, i|
