@@ -3,10 +3,13 @@
 Features
 - Add 2022 Cambium emissions data ([#1038](https://github.com/NREL/resstock/pull/1038))
 - Update characteristics to use EIA 2020 RECS ([#1031](https://github.com/NREL/resstock/pull/1031))
+- Include HVAC secondary heating capabilities for project_testing ([#1090](https://github.com/NREL/resstock/pull/1090))
 - For heat pump upgrades, adds the ability to set the existing primary (non-shared) heating system as the backup system using only a single option from the lookup ([#1074](https://github.com/NREL/resstock/pull/1074))
 
 Fixes
 - Set standard format for options_lookup ([#962](https://github.com/NREL/resstock/pull/962))
+- Model a wood storage water heater when "Other Fuel" is sampled from Water Heater Efficiency.tsv (allowing downstream modeling of clothes washer/dryer). Similarly, model a wood wall/floor furnace when "Other" is sampled from HVAC Heating Efficiency.tsv ([#947](https://github.com/NREL/resstock/pull/947))
+- Update ResStockArguments to support nonzero fraction of heat load served by the secondary heating system ([#1090](https://github.com/NREL/resstock/pull/1090))
 
 ## ResStock v3.1.0
 ###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)

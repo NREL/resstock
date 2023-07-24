@@ -108,6 +108,11 @@ class UHT
   Cooling = 'Cooling'
 end
 
+class RT
+  # Resilience Types
+  Battery = 'Battery'
+end
+
 class PLT
   # Peak Load Types
   Heating = 'Heating: Delivered'
@@ -118,6 +123,7 @@ class PFT
   # Peak Fuel Types
   Summer = 'Summer'
   Winter = 'Winter'
+  Annual = 'Annual'
 end
 
 class AFT

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Version
-  OS_HPXML_Version = '1.6.0' # Version of the OS-HPXML workflow
+  OS_HPXML_Version = '1.7.0' # Version of the OS-HPXML workflow
   OS_Version = '3.6.1' # Required version of OpenStudio (can be 'X.X' or 'X.X.X')
   HPXML_Version = '4.0' # HPXML schemaVersion
 

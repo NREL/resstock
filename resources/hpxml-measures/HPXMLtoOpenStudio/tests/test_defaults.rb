@@ -809,26 +809,39 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.slabs[0].thickness = 7.0
     hpxml.slabs[0].carpet_r_value = 1.1
     hpxml.slabs[0].carpet_fraction = 0.5
+    hpxml.slabs[0].depth_below_grade = 2.0
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_slab_values(hpxml_default.slabs[0], 7.0, 1.1, 0.5)
+    _test_default_slab_values(hpxml_default.slabs[0], 7.0, 1.1, 0.5, nil)
 
     # Test defaults w/ conditioned basement
     hpxml.slabs[0].thickness = nil
     hpxml.slabs[0].carpet_r_value = nil
     hpxml.slabs[0].carpet_fraction = nil
+    hpxml.slabs[0].depth_below_grade = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_slab_values(hpxml_default.slabs[0], 4.0, 2.0, 0.8)
+    _test_default_slab_values(hpxml_default.slabs[0], 4.0, 2.0, 0.8, nil)
 
     # Test defaults w/ crawlspace
     hpxml = _create_hpxml('base-foundation-unvented-crawlspace.xml')
     hpxml.slabs[0].thickness = nil
     hpxml.slabs[0].carpet_r_value = nil
     hpxml.slabs[0].carpet_fraction = nil
+    hpxml.slabs[0].depth_below_grade = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_slab_values(hpxml_default.slabs[0], 0.0, 0.0, 0.0)
+    _test_default_slab_values(hpxml_default.slabs[0], 0.0, 0.0, 0.0, nil)
+
+    # Test defaults w/ slab-on-grade
+    hpxml = _create_hpxml('base-foundation-slab.xml')
+    hpxml.slabs[0].thickness = nil
+    hpxml.slabs[0].carpet_r_value = nil
+    hpxml.slabs[0].carpet_fraction = nil
+    hpxml.slabs[0].depth_below_grade = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_slab_values(hpxml_default.slabs[0], 4.0, 2.0, 0.8, 0.0)
   end
 
   def test_windows
@@ -1379,9 +1392,9 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_stove_values(hpxml_default.heating_systems[0], 40, nil, false, nil)
   end
 
-  def test_portable_heaters
+  def test_space_heaters
     # Test inputs not overridden by defaults
-    hpxml = _create_hpxml('base-hvac-portable-heater-gas-only.xml')
+    hpxml = _create_hpxml('base-hvac-space-heater-gas-only.xml')
     hpxml.heating_systems[0].fan_watts = 22
     hpxml.heating_systems[0].heating_capacity = 12345
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
@@ -1394,23 +1407,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_portable_heater_values(hpxml_default.heating_systems[0], 0, nil)
-  end
-
-  def test_fixed_heaters
-    # Test inputs not overridden by defaults
-    hpxml = _create_hpxml('base-hvac-fixed-heater-gas-only.xml')
-    hpxml.heating_systems[0].fan_watts = 22
-    hpxml.heating_systems[0].heating_capacity = 12345
-    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
-    hpxml_default = _test_measure()
-    _test_default_fixed_heater_values(hpxml_default.heating_systems[0], 22, 12345)
-
-    # Test defaults
-    hpxml.heating_systems[0].fan_watts = nil
-    hpxml.heating_systems[0].heating_capacity = nil
-    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
-    hpxml_default = _test_measure()
-    _test_default_fixed_heater_values(hpxml_default.heating_systems[0], 0, nil)
   end
 
   def test_fireplaces
@@ -3835,10 +3831,15 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_slab_values(slab, thickness, carpet_r_value, carpet_fraction)
+  def _test_default_slab_values(slab, thickness, carpet_r_value, carpet_fraction, depth_below_grade)
     assert_equal(thickness, slab.thickness)
     assert_equal(carpet_r_value, slab.carpet_r_value)
     assert_equal(carpet_fraction, slab.carpet_fraction)
+    if depth_below_grade.nil?
+      assert_nil(slab.depth_below_grade)
+    else
+      assert_equal(depth_below_grade, slab.depth_below_grade)
+    end
   end
 
   def _test_default_window_values(hpxml, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs, fraction_operable, azimuths)

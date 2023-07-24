@@ -146,10 +146,11 @@ class HVACSizing
       next if [HPXML::LocationGround].include? location
 
       if [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
-          HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab].include? location
+          HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab,
+          HPXML::LocationManufacturedHomeBelly].include? location
         @cool_design_temps[location] = calculate_scheduled_space_design_temps(location, @cool_setpoint, @hpxml.header.manualj_cooling_design_temp, weather.data.GroundMonthlyTemps.max)
         @heat_design_temps[location] = calculate_scheduled_space_design_temps(location, @heat_setpoint, @hpxml.header.manualj_heating_design_temp, weather.data.GroundMonthlyTemps.min)
-      elsif [HPXML::LocationOutside, HPXML::LocationRoofDeck].include? location
+      elsif [HPXML::LocationOutside, HPXML::LocationRoofDeck, HPXML::LocationManufacturedHomeUnderBelly].include? location
         @cool_design_temps[location] = @hpxml.header.manualj_cooling_design_temp
         @heat_design_temps[location] = @hpxml.header.manualj_heating_design_temp
       elsif HPXML::conditioned_locations.include? location
@@ -957,7 +958,7 @@ class HVACSizing
       elsif HPXML::conditioned_below_grade_locations.include? slab.interior_adjacent_to
         # Based on MJ 8th Ed. A12-7 and ASHRAE HoF 2013 pg 18.31 Eq 40
         slab_is_insulated = false
-        if slab.under_slab_insulation_width > 0 && slab.under_slab_insulation_r_value > 0
+        if slab.under_slab_insulation_width.to_f > 0 && slab.under_slab_insulation_r_value > 0
           slab_is_insulated = true
         elsif slab.perimeter_insulation_depth > 0 && slab.perimeter_insulation_r_value > 0
           slab_is_insulated = true
@@ -966,8 +967,8 @@ class HVACSizing
         end
         k_soil = 0.8 # Value from ASHRAE HoF, probably used by Manual J
         r_other = 1.47 # Value from ASHRAE HoF, probably used by Manual J
-        foundation_walls = @hpxml.foundation_walls.select { |fw| fw.is_thermal_boundary }
-        z_f = foundation_walls.map { |fw| fw.depth_below_grade }.sum(0.0) / foundation_walls.size # Average below-grade depth
+        ext_fnd_walls = @hpxml.foundation_walls.select { |fw| fw.is_exterior }
+        z_f = ext_fnd_walls.map { |fw| fw.depth_below_grade * (fw.area / fw.height) }.sum(0.0) / ext_fnd_walls.map { |fw| fw.area / fw.height }.sum # Weighted-average (by length) below-grade depth
         sqrt_term = [slab.exposed_perimeter**2 - 16.0 * slab.area, 0.0].max
         length = slab.exposed_perimeter / 4.0 + Math.sqrt(sqrt_term) / 4.0
         width = slab.exposed_perimeter / 4.0 - Math.sqrt(sqrt_term) / 4.0
@@ -1162,7 +1163,8 @@ class HVACSizing
       dse_Fregain = 0.0
 
     elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
-           HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab].include? duct.duct_location
+           HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab,
+           HPXML::LocationManufacturedHomeBelly].include? duct.duct_location
       space_values = Geometry.get_temperature_scheduled_space_values(duct.duct_location)
       dse_Fregain = space_values[:f_regain]
 
@@ -1618,8 +1620,7 @@ class HVACSizing
       hvac_sizing_values.Heat_Airflow_Supp = 0.0
 
     elsif [HPXML::HVACTypeStove,
-           HPXML::HVACTypePortableHeater,
-           HPXML::HVACTypeFixedHeater,
+           HPXML::HVACTypeSpaceHeater,
            HPXML::HVACTypeWallFurnace,
            HPXML::HVACTypeFloorFurnace,
            HPXML::HVACTypeFireplace].include? @heating_type
@@ -3024,17 +3025,17 @@ class HVACSizing
 
     if not foundation_wall.insulation_assembly_r_value.nil?
       wall_constr_rvalue = foundation_wall.insulation_assembly_r_value - Material.AirFilmVertical.rvalue
-      wall_ins_rvalues = []
-      wall_ins_offsets = []
-      wall_ins_heights = []
+      wall_ins_rvalue_int, wall_ins_rvalue_ext = 0, 0
+      wall_ins_dist_to_top_int, wall_ins_dist_to_top_ext = 0, 0
+      wall_ins_dist_to_bottom_int, wall_ins_dist_to_bottom_ext = 0, 0
     else
       wall_constr_rvalue = Material.Concrete(foundation_wall.thickness).rvalue
-      wall_ins_rvalues = [foundation_wall.insulation_interior_r_value,
-                          foundation_wall.insulation_exterior_r_value]
-      wall_ins_offsets = [foundation_wall.insulation_interior_distance_to_top,
-                          foundation_wall.insulation_exterior_distance_to_top]
-      wall_ins_heights = [foundation_wall.insulation_interior_distance_to_bottom - foundation_wall.insulation_interior_distance_to_top,
-                          foundation_wall.insulation_exterior_distance_to_bottom - foundation_wall.insulation_exterior_distance_to_top]
+      wall_ins_rvalue_int = foundation_wall.insulation_interior_r_value
+      wall_ins_rvalue_ext = foundation_wall.insulation_exterior_r_value
+      wall_ins_dist_to_top_int = foundation_wall.insulation_interior_distance_to_top
+      wall_ins_dist_to_top_ext = foundation_wall.insulation_exterior_distance_to_top
+      wall_ins_dist_to_bottom_int = foundation_wall.insulation_interior_distance_to_bottom
+      wall_ins_dist_to_bottom_ext = foundation_wall.insulation_exterior_distance_to_bottom
     end
     k_soil = @hpxml.site.ground_conductivity
 
@@ -3042,18 +3043,24 @@ class HVACSizing
     u_wall_with_soil = 0.0
     u_wall_without_soil = 0.0
     wall_height = foundation_wall.height.ceil
-    for d in 1..wall_height
-      r_soil = (Math::PI * d / 2.0) / k_soil
-
+    wall_depth_above_grade = foundation_wall.height - foundation_wall.depth_below_grade
+    for distance_to_top in 1..wall_height
       # Calculate R-wall at this depth
       r_wall = wall_constr_rvalue + Material.AirFilmVertical.rvalue # Base wall construction + interior film
-      if d <= (foundation_wall.height - foundation_wall.depth_below_grade)
-        r_wall += Material.AirFilmOutside.rvalue # Above-grade, add exterior film
+      if distance_to_top <= wall_depth_above_grade
+        # Above-grade: no soil, add exterior film
+        r_soil = 0.0
+        r_wall += Material.AirFilmOutside.rvalue
+      else
+        # Below-grade: add soil, no exterior film
+        distance_to_grade = distance_to_top - wall_depth_above_grade
+        r_soil = (Math::PI * distance_to_grade / 2.0) / k_soil
       end
-      for i in 0..wall_ins_rvalues.size - 1
-        if (d > wall_ins_offsets[i]) && (d <= wall_ins_offsets[i] + wall_ins_heights[i])
-          r_wall += wall_ins_rvalues[i] # Insulation at this depth, add R-value
-        end
+      if (distance_to_top > wall_ins_dist_to_top_int) && (distance_to_top <= wall_ins_dist_to_bottom_int)
+        r_wall += wall_ins_rvalue_int # Interior insulation at this depth, add R-value
+      end
+      if (distance_to_top > wall_ins_dist_to_top_ext) && (distance_to_top <= wall_ins_dist_to_bottom_ext)
+        r_wall += wall_ins_rvalue_ext # Interior insulation at this depth, add R-value
       end
       u_wall_with_soil += 1.0 / (r_soil + r_wall)
       u_wall_without_soil += 1.0 / r_wall
