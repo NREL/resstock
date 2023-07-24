@@ -726,6 +726,41 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
+    # duct surface areas
+    if (args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area] == Constants.Auto)
+      # set surface area based on OS-HPXML defaults
+      f_out = (args[:geometry_unit_num_floors_above_grade] <= 1) ? 1.0 : 0.75
+      cfa_served = args[:geometry_unit_cfa] * [
+        args[:heating_system_fraction_heat_load_served] if args[:heating_system_type]=='Furnace', 
+        args[:cooling_system_fraction_cool_load_served] if args[:cooling_system_type]=='central air conditioner',
+        args[:heat_pump_fraction_heat_load_served] if args[:heat_pump_type]=='air-to-air',
+        args[:heat_pump_fraction_cool_load_served] if args[:heat_pump_type]=='air-to-air',
+      ].max
+      primary_duct_area = 0.27 * cfa_served * f_out
+      secondary_duct_area = 0.27 * cfa_served * (1.0 - f_out)
+      if args[:ducts_supply_location] == 'Living Space'
+        ducts_supply_surface_area = primary_duct_area + secondary_duct_area
+      else
+        ducts_supply_surface_area = primary_duct_area
+    end
+    if (args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area] == Constants.Auto)
+      # set surface area based on OS-HPXML defaults
+      f_out = (args[:geometry_unit_num_floors_above_grade] <= 1) ? 1.0 : 0.75
+      cfa_served = args[:geometry_unit_cfa] * [
+        args[:heating_system_fraction_heat_load_served] if args[:heating_system_type]=='Furnace', 
+        args[:cooling_system_fraction_cool_load_served] if args[:cooling_system_type]=='central air conditioner',
+        args[:heat_pump_fraction_heat_load_served] if args[:heat_pump_type]=='air-to-air',
+        args[:heat_pump_fraction_cool_load_served] if args[:heat_pump_type]=='air-to-air',
+      ].max
+      b_r = (args[:ducts_number_of_return_registers] < 6) ? (0.05 * args[:ducts_number_of_return_registers]) : 0.25
+      primary_duct_area = b_r * cfa_served * f_out
+      secondary_duct_area = b_r * cfa_served * (1.0 - f_out)
+      if args[:ducts_return_location] == 'Living Space'
+        ducts_supply_surface_area = primary_duct_area + secondary_duct_area
+      else
+        ducts_supply_surface_area = primary_duct_area
+    end
+    
     args.each do |arg_name, arg_value|
       begin
         if arg_value.is_initialized
