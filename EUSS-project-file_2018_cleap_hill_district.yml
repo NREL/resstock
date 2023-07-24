@@ -10,18 +10,43 @@ baseline:
   n_buildings_represented: 100324 #133172057
 
 sampler:
-  # type: residential_quota
-  # args:
-  #   n_datapoints: 100 #11366800
-  # type: residential_quota_downselect
-  # args: 
-  #   n_datapoints: 2000
-  #   logic:
-  #     - PUMA|PA, 01701
-  #   resample: true
-  type: precomputed
+  type: residential_quota
   args:
-    sample_file: buildstock_hill_district_2k.csv
+    n_datapoints: 100 #11366800
+  type: residential_quota_downselect
+  args: 
+    n_datapoints: 2000
+    logic:
+      - PUMA|PA, 01701
+      - or:
+        - Area Median Income|0-30%
+        - Area Median Income|30-60%
+        - Area Median Income|60-80%
+      - Vintage|<1940
+      - or:
+        - Geometry Wall Type|Brick
+        - Geometry Wall Type|Concrete
+      - not:
+        - or:
+          - Infiltration|3 ACH50
+          - Infiltration|4 ACH50
+          - Infiltration|5 ACH50
+          - Infiltration|6 ACH50
+          - HVAC Cooling Type|Heat Pump
+          - HVAC Heating Type|Ducted Heat Pump
+          - HVAC Heating Type|Non-Ducted Heat Pump
+          - Heating Fuel|Propane
+          - Geometry Floor Area|3000-3999
+          - Geometry Floor Area|4000+ 
+          - Insulation Ceiling|R-49
+          - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+          - Water Heater Efficiency|Electric Heat Pump, 80 gal
+          - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+    resample: true
+  # type: precomputed
+  # args:
+  #   sample_file: buildstock_hill_district_2k.csv
 
 workflow_generator: 
   type: residential_hpxml
