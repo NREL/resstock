@@ -1,7 +1,22 @@
 ## OpenStudio-HPXML v1.7.0
+
 __New Features__
+- **Breaking change**: Updates to newer proposed HPXML v4.0:
+  - Replaces `PortableHeater` and `FixedHeater` with `SpaceHeater`.
+- Adds manufactured home belly as a foundation type and allows modeling ducts in a manufactured home belly.
+- Output updates:
+  - Adds "Peak Electricity: Annual Total (W)" output.
+  - Adds battery resilience hours output; allows requesting timeseries output.
+  - ReportUtilityBills measure: Allows reporting monthly utility bills in addition to (or instead of) annual bills.
 
 __Bugfixes__
+- Fixes lighting multipliers not being applied when kWh/yr inputs are used.
+- Fixes running detailed schedules with mixed timesteps (e.g., hourly heating/cooling setpoints and 15-minutely miscellaneous plug load schedules).
+- Fixes calculation of utility bill fixed costs for simulations with abbreviated run periods.
+- Fixes error if heat pump `CompressorLockoutTemperature` == `BackupHeatingLockoutTemperature`.
+- Fixes possible "Electricity category end uses do not sum to total" error for a heat pump w/o backup.
+- Fixes error if conditioned basement has `InsulationSpansEntireSlab=true`.
+- BuildResidentialHPXML measure: Fixes air distribution CFA served when there is not a central system that meets 100% of the load.
 
 ## OpenStudio-HPXML v1.6.0
 

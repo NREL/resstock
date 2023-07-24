@@ -711,8 +711,8 @@
     "geometry_unit_num_floors_above_grade": 2,
     "geometry_unit_cfa": 3600,
     "geometry_attic_type": "ConditionedAttic",
-    "ducts_supply_leakage_to_outside_value": 50,
-    "ducts_return_leakage_to_outside_value": 100,
+    "ducts_supply_leakage_to_outside_value": 5,
+    "ducts_return_leakage_to_outside_value": 10,
     "ducts_supply_location": "living space",
     "ducts_return_location": "living space",
     "water_heater_location": "basement - conditioned",
@@ -1471,6 +1471,26 @@
     "parent_hpxml": "sample_files/base.xml",
     "misc_plug_loads_other_annual_kwh": 1729
   },
+  "sample_files/base-foundation-belly-wing-skirt.xml": {
+    "parent_hpxml": "sample_files/base-foundation-ambient.xml",
+    "geometry_unit_type": "manufactured home",
+    "geometry_unit_aspect_ratio": 4.0,
+    "geometry_foundation_type": "BellyAndWingWithSkirt",
+    "geometry_foundation_height": 2,
+    "geometry_foundation_height_above_grade": 2,
+    "geometry_roof_pitch": "3:12",
+    "window_area_front": 140,
+    "window_area_back": 140,
+    "window_area_left": 20,
+    "window_area_right": 20,
+    "ducts_supply_location": "manufactured home belly",
+    "ducts_supply_insulation_r": 0,
+    "ducts_return_location": "manufactured home belly"
+  },
+  "sample_files/base-foundation-belly-wing-no-skirt.xml": {
+    "parent_hpxml": "sample_files/base-foundation-belly-wing-skirt.xml",
+    "geometry_foundation_type": "BellyAndWingNoSkirt"
+  },
   "sample_files/base-foundation-complex.xml": {
     "parent_hpxml": "sample_files/base.xml"
   },
@@ -1478,6 +1498,11 @@
     "parent_hpxml": "sample_files/base.xml",
     "slab_under_insulation_r": 10,
     "slab_under_width": 4
+  },
+  "sample_files/base-foundation-conditioned-basement-slab-insulation-full.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "slab_under_insulation_r": 10,
+    "slab_under_width": 999
   },
   "sample_files/base-foundation-conditioned-basement-wall-insulation.xml": {
     "parent_hpxml": "sample_files/base.xml",
@@ -1670,6 +1695,9 @@
     "parent_hpxml": "sample_files/base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml",
     "heat_pump_compressor_lockout_temp": 30,
     "heat_pump_backup_heating_lockout_temp": 30
+  },
+  "sample_files/base-hvac-air-to-air-heat-pump-var-speed-backup-boiler-switchover-temperature2.xml": {
+    "parent_hpxml": "sample_files/base-hvac-air-to-air-heat-pump-var-speed-backup-boiler-switchover-temperature.xml"
   },
   "sample_files/base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml": {
     "parent_hpxml": "sample_files/base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml"
@@ -2234,6 +2262,17 @@
     "ducts_return_buried_insulation_level": "deeply buried",
     "ducts_return_insulation_r": 4
   },
+  "sample_files/base-hvac-ducts-defaults.xml": {
+    "parent_hpxml": "sample_files/base-hvac-furnace-gas-room-ac.xml",
+    "heating_system_fraction_heat_load_served": 0.75,
+    "heating_system_2_type": "Fireplace",
+    "heating_system_2_heating_efficiency": 1.0,
+    "heating_system_2_fraction_heat_load_served": 0.25,
+    "ducts_supply_location": null,
+    "ducts_supply_surface_area": null,
+    "ducts_return_location": null,
+    "ducts_return_surface_area": null
+  },
   "sample_files/base-hvac-ducts-effective-rvalue.xml": {
     "parent_hpxml": "sample_files/base.xml"
   },
@@ -2266,14 +2305,6 @@
     "parent_hpxml": "sample_files/base-hvac-stove-oil-only.xml",
     "heating_system_type": "Fireplace",
     "heating_system_fuel": "wood"
-  },
-  "sample_files/base-hvac-fixed-heater-gas-only.xml": {
-    "parent_hpxml": "sample_files/base.xml",
-    "heating_system_type": "FixedHeater",
-    "heating_system_heating_efficiency": 1,
-    "cooling_system_type": "none",
-    "cooling_system_cooling_efficiency": 0,
-    "cooling_system_fraction_cool_load_served": 0
   },
   "sample_files/base-hvac-floor-furnace-propane-only.xml": {
     "parent_hpxml": "sample_files/base-hvac-stove-oil-only.xml",
@@ -2541,14 +2572,6 @@
     "cooling_system_cooling_efficiency": 0,
     "cooling_system_fraction_cool_load_served": 0
   },
-  "sample_files/base-hvac-portable-heater-gas-only.xml": {
-    "parent_hpxml": "sample_files/base.xml",
-    "heating_system_type": "PortableHeater",
-    "heating_system_heating_efficiency": 1,
-    "cooling_system_type": "none",
-    "cooling_system_cooling_efficiency": 0,
-    "cooling_system_fraction_cool_load_served": 0
-  },
   "sample_files/base-hvac-ptac.xml": {
     "parent_hpxml": "sample_files/base.xml",
     "heating_system_type": "none",
@@ -2645,6 +2668,14 @@
   "sample_files/base-hvac-setpoints-daily-setbacks.xml": {
     "parent_hpxml": "sample_files/base.xml"
   },
+  "sample_files/base-hvac-space-heater-gas-only.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "heating_system_type": "SpaceHeater",
+    "heating_system_heating_efficiency": 1,
+    "cooling_system_type": "none",
+    "cooling_system_cooling_efficiency": 0,
+    "cooling_system_fraction_cool_load_served": 0
+  },
   "sample_files/base-hvac-stove-oil-only.xml": {
     "parent_hpxml": "sample_files/base.xml",
     "heating_system_type": "Stove",
@@ -2691,7 +2722,8 @@
     "holiday_lighting_period": "Nov 24 - Jan 6"
   },
   "sample_files/base-lighting-kwh-per-year.xml": {
-    "parent_hpxml": "sample_files/base.xml"
+    "parent_hpxml": "sample_files/base.xml",
+    "lighting_interior_usage_multiplier": 1.5
   },
   "sample_files/base-lighting-mixed.xml": {
     "parent_hpxml": "sample_files/base.xml"
@@ -3321,6 +3353,19 @@
     "hvac_control_cooling_weekend_setpoint": null,
     "water_heater_setpoint_temperature": null,
     "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-10-mins.csv, ../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints-10-mins.csv, ../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv"
+  },
+  "sample_files/base-schedules-detailed-mixed-timesteps.xml": {
+    "parent_hpxml": "sample_files/base-simcontrol-timestep-10-mins.xml",
+    "hvac_control_heating_weekday_setpoint": null,
+    "hvac_control_heating_weekend_setpoint": null,
+    "hvac_control_cooling_weekday_setpoint": null,
+    "hvac_control_cooling_weekend_setpoint": null,
+    "water_heater_setpoint_temperature": null,
+    "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/setpoints.csv, ../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints-10-mins.csv, ../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-30-mins.csv"
+  },
+  "sample_files/base-schedules-detailed-mixed-timesteps-power-outage.xml": {
+    "parent_hpxml": "sample_files/base-schedules-detailed-mixed-timesteps.xml",
+    "schedules_power_outage_period": "Dec 1 5 - Jan 31 14"
   },
   "sample_files/base-schedules-detailed-occupancy-stochastic.xml": {
     "parent_hpxml": "sample_files/base.xml",

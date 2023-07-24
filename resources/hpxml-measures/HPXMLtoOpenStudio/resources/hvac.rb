@@ -1548,15 +1548,23 @@ class HVAC
         fan_or_pump_program.addLine("Set #{fan_or_pump_var}_#{mode} = 0")
       end
       sensors.each_with_index do |(mode, sensor), i|
-        str_prefix = (i == 0 ? 'If' : 'ElseIf')
+        if i == 0
+          if_else_str = "If #{sensor.name} > 0"
+        elsif i == sensors.size - 1
+          # Use else for last mode to make sure we don't miss any energy use
+          # See https://github.com/NREL/OpenStudio-HPXML/issues/1424
+          if_else_str = 'Else'
+        else
+          if_else_str = "ElseIf #{sensor.name} > 0"
+        end
         if mode == 'primary_htg' && sensors.keys[i + 1] == 'backup_htg'
           # HP with both primary and backup heating
           # If both are operating, apportion energy use
-          fan_or_pump_program.addLine("#{str_prefix} (#{sensor.name} > 0) && (#{sensors.values[i + 1].name} > 0)")
+          fan_or_pump_program.addLine("#{if_else_str} && (#{sensors.values[i + 1].name} > 0)")
           fan_or_pump_program.addLine("  Set #{fan_or_pump_var}_#{mode} = #{fan_or_pump_sensor.name} * #{sensor.name} / (#{sensor.name} + #{sensors.values[i + 1].name})")
           fan_or_pump_program.addLine("  Set #{fan_or_pump_var}_#{sensors.keys[i + 1]} = #{fan_or_pump_sensor.name} * #{sensors.values[i + 1].name} / (#{sensor.name} + #{sensors.values[i + 1].name})")
         end
-        fan_or_pump_program.addLine("#{str_prefix} #{sensor.name} > 0")
+        fan_or_pump_program.addLine(if_else_str)
         fan_or_pump_program.addLine("  Set #{fan_or_pump_var}_#{mode} = #{fan_or_pump_sensor.name}")
       end
       fan_or_pump_program.addLine('EndIf')

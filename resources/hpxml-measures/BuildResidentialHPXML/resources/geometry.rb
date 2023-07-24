@@ -80,7 +80,7 @@ class Geometry
       next if surface == adjacent_surface
       next if adjacent_surface.surfaceType != adjacentSurfaceType
       next if adjacent_surface.outsideBoundaryCondition != 'Adiabatic'
-      next unless Geometry.has_same_vertices(surface, adjacent_surface)
+      next unless has_same_vertices(surface, adjacent_surface)
 
       return adjacent_surface
     end
@@ -547,7 +547,7 @@ class Geometry
         HPXML::FoundationTypeCrawlspaceConditioned,
         HPXML::FoundationTypeBasementUnconditioned,
         HPXML::FoundationTypeBasementConditioned,
-        HPXML::FoundationTypeAmbient].include? foundation_type
+        HPXML::FoundationTypeAmbient].include?(foundation_type) || foundation_type.start_with?(HPXML::FoundationTypeBellyAndWing)
 
       z = -foundation_height
 
@@ -577,6 +577,8 @@ class Geometry
         foundation_space_name = HPXML::LocationBasementConditioned
       elsif foundation_type == HPXML::FoundationTypeAmbient
         foundation_space_name = HPXML::LocationOutside
+      elsif foundation_type.start_with?(HPXML::FoundationTypeBellyAndWing)
+        foundation_space_name = HPXML::LocationManufacturedHomeUnderBelly
       end
       foundation_zone.setName(foundation_space_name)
       foundation_space.setName(foundation_space_name)
@@ -832,9 +834,9 @@ class Geometry
   end
 
   def self.has_same_vertices(surface1, surface2)
-    if getSurfaceXValues([surface1]).sort == getSurfaceXValues([surface2]).sort &&
-       getSurfaceYValues([surface1]).sort == getSurfaceYValues([surface2]).sort &&
-       getSurfaceZValues([surface1]).sort == getSurfaceZValues([surface2]).sort &&
+    if get_surface_x_values([surface1]).sort == get_surface_x_values([surface2]).sort &&
+       get_surface_y_values([surface1]).sort == get_surface_y_values([surface2]).sort &&
+       get_surface_z_values([surface1]).sort == get_surface_z_values([surface2]).sort &&
        surface1.space.get.zOrigin.round(5) == surface2.space.get.zOrigin.round(5)
       return true
     end
@@ -862,7 +864,7 @@ class Geometry
     space.surfaces.each do |surface|
       next unless surface.surfaceType.downcase == 'floor'
 
-      return getSurfaceZValues([surface])[0]
+      return get_surface_z_values([surface])[0]
     end
   end
 
@@ -1364,13 +1366,13 @@ class Geometry
       multy = 1
     end
     if (facade == Constants.FacadeBack) || (facade == Constants.FacadeLeft)
-      leftx = getSurfaceXValues([surface]).max
-      lefty = getSurfaceYValues([surface]).max
+      leftx = get_surface_x_values([surface]).max
+      lefty = get_surface_y_values([surface]).max
     else
-      leftx = getSurfaceXValues([surface]).min
-      lefty = getSurfaceYValues([surface]).min
+      leftx = get_surface_x_values([surface]).min
+      lefty = get_surface_y_values([surface]).min
     end
-    bottomz = getSurfaceZValues([surface]).min
+    bottomz = get_surface_z_values([surface]).min
     [upperleft, lowerleft, lowerright, upperright].each do |coord|
       newx = UnitConversions.convert(leftx + multx * coord[0], 'ft', 'm')
       newy = UnitConversions.convert(lefty + multy * coord[0], 'ft', 'm')
@@ -1412,9 +1414,9 @@ class Geometry
       return false
     end
 
-    xvalues = getSurfaceXValues([surface])
-    yvalues = getSurfaceYValues([surface])
-    zvalues = getSurfaceZValues([surface])
+    xvalues = get_surface_x_values([surface])
+    yvalues = get_surface_y_values([surface])
+    zvalues = get_surface_z_values([surface])
     if not (((xvalues.uniq.size == 1) && (yvalues.uniq.size == 2)) ||
             ((xvalues.uniq.size == 2) && (yvalues.uniq.size == 1)))
       return false
@@ -1483,7 +1485,7 @@ class Geometry
     min_story_avail_walls = []
     min_story_avail_wall_minz = 99999
     avail_walls.each do |avail_wall|
-      zvalues = getSurfaceZValues([avail_wall])
+      zvalues = get_surface_z_values([avail_wall])
       minz = zvalues.min + avail_wall.space.get.zOrigin
       if minz < min_story_avail_wall_minz
         min_story_avail_walls.clear
@@ -1544,13 +1546,13 @@ class Geometry
         multy = 1
       end
       if (facade == Constants.FacadeBack) || (facade == Constants.FacadeLeft)
-        leftx = getSurfaceXValues([min_story_avail_wall]).max
-        lefty = getSurfaceYValues([min_story_avail_wall]).max
+        leftx = get_surface_x_values([min_story_avail_wall]).max
+        lefty = get_surface_y_values([min_story_avail_wall]).max
       else
-        leftx = getSurfaceXValues([min_story_avail_wall]).min
-        lefty = getSurfaceYValues([min_story_avail_wall]).min
+        leftx = get_surface_x_values([min_story_avail_wall]).min
+        lefty = get_surface_y_values([min_story_avail_wall]).min
       end
-      bottomz = getSurfaceZValues([min_story_avail_wall]).min
+      bottomz = get_surface_z_values([min_story_avail_wall]).min
 
       [upperleft, lowerleft, lowerright, upperright].each do |coord|
         newx = UnitConversions.convert(leftx + multx * coord[0], 'ft', 'm')
@@ -1681,8 +1683,8 @@ class Geometry
         next unless adb_facades.include? os_facade
 
         x_ft = UnitConversions.convert(x, 'm', 'ft')
-        max_x = getSurfaceXValues([surface]).max
-        min_x = getSurfaceXValues([surface]).min
+        max_x = get_surface_x_values([surface]).max
+        min_x = get_surface_x_values([surface]).min
         next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
 
         surface.setOutsideBoundaryCondition('Adiabatic')
@@ -1782,7 +1784,7 @@ class Geometry
           os_facade = get_facade_for_surface(surface)
           if adb_facades.include? os_facade
             surface.setOutsideBoundaryCondition('Adiabatic')
-          elsif getSurfaceZValues([surface]).min < 0
+          elsif get_surface_z_values([surface]).min < 0
             surface.setOutsideBoundaryCondition('Foundation') if foundation_type != HPXML::FoundationTypeAmbient
             surface.setOutsideBoundaryCondition('Outdoors') if foundation_type == HPXML::FoundationTypeAmbient
           else
@@ -1835,8 +1837,8 @@ class Geometry
         next unless adb_facades.include? os_facade
 
         x_ft = UnitConversions.convert(x, 'm', 'ft')
-        max_x = getSurfaceXValues([surface]).max
-        min_x = getSurfaceXValues([surface]).min
+        max_x = get_surface_x_values([surface]).max
+        min_x = get_surface_x_values([surface]).min
         next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
 
         surface.setOutsideBoundaryCondition('Adiabatic')
@@ -2057,8 +2059,8 @@ class Geometry
         if surface.surfaceType == 'Wall'
           if adb_facades.include? os_facade
             x_ft = UnitConversions.convert(x, 'm', 'ft')
-            max_x = getSurfaceXValues([surface]).max
-            min_x = getSurfaceXValues([surface]).min
+            max_x = get_surface_x_values([surface]).max
+            min_x = get_surface_x_values([surface]).min
             next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
 
             surface.setOutsideBoundaryCondition('Adiabatic')
@@ -2141,7 +2143,7 @@ class Geometry
           os_facade = get_facade_for_surface(surface)
           if adb_facades.include?(os_facade) && (os_facade != 'RoofCeiling') && (os_facade != 'Floor')
             surface.setOutsideBoundaryCondition('Adiabatic')
-          elsif getSurfaceZValues([surface]).min < 0
+          elsif get_surface_z_values([surface]).min < 0
             surface.setOutsideBoundaryCondition('Foundation') if foundation_type != HPXML::FoundationTypeAmbient
             surface.setOutsideBoundaryCondition('Outdoors') if foundation_type == HPXML::FoundationTypeAmbient
           else
@@ -2191,8 +2193,8 @@ class Geometry
         next unless adb_facades.include? os_facade
 
         x_ft = UnitConversions.convert(x, 'm', 'ft')
-        max_x = getSurfaceXValues([surface]).max
-        min_x = getSurfaceXValues([surface]).min
+        max_x = get_surface_x_values([surface]).max
+        min_x = get_surface_x_values([surface]).min
         next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
 
         surface.setOutsideBoundaryCondition('Adiabatic')
@@ -2226,7 +2228,7 @@ class Geometry
 
   # Shift all spaces up by foundation height for ambient foundation
   def self.apply_ambient_foundation_shift(model, foundation_type, foundation_height)
-    if foundation_type == HPXML::FoundationTypeAmbient
+    if [HPXML::FoundationTypeAmbient, HPXML::FoundationTypeBellyAndWing].include?(foundation_type)
       m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
       m[2, 3] = -foundation_height
       model.getSpaces.each do |space|
@@ -2368,9 +2370,9 @@ class Geometry
     edge_counter = 0
     surfaces.each do |surface|
       if use_top_edge
-        matchz = getSurfaceZValues([surface]).max
+        matchz = get_surface_z_values([surface]).max
       else
-        matchz = getSurfaceZValues([surface]).min
+        matchz = get_surface_z_values([surface]).min
       end
 
       # get vertices
@@ -2428,46 +2430,6 @@ class Geometry
     return facade
   end
 
-  # Return an array of x values for surfaces passed in. The values will be relative to the parent origin. This was intended for spaces.
-  def self.getSurfaceXValues(surfaceArray)
-    xValueArray = []
-    surfaceArray.each do |surface|
-      surface.vertices.each do |vertex|
-        xValueArray << UnitConversions.convert(vertex.x, 'm', 'ft').round(5)
-      end
-    end
-    return xValueArray
-  end
-
-  # Return an array of y values for surfaces passed in. The values will be relative to the parent origin. This was intended for spaces.
-  def self.getSurfaceYValues(surfaceArray)
-    yValueArray = []
-    surfaceArray.each do |surface|
-      surface.vertices.each do |vertex|
-        yValueArray << UnitConversions.convert(vertex.y, 'm', 'ft').round(5)
-      end
-    end
-    return yValueArray
-  end
-
-  def self.get_surface_length(surface)
-    xvalues = getSurfaceXValues([surface])
-    yvalues = getSurfaceYValues([surface])
-    xrange = xvalues.max - xvalues.min
-    yrange = yvalues.max - yvalues.min
-    if xrange > yrange
-      return xrange
-    end
-
-    return yrange
-  end
-
-  def self.get_surface_height(surface)
-    zvalues = getSurfaceZValues([surface])
-    zrange = zvalues.max - zvalues.min
-    return zrange
-  end
-
   def self.get_conditioned_attic_height(spaces)
     # gable roof type
     get_conditioned_spaces(spaces).each do |space|
@@ -2494,8 +2456,8 @@ class Geometry
   end
 
   def self.surface_is_rim_joist(surface, height)
-    return false unless (height - Geometry.get_surface_height(surface)).abs < 0.00001
-    return false unless Geometry.getSurfaceZValues([surface]).max > 0
+    return false unless (height - get_surface_height(surface)).abs < 0.00001
+    return false unless get_surface_z_values([surface]).max > 0
 
     return true
   end
