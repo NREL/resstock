@@ -727,7 +727,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
     # duct surface areas
-    if (args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area] == Constants.Auto)
+    if (args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area].to_s == Constants.Auto)
       # set surface area based on OS-HPXML defaults
       f_out = (args[:geometry_unit_num_floors_above_grade] <= 1) ? 1.0 : 0.75
       cfa_served = args[:geometry_unit_cfa] * get_max_heat_cool_load_served(args)
@@ -739,11 +739,21 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         args[:ducts_supply_surface_area] = primary_duct_area
       end
     end
-    if (args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area] == Constants.Auto)
+
+    if (args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area].to_s == Constants.Auto)
       # set surface area based on OS-HPXML defaults
       f_out = (args[:geometry_unit_num_floors_above_grade] <= 1) ? 1.0 : 0.75
+      if args[:ducts_number_of_return_registers].to_s != Constants.Auto
+        n_return_registers = Integer(args[:ducts_number_of_return_registers].to_s)
+      else
+        # defaults to ncfl = ncfl_ag + 1 if conditioned basement
+        n_return_registers = args[:geometry_unit_num_floors_above_grade]
+        if args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned
+          n_return_registers += 1
+        end
+      end
       cfa_served = args[:geometry_unit_cfa] * get_max_heat_cool_load_served(args)
-      b_r = (args[:ducts_number_of_return_registers] < 6) ? (0.05 * args[:ducts_number_of_return_registers]) : 0.25
+      b_r = (n_return_registers < 6) ? (0.05 * n_return_registers) : 0.25
       primary_duct_area = b_r * cfa_served * f_out
       secondary_duct_area = b_r * cfa_served * (1.0 - f_out)
       if args[:ducts_return_location] == HPXML::LocationLivingSpace
