@@ -734,9 +734,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       primary_duct_area = 0.27 * cfa_served * f_out
       secondary_duct_area = 0.27 * cfa_served * (1.0 - f_out)
       if args[:ducts_supply_location] == HPXML::LocationLivingSpace
-        ducts_supply_surface_area = primary_duct_area + secondary_duct_area
+        args[:ducts_supply_surface_area] = primary_duct_area + secondary_duct_area
       else
-        ducts_supply_surface_area = primary_duct_area
+        args[:ducts_supply_surface_area] = primary_duct_area
       end
     end
     if (args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area] == Constants.Auto)
@@ -747,9 +747,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       primary_duct_area = b_r * cfa_served * f_out
       secondary_duct_area = b_r * cfa_served * (1.0 - f_out)
       if args[:ducts_return_location] == HPXML::LocationLivingSpace
-        ducts_supply_surface_area = primary_duct_area + secondary_duct_area
+        args[:ducts_return_surface_area] = primary_duct_area + secondary_duct_area
       else
-        ducts_supply_surface_area = primary_duct_area
+        args[:ducts_return_surface_area] = primary_duct_area
       end
     end
 
