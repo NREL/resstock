@@ -773,7 +773,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def get_max_heat_cool_load_served(args):
+  def get_max_heat_cool_load_served(args)
     load_served = []
     if args[:heating_system_type] == HPXML::HVACTypeFurnace
       load_served << args[:heating_system_fraction_heat_load_served]
@@ -786,6 +786,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       load_served << args[:heat_pump_fraction_cool_load_served]
     end
     return load_served.max
+  end
 
   def modify_setpoint_schedule(schedule, offset_magnitude, offset_schedule)
     offset_schedule.each_with_index do |direction, i|
