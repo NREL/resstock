@@ -136,11 +136,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Relative paths of detailed utility rates. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. Files must contain the name of the Parameter as the column header.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_electricity_filepaths', false)
-    arg.setDisplayName('Utility Bills: Electricity Filepaths')
-    arg.setDescription('Electricity tariff file specified as an absolute/relative path to a file with utility rate structure information. Tariff file must be formatted to OpenEI API version 7. If multiple scenarios, use a comma-separated list.')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_electricity_fixed_charges', false)
     arg.setDisplayName('Utility Bills: Electricity Fixed Charges')
     arg.setDescription('Electricity utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
@@ -440,11 +435,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         utility_bill_detailed_filepaths = [nil] * utility_bill_scenario_names.size
       end
 
-      utility_bill_electricity_filepaths = args[:utility_bill_electricity_filepaths].get.split(',').map(&:strip)
-      if utility_bill_electricity_filepaths.empty?
-        utility_bill_electricity_filepaths = [nil] * utility_bill_scenario_names.size
-      end
-
       utility_bill_electricity_fixed_charges = args[:utility_bill_electricity_fixed_charges].get.split(',').map(&:strip)
       if utility_bill_electricity_fixed_charges.empty?
         utility_bill_electricity_fixed_charges = [nil] * utility_bill_scenario_names.size
@@ -497,7 +487,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
       utility_bill_scenarios = utility_bill_scenario_names.zip(utility_bill_simple_filepaths,
                                                                utility_bill_detailed_filepaths,
-                                                               utility_bill_electricity_filepaths,
                                                                utility_bill_electricity_fixed_charges,
                                                                utility_bill_electricity_marginal_rates,
                                                                utility_bill_natural_gas_fixed_charges,
@@ -521,7 +510,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       utility_bill_wood_fixed_charges = []
       utility_bill_wood_marginal_rates = []
       utility_bill_scenarios.each do |utility_bill_scenario|
-        _name, simple_filepath, detailed_filepath, electricity_filepath, electricity_fixed_charge, electricity_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate = utility_bill_scenario
+        _name, simple_filepath, detailed_filepath, electricity_fixed_charge, electricity_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate = utility_bill_scenario
 
         if (!simple_filepath.nil? && !simple_filepath.empty?) || (!detailed_filepath.nil? && !detailed_filepath.empty?)
 
@@ -547,7 +536,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
           utility_bill_wood_fixed_charges << utility_rate['wood_fixed_charge']
           utility_bill_wood_marginal_rates << utility_rate['wood_marginal_rate']
         else
-          utility_bill_electricity_filepaths << electricity_filepath
+          utility_bill_electricity_filepaths << nil # support detailed tariff assignment only through the lookup file
           utility_bill_electricity_fixed_charges << electricity_fixed_charge
           utility_bill_electricity_marginal_rates << electricity_marginal_rate
           utility_bill_natural_gas_fixed_charges << natural_gas_fixed_charge
