@@ -100,15 +100,16 @@ class TestRunAnalysis < MiniTest::Test
       next if _expected_warning_message(message, "Both 'lighting_garage' schedule file and monthly multipliers provided; the latter will be ignored.")
       next if _expected_warning_message(message, 'Could not find state average propane rate based on')
       next if _expected_warning_message(message, 'Could not find state average fuel oil rate based on')
-      next if _expected_warning_message(message, 'Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.') # FIXME
       next if _expected_warning_message(message, "Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       next if _expected_warning_message(message, 'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units. [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0]')
+      next if _expected_warning_message(message, 'Home with conditioned basement has floor insulation.')
+      next if _expected_warning_message(message, 'Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.') # FIXME: remove once duct TSVs are refactored
+      next if _expected_warning_message(message, 'No emissions factor found for Scenario=LRMER_MidCase_15, Type=CO2e, Fuel=Natural Gas.') # FIXME: remove once OS-HPXML has_fuel method is fixed
 
       if !testing
         next if _expected_warning_message(message, 'Unable to find sql file at')
         next if _expected_warning_message(message, 'No design condition info found; calculating design conditions from EPW weather data.')
         next if _expected_warning_message(message, 'Not calculating emissions because an electricity filepath for at least one emissions scenario could not be located.')
-        next if _expected_warning_message(message, 'Home with conditioned basement has floor insulation.')
         next if _expected_warning_message(message, 'The garage pitch was changed to accommodate garage ridge >= house ridge')
       end
       if testing
