@@ -365,10 +365,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         heat_pump_backup_heating_efficiency = heat_pump_backup_values['heat_pump_backup_heating_efficiency']
         heat_pump_backup_heating_capacity = heat_pump_backup_values['heat_pump_backup_heating_capacity']
 
-        # It's possible this was < 1.0 due to adjustment for secondary heating system
-        measures['BuildResidentialHPXML'][0]['heat_pump_fraction_heat_load_served'] = 1.0
-        measures['BuildResidentialHPXML'][0]['heating_system_2_fraction_heat_load_served'] = 0.0
-
         # Integrated; heat pump's distribution system and blower fan power applies to the backup heating
         # e.g., ducted heat pump (e.g., ashp, gshp, ducted minisplit) with ducted (e.g., furnace) backup
         if heat_pump_backup_type == HPXML::HeatPumpBackupTypeIntegrated
@@ -389,6 +385,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         # e.g., ductless heat pump (e.g., ductless minisplit) with ducted (e.g., furnace) or ductless (e.g., boiler) backup
         # e.g., ducted heat pump (e.g., ashp, gshp) with ductless (e.g., boiler) backup
         elsif heat_pump_backup_type == HPXML::HeatPumpBackupTypeSeparate
+          # It's possible this was < 1.0 due to adjustment for secondary heating system
+          measures['BuildResidentialHPXML'][0]['heat_pump_fraction_heat_load_served'] = 1.0
+
           measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = heat_pump_backup_type
           measures['BuildResidentialHPXML'][0]['heating_system_2_type'] = heating_system_type
           measures['BuildResidentialHPXML'][0]['heating_system_2_fuel'] = heat_pump_backup_fuel
