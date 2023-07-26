@@ -5,7 +5,7 @@ require_relative '../resources/buildstock'
 require_relative '../test/analysis'
 require 'openstudio'
 
-class TestRunAnalysis < MiniTest::Test
+class TestRunAnalysis < Minitest::Test
   def before_setup
     cli_path = OpenStudio.getOpenStudioCLI
     @command = "\"#{cli_path}\" workflow/run_analysis.rb"
