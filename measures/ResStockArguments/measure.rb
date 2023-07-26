@@ -741,8 +741,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         duct_area += secondary_duct_area
       end
       if max_load_served == 0.0
-        runner.registerWarning("ResStockArguments: max heating or cooling load served for ducted system(s) cannot be determined. Correcting has ducts assumption to no ducts.")
+        runner.registerWarning('ResStockArguments: max heating or cooling load served for ducted system(s) cannot be determined. Correcting has ducts assumption to no ducts.')
+        # override values to no ducts conditions
         duct_area = 1.0
+        args[:ducts_supply_leakage_to_outside_value] = 0.0
+        args[:ducts_supply_insulation_r] = 0.0
       end
       args[:ducts_supply_surface_area] = duct_area
     end
@@ -771,8 +774,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
       # override values to no ducts conditions if ducts_supply_surface_area shows no ducts condtions
       if args[:ducts_supply_surface_area] == 1.0
-         duct_area = 1.0
-         args[:ducts_number_of_return_registers] = 0
+        duct_area = 1.0
+        args[:ducts_number_of_return_registers] = 0
+        args[:ducts_return_leakage_to_outside_value] = 0.0
+        args[:ducts_return_insulation_r] = 0.0
       end
       args[:ducts_return_surface_area] = duct_area
     end
@@ -804,13 +809,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
     if (args[:cooling_system_type] == HPXML::HVACTypeCentralAirConditioner) || (
       (args[:cooling_system_type] == HPXML::HVACTypeMiniSplitAirConditioner) && (args[:cooling_system_is_ducted] == 'true')
-      ) || (
+    ) || (
       (args[:cooling_system_type] == HPXML::HVACTypeEvaporativeCooler) && (args[:cooling_system_is_ducted] == 'true')
-      )
+    )
       load_served << args[:cooling_system_fraction_cool_load_served]
     end
-    if (args[:heat_pump_type] == HPXML::HVACTypeHeatPumpAirToAir) || 
-      (args[:heat_pump_type] == HPXML::HVACTypeHeatPumpGroundToAir) || (
+    if (args[:heat_pump_type] == HPXML::HVACTypeHeatPumpAirToAir) ||
+       (args[:heat_pump_type] == HPXML::HVACTypeHeatPumpGroundToAir) || (
       (args[:heat_pump_type] == HPXML::HVACTypeHeatPumpMiniSplit) &&
       (args[:heat_pump_is_ducted] == 'true'))
       load_served << args[:heating_system_fraction_heat_load_served]
