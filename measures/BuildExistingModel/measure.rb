@@ -521,6 +521,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
           elsif !detailed_filepath.nil? && !detailed_filepath.empty?
             detailed_filepath = File.join(resources_dir, detailed_filepath)
             utility_rate = get_utility_rate(runner, detailed_filepath, bldg_data)
+            utility_rate['electricity_filepath'] = File.join(File.dirname(detailed_filepath), utility_rate['electricity_filepath']) if !utility_rate['electricity_filepath'].nil?
 
           end
 
