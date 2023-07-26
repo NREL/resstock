@@ -732,14 +732,19 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if (args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area].to_s == Constants.Auto)
       # set surface area based on OS-HPXML defaults
       f_out = (args[:geometry_unit_num_floors_above_grade] <= 1) ? 1.0 : 0.75
-      cfa_served = args[:geometry_unit_cfa] * get_max_heat_cool_load_served(args)
+      max_load_served = get_max_heat_cool_load_served(args)
+      cfa_served = args[:geometry_unit_cfa] * max_load_served
       primary_duct_area = 0.27 * cfa_served * f_out
       secondary_duct_area = 0.27 * cfa_served * (1.0 - f_out)
+      duct_area = primary_duct_area
       if args[:ducts_supply_location] == HPXML::LocationLivingSpace
-        args[:ducts_supply_surface_area] = primary_duct_area + secondary_duct_area
-      else
-        args[:ducts_supply_surface_area] = primary_duct_area
+        duct_area += secondary_duct_area
       end
+      if max_load_served == 0.0
+        runner.registerWarning("ResStockArguments: max heating or cooling load served for ducted system(s) cannot be determined. Correcting has ducts assumption to no ducts.")
+        duct_area = 1.0
+      end
+      args[:ducts_supply_surface_area] = duct_area
     end
 
     # Return
@@ -749,21 +754,27 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       if args[:ducts_number_of_return_registers].to_s != Constants.Auto
         n_return_registers = Integer(args[:ducts_number_of_return_registers].to_s)
       else
-        # defaults to ncfl = ncfl_ag + 1 if conditioned basement
+        # defaults to ncfl = ncfl_ag + (1 if conditioned basement else 0)
         n_return_registers = args[:geometry_unit_num_floors_above_grade]
         if args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned
           n_return_registers += 1
         end
       end
-      cfa_served = args[:geometry_unit_cfa] * get_max_heat_cool_load_served(args)
+      max_load_served = get_max_heat_cool_load_served(args)
+      cfa_served = args[:geometry_unit_cfa] * max_load_served
       b_r = (n_return_registers < 6) ? (0.05 * n_return_registers) : 0.25
       primary_duct_area = b_r * cfa_served * f_out
       secondary_duct_area = b_r * cfa_served * (1.0 - f_out)
+      duct_area = primary_duct_area
       if args[:ducts_return_location] == HPXML::LocationLivingSpace
-        args[:ducts_return_surface_area] = primary_duct_area + secondary_duct_area
-      else
-        args[:ducts_return_surface_area] = primary_duct_area
+        duct_area += secondary_duct_area
       end
+      # override values to no ducts conditions if ducts_supply_surface_area shows no ducts condtions
+      if args[:ducts_supply_surface_area] == 1.0
+         duct_area = 1.0
+         args[:ducts_number_of_return_registers] = 0
+      end
+      args[:ducts_return_surface_area] = duct_area
     end
 
     args.each do |arg_name, arg_value|
@@ -791,16 +802,25 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if (args[:heating_system_type] == HPXML::HVACTypeFurnace) || (args[:heating_system_2_type] == HPXML::HVACTypeFurnace)
       load_served << args[:heating_system_fraction_heat_load_served]
     end
-    if args[:cooling_system_type] == HPXML::HVACTypeCentralAirConditioner
+    if (args[:cooling_system_type] == HPXML::HVACTypeCentralAirConditioner) || (
+      (args[:cooling_system_type] == HPXML::HVACTypeMiniSplitAirConditioner) && (args[:cooling_system_is_ducted] == 'true')
+      ) || (
+      (args[:cooling_system_type] == HPXML::HVACTypeEvaporativeCooler) && (args[:cooling_system_is_ducted] == 'true')
+      )
       load_served << args[:cooling_system_fraction_cool_load_served]
     end
-    if args[:heat_pump_type] == HPXML::HVACTypeHeatPumpAirToAir
+    if (args[:heat_pump_type] == HPXML::HVACTypeHeatPumpAirToAir) || 
+      (args[:heat_pump_type] == HPXML::HVACTypeHeatPumpGroundToAir) || (
+      (args[:heat_pump_type] == HPXML::HVACTypeHeatPumpMiniSplit) &&
+      (args[:heat_pump_is_ducted] == 'true'))
+      load_served << args[:heating_system_fraction_heat_load_served]
+      load_served << args[:cooling_system_fraction_cool_load_served]
       load_served << args[:heat_pump_fraction_heat_load_served]
       load_served << args[:heat_pump_fraction_cool_load_served]
     end
-    max_load_served = load_served.max
+    max_load_served = load_served.compact.max
     if max_load_served.nil?
-      max_load_served = 0
+      max_load_served = 0.0
     end
     return max_load_served
   end
