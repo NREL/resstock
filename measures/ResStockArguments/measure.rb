@@ -726,7 +726,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
-    # duct surface areas
+    # Duct Surface Areas
+
+    # Supply
     if (args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area].to_s == Constants.Auto)
       # set surface area based on OS-HPXML defaults
       f_out = (args[:geometry_unit_num_floors_above_grade] <= 1) ? 1.0 : 0.75
@@ -740,6 +742,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    # Return
     if (args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area].to_s == Constants.Auto)
       # set surface area based on OS-HPXML defaults
       f_out = (args[:geometry_unit_num_floors_above_grade] <= 1) ? 1.0 : 0.75
