@@ -4,7 +4,7 @@ Features
 - Add 2022 Cambium emissions data ([#1038](https://github.com/NREL/resstock/pull/1038))
 - Update characteristics to use EIA 2020 RECS ([#1031](https://github.com/NREL/resstock/pull/1031))
 - Include HVAC secondary heating capabilities for project_testing ([#1090](https://github.com/NREL/resstock/pull/1090))
-- Add ability to calculate detailed utility bills based on a user-specified TSV file of paths to JSON utility rate tariff files ([]())
+- Add ability to calculate detailed utility bills based on a user-specified TSV file of paths to JSON utility rate tariff files ([#1109](https://github.com/NREL/resstock/pull/1109))
 
 Fixes
 - Set standard format for options_lookup ([#962](https://github.com/NREL/resstock/pull/962))
