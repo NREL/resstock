@@ -9,7 +9,7 @@ require 'csv'
 require_relative '../resources/xmlhelper.rb'
 require_relative '../resources/xmlvalidator.rb'
 
-class HPXMLtoOpenStudioValidationTest < MiniTest::Test
+class HPXMLtoOpenStudioValidationTest < Minitest::Test
   def setup
     OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
 

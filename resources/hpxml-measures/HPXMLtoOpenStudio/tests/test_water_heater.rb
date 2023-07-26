@@ -6,7 +6,7 @@ require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
 require_relative '../measure.rb'
 
-class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
+class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def sample_files_dir
     return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
   end

@@ -17,7 +17,7 @@ require 'openstudio/measure/ShowRunnerOutput'
 require_relative '../measure.rb'
 require 'csv'
 
-class ReportUtilityBillsTest < MiniTest::Test
+class ReportUtilityBillsTest < Minitest::Test
   # BEopt 2.9.0.0:
   # - Standard, New Construction, Single-Family Detached
   # - 600 sq ft (30 x 20)
