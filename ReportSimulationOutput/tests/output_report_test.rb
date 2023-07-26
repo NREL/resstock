@@ -12,7 +12,7 @@ require_relative '../../HPXMLtoOpenStudio/resources/version.rb'
 require 'oga'
 require 'json'
 
-class ReportSimulationOutputTest < MiniTest::Test
+class ReportSimulationOutputTest < Minitest::Test
   def setup
     @tmp_hpxml_path = File.join(File.dirname(__FILE__), 'tmp.xml')
 
