@@ -1,6 +1,9 @@
 # Summary: Using building envelope upgrades to avoid residential electrical panel upgrades
 This file is meant as a summary of the work that Julia Ehlers did on panel capacity and envelope upgrades. It briefly describes the background of the problem, methods used and explored, the details of the work and results, and areas for future work and improvement.
 
+_Notes_:  
++ For simplicity's sake, all houses, residences, multifamily units, etc. will be called dwelling units in this summary.
+
 ## Background
 
 ### Abstract
@@ -10,7 +13,7 @@ We implemented the National Electric Code Article 220 guidelines in a panel-sizi
 
 
 ### Other Relevant Facts and Figures
-The goal was to study a best case scenario of an envelope upgrade to see how much we can 
+The goal was to study a best case scenario of an envelope upgrade to see how much the demand on the panel can be reduced with it. By making heating and cooling in a residence more efficient with an envelope upgrade, the amount of electricity needed to produce the same amount of heating/cooling should decrease. With the decrease in electricity consumed comes a decrease in the maximum demand, and by extension, the necessary panel capacity. Once a baseline is established for the best case scenario, individual upgrades can be studied to determine which ones have the most impact on demand, and which are the most cost effective for that change.
 
 ### Research Question
 How does an enhanced enclosure package affect demand on a panel when electrifying residential loads?
@@ -19,7 +22,7 @@ How does an enhanced enclosure package affect demand on a panel when electrifyin
 ## Methods and Guidelines
 
 ### Panel Sizing
-(Brief synopsis, pros, cons, etc. for each one)
+Currently, (as of July 2023) we've explored 5 different avenues for determining existing panel capacity for the US housing stock. Without a good baseline, it's difficult to determine if changes to the housing stock will help us avoid panel upgrades or not. The first 4 are based on the 2023 National Electric Code, and the last is a regression model created by Lawrence Berkley National Lab for the residential panel capacity problem as a whole.
 
 #### NEC Article 220, Part III: The Standard Method
 _Summary_: The Standard Method is used for sizing service connections and electrical panels of new residential construction.  
@@ -29,13 +32,34 @@ _Advantages_: takes into account all loads
 _Disadvantages_: since we're using 2023 version, makes finding the baseline difficult since most houses did not use that code when they were made.  
 
 #### NEC Article 220, Part IV: The Optional Method
-for sizing service connections and electrcial panels.
+_Summary_: for sizing service connections and electrcial panels.
 
 #### NEC Section 220.83
+_Summary_: 
+
+_Advantages_: 
+
+_Disadvantages_: 
 
 #### NEC Section 220.87
+_Summary_: 
+
+_Advantages_: 
+
+_Disadvantages_: 
 
 #### LBNL Regression Model
+_Summary_: LBNL's regression model uses field data to statistically determine the baseline panel capacity of an area. They collected data on existing dwelling units about their panel capacity, and other characteristics of the dwelling unit to find relationships between the characteristics and the capacity. With those relationships, we're able to input the characteristics, and the program will output the probability that the dwelling unit has a particular panel capacity.  
+
+_Advantages_:  
++ It can be used deterministically (selecting the panel capacity with the highest likelihood of being accurate)
+  + Deterministic: selects the panel capacity with the highest likelihood of being accurate, so the same dataset yields the same results every time
+  + Stochastic: a more complex method that takes into account a certain amount of randomness, usually making the model more accurate and giving different results from the same dataset
++ It takes into account characteristics (particularly age) when determining panel capacity that other models miss.
++ The model is based on data collected in the field, so it provides a different sort of insight into baseline panel sizing than any of the NEC methods.  
+
+_Disadvantages_:  
++ Currently, the LBNL model only works for dwelling units located in California, as data for statistical analysis has not been collected anywhere else.
 
 
 ### Envelope Upgrade Definition
