@@ -121,8 +121,8 @@ The 'electrical_panel_size_nec_220_87.py' file in this folder is intended to do 
 + **amp_percent_dif_two_packages**: Takes the result of 'amp_dif_two_packages' and divides by the amperage of the first package to normalize the result and find the percent change.
 + **amp_percent_dif_panel_size_and_amperage**: Takes the result of 'amp_dif_panel_size_and_amperage' and divides by the panel size found from the first package to normalize the result and find the percent change.
 
-![Figure 1, uses 'amp_dif_two_packages' function for purple columns and 'amp_dif_panel_size_and_amperage' function for green columns.](<Figure 1.PNG>)
-![Figure 2, uses 'amp_percent_dif_two_packages' function for purple columns and 'amp_percent_dif_panel_size_and_amperage' function for green columns.](<Figure 2.PNG>)
+![Figure 1, uses 'amp_dif_two_packages' function for purple columns and 'amp_dif_panel_size_and_amperage' function for green columns.](<envelope_graphs/Figure 1.PNG>)
+![Figure 2, uses 'amp_percent_dif_two_packages' function for purple columns and 'amp_percent_dif_panel_size_and_amperage' function for green columns.](<envelope_graphs/Figure 2.PNG>)
 
 Figures 1 and 2 (above) use these four functions. Figure 1 has data analyzed with the 'amp_dif_two_packages' function for purple columns and 'amp_dif_panel_size_and_amperage' function for green columns. Figure 2 has data analyzed with the 'amp_percent_dif_two_packages' function for purple columns and 'amp_percent_dif_panel_size_and_amperage' function for green columns.
 
