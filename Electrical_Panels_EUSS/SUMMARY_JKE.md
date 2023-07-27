@@ -55,11 +55,14 @@ _Disadvantages_:
 + This method can't be used before and after an envelope upgrade, as it would give the same panel sizing and not take the upgrade into account appropriately.
 
 #### NEC Section 220.83
-_Summary_: used to determine if panel upgrade is needed when new load is added to existing building, uses similar data as parts III and IV, this method hasn't been explored as much as others in research so far
+_Summary_: Section 220.83 is used to determine if a panel upgrade is needed when a new load is added to existing building. It uses similar information about the building as the Standard Method and the Optional Method (Article 220 Parts III and IV respectively). This method hasn't been explored as much as others for panel capacity research purposes.
 
-_Advantages_: works well to determine if panel upgrade is needed when doing electrification research, used by contractors and electricians in the real world currently
+_Advantages_:  
++ It is fully intended to determine if a panel upgrade is needed when doing electrification research, which is highly applicable right now and for this project.
++ It is used by contractors and electricians when implementing panel upgrades currently, so it's very realistic all things considered.
 
-_Disadvantages_: not an effective method to find initial panel capacity (not what it's intended for)
+_Disadvantages_:
++ It is not necessarily an effective method to find existing panel capacity, as that is not what it's intended for.
 
 #### NEC Section 220.87
 _Summary_: Section 220.87 is intended to determine if a pre-existing dwelling unit has an adequately-sized panel to handle a new load. It does this by conducting a load study - homeowners can use peak demand data they already have from the last year for this purpose. Otherwise, contractors will often use an exception in the code to conduct a 30-day load study, and use information from that to determine if an upgrade is needed.
@@ -113,6 +116,8 @@ We did analysis on one package of ten, and picked a single state to start out wi
 ### Process and Results
 To analyze the housing stock data we had from Illinois, we created a python program modeled off of NEC 220.87 to determine the demand on the panel (in amps) before and after the upgrade. We used a column from ResStock data that contained the peak demand (given in kilowatts, aka power) from a year's worth of simulation. In accordance with 220.87, we converted it to volt-amps (multiplied by 1000) and multiplied that demand number by 1.25, a demand factor implemented for safety so the panel (hopefully) never exceeds an acceptable capacity. This data and process was used to answer two questions: (1) How much slack does an envelope upgrade create in the demand on a panel? (2) What upgrades can be supported with this additional slack?
 
+The input file for these calculations was created using the 'combine_raw_files_for_nec_220_87' file in this folder. It takes data from the EUSS parquet files for each package, sorts out the relevant columns, and renames them so they can be combined into a single file that has all the information needed for the 'electrical_panel_size_nec_220_87.py' program. As changes are made to one, they should probably also be made to the other, but that depends on how the user wants to go forward with their own process.
+
 #### Slack Created with Envelope Upgrade
 The 'electrical_panel_size_nec_220_87.py' file in this folder is intended to do a lot of the conversion from demand data into panel amperage using NEC 220.87. It also has some analysis built in. Several functions work to compare amperages in different ways, as detailed below:
 
@@ -127,7 +132,29 @@ The 'electrical_panel_size_nec_220_87.py' file in this folder is intended to do 
 Figures 1 and 2 (above) use these four functions. Figure 1 has data analyzed with the 'amp_dif_two_packages' function for purple columns and 'amp_dif_panel_size_and_amperage' function for green columns. Figure 2 has data analyzed with the 'amp_percent_dif_two_packages' function for purple columns and 'amp_percent_dif_panel_size_and_amperage' function for green columns.
 
 #### Upgrades Supported by Envelope Upgrade/Existing Slack
+There's also a variety of functions in 'electrical_panel_size_nec_220_87.py' that have to do with determining if a specific upgrade can be supported or not. Some common electrification upgrades were determined based on End Use Savings Shapes Packages 7 and 8. The following are the specific upgrades that were investigated:
 
++ **Low Efficiency Heating**: SEER 15, 9 HSPF heat pump with electric resistance backup heating (specific system depends on whether HVAC system is ducted)
++ **High Efficiency Heating**: SEER 24, 13 HSPF variable speed mini split heat pump or SEER 29.3, 14 HSPF variable speed mini split heat pump (depending on ductwork) with electric resistance backup heating
++ **Electric Water Heater**: 50 gallon 3.45 UEF (1-3 bedrooms), 66 gallon 3.35 UEF (4 bedrooms), or 80 gallon 3.45 UEF (5+ bedrooms) heat pump water heater
++ **Low Efficiency Range**: Electric cooking range (no detailed specifications right now)
++ **High Efficiency Range**: Electric induction cooking range
++ **Low Efficiency Dryer**: Electric clothes dryer (no detailed specifications right now)
++ **High Efficiency Dryer**: Premium Electric Ventless Heat Pump Clothes Dryer
+
+These upgrades correspond to each of the graphs below.
+
+![Figures 3-9, Percentage of dwelling units where a new electrification appliance is supported without needed a panel upgrade for each county in Illinois](<envelope_graphs/Figures 3-9.PNG>)
+
+In order to create these graphs, a series of functions (in 'electrical_panel_size_nec_220_87.py') was used. For each upgrade, a function determines the additional nameplate rating (in volt-amps) for the appliance. Some, like the dryers and cooking ranges, just have a single value that is added on regardless of the dwelling unit's characteristics. Others, particularly heating, require some information about the dwelling unit to determine the power needed for the additional appliance. These nameplate values are added to the dwelling unit's maximum demand according to NEC 220.87, and the new amperage necessary for the appliances is found.
+
+From there, 
+
+- True: load is supported, stays under baseline panel capacity
+        - False: load is NOT supported, exceeds baseline panel capacity
+        - None: load does not apply to dwelling unit (upgrade isn't needed or is already electric)
+
+**ALSO NEED TO EXPLAIN FUNCTIONS USED TO CREATE THE GRAPHS!!
 
 ### Major Takeaways
 
@@ -139,6 +166,8 @@ Slack in the panel:
 
 What upgrades are supported:
 - again, existing panel capacity has a lot of uncertainty, but is a huge part of whether or not an upgrade can be supported
+- when upgrades are not applicable to a dwelling unit (ie, individual dryers in a multifamily building where there's communal washers and dryers), it's counted as a false value rather than being excluded altogether (where false means a panel upgrade would be triggered by the new appliance)
+- nameplate ratings are assumed from postprocess_electrical_panel_size_nec.py, but may not necessarily be accurate
 
 (Assumptions and slight tweaks that could be made to those assumptions)
 
