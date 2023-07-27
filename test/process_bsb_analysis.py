@@ -15,16 +15,21 @@ col_exclusions = ['applicable',
                   'user_output_variables',
                   'debug']
 
+def read_csv(csv_file_path, **kwargs) -> pd.DataFrame:
+    default_na_values = pd._libs.parsers.STR_NA_VALUES
+    df = pd.read_csv(csv_file_path, na_values=list(default_na_values - {"None"}), keep_default_na=False, **kwargs)
+    return df
+
 # BASELINE
 
 if not os.path.exists('baseline'):
   os.makedirs('baseline')
 
-df_national = pd.read_csv('project_national/national_baseline/results_csvs/results_up00.csv')
+df_national = read_csv('project_national/national_baseline/results_csvs/results_up00.csv')
 df_national['building_id'] = df_national['building_id'].apply(lambda x: 'project_national-{}.osw'.format('%04d' % x))
 df_national.insert(1, 'color_index', 1)
 
-df_testing = pd.read_csv('project_testing/testing_baseline/results_csvs/results_up00.csv')
+df_testing = read_csv('project_testing/testing_baseline/results_csvs/results_up00.csv')
 df_testing['building_id'] = df_testing['building_id'].apply(lambda x: 'project_testing-{}.osw'.format('%04d' % x))
 df_testing.insert(1, 'color_index', 0)
 
@@ -97,14 +102,14 @@ drops = ['TimeDST', 'TimeUTC']
 
 dps = sorted(os.listdir('project_national/national_baseline/simulation_output/up00'))
 for dp in dps:
-  df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col, skiprows=[1])
+  df_national = read_csv('project_national/national_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col, skiprows=[1])
   df_national = df_national.drop(drops, axis=1)
 
   df_nationals.append(df_national)
 
 dps = sorted(os.listdir('project_testing/testing_baseline/simulation_output/up00'))
 for dp in dps:
-  df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col, skiprows=[1])
+  df_testing = read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col, skiprows=[1])
   df_testing = df_testing.drop(drops, axis=1)
 
   df_testings.append(df_testing)
@@ -175,8 +180,8 @@ assert national_num_scenarios == testing_num_scenarios
 
 for i in range(1, national_num_scenarios):
 
-  df_national = pd.read_csv('project_national/national_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
-  df_testing = pd.read_csv('project_testing/testing_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
+  df_national = read_csv('project_national/national_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
+  df_testing = read_csv('project_testing/testing_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
 
   assert df_national['apply_upgrade.upgrade_name'][0] == df_testing['apply_upgrade.upgrade_name'][0]
   upgrade_name = df_national['apply_upgrade.upgrade_name'][0]
@@ -245,7 +250,7 @@ for dp in dps:
     if not os.path.exists('project_national/national_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp)):
       continue
 
-    df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp), index_col=index_col, skiprows=[1])
+    df_national = read_csv('project_national/national_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp), index_col=index_col, skiprows=[1])
     df_national = df_national.drop(drops, axis=1)
 
     df_nationals.append(df_national)
@@ -256,7 +261,7 @@ for dp in dps:
     if not os.path.exists('project_testing/testing_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp)):
       continue
 
-    df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp), index_col=index_col, skiprows=[1])
+    df_testing = read_csv('project_testing/testing_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp), index_col=index_col, skiprows=[1])
     df_testing = df_testing.drop(drops, axis=1)
 
     df_testings.append(df_testing)
