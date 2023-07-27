@@ -1,8 +1,7 @@
 # Summary: Using building envelope upgrades to avoid residential electrical panel upgrades
-This file is meant as a summary of the work that Julia Ehlers did on panel capacity and envelope upgrades. It briefly describes the background of the problem, methods used and explored, the details of the work and results, and areas for future work and improvement.
+This file is meant as a summary of the work that Julia Ehlers did on panel capacity and envelope upgrades in collaboration with Willy Bernal Heredia, Omkar Ghatpande, Lixi Liu, and Yingli Lou. It briefly describes the background of the problem, methods used and explored, the details of the work and results, and areas for future work and improvement.
 
-_Notes_:  
-+ For simplicity's sake, all houses, residences, multifamily units, etc. will be called dwelling units in this summary.
+_Notes_: For simplicity's sake, all houses, residences, multifamily units, etc. will be called dwelling units in this summary.
 
 ## Background
 
@@ -56,11 +55,11 @@ _Disadvantages_:
 + This method can't be used before and after an envelope upgrade, as it would give the same panel sizing and not take the upgrade into account appropriately.
 
 #### NEC Section 220.83
-_Summary_: 
+_Summary_: used to determine if panel upgrade is needed when new load is added to existing building, uses similar data as parts III and IV, this method hasn't been explored as much as others in research so far
 
-_Advantages_: 
+_Advantages_: works well to determine if panel upgrade is needed when doing electrification research, used by contractors and electricians in the real world currently
 
-_Disadvantages_: 
+_Disadvantages_: not an effective method to find initial panel capacity (not what it's intended for)
 
 #### NEC Section 220.87
 _Summary_: Section 220.87 is intended to determine if a pre-existing dwelling unit has an adequately-sized panel to handle a new load. It does this by conducting a load study - homeowners can use peak demand data they already have from the last year for this purpose. Otherwise, contractors will often use an exception in the code to conduct a 30-day load study, and use information from that to determine if an upgrade is needed.
@@ -112,23 +111,62 @@ We did analysis on one package of ten, and picked a single state to start out wi
 ## Envelope Upgrade Work
 
 ### Process and Results
+To analyze the housing stock data we had from Illinois, we created a python program modeled off of NEC 220.87 to determine the demand on the panel (in amps) before and after the upgrade. We used a column from ResStock data that contained the peak demand (given in kilowatts, aka power) from a year's worth of simulation. In accordance with 220.87, we converted it to volt-amps (multiplied by 1000) and multiplied that demand number by 1.25, a demand factor implemented for safety so the panel (hopefully) never exceeds an acceptable capacity. This data and process was used to answer two questions: (1) How much slack does an envelope upgrade create in the demand on a panel? (2) What upgrades can be supported with this additional slack?
 
-### Assumptions
-(Assumptions and slight tweaks that could be made to those assumptions)
+#### Slack Created with Envelope Upgrade
+The 'electrical_panel_size_nec_220_87.py' file in this folder is intended to do a lot of the conversion from demand data into panel amperage using NEC 220.87. It also has some analysis built in. Several functions work to compare amperages in different ways, as detailed below:
+
++ **amp_dif_two_packages**: Uses the demand data and NEC 220.87 to find necessary amperages of any two packages, then takes the second package amperage and subtracts the first package amperage to find the difference.
++ **amp_dif_panel_size_and_amperage**: Uses the demand data and NEC 220.87 to size the panel for the first package, and finds the necessary amperage for the second package, then takes the second package amperage and subtracts the first package's panel size to find the amount of slack the second package creates plus the slack already existing in the panel.
++ **amp_percent_dif_two_packages**: Takes the result of 'amp_dif_two_packages' and divides by the amperage of the first package to normalize the result and find the percent change.
++ **amp_percent_dif_panel_size_and_amperage**: Takes the result of 'amp_dif_panel_size_and_amperage' and divides by the panel size found from the first package to normalize the result and find the percent change.
+
+![Figure 1, uses 'amp_dif_two_packages' function for purple columns and 'amp_dif_panel_size_and_amperage' function for green columns.](<Figure 1.PNG>)
+![Figure 2, uses 'amp_percent_dif_two_packages' function for purple columns and 'amp_percent_dif_panel_size_and_amperage' function for green columns.](<Figure 2.PNG>)
+
+Figures 1 and 2 (above) use these four functions. Figure 1 has data analyzed with the 'amp_dif_two_packages' function for purple columns and 'amp_dif_panel_size_and_amperage' function for green columns. Figure 2 has data analyzed with the 'amp_percent_dif_two_packages' function for purple columns and 'amp_percent_dif_panel_size_and_amperage' function for green columns.
+
+#### Upgrades Supported by Envelope Upgrade/Existing Slack
+
 
 ### Major Takeaways
+
+
+### Assumptions
+Slack in the panel:
+- baseline panel sizing for slack created and upgrades supported is an estimate with lots of uncertainty due to disadvantages of current sizing methods
+- assumes the demand data is exactly what's needed for the code - still a simulation, still processed to some extent, but seems to be a pretty good estimate
+
+What upgrades are supported:
+- again, existing panel capacity has a lot of uncertainty, but is a huge part of whether or not an upgrade can be supported
+
+(Assumptions and slight tweaks that could be made to those assumptions)
 
 
 ## Future Work
 (Areas to explore and ideas/suggestions for how to explore them, particularly how my code could facilitate that)
 
 ### Geographic Analysis
+- analyze by state, by IECC climate zone, by Building America climate zone
+- look into more specific upgrades for different regions - people behave differently in different places, so some parts of the building envelope upgrade might be pointless and others might be really effective... if we can determine the most effective ones, we can save money by avoiding the others
+- essentially, are the upgrades that are universal across all areas? that only work in a couple places?
 
 ### Analysis of Dwelling Units with Different Characteristics
+- does size of a building affect how effective a building envelope upgrade is?
+- how does effectiveness vary with building age?
+- what about intial fuel type/efficiency for different appliances?
 
 ### Cost Analysis
+Some cost data with National Residential Efficiency Measures Database
+Use this in combination with quantity of upgrade needed from ResStock needed to find upgrade cost
+May need more information regionally - upgrades aren't going to cost the same in NE and CA
+Find data to compare this cost with the cost of a panel upgrade in different regions
 
 ### Investigation of Other End Use Savings Shapes Upgrade Packages
+Package 1 - lower scale envelope upgrade
+Package 7/8 - low and high efficiency electrification packages
+Package 9 - low efficiency envelope + high efficiency electrification
+Package 10 - high efficiency envelope + electrification
 
 ### Other Areas for Exploration
 comparison of current sizing methods
