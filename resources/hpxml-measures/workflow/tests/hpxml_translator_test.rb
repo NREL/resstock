@@ -6,7 +6,7 @@ require 'fileutils'
 require 'parallel'
 require_relative '../../HPXMLtoOpenStudio/measure.rb'
 
-class HPXMLTest < MiniTest::Test
+class HPXMLTest < Minitest::Test
   def setup
     @this_dir = File.dirname(__FILE__)
     @results_dir = File.join(@this_dir, 'results')

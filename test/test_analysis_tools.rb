@@ -3,7 +3,7 @@
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require 'csv'
 
-class TestTools < MiniTest::Test
+class TestTools < Minitest::Test
   def before_setup
     @buildstock_directory = File.join(File.dirname(__FILE__), '..')
   end

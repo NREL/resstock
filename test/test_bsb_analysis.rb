@@ -4,7 +4,7 @@ require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minite
 require_relative '../test/analysis'
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/unit_conversions.rb'
 
-class TesBuildStockBatch < MiniTest::Test
+class TesBuildStockBatch < Minitest::Test
   def before_setup
     @testing_baseline = 'project_testing/testing_baseline'
     @national_baseline = 'project_national/national_baseline'

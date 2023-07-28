@@ -279,6 +279,31 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     return args
   end
 
+  # define the outputs that the measure will create
+  def outputs
+    result = OpenStudio::Measure::OSOutputVector.new
+
+    setup_outputs(true)
+
+    [@totals,
+     @fuels,
+     @end_uses,
+     @loads,
+     @unmet_hours,
+     @peak_fuels,
+     @peak_loads,
+     @component_loads,
+     @hot_water_uses,
+     @resilience].each do |outputs|
+      outputs.values.each do |obj|
+        output_name = OpenStudio::toUnderscoreCase("#{obj.name} #{obj.annual_units}")
+        result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output_name.chomp('_'))
+      end
+    end
+
+    return result
+  end
+
   def get_arguments(runner, arguments, user_arguments)
     args = get_argument_values(runner, arguments, user_arguments)
     args.each do |k, val|
