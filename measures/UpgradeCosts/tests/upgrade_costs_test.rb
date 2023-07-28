@@ -5,7 +5,7 @@ require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/
 require_relative '../../../measures/ReportHPXMLOutput/measure.rb'
 require_relative '../measure.rb'
 
-class UpgradeCostsTest < MiniTest::Test
+class UpgradeCostsTest < Minitest::Test
   def test_SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH
     cost_multipliers = {
       'Fixed (1)' => 1,

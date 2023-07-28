@@ -11,7 +11,7 @@ require_relative '../resources/materials.rb'
 require_relative '../resources/constants.rb'
 require_relative '../resources/util.rb'
 
-class HPXMLtoOpenStudioWeatherTest < MiniTest::Test
+class HPXMLtoOpenStudioWeatherTest < Minitest::Test
   def weather_dir
     return File.join(File.dirname(__FILE__), '..', '..', 'weather')
   end

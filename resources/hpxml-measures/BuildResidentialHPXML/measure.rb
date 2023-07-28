@@ -5113,7 +5113,13 @@ class HPXMLFile
       max_fraction_load_served = 0.0
       hvac_distribution.hvac_systems.each do |hvac_system|
         if hvac_system.respond_to?(:fraction_heat_load_served)
-          max_fraction_load_served = [max_fraction_load_served, hvac_system.fraction_heat_load_served].max
+          if hvac_system.is_a?(HPXML::HeatingSystem) && hvac_system.is_heat_pump_backup_system
+            # HP backup system, use HP fraction heat load served
+            fraction_heat_load_served = hvac_system.primary_heat_pump.fraction_heat_load_served
+          else
+            fraction_heat_load_served = hvac_system.fraction_heat_load_served
+          end
+          max_fraction_load_served = [max_fraction_load_served, fraction_heat_load_served].max
         end
         if hvac_system.respond_to?(:fraction_cool_load_served)
           max_fraction_load_served = [max_fraction_load_served, hvac_system.fraction_cool_load_served].max

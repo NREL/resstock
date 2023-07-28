@@ -3,7 +3,7 @@
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../measure.rb'
 
-class QOIReportTest < MiniTest::Test
+class QOIReportTest < Minitest::Test
   # create an instance of the measure
   @@measure = QOIReport.new
 

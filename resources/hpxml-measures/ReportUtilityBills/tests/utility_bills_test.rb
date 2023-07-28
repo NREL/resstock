@@ -17,7 +17,7 @@ require 'openstudio/measure/ShowRunnerOutput'
 require_relative '../measure.rb'
 require 'csv'
 
-class ReportUtilityBillsTest < MiniTest::Test
+class ReportUtilityBillsTest < Minitest::Test
   # BEopt 2.9.0.0:
   # - Standard, New Construction, Single-Family Detached
   # - 600 sq ft (30 x 20)
@@ -26,7 +26,7 @@ class ReportUtilityBillsTest < MiniTest::Test
   # - Water Heater: Oil Standard
   # - PV System: None, 1.0 kW, 10.0 kW
   # - Timestep: 60 min
-  # - User-Specified rates (calculated using default value):
+  # - User-Specified rates:
   #   - Electricity: 0.1195179675994109 USD/kWh
   #   - Natural Gas: 0.7734017611590879 USD/therm
   #   - Fuel Oil: 3.495346153846154 USD/gal
@@ -68,7 +68,9 @@ class ReportUtilityBillsTest < MiniTest::Test
     @hpxml.header.utility_bill_scenarios.clear
     @hpxml.header.utility_bill_scenarios.add(name: 'Test',
                                              elec_fixed_charge: 8.0,
+                                             elec_marginal_rate: 0.1195179675994109,
                                              natural_gas_fixed_charge: 8.0,
+                                             natural_gas_marginal_rate: 0.7734017611590879,
                                              propane_marginal_rate: 2.4532692307692305,
                                              fuel_oil_marginal_rate: 3.495346153846154)
 
@@ -245,9 +247,11 @@ class ReportUtilityBillsTest < MiniTest::Test
   end
 
   def test_workflow_detailed_calculations
+    # Detailed Rate.json was renamed from Jackson Electric Member Corp - A Residential Service Senior Citizen Low Income Assistance (Effective 2017-01-01).json
+    # See https://github.com/NREL/OpenStudio-HPXML/issues/1444
     @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
     hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-    hpxml.header.utility_bill_scenarios.add(name: 'Test 1', elec_tariff_filepath: '../../ReportUtilityBills/tests/Jackson Electric Member Corp - A Residential Service Senior Citizen Low Income Assistance (Effective 2017-01-01).json')
+    hpxml.header.utility_bill_scenarios.add(name: 'Test 1', elec_tariff_filepath: '../../ReportUtilityBills/tests/Detailed Rate.json')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     actual_bills, actual_monthly_bills = _test_measure()
     assert_operator(actual_bills['Test 1: Total (USD)'], :>, 0)
@@ -255,9 +259,11 @@ class ReportUtilityBillsTest < MiniTest::Test
   end
 
   def test_workflow_detailed_calculations_all_electric
+    # Detailed Rate.json was renamed from Jackson Electric Member Corp - A Residential Service Senior Citizen Low Income Assistance (Effective 2017-01-01).json
+    # See https://github.com/NREL/OpenStudio-HPXML/issues/1444
     @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
     hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-1-speed.xml'))
-    hpxml.header.utility_bill_scenarios.add(name: 'Test 1', elec_tariff_filepath: '../../ReportUtilityBills/tests/Jackson Electric Member Corp - A Residential Service Senior Citizen Low Income Assistance (Effective 2017-01-01).json')
+    hpxml.header.utility_bill_scenarios.add(name: 'Test 1', elec_tariff_filepath: '../../ReportUtilityBills/tests/Detailed Rate.json')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     actual_bills, actual_monthly_bills = _test_measure()
     assert_operator(actual_bills['Test 1: Total (USD)'], :>, 0)
