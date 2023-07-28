@@ -142,62 +142,80 @@ There's also a variety of functions in 'electrical_panel_size_nec_220_87.py' tha
 + **Low Efficiency Dryer**: Electric clothes dryer (no detailed specifications right now)
 + **High Efficiency Dryer**: Premium Electric Ventless Heat Pump Clothes Dryer
 
-These upgrades correspond to each of the graphs below.
+These upgrades correspond to each of the graphs below.  
 
 ![Figures 3-9, Percentage of dwelling units where a new electrification appliance is supported without needed a panel upgrade for each county in Illinois](<envelope_graphs/Figures 3-9.PNG>)
 
-In order to create these graphs, a series of functions (in 'electrical_panel_size_nec_220_87.py') was used. For each upgrade, a function determines the additional nameplate rating (in volt-amps) for the appliance. Some, like the dryers and cooking ranges, just have a single value that is added on regardless of the dwelling unit's characteristics. Others, particularly heating, require some information about the dwelling unit to determine the power needed for the additional appliance. These nameplate values are added to the dwelling unit's maximum demand according to NEC 220.87, and the new amperage necessary for the appliances is found.
+In order to create these graphs, a series of functions ('appliance load functions' in 'electrical_panel_size_nec_220_87.py') was used. For each upgrade, a function determines the additional nameplate rating (in volt-amps) for the appliance. Some, like the dryers and cooking ranges, just have a single value that is added on regardless of the dwelling unit's characteristics. Others, particularly heating, require some information about the dwelling unit to determine the power needed for the additional appliance. These nameplate values are added to the dwelling unit's maximum demand according to NEC 220.87, and the new amperage necessary for the appliances is found.  
 
-From there, 
+From there, a second set of functions under the 'appliance analysis functions' section compare the panel capacity (sized with NEC 220.87) to the new amperage with the electrified appliance. Each upgrade is assigned one of four values when it's applied to a dwelling unit: true, false, none, or error. The function starts by determining if the upgrade is applicable - does the dwelling unit already have an electric version of the appliance? Does it have any version of the appliance? Depending on the answers to these questions, the function determines if the upgrade is applicable or not, and returns 'none' if it's not applicable. For example, if the dwelling unit is a multifamily housing type, the dryers may be in a communal area rather than contributing to the panel sizing for the individual unit, so it doesn't make sense to add an electrified load, and the function would return 'none.'  
 
-- True: load is supported, stays under baseline panel capacity
-        - False: load is NOT supported, exceeds baseline panel capacity
-        - None: load does not apply to dwelling unit (upgrade isn't needed or is already electric)
+If the load is applicable, the dwelling unit continues to the next part of the function. It compares the panel capacity of the existing dwelling unit, before any upgrades are applied, to the amperage after the envelope upgrade and with the new load added to it. If the new amperage is less than the baseline panel capacity, the function returns 'true:' the appliance is supported without an upgrade. If the opposite is true, the function returns 'false' and the appliance is not supported by the slack in the panel. Anything that doesn't have numbers or satisfy any of these conditions for whatever reasons returns an error.  
 
-**ALSO NEED TO EXPLAIN FUNCTIONS USED TO CREATE THE GRAPHS!!
+Figures 3-9 (above) calculate the number of dwelling units in each county where the functions above return the 'true' value, divided by the total number of dwelling units in each county. This is another area where performing other sorts of analysis might be beneficial. See Assumptions for more information.
+
+**EXPLAIN ASSUMPTIONS AND UNCERTAINTY OF PROCESS AND RESULTS SECTION
+**ADD DETAILS TO FUTURE WORK
 
 ### Major Takeaways
+Building envelope upgrades can decrease demand on electrical panels enough to support electrification upgrades, depending on what appliances are currently installed in a dwelling unit. Some of the amperages showed insignificant, or even non-existant changes in demand after the envelope upgrade. This is likely because the heating loads impacted by the envelope upgrade were not powered by electricity to begin with, and therefore don't have an impact on the amperage.  
 
+When slack from the envelope upgrade is combined with existing slack in panels from the difference between panel sizing and peak demand, there's a significant amount of 'wiggle room' to add in new appliances and electrify. This is an area that definitely needs more exploration - the better we can characterize existing panel capacity, the better we can understand how much slack we actually have to work with. Understanding how much slack is pre-existing and how much is from the envelope upgrade will also be useful information to have for this.  
+
+Water heating is the most likely to be supported without a panel upgrade, while low efficiency heating is the least likely. This latter part makes sense, as heating usually consumes the most energy in a dwelling unit. This does not take into account any interactions between the envelope and the equipment. Envelope upgrades tend to allow smaller equipment to serve the same space, so it's possible that interaction might lead to more favorable results.  
+
+For the majority of Figures 3-9, Chicago (the northeast counties) appears to be the most likely area to support electrification upgrades in the state of Illinois. This is reassuring in some aspects, and discouraging in others. Chicago has a high population, and a lot of buildings, so being able to electrify a large portion of those buildings without panel upgrades could make a huge impact. On the other hand, the fact that these rates are not as high in rural areas where electrification initiatives already face problems poses more questions about equity and outreach. More investigation into why the rates we currently have are so much lower in some areas might help shed more light. If the rate is low because upgrades are not applicable in those areas, that paints a very different story than if the rate is low because there's not enough slack in electrical panels.
 
 ### Assumptions
-Slack in the panel:
-- baseline panel sizing for slack created and upgrades supported is an estimate with lots of uncertainty due to disadvantages of current sizing methods
-- assumes the demand data is exactly what's needed for the code - still a simulation, still processed to some extent, but seems to be a pretty good estimate
+Assumptions about slack in the panel:
++ The estimates we have for the slack created from package two (and pre-existing slack) are heavily dependent on our panel sizing methods.
+  + More comparison needs to be done to further pinpoint areas of uncertainty, and find ways to eliminate them.
+  + More exploration of these results on smaller scales can also help clarify why the uncertainty might exist in the first place when it comes to panel sizing (and any other areas).
++ The results are also highly dependent on the demand numbers we have from the EUSS dataset for each dwelling unit.
+  + Current results seem to be very realistic from the demand data, most uncertainty likely coming from the way we process it.
+  + While the demand data is highly useful for our purposes, it is still a simulation and it is still processed to some extent, possibly in different ways than NEC 220.87 needs.
+  + Doing (or finding) a case study that looks into existing panel capacity, load studies, and various electrification/envelope upgrades might also be a way to check how realistic our results are.
 
-What upgrades are supported:
-- again, existing panel capacity has a lot of uncertainty, but is a huge part of whether or not an upgrade can be supported
-- when upgrades are not applicable to a dwelling unit (ie, individual dryers in a multifamily building where there's communal washers and dryers), it's counted as a false value rather than being excluded altogether (where false means a panel upgrade would be triggered by the new appliance)
-- nameplate ratings are assumed from postprocess_electrical_panel_size_nec.py, but may not necessarily be accurate
-
-(Assumptions and slight tweaks that could be made to those assumptions)
+Assumptions about what upgrades are supported:
++ Again, it's hard to check if an appliance can be added without a panel upgrade when the initial panel size is approximated instead of known.
++ A second set of numbers that compares the number of appliance additions that returned 'true' to those that returned 'false' might give us a better idea of the upgrades that are actually supported.
+  + Including the dwelling units in each county that returned 'none' or 'error' skews the data towards false.
+  + This could be solved by finding a percentage that the number of 'true' responses, divided by the number of combined 'true' and 'false' responses.
+  + It might also be interesting to have a set of percentages for how many returned 'false' divided by the total, and the same for 'none' and possibly 'error' as well.
++ Nameplate ratings of appliances are assumed from 'postprocess_electrical_panel_size_nec.py' for the appliance additions, and for any initial panel sizing using the standard and optional methods.
+  + This gives us a good estimate for our values, but could be more accurate.
+  + If we have the data for nameplate ratings of appliances in the Energy Plus models of the ResStock dwelling units, including it in the dataset output by ResStock would increase the accuracy of our calculations.
++ We haven't investigated how much an upgrade to an existing electric appliance impacts panel capacity.
+  + NEC 220.87 includes all of the loads with no real separation in the maximum demand. If an existing load is already electric and is replaced with a more efficient version, it doesn't make sense to add on an entirely new load.
+  + Usually, the more efficient the appliance, the more the demand tends to decrease. So replacing existing electric appliances doesn't appear to pose much of a problem in regards to panel capacity, but it could provide more slack for other non-electric appliances to be electrified.
+  + This new slack from adding more efficient appliances in combination with the existing panel slack and the slack from an envelope upgrade might significantly increase what sorts of appliances can be added without an upgrade.
 
 
 ## Future Work
-(Areas to explore and ideas/suggestions for how to explore them, particularly how my code could facilitate that)
+Some of these areas have been mentioned for future work, but below are more in-depth explanations of things that could be explored later on, or were not examined in detail in this round of analysis.
 
 ### Geographic Analysis
-- analyze by state, by IECC climate zone, by Building America climate zone
-- look into more specific upgrades for different regions - people behave differently in different places, so some parts of the building envelope upgrade might be pointless and others might be really effective... if we can determine the most effective ones, we can save money by avoiding the others
-- essentially, are the upgrades that are universal across all areas? that only work in a couple places?
+This study only analyzed Illinois data, as Illinois experiences both extreme hot and cold temperatures and would let us explore changes in cooling and heating. However, doing a larger scale analysis of the United States would provide even more insight, especially considering the majority of the country will need to be electrified sooner rather than later to meet our climate and emissions goals.  
 
-### Analysis of Dwelling Units with Different Characteristics
-- does size of a building affect how effective a building envelope upgrade is?
-- how does effectiveness vary with building age?
-- what about intial fuel type/efficiency for different appliances?
+While we analyzed Illinois by county, there are other geographical chunks we could examine for the entire country. Looking into the county or state level is always an option, depending on the resolution we're looking for in our results. Examining results in terms of the IECC Climate Zone or the Building America climate zone could provide a lot of information about how building envelope upgrades (and panel capacity) interacts with different ranges of weather.  
+
+It might also be interesting to look into more specific upgrades - focus on the changes that only sealing and insulating the ducts creates, or reducing the ACH50 values for a dwelling unit - for different areas. For example, if you live in a warmer climate, like southern California, it doesn't make sense to make your dwelling unit more airtight if you leave your windows open all the time. By analyzing on a smaller scale, we can better determine the impact that individual upgrades make, whether or not it's worth the money to upgrade in a location, and save owners money by avoiding unnecessary upgrades. This has been done to a smaller extent (in terms of cost analysis) on the state fact sheets found on ResStocks online data viewer. A team determined which upgrades (electrification and envelope) would be most effective in each state, and determined how much it would cost, how much money it would save, and if it would provide a certain return on investment. This might be an opportunity for collaboration to do something similar more specific to panel capacity.
 
 ### Cost Analysis
-Some cost data with National Residential Efficiency Measures Database
-Use this in combination with quantity of upgrade needed from ResStock needed to find upgrade cost
-May need more information regionally - upgrades aren't going to cost the same in NE and CA
-Find data to compare this cost with the cost of a panel upgrade in different regions
+One area we did not dive into at all was a cost analysis. The whole purpose of building envelope upgrades is to make electrification more accessible to all, and if it's not affordable, that defeats the purpose. There is some relevant cost data in the National Residential Efficiency Measures Database that could be used (and is already used?) to determine the cost of the upgrade for every dwelling unit. However, costs vary across the US and determining a low end and a high end cost, or even diving further into different regions might be useful. Investigating the actual cost of a panel upgrade in comparison to the price of the envelope upgrade, or other solutions to the panel capacity problem might help bring the market in tune with the best ways to electrify our housing stock.
+
+### Analysis of Dwelling Units with Different Characteristics
+Doing more analysis of a geographic area is one approach, but there are other characteristics of dwelling units that play into the effectiveness of different upgrades. For example, how does the size of a dwelling unit affect the (cost) effectiveness of a building envelope upgrade? What about the building's age or the last time it was remodeled? How does the initial fuel type or efficiency of different appliances play into the amount of slack we have to work with? We don't necessarily have all of the data right now to investigate some of these characteristics or others not listed here, but understanding what other features can impact the effectiveness, especially with regard to the money spent on upgrades, might help us refine our research and make it even more applicable.
 
 ### Investigation of Other End Use Savings Shapes Upgrade Packages
-Package 1 - lower scale envelope upgrade
-Package 7/8 - low and high efficiency electrification packages
-Package 9 - low efficiency envelope + high efficiency electrification
-Package 10 - high efficiency envelope + electrification
+In this study, we investigated one package from the End Use Savings Shapes dataset, but there are 9 other upgrade packages that can be investigated. In terms of the panel capacity problem (and to further investigate some of the details listed above), I'd recommend starting with the following packages:
+
++ **Package 1**: This is a less intensive version of the envelope upgrade in Package 2. It would be interesting to compare costs and the impact both packages make on peak demand. This would be a great place to start looking into smaller scale envelope upgrades and their effectiveness in different regions of the country.
++ **Package 7 and Package 8**: Both packages focus on electrification upgrades. Package 7 does the bare minimum to make sure everything is electric but doesn't increase the efficiency, whereas Package 8 does its best to make sure all appliances are electric and as efficient as possible. These are the packages that we used as a framework for electrfication appliances in Figures 3-9. This would probably be a good place to start investigating how much slack going from low to high efficiency appliances creates.
++ **Package 9 and Package 10**: Package 9 is the combination of Packages 1 and 8 (low intensity envelope upgrade and high efficiency electrification). Package 10 is the combination of Packages 2 and 8 (enhanced envelope upgrade and high efficiency electrification). These packages are intended to investigate how envelopes and electrification play off of each other to reduce the energy and emissions further than either upgrade on its own. Looking into the combination of the two has a lot of potential in terms of panel slack and capacity.
 
 ### Other Areas for Exploration
-comparison of current sizing methods
-use an older version of the code and see how much of a difference in panel capacity between that version and the 2023 version?
-test combinations of appliances to see if the upgrade can support multiple rather than just one
+Finally, there are a couple other areas where investigation could be beneficial:
++ Comparison of current panel sizing methods
++ Investigate the difference in panel capacity between NEC 2023 and an older version (to determine how accurate NEC 2023 is for older dwelling units)
++ Test combinations of appliances (and expand the list of appliances tested to include things like EV chargers) to see if different upgrades can support multiple new loads instead of just one
