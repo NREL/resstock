@@ -10,10 +10,19 @@ require_relative '../../HPXMLtoOpenStudio/resources/xmlhelper.rb'
 require_relative '../../HPXMLtoOpenStudio/resources/constants.rb'
 require_relative '../../HPXMLtoOpenStudio/resources/version.rb'
 require 'oga'
+require 'json'
 
-class ReportSimulationOutputTest < MiniTest::Test
+class ReportSimulationOutputTest < Minitest::Test
   def setup
     @tmp_hpxml_path = File.join(File.dirname(__FILE__), 'tmp.xml')
+
+    # Obtain measure.xml outputs once
+    measure_xml_path = File.join(File.dirname(__FILE__), '..', 'measure.xml')
+    doc = XMLHelper.parse_file(measure_xml_path)
+    @measure_xml_outputs = []
+    XMLHelper.get_elements(doc, '//measure/outputs/output').each do |el|
+      @measure_xml_outputs << XMLHelper.get_value(el, 'display_name', :string)
+    end
   end
 
   def teardown
@@ -595,7 +604,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     expected_annual_rows = AnnualRows
     actual_annual_rows = _get_actual_annual_rows(annual_csv)
     assert_equal(expected_annual_rows.sort, actual_annual_rows.keys.sort)
-    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), actual_annual_rows)
+    _check_runner_registered_values_and_measure_xml_outputs(actual_annual_rows)
   end
 
   def test_annual_only2
@@ -624,7 +633,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     expected_annual_rows = AnnualRows + emission_annual_cols
     actual_annual_rows = _get_actual_annual_rows(annual_csv)
     assert_equal(expected_annual_rows.sort, actual_annual_rows.keys.sort)
-    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), actual_annual_rows)
+    _check_runner_registered_values_and_measure_xml_outputs(actual_annual_rows)
   end
 
   def test_annual_disabled_outputs
@@ -1649,16 +1658,24 @@ class ReportSimulationOutputTest < MiniTest::Test
     return actual_annual_rows
   end
 
-  def _check_for_runner_registered_values(results_json, actual_annual_rows)
-    require 'json'
-    runner_annual_rows = JSON.parse(File.read(results_json))
-    runner_annual_rows = runner_annual_rows['ReportSimulationOutput']
+  def _check_runner_registered_values_and_measure_xml_outputs(actual_annual_rows)
+    # Check for runner registered values
+    results_json_path = File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'run', 'results.json')
+    runner_annual_rows = JSON.parse(File.read(results_json_path))['ReportSimulationOutput']
 
     actual_annual_rows.each do |name, value|
       name = OpenStudio::toUnderscoreCase(name).chomp('_')
 
       assert_includes(runner_annual_rows.keys, name)
       assert_equal(value, runner_annual_rows[name])
+    end
+
+    # Check that all the "outputs" in the measure.xml, which are used by PAT,
+    # are found in the results.json file.
+    refute(@measure_xml_outputs.empty?)
+
+    @measure_xml_outputs.each do |measure_xml_output|
+      assert_includes(runner_annual_rows.keys, measure_xml_output)
     end
   end
 end

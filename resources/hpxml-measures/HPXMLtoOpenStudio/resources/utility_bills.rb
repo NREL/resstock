@@ -24,7 +24,7 @@ class UtilityBills
         year_ix = nil
         rows = CSV.read(File.join(File.dirname(__FILE__), '../../ReportUtilityBills/resources/simple_rates/Average_retail_price_of_electricity.csv'))
         rows.each do |row|
-          year_ix = row.index('2021') if row[0] == 'description'
+          year_ix = row.size - 1 if row[0] == 'description' # last item in the row
           next if row[0].upcase != "Residential : #{state_name}".upcase
 
           average_rate = Float(row[year_ix]) / 100.0 # Convert cents/kWh to $/kWh

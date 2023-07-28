@@ -7,6 +7,7 @@ import csv
 import plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from process_bsb_analysis import read_csv
 sys.path.pop(0)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '../../resources/hpxml-measures/workflow/tests')))
 
@@ -59,11 +60,11 @@ class MoreCompare(BaseCompare):
         w = csv.writer(f)
         w.writerows(value_counts)
 
-    df = pd.read_csv(os.path.join(self.base_folder, 'buildstock.csv'), dtype=str)
+    df = read_csv(os.path.join(self.base_folder, 'buildstock.csv'), dtype=str)
     file = os.path.join(self.export_folder, 'base_samples.csv')
     value_counts(df, file)
 
-    df = pd.read_csv(os.path.join(self.feature_folder, 'buildstock.csv'), dtype=str)
+    df = read_csv(os.path.join(self.feature_folder, 'buildstock.csv'), dtype=str)
     file = os.path.join(self.export_folder, 'feature_samples.csv')
     value_counts(df, file)
 
@@ -94,16 +95,16 @@ class MoreCompare(BaseCompare):
     has_characteristics = False
     if os.path.exists(os.path.join(self.base_folder, 'results_characteristics.csv')) and os.path.exists(os.path.join(self.feature_folder, 'results_characteristics.csv')):
       has_characteristics = True
-      base_df_char = pd.read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)
-      feature_df_char = pd.read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)
+      base_df_char = read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)
+      feature_df_char = read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)
 
     ## Outputs
-    base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output.csv'), index_col=0)
-    feature_df = pd.read_csv(os.path.join(self.feature_folder, 'results_output.csv'), index_col=0)
+    base_df = read_csv(os.path.join(self.base_folder, 'results_output.csv'), index_col=0)
+    feature_df = read_csv(os.path.join(self.feature_folder, 'results_output.csv'), index_col=0)
 
     ## Mapping
     cwd = os.path.dirname(os.path.realpath(__file__))
-    map_df = pd.read_csv(map_file, usecols=['map_from','map_to'])
+    map_df = read_csv(map_file, usecols=['map_from','map_to'])
     map_df = map_df.dropna(axis=0)
     map_dict = {k:v for k,v in zip(map_df['map_from'], map_df['map_to'])}
 
@@ -224,8 +225,8 @@ class MoreCompare(BaseCompare):
     metrics = ['cvrmse', 'nmbe']
 
     for file in sorted(files):
-      base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
-      feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
+      base_df = read_csv(os.path.join(self.base_folder, file), index_col=0)
+      feature_df = read_csv(os.path.join(self.feature_folder, file), index_col=0)
 
       base_df = self.intersect_rows(base_df, feature_df)
       feature_df = self.intersect_rows(feature_df, base_df)
