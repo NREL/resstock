@@ -7,7 +7,7 @@ require 'minitest/autorun'
 require_relative '../measure.rb'
 require 'fileutils'
 
-class BuildResidentialHPXMLTest < MiniTest::Test
+class BuildResidentialHPXMLTest < Minitest::Test
   def setup
     @output_path = File.join(File.dirname(__FILE__), 'extra_files')
     @model_save = false # true helpful for debugging, i.e., can render osm in 3D
