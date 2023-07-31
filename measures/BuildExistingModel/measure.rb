@@ -552,7 +552,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       utility_bill_pv_monthly_grid_connection_fee_units = []
       utility_bill_pv_monthly_grid_connection_fees = []
       utility_bill_scenarios.each do |utility_bill_scenario|
-        _name, simple_filepath, detailed_filepath, electricity_fixed_charge, electricity_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate, pv_compensation_type, pv_net_metering_annual_excess_sellback_rate_type, pv_net_metering_annual_excess_sellback_rate, pv_feed_in_tariff_rate, pv_monthly_grid_connection_fee_units, pv_monthly_grid_connection_fee = utility_bill_scenario
+        _name, simple_filepath, detailed_filepath, elec_fixed_charge, elec_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate, pv_compensation_type, pv_net_metering_annual_excess_sellback_rate_type, pv_net_metering_annual_excess_sellback_rate, pv_feed_in_tariff_rate, pv_monthly_grid_connection_fee_units, pv_monthly_grid_connection_fee = utility_bill_scenario
 
         if (!simple_filepath.nil? && !simple_filepath.empty?) || (!detailed_filepath.nil? && !detailed_filepath.empty?)
 
@@ -567,9 +567,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
           end
 
-          utility_bill_electricity_filepaths << utility_rate['electricity_filepath']
-          utility_bill_electricity_fixed_charges << utility_rate['electricity_fixed_charge']
-          utility_bill_electricity_marginal_rates << utility_rate['electricity_marginal_rate']
+          utility_bill_electricity_filepaths << utility_rate['elec_filepath']
+          utility_bill_electricity_fixed_charges << utility_rate['elec_fixed_charge']
+          utility_bill_electricity_marginal_rates << utility_rate['elec_marginal_rate']
           utility_bill_natural_gas_fixed_charges << utility_rate['natural_gas_fixed_charge']
           utility_bill_natural_gas_marginal_rates << utility_rate['natural_gas_marginal_rate']
           utility_bill_propane_fixed_charges << utility_rate['propane_fixed_charge']
@@ -586,8 +586,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
           utility_bill_pv_monthly_grid_connection_fees << utility_rate['pv_monthly_grid_connection_fee']
         else # if simple or detailed filepath not assigned, use what's populated in the yml
           utility_bill_electricity_filepaths << nil # support detailed tariff assignment only through the lookup file
-          utility_bill_electricity_fixed_charges << electricity_fixed_charge
-          utility_bill_electricity_marginal_rates << electricity_marginal_rate
+          utility_bill_electricity_fixed_charges << elec_fixed_charge
+          utility_bill_electricity_marginal_rates << elec_marginal_rate
           utility_bill_natural_gas_fixed_charges << natural_gas_fixed_charge
           utility_bill_natural_gas_marginal_rates << natural_gas_marginal_rate
           utility_bill_propane_fixed_charges << propane_fixed_charge
