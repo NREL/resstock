@@ -1654,10 +1654,18 @@ class HPXMLDefaults
         next unless duct.duct_fraction_area.nil?
 
         if duct.duct_type == HPXML::DuctTypeSupply
-          duct.duct_fraction_area = (duct.duct_surface_area / total_supply_area).round(3)
+          if total_supply_area > 0
+            duct.duct_fraction_area = (duct.duct_surface_area / total_supply_area).round(3)
+          else
+            duct.duct_fraction_area = (1.0 / supply_ducts.size).round(3) # Arbitrary
+          end
           duct.duct_fraction_area_isdefaulted = true
         elsif duct.duct_type == HPXML::DuctTypeReturn
-          duct.duct_fraction_area = (duct.duct_surface_area / total_return_area).round(3)
+          if total_return_area > 0
+            duct.duct_fraction_area = (duct.duct_surface_area / total_return_area).round(3)
+          else
+            duct.duct_fraction_area = (1.0 / return_ducts.size).round(3) # Arbitrary
+          end
           duct.duct_fraction_area_isdefaulted = true
         end
       end
