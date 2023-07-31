@@ -103,7 +103,6 @@ class TestRunAnalysis < Minitest::Test
       next if _expected_warning_message(message, "Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       next if _expected_warning_message(message, 'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units. [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0]')
       next if _expected_warning_message(message, 'Home with conditioned basement has floor insulation.')
-      next if _expected_warning_message(message, 'Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.') # FIXME: remove once duct TSVs are refactored
 
       if !testing
         next if _expected_warning_message(message, 'Unable to find sql file at')
