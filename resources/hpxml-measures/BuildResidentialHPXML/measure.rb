@@ -1496,8 +1496,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_surface_area', false)
     arg.setDisplayName('Ducts: Supply Surface Area')
-    arg.setDescription('The surface area of the supply ducts. If not provided, the OS-HPXML default is used.')
+    arg.setDescription('The supply ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.')
     arg.setUnits('ft^2')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_surface_area_fraction', false)
+    arg.setDisplayName('Ducts: Supply Area Fraction')
+    arg.setDescription('The fraction of supply ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.')
+    arg.setUnits('frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('ducts_return_location', duct_location_choices, false)
@@ -1519,8 +1525,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_surface_area', false)
     arg.setDisplayName('Ducts: Return Surface Area')
-    arg.setDescription('The surface area of the return ducts. If not provided, the OS-HPXML default is used.')
+    arg.setDescription('The return ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.')
     arg.setUnits('ft^2')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_surface_area_fraction', false)
+    arg.setDisplayName('Ducts: Return Area Fraction')
+    arg.setDescription('The fraction of return ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.')
+    arg.setUnits('frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('ducts_number_of_return_registers', false)
@@ -3179,6 +3191,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
   def argument_warnings(args)
     warnings = []
 
+    max_uninsulated_floor_rvalue = 6.0
+    max_uninsulated_ceiling_rvalue = 3.0
+    max_uninsulated_roof_rvalue = 3.0
+
     warning = ([HPXML::WaterHeaterTypeHeatPump].include?(args[:water_heater_type]) && (args[:water_heater_fuel_type] != HPXML::FuelTypeElectricity))
     warnings << 'Cannot model a heat pump water heater with non-electric fuel type.' if warning
 
@@ -3188,19 +3204,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height_above_grade] > 0)
     warnings << 'Specified a slab foundation type with a non-zero height above grade.' if warning
 
-    warning = (args[:heating_system_2_type] != 'none') && (args[:heating_system_2_fraction_heat_load_served] >= 0.5) && (args[:heating_system_2_fraction_heat_load_served] < 1.0)
-    warnings << 'The fraction of heat load served by the second heating system is greater than or equal to 50%.' if warning
-
-    warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || args[:foundation_wall_assembly_r].is_initialized) && (args[:floor_over_foundation_assembly_r] > 2.1)
+    warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || args[:foundation_wall_assembly_r].is_initialized) && (args[:floor_over_foundation_assembly_r] > max_uninsulated_floor_rvalue)
     warnings << 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.' if warning
 
-    warning = [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type]) && (args[:ceiling_assembly_r] > 2.1) && (args[:roof_assembly_r] > 2.3)
+    warning = [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type]) && (args[:ceiling_assembly_r] > max_uninsulated_ceiling_rvalue) && (args[:roof_assembly_r] > max_uninsulated_roof_rvalue)
     warnings << 'Home with unconditioned attic type has both ceiling insulation and roof insulation.' if warning
 
-    warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned) && (args[:floor_over_foundation_assembly_r] > 2.1)
+    warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned) && (args[:floor_over_foundation_assembly_r] > max_uninsulated_floor_rvalue)
     warnings << 'Home with conditioned basement has floor insulation.' if warning
 
-    warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:ceiling_assembly_r] > 2.1)
+    warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:ceiling_assembly_r] > max_uninsulated_ceiling_rvalue)
     warnings << 'Home with conditioned attic has ceiling insulation.' if warning
 
     return warnings
@@ -3220,12 +3233,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && ([HPXML::FoundationTypeBasementConditioned, HPXML::FoundationTypeCrawlspaceConditioned].include? args[:geometry_foundation_type])
     errors << 'Conditioned basement/crawlspace foundation type for apartment units is not currently supported.' if error
-
-    error = (args[:ducts_supply_location].is_initialized != args[:ducts_supply_surface_area].is_initialized) || (args[:ducts_return_location].is_initialized != args[:ducts_return_surface_area].is_initialized)
-    errors << 'Duct location and surface area not both defaulted or not both specified.' if error
-
-    error = (args[:heating_system_2_type] != 'none') && (args[:heating_system_2_fraction_heat_load_served] == 1.0)
-    errors << 'The fraction of heat load served by the second heating system is 100%.' if error
 
     error = (args[:heating_system_type] == 'none') && (args[:heat_pump_type] == 'none') && (args[:heating_system_2_type] != 'none')
     errors << 'A second heating system was specified without a primary heating system.' if error
@@ -5080,8 +5087,34 @@ class HPXMLFile
       ducts_supply_surface_area = args[:ducts_supply_surface_area].get
     end
 
+    if args[:ducts_supply_surface_area_fraction].is_initialized
+      ducts_supply_area_fraction = args[:ducts_supply_surface_area_fraction].get
+    end
+
     if args[:ducts_return_surface_area].is_initialized
       ducts_return_surface_area = args[:ducts_return_surface_area].get
+    end
+
+    if args[:ducts_return_surface_area_fraction].is_initialized
+      ducts_return_area_fraction = args[:ducts_return_surface_area_fraction].get
+    end
+
+    if (not ducts_supply_location.nil?) && ducts_supply_surface_area.nil? && ducts_supply_area_fraction.nil?
+      # Supply duct location without any area inputs provided; set area fraction
+      if ducts_supply_location == HPXML::LocationLivingSpace
+        ducts_supply_area_fraction = 1.0
+      else
+        ducts_supply_area_fraction = HVAC.get_default_duct_fraction_outside_conditioned_space(args[:geometry_unit_num_floors_above_grade])
+      end
+    end
+
+    if (not ducts_return_location.nil?) && ducts_return_surface_area.nil? && ducts_return_area_fraction.nil?
+      # Return duct location without any area inputs provided; set area fraction
+      if ducts_return_location == HPXML::LocationLivingSpace
+        ducts_return_area_fraction = 1.0
+      else
+        ducts_return_area_fraction = HVAC.get_default_duct_fraction_outside_conditioned_space(args[:geometry_unit_num_floors_above_grade])
+      end
     end
 
     if args[:ducts_supply_buried_insulation_level].is_initialized
@@ -5097,7 +5130,8 @@ class HPXMLFile
                                 duct_insulation_r_value: args[:ducts_supply_insulation_r],
                                 duct_buried_insulation_level: ducts_supply_buried_insulation_level,
                                 duct_location: ducts_supply_location,
-                                duct_surface_area: ducts_supply_surface_area)
+                                duct_surface_area: ducts_supply_surface_area,
+                                duct_fraction_area: ducts_supply_area_fraction)
 
     if not ([HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && args[:cooling_system_is_ducted])
       hvac_distribution.ducts.add(id: "Ducts#{hvac_distribution.ducts.size + 1}",
@@ -5105,7 +5139,28 @@ class HPXMLFile
                                   duct_insulation_r_value: args[:ducts_return_insulation_r],
                                   duct_buried_insulation_level: ducts_return_buried_insulation_level,
                                   duct_location: ducts_return_location,
-                                  duct_surface_area: ducts_return_surface_area)
+                                  duct_surface_area: ducts_return_surface_area,
+                                  duct_fraction_area: ducts_return_area_fraction)
+    end
+
+    if (not ducts_supply_area_fraction.nil?) && (ducts_supply_area_fraction < 1)
+      # OS-HPXML needs duct fractions to sum to 1; add remaining ducts in living space.
+      hvac_distribution.ducts.add(id: "Ducts#{hvac_distribution.ducts.size + 1}",
+                                  duct_type: HPXML::DuctTypeSupply,
+                                  duct_insulation_r_value: 0.0,
+                                  duct_location: HPXML::LocationLivingSpace,
+                                  duct_fraction_area: 1.0 - ducts_supply_area_fraction)
+    end
+
+    if not hvac_distribution.ducts.find { |d| d.duct_type == HPXML::DuctTypeReturn }.nil?
+      if (not ducts_return_area_fraction.nil?) && (ducts_return_area_fraction < 1)
+        # OS-HPXML needs duct fractions to sum to 1; add remaining ducts in living space.
+        hvac_distribution.ducts.add(id: "Ducts#{hvac_distribution.ducts.size + 1}",
+                                    duct_type: HPXML::DuctTypeReturn,
+                                    duct_insulation_r_value: 0.0,
+                                    duct_location: HPXML::LocationLivingSpace,
+                                    duct_fraction_area: 1.0 - ducts_return_area_fraction)
+      end
     end
 
     # If duct surface areas are defaulted, set CFA served
