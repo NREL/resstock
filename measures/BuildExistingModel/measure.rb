@@ -485,6 +485,36 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         utility_bill_wood_marginal_rates = [nil] * utility_bill_scenario_names.size
       end
 
+      utility_bill_pv_compensation_types = args[:utility_bill_pv_compensation_types].get.split(',').map(&:strip)
+      if utility_bill_pv_compensation_types.empty?
+        utility_bill_pv_compensation_types = [nil] * utility_bill_scenario_names.size
+      end
+
+      utility_bill_pv_net_metering_annual_excess_sellback_rate_types = args[:utility_bill_pv_net_metering_annual_excess_sellback_rate_types].get.split(',').map(&:strip)
+      if utility_bill_pv_net_metering_annual_excess_sellback_rate_types.empty?
+        utility_bill_pv_net_metering_annual_excess_sellback_rate_types = [nil] * utility_bill_scenario_names.size
+      end
+
+      utility_bill_pv_net_metering_annual_excess_sellback_rates = args[:utility_bill_pv_net_metering_annual_excess_sellback_rates].get.split(',').map(&:strip)
+      if utility_bill_pv_net_metering_annual_excess_sellback_rates.empty?
+        utility_bill_pv_net_metering_annual_excess_sellback_rates = [nil] * utility_bill_scenario_names.size
+      end
+
+      utility_bill_pv_feed_in_tariff_rates = args[:utility_bill_pv_feed_in_tariff_rates].get.split(',').map(&:strip)
+      if utility_bill_pv_feed_in_tariff_rates.empty?
+        utility_bill_pv_feed_in_tariff_rates = [nil] * utility_bill_scenario_names.size
+      end
+
+      utility_bill_pv_monthly_grid_connection_fee_units = args[:utility_bill_pv_monthly_grid_connection_fee_units].get.split(',').map(&:strip)
+      if utility_bill_pv_monthly_grid_connection_fee_units.empty?
+        utility_bill_pv_monthly_grid_connection_fee_units = [nil] * utility_bill_scenario_names.size
+      end
+
+      utility_bill_pv_monthly_grid_connection_fees = args[:utility_bill_pv_monthly_grid_connection_fees].get.split(',').map(&:strip)
+      if utility_bill_pv_monthly_grid_connection_fees.empty?
+        utility_bill_pv_monthly_grid_connection_fees = [nil] * utility_bill_scenario_names.size
+      end
+
       utility_bill_scenarios = utility_bill_scenario_names.zip(utility_bill_simple_filepaths,
                                                                utility_bill_detailed_filepaths,
                                                                utility_bill_electricity_fixed_charges,
@@ -496,7 +526,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
                                                                utility_bill_fuel_oil_fixed_charges,
                                                                utility_bill_fuel_oil_marginal_rates,
                                                                utility_bill_wood_fixed_charges,
-                                                               utility_bill_wood_marginal_rates)
+                                                               utility_bill_wood_marginal_rates,
+                                                               utility_bill_pv_compensation_types,
+                                                               utility_bill_pv_net_metering_annual_excess_sellback_rate_types,
+                                                               utility_bill_pv_net_metering_annual_excess_sellback_rates,
+                                                               utility_bill_pv_feed_in_tariff_rates,
+                                                               utility_bill_pv_monthly_grid_connection_fee_units,
+                                                               utility_bill_pv_monthly_grid_connection_fees)
 
       utility_bill_electricity_filepaths = []
       utility_bill_electricity_fixed_charges = []
@@ -509,8 +545,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       utility_bill_fuel_oil_marginal_rates = []
       utility_bill_wood_fixed_charges = []
       utility_bill_wood_marginal_rates = []
+      utility_bill_pv_compensation_types = []
+      utility_bill_pv_net_metering_annual_excess_sellback_rate_types = []
+      utility_bill_pv_net_metering_annual_excess_sellback_rates = []
+      utility_bill_pv_feed_in_tariff_rates = []
+      utility_bill_pv_monthly_grid_connection_fee_units = []
+      utility_bill_pv_monthly_grid_connection_fees = []
       utility_bill_scenarios.each do |utility_bill_scenario|
-        _name, simple_filepath, detailed_filepath, electricity_fixed_charge, electricity_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate = utility_bill_scenario
+        _name, simple_filepath, detailed_filepath, electricity_fixed_charge, electricity_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate, pv_compensation_type, pv_net_metering_annual_excess_sellback_rate_type, pv_net_metering_annual_excess_sellback_rate, pv_feed_in_tariff_rate, pv_monthly_grid_connection_fee_units, pv_monthly_grid_connection_fee = utility_bill_scenario
 
         if (!simple_filepath.nil? && !simple_filepath.empty?) || (!detailed_filepath.nil? && !detailed_filepath.empty?)
 
@@ -536,7 +578,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
           utility_bill_fuel_oil_marginal_rates << utility_rate['fuel_oil_marginal_rate']
           utility_bill_wood_fixed_charges << utility_rate['wood_fixed_charge']
           utility_bill_wood_marginal_rates << utility_rate['wood_marginal_rate']
-        else
+          utility_bill_pv_compensation_types << utility_rate['pv_compensation_type']
+          utility_bill_pv_net_metering_annual_excess_sellback_rate_types << utility_rate['pv_net_metering_annual_excess_sellback_rate_type']
+          utility_bill_pv_net_metering_annual_excess_sellback_rates << utility_rate['pv_net_metering_annual_excess_sellback_rate']
+          utility_bill_pv_feed_in_tariff_rates << utility_rate['pv_feed_in_tariff_rate']
+          utility_bill_pv_monthly_grid_connection_fee_units << utility_rate['pv_monthly_grid_connection_fee_units']
+          utility_bill_pv_monthly_grid_connection_fees << utility_rate['pv_monthly_grid_connection_fee']
+        else # if simple or detailed filepath not assigned, use what's populated in the yml
           utility_bill_electricity_filepaths << nil # support detailed tariff assignment only through the lookup file
           utility_bill_electricity_fixed_charges << electricity_fixed_charge
           utility_bill_electricity_marginal_rates << electricity_marginal_rate
@@ -548,6 +596,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
           utility_bill_fuel_oil_marginal_rates << fuel_oil_marginal_rate
           utility_bill_wood_fixed_charges << wood_fixed_charge
           utility_bill_wood_marginal_rates << wood_marginal_rate
+          utility_bill_pv_compensation_types << pv_compensation_type
+          utility_bill_pv_net_metering_annual_excess_sellback_rate_types << pv_net_metering_annual_excess_sellback_rate_type
+          utility_bill_pv_net_metering_annual_excess_sellback_rates << pv_net_metering_annual_excess_sellback_rate
+          utility_bill_pv_feed_in_tariff_rates << pv_feed_in_tariff_rate
+          utility_bill_pv_monthly_grid_connection_fee_units << pv_monthly_grid_connection_fee_units
+          utility_bill_pv_monthly_grid_connection_fees << pv_monthly_grid_connection_fee
         end
       end
 
@@ -598,23 +652,29 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['utility_bill_wood_marginal_rates'] = utility_bill_wood_marginal_rates
       register_value(runner, 'utility_bill_wood_marginal_rates', utility_bill_wood_marginal_rates)
 
-      utility_bill_pv_compensation_types = args[:utility_bill_pv_compensation_types].get
+      utility_bill_pv_compensation_types = utility_bill_pv_compensation_types.join(',')
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_compensation_types'] = utility_bill_pv_compensation_types
+      register_value(runner, 'utility_bill_pv_compensation_types', utility_bill_pv_compensation_types)
 
-      utility_bill_pv_net_metering_annual_excess_sellback_rate_types = args[:utility_bill_pv_net_metering_annual_excess_sellback_rate_types].get
+      utility_bill_pv_net_metering_annual_excess_sellback_rate_types = utility_bill_pv_net_metering_annual_excess_sellback_rate_types.join(',')
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = utility_bill_pv_net_metering_annual_excess_sellback_rate_types
+      register_value(runner, 'utility_bill_pv_net_metering_annual_excess_sellback_rate_types', utility_bill_pv_net_metering_annual_excess_sellback_rate_types)
 
-      utility_bill_pv_net_metering_annual_excess_sellback_rates = args[:utility_bill_pv_net_metering_annual_excess_sellback_rates].get
+      utility_bill_pv_net_metering_annual_excess_sellback_rates = utility_bill_pv_net_metering_annual_excess_sellback_rates.join(',')
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = utility_bill_pv_net_metering_annual_excess_sellback_rates
+      register_value(runner, 'utility_bill_pv_net_metering_annual_excess_sellback_rates', utility_bill_pv_net_metering_annual_excess_sellback_rates)
 
-      utility_bill_pv_feed_in_tariff_rates = args[:utility_bill_pv_feed_in_tariff_rates].get
+      utility_bill_pv_feed_in_tariff_rates = utility_bill_pv_feed_in_tariff_rates.join(',')
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_feed_in_tariff_rates'] = utility_bill_pv_feed_in_tariff_rates
+      register_value(runner, 'utility_bill_pv_feed_in_tariff_rates', utility_bill_pv_feed_in_tariff_rates)
 
-      utility_bill_pv_monthly_grid_connection_fee_units = args[:utility_bill_pv_monthly_grid_connection_fee_units].get
+      utility_bill_pv_monthly_grid_connection_fee_units = utility_bill_pv_monthly_grid_connection_fee_units.join(',')
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = utility_bill_pv_monthly_grid_connection_fee_units
+      register_value(runner, 'utility_bill_pv_monthly_grid_connection_fee_units', utility_bill_pv_monthly_grid_connection_fee_units)
 
-      utility_bill_pv_monthly_grid_connection_fees = args[:utility_bill_pv_monthly_grid_connection_fees].get
+      utility_bill_pv_monthly_grid_connection_fees = utility_bill_pv_monthly_grid_connection_fees.join(',')
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = utility_bill_pv_monthly_grid_connection_fees
+      register_value(runner, 'utility_bill_pv_monthly_grid_connection_fees', utility_bill_pv_monthly_grid_connection_fees)
     end
 
     # Get registered values and pass them to BuildResidentialScheduleFile
