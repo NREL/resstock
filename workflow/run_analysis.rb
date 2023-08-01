@@ -179,6 +179,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
       'include_annual_component_loads' => true,
       'include_annual_hot_water_uses' => true,
       'include_annual_hvac_summary' => true,
+      'include_annual_resilience' => true,
       'timeseries_frequency' => 'none',
       'include_timeseries_total_consumptions' => false,
       'include_timeseries_fuel_consumptions' => false,
@@ -194,6 +195,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
       'include_timeseries_zone_temperatures' => false,
       'include_timeseries_airflows' => false,
       'include_timeseries_weather' => false,
+      'include_timeseries_resilience' => false,
       'timeseries_timestamp_convention' => 'end',
       'timeseries_num_decimal_places' => 3,
       'add_timeseries_dst_column' => true,
@@ -278,7 +280,9 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
       },
       {
         'measure_dir_name' => 'ReportUtilityBills',
-        'arguments' => { 'output_format' => 'csv' }
+        'arguments' => { 'output_format' => 'csv',
+                         'include_annual_bills' => true,
+                         'include_monthly_bills' => false }
       },
       {
         'measure_dir_name' => 'UpgradeCosts',
