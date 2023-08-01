@@ -101,7 +101,7 @@ class TestRunAnalysis < Minitest::Test
       next if _expected_warning_message(message, 'Could not find state average fuel oil rate based on')
       next if _expected_warning_message(message, "Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       next if _expected_warning_message(message, 'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units. [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0]')
-      next if _expected_warning_message(message, 'Home with conditioned basement has floor insulation.')
+      next if _expected_warning_message(message, 'Home with conditioned basement has floor insulation.') # FIXME: remove once the threshold is changed
       next if _expected_warning_message(message, 'Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.') # FIXME: remove once duct TSVs are refactored
 
       if !testing
@@ -114,11 +114,11 @@ class TestRunAnalysis < Minitest::Test
         next if _expected_warning_message(message, 'Could not find County=') # we intentionally leave some fields blank in resources/data/simple_rates/County.tsv
         next if _expected_warning_message(message, 'Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.')
         next if _expected_warning_message(message, "Request for output variable 'Zone People Occupant Count' returned no key values.")
-        next if _expected_warning_message(message, 'The fraction of heat load served by the second heating system is greater than or equal to 50%.')
+        next if _expected_warning_message(message, 'The fraction of heat load served by the second heating system is greater than or equal to 50%.') # FIXME: remove once this warning is no longer thrown
         next if _expected_warning_message(message, 'No windows specified, the model will not include window heat transfer. [context: /HPXML/Building/BuildingDetails]')
         next if _expected_warning_message(message, 'No interior lighting specified, the model will not include interior lighting energy use. [context: /HPXML/Building/BuildingDetails]')
         next if _expected_warning_message(message, 'No exterior lighting specified, the model will not include exterior lighting energy use. [context: /HPXML/Building/BuildingDetails]')
-        next if _expected_warning_message(message, 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.')
+        next if _expected_warning_message(message, 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.') # FIXME: remove once the threshold is changed
       end
 
       flunk "Unexpected cli_output.log message found: #{message}"
