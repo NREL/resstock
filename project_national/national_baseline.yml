@@ -3,14 +3,15 @@ os_version: 3.6.1
 os_sha: bb9481519e
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: ../../national_baseline_hes
+sys_image_dir: /projects/hescore/images
+output_directory: /projects/hescore/runs/national_baseline_50k_20230801
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-weather_files_path: ../../weather/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 5000
+    n_datapoints: 50000
 
 workflow_generator:
   type: residential_hpxml_hes
@@ -22,7 +23,7 @@ workflow_generator:
       simulation_control_run_period_end_month: 12
       simulation_control_run_period_end_day_of_month: 31
       simulation_control_run_period_calendar_year: 2007
-      os_hescore_directory: /Users/nmerket/projects/hescore/OpenStudio-HEScore
+      os_hescore_directory: /opt/OpenStudio-HEScore  # Always use this on Eagle
 
     emissions:
       - scenario_name: LRMER_MidCase_15
@@ -33,7 +34,7 @@ workflow_generator:
       - scenario_name: Bills
 
     simulation_output_report:
-      timeseries_frequency: hourly
+      timeseries_frequency: none
       include_timeseries_total_consumptions: true
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
@@ -59,12 +60,12 @@ baseline:
   n_buildings_represented: 139647020 # American Community Survey 2021 5-year, B25001, does not include territories
 
 eagle:
-  n_jobs: 3
-  minutes_per_sim: 30
-  account: <account you are authorized to use>
+  n_jobs: 25
+  minutes_per_sim: 1
+  account: hescore
   postprocessing:
     time: 20
-    n_workers: 1
+    n_workers: 3
   sampling:
     time: 5
 
