@@ -658,7 +658,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       return true
     end
 
-    if not run_hescore_workflow
+    if run_hescore_workflow
+      register_value(runner, 'zip_code', hpxml.header.zip_code)
+    else
       epw_path = Location.get_epw_path(hpxml, hpxml_path)
       epw_file = OpenStudio::EpwFile.new(epw_path)
       register_value(runner, 'weather_file_city', epw_file.city)
