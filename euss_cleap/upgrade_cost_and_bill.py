@@ -12,6 +12,7 @@ import pandas as pd
 from pathlib import Path
 import numpy as np
 import argparse
+import sys
 
 
 datadir = Path(__file__).resolve().parent / "data_"
@@ -1250,6 +1251,9 @@ if __name__ == "__main__":
         community_name = args.community_name.lower().replace(" ", "_")
         cost_file = cost_dir / f"cost_{community_name}.csv"
 
+    if community_name == "hill_district":
+        print("For hill_district, use 'python upgrade_cost_and_bill_hill_district.py'")
+        sys.exit()
 
     process_euss_upgrade_files(
         cost_file,

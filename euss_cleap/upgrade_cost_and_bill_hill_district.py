@@ -618,34 +618,34 @@ def process_euss_upgrade_files(
         #     furnace_cost1
         #     + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
         # )
-        up05.loc[
-            up05["upgrade_costs.option_42_cost_usd"] > 0,
-            "upgrade_costs.option_42_cost_usd",
-        ] = (
-            furnace_cost1
-            + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
-        )
-        up05.loc[
-            up05["upgrade_costs.option_43_cost_usd"] > 0,
-            "upgrade_costs.option_43_cost_usd",
-        ] = (
-            furnace_cost1
-            + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
-        )
-        up05.loc[
-            up05["upgrade_costs.option_46_cost_usd"] > 0,
-            "upgrade_costs.option_46_cost_usd",
-        ] = (
-            furnace_cost1
-            + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
-        )
-        up05.loc[
-            up05["upgrade_costs.option_51_cost_usd"] > 0,
-            "upgrade_costs.option_51_cost_usd",
-        ] = (
-            furnace_cost1
-            + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
-        )
+        # up05.loc[
+        #     up05["upgrade_costs.option_42_cost_usd"] > 0,
+        #     "upgrade_costs.option_42_cost_usd",
+        # ] = (
+        #     furnace_cost1
+        #     + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
+        # )
+        # up05.loc[
+        #     up05["upgrade_costs.option_43_cost_usd"] > 0,
+        #     "upgrade_costs.option_43_cost_usd",
+        # ] = (
+        #     furnace_cost1
+        #     + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
+        # )
+        # up05.loc[
+        #     up05["upgrade_costs.option_46_cost_usd"] > 0,
+        #     "upgrade_costs.option_46_cost_usd",
+        # ] = (
+        #     furnace_cost1
+        #     + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
+        # )
+        # up05.loc[
+        #     up05["upgrade_costs.option_51_cost_usd"] > 0,
+        #     "upgrade_costs.option_51_cost_usd",
+        # ] = (
+        #     furnace_cost1
+        #     + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
+        # )
         up05.loc[
             up05["upgrade_costs.option_52_cost_usd"] > 0,
             "upgrade_costs.option_52_cost_usd",
@@ -653,13 +653,13 @@ def process_euss_upgrade_files(
             furnace_cost1
             + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
         )
-        # up05.loc[
-        #     up05["upgrade_costs.option_55_cost_usd"] > 0,
-        #     "upgrade_costs.option_55_cost_usd",
-        # ] = (
-        #     furnace_cost1
-        #     + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
-        # )
+        up05.loc[
+            up05["upgrade_costs.option_55_cost_usd"] > 0,
+            "upgrade_costs.option_55_cost_usd",
+        ] = (
+            furnace_cost1
+            + furnace_cost2 * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
+        )
 
         # shared heating
         up05.loc[
@@ -670,14 +670,14 @@ def process_euss_upgrade_files(
             + ASHP_fossil_cost2
             * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
         )
-        up05.loc[
-            up05["upgrade_costs.option_58_cost_usd"] > 0,
-            "upgrade_costs.option_58_cost_usd",
-        ] = (
-            ASHP_fossil_cost1
-            + ASHP_fossil_cost2
-            * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
-        )
+        # up05.loc[
+        #     up05["upgrade_costs.option_58_cost_usd"] > 0,
+        #     "upgrade_costs.option_58_cost_usd",
+        # ] = (
+        #     ASHP_fossil_cost1
+        #     + ASHP_fossil_cost2
+        #     * up05["upgrade_costs.size_heating_system_primary_k_btu_h"]
+        # )
         up05.loc[
             up05["upgrade_costs.option_59_cost_usd"] > 0,
             "upgrade_costs.option_59_cost_usd",
