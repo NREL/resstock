@@ -398,7 +398,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
                ['2500-2999', HPXML::ResidentialTypeApartment] => 2648, # AHS 2021, multi-family weighted average
                ['3000-3999', HPXML::ResidentialTypeSFD] => 3310, # AHS 2021, 1 detached and mobile home weighted average
                ['3000-3999', HPXML::ResidentialTypeSFA] => 3228, # AHS 2021, 1 attached
-               ['3000-3999', HPXML::ResidentialTypeApartment] => 3317, # AHS 2021, multi-family weighted average
+               ['3000-3999', HPXML::ResidentialTypeApartment] => 3171, # AHS 2021, multi-family weighted average
                ['4000+', HPXML::ResidentialTypeSFD] => 5587, # AHS 2021, 1 detached and mobile home weighted average
                ['4000+', HPXML::ResidentialTypeSFA] => 7414, # AHS 2019, 1 attached
                ['4000+', HPXML::ResidentialTypeApartment] => 6348 } # AHS 2021, 4,000 or more all unit average
