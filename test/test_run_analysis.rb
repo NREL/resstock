@@ -14,7 +14,6 @@ class TestRunAnalysis < Minitest::Test
 
     @testing_baseline = File.join(buildstock_directory, 'testing_baseline')
     @national_baseline = File.join(buildstock_directory, 'national_baseline')
-    @national_baseline2 = File.join(buildstock_directory, 'national_baseline2')
     @testing_upgrades = File.join(buildstock_directory, 'testing_upgrades')
     @national_upgrades = File.join(buildstock_directory, 'national_upgrades')
 
@@ -410,40 +409,6 @@ class TestRunAnalysis < Minitest::Test
     assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
 
     FileUtils.cp(results_baseline, File.join(File.dirname(@national_baseline), 'project_national'))
-  end
-
-  def test_national_baseline2
-    yml = ' -y project_national/national_baseline2.yml'
-    @command += yml
-    @command += ' -m'
-
-    system(@command)
-
-    cli_output_log = File.join(@national_baseline2, 'cli_output.log')
-    assert(File.exist?(cli_output_log))
-    cli_output = File.read(cli_output_log)
-    _assert_and_puts(cli_output, 'ERROR', false)
-    _verify_outputs(cli_output_log)
-
-    _test_measure_order(File.join(@national_baseline2, 'national_baseline2-Baseline.osw'))
-    results_baseline = File.join(@national_baseline2, 'results-Baseline.csv')
-    assert(File.exist?(results_baseline))
-    results = CSV.read(results_baseline, headers: true)
-
-    _test_columns(results)
-
-    assert(File.exist?(File.join(@national_baseline2, 'run1', 'run')))
-    contents = Dir[File.join(@national_baseline2, 'run1', 'run/*')].collect { |x| File.basename(x) }
-
-    _test_contents(contents, false, false)
-
-    timeseries = _get_timeseries_columns(Dir[File.join(@national_baseline2, 'run*/run/results_timeseries.csv')])
-    assert(_test_timeseries_columns(timeseries))
-
-    assert(!File.exist?(File.join(@national_baseline2, 'osw', 'Baseline', '1.osw')))
-    assert(File.exist?(File.join(@national_baseline2, 'xml', 'Baseline', '1.xml')))
-
-    FileUtils.cp(results_baseline, File.join(File.dirname(@national_baseline2), 'project_national'))
   end
 
   def test_testing_upgrades
