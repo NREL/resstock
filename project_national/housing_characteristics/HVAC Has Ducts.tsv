@@ -23,7 +23,7 @@ Room AC	Cooling Only	Ducted Heat Pump	0	0	1	1	16229.6	0
 Room AC	Heating Only	Ducted Heat Pump	0	0	1	17	160759	0
 Room AC	Heating and Cooling	Ducted Heat Pump	0	0	1	2	14619.5	0
 Room AC	None	Ducted Heat Pump	0	0	1	56	431964	0
-Central AC	Cooling Only	Ducted Heating	1	0	0	117	1.15051e+06	0.00975027
+Central AC	Cooling Only	Ducted Heating	0	1	0	117	1.15051e+06	0.00975027
 Central AC	Heating Only	Ducted Heating	0	1	0	68	657899	0.00587902
 Central AC	Heating and Cooling	Ducted Heating	1	0	0	223	1.95182e+06	0.0165057
 Central AC	None	Ducted Heating	0	1	0	8477	5.41028e+07	0.427793
@@ -126,4 +126,4 @@ Room AC	None	None	1	0	0	161	937990	0.00282276
 # Assumption: Non-Ducted Heat Pump HVAC type assumed to have no ducts
 # Assumption: There are likely homes with non-ducted heat pump having ducts (Central AC with non-ducted HP) But due to structure of ResStock we are not accounting those homes
 # Assumption: Evaporative or Swamp Cooler assigned Void option
-# Assumption: None of the shared system options (in HVAC Shared Efficiencies) are ducted, therefore where HVAC Has Shared System and has valid HVAC Heating Type and HVAC Cooling Type combinations, no duct is assigned.
+# Assumption: None of the shared system options currently modeled (in HVAC Shared Efficiencies) are ducted, therefore where there are discrepancies between HVAC Heating Type, HVAC Cooling Type, and HVAC Has Shared System, HVAC Has Shared System takes precedence. (e.g., Central AC + Ducted Heating + Shared Heating and Cooling = No (Ducts)) (This is a temporary fix and will change when ducted shared system options are introduced.)
