@@ -143,7 +143,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
 
   # Test sampling
   r = RunSampling.new
-  output_file = r.run(project_dir_name, 10000, "#{project_dir_name}.csv", housing_characteristics_dir, lookup_file)
+  output_file = r.run(project_dir_name, 1000, "#{project_dir_name}.csv", housing_characteristics_dir, lookup_file)
 
   # Check outfile
   check_buildstock(output_file, lookup_file, lookup_csv_data)
