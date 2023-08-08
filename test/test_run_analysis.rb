@@ -301,6 +301,11 @@ class TestRunAnalysis < Minitest::Test
 
     system(@command)
 
+    cli_output_log = File.join(@testing_baseline, 'cli_output.log')
+    assert(File.exist?(cli_output_log))
+    cli_output = File.read(cli_output_log)
+    _assert_and_puts(cli_output, 'ERROR', false)
+
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'run2')))
@@ -319,6 +324,11 @@ class TestRunAnalysis < Minitest::Test
     @command += yml
 
     system(@command)
+
+    cli_output_log = File.join(@testing_baseline, 'cli_output.log')
+    assert(File.exist?(cli_output_log))
+    cli_output = File.read(cli_output_log)
+    _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
