@@ -4,14 +4,14 @@ os_sha: bb9481519e
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 sys_image_dir: /projects/hescore/images
-output_directory: /projects/hescore/runs/national_baseline_50k_20230801
+output_directory: /projects/hescore/runs/national_baseline_50k_20230803
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 50000
+    n_datapoints: 550000
 
 workflow_generator:
   type: residential_hpxml_hes
@@ -60,14 +60,14 @@ baseline:
   n_buildings_represented: 139647020 # American Community Survey 2021 5-year, B25001, does not include territories
 
 eagle:
-  n_jobs: 25
+  n_jobs: 300
   minutes_per_sim: 1
   account: hescore
   postprocessing:
-    time: 20
-    n_workers: 3
+    time: 30
+    n_workers: 4
   sampling:
-    time: 5
+    time: 30
 
 # aws:
 #   job_identifier: noeltest01
