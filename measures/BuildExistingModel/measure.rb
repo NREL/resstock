@@ -667,20 +667,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       register_value(runner, 'sample_weight', sample_weight.to_s)
     end
 
-    return true
-  end
+    register_logs(runner, new_runner)
 
-  def register_logs(runner, new_runner)
-    new_runner.result.warnings.each do |warning|
-      runner.registerWarning(warning.logMessage)
-    end
-    new_runner.result.info.each do |info|
-      runner.registerInfo(info.logMessage)
-    end
-    new_runner.result.errors.each do |error|
-      runner.registerError(error.logMessage)
-    end
-    return
+    return true
   end
 end
 

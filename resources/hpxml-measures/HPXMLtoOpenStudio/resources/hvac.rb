@@ -1548,15 +1548,23 @@ class HVAC
         fan_or_pump_program.addLine("Set #{fan_or_pump_var}_#{mode} = 0")
       end
       sensors.each_with_index do |(mode, sensor), i|
-        str_prefix = (i == 0 ? 'If' : 'ElseIf')
+        if i == 0
+          if_else_str = "If #{sensor.name} > 0"
+        elsif i == sensors.size - 1
+          # Use else for last mode to make sure we don't miss any energy use
+          # See https://github.com/NREL/OpenStudio-HPXML/issues/1424
+          if_else_str = 'Else'
+        else
+          if_else_str = "ElseIf #{sensor.name} > 0"
+        end
         if mode == 'primary_htg' && sensors.keys[i + 1] == 'backup_htg'
           # HP with both primary and backup heating
           # If both are operating, apportion energy use
-          fan_or_pump_program.addLine("#{str_prefix} (#{sensor.name} > 0) && (#{sensors.values[i + 1].name} > 0)")
+          fan_or_pump_program.addLine("#{if_else_str} && (#{sensors.values[i + 1].name} > 0)")
           fan_or_pump_program.addLine("  Set #{fan_or_pump_var}_#{mode} = #{fan_or_pump_sensor.name} * #{sensor.name} / (#{sensor.name} + #{sensors.values[i + 1].name})")
           fan_or_pump_program.addLine("  Set #{fan_or_pump_var}_#{sensors.keys[i + 1]} = #{fan_or_pump_sensor.name} * #{sensors.values[i + 1].name} / (#{sensor.name} + #{sensors.values[i + 1].name})")
         end
-        fan_or_pump_program.addLine("#{str_prefix} #{sensor.name} > 0")
+        fan_or_pump_program.addLine(if_else_str)
         fan_or_pump_program.addLine("  Set #{fan_or_pump_var}_#{mode} = #{fan_or_pump_sensor.name}")
       end
       fan_or_pump_program.addLine('EndIf')
@@ -3620,9 +3628,19 @@ class HVAC
     end
   end
 
-  def self.get_default_duct_surface_area(duct_type, ncfl_ag, cfa_served, n_returns)
-    # Fraction of primary ducts (ducts outside conditioned space)
+  def self.get_default_duct_fraction_outside_conditioned_space(ncfl_ag)
+    # Equation based on ASHRAE 152
+    # https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet
     f_out = (ncfl_ag <= 1) ? 1.0 : 0.75
+    return f_out
+  end
+
+  def self.get_default_duct_surface_area(duct_type, ncfl_ag, cfa_served, n_returns)
+    # Equations based on ASHRAE 152
+    # https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet
+
+    # Fraction of primary ducts (ducts outside conditioned space)
+    f_out = get_default_duct_fraction_outside_conditioned_space(ncfl_ag)
 
     if duct_type == HPXML::DuctTypeSupply
       primary_duct_area = 0.27 * cfa_served * f_out

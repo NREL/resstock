@@ -8,7 +8,7 @@ require_relative '../measure.rb'
 require_relative '../resources/util.rb'
 require_relative 'util.rb'
 
-class HPXMLtoOpenStudioHVACTest < MiniTest::Test
+class HPXMLtoOpenStudioHVACTest < Minitest::Test
   def sample_files_dir
     return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
   end

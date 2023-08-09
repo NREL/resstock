@@ -3,7 +3,7 @@
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require 'csv'
 
-class TestTools < MiniTest::Test
+class TestTools < Minitest::Test
   def before_setup
     @buildstock_directory = File.join(File.dirname(__FILE__), '..')
   end
@@ -93,7 +93,7 @@ class TestTools < MiniTest::Test
         run_analysis_sum = run_analysis[col].map { |v| Float(v) }.sum
 
         assert_equal(buildstockbatch[col].size, run_analysis[col].size)
-        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.01)
+        assert_in_epsilon(buildstockbatch_sum, run_analysis_sum, 0.01)
       end
     end
   end
@@ -113,7 +113,7 @@ class TestTools < MiniTest::Test
         run_analysis_sum = run_analysis[col].map { |v| Float(v) }.sum
 
         assert_equal(buildstockbatch[col].size, run_analysis[col].size)
-        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.01)
+        assert_in_epsilon(buildstockbatch_sum, run_analysis_sum, 0.01)
       end
     end
   end

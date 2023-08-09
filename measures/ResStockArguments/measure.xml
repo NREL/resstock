@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <measure>
-  <schema_version>3.0</schema_version>
+  <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>4b724193-916d-44ba-a2d1-98d57e0cc1c4</version_id>
-  <version_modified>20230510T234141Z</version_modified>
+  <version_id>96e03c00-108a-4f14-ae2d-26c8a1200ac6</version_id>
+  <version_modified>2023-08-08T01:14:10Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -167,6 +167,10 @@
           <value>apartment unit</value>
           <display_name>apartment unit</display_name>
         </choice>
+        <choice>
+          <value>manufactured home</value>
+          <display_name>manufactured home</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
@@ -319,6 +323,14 @@
         <choice>
           <value>AboveApartment</value>
           <display_name>AboveApartment</display_name>
+        </choice>
+        <choice>
+          <value>BellyAndWingWithSkirt</value>
+          <display_name>BellyAndWingWithSkirt</display_name>
+        </choice>
+        <choice>
+          <value>BellyAndWingNoSkirt</value>
+          <display_name>BellyAndWingNoSkirt</display_name>
         </choice>
       </choices>
     </argument>
@@ -1315,16 +1327,12 @@
           <display_name>Stove</display_name>
         </choice>
         <choice>
-          <value>PortableHeater</value>
-          <display_name>PortableHeater</display_name>
+          <value>SpaceHeater</value>
+          <display_name>SpaceHeater</display_name>
         </choice>
         <choice>
           <value>Fireplace</value>
           <display_name>Fireplace</display_name>
-        </choice>
-        <choice>
-          <value>FixedHeater</value>
-          <display_name>FixedHeater</display_name>
         </choice>
         <choice>
           <value>Shared Boiler w/ Baseboard</value>
@@ -1519,6 +1527,13 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>cooling_system_crankcase_heater_watts</name>
+      <display_name>cooling_system_crankcase_heater_watts</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>cooling_system_integrated_heating_system_fuel</name>
       <display_name>cooling_system_integrated_heating_system_fuel</display_name>
       <type>String</type>
@@ -1671,8 +1686,15 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>heat_pump_heating_capacity_17_f</name>
-      <display_name>heat_pump_heating_capacity_17_f</display_name>
+      <name>heat_pump_heating_capacity_retention_fraction</name>
+      <display_name>heat_pump_heating_capacity_retention_fraction</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_heating_capacity_retention_temp</name>
+      <display_name>heat_pump_heating_capacity_retention_temp</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1799,15 +1821,8 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>heat_pump_capacity_retention_fraction</name>
-      <display_name>heat_pump_capacity_retention_fraction</display_name>
-      <type>String</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heat_pump_capacity_retention_temp</name>
-      <display_name>heat_pump_capacity_retention_temp</display_name>
+      <name>heat_pump_crankcase_heater_watts</name>
+      <display_name>heat_pump_crankcase_heater_watts</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1824,6 +1839,10 @@
         <choice>
           <value>none</value>
           <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>Furnace</value>
+          <display_name>Furnace</display_name>
         </choice>
         <choice>
           <value>WallFurnace</value>
@@ -1846,8 +1865,8 @@
           <display_name>Stove</display_name>
         </choice>
         <choice>
-          <value>PortableHeater</value>
-          <display_name>PortableHeater</display_name>
+          <value>SpaceHeater</value>
+          <display_name>SpaceHeater</display_name>
         </choice>
         <choice>
           <value>Fireplace</value>
@@ -2008,6 +2027,13 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>ducts_supply_surface_area_fraction</name>
+      <display_name>ducts_supply_surface_area_fraction</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>ducts_return_location</name>
       <display_name>ducts_return_location</display_name>
       <type>String</type>
@@ -2034,6 +2060,13 @@
     <argument>
       <name>ducts_return_surface_area</name>
       <display_name>ducts_return_surface_area</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ducts_return_surface_area_fraction</name>
+      <display_name>ducts_return_surface_area_fraction</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -5102,12 +5135,6 @@
   </attributes>
   <files>
     <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>231B4F9A</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.0</identifier>
@@ -5116,7 +5143,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>836430C2</checksum>
+      <checksum>45217B29</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>231B4F9A</checksum>
     </file>
   </files>
 </measure>

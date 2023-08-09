@@ -181,6 +181,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     unit_type_choices << HPXML::ResidentialTypeSFD
     unit_type_choices << HPXML::ResidentialTypeSFA
     unit_type_choices << HPXML::ResidentialTypeApartment
+    unit_type_choices << HPXML::ResidentialTypeManufactured
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_unit_type', unit_type_choices, true)
     arg.setDisplayName('Geometry: Unit Type')
@@ -317,6 +318,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     foundation_type_choices << HPXML::FoundationTypeBasementConditioned
     foundation_type_choices << HPXML::FoundationTypeAmbient
     foundation_type_choices << HPXML::FoundationTypeAboveApartment # I.e., adiabatic
+    foundation_type_choices << "#{HPXML::FoundationTypeBellyAndWing}WithSkirt"
+    foundation_type_choices << "#{HPXML::FoundationTypeBellyAndWing}NoSkirt"
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_foundation_type', foundation_type_choices, true)
     arg.setDisplayName('Geometry: Foundation Type')
@@ -1007,9 +1010,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heating_system_type_choices << HPXML::HVACTypeBoiler
     heating_system_type_choices << HPXML::HVACTypeElectricResistance
     heating_system_type_choices << HPXML::HVACTypeStove
-    heating_system_type_choices << HPXML::HVACTypePortableHeater
+    heating_system_type_choices << HPXML::HVACTypeSpaceHeater
     heating_system_type_choices << HPXML::HVACTypeFireplace
-    heating_system_type_choices << HPXML::HVACTypeFixedHeater
     heating_system_type_choices << "Shared #{HPXML::HVACTypeBoiler} w/ Baseboard"
     heating_system_type_choices << "Shared #{HPXML::HVACTypeBoiler} w/ Ductless Fan Coil"
 
@@ -1357,9 +1359,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heating_system_2_type_choices << HPXML::HVACTypeBoiler
     heating_system_2_type_choices << HPXML::HVACTypeElectricResistance
     heating_system_2_type_choices << HPXML::HVACTypeStove
-    heating_system_2_type_choices << HPXML::HVACTypePortableHeater
+    heating_system_2_type_choices << HPXML::HVACTypeSpaceHeater
     heating_system_2_type_choices << HPXML::HVACTypeFireplace
-    heating_system_2_type_choices << HPXML::HVACTypeFixedHeater
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heating_system_2_type', heating_system_2_type_choices, true)
     arg.setDisplayName('Heating System 2: Type')
@@ -1450,6 +1451,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     duct_location_choices << HPXML::LocationOtherHeatedSpace
     duct_location_choices << HPXML::LocationOtherMultifamilyBufferSpace
     duct_location_choices << HPXML::LocationOtherNonFreezingSpace
+    duct_location_choices << HPXML::LocationManufacturedHomeBelly
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('ducts_leakage_units', duct_leakage_units_choices, true)
     arg.setDisplayName('Ducts: Leakage Units')
@@ -1494,8 +1496,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_surface_area', false)
     arg.setDisplayName('Ducts: Supply Surface Area')
-    arg.setDescription('The surface area of the supply ducts. If not provided, the OS-HPXML default is used.')
+    arg.setDescription('The supply ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.')
     arg.setUnits('ft^2')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_surface_area_fraction', false)
+    arg.setDisplayName('Ducts: Supply Area Fraction')
+    arg.setDescription('The fraction of supply ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.')
+    arg.setUnits('frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('ducts_return_location', duct_location_choices, false)
@@ -1517,8 +1525,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_surface_area', false)
     arg.setDisplayName('Ducts: Return Surface Area')
-    arg.setDescription('The surface area of the return ducts. If not provided, the OS-HPXML default is used.')
+    arg.setDescription('The return ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.')
     arg.setUnits('ft^2')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_surface_area_fraction', false)
+    arg.setDisplayName('Ducts: Return Area Fraction')
+    arg.setDescription('The fraction of return ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.')
+    arg.setUnits('frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('ducts_number_of_return_registers', false)
@@ -3177,6 +3191,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
   def argument_warnings(args)
     warnings = []
 
+    max_uninsulated_floor_rvalue = 6.0
+    max_uninsulated_ceiling_rvalue = 3.0
+    max_uninsulated_roof_rvalue = 3.0
+
     warning = ([HPXML::WaterHeaterTypeHeatPump].include?(args[:water_heater_type]) && (args[:water_heater_fuel_type] != HPXML::FuelTypeElectricity))
     warnings << 'Cannot model a heat pump water heater with non-electric fuel type.' if warning
 
@@ -3186,19 +3204,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height_above_grade] > 0)
     warnings << 'Specified a slab foundation type with a non-zero height above grade.' if warning
 
-    warning = (args[:heating_system_2_type] != 'none') && (args[:heating_system_2_fraction_heat_load_served] >= 0.5) && (args[:heating_system_2_fraction_heat_load_served] < 1.0)
-    warnings << 'The fraction of heat load served by the second heating system is greater than or equal to 50%.' if warning
-
-    warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || args[:foundation_wall_assembly_r].is_initialized) && (args[:floor_over_foundation_assembly_r] > 2.1)
+    warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || args[:foundation_wall_assembly_r].is_initialized) && (args[:floor_over_foundation_assembly_r] > max_uninsulated_floor_rvalue)
     warnings << 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.' if warning
 
-    warning = [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type]) && (args[:ceiling_assembly_r] > 2.1) && (args[:roof_assembly_r] > 2.3)
+    warning = [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type]) && (args[:ceiling_assembly_r] > max_uninsulated_ceiling_rvalue) && (args[:roof_assembly_r] > max_uninsulated_roof_rvalue)
     warnings << 'Home with unconditioned attic type has both ceiling insulation and roof insulation.' if warning
 
-    warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned) && (args[:floor_over_foundation_assembly_r] > 2.1)
+    warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned) && (args[:floor_over_foundation_assembly_r] > max_uninsulated_floor_rvalue)
     warnings << 'Home with conditioned basement has floor insulation.' if warning
 
-    warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:ceiling_assembly_r] > 2.1)
+    warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:ceiling_assembly_r] > max_uninsulated_ceiling_rvalue)
     warnings << 'Home with conditioned attic has ceiling insulation.' if warning
 
     return warnings
@@ -3218,12 +3233,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && ([HPXML::FoundationTypeBasementConditioned, HPXML::FoundationTypeCrawlspaceConditioned].include? args[:geometry_foundation_type])
     errors << 'Conditioned basement/crawlspace foundation type for apartment units is not currently supported.' if error
-
-    error = (args[:ducts_supply_location].is_initialized != args[:ducts_supply_surface_area].is_initialized) || (args[:ducts_return_location].is_initialized != args[:ducts_return_surface_area].is_initialized)
-    errors << 'Duct location and surface area not both defaulted or not both specified.' if error
-
-    error = (args[:heating_system_2_type] != 'none') && (args[:heating_system_2_fraction_heat_load_served] == 1.0)
-    errors << 'The fraction of heat load served by the second heating system is 100%.' if error
 
     error = (args[:heating_system_type] == 'none') && (args[:heat_pump_type] == 'none') && (args[:heating_system_2_type] != 'none')
     errors << 'A second heating system was specified without a primary heating system.' if error
@@ -3499,7 +3508,7 @@ class HPXMLFile
       args[:geometry_foundation_height] = 0.0
       args[:geometry_foundation_height_above_grade] = 0.0
       args[:geometry_rim_joist_height] = 0.0
-    elsif args[:geometry_foundation_type] == HPXML::FoundationTypeAmbient
+    elsif (args[:geometry_foundation_type] == HPXML::FoundationTypeAmbient) || args[:geometry_foundation_type].start_with?(HPXML::FoundationTypeBellyAndWing)
       args[:geometry_rim_joist_height] = 0.0
     end
 
@@ -3514,6 +3523,8 @@ class HPXMLFile
       success = Geometry.create_single_family_attached(model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
       success = Geometry.create_apartment(model: model, **args)
+    elsif args[:geometry_unit_type] == HPXML::ResidentialTypeManufactured
+      success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
     end
     return false if not success
 
@@ -3895,7 +3906,7 @@ class HPXMLFile
           hpxml.site.vertical_surroundings = HPXML::VerticalSurroundingsNoAboveOrBelow
         end
       end
-    elsif [HPXML::ResidentialTypeSFD].include? args[:geometry_unit_type]
+    elsif [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include? args[:geometry_unit_type]
       hpxml.site.surroundings = HPXML::SurroundingsStandAlone
       hpxml.site.vertical_surroundings = HPXML::VerticalSurroundingsNoAboveOrBelow
     end
@@ -4368,10 +4379,6 @@ class HPXMLFile
         exposed_perimeter -= Geometry.get_unexposed_garage_perimeter(**args)
       end
 
-      if [HPXML::LocationLivingSpace, HPXML::LocationGarage].include? interior_adjacent_to
-        depth_below_grade = 0
-      end
-
       if args[:slab_under_width] == 999
         under_slab_insulation_spans_entire_slab = true
       else
@@ -4400,7 +4407,6 @@ class HPXMLFile
                       perimeter_insulation_r_value: args[:slab_perimeter_insulation_r],
                       under_slab_insulation_r_value: args[:slab_under_insulation_r],
                       under_slab_insulation_spans_entire_slab: under_slab_insulation_spans_entire_slab,
-                      depth_below_grade: depth_below_grade,
                       carpet_fraction: carpet_fraction,
                       carpet_r_value: carpet_r_value)
       @surface_ids[surface.name.to_s] = hpxml.slabs[-1].id
@@ -4450,7 +4456,7 @@ class HPXMLFile
         end
 
         # Get max z coordinate of this window
-        sub_surface_z = Geometry.getSurfaceZValues([sub_surface]).max + UnitConversions.convert(sub_surface.space.get.zOrigin, 'm', 'ft')
+        sub_surface_z = Geometry.get_surface_z_values([sub_surface]).max + UnitConversions.convert(sub_surface.space.get.zOrigin, 'm', 'ft')
 
         overhangs_depth = args[:geometry_eaves_depth]
         overhangs_distance_to_top_of_window = eaves_z - sub_surface_z # difference between max z coordinates of eaves and this window
@@ -4603,19 +4609,33 @@ class HPXMLFile
         next unless (foundation_locations.include? surface.interior_adjacent_to) ||
                     (foundation_locations.include? surface.exterior_adjacent_to) ||
                     (surf_type == 'slabs' && surface.interior_adjacent_to == HPXML::LocationLivingSpace) ||
-                    (surf_type == 'floors' && surface.exterior_adjacent_to == HPXML::LocationOutside)
+                    (surf_type == 'floors' && [HPXML::LocationOutside, HPXML::LocationManufacturedHomeUnderBelly].include?(surface.exterior_adjacent_to))
 
         surf_hash['ids'] << surface.id
       end
     end
 
+    if args[:geometry_foundation_type].start_with?(HPXML::FoundationTypeBellyAndWing)
+      foundation_type = HPXML::FoundationTypeBellyAndWing
+      if args[:geometry_foundation_type].end_with?('WithSkirt')
+        belly_wing_skirt_present = true
+      elsif args[:geometry_foundation_type].end_with?('NoSkirt')
+        belly_wing_skirt_present = false
+      else
+        fail 'Unepected belly and wing foundation type.'
+      end
+    else
+      foundation_type = args[:geometry_foundation_type]
+    end
+
     hpxml.foundations.add(id: "Foundation#{hpxml.foundations.size + 1}",
-                          foundation_type: args[:geometry_foundation_type],
+                          foundation_type: foundation_type,
                           attached_to_slab_idrefs: surf_ids['slabs']['ids'],
                           attached_to_floor_idrefs: surf_ids['floors']['ids'],
                           attached_to_foundation_wall_idrefs: surf_ids['foundation_walls']['ids'],
                           attached_to_wall_idrefs: surf_ids['walls']['ids'],
-                          attached_to_rim_joist_idrefs: surf_ids['rim_joists']['ids'])
+                          attached_to_rim_joist_idrefs: surf_ids['rim_joists']['ids'],
+                          belly_wing_skirt_present: belly_wing_skirt_present)
   end
 
   def self.set_heating_systems(hpxml, args)
@@ -4639,9 +4659,8 @@ class HPXMLFile
       heating_efficiency_afue = args[:heating_system_heating_efficiency]
     elsif [HPXML::HVACTypeElectricResistance,
            HPXML::HVACTypeStove,
-           HPXML::HVACTypePortableHeater,
-           HPXML::HVACTypeFireplace,
-           HPXML::HVACTypeFixedHeater].include?(heating_system_type)
+           HPXML::HVACTypeSpaceHeater,
+           HPXML::HVACTypeFireplace].include?(heating_system_type)
       heating_efficiency_percent = args[:heating_system_heating_efficiency]
     end
 
@@ -4941,7 +4960,7 @@ class HPXMLFile
 
     if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace].include?(heating_system_type) || heating_system_type.include?(HPXML::HVACTypeBoiler)
       heating_efficiency_afue = args[:heating_system_2_heating_efficiency]
-    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace].include?(heating_system_type)
+    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypeSpaceHeater, HPXML::HVACTypeFireplace].include?(heating_system_type)
       heating_efficiency_percent = args[:heating_system_2_heating_efficiency]
     end
 
@@ -5001,6 +5020,8 @@ class HPXMLFile
     # FanCoil?
     fan_coil_distribution_systems = []
     hpxml.heating_systems.each do |heating_system|
+      next unless heating_system.primary_system
+
       if args[:heating_system_type].include?('Fan Coil')
         fan_coil_distribution_systems << heating_system
       end
@@ -5066,8 +5087,34 @@ class HPXMLFile
       ducts_supply_surface_area = args[:ducts_supply_surface_area].get
     end
 
+    if args[:ducts_supply_surface_area_fraction].is_initialized
+      ducts_supply_area_fraction = args[:ducts_supply_surface_area_fraction].get
+    end
+
     if args[:ducts_return_surface_area].is_initialized
       ducts_return_surface_area = args[:ducts_return_surface_area].get
+    end
+
+    if args[:ducts_return_surface_area_fraction].is_initialized
+      ducts_return_area_fraction = args[:ducts_return_surface_area_fraction].get
+    end
+
+    if (not ducts_supply_location.nil?) && ducts_supply_surface_area.nil? && ducts_supply_area_fraction.nil?
+      # Supply duct location without any area inputs provided; set area fraction
+      if ducts_supply_location == HPXML::LocationLivingSpace
+        ducts_supply_area_fraction = 1.0
+      else
+        ducts_supply_area_fraction = HVAC.get_default_duct_fraction_outside_conditioned_space(args[:geometry_unit_num_floors_above_grade])
+      end
+    end
+
+    if (not ducts_return_location.nil?) && ducts_return_surface_area.nil? && ducts_return_area_fraction.nil?
+      # Return duct location without any area inputs provided; set area fraction
+      if ducts_return_location == HPXML::LocationLivingSpace
+        ducts_return_area_fraction = 1.0
+      else
+        ducts_return_area_fraction = HVAC.get_default_duct_fraction_outside_conditioned_space(args[:geometry_unit_num_floors_above_grade])
+      end
     end
 
     if args[:ducts_supply_buried_insulation_level].is_initialized
@@ -5083,7 +5130,8 @@ class HPXMLFile
                                 duct_insulation_r_value: args[:ducts_supply_insulation_r],
                                 duct_buried_insulation_level: ducts_supply_buried_insulation_level,
                                 duct_location: ducts_supply_location,
-                                duct_surface_area: ducts_supply_surface_area)
+                                duct_surface_area: ducts_supply_surface_area,
+                                duct_fraction_area: ducts_supply_area_fraction)
 
     if not ([HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && args[:cooling_system_is_ducted])
       hvac_distribution.ducts.add(id: "Ducts#{hvac_distribution.ducts.size + 1}",
@@ -5091,12 +5139,48 @@ class HPXMLFile
                                   duct_insulation_r_value: args[:ducts_return_insulation_r],
                                   duct_buried_insulation_level: ducts_return_buried_insulation_level,
                                   duct_location: ducts_return_location,
-                                  duct_surface_area: ducts_return_surface_area)
+                                  duct_surface_area: ducts_return_surface_area,
+                                  duct_fraction_area: ducts_return_area_fraction)
+    end
+
+    if (not ducts_supply_area_fraction.nil?) && (ducts_supply_area_fraction < 1)
+      # OS-HPXML needs duct fractions to sum to 1; add remaining ducts in living space.
+      hvac_distribution.ducts.add(id: "Ducts#{hvac_distribution.ducts.size + 1}",
+                                  duct_type: HPXML::DuctTypeSupply,
+                                  duct_insulation_r_value: 0.0,
+                                  duct_location: HPXML::LocationLivingSpace,
+                                  duct_fraction_area: 1.0 - ducts_supply_area_fraction)
+    end
+
+    if not hvac_distribution.ducts.find { |d| d.duct_type == HPXML::DuctTypeReturn }.nil?
+      if (not ducts_return_area_fraction.nil?) && (ducts_return_area_fraction < 1)
+        # OS-HPXML needs duct fractions to sum to 1; add remaining ducts in living space.
+        hvac_distribution.ducts.add(id: "Ducts#{hvac_distribution.ducts.size + 1}",
+                                    duct_type: HPXML::DuctTypeReturn,
+                                    duct_insulation_r_value: 0.0,
+                                    duct_location: HPXML::LocationLivingSpace,
+                                    duct_fraction_area: 1.0 - ducts_return_area_fraction)
+      end
     end
 
     # If duct surface areas are defaulted, set CFA served
     if hvac_distribution.ducts.select { |d| d.duct_surface_area.nil? }.size > 0
-      hvac_distribution.conditioned_floor_area_served = args[:geometry_unit_cfa]
+      max_fraction_load_served = 0.0
+      hvac_distribution.hvac_systems.each do |hvac_system|
+        if hvac_system.respond_to?(:fraction_heat_load_served)
+          if hvac_system.is_a?(HPXML::HeatingSystem) && hvac_system.is_heat_pump_backup_system
+            # HP backup system, use HP fraction heat load served
+            fraction_heat_load_served = hvac_system.primary_heat_pump.fraction_heat_load_served
+          else
+            fraction_heat_load_served = hvac_system.fraction_heat_load_served
+          end
+          max_fraction_load_served = [max_fraction_load_served, fraction_heat_load_served].max
+        end
+        if hvac_system.respond_to?(:fraction_cool_load_served)
+          max_fraction_load_served = [max_fraction_load_served, hvac_system.fraction_cool_load_served].max
+        end
+      end
+      hvac_distribution.conditioned_floor_area_served = args[:geometry_unit_cfa] * max_fraction_load_served
     end
   end
 

@@ -1673,10 +1673,10 @@ Assumption
 **********
 
 
-.. _hvac_secondary_heating_type_and_fuel:
+.. _hvac_secondary_heating_fuel:
 
-HVAC Secondary Heating Type And Fuel
-------------------------------------
+HVAC Secondary Heating Fuel
+---------------------------
 
 Description
 ***********
@@ -1691,7 +1691,29 @@ manually created
 Source
 ******
 
-n/a
+
+Assumption
+**********
+
+
+.. _hvac_secondary_heating_partial_space_conditioning:
+
+HVAC Secondary Heating Partial Space Conditioning
+-------------------------------------------------
+
+Description
+***********
+
+Fraction of heat load served by secondary heating system (not used in project_national).
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
 
 Assumption
 **********

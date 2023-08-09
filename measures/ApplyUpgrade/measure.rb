@@ -433,15 +433,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       osw_out = "upgraded#{i + 1}.osw" if i > 0
       next unless not apply_measures(dir, measures_to_apply, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', osw_out)
 
-      new_runner.result.warnings.each do |warning|
-        runner.registerWarning(warning.logMessage)
-      end
-      new_runner.result.info.each do |info|
-        runner.registerInfo(info.logMessage)
-      end
-      new_runner.result.errors.each do |error|
-        runner.registerError(error.logMessage)
-      end
+      register_logs(runner, new_runner)
       return false
     end
 
@@ -450,6 +442,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # We need upgraded.xml (and not just home.xml) for UpgradeCosts
     in_path = File.expand_path('../home.xml')
     FileUtils.cp(hpxml_path, in_path)
+
+    register_logs(runner, new_runner)
 
     return true
   end

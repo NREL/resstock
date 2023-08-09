@@ -7,7 +7,7 @@ require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'
 
-class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
+class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
   def setup
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
     @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')

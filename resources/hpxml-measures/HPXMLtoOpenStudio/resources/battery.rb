@@ -24,14 +24,17 @@ class Battery
       end
 
       nominal_capacity_kwh = battery.nominal_capacity_kwh # kWh
-      usable_fraction = battery.usable_capacity_kwh / nominal_capacity_kwh
+      usable_capacity_kwh = battery.usable_capacity_kwh
+      usable_fraction = usable_capacity_kwh / nominal_capacity_kwh
     else
       if battery.usable_capacity_ah.nil?
         fail "UsableCapacity and NominalCapacity for Battery '#{battery.id}' must be in the same units."
       end
 
       nominal_capacity_kwh = get_kWh_from_Ah(battery.nominal_capacity_ah, nominal_voltage) # kWh
-      usable_fraction = battery.usable_capacity_ah / battery.nominal_capacity_ah
+      usable_capacity_ah = battery.usable_capacity_ah
+      usable_capacity_kwh = get_kWh_from_Ah(usable_capacity_ah, nominal_voltage) # kWh
+      usable_fraction = usable_capacity_ah / battery.nominal_capacity_ah
     end
 
     return if rated_power_output <= 0 || nominal_capacity_kwh <= 0 || nominal_voltage <= 0
@@ -163,6 +166,10 @@ class Battery
     battery_losses_output_var.setUpdateFrequency('SystemTimestep')
     battery_losses_output_var.setEMSProgramOrSubroutineName(battery_losses_program)
     battery_losses_output_var.setUnits('J')
+
+    elcd.additionalProperties.setFeature('HPXML_ID', battery.id)
+    elcs.additionalProperties.setFeature('HPXML_ID', battery.id)
+    elcs.additionalProperties.setFeature('UsableCapacity_kWh', Float(usable_capacity_kwh))
   end
 
   def self.get_battery_default_values(has_garage = false)
