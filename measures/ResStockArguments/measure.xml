@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>2b2588b3-4f9a-4495-934d-9c654f5693c9</version_id>
-  <version_modified>2023-07-14T22:34:18Z</version_modified>
+  <version_id>96e03c00-108a-4f14-ae2d-26c8a1200ac6</version_id>
+  <version_modified>2023-08-08T01:14:10Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -167,6 +167,10 @@
           <value>apartment unit</value>
           <display_name>apartment unit</display_name>
         </choice>
+        <choice>
+          <value>manufactured home</value>
+          <display_name>manufactured home</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
@@ -319,6 +323,14 @@
         <choice>
           <value>AboveApartment</value>
           <display_name>AboveApartment</display_name>
+        </choice>
+        <choice>
+          <value>BellyAndWingWithSkirt</value>
+          <display_name>BellyAndWingWithSkirt</display_name>
+        </choice>
+        <choice>
+          <value>BellyAndWingNoSkirt</value>
+          <display_name>BellyAndWingNoSkirt</display_name>
         </choice>
       </choices>
     </argument>
@@ -1315,16 +1327,12 @@
           <display_name>Stove</display_name>
         </choice>
         <choice>
-          <value>PortableHeater</value>
-          <display_name>PortableHeater</display_name>
+          <value>SpaceHeater</value>
+          <display_name>SpaceHeater</display_name>
         </choice>
         <choice>
           <value>Fireplace</value>
           <display_name>Fireplace</display_name>
-        </choice>
-        <choice>
-          <value>FixedHeater</value>
-          <display_name>FixedHeater</display_name>
         </choice>
         <choice>
           <value>Shared Boiler w/ Baseboard</value>
@@ -1857,16 +1865,12 @@
           <display_name>Stove</display_name>
         </choice>
         <choice>
-          <value>PortableHeater</value>
-          <display_name>PortableHeater</display_name>
+          <value>SpaceHeater</value>
+          <display_name>SpaceHeater</display_name>
         </choice>
         <choice>
           <value>Fireplace</value>
           <display_name>Fireplace</display_name>
-        </choice>
-        <choice>
-          <value>FixedHeater</value>
-          <display_name>FixedHeater</display_name>
         </choice>
       </choices>
     </argument>
@@ -2023,6 +2027,13 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>ducts_supply_surface_area_fraction</name>
+      <display_name>ducts_supply_surface_area_fraction</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>ducts_return_location</name>
       <display_name>ducts_return_location</display_name>
       <type>String</type>
@@ -2049,6 +2060,13 @@
     <argument>
       <name>ducts_return_surface_area</name>
       <display_name>ducts_return_surface_area</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ducts_return_surface_area_fraction</name>
+      <display_name>ducts_return_surface_area_fraction</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -5125,7 +5143,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4BDB3CDC</checksum>
+      <checksum>45217B29</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>

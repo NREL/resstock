@@ -27,6 +27,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
 
       # Extra files to test
       'extra-auto.xml' => 'base-sfd.xml',
+      'extra-auto-duct-locations.xml' => 'extra-auto.xml',
       'extra-pv-roofpitch.xml' => 'base-sfd.xml',
       'extra-dhw-solar-latitude.xml' => 'base-sfd.xml',
       'extra-second-refrigerator.xml' => 'base-sfd.xml',
@@ -150,8 +151,6 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-sfd-conditioned-basement-zero-foundation-height.xml' => 'base-sfd.xml',
       'error-sfd-adiabatic-walls.xml' => 'base-sfd.xml',
       'error-mf-bottom-crawlspace-zero-foundation-height.xml' => 'base-mf.xml',
-      'error-ducts-location-and-areas-not-same-type.xml' => 'base-sfd.xml',
-      'error-second-heating-system-serves-total-heat-load.xml' => 'base-sfd.xml',
       'error-second-heating-system-but-no-primary-heating.xml' => 'base-sfd.xml',
       'error-second-heating-system-ducted-with-ducted-primary-heating.xml' => 'base-sfd.xml',
       'error-sfa-no-building-num-units.xml' => 'base-sfa.xml',
@@ -190,7 +189,6 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'warning-sfd-slab-non-zero-foundation-height.xml' => 'base-sfd.xml',
       'warning-mf-bottom-slab-non-zero-foundation-height.xml' => 'base-mf.xml',
       'warning-slab-non-zero-foundation-height-above-grade.xml' => 'base-sfd.xml',
-      'warning-second-heating-system-serves-majority-heat.xml' => 'base-sfd.xml',
       'warning-vented-crawlspace-with-wall-and-ceiling-insulation.xml' => 'base-sfd.xml',
       'warning-unvented-crawlspace-with-wall-and-ceiling-insulation.xml' => 'base-sfd.xml',
       'warning-unconditioned-basement-with-wall-and-ceiling-insulation.xml' => 'base-sfd.xml',
@@ -208,8 +206,6 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-mf-conditioned-basement' => 'Conditioned basement/crawlspace foundation type for apartment units is not currently supported.',
       'error-mf-conditioned-crawlspace' => 'Conditioned basement/crawlspace foundation type for apartment units is not currently supported.',
       'error-mf-bottom-crawlspace-zero-foundation-height.xml' => "Foundation type of 'UnventedCrawlspace' cannot have a height of zero.",
-      'error-ducts-location-and-areas-not-same-type.xml' => 'Duct location and surface area not both defaulted or not both specified.',
-      'error-second-heating-system-serves-total-heat-load.xml' => 'The fraction of heat load served by the second heating system is 100%.',
       'error-second-heating-system-but-no-primary-heating.xml' => 'A second heating system was specified without a primary heating system.',
       'error-second-heating-system-ducted-with-ducted-primary-heating.xml' => "A ducted heat pump with 'separate' ducted backup is not supported.",
       'error-sfa-no-building-num-units.xml' => 'Did not specify the number of units in the building for single-family attached or apartment units.',
@@ -250,7 +246,6 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'warning-sfd-slab-non-zero-foundation-height.xml' => "Foundation type of 'SlabOnGrade' cannot have a non-zero height. Assuming height is zero.",
       'warning-mf-bottom-slab-non-zero-foundation-height.xml' => "Foundation type of 'SlabOnGrade' cannot have a non-zero height. Assuming height is zero.",
       'warning-slab-non-zero-foundation-height-above-grade.xml' => 'Specified a slab foundation type with a non-zero height above grade.',
-      'warning-second-heating-system-serves-majority-heat.xml' => 'The fraction of heat load served by the second heating system is greater than or equal to 50%.',
       'warning-vented-crawlspace-with-wall-and-ceiling-insulation.xml' => 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.',
       'warning-unvented-crawlspace-with-wall-and-ceiling-insulation.xml' => 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.',
       'warning-unconditioned-basement-with-wall-and-ceiling-insulation.xml' => 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.',
@@ -662,6 +657,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args.delete('clothes_washer_location')
       args.delete('clothes_dryer_location')
       args.delete('refrigerator_location')
+    elsif ['extra-auto-duct-locations.xml'].include? hpxml_file
+      args['ducts_supply_location'] = HPXML::LocationAtticUnvented
+      args['ducts_return_location'] = HPXML::LocationAtticUnvented
     elsif ['extra-pv-roofpitch.xml'].include? hpxml_file
       args['pv_system_module_type'] = HPXML::PVModuleTypeStandard
       args['pv_system_2_module_type'] = HPXML::PVModuleTypeStandard
@@ -1008,11 +1006,6 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['geometry_foundation_height'] = 0.0
       args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
       args.delete('foundation_wall_insulation_distance_to_bottom')
-    elsif ['error-ducts-location-and-areas-not-same-type.xml'].include? hpxml_file
-      args.delete('ducts_supply_location')
-    elsif ['error-second-heating-system-serves-total-heat-load.xml'].include? hpxml_file
-      args['heating_system_2_type'] = HPXML::HVACTypeFireplace
-      args['heating_system_2_fraction_heat_load_served'] = 1.0
     elsif ['error-second-heating-system-but-no-primary-heating.xml'].include? hpxml_file
       args['heating_system_type'] = 'none'
       args['heating_system_2_type'] = HPXML::HVACTypeFireplace
@@ -1123,10 +1116,6 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
       args['geometry_foundation_height'] = 0.0
       args.delete('foundation_wall_insulation_distance_to_bottom')
-    elsif ['warning-second-heating-system-serves-majority-heat.xml'].include? hpxml_file
-      args['heating_system_fraction_heat_load_served'] = 0.4
-      args['heating_system_2_type'] = HPXML::HVACTypeFireplace
-      args['heating_system_2_fraction_heat_load_served'] = 0.6
     elsif ['warning-vented-crawlspace-with-wall-and-ceiling-insulation.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceVented
       args['geometry_foundation_height'] = 3.0
