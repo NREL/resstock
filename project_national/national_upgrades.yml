@@ -111,6 +111,14 @@ upgrades:
           - value: 1.05
             multiplier: Wall Area, Below-Grade (ft^2)
         lifetime: 999
+      - &duct_location_unvented_crawlspace
+        option: Duct Location|Unvented Crawlspace
+        apply_logic:
+          and:
+            - Geometry Foundation Type|Vented Crawlspace
+            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+                - Geometry Building Level MF|None
+                - Geometry Building Level MF|Bottom
 
   - upgrade_name: Rim Joists
     options:
@@ -231,6 +239,7 @@ upgrades:
       - *insulation_sheathing_r_5
       - *geometry_foundation_type_unvented_crawlspace
       - *insulation_foundation_wall_wall_r_10_exterior
+      - *duct_location_unvented_crawlspace
       - *insulation_rim_joist_r_13_interior
       - *insulation_ceiling_r_60
       - *infiltration_reduction_25_percent
