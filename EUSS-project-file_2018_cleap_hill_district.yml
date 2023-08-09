@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: . # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /scratch/lliu2/cleap_factsheets/hill_district/hill_district_2k_v2 #/projects/enduse/euss/resstock_runs/res_full_01_2018_550k_20220725
+output_directory: /scratch/lliu2/cleap_factsheets/hill_district/hill_district_1k_v3 #/projects/enduse/euss/resstock_runs/res_full_01_2018_550k_20220725
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
@@ -10,43 +10,43 @@ baseline:
   n_buildings_represented: 100324 #133172057
 
 sampler:
-  type: residential_quota
-  args:
-    n_datapoints: 100 #11366800
-  type: residential_quota_downselect
-  args: 
-    n_datapoints: 2000
-    logic:
-      - PUMA|PA, 01701
-      - or:
-        - Area Median Income|0-30%
-        - Area Median Income|30-60%
-        - Area Median Income|60-80%
-      - Vintage|<1940
-      - or:
-        - Geometry Wall Type|Brick
-        - Geometry Wall Type|Concrete
-      - not:
-        - or:
-          - Infiltration|3 ACH50
-          - Infiltration|4 ACH50
-          - Infiltration|5 ACH50
-          - Infiltration|6 ACH50
-          - HVAC Cooling Type|Heat Pump
-          - HVAC Heating Type|Ducted Heat Pump
-          - HVAC Heating Type|Non-Ducted Heat Pump
-          - Heating Fuel|Propane
-          - Geometry Floor Area|3000-3999
-          - Geometry Floor Area|4000+ 
-          - Insulation Ceiling|R-49
-          - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
-          - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
-          - Water Heater Efficiency|Electric Heat Pump, 80 gal
-          - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
-    resample: true
-  # type: precomputed
-  # args:
-  #   sample_file: buildstock_hill_district_2k.csv
+  #type: residential_quota
+  #args:
+  #  n_datapoints: 100 #11366800
+  #type: residential_quota_downselect
+  #args: 
+  #  n_datapoints: 1000
+  #  logic:
+  #    - PUMA|PA, 01701
+  #    - or:
+  #      - Area Median Income|0-30%
+  #      - Area Median Income|30-60%
+  #      - Area Median Income|60-80%
+  #    - Vintage|<1940
+  #    - or:
+  #      - Geometry Wall Type|Brick
+  #      - Geometry Wall Type|Concrete
+  #    - not:
+  #      - or:
+  #        - Infiltration|3 ACH50
+  #        - Infiltration|4 ACH50
+  #        - Infiltration|5 ACH50
+  #        - Infiltration|6 ACH50
+  #        - HVAC Cooling Type|Heat Pump
+  #        - HVAC Heating Type|Ducted Heat Pump
+  #        - HVAC Heating Type|Non-Ducted Heat Pump
+  #        - Heating Fuel|Propane
+  #        - Geometry Floor Area|3000-3999
+  #        - Geometry Floor Area|4000+ 
+  #        - Insulation Ceiling|R-49
+  #        - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+  #        - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+  #        - Water Heater Efficiency|Electric Heat Pump, 80 gal
+  #        - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+  #  resample: true
+   type: precomputed
+   args:
+     sample_file: /scratch/lliu2/cleap_factsheets/hill_district/buildstock_hill_district_downselected_1k.csv
 
 workflow_generator: 
   type: residential_hpxml
@@ -111,7 +111,7 @@ eagle:
   n_jobs: 20 #CHECK for full run, probably want hundreds
   minutes_per_sim: 3
   sampling:
-    time: 60 #CHECK for full run, probably want higher (e.g. 60)
+    time: 10 #1440 #CHECK for full run, probably want higher (e.g. 60)
   postprocessing:
     time: 240
     n_workers: 32 #CHECK for full run, probably want like 32
