@@ -103,7 +103,6 @@ class TestRunAnalysis < Minitest::Test
       next if _expected_warning_message(message, "Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       next if _expected_warning_message(message, 'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units. [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0]')
       next if _expected_warning_message(message, 'Home with conditioned basement has floor insulation.')
-      next if _expected_warning_message(message, 'ResStockArguments: max heating or cooling load served for ducted system(s) cannot be determined. Correcting has ducts assumption to no ducts.')
 
       if !testing
         next if _expected_warning_message(message, 'Unable to find sql file at')
@@ -302,6 +301,11 @@ class TestRunAnalysis < Minitest::Test
 
     system(@command)
 
+    cli_output_log = File.join(@testing_baseline, 'cli_output.log')
+    assert(File.exist?(cli_output_log))
+    cli_output = File.read(cli_output_log)
+    _assert_and_puts(cli_output, 'ERROR', false)
+
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'run2')))
@@ -320,6 +324,11 @@ class TestRunAnalysis < Minitest::Test
     @command += yml
 
     system(@command)
+
+    cli_output_log = File.join(@testing_baseline, 'cli_output.log')
+    assert(File.exist?(cli_output_log))
+    cli_output = File.read(cli_output_log)
+    _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))

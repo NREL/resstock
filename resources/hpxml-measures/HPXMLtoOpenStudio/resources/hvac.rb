@@ -3628,9 +3628,19 @@ class HVAC
     end
   end
 
-  def self.get_default_duct_surface_area(duct_type, ncfl_ag, cfa_served, n_returns)
-    # Fraction of primary ducts (ducts outside conditioned space)
+  def self.get_default_duct_fraction_outside_conditioned_space(ncfl_ag)
+    # Equation based on ASHRAE 152
+    # https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet
     f_out = (ncfl_ag <= 1) ? 1.0 : 0.75
+    return f_out
+  end
+
+  def self.get_default_duct_surface_area(duct_type, ncfl_ag, cfa_served, n_returns)
+    # Equations based on ASHRAE 152
+    # https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet
+
+    # Fraction of primary ducts (ducts outside conditioned space)
+    f_out = get_default_duct_fraction_outside_conditioned_space(ncfl_ag)
 
     if duct_type == HPXML::DuctTypeSupply
       primary_duct_area = 0.27 * cfa_served * f_out

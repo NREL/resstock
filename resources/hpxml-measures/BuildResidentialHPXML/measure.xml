@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>1fcda896-05c3-49a8-93d6-3d49c15fa301</version_id>
-  <version_modified>2023-07-26T21:30:02Z</version_modified>
+  <version_id>a5a42263-d8b3-45cc-a81f-0348eaabd6ba</version_id>
+  <version_modified>2023-07-31T19:28:38Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -3101,9 +3101,18 @@
     <argument>
       <name>ducts_supply_surface_area</name>
       <display_name>Ducts: Supply Surface Area</display_name>
-      <description>The surface area of the supply ducts. If not provided, the OS-HPXML default is used.</description>
+      <description>The supply ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>ft^2</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ducts_supply_surface_area_fraction</name>
+      <display_name>Ducts: Supply Area Fraction</display_name>
+      <description>The fraction of supply ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.</description>
+      <type>Double</type>
+      <units>frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -3228,9 +3237,18 @@
     <argument>
       <name>ducts_return_surface_area</name>
       <display_name>Ducts: Return Surface Area</display_name>
-      <description>The surface area of the return ducts. If not provided, the OS-HPXML default is used.</description>
+      <description>The return ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>ft^2</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ducts_return_surface_area_fraction</name>
+      <display_name>Ducts: Return Area Fraction</display_name>
+      <description>The fraction of return ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.</description>
+      <type>Double</type>
+      <units>frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -6691,7 +6709,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>DA29841B</checksum>
+      <checksum>85ADFF0F</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
@@ -6703,7 +6721,7 @@
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>F156DFA0</checksum>
+      <checksum>E0489256</checksum>
     </file>
   </files>
 </measure>

@@ -1380,9 +1380,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
         hpxml.heating_systems[i].fraction_heat_load_served = 0.35
       end
     end
+  elsif ['base-hvac-ducts-area-fractions.xml'].include? hpxml_file
+    hpxml.hvac_distributions[0].ducts[2].duct_location = HPXML::LocationExteriorWall
+    hpxml.hvac_distributions[0].ducts[2].duct_insulation_r_value = 4.0
   elsif ['base-enclosure-2stories.xml',
-         'base-enclosure-2stories-garage.xml',
-         'base-hvac-ducts-area-fractions.xml'].include? hpxml_file
+         'base-enclosure-2stories-garage.xml'].include? hpxml_file
     hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[0].ducts[0].dup
     hpxml.hvac_distributions[0].ducts[-1].id = "Ducts#{hpxml.hvac_distributions[0].ducts.size}"
     hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[0].ducts[1].dup
@@ -1391,18 +1393,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.hvac_distributions[0].ducts[2].duct_surface_area = 37.5
     hpxml.hvac_distributions[0].ducts[3].duct_location = HPXML::LocationLivingSpace
     hpxml.hvac_distributions[0].ducts[3].duct_surface_area = 12.5
-    if hpxml_file == 'base-hvac-ducts-area-fractions.xml'
-      hpxml.hvac_distributions[0].ducts[0].duct_surface_area = nil
-      hpxml.hvac_distributions[0].ducts[1].duct_surface_area = nil
-      hpxml.hvac_distributions[0].ducts[2].duct_surface_area = nil
-      hpxml.hvac_distributions[0].ducts[3].duct_surface_area = nil
-      hpxml.hvac_distributions[0].ducts[0].duct_fraction_area = 0.75
-      hpxml.hvac_distributions[0].ducts[1].duct_fraction_area = 0.75
-      hpxml.hvac_distributions[0].ducts[2].duct_fraction_area = 0.25
-      hpxml.hvac_distributions[0].ducts[3].duct_fraction_area = 0.25
-      hpxml.hvac_distributions[0].conditioned_floor_area_served = 4050.0
-      hpxml.hvac_distributions[0].number_of_return_registers = 3
-    end
   elsif ['base-hvac-ducts-effective-rvalue.xml'].include? hpxml_file
     hpxml.hvac_distributions[0].ducts[0].duct_insulation_r_value = nil
     hpxml.hvac_distributions[0].ducts[1].duct_insulation_r_value = nil
