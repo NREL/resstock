@@ -115,6 +115,7 @@ class TestRunAnalysis < Minitest::Test
         next if _expected_warning_message(message, 'No windows specified, the model will not include window heat transfer. [context: /HPXML/Building/BuildingDetails]')
         next if _expected_warning_message(message, 'No interior lighting specified, the model will not include interior lighting energy use. [context: /HPXML/Building/BuildingDetails]')
         next if _expected_warning_message(message, 'No exterior lighting specified, the model will not include exterior lighting energy use. [context: /HPXML/Building/BuildingDetails]')
+        next if _expected_warning_message(message, 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.')
       end
 
       flunk "Unexpected cli_output.log message found: #{message}"
