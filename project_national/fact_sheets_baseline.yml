@@ -4,19 +4,19 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/small_run_baseline_20230627/
+output_directory: /projects/abctypol/largeee/test_runs/small_run_baseline_20230809_30k/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: precomputed
   args:
-    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_100_20230609.csv #../buildstock_100_20230609.csv # relative to file
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230809.csv #../buildstock_30k_20230809.csv # relative to file
 
 #sampler:
 #  type: residential_quota_downselect
 #  args:
-#    n_datapoints: 2200010 #30000 #100
+#    n_datapoints: 30000 #2200010 #30000 #100
 #    logic:
 #      not:
 #        - or: 
@@ -31,7 +31,7 @@ baseline:
 eagle:
   n_jobs: 1
   minutes_per_sim: 4
-  account: abctypol
+  account: opanalysis #cityprize #abctypol
   postprocessing:
     time: 20
     n_workers: 1
