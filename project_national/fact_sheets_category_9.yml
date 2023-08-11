@@ -220,6 +220,566 @@ upgrades:
                         # then used 1.2052 multiplier to inflate from Jan 2019 to April 2023 https://www.bls.gov/data/inflation_calculator.htm
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+    options:
+    #Light Touch Envelope Measures
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      - &ducts_category1 #improving leakage a lot, and insulation
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|30% Leakage, Uninsulated
+            - Duct Leakage and Insulation|30% Leakage, R-4
+            - Duct Leakage and Insulation|30% Leakage, R-6
+        costs:
+          - value: 3.08 # 2.2 $/(ft^2) is the mid-value from REMDB, 30% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2145&bcId=6185
+                        # REMDB doesn't have the data for 30% Leakage, R-4 and 30% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 2.2
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category2 #improving leakage a lot only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|30% Leakage, R-8
+        costs:
+          - value: 1.134 # 0.81 $/(ft^2) is Mid-value from REMDB https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2143&bcId=6187
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category3 #improving leakage some, and insulation
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|20% Leakage, Uninsulated
+            - Duct Leakage and Insulation|20% Leakage, R-4
+            - Duct Leakage and Insulation|20% Leakage, R-6 
+        costs:
+          - value: 2.52 # 1.8 $/(ft^2) is Mid-value from REMDB, 20% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2145&bcId=6716
+                        # REMDB doesn't have the data for 20% Leakage, R-4 and 20% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 1.8
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category4 #improving leakage some only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|20% Leakage, R-8
+        costs:
+          - value: 0.56 # 0.4 $/(ft^2) is the Mid-value from REMDB https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2143&bcId=6718
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      # ducts categories 5 & 6 from ABC work do not apply to any duct configurations in the current ResStock baseline
+        # - &ducts_category5 #improving leakage a little, and insulation
+        #   option: Ducts|10% Leakage, R-8
+        #   apply_logic:
+        #     or: 
+        #       - Ducts|15% Leakage, Uninsulated
+        #       - Ducts|15% Leakage, R-4
+        #       - Ducts|15% Leakage, R-6
+        #       - Ducts|14% Leakage, Uninsulated
+        #       - Ducts|14% Leakage, R-4
+        #       - Ducts|14% Leakage, R-6
+        #   costs:
+        #     - value: 2.06 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+        #       multiplier: Duct Unconditioned Surface Area (ft^2)
+        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+        # - &ducts_category6 #improving leakage a little only
+        #   option: Ducts|10% Leakage, R-8
+        #   apply_logic:
+        #     or: 
+        #       - Ducts|15% Leakage, R-8
+        #       - Ducts|14% Leakage, R-8
+        #   costs:
+        #     - value: 0.26 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+        #       multiplier: Duct Unconditioned Surface Area (ft^2)
+        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category7 #improving insulation only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|10% Leakage, Uninsulated
+            - Duct Leakage and Insulation|10% Leakage, R-4
+            - Duct Leakage and Insulation|10% Leakage, R-6
+        costs:
+          - value: 1.96 # 1.4 $/(ft^2) Mid-value from REMDB, 10% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2144&bcId=6725
+                        # REMDB doesn't have the data for 10% Leakage, R-4 and 10% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category8 #improving insulation only
+        option: Duct Leakage and Insulation|0% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|0% Leakage, Uninsulated
+        costs:
+          - value: 1.96 # 1.4 $/(ft^2) Mid-value from REMDB, 10% Leakage, Uninsulated to 10% Leakage, R-8
+                        # REMDB doesn't have the option for replace - Ducts|0% Leakage, Uninsulated to - Ducts|0% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2144&bcId=6725
+                        # REMDB doesn't have the data for 10% Leakage, R-4 and 10% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf#Drill-and-fill insulation (R-13) for homes with no insulation and wood stud walls
+      - &Drill-and-fill
+        option: Insulation Wall|Wood Stud, R-13
+        apply_logic:
+          - Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.70 # 2.24 is from LBNL data (https://doi.org/10.20357/B7FP4D); 
+                        # mid-value of NREL REMDB: 2.20 (https://remdb.nrel.gov/measures?group_id=12&component_type_id=184&actionId=703&bcId=2015)
+                        #then used 1.2052 multiplier to 2.24 to inflate from Jan 2019 to April 2023
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &foundation_wall_insulation #adding even if there is already exterior foundation wall insulation - is that what's wanted? <-- isn't there logic below to only do this if uninsulated?
+        option: Insulation Foundation Wall|Wall R-10, Interior
+        apply_logic: #including vented crawlspaces since they will be sealed and become unvented crawlspaces in the same package. 
+          - or:
+            - Geometry Foundation Type|Unvented Crawlspace
+            - Geometry Foundation Type|Vented Crawlspace
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 2.38 # 1.7 $/(ft^2) is the mid-value from REMDB https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2469&bcId=6565
+                        # EUSS RR1 use 3.1 instead of 1.7
+                         # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &foundation_wall_insulation_finished_basement
+        option: Insulation Foundation Wall|Wall R-10, Interior
+        apply_logic: 
+          - Geometry Foundation Type|Heated Basement
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 4.96 # $/ft2 (3.54* $/ft2 * 1.4 inflation) based on cost in BEopt
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf        
+      - &rim_joist_insulation
+        option: Insulation Rim Joist|R-10, Exterior
+        apply_logic: 
+          - or:
+            - Geometry Foundation Type|Unvented Crawlspace
+            - Geometry Foundation Type|Vented Crawlspace
+            - Geometry Foundation Type|Heated Basement
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 2.52 # $/ft2 (1.8* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2469&bcId=6565
+            multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+
+      # Unvented Crawlspace Location for Ducts
+      - &seal_vented_duct_location
+        option: Duct Location|Unvented Crawlspace
+        apply_logic:
+          - Duct Location|Vented Crawlspace
+          - Geometry Foundation Type|Vented Crawlspace
+          - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+              - Geometry Building Level MF|None
+              - Geometry Building Level MF|Bottom
+
+      #seal crawlspace vents
+      - &seal_vented_crawlspaces
+        option: Geometry Foundation Type|Unvented Crawlspace
+        apply_logic:
+          - Geometry Foundation Type|Vented Crawlspace
+          - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+              - Geometry Building Level MF|None
+              - Geometry Building Level MF|Bottom
+        costs:
+          - value: 1.176 # $/ft2 (0.84* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2600&bcId=5169
+            multiplier: Floor Area, Foundation (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #insulate finished attics and cathedral ceilings to R-30
+
+      - &EnergyStar_window_northern
+        option: Windows|EnergyStar, Northern
+        apply_logic:
+          - Energystar Climate Zone 2023|Northern
+        costs:
+          - value: 44.40
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &EnergyStar_window_north_central
+        option: Windows|EnergyStar, North-Central
+        apply_logic:
+          - Energystar Climate Zone 2023|North-Central
+        costs:
+          - value: 41.50
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &EnergyStar_window_south_central
+        option: Windows|EnergyStar, South-Central
+        apply_logic:
+          - Energystar Climate Zone 2023|South-Central
+        costs:
+          - value: 38.70
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &EnergyStar_window_southern
+        option: Windows|EnergyStar, Southern
+        apply_logic:
+          - Energystar Climate Zone 2023|Southern
+          - not: Windows|Triple, Low-E, Non-metal, Air, L-Gain
+        costs:
+          - value: 32.50
+            multiplier: Window Area (ft^2)
+        lifetime: 30  
+
+      #1 XPS (R-5/in) Exterior wall insulation for dwelling units with wall insulation of less than R-19  
+      - &exterior_wall_insulation
+        option: Insulation Sheathing|R-5
+        apply_logic:
+          - or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-15
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+
+        costs:
+          - value: 1.85 # chioke's eqn
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_6ACH50
+          - or: &climate_1_through_2
+            - ASHRAE IECC Climate Zone 2004|1A
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+          - or:
+            - Infiltration|6 ACH50
+        costs:
+          - value: 0.43 # 0.31 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_7ACH50
+          - or: *climate_1_through_2
+          - Infiltration|7 ACH50
+        costs:
+          - value: 0.73 # # 0.52 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_8ACH50
+          - or: *climate_1_through_2
+          - Infiltration|8 ACH50
+        costs:
+          - value: 1.02 # 0.73 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_10ACH50
+          - or: *climate_1_through_2
+          - Infiltration|10 ACH50
+        costs:
+          - value: 1.68 # 1.2 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_15ACH50
+          - or: *climate_1_through_2
+          - Infiltration|15 ACH50
+        costs:
+          - value: 3.08 # 2.2 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_20ACH50
+          - or: *climate_1_through_2
+          - Infiltration|15 ACH50
+        costs:
+          - value: 4.62 # 3.3 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_25ACH50
+          - or: *climate_1_through_2
+          - Infiltration|25 ACH50
+        costs:
+          - value: 6.02 # 4.3 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_30ACH50
+          - or: *climate_1_through_2
+          - Infiltration|30 ACH50
+        costs:
+          - value: 7.52 # 5.37 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_40ACH50
+          - or: *climate_1_through_2
+          - Infiltration|40 ACH50
+        costs:
+          - value: 10.47 # 7.48 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_50ACH50
+          - or: *climate_1_through_2
+          - Infiltration|50 ACH50
+        costs:
+          - value: 13.42 # 9.59 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_4ACH50
+          - or: &climate_3_through_7
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - Infiltration|4 ACH50
+        costs:
+          - value: 0.43 # 0.31 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_5ACH50
+          - or: *climate_3_through_7
+          - Infiltration|5 ACH50
+        costs:
+          - value: 0.73 # 0.52 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_6ACH50
+          - or: *climate_3_through_7
+          - Infiltration|6 ACH50
+        costs:
+          - value: 1.02 # 0.73 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_7ACH50
+          - or: *climate_3_through_7
+          - Infiltration|7 ACH50
+        costs:
+          - value: 1.32 # 0.94 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_8ACH50
+          - or: *climate_3_through_7
+          - Infiltration|8 ACH50
+        costs:
+          - value: 1.68 # 1.2 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_10ACH50
+          - or: *climate_3_through_7
+          - Infiltration|10 ACH50
+        costs:
+          - value: 2.24 # 1.6 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_15ACH50
+          - or: *climate_3_through_7
+          - Infiltration|15 ACH50
+        costs:
+          - value: 3.64 # 2.6 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_20ACH50
+          - or: *climate_3_through_7
+          - Infiltration|20 ACH50
+        costs:
+          - value: 5.18 # 3.7 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_25ACH50
+          - or: *climate_3_through_7
+          - Infiltration|25 ACH50
+        costs:
+          - value: 6.58 # 4.7 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_30ACH50
+          - or: *climate_3_through_7
+          - Infiltration|30 ACH50
+        costs:
+          - value: 8.07 # 5.77 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_40ACH50
+          - or: *climate_3_through_7
+          - Infiltration|40 ACH50
+        costs:
+          - value: 11.01 # 7.86 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_50ACH50
+          - or: *climate_3_through_7
+          - Infiltration|50 ACH50
+        costs:
+          - value: 13.94 # 9.96 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &roof_insulation_to_R30
+        option: Insulation Roof|Finished, R-30
+        apply_logic: 
+          - or:
+            - Geometry Attic Type|Finished Attic or Cathedral Ceilings
+            - Geometry Building Level MF|Top
+          - or:
+            - Insulation Roof|Finished, Uninsulated
+            - Insulation Roof|Finished, R-7
+            - Insulation Roof|Finished, R-13
+            - Insulation Roof|Finished, R-19
+        costs:
+          - value: 6.02 # $/ft2 (4.3* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=13&component_type_id=395&actionId=2621&bcId=6283
+            multiplier: Roof Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+        option: Mechanical Ventilation|ERV, 72%
+        apply_logic:
+          - or:
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|15 ACH50
+            - Infiltration|10 ACH50
+            - Infiltration|8 ACH50
+            - Infiltration|7 ACH50
+            - Infiltration|6 ACH50
+            - Infiltration|5 ACH50
+            - Infiltration|4 ACH50
+        costs:
+          - value: 1820 # remdb has 2010 prices for ERV 70%;
+                        #ERV, 70% Unit value: $1820 (1300 * 1.4) + $6.72/cfm (4.8 * 1.4)
+            multiplier: Fixed (1)
+          - value: 6.72
+            multiplier: Flow Rate, Mechanical Ventilation (cfm)
+        lifetime: 18 # remdb
+      - &add_exhaust_ventilation_IECC_CZ1A-2A-2B
+        option: Mechanical Ventilation|Exhaust
+        apply_logic:
+          - or:
+            - ASHRAE IECC Climate Zone 2004|1A
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|15 ACH50
+            - Infiltration|10 ACH50
+            - Infiltration|8 ACH50
+            - Infiltration|7 ACH50
+            - Infiltration|6 ACH50
+        costs:
+          - value: 504 # remdb as 2020 prices for "install exhaust"
+                       # 360*1.4 = $504
+            multiplier: Fixed (1)
+        lifetime: 18 # remdb
+      - &add_exhaust_ventilation_IECC_3A-3B-3C
+        option: Mechanical Ventilation|Exhaust
+        apply_logic:
+          - or:
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|15 ACH50
+            - Infiltration|10 ACH50
+            - Infiltration|8 ACH50
+            - Infiltration|7 ACH50
+            - Infiltration|6 ACH50
+            - Infiltration|5 ACH50
+            - Infiltration|4 ACH50
+        costs:
+          - value: 504 # remdb as 2020 prices for "install exhaust"
+                       # 360*1.4 = $504
+            multiplier: Fixed (1)
+        lifetime: 18 # remdb
 
 
   - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing natural gas + advanced envelope  
@@ -240,7 +800,55 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
-
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
 
   - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing propane + advanced envelope  
     # Category 5, Measure 1 + Category 2, Measure 3
@@ -261,6 +869,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
   - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing fuel oil + advanced envelope  
     # Category 5, Measure 1 + Category 2, Measure 3
       #ASHP
@@ -280,6 +938,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
 
 
@@ -327,6 +1035,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing natural gas + advanced envelope  
     # Category 5, Measure 2 + Category 2, Measure 3
@@ -351,6 +1109,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing propane + advanced envelope  
     # Category 5, Measure 2 + Category 2, Measure 3
@@ -375,6 +1183,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing fuel oil + advanced envelope  
     # Category 5, Measure 2 + Category 2, Measure 3
@@ -398,6 +1256,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing elec + advanced envelope 
     # Category 5, Measure 3 + Category 2, Measure 3
@@ -431,6 +1339,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing natural gas + advanced envelope 
     # Category 5, Measure 3 + Category 2, Measure 3
@@ -454,6 +1412,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
 
   - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing propane + advanced envelope 
@@ -478,6 +1486,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing fuel oil + advanced envelope 
     # Category 5, Measure 3 + Category 2, Measure 3
@@ -501,6 +1559,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
 
   - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing elec + advanced envelope 
@@ -547,6 +1655,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing natural gas + advanced envelope 
     # Category 5, Measure 4 + Category 2, Measure 3
@@ -574,6 +1732,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing propane + advanced envelope 
     # Category 5, Measure 4 + Category 2, Measure 3
@@ -600,6 +1808,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing fuel oil + advanced envelope 
     # Category 5, Measure 4 + Category 2, Measure 3
@@ -626,6 +1884,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing elec + advanced envelope 
     # Category 5, Measure 5 + Category 2, Measure 3
@@ -663,6 +1971,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing natural gas + advanced envelope
     # Category 5, Measure 5 + Category 2, Measure 3
     package_apply_logic: *ductless_MSHP_elec_backup_existing_NG
@@ -685,6 +2043,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing propane + advanced envelope 
     # Category 5, Measure 5 + Category 2, Measure 3
@@ -708,6 +2116,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing fuel oil + advanced envelope 
     # Category 5, Measure 5 + Category 2, Measure 3
@@ -731,6 +2189,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing elec + advanced envelope 
     # Category 5, Measure 6 + Category 2, Measure 3
@@ -768,6 +2276,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing natural gas + advanced envelope
     # Category 5, Measure 6 + Category 2, Measure 3
@@ -791,6 +2349,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
       
   - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing propane + advanced envelope 
     # Category 5, Measure 6 + Category 2, Measure 3
@@ -814,6 +2422,56 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
 
   - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing fuel oil + advanced envelope 
     # Category 5, Measure 6 + Category 2, Measure 3
@@ -837,3 +2495,53 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+

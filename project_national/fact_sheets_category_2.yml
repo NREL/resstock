@@ -4,38 +4,38 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/medium_run_category_2_20230810/
+output_directory: /projects/abctypol/largeee/test_runs/small_run_category_2_20230811/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: precomputed
   args:
-    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230809.csv #../buildstock_100_20230609.csv # relative to file
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_100_20230809.csv #../buildstock_100_20230609.csv # relative to file
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
   skip_sims: true
 
-eagle:
-  n_jobs: 50
-  minutes_per_sim: 4
-  account: abctypol
-  postprocessing:
-    time: 80
-    n_workers: 20
-  sampling:
-    time: 5
-
 # eagle:
-#   n_jobs: 1
+#   n_jobs: 50
 #   minutes_per_sim: 4
 #   account: abctypol
 #   postprocessing:
-#     time: 20
-#     n_workers: 1
+#     time: 80
+#     n_workers: 20
 #   sampling:
 #     time: 5
+
+eagle:
+  n_jobs: 1
+  minutes_per_sim: 4
+  account: abctypol
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 5
 
 postprocessing:
   keep_individual_timeseries: true # false
@@ -463,6 +463,17 @@ upgrades:
           - value: 2.52 # $/ft2 (1.8* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2469&bcId=6565
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+
+      # Unvented Crawlspace Location for Ducts
+      - &seal_vented_duct_location
+        option: Duct Location|Unvented Crawlspace
+        apply_logic:
+          - Duct Location|Vented Crawlspace
+          - Geometry Foundation Type|Vented Crawlspace
+          - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+              - Geometry Building Level MF|None
+              - Geometry Building Level MF|Bottom
+
       #seal crawlspace vents
       - &seal_vented_crawlspaces
         option: Geometry Foundation Type|Unvented Crawlspace
@@ -497,6 +508,7 @@ upgrades:
       - *foundation_wall_insulation_finished_basement
       - *rim_joist_insulation
       - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
       #EnergyStar Windows
       - *EnergyStar_window_northern
       - *EnergyStar_window_north_central
@@ -828,6 +840,7 @@ upgrades:
       - *foundation_wall_insulation_finished_basement
       - *rim_joist_insulation
       - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
       #EnergyStar Windows
       - *EnergyStar_window_northern
       - *EnergyStar_window_north_central

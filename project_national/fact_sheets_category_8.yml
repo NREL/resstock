@@ -221,6 +221,174 @@ upgrades:
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
 
+      - &ducts_category1 #improving leakage a lot, and insulation
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|30% Leakage, Uninsulated
+            - Duct Leakage and Insulation|30% Leakage, R-4
+            - Duct Leakage and Insulation|30% Leakage, R-6
+        costs:
+          - value: 3.08 # 2.2 $/(ft^2) is the mid-value from REMDB, 30% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2145&bcId=6185
+                        # REMDB doesn't have the data for 30% Leakage, R-4 and 30% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 2.2
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category2 #improving leakage a lot only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|30% Leakage, R-8
+        costs:
+          - value: 1.134 # 0.81 $/(ft^2) is Mid-value from REMDB https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2143&bcId=6187
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category3 #improving leakage some, and insulation
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|20% Leakage, Uninsulated
+            - Duct Leakage and Insulation|20% Leakage, R-4
+            - Duct Leakage and Insulation|20% Leakage, R-6 
+        costs:
+          - value: 2.52 # 1.8 $/(ft^2) is Mid-value from REMDB, 20% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2145&bcId=6716
+                        # REMDB doesn't have the data for 20% Leakage, R-4 and 20% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 1.8
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category4 #improving leakage some only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|20% Leakage, R-8
+        costs:
+          - value: 0.56 # 0.4 $/(ft^2) is the Mid-value from REMDB https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2143&bcId=6718
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      # ducts categories 5 & 6 from ABC work do not apply to any duct configurations in the current ResStock baseline
+        # - &ducts_category5 #improving leakage a little, and insulation
+        #   option: Ducts|10% Leakage, R-8
+        #   apply_logic:
+        #     or: 
+        #       - Ducts|15% Leakage, Uninsulated
+        #       - Ducts|15% Leakage, R-4
+        #       - Ducts|15% Leakage, R-6
+        #       - Ducts|14% Leakage, Uninsulated
+        #       - Ducts|14% Leakage, R-4
+        #       - Ducts|14% Leakage, R-6
+        #   costs:
+        #     - value: 2.06 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+        #       multiplier: Duct Unconditioned Surface Area (ft^2)
+        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+        # - &ducts_category6 #improving leakage a little only
+        #   option: Ducts|10% Leakage, R-8
+        #   apply_logic:
+        #     or: 
+        #       - Ducts|15% Leakage, R-8
+        #       - Ducts|14% Leakage, R-8
+        #   costs:
+        #     - value: 0.26 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+        #       multiplier: Duct Unconditioned Surface Area (ft^2)
+        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category7 #improving insulation only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|10% Leakage, Uninsulated
+            - Duct Leakage and Insulation|10% Leakage, R-4
+            - Duct Leakage and Insulation|10% Leakage, R-6
+        costs:
+          - value: 1.96 # 1.4 $/(ft^2) Mid-value from REMDB, 10% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2144&bcId=6725
+                        # REMDB doesn't have the data for 10% Leakage, R-4 and 10% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category8 #improving insulation only
+        option: Duct Leakage and Insulation|0% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|0% Leakage, Uninsulated
+        costs:
+          - value: 1.96 # 1.4 $/(ft^2) Mid-value from REMDB, 10% Leakage, Uninsulated to 10% Leakage, R-8
+                        # REMDB doesn't have the option for replace - Ducts|0% Leakage, Uninsulated to - Ducts|0% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2144&bcId=6725
+                        # REMDB doesn't have the data for 10% Leakage, R-4 and 10% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf#Drill-and-fill insulation (R-13) for homes with no insulation and wood stud walls
+      - &Drill-and-fill
+        option: Insulation Wall|Wood Stud, R-13
+        apply_logic:
+          - Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.70 # 2.24 is from LBNL data (https://doi.org/10.20357/B7FP4D); 
+                        # mid-value of NREL REMDB: 2.20 (https://remdb.nrel.gov/measures?group_id=12&component_type_id=184&actionId=703&bcId=2015)
+                        #then used 1.2052 multiplier to 2.24 to inflate from Jan 2019 to April 2023
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &foundation_wall_insulation #adding even if there is already exterior foundation wall insulation - is that what's wanted? <-- isn't there logic below to only do this if uninsulated?
+        option: Insulation Foundation Wall|Wall R-10, Interior
+        apply_logic: #including vented crawlspaces since they will be sealed and become unvented crawlspaces in the same package. 
+          - or:
+            - Geometry Foundation Type|Unvented Crawlspace
+            - Geometry Foundation Type|Vented Crawlspace
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 2.38 # 1.7 $/(ft^2) is the mid-value from REMDB https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2469&bcId=6565
+                        # EUSS RR1 use 3.1 instead of 1.7
+                         # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &foundation_wall_insulation_finished_basement
+        option: Insulation Foundation Wall|Wall R-10, Interior
+        apply_logic: 
+          - Geometry Foundation Type|Heated Basement
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 4.96 # $/ft2 (3.54* $/ft2 * 1.4 inflation) based on cost in BEopt
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf        
+      - &rim_joist_insulation
+        option: Insulation Rim Joist|R-10, Exterior
+        apply_logic: 
+          - or:
+            - Geometry Foundation Type|Unvented Crawlspace
+            - Geometry Foundation Type|Vented Crawlspace
+            - Geometry Foundation Type|Heated Basement
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 2.52 # $/ft2 (1.8* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2469&bcId=6565
+            multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+
+      # Unvented Crawlspace Location for Ducts
+      - &seal_vented_duct_location
+        option: Duct Location|Unvented Crawlspace
+        apply_logic:
+          - Duct Location|Vented Crawlspace
+          - Geometry Foundation Type|Vented Crawlspace
+          - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+              - Geometry Building Level MF|None
+              - Geometry Building Level MF|Bottom
+
+      #seal crawlspace vents
+      - &seal_vented_crawlspaces
+        option: Geometry Foundation Type|Unvented Crawlspace
+        apply_logic:
+          - Geometry Foundation Type|Vented Crawlspace
+          - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+              - Geometry Building Level MF|None
+              - Geometry Building Level MF|Bottom
+        costs:
+          - value: 1.176 # $/ft2 (0.84* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2600&bcId=5169
+            multiplier: Floor Area, Foundation (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #insulate finished attics and cathedral ceilings to R-30
 
   - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing natural gas + intermediate envelope  
     # Category 5, Measure 1 + Category 2, Measure 2
@@ -240,7 +408,21 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
-
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
 
   - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing propane + intermediate envelope  
     # Category 5, Measure 1 + Category 2, Measure 2
@@ -261,6 +443,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
   - upgrade_name: EnergyStar ducted ASHP w/ elec backup - existing fuel oil + intermediate envelope  
     # Category 5, Measure 1 + Category 2, Measure 2
       #ASHP
@@ -280,6 +478,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
 
 
@@ -327,6 +541,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing natural gas + intermediate envelope  
     # Category 5, Measure 2 + Category 2, Measure 2
@@ -351,6 +581,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing propane + intermediate envelope  
     # Category 5, Measure 2 + Category 2, Measure 2
@@ -375,6 +621,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: EnergyStar cold climate ducted ASHP w/ elec backup - existing fuel oil + intermediate envelope  
     # Category 5, Measure 2 + Category 2, Measure 2
@@ -398,6 +660,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing elec + intermediate envelope 
     # Category 5, Measure 3 + Category 2, Measure 2
@@ -431,6 +709,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing natural gas + intermediate envelope 
     # Category 5, Measure 3 + Category 2, Measure 2
@@ -454,6 +748,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
 
   - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing propane + intermediate envelope 
@@ -478,6 +788,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: Higher efficiency ducted ASHP w/ elec backup - existing fuel oil + intermediate envelope 
     # Category 5, Measure 3 + Category 2, Measure 2
@@ -501,6 +827,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
 
   - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing elec + intermediate envelope 
@@ -547,6 +889,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing natural gas + intermediate envelope 
     # Category 5, Measure 4 + Category 2, Measure 2
@@ -574,6 +932,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing propane + intermediate envelope 
     # Category 5, Measure 4 + Category 2, Measure 2
@@ -600,6 +974,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: EnergyStar ductless MSHP w/ elec backup - existing fuel oil + intermediate envelope 
     # Category 5, Measure 4 + Category 2, Measure 2
@@ -626,6 +1016,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing elec + intermediate envelope 
     # Category 5, Measure 5 + Category 2, Measure 2
@@ -663,6 +1069,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing natural gas + intermediate envelope
     # Category 5, Measure 5 + Category 2, Measure 2
     package_apply_logic: *ductless_MSHP_elec_backup_existing_NG
@@ -685,6 +1107,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing propane + intermediate envelope 
     # Category 5, Measure 5 + Category 2, Measure 2
@@ -708,6 +1146,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: EnergyStar cold climate ductless MSHP w/ elec backup - existing fuel oil + intermediate envelope 
     # Category 5, Measure 5 + Category 2, Measure 2
@@ -731,6 +1185,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing elec + intermediate envelope 
     # Category 5, Measure 6 + Category 2, Measure 2
@@ -768,6 +1238,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing natural gas + intermediate envelope
     # Category 5, Measure 6 + Category 2, Measure 2
@@ -791,6 +1277,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
       
   - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing propane + intermediate envelope 
     # Category 5, Measure 6 + Category 2, Measure 2
@@ -814,6 +1316,22 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
 
   - upgrade_name: Higher efficiency ductless MSHP w/ elec backup - existing fuel oil + intermediate envelope 
     # Category 5, Measure 6 + Category 2, Measure 2
@@ -837,3 +1355,19 @@ upgrades:
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - *infiltration_30pct_reduction
       ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
