@@ -1,0 +1,1632 @@
+# bsb env: buildstock-2023.05.0
+# Please check: n=100, use timestep, else monthly timeseries_frequency
+schema_version: '0.3'
+os_version: 3.6.1
+buildstock_directory: ../ # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /projects/abctypol/largeee/test_runs/small_run_category_10_20230626/
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: precomputed
+  args:
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_100_20230609.csv #../buildstock_100_20230609.csv # relative to file
+
+baseline:
+  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+  skip_sims: true
+
+eagle:
+  n_jobs: 1
+  minutes_per_sim: 4
+  account: abctypol
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 5
+
+postprocessing:
+  keep_individual_timeseries: false
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: largeee
+      prefix: test_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: largeee_test_runs
+      max_crawling_time: 1200
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    emissions:
+      - scenario_name: LRMER_HighRECost_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_HighRECost_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+      - scenario_name: LRMER_LowRECost_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_LowRECost_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+      - scenario_name: LRMER_MidCase_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_MidCase_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+    utility_bills:
+      - scenario_name: Utility Rates - Fixed + Variable
+        simple_filepath: data/simple_rates/State.tsv
+
+
+    simulation_output_report:
+      timeseries_frequency: timestep #monthly
+      include_timeseries_total_consumptions: true
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_total_loads: false
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+
+### -- Upgrades ---
+# Category 10:  Heat Pumps with Existing Backup + Light Touch Envelope
+upgrades:
+  - upgrade_name: EnergyStar ducted ASHP w/ existing natural gas backup + light touch envelope
+    # Category 6, Measure 1 + Category 2, Measure 1
+
+    package_apply_logic: &dualfuel_ASHP_apply_logic_NG
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Natural Gas
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
+
+    options:
+      #ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts_NG
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF, Separate Backup
+        apply_logic: &dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
+          - not: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+        costs: &costs_ashp_ducted_SEER_16_9-2_HSPF
+        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+          - value: 4821.83 # for HSPF 9.2
+            multiplier: Fixed (1)
+          - value: 167.64
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_ashp_ducted_SEER_16_9-2_HSPF 15
+
+      # Boilers as secondary systems
+      # Set secondary boiler fuel type
+      - &ng_boiler_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Type And Fuel|Natural Gas Boiler
+        apply_logic:
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+      # Set secondary fuel boiler efficiency levels
+      - &secondary_boiler_76
+        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+      - &secondary_boiler_80
+        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+      - &secondary_boiler_90
+        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+
+
+      # Wall/Floor Furnace as secondary systems
+      # Set secondary Wall/Floor Furnace fuel type
+      - &ng_wallfloor_furnace_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
+        apply_logic:
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
+
+      # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - &secondary_wallfloor_furnace_60
+        option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+      - &secondary_wallfloor_furnace_68
+        option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+
+      #### ducted furnace ####
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_60_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 60% AFUE NG, 5F-40F switchover band
+        apply_logic: &dual-fuel_60pctAFUE_NG_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_76_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 76% AFUE NG, 5F-40F switchover band
+        apply_logic: &dual-fuel_76pctAFUE_NG_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_80_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 80% AFUE NG, 5F-40F switchover band
+        apply_logic: &dual-fuel_80pctAFUE_NG_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_92-5_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 92.5% AFUE NG, 5F-40F switchover band
+        apply_logic: &dual-fuel_92-5pctAFUE_NG_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+
+
+      - &HP_cooling_efficiency_ducted
+        option: HVAC Cooling Efficiency|Ducted Heat Pump
+      - &100_percent_conditioned
+        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
+
+      #Attic floor insulation up to IECC 2021 levels for homes with vented attics with R-13 or less insulation
+      - &attic_insulation_IECC_CZ1A
+        option: Insulation Ceiling|R-30
+        apply_logic:
+          - ASHRAE IECC Climate Zone 2004|1A
+          - Geometry Attic Type|Vented Attic
+          - or:
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+        costs:
+          - value: 0.0482 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.0344 https://www.bls.gov/data/inflation_calculator.htm
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
+          - value: 0.2163 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.1545
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf 
+      - &attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+        option: Insulation Ceiling|R-49
+        apply_logic:
+          - or:
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C
+          - Geometry Attic Type|Vented Attic
+          - or:
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+        costs:
+          - value: 0.0482 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.0344 https://www.bls.gov/data/inflation_calculator.htm
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
+          - value: 0.2163 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.1545
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+        option: Insulation Ceiling|R-60
+        apply_logic:
+          - or:
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - Geometry Attic Type|Vented Attic
+          - or:
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
+        costs:
+          - value: 0.0482 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.0344 https://www.bls.gov/data/inflation_calculator.htm
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
+          - value: 0.2163 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.1545
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #General air sealing - 30% total reduction in ACH50 for homes with greater than 10 ACH50
+      #30% is consistent with median reduction documented in https://doi.org/10.20357/B7FP4D 
+      - &infiltration_30pct_reduction
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|18.5 ACH50
+            - Infiltration|15 ACH50
+            - Infiltration|11.25 ACH50
+        costs:
+          - value: 0.53 # from LBNL data for general air sealing (https://doi.org/10.20357/B7FP4D).
+                        # Interpolated between 20% and 40% reductions to get $0.44/ft2,
+                        # then used 1.2052 multiplier to inflate from Jan 2019 to April 2023 https://www.bls.gov/data/inflation_calculator.htm
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+
+      - &ducts_category1 #improving leakage a lot, and insulation
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|30% Leakage, Uninsulated
+            - Duct Leakage and Insulation|30% Leakage, R-4
+            - Duct Leakage and Insulation|30% Leakage, R-6
+        costs:
+          - value: 3.08 # 2.2 $/(ft^2) is the mid-value from REMDB, 30% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2145&bcId=6185
+                        # REMDB doesn't have the data for 30% Leakage, R-4 and 30% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 2.2
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category2 #improving leakage a lot only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|30% Leakage, R-8
+        costs:
+          - value: 1.134 # 0.81 $/(ft^2) is Mid-value from REMDB https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2143&bcId=6187
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category3 #improving leakage some, and insulation
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|20% Leakage, Uninsulated
+            - Duct Leakage and Insulation|20% Leakage, R-4
+            - Duct Leakage and Insulation|20% Leakage, R-6 
+        costs:
+          - value: 2.52 # 1.8 $/(ft^2) is Mid-value from REMDB, 20% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2145&bcId=6716
+                        # REMDB doesn't have the data for 20% Leakage, R-4 and 20% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 1.8
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category4 #improving leakage some only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|20% Leakage, R-8
+        costs:
+          - value: 0.56 # 0.4 $/(ft^2) is the Mid-value from REMDB https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2143&bcId=6718
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      # ducts categories 5 & 6 from ABC work do not apply to any duct configurations in the current ResStock baseline
+        # - &ducts_category5 #improving leakage a little, and insulation
+        #   option: Ducts|10% Leakage, R-8
+        #   apply_logic:
+        #     or: 
+        #       - Ducts|15% Leakage, Uninsulated
+        #       - Ducts|15% Leakage, R-4
+        #       - Ducts|15% Leakage, R-6
+        #       - Ducts|14% Leakage, Uninsulated
+        #       - Ducts|14% Leakage, R-4
+        #       - Ducts|14% Leakage, R-6
+        #   costs:
+        #     - value: 2.06 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+        #       multiplier: Duct Unconditioned Surface Area (ft^2)
+        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+        # - &ducts_category6 #improving leakage a little only
+        #   option: Ducts|10% Leakage, R-8
+        #   apply_logic:
+        #     or: 
+        #       - Ducts|15% Leakage, R-8
+        #       - Ducts|14% Leakage, R-8
+        #   costs:
+        #     - value: 0.26 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+        #       multiplier: Duct Unconditioned Surface Area (ft^2)
+        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category7 #improving insulation only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|10% Leakage, Uninsulated
+            - Duct Leakage and Insulation|10% Leakage, R-4
+            - Duct Leakage and Insulation|10% Leakage, R-6
+        costs:
+          - value: 1.96 # 1.4 $/(ft^2) Mid-value from REMDB, 10% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2144&bcId=6725
+                        # REMDB doesn't have the data for 10% Leakage, R-4 and 10% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category8 #improving insulation only
+        option: Duct Leakage and Insulation|0% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|0% Leakage, Uninsulated
+        costs:
+          - value: 1.96 # 1.4 $/(ft^2) Mid-value from REMDB, 10% Leakage, Uninsulated to 10% Leakage, R-8
+                        # REMDB doesn't have the option for replace - Ducts|0% Leakage, Uninsulated to - Ducts|0% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2144&bcId=6725
+                        # REMDB doesn't have the data for 10% Leakage, R-4 and 10% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf#Drill-and-fill insulation (R-13) for homes with no insulation and wood stud walls
+      - &Drill-and-fill
+        option: Insulation Wall|Wood Stud, R-13
+        apply_logic:
+          - Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.70 # 2.24 is from LBNL data (https://doi.org/10.20357/B7FP4D); 
+                        # mid-value of NREL REMDB: 2.20 (https://remdb.nrel.gov/measures?group_id=12&component_type_id=184&actionId=703&bcId=2015)
+                        #then used 1.2052 multiplier to 2.24 to inflate from Jan 2019 to April 2023
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &foundation_wall_insulation #adding even if there is already exterior foundation wall insulation - is that what's wanted? <-- isn't there logic below to only do this if uninsulated?
+        option: Insulation Foundation Wall|Wall R-10, Interior
+        apply_logic: #including vented crawlspaces since they will be sealed and become unvented crawlspaces in the same package. 
+          - or:
+            - Geometry Foundation Type|Unvented Crawlspace
+            - Geometry Foundation Type|Vented Crawlspace
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 2.38 # 1.7 $/(ft^2) is the mid-value from REMDB https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2469&bcId=6565
+                        # EUSS RR1 use 3.1 instead of 1.7
+                         # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &foundation_wall_insulation_finished_basement
+        option: Insulation Foundation Wall|Wall R-10, Interior
+        apply_logic: 
+          - Geometry Foundation Type|Heated Basement
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 4.96 # $/ft2 (3.54* $/ft2 * 1.4 inflation) based on cost in BEopt
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf        
+      - &rim_joist_insulation
+        option: Insulation Rim Joist|R-10, Exterior
+        apply_logic: 
+          - or:
+            - Geometry Foundation Type|Unvented Crawlspace
+            - Geometry Foundation Type|Vented Crawlspace
+            - Geometry Foundation Type|Heated Basement
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 2.52 # $/ft2 (1.8* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2469&bcId=6565
+            multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+
+      # Unvented Crawlspace Location for Ducts
+      - &seal_vented_duct_location
+        option: Duct Location|Unvented Crawlspace
+        apply_logic:
+          - Duct Location|Vented Crawlspace
+          - Geometry Foundation Type|Vented Crawlspace
+          - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+              - Geometry Building Level MF|None
+              - Geometry Building Level MF|Bottom
+
+      #seal crawlspace vents
+      - &seal_vented_crawlspaces
+        option: Geometry Foundation Type|Unvented Crawlspace
+        apply_logic:
+          - Geometry Foundation Type|Vented Crawlspace
+          - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+              - Geometry Building Level MF|None
+              - Geometry Building Level MF|Bottom
+        costs:
+          - value: 1.176 # $/ft2 (0.84* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2600&bcId=5169
+            multiplier: Floor Area, Foundation (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #insulate finished attics and cathedral ceilings to R-30
+
+
+
+  - upgrade_name: EnergyStar ducted ASHP w/ existing propane backup + light touch envelope
+    # Category 6, Measure 1 + Category 2, Measure 1
+
+    package_apply_logic: &dualfuel_ASHP_apply_logic_propane
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Propane
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
+
+    options:
+      #ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts_propane
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF, Separate Backup 
+        apply_logic: &dualfuel_ASHP_no_ducted_furnace_apply_logic_propane
+          - not: HVAC Heating Type And Fuel|Propane Fuel Furnace
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+
+      # Boilers as secondary systems
+      # Set secondary boiler fuel type
+      - &propane_boiler_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Type And Fuel|Propane Boiler
+        apply_logic:
+          - HVAC Heating Type And Fuel|Propane Fuel Boiler
+      # Set secondary fuel boiler efficiency levels
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+
+
+
+  # Wall/Floor Furnace as secondary systems
+  # Set secondary Wall/Floor Furnace fuel type
+      - &propane_wallfloor_furnace_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+        apply_logic:
+          - HVAC Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+  # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+
+      #### ducted furnace ####
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_60_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 60% AFUE Propane, 5F-40F switchover band
+        apply_logic: &dual-fuel_60pctAFUE_propane_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+          - HVAC Heating Type And Fuel|Propane Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_76_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 76% AFUE Propane, 5F-40F switchover band
+        apply_logic: &dual-fuel_76pctAFUE_propane_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+          - HVAC Heating Type And Fuel|Propane Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_80_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 80% AFUE Propane, 5F-40F switchover band
+        apply_logic: &dual-fuel_80pctAFUE_propane_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+          - HVAC Heating Type And Fuel|Propane Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_92-5_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 92.5% AFUE Propane, 5F-40F switchover band
+        apply_logic: &dual-fuel_92-5pctAFUE_propane_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+          - HVAC Heating Type And Fuel|Propane Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: EnergyStar ducted ASHP w/ existing fuel oil backup + light touch envelope
+    # Category 6, Measure 1 + Category 2, Measure 1
+
+    package_apply_logic: &dualfuel_ASHP_apply_logic_FO
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Fuel Oil
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
+
+    options:
+      #ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_no_shared_ducts_FO
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.2 HSPF, Separate Backup 
+        apply_logic: &dualfuel_ASHP_no_ducted_furnace_apply_logic_FO
+          - not: HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+
+      # Boilers as secondary systems
+      # Set secondary boiler fuel type
+      - &fuel_oil_boiler_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Type And Fuel|Fuel Oil Boiler
+        apply_logic:
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+      # Set secondary fuel boiler efficiency levels
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+
+
+      # Wall/Floor Furnace as secondary systems
+      # Set secondary Wall/Floor Furnace fuel type
+      - &fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+        apply_logic:
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+
+      # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      #### ducted furnace ####
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_60_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 60% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: &dual-fuel_60pctAFUE_FO_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_76_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 76% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: &dual-fuel_76pctAFUE_FO_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_80_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 80% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: &dual-fuel_80pctAFUE_FO_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_92-5_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.2 HSPF, Integrated Backup, 92.5% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: &dual-fuel_92-5pctAFUE_FO_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-2_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-2_HSPF
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing natural gas backup + light touch envelope 
+    # Category 6, Measure 2 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_ASHP_apply_logic_NG
+    options:
+      #ASHP
+      - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts_NG
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup 
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
+        costs: &costs_ashp_ducted_SEER_16_9-5_HSPF
+        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+          - value: 5723.12 # for HSPF 9.5
+            multiplier: Fixed (1)
+          - value: 167.64
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_ashp_ducted_SEER_16_9-5_HSPF 15
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *ng_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *ng_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - &cooling_setpoint_no_offset
+        option: Cooling Setpoint Has Offset|No
+
+      - &cooling_setpoint_offset_magnitude_0
+        option: Cooling Setpoint Offset Magnitude|0F
+      
+      - &cooling_setpoint_offset_period_none
+        option: Cooling Setpoint Offset Period|None
+
+      - &heating_setpoint_no_offset
+        option: Heating Setpoint Has Offset|No
+
+      - &heating_setpoint_offset_magnitude_0
+        option: Heating Setpoint Offset Magnitude|0F
+      
+      - &heating_setpoint_offset_period_none
+        option: Heating Setpoint Offset Period|None
+
+      #### ducted furnace ####
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_60_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 60% AFUE NG, 5F-40F switchover band
+        apply_logic: *dual-fuel_60pctAFUE_NG_furnace_apply_logic      
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_76_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 76% AFUE NG, 5F-40F switchover band
+        apply_logic: *dual-fuel_76pctAFUE_NG_furnace_apply_logic     
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_80_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 80% AFUE NG, 5F-40F switchover band
+        apply_logic: *dual-fuel_80pctAFUE_NG_furnace_apply_logic       
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_92-5_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 92.5% AFUE NG, 5F-40F switchover band
+        apply_logic: *dual-fuel_92-5pctAFUE_NG_furnace_apply_logic     
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing propane backup + light touch envelope 
+    # Category 6, Measure 2 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_ASHP_apply_logic_propane
+    options:
+      #ASHP
+      - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts_propane
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup 
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_propane
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+
+      - *propane_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *propane_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0    
+      - *heating_setpoint_offset_period_none
+
+
+      #### ducted furnace ####
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_60_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 60% AFUE Propane, 5F-40F switchover band
+        apply_logic: *dual-fuel_60pctAFUE_propane_furnace_apply_logic       
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_76_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 76% AFUE Propane, 5F-40F switchover band
+        apply_logic: *dual-fuel_76pctAFUE_propane_furnace_apply_logic    
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_80_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 80% AFUE Propane, 5F-40F switchover band
+        apply_logic: *dual-fuel_80pctAFUE_propane_furnace_apply_logic       
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_92-5_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 92.5% AFUE Propane, 5F-40F switchover band
+        apply_logic: *dual-fuel_92-5pctAFUE_propane_furnace_apply_logic
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing fuel oil backup + light touch envelope 
+    # Category 6, Measure 2 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_ASHP_apply_logic_FO
+
+    options:
+      #ASHP
+      - &ducted_ASHP_EnergyStarCC_exist_backup_no_shared_ducts_FO
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup 
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_FO
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF 
+
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *fuel_oil_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0    
+      - *heating_setpoint_offset_period_none
+
+      #### ducted furnace ####
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_60_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 60% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: *dual-fuel_60pctAFUE_FO_furnace_apply_logic
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_76_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 76% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: *dual-fuel_76pctAFUE_FO_furnace_apply_logic      
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_80_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 80% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: *dual-fuel_80pctAFUE_FO_furnace_apply_logic      
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      - &ducted_ASHP_EnergyStarCC_exist_backup_shared_ducts_92-5_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, CCHP, Integrated Backup, 92.5% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: *dual-fuel_92-5pctAFUE_FO_furnace_apply_logic      
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_16_9-5_HSPF
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: Higher efficiency ducted ASHP w/ existing natural gas backup + light touch envelope  
+    # Category 6, Measure 3 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_ASHP_apply_logic_NG
+    options:
+      #ASHP
+      - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts_NG
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Separate Backup, Max Load  
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
+        costs: &costs_ashp_ducted_SEER_20_11_HSPF
+        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+          - value: 10229.58 # for HSPF 11
+            multiplier: Fixed (1)
+          - value: 167.64
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_ashp_ducted_SEER_20_11_HSPF 15
+
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *ng_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *ng_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+
+ 
+
+      #### ducted furnace ####
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_60_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 60% AFUE NG, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_60pctAFUE_NG_furnace_apply_logic
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_76_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 76% AFUE NG, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_76pctAFUE_NG_furnace_apply_logic     
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_80_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 80% AFUE NG, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_80pctAFUE_NG_furnace_apply_logic     
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_92-5_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 92.5% AFUE NG, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_92-5pctAFUE_NG_furnace_apply_logic      
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: Higher efficiency ducted ASHP w/ existing propane backup + light touch envelope  
+    # Category 6, Measure 3 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_ASHP_apply_logic_propane
+    options:
+      #ASHP
+      - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts_propane
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Separate Backup, Max Load  
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_propane
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *propane_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *propane_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+
+ 
+
+      #### ducted furnace ####
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_60_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 60% AFUE Propane, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_60pctAFUE_propane_furnace_apply_logic       
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_76_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 76% AFUE Propane, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_76pctAFUE_propane_furnace_apply_logic       
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_80_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 80% AFUE Propane, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_80pctAFUE_propane_furnace_apply_logic     
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_92-5_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 92.5% AFUE Propane, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_92-5pctAFUE_propane_furnace_apply_logic   
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: Higher efficiency ducted ASHP w/ existing fuel oil backup + light touch envelope  
+    # Category 6, Measure 3 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_ASHP_apply_logic_FO
+    options:
+      #ASHP
+      - &ducted_ASHP_HigherEfficiency_exist_backup_no_shared_ducts_FO
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Separate Backup, Max Load  
+        apply_logic: *dualfuel_ASHP_no_ducted_furnace_apply_logic_FO
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+
+
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *fuel_oil_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+
+ 
+
+      #### ducted furnace ####
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_60_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 60% AFUE Fuel Oil, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_60pctAFUE_FO_furnace_apply_logic   
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_76_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 76% AFUE Fuel Oil, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_76pctAFUE_FO_furnace_apply_logic     
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_80_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 80% AFUE Fuel Oil, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_80pctAFUE_FO_furnace_apply_logic     
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      - &ducted_ASHP_HigherEfficiency_exist_backup_shared_ducts_92-5_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 20, 11 HSPF, CCHP, Integrated Backup, 92.5% AFUE Fuel Oil, 5F-40F switchover band, Max Load 
+        apply_logic: *dual-fuel_92-5pctAFUE_FO_furnace_apply_logic
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_20_11_HSPF
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: EnergyStar ductless MSHP w/ existing natural gas backup + light touch envelope  
+    # Category 6, Measure 4 + Category 2, Measure 1
+    package_apply_logic: &dualfuel_MSHP_apply_logic_NG
+      - HVAC Has Ducts|No
+      - Heating Fuel|Natural Gas
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
+    options:
+      # MSHP
+      - &ductless_MSHP_EnergyStar_exist_backup
+        option: HVAC Heating Efficiency|MSHP, SEER 16, 9.2 HSPF, Separate Backup, Max Load  
+        apply_logic: &ductless_MSHP_exist_backup_apply_logic
+          - or:
+            - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+            - not: HVAC Cooling Efficiency|Ducted Heat Pump
+            - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+        costs: &costs_mshp_ductless_SEER_16_9-2_HSPF
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
+        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
+          - value: 2733.38
+            multiplier: Fixed (1)
+          - value: 354.96
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ductless_SEER_16_9-2_HSPF 
+          15
+
+      - &HP_cooling_efficiency_ductless
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+      - *100_percent_conditioned
+
+      - *ng_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *ng_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: EnergyStar ductless MSHP w/ existing propane backup + light touch envelope  
+    # Category 6, Measure 4 + Category 2, Measure 1
+    package_apply_logic: &dualfuel_MSHP_apply_logic_propane
+      - HVAC Has Ducts|No
+      - Heating Fuel|Propane
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
+    options:
+      # MSHP
+      - *ductless_MSHP_EnergyStar_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *propane_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *propane_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: EnergyStar ductless MSHP w/ existing fuel oil backup + light touch envelope  
+    # Category 6, Measure 4 + Category 2, Measure 1
+    package_apply_logic: &dualfuel_MSHP_apply_logic_FO
+      - HVAC Has Ducts|No
+      - Heating Fuel|Fuel Oil
+      - not:
+          or:
+            - HVAC Heating Efficiency|Shared Heating
+            - HVAC Cooling Efficiency|Shared Cooling  
+    options:
+      # MSHP
+      - *ductless_MSHP_EnergyStar_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+      - *fuel_oil_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing natural gas backup + light touch envelope  
+    # Category 6, Measure 5 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_MSHP_apply_logic_NG
+    options:
+      - &ductless_MSHP_EnergyStarCC_exist_backup
+        option: HVAC Heating Efficiency|MSHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup, Max Load  
+        apply_logic: *ductless_MSHP_exist_backup_apply_logic
+        costs: &costs_mshp_ductless_SEER_16_9-5_HSPF
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
+        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
+          - value: 2751.95
+            multiplier: Fixed (1)
+          - value: 357.37
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ductless_SEER_16_9-5_HSPF 
+          15
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *ng_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *ng_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing propane backup + light touch envelope  
+    # Category 6, Measure 5 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_MSHP_apply_logic_propane
+    options:
+      - *ductless_MSHP_EnergyStarCC_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *propane_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *propane_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing fuel oil backup + light touch envelope  
+    # Category 6, Measure 5 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_MSHP_apply_logic_FO
+    options:
+      - *ductless_MSHP_EnergyStarCC_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *fuel_oil_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: Higher efficiency ductless MSHP w/ existing natural gas backup + light touch envelope  
+    # Category 6, Measure 6 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_MSHP_apply_logic_NG
+    options:
+      - &ductless_MSHP_HigherEfficiency_exist_backup
+        option: HVAC Heating Efficiency|MSHP, SEER 20, 11 HSPF, CCHP, Separate Backup, Max Load  
+        apply_logic: *ductless_MSHP_exist_backup_apply_logic
+        costs: &costs_mshp_ductless_SEER_20_11_HSPF
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
+        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
+          - value: 2844.81
+            multiplier: Fixed (1)
+          - value: 369.43
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ductless_SEER_20_11_HSPF 
+          15
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *ng_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *ng_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: Higher efficiency ductless MSHP w/ existing propane backup + light touch envelope  
+    # Category 6, Measure 6 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_MSHP_apply_logic_propane
+    options:
+      - *ductless_MSHP_HigherEfficiency_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *propane_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *propane_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: Higher efficiency ductless MSHP w/ existing fuel oil backup + light touch envelope  
+    # Category 6, Measure 6 + Category 2, Measure 1
+    package_apply_logic: *dualfuel_MSHP_apply_logic_FO
+    options:
+      - *ductless_MSHP_HigherEfficiency_exist_backup
+
+      - *HP_cooling_efficiency_ductless
+      - *100_percent_conditioned
+
+      - *fuel_oil_boiler_secondary_heating_type_fuel
+      - *secondary_boiler_76
+      - *secondary_boiler_80
+      - *secondary_boiler_90
+      - *fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
+      - *secondary_wallfloor_furnace_60
+      - *secondary_wallfloor_furnace_68
+
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0     
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *ducts_category8
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
