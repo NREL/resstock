@@ -833,7 +833,8 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'emissions-wrong-filename' => ["Emissions File file path 'invalid-wrong-filename.csv' does not exist."],
                             'emissions-wrong-rows' => ['Emissions File has invalid number of rows'],
                             'heat-pump-backup-system-load-fraction' => ['Heat pump backup system cannot have a fraction heat load served specified.'],
-                            'heat-pump-switchover-temp-elec-backup' => ['Switchover temperature should not be used for a heat pump with electric backup; use compressor lockout temperature instead.'],
+                            'heat-pump-switchover-temp-elec-backup' => ['Switchover temperature should only be used for a heat pump with fossil fuel backup; use compressor lockout temperature instead.'],
+                            'heat-pump-lockout-temps-elec-backup' => ['Similar compressor/backup lockout temperatures should only be used for a heat pump with fossil fuel backup.'],
                             'hvac-distribution-multiple-attached-cooling' => ["Multiple cooling systems found attached to distribution system 'HVACDistribution2'."],
                             'hvac-distribution-multiple-attached-heating' => ["Multiple heating systems found attached to distribution system 'HVACDistribution1'."],
                             'hvac-dse-multiple-attached-cooling' => ["Multiple cooling systems found attached to distribution system 'HVACDistribution1'."],
@@ -971,6 +972,10 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['heat-pump-switchover-temp-elec-backup'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-1-speed.xml'))
         hpxml.heat_pumps[0].backup_heating_switchover_temp = 35.0
+      elsif ['heat-pump-lockout-temps-elec-backup'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-1-speed.xml'))
+        hpxml.heat_pumps[0].compressor_lockout_temp = 35.0
+        hpxml.heat_pumps[0].backup_heating_lockout_temp = 35.0
       elsif ['hvac-invalid-distribution-system-type'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.hvac_distributions.add(id: "HVACDistribution#{hpxml.hvac_distributions.size + 1}",
