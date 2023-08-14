@@ -68,6 +68,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
     hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
+    hpxml_bldg = hpxml.buildings[0]
 
     # Set paths
     output_path = File.join(output_dir, "results_hpxml.#{output_format}")
@@ -95,12 +96,12 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
     # Building outputs
     bldg_outputs.each do |bldg_type, bldg_output|
-      bldg_output.output = get_bldg_output(hpxml, bldg_type)
+      bldg_output.output = get_bldg_output(hpxml_bldg, bldg_type)
     end
 
     # Primary and Secondary
-    if hpxml.primary_hvac_systems.size > 0
-      assign_primary_and_secondary(hpxml, bldg_outputs)
+    if hpxml_bldg.primary_hvac_systems.size > 0
+      assign_primary_and_secondary(hpxml_bldg, bldg_outputs)
     end
 
     # Units
