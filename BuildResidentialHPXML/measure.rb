@@ -5080,28 +5080,29 @@ class HPXMLFile
                                                     duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
   end
 
-  def self.get_location_from_foundation_type(location, foundation_type)
-    if foundation_type == HPXML::FoundationTypeCrawlspaceUnvented
-      return HPXML::LocationCrawlspaceUnvented
-    elsif foundation_type == HPXML::FoundationTypeCrawlspaceVented
-      return HPXML::LocationCrawlspaceVented
-    elsif foundation_type == HPXML::FoundationTypeCrawlspaceConditioned
-      return HPXML::LocationCrawlspaceConditioned
-    else
-      fail "Specified '#{location}' but foundation type is '#{foundation_type}'."
+  def self.get_location(location, foundation_type, attic_type)
+    if location == HPXML::LocationCrawlspace
+      if foundation_type == HPXML::FoundationTypeCrawlspaceUnvented
+        return HPXML::LocationCrawlspaceUnvented
+      elsif foundation_type == HPXML::FoundationTypeCrawlspaceVented
+        return HPXML::LocationCrawlspaceVented
+      elsif foundation_type == HPXML::FoundationTypeCrawlspaceConditioned
+        return HPXML::LocationCrawlspaceConditioned
+      else
+        fail "Specified '#{location}' but foundation type is '#{foundation_type}'."
+      end
+    elsif location == HPXML::LocationAttic
+      if attic_type == HPXML::AtticTypeUnvented
+        return HPXML::LocationAtticUnvented
+      elsif attic_type == HPXML::AtticTypeVented
+        return HPXML::LocationAtticVented
+      elsif attic_type == HPXML::AtticTypeConditioned
+        return HPXML::LocationLivingSpace
+      else
+        fail "Specified '#{location}' but attic type is '#{foundation_type}'."
+      end
     end
-  end
-
-  def self.get_location_from_attic_type(attic_type)
-    if attic_type == HPXML::AtticTypeUnvented
-      return HPXML::LocationAtticUnvented
-    elsif attic_type == HPXML::AtticTypeVented
-      return HPXML::LocationAtticVented
-    elsif attic_type == HPXML::AtticTypeConditioned
-      return HPXML::LocationLivingSpace
-    else
-      fail "Specified '#{location}' but attic type is '#{foundation_type}'."
-    end
+    return location
   end
 
   def self.set_ducts(hpxml, args, hvac_distribution)
@@ -5109,23 +5110,11 @@ class HPXMLFile
     attic_type = hpxml.attics[-1].attic_type
 
     if args[:ducts_supply_location].is_initialized
-      ducts_supply_location = args[:ducts_supply_location].get
-
-      if ducts_supply_location == HPXML::LocationCrawlspace
-        ducts_supply_location = get_location_from_foundation_type(ducts_supply_location, foundation_type)
-      elsif ducts_supply_location == HPXML::LocationAttic
-        ducts_supply_location = get_location_from_attic_type(ducts_supply_location, attic_type)
-      end
+      ducts_supply_location = get_location(args[:ducts_supply_location].get, foundation_type, attic_type)
     end
 
     if args[:ducts_return_location].is_initialized
-      ducts_return_location = args[:ducts_return_location].get
-
-      if ducts_return_location == HPXML::LocationCrawlspace
-        ducts_return_location = get_location_from_foundation_type(ducts_return_location, foundation_type)
-      elsif ducts_return_location == HPXML::LocationAttic
-        ducts_return_location = get_location_from_attic_type(ducts_return_location, attic_type)
-      end
+      ducts_return_location = get_location(args[:ducts_return_location].get, foundation_type, attic_type)
     end
 
     if args[:ducts_supply_surface_area].is_initialized
@@ -5519,13 +5508,7 @@ class HPXMLFile
     attic_type = hpxml.attics[-1].attic_type
 
     if args[:water_heater_location].is_initialized
-      location = args[:water_heater_location].get
-
-      if location == HPXML::LocationCrawlspace
-        location = get_location_from_foundation_type(location, foundation_type)
-      elsif location == HPXML::LocationAttic
-        location = get_location_from_attic_type(location, attic_type)
-      end
+      location = get_location(args[:water_heater_location].get, foundation_type, attic_type)
     end
 
     if args[:water_heater_tank_volume].is_initialized
@@ -5813,13 +5796,7 @@ class HPXMLFile
     attic_type = hpxml.attics[-1].attic_type
 
     if args[:battery_location].is_initialized
-      location = args[:battery_location].get
-
-      if location == HPXML::LocationCrawlspace
-        location = get_location_from_foundation_type(location, foundation_type)
-      elsif location == HPXML::LocationAttic
-        location = get_location_from_attic_type(location, attic_type)
-      end
+      location = get_location(args[:battery_location].get, foundation_type, attic_type)
     end
 
     if args[:battery_power].is_initialized
