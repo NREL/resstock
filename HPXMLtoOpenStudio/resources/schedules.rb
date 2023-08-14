@@ -750,11 +750,11 @@ class Schedule
     # Add off rule(s), will override previous rules
     unavailable_periods.each_with_index do |period, i|
       # Special Values
-      if sch_name.include? Constants.ObjectNameWaterHeaterSetpoint
+      if sch_name.include? Constants.ObjectNameWaterHeaterSetpoint # FIXME: Update
         # Water heater setpoint
         # Temperature of tank < 2C indicates of possibility of freeze.
         value = 2.0
-      elsif sch_name.include? Constants.ObjectNameNaturalVentilation
+      elsif sch_name.include? Constants.ObjectNameNaturalVentilation # FIXME: Update
         if period.natvent_availability == HPXML::ScheduleRegular
           next # don't change the natural ventilation availability schedule
         elsif period.natvent_availability == HPXML::ScheduleAvailable
@@ -1395,6 +1395,10 @@ class SchedulesFile
     convert_setpoints
     @output_schedules_path = output_path
     export()
+  end
+
+  def set_unit_model(unit_model)
+    @model = unit_model
   end
 
   def nil?

@@ -82,14 +82,14 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     warnings = []
 
     # Require full annual simulation if PV
-    if !(@hpxml.header.sim_begin_month == 1 && @hpxml.header.sim_begin_day == 1 && @hpxml.header.sim_end_month == 12 && @hpxml.header.sim_end_day == 31)
-      if @hpxml.pv_systems.size > 0
+    if !(@hpxml_header.sim_begin_month == 1 && @hpxml_header.sim_begin_day == 1 && @hpxml_header.sim_end_month == 12 && @hpxml_header.sim_end_day == 31)
+      if @hpxml_bldg.pv_systems.size > 0
         warnings << 'A full annual simulation is required for calculating utility bills for homes with PV.'
       end
     end
 
     # Require not DSE
-    (@hpxml.heating_systems + @hpxml.heat_pumps).each do |htg_system|
+    (@hpxml_bldg.heating_systems + @hpxml_bldg.heat_pumps).each do |htg_system|
       next unless (htg_system.is_a?(HPXML::HeatingSystem) && htg_system.is_heat_pump_backup_system) || htg_system.fraction_heat_load_served > 0
       next if htg_system.distribution_system_idref.nil?
       next unless htg_system.distribution_system.distribution_system_type == HPXML::HVACDistributionTypeDSE
@@ -98,7 +98,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
       warnings << 'DSE is not currently supported when calculating utility bills.'
     end
-    (@hpxml.cooling_systems + @hpxml.heat_pumps).each do |clg_system|
+    (@hpxml_bldg.cooling_systems + @hpxml_bldg.heat_pumps).each do |clg_system|
       next unless clg_system.fraction_cool_load_served > 0
       next if clg_system.distribution_system_idref.nil?
       next unless clg_system.distribution_system.distribution_system_type == HPXML::HVACDistributionTypeDSE
@@ -115,7 +115,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     warnings = []
 
     # Require full annual simulation if 'Detailed'
-    if !(@hpxml.header.sim_begin_month == 1 && @hpxml.header.sim_begin_day == 1 && @hpxml.header.sim_end_month == 12 && @hpxml.header.sim_end_day == 31)
+    if !(@hpxml_header.sim_begin_month == 1 && @hpxml_header.sim_begin_day == 1 && @hpxml_header.sim_end_month == 12 && @hpxml_header.sim_end_day == 31)
       if !utility_bill_scenario.elec_tariff_filepath.nil?
         warnings << 'A full annual simulation is required for calculating detailed utility bills.'
       end
@@ -161,7 +161,15 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     hpxml_defaults_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
     building_id = @model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
-    @hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
+    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
+
+    # FIXME: Relax this constraint (using a new building_id measure argument?)
+    if hpxml.buildings.size > 1
+      runner.registerWarning('Cannot currently handle an HPXML with multiple Building elements.')
+      return result
+    end
+    @hpxml_header = hpxml.header
+    @hpxml_bldg = hpxml.buildings[0]
 
     warnings = check_for_return_type_warnings()
     return result if !warnings.empty?
@@ -178,19 +186,19 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     # Check for presence of fuels once
     has_fuel = { HPXML::FuelTypeElectricity => true }
-    hpxml_doc = @hpxml.to_oga
+    hpxml_doc = hpxml.to_doc
     Constants.FossilFuels.each do |fuel|
-      has_fuel[fuel] = @hpxml.has_fuel(fuel, hpxml_doc)
+      has_fuel[fuel] = @hpxml_bldg.has_fuel(fuel, hpxml_doc)
     end
 
     # Fuel outputs
     fuels.each do |(fuel_type, is_production), fuel|
       fuel.meters.each do |meter|
         next unless has_fuel[hpxml_fuel_map[fuel_type]]
-        next if is_production && @hpxml.pv_systems.empty?
+        next if is_production && @hpxml_bldg.pv_systems.empty?
 
         result << OpenStudio::IdfObject.load("Output:Meter,#{meter},monthly;").get
-        if fuel_type == FT::Elec && @hpxml.header.utility_bill_scenarios.has_detailed_electric_rates
+        if fuel_type == FT::Elec && @hpxml_header.utility_bill_scenarios.has_detailed_electric_rates
           result << OpenStudio::IdfObject.load("Output:Meter,#{meter},hourly;").get
         else
           result << OpenStudio::IdfObject.load("Output:Meter,#{meter},monthly;").get
@@ -233,9 +241,17 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     hpxml_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
     hpxml_defaults_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
     building_id = @model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
-    @hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
+    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
 
-    return true if @hpxml.header.utility_bill_scenarios.empty?
+    # FIXME: Relax this constraint (using a new building_id measure argument?)
+    if hpxml.buildings.size > 1
+      runner.registerWarning('Cannot currently handle an HPXML with multiple Building elements.')
+      return false
+    end
+    @hpxml_header = hpxml.header
+    @hpxml_bldg = hpxml.buildings[0]
+
+    return true if @hpxml_header.utility_bill_scenarios.empty?
 
     if not File.exist? File.join(output_dir, 'eplusout.msgpack')
       runner.registerError('Cannot find eplusout.msgpack.')
@@ -265,7 +281,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     end
 
     monthly_data = []
-    @hpxml.header.utility_bill_scenarios.each do |utility_bill_scenario|
+    @hpxml_header.utility_bill_scenarios.each do |utility_bill_scenario|
       warnings = check_for_next_type_warnings(utility_bill_scenario)
       if register_warnings(runner, warnings)
         next
@@ -281,19 +297,19 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
       utility_rates, utility_bills = setup_utility_outputs()
 
       # Get utility rates
-      warnings = get_utility_rates(hpxml_path, fuels, utility_rates, utility_bill_scenario, @hpxml.pv_systems)
+      warnings = get_utility_rates(hpxml_path, fuels, utility_rates, utility_bill_scenario, @hpxml_bldg.pv_systems)
       if register_warnings(runner, warnings)
         next
       end
 
       # Calculate utility bills
-      get_utility_bills(fuels, utility_rates, utility_bills, utility_bill_scenario, @hpxml.header)
+      get_utility_bills(fuels, utility_rates, utility_bills, utility_bill_scenario, @hpxml_header)
 
       # Write/report runperiod results
       report_runperiod_output_results(runner, args, utility_bills, annual_output_path, utility_bill_scenario.name)
 
       # Get monthly results
-      get_monthly_output_results(args, utility_bills, utility_bill_scenario.name, monthly_data, @hpxml.header)
+      get_monthly_output_results(args, utility_bills, utility_bill_scenario.name, monthly_data, @hpxml_header)
     end
 
     # Write/report monthly results
@@ -306,7 +322,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     ep_timestamps = @msgpackData['MeterData']['Monthly']['Rows'].map { |r| r.keys[0] }
 
     timestamps = []
-    year = @hpxml.header.sim_calendar_year
+    year = @hpxml_header.sim_calendar_year
     ep_timestamps.each do |ep_timestamp|
       month_day, hour_minute = ep_timestamp.split(' ')
       month, day = month_day.split('/').map(&:to_i)
