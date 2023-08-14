@@ -22,6 +22,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
     hpxmls_files = {
       # Base files to derive from
       'base-sfd.xml' => nil,
+      'base-sfd2.xml' => 'base-sfd.xml',
       'base-sfa.xml' => 'base-sfd.xml',
       'base-mf.xml' => 'base-sfd.xml',
 
@@ -255,6 +256,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'warning-conditioned-attic-with-floor-insulation.xml' => 'Home with conditioned attic has ceiling insulation.',
     }
 
+    schema_path = File.join(File.dirname(__FILE__), '../..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
+    schema_validator = XMLValidator.get_schema_validator(schema_path)
+
     puts "Generating #{hpxmls_files.size} HPXML files..."
 
     hpxmls_files.each_with_index do |(hpxml_file, parent), i|
@@ -301,20 +305,27 @@ class BuildResidentialHPXMLTest < Minitest::Test
         end
 
         hpxml_path = File.absolute_path(File.join(@output_path, hpxml_file))
-        hpxml = HPXML.new(hpxml_path: hpxml_path)
+        hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
         hpxml.header.xml_generated_by = 'build_residential_hpxml_test.rb'
         hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
 
-        hpxml_doc = hpxml.to_oga()
+        hpxml_doc = hpxml.to_doc()
         XMLHelper.write_file(hpxml_doc, hpxml_path)
-      rescue Exception => e
-        flunk "Error: Did not successfully generate #{hpxml_file}.\n#{e}\n#{e.backtrace.join('\n')}"
+
+        errors, _warnings = XMLValidator.validate_against_schema(hpxml_path, schema_validator)
+        next unless errors.size > 0
+
+        puts errors.to_s
+        puts "\nError: Did not successfully validate #{hpxml_file}."
+        exit!
+      rescue Exception
+        flunk "Error: Did not successfully generate #{hpxml_file}"
       end
     end
 
     # Check generated HPXML files
     hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(@output_path, 'extra-seasons-building-america.xml')))
-    hvac_control = hpxml.hvac_controls[0]
+    hvac_control = hpxml.buildings[0].hvac_controls[0]
     assert_equal(10, hvac_control.seasons_heating_begin_month)
     assert_equal(1, hvac_control.seasons_heating_begin_day)
     assert_equal(6, hvac_control.seasons_heating_end_month)
@@ -603,6 +614,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['pool_heater_type'] = HPXML::HeaterTypeElectricResistance
       args['hot_tub_present'] = false
       args['hot_tub_heater_type'] = HPXML::HeaterTypeElectricResistance
+    elsif ['base-sfd2.xml'].include? hpxml_file
+      args['hpxml_path_in'] = 'workflow/sample_files/base.xml'
     elsif ['base-sfa.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
       args['geometry_unit_cfa'] = 1800.0

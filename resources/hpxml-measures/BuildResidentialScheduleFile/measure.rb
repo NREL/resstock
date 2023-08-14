@@ -97,20 +97,27 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     end
     args[:hpxml_output_path] = hpxml_output_path
 
-    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
+
+    # FIXME: Relax this constraint (using a new building_id measure argument?)
+    # if hpxml.buildings.size > 1
+    # runner.registerError('Cannot currently handle an HPXML with multiple Building elements.')
+    # return false
+    # end
+    hpxml_bldg = hpxml.buildings[0]
 
     # exit if number of occupants is zero
-    if hpxml.building_occupancy.number_of_residents == 0
+    if hpxml_bldg.building_occupancy.number_of_residents == 0
       runner.registerInfo('Number of occupants set to zero; skipping generation of stochastic schedules.')
       return true
     end
 
     # create EpwFile object
-    epw_path = Location.get_epw_path(hpxml, hpxml_path)
+    epw_path = Location.get_epw_path(hpxml_bldg, hpxml_path)
     epw_file = OpenStudio::EpwFile.new(epw_path)
 
     # create the schedules
-    success = create_schedules(runner, hpxml, epw_file, args)
+    success = create_schedules(runner, hpxml, hpxml_bldg, epw_file, args)
     return false if not success
 
     # modify the hpxml with the schedules path
@@ -130,11 +137,11 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def create_schedules(runner, hpxml, epw_file, args)
+  def create_schedules(runner, hpxml, hpxml_bldg, epw_file, args)
     info_msgs = []
 
     get_simulation_parameters(hpxml, epw_file, args)
-    get_generator_inputs(hpxml, epw_file, args)
+    get_generator_inputs(hpxml_bldg, epw_file, args)
 
     args[:resources_path] = File.join(File.dirname(__FILE__), 'resources')
     schedule_generator = ScheduleGenerator.new(runner: runner, epw_file: epw_file, **args)
@@ -177,18 +184,18 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args[:total_days_in_year] = Constants.NumDaysInYear(calendar_year)
   end
 
-  def get_generator_inputs(hpxml, epw_file, args)
+  def get_generator_inputs(hpxml_bldg, epw_file, args)
     args[:state] = 'CO'
     args[:state] = epw_file.stateProvinceRegion if Constants.StateCodesMap.keys.include?(epw_file.stateProvinceRegion)
-    args[:state] = hpxml.header.state_code if !hpxml.header.state_code.nil?
+    args[:state] = hpxml_bldg.state_code if !hpxml_bldg.state_code.nil?
 
     args[:random_seed] = args[:schedules_random_seed].get if args[:schedules_random_seed].is_initialized
     args[:column_names] = args[:schedules_column_names].get.split(',').map(&:strip) if args[:schedules_column_names].is_initialized
 
-    if hpxml.building_occupancy.number_of_residents.nil?
-      args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml.building_construction.number_of_bedrooms)
+    if hpxml_bldg.building_occupancy.number_of_residents.nil?
+      args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml_bldg.building_construction.number_of_bedrooms)
     else
-      args[:geometry_num_occupants] = hpxml.building_occupancy.number_of_residents
+      args[:geometry_num_occupants] = hpxml_bldg.building_occupancy.number_of_residents
     end
     args[:geometry_num_occupants] = Float(Integer(args[:geometry_num_occupants]))
 

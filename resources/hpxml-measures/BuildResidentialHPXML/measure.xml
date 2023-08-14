@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>a5a42263-d8b3-45cc-a81f-0348eaabd6ba</version_id>
-  <version_modified>2023-07-31T19:28:38Z</version_modified>
+  <version_id>3207dc4c-7014-4b84-9dd4-59cf217bb4b9</version_id>
+  <version_modified>2023-08-10T23:39:33Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -17,6 +17,14 @@
       <description>Absolute/relative path of the HPXML file.</description>
       <type>String</type>
       <required>true</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hpxml_path_in</name>
+      <display_name>HPXML File Path In</display_name>
+      <description>Absolute/relative path of the existing HPXML file.</description>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
@@ -528,6 +536,14 @@
       <name>year_built</name>
       <display_name>Building Construction: Year Built</display_name>
       <description>The year the building was built.</description>
+      <type>Integer</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>unit_multiplier</name>
+      <display_name>Building Construction: Unit Multiplier</display_name>
+      <description>The number of similar dwelling units. EnergyPlus simulation results will be multiplied this value. If not provided, defaults to 1.</description>
       <type>Integer</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -6709,7 +6725,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>85ADFF0F</checksum>
+      <checksum>B2F5A5DC</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
@@ -6721,7 +6737,7 @@
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>E0489256</checksum>
+      <checksum>680C953A</checksum>
     </file>
   </files>
 </measure>

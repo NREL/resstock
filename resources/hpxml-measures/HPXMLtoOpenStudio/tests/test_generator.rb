@@ -23,9 +23,9 @@ class HPXMLtoOpenStudioGeneratorTest < Minitest::Test
   def test_generator
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-misc-generators.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
-    hpxml.generators.each do |hpxml_generator|
+    hpxml_bldg.generators.each do |hpxml_generator|
       generator = get_generator(model, hpxml_generator.id)
 
       # Check object
@@ -43,9 +43,9 @@ class HPXMLtoOpenStudioGeneratorTest < Minitest::Test
   def test_generator_shared
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-generator.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
-    hpxml.generators.each do |hpxml_generator|
+    hpxml_bldg.generators.each do |hpxml_generator|
       generator = get_generator(model, hpxml_generator.id)
 
       # Check object
@@ -95,6 +95,6 @@ class HPXMLtoOpenStudioGeneratorTest < Minitest::Test
 
     File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
-    return model, hpxml
+    return model, hpxml, hpxml.buildings[0]
   end
 end
