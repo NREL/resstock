@@ -67,8 +67,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     @msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout.msgpack'), mode: 'rb'))
 
     hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
-    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
-    hpxml_bldg = hpxml.buildings[0]
+    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: 'ALL')
 
     # Set paths
     output_path = File.join(output_dir, "results_hpxml.#{output_format}")
@@ -94,14 +93,16 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     bldg_outputs[BO::SystemsWaterHeaterVolume] = BaseOutput.new
     bldg_outputs[BO::SystemsMechanicalVentilationFlowRate] = BaseOutput.new
 
-    # Building outputs
-    bldg_outputs.each do |bldg_type, bldg_output|
-      bldg_output.output = get_bldg_output(hpxml_bldg, bldg_type)
-    end
+    hpxml.buildings.each do |hpxml_bldg|
+      # Building outputs
+      bldg_outputs.each do |bldg_type, bldg_output|
+        bldg_output.output = get_bldg_output(hpxml_bldg, bldg_type)
+      end
 
-    # Primary and Secondary
-    if hpxml_bldg.primary_hvac_systems.size > 0
-      assign_primary_and_secondary(hpxml_bldg, bldg_outputs)
+      # Primary and Secondary
+      if hpxml_bldg.primary_hvac_systems.size > 0
+        assign_primary_and_secondary(hpxml_bldg, bldg_outputs)
+      end
     end
 
     # Units
@@ -292,15 +293,15 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     return bldg_output
   end
 
-  def assign_primary_and_secondary(hpxml, bldg_outputs)
+  def assign_primary_and_secondary(hpxml_bldg, bldg_outputs)
     # Determine if we have primary/secondary systems
     has_primary_cooling_system = false
     has_secondary_cooling_system = false
-    hpxml.cooling_systems.each do |cooling_system|
+    hpxml_bldg.cooling_systems.each do |cooling_system|
       has_primary_cooling_system = true if cooling_system.primary_system
       has_secondary_cooling_system = true if !cooling_system.primary_system
     end
-    hpxml.heat_pumps.each do |heat_pump|
+    hpxml_bldg.heat_pumps.each do |heat_pump|
       has_primary_cooling_system = true if heat_pump.primary_cooling_system
       has_secondary_cooling_system = true if !heat_pump.primary_cooling_system
     end
@@ -308,13 +309,13 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
     has_primary_heating_system = false
     has_secondary_heating_system = false
-    hpxml.heating_systems.each do |heating_system|
+    hpxml_bldg.heating_systems.each do |heating_system|
       next if heating_system.is_heat_pump_backup_system
 
       has_primary_heating_system = true if heating_system.primary_system
       has_secondary_heating_system = true if !heating_system.primary_system
     end
-    hpxml.heat_pumps.each do |heat_pump|
+    hpxml_bldg.heat_pumps.each do |heat_pump|
       has_primary_heating_system = true if heat_pump.primary_heating_system
       has_secondary_heating_system = true if !heat_pump.primary_heating_system
     end
@@ -341,24 +342,24 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
     # Obtain values
     if has_primary_cooling_system || has_secondary_cooling_system
-      hpxml.cooling_systems.each do |cooling_system|
+      hpxml_bldg.cooling_systems.each do |cooling_system|
         prefix = cooling_system.primary_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsCoolingCapacity}"].output += cooling_system.cooling_capacity
       end
-      hpxml.heat_pumps.each do |heat_pump|
+      hpxml_bldg.heat_pumps.each do |heat_pump|
         prefix = heat_pump.primary_cooling_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsCoolingCapacity}"].output += heat_pump.cooling_capacity
       end
     end
 
     if has_primary_heating_system || has_secondary_heating_system
-      hpxml.heating_systems.each do |heating_system|
+      hpxml_bldg.heating_systems.each do |heating_system|
         next if heating_system.is_heat_pump_backup_system
 
         prefix = heating_system.primary_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsHeatingCapacity}"].output += heating_system.heating_capacity
       end
-      hpxml.heat_pumps.each do |heat_pump|
+      hpxml_bldg.heat_pumps.each do |heat_pump|
         prefix = heat_pump.primary_heating_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsHeatingCapacity}"].output += heat_pump.heating_capacity
         if not heat_pump.backup_heating_capacity.nil?
