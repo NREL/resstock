@@ -236,7 +236,7 @@ upgrades:
 
   - upgrade_name: HPWH + EnergyStar cold climate ducted ASHP w/ elec backup - existing fuel oil
   # Category 4, Measure 4 + Category 5, Measure 2
-    package_apply_logic: &ducted_ASHP_elec_backup_existing_propane
+    package_apply_logic: &ducted_ASHP_elec_backup_existing_FO
       - HVAC Has Ducts|Yes
       - Heating Fuel|Fuel Oil
 
@@ -285,7 +285,8 @@ upgrades:
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: &lifetime_ductless_MSHP_elec_backup 15
 
-      - *HP_cooling_efficiency_ducted
+      - &HP_cooling_efficiency_nonducted
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
       - *100_percent_conditioned
 
       - *cooling_setpoint_no_offset
@@ -309,7 +310,7 @@ upgrades:
     options:
       - *ductless_MSHP_EnergyStarCC_elec_backup
 
-      - *HP_cooling_efficiency_ducted
+      - *HP_cooling_efficiency_nonducted
       - *100_percent_conditioned
 
       - *cooling_setpoint_no_offset
@@ -333,7 +334,7 @@ upgrades:
     options:
       - *ductless_MSHP_EnergyStarCC_elec_backup
 
-      - *HP_cooling_efficiency_ducted
+      - *HP_cooling_efficiency_nonducted
       - *100_percent_conditioned
 
       - *cooling_setpoint_no_offset
@@ -357,7 +358,7 @@ upgrades:
     options:
       - *ductless_MSHP_EnergyStarCC_elec_backup
 
-      - *HP_cooling_efficiency_ducted
+      - *HP_cooling_efficiency_nonducted
       - *100_percent_conditioned
 
       - *cooling_setpoint_no_offset
@@ -388,20 +389,11 @@ upgrades:
         option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, CCHP, Separate Backup 
         apply_logic: &dualfuel_ASHP_no_ducted_furnace_apply_logic_NG
           - not: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-        costs: &costs_ashp_ducted_SEER_16_9-5_HSPF
-        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
-        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
-          - value: 5723.12 # for HSPF 9.5
-            multiplier: Fixed (1)
-          - value: 167.64
-            multiplier: Size, Heating System Primary (kBtu/h)
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
         lifetime: &lifetime_ashp_ducted_SEER_16_9-5_HSPF 15
 
-      - &HP_cooling_efficiency_ducted
-        option: HVAC Cooling Efficiency|Ducted Heat Pump
-      - &100_percent_conditioned
-        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
 
       # Boilers as secondary systems
       # Set secondary boiler fuel type
@@ -440,24 +432,6 @@ upgrades:
         option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
         apply_logic:
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-
-      - &cooling_setpoint_no_offset
-        option: Cooling Setpoint Has Offset|No
-
-      - &cooling_setpoint_offset_magnitude_0
-        option: Cooling Setpoint Offset Magnitude|0F
-      
-      - &cooling_setpoint_offset_period_none
-        option: Cooling Setpoint Offset Period|None
-
-      - &heating_setpoint_no_offset
-        option: Heating Setpoint Has Offset|No
-
-      - &heating_setpoint_offset_magnitude_0
-        option: Heating Setpoint Offset Magnitude|0F
-      
-      - &heating_setpoint_offset_period_none
-        option: Heating Setpoint Offset Period|None
 
 
       #### ducted furnace ####
@@ -679,22 +653,10 @@ upgrades:
             - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
             - not: HVAC Cooling Efficiency|Ducted Heat Pump
             - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
-        costs: &costs_mshp_ductless_SEER_16_9-5_HSPF
-        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
-        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
-        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
-        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
-        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
-        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
-          - value: 2751.95
-            multiplier: Fixed (1)
-          - value: 357.37
-            multiplier: Size, Heating System Primary (kBtu/h)
-        lifetime: &lifetime_mshp_ductless_SEER_16_9-5_HSPF 
-          15
+        costs: *costs_mshp_ductless_SEER_16_9-5_HSPF
+        lifetime: &lifetime_mshp_ductless_SEER_16_9-5_HSPF 15
 
-      - *HP_cooling_efficiency_ductless
+      - *HP_cooling_efficiency_nonducted
       - *100_percent_conditioned
 
       - *ng_boiler_secondary_heating_type_fuel
@@ -729,7 +691,7 @@ upgrades:
     options:
       - *ductless_MSHP_EnergyStarCC_exist_backup
 
-      - *HP_cooling_efficiency_ductless
+      - *HP_cooling_efficiency_nonducted
       - *100_percent_conditioned
 
       - *propane_boiler_secondary_heating_type_fuel
@@ -764,7 +726,7 @@ upgrades:
     options:
       - *ductless_MSHP_EnergyStarCC_exist_backup
 
-      - *HP_cooling_efficiency_ductless
+      - *HP_cooling_efficiency_nonducted
       - *100_percent_conditioned
 
       - *fuel_oil_boiler_secondary_heating_type_fuel
