@@ -52,7 +52,7 @@ class MoreCompare(BaseCompare):
           value_count = value_count.round(2)
           keys_to_values = dict(zip(value_count.index.values, value_count.values))
           keys_to_values = dict(sorted(keys_to_values.items(), key=lambda x: (x[1], x[0]), reverse=True))
-          value_counts.append([value_count.name])
+          value_counts.append([col])
           value_counts.append(keys_to_values.keys())
           value_counts.append(keys_to_values.values())
           value_counts.append('')
