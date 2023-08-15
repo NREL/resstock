@@ -3,11 +3,6 @@ import pandas as pd
 from functools import reduce
 import csv
 
-def read_csv(csv_file_path, **kwargs) -> pd.DataFrame:
-    default_na_values = pd._libs.parsers.STR_NA_VALUES
-    df = pd.read_csv(csv_file_path, na_values=list(default_na_values - {"None"}), keep_default_na=False, **kwargs)
-    return df
-
 if __name__ == '__main__':
 
     col_exclusions = ['applicable',

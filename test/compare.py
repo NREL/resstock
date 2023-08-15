@@ -7,7 +7,6 @@ import csv
 import plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from process_bsb_analysis import read_csv
 sys.path.pop(0)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '../../resources/hpxml-measures/workflow/tests')))
 
@@ -18,14 +17,6 @@ enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family
                                                                   'Single-Family Attached': 'SFA',
                                                                   'Multi-Family with 2 - 4 Units': 'MF',
                                                                   'Multi-Family with 5+ Units': 'MF'} }
-
-cols_to_ignore = ['applicable',
-                  'output_format',
-                  'timeseries_frequency',
-                  'timeseries_timestamp_convention',
-                  'completed_status',
-                  'color_index',
-                  'upgrade_name']
 
 class MoreCompare(BaseCompare):
   def __init__(self, base_folder, feature_folder, export_folder, export_file, map_file):
@@ -310,6 +301,13 @@ if __name__ == '__main__':
       compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps)
     elif action == 'visualize':
       excludes = ['buildstock.csv', 'results_characteristics.csv']
-      compare.visualize(args.aggregate_column, args.aggregate_function, args.display_column, excludes, enum_maps, cols_to_ignore)
+      categories = ['.component_load_', '.emissions_', '.end_use_', '.energy_use_', '.fuel_use_', '.hot_water_', '.hvac_', '.load_', '.peak_', '.resilience_', '.unmet_hours_', 'report_utility_bills.', 'upgrade_costs.', 'qoi_report.']
+      for category in categories:
+        export_file, ext = args.export_file.split('.')
+        export_file = '{}_{}.{}'.format(export_file, category.strip('.').rstrip('_'), ext)
+        cols_to_ignore = ['color_index'] + categories
+        cols_to_ignore.remove(category)
+        compare = MoreCompare(args.base_folder, args.feature_folder, args.export_folder, export_file, args.map_file)
+        compare.visualize(args.aggregate_column, args.aggregate_function, args.display_column, excludes, enum_maps, cols_to_ignore)
     elif action == 'timeseries':
       compare.timeseries()
