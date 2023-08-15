@@ -336,6 +336,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         geometry_building_num_units = Integer(get_value_from_workflow_step_value(step_value))
       end
     end
+    geometry_building_num_units = 2 if geometry_building_num_units > 1 # FIXME
 
     (1..geometry_building_num_units).each do |unit_number|
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
