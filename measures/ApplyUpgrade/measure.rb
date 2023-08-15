@@ -225,103 +225,112 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       return true
     end
 
-    hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
-      unit_number += 1
-      measures = {}
-      resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
-      if apply_package_upgrade
-        system_upgrades = []
+    measures = {}
+    resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
+    if apply_package_upgrade
+      # Obtain measures and arguments to be called
+      # Process options apply logic if provided
+      options.each do |option_num, option|
+        parameter_name, option_name = option.split('|')
 
-        # Obtain measures and arguments to be called
-        # Process options apply logic if provided
-        options.each do |option_num, option|
-          parameter_name, option_name = option.split('|')
-
-          # Apply this option?
-          apply_option_upgrade = true
-          if options_apply_logic.include?(option_num)
-            apply_option_upgrade = evaluate_logic(options_apply_logic[option_num], runner)
-            if apply_option_upgrade.nil?
-              return false
-            end
-          end
-
-          if not apply_option_upgrade
-            runner.registerInfo("Parameter #{parameter_name}, Option #{option_name} will not be applied.")
-            next
-          end
-
-          # Print this option assignment
-          print_option_assignment(parameter_name, option_name, runner)
-
-          # Register cost names/values/multipliers/lifetime for applied options; used by the UpgradeCosts measure
-          register_value(runner, 'option_%02d_name_applied' % option_num, option)
-          for cost_num in 1..num_costs_per_option
-            cost_value = runner.getOptionalDoubleArgumentValue("option_#{option_num}_cost_#{cost_num}_value", user_arguments)
-            if cost_value.nil?
-              cost_value = 0.0
-            end
-            cost_mult_type = runner.getStringArgumentValue("option_#{option_num}_cost_#{cost_num}_multiplier", user_arguments)
-            register_value(runner, "option_%02d_cost_#{cost_num}_value_to_apply" % option_num, cost_value.to_s)
-            register_value(runner, "option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num, cost_mult_type)
-          end
-          lifetime = runner.getOptionalDoubleArgumentValue("option_#{option_num}_lifetime", user_arguments)
-          if lifetime.nil?
-            lifetime = 0.0
-          end
-          register_value(runner, 'option_%02d_lifetime_to_apply' % option_num, lifetime.to_s)
-
-          # Get measure name and arguments associated with the option
-          options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
-          options_measure_args[option_name].each do |measure_subdir, args_hash|
-            system_upgrades = get_system_upgrades(hpxml_bldg, system_upgrades, args_hash)
-            update_args_hash(measures, measure_subdir, args_hash, false)
+        # Apply this option?
+        apply_option_upgrade = true
+        if options_apply_logic.include?(option_num)
+          apply_option_upgrade = evaluate_logic(options_apply_logic[option_num], runner)
+          if apply_option_upgrade.nil?
+            return false
           end
         end
 
-        if halt_workflow(runner, measures)
-          return false
+        if not apply_option_upgrade
+          runner.registerInfo("Parameter #{parameter_name}, Option #{option_name} will not be applied.")
+          next
         end
 
-        measures['ResStockArguments'] = [{}] if !measures.keys.include?('ResStockArguments') # upgrade is via another measure
+        # Print this option assignment
+        print_option_assignment(parameter_name, option_name, runner)
 
-        # Add measure arguments from existing building if needed
-        parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
-        measures.keys.each do |measure_subdir|
-          parameters.each do |parameter_name|
-            existing_option_name = values[OpenStudio::toUnderscoreCase(parameter_name)]
-
-            options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
-            options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|
-              next if measure_subdir != measure_subdir2
-
-              # Append any new arguments
-              new_args_hash = {}
-              args_hash.each do |k, v|
-                next if measures[measure_subdir][0].has_key?(k)
-
-                new_args_hash[k] = v
-              end
-              update_args_hash(measures, measure_subdir, new_args_hash, false)
-            end
+        # Register cost names/values/multipliers/lifetime for applied options; used by the UpgradeCosts measure
+        register_value(runner, 'option_%02d_name_applied' % option_num, option)
+        for cost_num in 1..num_costs_per_option
+          cost_value = runner.getOptionalDoubleArgumentValue("option_#{option_num}_cost_#{cost_num}_value", user_arguments)
+          if cost_value.nil?
+            cost_value = 0.0
           end
+          cost_mult_type = runner.getStringArgumentValue("option_#{option_num}_cost_#{cost_num}_multiplier", user_arguments)
+          register_value(runner, "option_%02d_cost_#{cost_num}_value_to_apply" % option_num, cost_value.to_s)
+          register_value(runner, "option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num, cost_mult_type)
         end
-
-        # Get the absolute paths relative to this meta measure in the run directory
-        if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
-          return false
+        lifetime = runner.getOptionalDoubleArgumentValue("option_#{option_num}_lifetime", user_arguments)
+        if lifetime.nil?
+          lifetime = 0.0
         end
-      end # apply_package_upgrade
+        register_value(runner, 'option_%02d_lifetime_to_apply' % option_num, lifetime.to_s)
 
-      # Register the upgrade name
-      register_value(runner, 'upgrade_name', upgrade_name)
+        # Get measure name and arguments associated with the option
+        options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
+        options_measure_args[option_name].each do |measure_subdir, args_hash|
+          update_args_hash(measures, measure_subdir, args_hash, false)
+        end
+      end
 
       if halt_workflow(runner, measures)
         return false
       end
 
-      # Initialize measure keys with hpxml_path arguments
-      hpxml_path = File.expand_path('../upgraded.xml')
+      measures['ResStockArguments'] = [{}] if !measures.keys.include?('ResStockArguments') # upgrade is via another measure
+
+      # Add measure arguments from existing building if needed
+      parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
+      measures.keys.each do |measure_subdir|
+        parameters.each do |parameter_name|
+          existing_option_name = values[OpenStudio::toUnderscoreCase(parameter_name)]
+
+          options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
+          options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|
+            next if measure_subdir != measure_subdir2
+
+            # Append any new arguments
+            new_args_hash = {}
+            args_hash.each do |k, v|
+              next if measures[measure_subdir][0].has_key?(k)
+
+              new_args_hash[k] = v
+            end
+            update_args_hash(measures, measure_subdir, new_args_hash, false)
+          end
+        end
+      end
+
+      # Get the absolute paths relative to this meta measure in the run directory
+      if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+        return false
+      end
+    end # apply_package_upgrade
+
+    # Register the upgrade name
+    register_value(runner, 'upgrade_name', upgrade_name)
+
+    if halt_workflow(runner, measures)
+      return false
+    end
+
+    # Initialize measure keys with hpxml_path arguments
+    hpxml_path = File.expand_path('../upgraded.xml')
+
+    hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
+      unit_number += 1
+
+      system_upgrades = []
+      options.each do |_option_num, option|
+        parameter_name, option_name = option.split('|')
+
+        options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
+        options_measure_args[option_name].each do |_measure_subdir, args_hash|
+          system_upgrades = get_system_upgrades(hpxml_bldg, system_upgrades, args_hash)
+        end
+      end
+
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
       if unit_number > 1
         measures['BuildResidentialHPXML'][0]['hpxml_path_in'] = hpxml_path
@@ -453,7 +462,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     in_path = File.expand_path('../home.xml')
     FileUtils.cp(hpxml_path, in_path)
 
-    # register_logs(runner, new_runner)
+    register_logs(runner, resstock_arguments_runner)
 
     return true
   end
