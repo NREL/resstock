@@ -175,10 +175,12 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
   def retrieve_hpxmls(existing_hpxml, upgraded_hpxml)
     if existing_hpxml.nil? && upgraded_hpxml.nil?
       existing_path = File.expand_path('../existing.xml')
-      existing_hpxml = HPXML.new(hpxml_path: existing_path) if File.exist?(existing_path)
+      existing_hpxml = HPXML.new(hpxml_path: existing_path, building_id: 'ALL') if File.exist?(existing_path)
+      existing_hpxml = existing_hpxml.buildings[0] # FIXME
 
       upgraded_path = File.expand_path('../upgraded.xml')
-      upgraded_hpxml = HPXML.new(hpxml_path: upgraded_path) if File.exist?(upgraded_path)
+      upgraded_hpxml = HPXML.new(hpxml_path: upgraded_path, building_id: 'ALL') if File.exist?(upgraded_path)
+      upgraded_hpxml = upgraded_hpxml.buildings[0] # FIXME
     end
 
     return existing_hpxml, upgraded_hpxml
@@ -203,7 +205,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if !upgraded_hpxml.nil?
         air_leakage_value = { existing_hpxml => [], upgraded_hpxml => [] }
         [existing_hpxml, upgraded_hpxml].each do |hpxml_obj|
-          hpxml_obj.air_infiltration_measurements.each do |air_infiltration_measurement|
+          hpxml_obj.buildings[0].air_infiltration_measurements.each do |air_infiltration_measurement| # FIXME
             air_leakage_value[hpxml_obj] << air_infiltration_measurement.air_leakage unless air_infiltration_measurement.air_leakage.nil?
           end
         end
@@ -225,7 +227,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if !upgraded_hpxml.nil?
         ceiling_assembly_r = { existing_hpxml => [], upgraded_hpxml => [] }
         [existing_hpxml, upgraded_hpxml].each do |hpxml_obj|
-          hpxml_obj.floors.each do |floor|
+          hpxml_obj.buildings[0].floors.each do |floor| # FIXME
             next unless floor.is_thermal_boundary
             next unless floor.is_interior
             next unless floor.is_ceiling
