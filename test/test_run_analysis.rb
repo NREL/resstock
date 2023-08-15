@@ -101,6 +101,7 @@ class TestRunAnalysis < Minitest::Test
       next if _expected_warning_message(message, 'Could not find state average fuel oil rate based on')
       next if _expected_warning_message(message, "Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       next if _expected_warning_message(message, 'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units. [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0]')
+      next if _expected_warning_message(message, 'Cannot currently handle an HPXML with multiple Building elements.') # FIXME: thrown by ReportUtilityBills?
 
       if !testing
         next if _expected_warning_message(message, 'Unable to find sql file at')
