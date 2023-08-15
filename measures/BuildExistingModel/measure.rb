@@ -328,10 +328,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../existing.xml')
 
     geometry_building_num_units = 1
-    resstock_arguments_runner.result.stepValues.each do |step_value|
-      next if step_value.name != 'geometry_building_num_units'
+    whole_building = true
+    if whole_building
+      resstock_arguments_runner.result.stepValues.each do |step_value|
+        next if step_value.name != 'geometry_building_num_units'
 
-      geometry_building_num_units = Integer(get_value_from_workflow_step_value(step_value))
+        geometry_building_num_units = Integer(get_value_from_workflow_step_value(step_value))
+      end
     end
 
     (1..geometry_building_num_units).each do |unit_number|

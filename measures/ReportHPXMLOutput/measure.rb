@@ -96,7 +96,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     hpxml.buildings.each do |hpxml_bldg|
       # Building outputs
       bldg_outputs.each do |bldg_type, bldg_output|
-        bldg_output.output = get_bldg_output(hpxml_bldg, bldg_type)
+        bldg_output.output += get_bldg_output(hpxml_bldg, bldg_type)
       end
 
       # Primary and Secondary
@@ -322,20 +322,20 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     has_secondary_heating_system = false unless has_primary_heating_system
 
     # Set up order of outputs
-    if has_primary_cooling_system
+    if has_primary_cooling_system && !bldg_outputs.keys.include?("Primary #{BO::SystemsCoolingCapacity}")
       bldg_outputs["Primary #{BO::SystemsCoolingCapacity}"] = BaseOutput.new
     end
 
-    if has_primary_heating_system
+    if has_primary_heating_system && !bldg_outputs.keys.include?("Primary #{BO::SystemsHeatingCapacity}") && !bldg_outputs.keys.include?("Primary #{BO::SystemsHeatPumpBackupCapacity}")
       bldg_outputs["Primary #{BO::SystemsHeatingCapacity}"] = BaseOutput.new
       bldg_outputs["Primary #{BO::SystemsHeatPumpBackupCapacity}"] = BaseOutput.new
     end
 
-    if has_secondary_cooling_system
+    if has_secondary_cooling_system && !bldg_outputs.keys.include?("Secondary #{BO::SystemsCoolingCapacity}")
       bldg_outputs["Secondary #{BO::SystemsCoolingCapacity}"] = BaseOutput.new
     end
 
-    if has_secondary_heating_system
+    if has_secondary_heating_system && !bldg_outputs.keys.include?("Secondary #{BO::SystemsHeatingCapacity}") && !bldg_outputs.keys.include?("Secondary #{BO::SystemsHeatPumpBackupCapacity}")
       bldg_outputs["Secondary #{BO::SystemsHeatingCapacity}"] = BaseOutput.new
       bldg_outputs["Secondary #{BO::SystemsHeatPumpBackupCapacity}"] = BaseOutput.new
     end
