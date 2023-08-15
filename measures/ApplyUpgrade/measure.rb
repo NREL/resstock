@@ -219,222 +219,232 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Get defaulted hpxml
     hpxml_path = File.expand_path('../existing.xml') # this is the defaulted hpxml
     if File.exist?(hpxml_path)
-      hpxml = HPXML.new(hpxml_path: hpxml_path)
+      hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
     else
       runner.registerWarning("ApplyUpgrade measure could not find '#{hpxml_path}'.")
       return true
     end
 
-    measures = {}
-    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
-    if apply_package_upgrade
-      system_upgrades = []
+    hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
+      unit_number += 1
+      measures = {}
+      resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
+      if apply_package_upgrade
+        system_upgrades = []
 
-      # Obtain measures and arguments to be called
-      # Process options apply logic if provided
-      options.each do |option_num, option|
-        parameter_name, option_name = option.split('|')
+        # Obtain measures and arguments to be called
+        # Process options apply logic if provided
+        options.each do |option_num, option|
+          parameter_name, option_name = option.split('|')
 
-        # Apply this option?
-        apply_option_upgrade = true
-        if options_apply_logic.include?(option_num)
-          apply_option_upgrade = evaluate_logic(options_apply_logic[option_num], runner)
-          if apply_option_upgrade.nil?
-            return false
+          # Apply this option?
+          apply_option_upgrade = true
+          if options_apply_logic.include?(option_num)
+            apply_option_upgrade = evaluate_logic(options_apply_logic[option_num], runner)
+            if apply_option_upgrade.nil?
+              return false
+            end
+          end
+
+          if not apply_option_upgrade
+            runner.registerInfo("Parameter #{parameter_name}, Option #{option_name} will not be applied.")
+            next
+          end
+
+          # Print this option assignment
+          print_option_assignment(parameter_name, option_name, runner)
+
+          # Register cost names/values/multipliers/lifetime for applied options; used by the UpgradeCosts measure
+          register_value(runner, 'option_%02d_name_applied' % option_num, option)
+          for cost_num in 1..num_costs_per_option
+            cost_value = runner.getOptionalDoubleArgumentValue("option_#{option_num}_cost_#{cost_num}_value", user_arguments)
+            if cost_value.nil?
+              cost_value = 0.0
+            end
+            cost_mult_type = runner.getStringArgumentValue("option_#{option_num}_cost_#{cost_num}_multiplier", user_arguments)
+            register_value(runner, "option_%02d_cost_#{cost_num}_value_to_apply" % option_num, cost_value.to_s)
+            register_value(runner, "option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num, cost_mult_type)
+          end
+          lifetime = runner.getOptionalDoubleArgumentValue("option_#{option_num}_lifetime", user_arguments)
+          if lifetime.nil?
+            lifetime = 0.0
+          end
+          register_value(runner, 'option_%02d_lifetime_to_apply' % option_num, lifetime.to_s)
+
+          # Get measure name and arguments associated with the option
+          options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
+          options_measure_args[option_name].each do |measure_subdir, args_hash|
+            system_upgrades = get_system_upgrades(hpxml_bldg, system_upgrades, args_hash)
+            update_args_hash(measures, measure_subdir, args_hash, false)
           end
         end
 
-        if not apply_option_upgrade
-          runner.registerInfo("Parameter #{parameter_name}, Option #{option_name} will not be applied.")
-          next
+        if halt_workflow(runner, measures)
+          return false
         end
 
-        # Print this option assignment
-        print_option_assignment(parameter_name, option_name, runner)
+        measures['ResStockArguments'] = [{}] if !measures.keys.include?('ResStockArguments') # upgrade is via another measure
 
-        # Register cost names/values/multipliers/lifetime for applied options; used by the UpgradeCosts measure
-        register_value(runner, 'option_%02d_name_applied' % option_num, option)
-        for cost_num in 1..num_costs_per_option
-          cost_value = runner.getOptionalDoubleArgumentValue("option_#{option_num}_cost_#{cost_num}_value", user_arguments)
-          if cost_value.nil?
-            cost_value = 0.0
+        # Add measure arguments from existing building if needed
+        parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
+        measures.keys.each do |measure_subdir|
+          parameters.each do |parameter_name|
+            existing_option_name = values[OpenStudio::toUnderscoreCase(parameter_name)]
+
+            options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
+            options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|
+              next if measure_subdir != measure_subdir2
+
+              # Append any new arguments
+              new_args_hash = {}
+              args_hash.each do |k, v|
+                next if measures[measure_subdir][0].has_key?(k)
+
+                new_args_hash[k] = v
+              end
+              update_args_hash(measures, measure_subdir, new_args_hash, false)
+            end
           end
-          cost_mult_type = runner.getStringArgumentValue("option_#{option_num}_cost_#{cost_num}_multiplier", user_arguments)
-          register_value(runner, "option_%02d_cost_#{cost_num}_value_to_apply" % option_num, cost_value.to_s)
-          register_value(runner, "option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num, cost_mult_type)
         end
-        lifetime = runner.getOptionalDoubleArgumentValue("option_#{option_num}_lifetime", user_arguments)
-        if lifetime.nil?
-          lifetime = 0.0
-        end
-        register_value(runner, 'option_%02d_lifetime_to_apply' % option_num, lifetime.to_s)
 
-        # Get measure name and arguments associated with the option
-        options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
-        options_measure_args[option_name].each do |measure_subdir, args_hash|
-          system_upgrades = get_system_upgrades(hpxml, system_upgrades, args_hash)
-          update_args_hash(measures, measure_subdir, args_hash, false)
+        # Get the absolute paths relative to this meta measure in the run directory
+        if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+          return false
         end
-      end
+      end # apply_package_upgrade
+
+      # Register the upgrade name
+      register_value(runner, 'upgrade_name', upgrade_name)
 
       if halt_workflow(runner, measures)
         return false
       end
 
-      measures['ResStockArguments'] = [{}] if !measures.keys.include?('ResStockArguments') # upgrade is via another measure
-
-      # Add measure arguments from existing building if needed
-      parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
-      measures.keys.each do |measure_subdir|
-        parameters.each do |parameter_name|
-          existing_option_name = values[OpenStudio::toUnderscoreCase(parameter_name)]
-
-          options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
-          options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|
-            next if measure_subdir != measure_subdir2
-
-            # Append any new arguments
-            new_args_hash = {}
-            args_hash.each do |k, v|
-              next if measures[measure_subdir][0].has_key?(k)
-
-              new_args_hash[k] = v
-            end
-            update_args_hash(measures, measure_subdir, new_args_hash, false)
-          end
-        end
+      # Initialize measure keys with hpxml_path arguments
+      hpxml_path = File.expand_path('../upgraded.xml')
+      measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
+      if unit_number > 1
+        measures['BuildResidentialHPXML'][0]['hpxml_path_in'] = hpxml_path
       end
 
-      # Get the absolute paths relative to this meta measure in the run directory
-      if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
+
+      resstock_arguments_runner.result.stepValues.each do |step_value|
+        value = get_value_from_workflow_step_value(step_value)
+        next if value == ''
+
+        measures['BuildResidentialHPXML'][0][step_value.name] = value
+      end
+
+      # Set additional properties
+      additional_properties = []
+      ['ceiling_insulation_r'].each do |arg_name|
+        arg_value = measures['ResStockArguments'][0][arg_name]
+        additional_properties << "#{arg_name}=#{arg_value}"
+      end
+      measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
+
+      # Retain HVAC capacities
+
+      capacities = get_system_capacities(hpxml_bldg, system_upgrades)
+
+      unless capacities['heating_system_heating_capacity'].nil?
+        measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = capacities['heating_system_heating_capacity']
+      end
+
+      unless capacities['heating_system_2_heating_capacity'].nil?
+        measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = capacities['heating_system_2_heating_capacity']
+      end
+
+      unless capacities['cooling_system_cooling_capacity'].nil?
+        measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = capacities['cooling_system_cooling_capacity']
+      end
+
+      unless capacities['heat_pump_heating_capacity'].nil?
+        measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = capacities['heat_pump_heating_capacity']
+      end
+
+      unless capacities['heat_pump_cooling_capacity'].nil?
+        measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = capacities['heat_pump_cooling_capacity']
+      end
+
+      unless capacities['heat_pump_backup_heating_capacity'].nil?
+        measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = capacities['heat_pump_backup_heating_capacity']
+      end
+
+      # Get software program used and version
+      measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
+      measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
+
+      # Get registered values and pass them to BuildResidentialHPXML
+      measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = values['simulation_control_timestep']
+      if !values['simulation_control_run_period_begin_month'].nil? && !values['simulation_control_run_period_begin_day_of_month'].nil? && !values['simulation_control_run_period_end_month'].nil? && !values['simulation_control_run_period_end_day_of_month'].nil?
+        begin_month = "#{Date::ABBR_MONTHNAMES[values['simulation_control_run_period_begin_month']]}"
+        begin_day = values['simulation_control_run_period_begin_day_of_month']
+        end_month = "#{Date::ABBR_MONTHNAMES[values['simulation_control_run_period_end_month']]}"
+        end_day = values['simulation_control_run_period_end_day_of_month']
+        measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
+      end
+      measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = values['simulation_control_run_period_calendar_year']
+
+      # Emissions
+      if values.keys.include?('emissions_electricity_values_or_filepaths') && unit_number == 1
+        measures['BuildResidentialHPXML'][0]['emissions_scenario_names'] = values['emissions_scenario_names']
+        measures['BuildResidentialHPXML'][0]['emissions_types'] = values['emissions_types']
+        measures['BuildResidentialHPXML'][0]['emissions_electricity_units'] = values['emissions_electricity_units']
+        measures['BuildResidentialHPXML'][0]['emissions_electricity_values_or_filepaths'] = values['emissions_electricity_values_or_filepaths']
+        measures['BuildResidentialHPXML'][0]['emissions_fossil_fuel_units'] = values['emissions_fossil_fuel_units']
+        measures['BuildResidentialHPXML'][0]['emissions_natural_gas_values'] = values['emissions_natural_gas_values']
+        measures['BuildResidentialHPXML'][0]['emissions_propane_values'] = values['emissions_propane_values']
+        measures['BuildResidentialHPXML'][0]['emissions_fuel_oil_values'] = values['emissions_fuel_oil_values']
+        measures['BuildResidentialHPXML'][0]['emissions_wood_values'] = values['emissions_wood_values']
+      end
+
+      # Utility Bills
+      if unit_number == 1
+        measures['BuildResidentialHPXML'][0]['utility_bill_scenario_names'] = values['utility_bill_scenario_names']
+        measures['BuildResidentialHPXML'][0]['utility_bill_electricity_fixed_charges'] = values['utility_bill_electricity_fixed_charges']
+        measures['BuildResidentialHPXML'][0]['utility_bill_electricity_marginal_rates'] = values['utility_bill_electricity_marginal_rates']
+        measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_fixed_charges'] = values['utility_bill_natural_gas_fixed_charges']
+        measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_marginal_rates'] = values['utility_bill_natural_gas_marginal_rates']
+        measures['BuildResidentialHPXML'][0]['utility_bill_propane_fixed_charges'] = values['utility_bill_propane_fixed_charges']
+        measures['BuildResidentialHPXML'][0]['utility_bill_propane_marginal_rates'] = values['utility_bill_propane_marginal_rates']
+        measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_fixed_charges'] = values['utility_bill_fuel_oil_fixed_charges']
+        measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_marginal_rates'] = values['utility_bill_fuel_oil_marginal_rates']
+        measures['BuildResidentialHPXML'][0]['utility_bill_wood_fixed_charges'] = values['utility_bill_wood_fixed_charges']
+        measures['BuildResidentialHPXML'][0]['utility_bill_wood_marginal_rates'] = values['utility_bill_wood_marginal_rates']
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_compensation_types'] = values['utility_bill_pv_compensation_types']
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = values['utility_bill_pv_net_metering_annual_excess_sellback_rate_types']
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = values['utility_bill_pv_net_metering_annual_excess_sellback_rates']
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_feed_in_tariff_rates'] = values['utility_bill_pv_feed_in_tariff_rates']
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = values['utility_bill_pv_monthly_grid_connection_fee_units']
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = values['utility_bill_pv_monthly_grid_connection_fees']
+      end
+
+      # Get registered values and pass them to BuildResidentialScheduleFile
+      measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']
+      measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
+
+      # Specify measures to run
+      measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
+      measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] },
+                                 measures_dir => {} }
+
+      upgrade_measures = measures.keys - ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile']
+      upgrade_measures.each do |upgrade_measure|
+        measures_to_apply_hash[measures_dir][upgrade_measure] = measures[upgrade_measure]
+      end
+      measures_to_apply_hash.each_with_index do |(dir, measures_to_apply), i|
+        next if measures_to_apply.empty?
+
+        osw_out = 'upgraded.osw'
+        osw_out = "upgraded#{i + 1}.osw" if i > 0
+        new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+        next unless not apply_measures(dir, measures_to_apply, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', osw_out)
+
+        register_logs(runner, new_runner)
         return false
       end
-    end # apply_package_upgrade
-
-    # Register the upgrade name
-    register_value(runner, 'upgrade_name', upgrade_name)
-
-    if halt_workflow(runner, measures)
-      return false
-    end
-
-    # Initialize measure keys with hpxml_path arguments
-    hpxml_path = File.expand_path('../upgraded.xml')
-    measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
-    measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
-
-    new_runner.result.stepValues.each do |step_value|
-      value = get_value_from_workflow_step_value(step_value)
-      next if value == ''
-
-      measures['BuildResidentialHPXML'][0][step_value.name] = value
-    end
-
-    # Set additional properties
-    additional_properties = []
-    ['ceiling_insulation_r'].each do |arg_name|
-      arg_value = measures['ResStockArguments'][0][arg_name]
-      additional_properties << "#{arg_name}=#{arg_value}"
-    end
-    measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
-
-    # Retain HVAC capacities
-
-    capacities = get_system_capacities(hpxml, system_upgrades)
-
-    unless capacities['heating_system_heating_capacity'].nil?
-      measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = capacities['heating_system_heating_capacity']
-    end
-
-    unless capacities['heating_system_2_heating_capacity'].nil?
-      measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = capacities['heating_system_2_heating_capacity']
-    end
-
-    unless capacities['cooling_system_cooling_capacity'].nil?
-      measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = capacities['cooling_system_cooling_capacity']
-    end
-
-    unless capacities['heat_pump_heating_capacity'].nil?
-      measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = capacities['heat_pump_heating_capacity']
-    end
-
-    unless capacities['heat_pump_cooling_capacity'].nil?
-      measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = capacities['heat_pump_cooling_capacity']
-    end
-
-    unless capacities['heat_pump_backup_heating_capacity'].nil?
-      measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = capacities['heat_pump_backup_heating_capacity']
-    end
-
-    # Get software program used and version
-    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
-    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
-
-    # Get registered values and pass them to BuildResidentialHPXML
-    measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = values['simulation_control_timestep']
-    if !values['simulation_control_run_period_begin_month'].nil? && !values['simulation_control_run_period_begin_day_of_month'].nil? && !values['simulation_control_run_period_end_month'].nil? && !values['simulation_control_run_period_end_day_of_month'].nil?
-      begin_month = "#{Date::ABBR_MONTHNAMES[values['simulation_control_run_period_begin_month']]}"
-      begin_day = values['simulation_control_run_period_begin_day_of_month']
-      end_month = "#{Date::ABBR_MONTHNAMES[values['simulation_control_run_period_end_month']]}"
-      end_day = values['simulation_control_run_period_end_day_of_month']
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
-    end
-    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = values['simulation_control_run_period_calendar_year']
-
-    # Emissions
-    if values.keys.include?('emissions_electricity_values_or_filepaths')
-      measures['BuildResidentialHPXML'][0]['emissions_scenario_names'] = values['emissions_scenario_names']
-      measures['BuildResidentialHPXML'][0]['emissions_types'] = values['emissions_types']
-      measures['BuildResidentialHPXML'][0]['emissions_electricity_units'] = values['emissions_electricity_units']
-      measures['BuildResidentialHPXML'][0]['emissions_electricity_values_or_filepaths'] = values['emissions_electricity_values_or_filepaths']
-      measures['BuildResidentialHPXML'][0]['emissions_fossil_fuel_units'] = values['emissions_fossil_fuel_units']
-      measures['BuildResidentialHPXML'][0]['emissions_natural_gas_values'] = values['emissions_natural_gas_values']
-      measures['BuildResidentialHPXML'][0]['emissions_propane_values'] = values['emissions_propane_values']
-      measures['BuildResidentialHPXML'][0]['emissions_fuel_oil_values'] = values['emissions_fuel_oil_values']
-      measures['BuildResidentialHPXML'][0]['emissions_wood_values'] = values['emissions_wood_values']
-    end
-
-    # Utility Bills
-    measures['BuildResidentialHPXML'][0]['utility_bill_scenario_names'] = values['utility_bill_scenario_names']
-    measures['BuildResidentialHPXML'][0]['utility_bill_electricity_fixed_charges'] = values['utility_bill_electricity_fixed_charges']
-    measures['BuildResidentialHPXML'][0]['utility_bill_electricity_marginal_rates'] = values['utility_bill_electricity_marginal_rates']
-    measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_fixed_charges'] = values['utility_bill_natural_gas_fixed_charges']
-    measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_marginal_rates'] = values['utility_bill_natural_gas_marginal_rates']
-    measures['BuildResidentialHPXML'][0]['utility_bill_propane_fixed_charges'] = values['utility_bill_propane_fixed_charges']
-    measures['BuildResidentialHPXML'][0]['utility_bill_propane_marginal_rates'] = values['utility_bill_propane_marginal_rates']
-    measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_fixed_charges'] = values['utility_bill_fuel_oil_fixed_charges']
-    measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_marginal_rates'] = values['utility_bill_fuel_oil_marginal_rates']
-    measures['BuildResidentialHPXML'][0]['utility_bill_wood_fixed_charges'] = values['utility_bill_wood_fixed_charges']
-    measures['BuildResidentialHPXML'][0]['utility_bill_wood_marginal_rates'] = values['utility_bill_wood_marginal_rates']
-    measures['BuildResidentialHPXML'][0]['utility_bill_pv_compensation_types'] = values['utility_bill_pv_compensation_types']
-    measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = values['utility_bill_pv_net_metering_annual_excess_sellback_rate_types']
-    measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = values['utility_bill_pv_net_metering_annual_excess_sellback_rates']
-    measures['BuildResidentialHPXML'][0]['utility_bill_pv_feed_in_tariff_rates'] = values['utility_bill_pv_feed_in_tariff_rates']
-    measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = values['utility_bill_pv_monthly_grid_connection_fee_units']
-    measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = values['utility_bill_pv_monthly_grid_connection_fees']
-
-    # Get registered values and pass them to BuildResidentialScheduleFile
-    measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']
-    measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
-
-    # Specify measures to run
-    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
-    measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] },
-                               measures_dir => {} }
-
-    upgrade_measures = measures.keys - ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile']
-    upgrade_measures.each do |upgrade_measure|
-      measures_to_apply_hash[measures_dir][upgrade_measure] = measures[upgrade_measure]
-    end
-    measures_to_apply_hash.each_with_index do |(dir, measures_to_apply), i|
-      next if measures_to_apply.empty?
-
-      osw_out = 'upgraded.osw'
-      osw_out = "upgraded#{i + 1}.osw" if i > 0
-      next unless not apply_measures(dir, measures_to_apply, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', osw_out)
-
-      register_logs(runner, new_runner)
-      return false
     end
 
     # Copy upgraded.xml to home.xml for downstream HPXMLtoOpenStudio
@@ -443,7 +453,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     in_path = File.expand_path('../home.xml')
     FileUtils.cp(hpxml_path, in_path)
 
-    register_logs(runner, new_runner)
+    # register_logs(runner, new_runner)
 
     return true
   end
@@ -458,11 +468,11 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     return false
   end
 
-  def get_system_upgrades(hpxml, system_upgrades, args_hash)
+  def get_system_upgrades(hpxml_bldg, system_upgrades, args_hash)
     args_hash.keys.each do |arg|
       # Detect whether we are upgrading the heating system
       if arg.start_with?('heating_system_') && (not arg.start_with?('heating_system_2_'))
-        hpxml.heating_systems.each do |heating_system|
+        hpxml_bldg.heating_systems.each do |heating_system|
           next unless heating_system.primary_system
 
           system_upgrades << heating_system.id
@@ -471,7 +481,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       # Detect whether we are upgrading the secondary heating system
       if arg.start_with?('heating_system_2_')
-        hpxml.heating_systems.each do |heating_system|
+        hpxml_bldg.heating_systems.each do |heating_system|
           next if heating_system.primary_system
 
           system_upgrades << heating_system.id
@@ -480,7 +490,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       # Detect whether we are upgrading the cooling system
       if arg.start_with?('cooling_system_')
-        hpxml.cooling_systems.each do |cooling_system|
+        hpxml_bldg.cooling_systems.each do |cooling_system|
           system_upgrades << cooling_system.id
         end
       end
@@ -488,7 +498,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Detect whether we are upgrading the heat pump
       next unless arg.start_with?('heat_pump_')
 
-      hpxml.heat_pumps.each do |heat_pump|
+      hpxml_bldg.heat_pumps.each do |heat_pump|
         system_upgrades << heat_pump.id
       end
     end
@@ -496,30 +506,30 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     return system_upgrades
   end
 
-  def get_system_capacities(hpxml, system_upgrades)
+  def get_system_capacities(hpxml_bldg, system_upgrades)
     capacities = {}
 
-    hpxml.heating_systems.each do |heating_system|
+    hpxml_bldg.heating_systems.each do |heating_system|
       next unless heating_system.primary_system
       next if system_upgrades.include?(heating_system.id)
 
       capacities['heating_system_heating_capacity'] = heating_system.heating_capacity
     end
 
-    hpxml.heating_systems.each do |heating_system|
+    hpxml_bldg.heating_systems.each do |heating_system|
       next if heating_system.primary_system
       next if system_upgrades.include?(heating_system.id)
 
       capacities['heating_system_2_heating_capacity'] = heating_system.heating_capacity
     end
 
-    hpxml.cooling_systems.each do |cooling_system|
+    hpxml_bldg.cooling_systems.each do |cooling_system|
       next if system_upgrades.include?(cooling_system.id)
 
       capacities['cooling_system_cooling_capacity'] = cooling_system.cooling_capacity
     end
 
-    hpxml.heat_pumps.each do |heat_pump|
+    hpxml_bldg.heat_pumps.each do |heat_pump|
       next if system_upgrades.include?(heat_pump.id)
 
       capacities['heat_pump_heating_capacity'] = heat_pump.heating_capacity

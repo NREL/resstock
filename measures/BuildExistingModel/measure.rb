@@ -687,7 +687,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       register_value(runner, 'sample_weight', sample_weight.to_s)
     end
 
-    register_logs(runner, resstock_arguments_runner)
+    # register_logs(runner, new_runner)
 
     return true
   end

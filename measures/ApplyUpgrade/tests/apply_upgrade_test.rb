@@ -149,15 +149,17 @@ class ApplyUpgradeTest < Minitest::Test
     # Create instance of the measure
     measure = ApplyUpgrade.new
 
-    # Check for correct capacity values
-    system_upgrades = measure.get_system_upgrades(hpxml_in, [], args_hash)
-    actual_capacities = measure.get_system_capacities(hpxml_in, system_upgrades)
+    hpxml_in.buildings.each do |hpxml_bldg|
+      # Check for correct capacity values
+      system_upgrades = measure.get_system_upgrades(hpxml_bldg, [], args_hash)
+      actual_capacities = measure.get_system_capacities(hpxml_bldg, system_upgrades)
 
-    expected_capacities.each do |str, val|
-      if val.nil?
-        assert_nil(actual_capacities[str])
-      else
-        assert_equal(val, actual_capacities[str])
+      expected_capacities.each do |str, val|
+        if val.nil?
+          assert_nil(actual_capacities[str])
+        else
+          assert_equal(val, actual_capacities[str])
+        end
       end
     end
   end
