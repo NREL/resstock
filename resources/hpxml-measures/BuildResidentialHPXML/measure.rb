@@ -5099,22 +5099,19 @@ class HPXMLFile
       elsif attic_type == HPXML::AtticTypeConditioned
         return HPXML::LocationLivingSpace
       else
-        fail "Specified '#{location}' but attic type is '#{foundation_type}'."
+        fail "Specified '#{location}' but attic type is '#{attic_type}'."
       end
     end
     return location
   end
 
   def self.set_ducts(hpxml, args, hvac_distribution)
-    foundation_type = hpxml.foundations[-1].foundation_type
-    attic_type = hpxml.attics[-1].attic_type
-
     if args[:ducts_supply_location].is_initialized
-      ducts_supply_location = get_location(args[:ducts_supply_location].get, foundation_type, attic_type)
+      ducts_supply_location = get_location(args[:ducts_supply_location].get, hpxml.foundations[-1].foundation_type, hpxml.attics[-1].attic_type)
     end
 
     if args[:ducts_return_location].is_initialized
-      ducts_return_location = get_location(args[:ducts_return_location].get, foundation_type, attic_type)
+      ducts_return_location = get_location(args[:ducts_return_location].get, hpxml.foundations[-1].foundation_type, hpxml.attics[-1].attic_type)
     end
 
     if args[:ducts_supply_surface_area].is_initialized
@@ -5504,11 +5501,8 @@ class HPXMLFile
       fuel_type = HPXML::FuelTypeElectricity
     end
 
-    foundation_type = hpxml.foundations[-1].foundation_type
-    attic_type = hpxml.attics[-1].attic_type
-
     if args[:water_heater_location].is_initialized
-      location = get_location(args[:water_heater_location].get, foundation_type, attic_type)
+      location = get_location(args[:water_heater_location].get, hpxml.foundations[-1].foundation_type, hpxml.attics[-1].attic_type)
     end
 
     if args[:water_heater_tank_volume].is_initialized
@@ -5792,11 +5786,8 @@ class HPXMLFile
   def self.set_battery(hpxml, args)
     return unless args[:battery_present]
 
-    foundation_type = hpxml.foundations[-1].foundation_type
-    attic_type = hpxml.attics[-1].attic_type
-
     if args[:battery_location].is_initialized
-      location = get_location(args[:battery_location].get, foundation_type, attic_type)
+      location = get_location(args[:battery_location].get, hpxml.foundations[-1].foundation_type, hpxml.attics[-1].attic_type)
     end
 
     if args[:battery_power].is_initialized
