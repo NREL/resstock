@@ -520,8 +520,8 @@ class HVAC
     boiler.additionalProperties.setFeature('HPXML_ID', heating_system.id) # Used by reporting measure
     set_pump_power_ems_program(model, pump_w, pump, boiler)
 
-    # FIXME: EMS program to model pilot light
-    # Can be replaced if https://github.com/NREL/EnergyPlus/issues/9875 is ever implemented
+    # EMS program to model pilot light
+    # FUTURE: Can be replaced if https://github.com/NREL/EnergyPlus/issues/9875 is ever implemented
     set_boiler_pilot_light_ems_program(model, boiler, heating_system)
 
     if is_condensing && oat_reset_enabled
