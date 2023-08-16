@@ -83,7 +83,7 @@ class Battery
     elcs.setCellVoltageatEndofNominalZone(default_nominal_cell_voltage)
     if not voltage_dependence
       elcs.setBatteryCellInternalElectricalResistance(0.002) # 2 mOhm/cell, based on OCHRE defaults (which are based on fitting to lab results)
-      # FIXME: if the voltage reported during charge/discharge is different, energy may not balance
+      # Note: if the voltage reported during charge/discharge is different, energy may not balance
       # elcs.setFullyChargedCellVoltage(default_nominal_cell_voltage)
       # elcs.setCellVoltageatEndofExponentialZone(default_nominal_cell_voltage)
     end
