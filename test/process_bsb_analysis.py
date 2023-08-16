@@ -1,7 +1,11 @@
 import os
+import sys
 import pandas as pd
 from functools import reduce
 import csv
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '../../resources/hpxml-measures/workflow/tests')))
+from compare import read_csv
+
 
 if __name__ == '__main__':
 
