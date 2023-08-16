@@ -330,7 +330,7 @@ def recalculate_duct_sealing_costs(dfu, dfb):
 						logger.info(f"{len(subset)} new_cost=0 found:\n{subset}")
 						# not required, just showing for context
 						subset_baseline = dfb.loc[subset.index, 
-						["hvac_has_ducts", "duct_total_surface_area",
+						["build_existing_model.hvac_has_ducts", "duct_total_surface_area",
 						"build_existing_model.ducts", "build_existing_model.hvac_heating_efficiency", 
 						"build_existing_model.hvac_cooling_efficiency", "build_existing_model.hvac_shared_efficiencies"]]
 						logger.info(subset_baseline)
@@ -369,7 +369,15 @@ def process_files(community_name):
 	baseline_file = data_dir / f"up00.parquet"
 	dfb = pd.read_parquet(baseline_file).set_index("building_id")
 	dfb = dfb.loc[dfb["completed_status"]=="Success"]
+	dfb_orig = dfb.copy()
 	dfb = update_baseline(dfb)
+
+	# report change
+	metrics = ["build_existing_model.hvac_has_ducts", "build_existing_model.hvac_heating_type", "build_existing_model.hvac_cooling_type",]
+	delta = dfb_orig[metrics].compare(dfb[metrics])
+	logger.info(f"After duct correction, housing characteristics for {len(delta)} / {len(dfb_orig)} buildings in baseline are changed: ")
+	logger.info("Note: self=original, other=new. NAN values represent no change.")
+	logger.info(f"\n{delta}")
 
 	# save to file
 	baseline_file_out = baseline_file.parent / (baseline_file.stem+"_duct_corrected"+baseline_file.suffix)
@@ -381,14 +389,26 @@ def process_files(community_name):
 		dfu = pd.read_parquet(upgrade_file).set_index("building_id")
 		dfu = dfu.loc[dfu["completed_status"]=="Success"]
 
+		logger.info("")
+		logger.info("=====================================================================================")
 		logger.info(f"\n>> Recalculating duct sealing applicability and costs for upgrade_no = {upgrade_no}...")
-		dfu = recalculate_duct_sealing_costs(dfu, dfb)
+		dfu2 = recalculate_duct_sealing_costs(dfu, dfb)
+
+		# report change
+		upgrade_cost_change = pd.concat([
+				dfu["upgrade_costs.upgrade_cost_usd"].replace(0, np.nan).describe().rename("Before Correction (excludes 0)"),
+				dfu2["upgrade_costs.upgrade_cost_usd"].describe().rename("After Correction")
+				], axis=1)
+
+		logger.info(f"After duct correction, dfu has reduced in size from {len(dfu)} to len(dfu2) rows.")
+		logger.info("Change in upgrade_costs.upgrade_cost_usd:")
+		logger.info(f"\n{upgrade_cost_change}")
 
 		# save to file
 		upgrade_file_out = upgrade_file.parent / (upgrade_file.stem+"_duct_corrected"+upgrade_file.suffix)
-		dfu.reset_index().to_parquet(upgrade_file_out)
+		dfu2.reset_index().to_parquet(upgrade_file_out)
 		logger.info(f"Upgrade file updated and saved to: {upgrade_file_out}")
-
+		
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

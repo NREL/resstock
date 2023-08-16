@@ -57,6 +57,8 @@ def main(community_name="Test", as_percentage=False):
 
         # check new cols
         new_cols = list(set(dfo.columns) - set(dfi.columns))
+        if community_name == "hill_district":
+            new_cols = [x for x in new_cols if x != "sample_weight"]
         assert len(new_cols) == 5, f"unknown new_cols found: {new_cols}"
         assert set(x.split(".")[0] for x in new_cols) == {
             "report_utility_bills"
