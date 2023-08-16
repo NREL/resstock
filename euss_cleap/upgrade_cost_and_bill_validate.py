@@ -31,8 +31,8 @@ def main(community_name="Test", as_percentage=False):
         )
         sys.exit(1)
 
-    in_files = sorted(datadir.rglob("up*.parquet"))
-    out_files = sorted(outdir.rglob(f"up*{ext}.parquet"))
+    in_files = sorted(datadir.rglob("up[0-9][0-9]_duct_corrected.parquet"))
+    out_files = sorted(outdir.rglob(f"up[0-9][0-9]{ext}.parquet"))
 
     assert len(in_files) == len(
         out_files

@@ -300,35 +300,35 @@ def process_euss_upgrade_files(
             up01["upgrade_costs.option_05_cost_usd"] > 0,
             "upgrade_costs.option_05_cost_usd",
         ] = (
-            ducts1 * up01["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts1 * up01["duct_total_surface_area"]
         )
         # Seal ducts a lot to have 10% leakage, already has R-8 insulation
         up01.loc[
             up01["upgrade_costs.option_06_cost_usd"] > 0,
             "upgrade_costs.option_06_cost_usd",
         ] = (
-            ducts2 * up01["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts2 * up01["duct_total_surface_area"]
         )
         # Insulate and seal ducts some to have 10% leakage and R-8 ducts
         up01.loc[
             up01["upgrade_costs.option_07_cost_usd"] > 0,
             "upgrade_costs.option_07_cost_usd",
         ] = (
-            ducts3 * up01["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts3 * up01["duct_total_surface_area"]
         )
         # Seal ducts some to have 10% leakage, already has R-8 insulation
         up01.loc[
             up01["upgrade_costs.option_08_cost_usd"] > 0,
             "upgrade_costs.option_08_cost_usd",
         ] = (
-            ducts4 * up01["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts4 * up01["duct_total_surface_area"]
         )
         # Only insulate ducts to R-8, no sealing
         up01.loc[
             up01["upgrade_costs.option_09_cost_usd"] > 0,
             "upgrade_costs.option_09_cost_usd",
         ] = (
-            ducts5 * up01["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts5 * up01["duct_total_surface_area"]
         )
         # Insulation Wall|Wood Stud, R-13
         up01.loc[
@@ -390,35 +390,35 @@ def process_euss_upgrade_files(
             up02["upgrade_costs.option_05_cost_usd"] > 0,
             "upgrade_costs.option_05_cost_usd",
         ] = (
-            ducts1 * up02["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts1 * up02["duct_total_surface_area"]
         )
         # Seal ducts a lot to have 10% leakage, already has R-8 insulation
         up02.loc[
             up02["upgrade_costs.option_06_cost_usd"] > 0,
             "upgrade_costs.option_06_cost_usd",
         ] = (
-            ducts2 * up02["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts2 * up02["duct_total_surface_area"]
         )
         # Insulate and seal ducts some to have 10% leakage and R-8 ducts
         up02.loc[
             up02["upgrade_costs.option_07_cost_usd"] > 0,
             "upgrade_costs.option_07_cost_usd",
         ] = (
-            ducts3 * up02["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts3 * up02["duct_total_surface_area"]
         )
         # Seal ducts some to have 10% leakage, already has R-8 insulation
         up02.loc[
             up02["upgrade_costs.option_08_cost_usd"] > 0,
             "upgrade_costs.option_08_cost_usd",
         ] = (
-            ducts4 * up02["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts4 * up02["duct_total_surface_area"]
         )
         # Only insulate ducts to R-8, no sealing
         up02.loc[
             up02["upgrade_costs.option_09_cost_usd"] > 0,
             "upgrade_costs.option_09_cost_usd",
         ] = (
-            ducts5 * up02["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts5 * up02["duct_total_surface_area"]
         )
         # Insulation Wall|Wood Stud, R-13
         up02.loc[
@@ -933,35 +933,35 @@ def process_euss_upgrade_files(
             up09["upgrade_costs.option_05_cost_usd"] > 0,
             "upgrade_costs.option_05_cost_usd",
         ] = (
-            ducts1 * up09["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts1 * up09["duct_total_surface_area"]
         )
         # Seal ducts a lot to have 10% leakage, already has R-8 insulation
         up09.loc[
             up09["upgrade_costs.option_06_cost_usd"] > 0,
             "upgrade_costs.option_06_cost_usd",
         ] = (
-            ducts2 * up09["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts2 * up09["duct_total_surface_area"]
         )
         # Insulate and seal ducts some to have 10% leakage and R-8 ducts
         up09.loc[
             up09["upgrade_costs.option_07_cost_usd"] > 0,
             "upgrade_costs.option_07_cost_usd",
         ] = (
-            ducts3 * up09["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts3 * up09["duct_total_surface_area"]
         )
         # Seal ducts some to have 10% leakage, already has R-8 insulation
         up09.loc[
             up09["upgrade_costs.option_08_cost_usd"] > 0,
             "upgrade_costs.option_08_cost_usd",
         ] = (
-            ducts4 * up09["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts4 * up09["duct_total_surface_area"]
         )
         # Only insulate ducts to R-8, no sealing
         up09.loc[
             up09["upgrade_costs.option_09_cost_usd"] > 0,
             "upgrade_costs.option_09_cost_usd",
         ] = (
-            ducts5 * up09["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts5 * up09["duct_total_surface_area"]
         )
         # Insulation Wall|Wood Stud, R-13
         up09.loc[
@@ -1090,35 +1090,35 @@ def process_euss_upgrade_files(
             up10["upgrade_costs.option_05_cost_usd"] > 0,
             "upgrade_costs.option_05_cost_usd",
         ] = (
-            ducts1 * up10["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts1 * up10["duct_total_surface_area"]
         )
         # Seal ducts a lot to have 10% leakage, already has R-8 insulation
         up10.loc[
             up10["upgrade_costs.option_06_cost_usd"] > 0,
             "upgrade_costs.option_06_cost_usd",
         ] = (
-            ducts2 * up10["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts2 * up10["duct_total_surface_area"]
         )
         # Insulate and seal ducts some to have 10% leakage and R-8 ducts
         up10.loc[
             up10["upgrade_costs.option_07_cost_usd"] > 0,
             "upgrade_costs.option_07_cost_usd",
         ] = (
-            ducts3 * up10["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts3 * up10["duct_total_surface_area"]
         )
         # Seal ducts some to have 10% leakage, already has R-8 insulation
         up10.loc[
             up10["upgrade_costs.option_08_cost_usd"] > 0,
             "upgrade_costs.option_08_cost_usd",
         ] = (
-            ducts4 * up10["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts4 * up10["duct_total_surface_area"]
         )
         # Only insulate ducts to R-8, no sealing
         up10.loc[
             up10["upgrade_costs.option_09_cost_usd"] > 0,
             "upgrade_costs.option_09_cost_usd",
         ] = (
-            ducts5 * up10["upgrade_costs.duct_unconditioned_surface_area_ft_2"]
+            ducts5 * up10["duct_total_surface_area"]
         )
         # Insulation Wall|Wood Stud, R-13
         up10.loc[
@@ -1230,7 +1230,7 @@ def process_euss_upgrade_files(
 
     for upn in range(11):
         process_upgrade_file(
-            bst_dir / community_name / f"up{upn:02d}.parquet",
+            bst_dir / community_name / f"up{upn:02d}_duct_corrected.parquet",
             output_dir / community_name / f"up{upn:02d}__{community_name}.parquet",
             upgrade_number=upn,
             use_multipliers_only=use_multipliers_only,

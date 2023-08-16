@@ -15,6 +15,29 @@ More importantly, they get the energy benefit but 0 upgrade cost due to the mult
 from pathlib import Path
 import numpy as np
 import pandas as pd
+import argparse
+import logging
+
+
+def setup_logging(
+        name, filename, file_level=logging.INFO, console_level=logging.INFO
+        ):
+    global logger
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    fh = logging.FileHandler(filename, mode="w")
+    fh.setLevel(file_level)
+    ch = logging.StreamHandler()
+    ch.setLevel(console_level)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s"
+    )
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    # add the handlers to the logger
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+
 
 def _assign_duct_location(x):
 	""" Duplicating logics of primary duct location from
@@ -61,16 +84,8 @@ def get_default_duct_fraction_outside_conditioned_space(ncfl_ag):
 	f_out.loc[ncfl_ag <= 1] = 1
 	return f_out
 
-
-def get_load_fraction_served(dfu, dfb):
-	"""
-	Calculate fraction of heating and cooling load served to get cfa_served
-
-	This takes care of distinguishing between ducted and ductless, where load_frac_served=0 if ductless
-	"""
-	# heating
-	heat_load_frac_served = pd.Series(1, index=dfb.index)
-	cond = dfb["build_existing_model.hvac_heating_efficiency"].isin([
+def _get_non_ducted_heating():
+	return [
 		"None", 
 		"Other",
 		"Shared Heating", # all shared systems are ductless
@@ -95,23 +110,14 @@ def get_load_fraction_served(dfu, dfb):
 		"Fuel Wall/Floor Furnace, 68% AFUE",
 		"Dual-System MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup",
 		"Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup",
-		"MSHP, SEER 15, 9.0 HSPF, Max Load",
-		"MSHP, SEER 24, 13 HSPF",
-		"MSHP, SEER 29.3, 14 HSPF, Max Load",
-	])
-	heat_load_frac_served.loc[cond] = 0
+		"MSHP, SEER 15, 9.0 HSPF, Max Load", # non-ducted
+		# "MSHP, SEER 24, 13 HSPF", # ducted (do not turn on)
+		"MSHP, SEER 29.3, 14 HSPF, Max Load", # non-ducted
+	]
 
-	# cooling
-	cool_load_frac_served = dfb["build_existing_model.hvac_cooling_partial_space_conditioning"].map({
-		"<10% Conditioned": 0.1,
-		"20% Conditioned": 0.2,
-		"40% Conditioned": 0.4,
-		"60% Conditioned": 0.6,
-		"80% Conditioned": 0.8,
-		"100% Conditioned": 1,
-		"None": 0,
-		})
-	cond = dfb["build_existing_model.hvac_cooling_efficiency"].isin([
+
+def _get_non_ducted_cooling():
+	return [
 		"None",
 		"Heat Pump", # superceded by heating eff
 		"Shared Heating", # all shared systems are ductless
@@ -121,11 +127,83 @@ def get_load_fraction_served(dfu, dfb):
 		"Room AC, EER 12.0",
 		"Evaporative Cooler",
 
-	])
+	]
+
+def _get_load_fraction_served(heating_eff, cooling_eff, cooling_partial_space_cond):
+	"""
+	Utility function to calculate fraction of heating and cooling load served to get cfa_served
+
+	This takes care of distinguishing between ducted and ductless, where load_frac_served=0 if ductless
+	Each input is a pd.Series of the same index
+	Returns a pd.Series of the same index
+	"""
+	non_ducted_heating = _get_non_ducted_heating()
+	non_ducted_cooling = _get_non_ducted_cooling()
+
+	# heating
+	heat_load_frac_served = pd.Series(1, index=heating_eff.index)
+	cond = heating_eff.isin(non_ducted_heating)
+	heat_load_frac_served.loc[cond] = 0
+
+	# cooling
+	cool_load_frac_served = cooling_partial_space_cond.map({
+		"<10% Conditioned": 0.1,
+		"20% Conditioned": 0.2,
+		"40% Conditioned": 0.4,
+		"60% Conditioned": 0.6,
+		"80% Conditioned": 0.8,
+		"100% Conditioned": 1,
+		"None": 0,
+		})
+	cond = cooling_eff.isin(non_ducted_cooling)
 	cool_load_frac_served.loc[cond] = 0
 
 	load_frac_served = np.maximum(heat_load_frac_served, cool_load_frac_served)
 
+	return load_frac_served
+
+
+def get_load_fraction_served(dfb, dfu=None):
+	"""
+	Calculate fraction of heating and cooling load served to get cfa_served
+
+	"""
+	heating_eff = dfb["build_existing_model.hvac_heating_efficiency"].copy()
+	cooling_eff = dfb["build_existing_model.hvac_cooling_efficiency"].copy()
+	cooling_partial_space_cond = dfb["build_existing_model.hvac_cooling_partial_space_conditioning"].copy()
+
+	if dfu is not None:
+		upgrade_option_names = [col for col in dfu.columns if col.startswith("upgrade_costs.option_") and col.endswith("_name")]
+		for col in upgrade_option_names:
+			vals = dfu[col].unique()
+			# update heating_eff
+			relevant_options = [val for val in vals if val is not None and "HVAC Heating Efficiency" in val]
+			if len(relevant_options) > 0:
+				# logger.info("heating")
+				# breakpoint()
+				for upgrade_option in relevant_options:
+					cond = dfu[col]==upgrade_option
+					heating_eff.loc[cond] = upgrade_option.split("|")[1]
+			# update cooling_eff
+			relevant_options = [val for val in vals if val is not None and "HVAC Cooling Efficiency" in val]
+			if len(relevant_options) > 0:
+				# logger.info("cooling")
+				# breakpoint()
+				for upgrade_option in relevant_options:
+					cond = dfu[col]==upgrade_option
+					cooling_eff.loc[cond] = upgrade_option.split("|")[1]
+			# update cooling_partial_space_cond
+			relevant_options = [val for val in vals if val is not None and "HVAC Cooling Partial Space Conditioning" in val]
+			if len(relevant_options) > 0:
+				# breakpoint()
+				for upgrade_option in relevant_options:
+					cond = dfu[col]==upgrade_option
+					cooling_partial_space_cond.loc[cond] = upgrade_option.split("|")[1]
+
+	load_frac_served = _get_load_fraction_served(
+		heating_eff, cooling_eff, cooling_partial_space_cond
+		)
+	
 	return load_frac_served
 
 
@@ -136,14 +214,16 @@ def calculate_duct_surface_areas(df_baseline, df_upgrade=None):
 	if df_upgrade is None:
 		dfb = df_baseline.copy()
 		dfu = df_baseline.copy()
+		load_frac_served = get_load_fraction_served(dfb, dfu=None)
 	else:
-		dfu = df_upgrade.copy()
-		dfb = df_baseline.loc[df_upgrade.index]
+		idx = sorted(set(df_upgrade.index).intersection(set(df_baseline.index)))
+		dfb = df_baseline.loc[idx]
+		dfu = df_upgrade.loc[idx]
+		load_frac_served = get_load_fraction_served(dfb, dfu=dfu)
 
 	if "duct_location" not in dfb:
 		dfb = add_duct_location(dfb)
 
-	load_frac_served = get_load_fraction_served(dfu, dfb)
 	cfa_served = dfu["upgrade_costs.floor_area_conditioned_ft_2"] * load_frac_served
 
 	# number of conditioned floors above grade
@@ -187,9 +267,16 @@ def update_baseline(dfb):
 	dfb = add_duct_location(dfb)
 	duct_areas = calculate_duct_surface_areas(dfb)
 
-	dfb["hvac_has_ducts"] = "Yes"
-	dfb.loc[duct_areas[2]==0, "hvac_has_ducts"] = "No"
+	dfb["build_existing_model.hvac_has_ducts"] = "Yes"
+	dfb.loc[duct_areas[2]==0, "build_existing_model.hvac_has_ducts"] = "No"
 	dfb.loc[duct_areas[2]==0, "duct_location"] = "None" # override
+
+	# fix other hc based on HVAC Has Shared System, with which HVAC Has Ducts is coordinated
+	cond = dfb["build_existing_model.hvac_has_shared_system"].isin(["Heating Only", "Heating and Cooling"])
+	dfb.loc[cond, "build_existing_model.hvac_heating_type"] = "Non-Ducted Heating"
+
+	cond = dfb["build_existing_model.hvac_has_shared_system"].isin(["Cooling Only", "Heating and Cooling"])
+	dfb.loc[cond, "build_existing_model.hvac_cooling_type"] = "Fan Coil Cooling"
 
 	dfb = dfb.assign(duct_conditioned_surface_area=duct_areas[0])
 	dfb = dfb.assign(duct_unconditioned_surface_area=duct_areas[1])
@@ -224,46 +311,91 @@ def recalculate_duct_sealing_costs(dfu, dfb):
 	] 
 	upgrade_option_names = [col for col in dfu.columns if col.startswith("upgrade_costs.option_") and col.endswith("_name")]
 
+	need_modify = []
 	for col in upgrade_option_names:
 		if upgrade_option in dfu[col].unique():
 			no_change = True
-			cost_col = col.replace("_name", "_cost")
+			cost_col = col.replace("_name", "_cost_usd")
 			cond0 = dfu[col]==upgrade_option
 
 			for uf, ucr in zip(upgrade_from, upgrade_cost_rate):
 				cond = cond0 & dfb[upgrade_hc].isin(uf)
 				if cond.sum() > 0:
-					print(f"Updating {cond0.sum()} {cost_col} from {uf}")
+					logger.info(f"Updating {cond0.sum()} {cost_col} from {uf}")
 					assert cond.sum() == cond0.sum(), f"mismatch conditions: {cond.sum()} found, expecting {cond0.sum()}"
 					new_cost = dfu.loc[cond, "duct_total_surface_area"] * ucr
-					if (new_cost==0).sum() > 0:
-						print(f"{(new_cost==0).sum()} new_cost=0 found:\n{new_cost.loc[new_cost==0]}")
-						breakpoint()
 
-					# assert (new_cost==0).sum() == 0, f"{(new_cost==0).sum()} new_cost=0 found:\n{new_cost.loc[new_cost==0]}"
+					if (new_cost==0).sum() > 0:
+						subset = new_cost.loc[new_cost==0]
+						logger.info(f"{len(subset)} new_cost=0 found:\n{subset}")
+						# not required, just showing for context
+						subset_baseline = dfb.loc[subset.index, 
+						["hvac_has_ducts", "duct_total_surface_area",
+						"build_existing_model.ducts", "build_existing_model.hvac_heating_efficiency", 
+						"build_existing_model.hvac_cooling_efficiency", "build_existing_model.hvac_shared_efficiencies"]]
+						logger.info(subset_baseline)
+
+						test_cond = dfb.loc[subset.index, "duct_total_surface_area"]==0
+						test_cond &= dfu.loc[subset.index, "duct_total_surface_area"]==0
+						assert test_cond.sum() == len(subset), "test_cond != len(subset)"
+						dfu.loc[subset.index, col] = np.nan # override with null because upgrade did not apply
+						need_modify += list(subset.index)
+
+					dfu.loc[cond, "upgrade_costs.upgrade_cost_usd"] += new_cost - dfu.loc[cond, cost_col].fillna(0)
 					dfu.loc[cond, cost_col] = new_cost
+
 					no_change = False
 
 			if no_change:
-				print(f" X No update made for {cost_col} from {uf}")
+				logger.info(f" X No update made for {cost_col} from {uf}")
+
+	if len(need_modify) > 0:
+		test_cond = dfu.loc[need_modify, "upgrade_costs.upgrade_cost_usd"]==0
+		need_remove = test_cond.loc[test_cond].index
+		metric = "report_simulation_output.energy_use_total_m_btu"
+		test_cond2 = dfu.loc[need_remove, metric].round(1) == dfb.loc[need_remove, metric].round(1)
+		assert (test_cond2).prod() == 1, f"total energy dfu != dfb for {list(need_remove)}\n{test_cond2}"
+		logger.info(f"Dropping {len(need_remove)} / {len(need_modify)} building_id(s) whose content have been modified for duct correction.\n{list(need_remove)}")
+		logger.info("For these buildings, duct sealing was the only applicable component in the upgrade and it no longer applies after the correction.")
+		dfu = dfu.drop(index=need_remove)
 
 	return dfu
 
 
-community_name = "columbia" # <---
+def process_files(community_name):
+	data_dir = Path(".").resolve() / "data_" / "community_building_samples" / community_name 
+	setup_logging(community, data_dir / f"output__duct_correction__{community}.log")
 
-# data_dir = Path(".").resolve() / "data_" / "community_building_samples_with_upgrade_cost_and_bill" / community_name 
-# baseline_file = data_dir / f"up00__{community_name}.parquet"
-# upgrade_file  = data_dir / f"up01__{community_name}.parquet"
+	baseline_file = data_dir / f"up00.parquet"
+	dfb = pd.read_parquet(baseline_file).set_index("building_id")
+	dfb = dfb.loc[dfb["completed_status"]=="Success"]
+	dfb = update_baseline(dfb)
 
-data_dir = Path(".").resolve() / "data_" / "community_building_samples" / community_name 
-baseline_file = data_dir / f"up00.parquet"
-upgrade_file  = data_dir / f"up01.parquet"
+	# save to file
+	baseline_file_out = baseline_file.parent / (baseline_file.stem+"_duct_corrected"+baseline_file.suffix)
+	dfb.reset_index().to_parquet(baseline_file_out)
+	logger.info(f"Baseline fle updated and saved to: {baseline_file.parent}")
 
-dfb = pd.read_parquet(baseline_file).set_index("building_id")
-dfu = pd.read_parquet(upgrade_file).set_index("building_id")
+	for upgrade_no in range(1, 11):
+		upgrade_file  = data_dir / f"up{upgrade_no:02d}.parquet"
+		dfu = pd.read_parquet(upgrade_file).set_index("building_id")
+		dfu = dfu.loc[dfu["completed_status"]=="Success"]
 
-dfb = update_baseline(dfb)
-dfu = recalculate_duct_sealing_costs(dfu, dfb)
+		logger.info(f"\n>> Recalculating duct sealing applicability and costs for upgrade_no = {upgrade_no}...")
+		dfu = recalculate_duct_sealing_costs(dfu, dfb)
 
-breakpoint()
+		# save to file
+		upgrade_file_out = upgrade_file.parent / (upgrade_file.stem+"_duct_corrected"+upgrade_file.suffix)
+		dfu.reset_index().to_parquet(upgrade_file_out)
+		logger.info(f"Upgrade file updated and saved to: {upgrade_file_out}")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "community_name",
+        help="name of community, for adding extension to output file",
+    )
+
+    community = parser.parse_args().community_name
+    process_files(community)

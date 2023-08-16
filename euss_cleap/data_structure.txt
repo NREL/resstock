@@ -11,9 +11,17 @@ input data directory: data_/downsampled_buildings_id/euss1_2018_results_up00__do
 output data directory: data_/community_building_samples/{community}/
 # Not needed for hill_district.
 
+2B. add_duct_conditioned_surface_area_and_cost.py <community>
+Correct duct inconsistencies and costs in results. 
+Add "hvac_has_ducts" and "duct_location" to baseline file.
+Add "duct_conditioned_surface_area", "duct_unconditioned_surface_area", "duct_total_surface_area" to baseline and upgrade files. Use "duct_total_surface_area" for upgrade cost calc.
+Override relevant "upgrade_costs.option_<>" columns and "upgrade_costs.upgrade_cost_usd" in upgrade files, remove buildings that no longer has an upgrade after duct fix.
+inpuput data directory: data_/community_building_samples/{community}/up<#>.parquet
+output data directory: data_/community_building_samples/{community}/up<#>_duct_corrected.parquet
+
 3. upgrade_cost_and_bill.py <community>
 Use upgrade_cost_and_bill_validate.py <community> to validate
-input data directory: data_/community_building_samples/{community}/
+input data directory: data_/community_building_samples/{community}/up_<#>_duct_corrected.parquet
                       data_/community_cost/cost_{community}.csv
 output data directory: data_/community_building_samples_with_upgrade_cost_and_bill/{community}/
 # A separate processing script is available for hill_district due to the addition of XPS for masonry walls.
