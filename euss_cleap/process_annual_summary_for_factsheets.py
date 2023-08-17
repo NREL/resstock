@@ -127,7 +127,7 @@ class SavingsExtraction:
             "build_existing_model.sample_weight",
             ]
         self.res_meta_cols += [f"build_existing_model.{x}" for x in hc]
-        self.res_meta_cols += ["rep_income", "sample_weight"]
+        self.res_meta_cols += ["rep_income", "sample_weight", "wall_rating", "ceiling_roof_rating", "infiltration_rating", "combined_envelope_rating"]
 
         print(
             "========================================================================="

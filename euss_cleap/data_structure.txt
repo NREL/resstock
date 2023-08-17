@@ -6,10 +6,12 @@ output data directory:data_/downsampled_buildings_id/euss1_2018_results_up00__do
 # Not available for hill_district as a small EUSS run is done separately with ~2k samples to add XPS for masonry walls.
 
 2. get_community_results_from_euss.ipynb
+Extract raw EUSS files for community informed by downsampled output.
+Note: add_envelope_metrics.py (which can be run independently) is invoked in the notebook to add envelope ratings directly into the raw baseline file.
 input data directory: data_/downsampled_buildings_id/euss1_2018_results_up00__downsampled_method1_{community}.csv 
                       data_/euss_res_final_2018_550k_20220901/
 output data directory: data_/community_building_samples/{community}/
-# Not needed for hill_district.
+# Not needed for hill_district, however, run $ python add_envelope_metrics.py hill_district to add envelope ratings into raw baseline file.
 
 2B. add_duct_conditioned_surface_area_and_cost.py <community>
 Correct duct inconsistencies and costs in results. 
