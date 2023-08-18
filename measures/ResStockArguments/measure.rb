@@ -342,6 +342,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_backup_use_existing_system', false)
+    arg.setDisplayName('Heat Pump: Backup Use Existing System')
+    arg.setDescription('Whether the heat pump uses the existing system as backup.')
+    args << arg
+
     return args
   end
 
@@ -725,6 +730,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       rim_joist_assembly_r = assembly_exterior_r + assembly_interior_r
     end
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
+
+    # Heat Pump Backup
+    if args[:heat_pump_backup_use_existing_system].is_initialized
+      args_to_delete.delete('heat_pump_backup_use_existing_system')
+    end
 
     args.each do |arg_name, arg_value|
       begin
