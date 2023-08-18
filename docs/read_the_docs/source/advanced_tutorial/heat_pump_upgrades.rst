@@ -1,41 +1,47 @@
 Heat Pump Upgrades
 ==================
 
+The following information is relevant for when a heat pump -related upgrade is defined in a project definition file.
+
 Types of Backup
 ---------------
 
-See https://openstudio-hpxml.readthedocs.io/en/latest/workflow_inputs.html#hpxml-heat-pumps.
+The ResStock workflow allows modeling heat pumps with either "integrated" or "separate" backup heating.
+Definitions for each are given below.
+See `HPXML Heat Pumps <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_inputs.html#hpxml-heat-pumps>`_ for more information.
 
-Integrated
-**********
-
-The heat pump’s distribution system and blower fan power applies to the backup heating (e.g., built-in electric strip heat or an integrated backup furnace, i.e., a dual-fuel heat pump).
-
-Separate
-********
-
-The backup system has its own distribution system (e.g., electric baseboard or a boiler).
+- *integrated*: the heat pump’s distribution system and blower fan power applies to the backup heating (e.g., built-in electric strip heat or an integrated backup furnace, i.e., a dual-fuel heat pump).
+- *separate*: the backup system has its own distribution system (e.g., electric baseboard or a boiler).
 
 Lockout Temperatures
 --------------------
 
-See https://openstudio-hpxml.readthedocs.io/en/latest/workflow_inputs.html#backup.
+The ResStock workflow allows for controlling the compressor and/or backup heating lockout temperatures.
+Definitions for each are given below.
+See the `Backup <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_inputs.html#backup>`_ section of the OpenStudio-HPXML documentation for more information.
 
-Compressor
-**********
+- *compressor*: minimum outdoor temperature for compressor operation.
+- *backup heating*: maximum outdoor temperature for backup operation.
 
-``heat_pump_compressor_lockout_temp=5``
+For example, a heat pump upgrade option could be defined with a compressor lockout temperature of 5F and a backup heating lockout temperature of 40F.
+See below the argument assignments that would need to be added to the ``options_lookup.tsv`` file.
+These values would override the OpenStudio-HPXML defaults.
 
-Backup Heating
-**************
+.. code::
 
-``heat_pump_backup_heating_lockout_temp=40``
+  heat_pump_compressor_lockout_temp=5
+  heat_pump_backup_heating_lockout_temp=40
 
 Replacement Scenarios
 ---------------------
 
+When defining a heat pump upgrade, the new heat pump can either (a) replace the primary (existing) system, or (b) retain the primary (existing) system as its backup heating system.
+In the latter case, all properties (e.g., capacity) of the primary (existing) system are retained as properties of the heat pump backup heating system.
+
 Replace Primary System with New Heat Pump
 *****************************************
+
+For example:
 
 .. code-block:: yaml
 
@@ -54,11 +60,13 @@ Primary System becomes Backup to New Heat Pump
 **********************************************
 
 Use the ``Heat Pump Backup|Use Existing System`` option from the lookup.
-Here is generally what happens / gets retained:
+The following properties are retained:
 
 - fuel type
 - efficiency
 - capacity
+
+For example:
 
 .. code-block:: yaml
 
@@ -74,7 +82,7 @@ Here is generally what happens / gets retained:
       - option: HVAC Cooling Efficiency|Ducted Heat Pump
       - option: Heat Pump Backup|Use Existing System
 
-The type of the backup is determined based on the table below:
+For this scenario, the type of the backup is (automatically) determined based on information in the table below:
 
   ============= ============= =========== =============================
   New Heat Pump Backup System Backup Type Example
@@ -88,14 +96,14 @@ The type of the backup is determined based on the table below:
  .. [#] When furnace is fuel-fired (i.e., non-electric).
         When furnace is electric, it likely wouldn't be used as integrated backup.
 
-Other situations:
+Other situations and considerations:
 
-- Primary system does not become backup to the heat pump:
+- The primary (existing) system does not become backup to the heat pump when:
 
-  - Primary system is a heat pump
-  - Primary system is a shared system
+  - the primary system is a heat pump
+  - the primary system is a shared system
 
-- Secondary system exists:
+- When a secondary (existing) system exists:
 
-  - Remains secondary if heat pump upgrade is integrated backup
-  - Removed if heat pump upgrade is separate backup?
+  - it remains secondary if the heat pump upgrade is integrated backup
+  - it is removed if the heat pump upgrade is separate backup
