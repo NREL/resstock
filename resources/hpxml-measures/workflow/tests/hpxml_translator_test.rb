@@ -541,12 +541,10 @@ class HPXMLTest < Minitest::Test
       next if message.include? 'Pump nominal power or motor efficiency is set to 0'
       next if message.include? 'volume flow rate per watt of rated total cooling capacity is out of range'
       next if message.include? 'volume flow rate per watt of rated total heating capacity is out of range'
-      next if message.include? 'Timestep: Requested number'
       next if message.include? 'The Standard Ratings is calculated for'
       next if message.include?('WetBulb not converged after') && message.include?('iterations(PsyTwbFnTdbWPb)')
       next if message.include? 'Inside surface heat balance did not converge with Max Temp Difference'
       next if message.include? 'Inside surface heat balance convergence problem continues'
-      next if message.include? 'Missing temperature setpoint for LeavingSetpointModulated mode' # These warnings are fine, simulation continues with assigning plant loop setpoint to boiler, which is the expected one
       next if message.include?('Glycol: Temperature') && message.include?('out of range (too low) for fluid')
       next if message.include?('Glycol: Temperature') && message.include?('out of range (too high) for fluid')
       next if message.include? 'Plant loop exceeding upper temperature limit'
@@ -563,10 +561,8 @@ class HPXMLTest < Minitest::Test
       next if message.include? 'Iteration limit exceeded in calculating sensible part-load ratio error continues'
       next if message.include?('setupIHGOutputs: Output variables=Zone Other Equipment') && message.include?('are not available.')
       next if message.include?('setupIHGOutputs: Output variables=Space Other Equipment') && message.include?('are not available')
-      next if message.include? 'Actual air mass flow rate is smaller than 25% of water-to-air heat pump coil rated air flow rate.' # FUTURE: Remove this when https://github.com/NREL/EnergyPlus/issues/9125 is resolved
       next if message.include? 'DetailedSkyDiffuseModeling is chosen but not needed as either the shading transmittance for shading devices does not change throughout the year'
       next if message.include? 'View factors not complete'
-      next if message.include?('CheckSimpleWAHPRatedCurvesOutputs') && message.include?('WaterToAirHeatPump:EquationFit') # FUTURE: Check these
 
       # HPWHs
       if hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
@@ -577,6 +573,7 @@ class HPXMLTest < Minitest::Test
         next if message.include? 'Enthalpy out of range (PsyTsatFnHPb)'
         next if message.include?('CheckWarmupConvergence: Loads Initialization') && message.include?('did not converge after 25 warmup days')
       end
+      # HPWHs outside
       if hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump && wh.location == HPXML::LocationOtherExterior }.size > 0
         next if message.include? 'Water heater tank set point temperature is greater than or equal to the cut-in temperature of the heat pump water heater.'
       end
@@ -586,8 +583,13 @@ class HPXMLTest < Minitest::Test
       end
       # HP defrost curves
       if hpxml.heat_pumps.select { |hp| [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include? hp.heat_pump_type }.size > 0
-        next if message.include?('GetDXCoils: Coil:Heating:DX') && message.include?('curve values')
+        next if message.include?('GetDXCoils: Coil:Heating:DX') && message.include?('curve values') && message.include?('Defrost Energy Input Ratio Function of Temperature Curve')
       end
+      # variable system SHR adjustment
+      if (hpxml.heat_pumps + hpxml.cooling_systems).select { |hp| hp.compressor_type == HPXML::HVACCompressorTypeVariableSpeed }.size > 0
+        next if message.include?('CalcCBF: SHR adjusted to achieve valid outlet air properties and the simulation continues.')
+      end
+      # Evaporative coolers
       if hpxml.cooling_systems.select { |c| c.cooling_system_type == HPXML::HVACTypeEvaporativeCooler }.size > 0
         # Evap cooler model is not really using Controller:MechanicalVentilation object, so these warnings of ignoring some features are fine.
         # OS requires a Controller:MechanicalVentilation to be attached to the oa controller, however it's not required by E+.
@@ -600,18 +602,36 @@ class HPXMLTest < Minitest::Test
         # input "Autosize" for Fixed Minimum Air Flow Rate is added by OS translation, now set it to 0 to skip potential sizing process, though no way to prevent this warning.
         next if message.include? 'Since Zone Minimum Air Flow Input Method = CONSTANT, input for Fixed Minimum Air Flow Rate will be ignored'
       end
+      # Fan coil distribution
       if hpxml.hvac_distributions.select { |d| d.air_type.to_s == HPXML::AirTypeFanCoil }.size > 0
         next if message.include? 'In calculating the design coil UA for Coil:Cooling:Water' # Warning for unused cooling coil for fan coil
       end
-      if hpxml_path.include?('ground-to-air-heat-pump-cooling-only.xml') || hpxml_path.include?('ground-to-air-heat-pump-heating-only.xml')
-        next if message.include? 'COIL:HEATING:WATERTOAIRHEATPUMP:EQUATIONFIT' # heating capacity is > 20% different than cooling capacity; safe to ignore
+      # Boilers
+      if hpxml.heating_systems.select{ |h| h.heating_system_type == HPXML::HVACTypeBoiler }.size > 0
+        next if message.include? 'Missing temperature setpoint for LeavingSetpointModulated mode' # These warnings are fine, simulation continues with assigning plant loop setpoint to boiler, which is the expected one
       end
+      # GSHPs
+      if hpxml.heat_pumps.select{ |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
+        next if message.include?('CheckSimpleWAHPRatedCurvesOutputs') && message.include?('WaterToAirHeatPump:EquationFit') # FUTURE: Check these
+        next if message.include? 'Actual air mass flow rate is smaller than 25% of water-to-air heat pump coil rated air flow rate.' # FUTURE: Remove this when https://github.com/NREL/EnergyPlus/issues/9125 is resolved
+      end
+      # GSHPs with only heating or cooling
+      if hpxml.heat_pumps.select{ |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir && (hp.fraction_heat_load_served == 0 || hp.fraction_cool_load_served == 0) }.size > 0
+        next if message.include? 'heating capacity is disproportionate (> 20% different) to total cooling capacity' # safe to ignore
+      end
+      # Solar thermal systems
       if hpxml.solar_thermal_systems.size > 0
         next if message.include? 'Supply Side is storing excess heat the majority of the time.'
       end
+      # Unavailability periods
       if !hpxml.header.unavailable_periods.empty?
         next if message.include? 'Target water temperature is greater than the hot water temperature'
         next if message.include? 'Target water temperature should be less than or equal to the hot water temperature'
+      end
+      # Simulation w/ timesteps longer than 15-minutes
+      timestep = hpxml.header.timestep.nil? ? 60 : hpxml.header.timestep
+      if timestep > 15
+        next if message.include?('Timestep: Requested number') && message.include?('is less than the suggested minimum')
       end
 
       flunk "Unexpected eplusout.err message found for #{File.basename(hpxml_path)}: #{message}"
@@ -648,10 +668,7 @@ class HPXMLTest < Minitest::Test
     assert_equal(0, num_invalid_output_variables)
 
     # Timestep
-    timestep = hpxml.header.timestep
-    if timestep.nil?
-      timestep = 60
-    end
+    timestep = hpxml.header.timestep.nil? ? 60 : hpxml.header.timestep
     query = 'SELECT NumTimestepsPerHour FROM Simulations'
     sql_value = sqlFile.execAndReturnFirstDouble(query).get
     assert_equal(60 / timestep, sql_value)

@@ -45,8 +45,8 @@ class BaseCompare:
                 print("Warning: %s not found. Skipping..." % feature_file)
                 continue
 
-            base_df = pd.read_csv(base_file, index_col=0)
-            feature_df = pd.read_csv(feature_file, index_col=0)
+            base_df = read_csv(base_file, index_col=0)
+            feature_df = read_csv(feature_file, index_col=0)
 
             base_df = self.intersect_rows(base_df, feature_df)
             feature_df = self.intersect_rows(feature_df, base_df)
@@ -151,14 +151,14 @@ class BaseCompare:
                 files.append(file)
 
         if display_columns or aggregate_columns:
-            base_characteristics_df = pd.read_csv(
+            base_characteristics_df = read_csv(
                 os.path.join(
                     self.base_folder,
                     'results_characteristics.csv'),
                 index_col=0)[
                 display_columns +
                 aggregate_columns]
-            feature_characteristics_df = pd.read_csv(
+            feature_characteristics_df = read_csv(
                 os.path.join(
                     self.feature_folder,
                     'results_characteristics.csv'),
@@ -209,8 +209,8 @@ class BaseCompare:
                 print("Warning: %s not found. Skipping..." % feature_file)
                 continue
 
-            base_df = pd.read_csv(base_file, index_col=0)
-            feature_df = pd.read_csv(feature_file, index_col=0)
+            base_df = read_csv(base_file, index_col=0)
+            feature_df = read_csv(feature_file, index_col=0)
 
             base_df = self.intersect_rows(base_df, feature_df)
             feature_df = self.intersect_rows(feature_df, base_df)
@@ -332,6 +332,12 @@ class BaseCompare:
             plotly.offline.plot(fig,
                                 filename=os.path.join(self.export_folder, '{filename}'.format(filename=filename)),
                                 auto_open=False)
+
+
+def read_csv(csv_file_path, **kwargs) -> pd.DataFrame:
+    default_na_values = pd._libs.parsers.STR_NA_VALUES
+    df = pd.read_csv(csv_file_path, na_values=list(default_na_values - {'None'}), keep_default_na=False, **kwargs)
+    return df
 
 
 if __name__ == '__main__':
