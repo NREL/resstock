@@ -341,7 +341,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
         next if value == ''
-        next if step_value.name == 'heat_pump_backup_use_existing_system'
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
@@ -355,95 +354,66 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       # Retain HVAC capacities
-
       capacities = get_system_capacities(hpxml_bldg, system_upgrades)
+      measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = capacities['heating_system_heating_capacity']
+      measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = capacities['heating_system_2_heating_capacity']
+      measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = capacities['cooling_system_cooling_capacity']
+      measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = capacities['heat_pump_heating_capacity']
+      measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = capacities['heat_pump_cooling_capacity']
+      measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = capacities['heat_pump_backup_heating_capacity']
 
-      unless capacities['heating_system_heating_capacity'].nil?
-        measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = capacities['heating_system_heating_capacity']
-      end
-=======
-    # Retain HVAC capacities
-    capacities = get_system_capacities(hpxml, system_upgrades)
-    measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = capacities['heating_system_heating_capacity']
-    measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = capacities['heating_system_2_heating_capacity']
-    measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = capacities['cooling_system_cooling_capacity']
-    measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = capacities['heat_pump_heating_capacity']
-    measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = capacities['heat_pump_cooling_capacity']
-    measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = capacities['heat_pump_backup_heating_capacity']
+      # Retain Existing Heating System as Heat Pump Backup
+      heat_pump_backup_use_existing_system = measures['ResStockArguments'][0]['heat_pump_backup_use_existing_system']
+      if heat_pump_backup_use_existing_system == 'true'
+        heating_system = get_heating_system(hpxml_bldg)
+        heat_pump_type = measures['BuildResidentialHPXML'][0]['heat_pump_type']
+        heat_pump_is_ducted = measures['BuildResidentialHPXML'][0]['heat_pump_is_ducted']
 
-    # Retain Existing Heating System as Heat Pump Backup
-    heat_pump_backup_use_existing_system = measures['ResStockArguments'][0]['heat_pump_backup_use_existing_system']
-    if heat_pump_backup_use_existing_system == 'true'
-      heating_system = get_heating_system(hpxml)
-      heat_pump_type = measures['BuildResidentialHPXML'][0]['heat_pump_type']
-      heat_pump_is_ducted = measures['BuildResidentialHPXML'][0]['heat_pump_is_ducted']
+        # Only set the backup if the heat pump is applied and there is an existing heating system
+        if (heat_pump_type != 'none') && (not heating_system.nil?)
+          heat_pump_backup_type = get_heat_pump_backup_type(heating_system, heat_pump_type, heat_pump_is_ducted)
+          heat_pump_backup_values = get_heat_pump_backup_values(heating_system)
 
-      # Only set the backup if the heat pump is applied and there is an existing heating system
-      if (heat_pump_type != 'none') && (not heating_system.nil?)
-        heat_pump_backup_type = get_heat_pump_backup_type(heating_system, heat_pump_type, heat_pump_is_ducted)
-        heat_pump_backup_values = get_heat_pump_backup_values(heating_system)
+          heating_system_type = heat_pump_backup_values['heating_system_type']
+          heat_pump_backup_fuel = heat_pump_backup_values['heat_pump_backup_fuel']
+          heat_pump_backup_heating_efficiency = heat_pump_backup_values['heat_pump_backup_heating_efficiency']
+          heat_pump_backup_heating_capacity = heat_pump_backup_values['heat_pump_backup_heating_capacity']
 
-        heating_system_type = heat_pump_backup_values['heating_system_type']
-        heat_pump_backup_fuel = heat_pump_backup_values['heat_pump_backup_fuel']
-        heat_pump_backup_heating_efficiency = heat_pump_backup_values['heat_pump_backup_heating_efficiency']
-        heat_pump_backup_heating_capacity = heat_pump_backup_values['heat_pump_backup_heating_capacity']
+          # Integrated; heat pump's distribution system and blower fan power applies to the backup heating
+          # e.g., ducted heat pump (e.g., ashp, gshp, ducted minisplit) with ducted (e.g., furnace) backup
+          if heat_pump_backup_type == HPXML::HeatPumpBackupTypeIntegrated
 
-        # Integrated; heat pump's distribution system and blower fan power applies to the backup heating
-        # e.g., ducted heat pump (e.g., ashp, gshp, ducted minisplit) with ducted (e.g., furnace) backup
-        if heat_pump_backup_type == HPXML::HeatPumpBackupTypeIntegrated
+            # Likely only fuel-fired furnace as integrated backup
+            if heat_pump_backup_fuel != HPXML::FuelTypeElectricity
+              measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = heat_pump_backup_type
+              measures['BuildResidentialHPXML'][0]['heat_pump_backup_fuel'] = heat_pump_backup_fuel
+              measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_efficiency'] = heat_pump_backup_heating_efficiency
+              measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heat_pump_backup_heating_capacity
 
-          # Likely only fuel-fired furnace as integrated backup
-          if heat_pump_backup_fuel != HPXML::FuelTypeElectricity
+              runner.registerInfo("Found '#{heating_system_type}' heating system type; setting it as 'heat_pump_backup_type=#{measures['BuildResidentialHPXML'][0]['heat_pump_backup_type']}'.")
+            else # Likely would not have electric furnace as integrated backup
+              runner.registerInfo("Found '#{heating_system_type}' heating system type with '#{heat_pump_backup_fuel}' fuel type; not setting it as integrated backup.")
+            end
+
+          # Separate; backup system has its own distribution system
+          # e.g., ductless heat pump (e.g., ductless minisplit) with ducted (e.g., furnace) or ductless (e.g., boiler) backup
+          # e.g., ducted heat pump (e.g., ashp, gshp) with ductless (e.g., boiler) backup
+          elsif heat_pump_backup_type == HPXML::HeatPumpBackupTypeSeparate
+            # It's possible this was < 1.0 due to adjustment for secondary heating system
+            measures['BuildResidentialHPXML'][0]['heat_pump_fraction_heat_load_served'] = 1.0
+
             measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = heat_pump_backup_type
-            measures['BuildResidentialHPXML'][0]['heat_pump_backup_fuel'] = heat_pump_backup_fuel
-            measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_efficiency'] = heat_pump_backup_heating_efficiency
-            measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heat_pump_backup_heating_capacity
+            measures['BuildResidentialHPXML'][0]['heating_system_2_type'] = heating_system_type
+            measures['BuildResidentialHPXML'][0]['heating_system_2_fuel'] = heat_pump_backup_fuel
+            measures['BuildResidentialHPXML'][0]['heating_system_2_heating_efficiency'] = heat_pump_backup_heating_efficiency
+            measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = heat_pump_backup_heating_capacity
 
             runner.registerInfo("Found '#{heating_system_type}' heating system type; setting it as 'heat_pump_backup_type=#{measures['BuildResidentialHPXML'][0]['heat_pump_backup_type']}'.")
-          else # Likely would not have electric furnace as integrated backup
-            runner.registerInfo("Found '#{heating_system_type}' heating system type with '#{heat_pump_backup_fuel}' fuel type; not setting it as integrated backup.")
+          else
+            runner.registerError("Unknown heat pump backup type '#{heat_pump_backup_type}'.")
+            return false
           end
-
-        # Separate; backup system has its own distribution system
-        # e.g., ductless heat pump (e.g., ductless minisplit) with ducted (e.g., furnace) or ductless (e.g., boiler) backup
-        # e.g., ducted heat pump (e.g., ashp, gshp) with ductless (e.g., boiler) backup
-        elsif heat_pump_backup_type == HPXML::HeatPumpBackupTypeSeparate
-          # It's possible this was < 1.0 due to adjustment for secondary heating system
-          measures['BuildResidentialHPXML'][0]['heat_pump_fraction_heat_load_served'] = 1.0
-
-          measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] = heat_pump_backup_type
-          measures['BuildResidentialHPXML'][0]['heating_system_2_type'] = heating_system_type
-          measures['BuildResidentialHPXML'][0]['heating_system_2_fuel'] = heat_pump_backup_fuel
-          measures['BuildResidentialHPXML'][0]['heating_system_2_heating_efficiency'] = heat_pump_backup_heating_efficiency
-          measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = heat_pump_backup_heating_capacity
-
-          runner.registerInfo("Found '#{heating_system_type}' heating system type; setting it as 'heat_pump_backup_type=#{measures['BuildResidentialHPXML'][0]['heat_pump_backup_type']}'.")
-        else
-          runner.registerError("Unknown heat pump backup type '#{heat_pump_backup_type}'.")
-          return false
         end
-      end
-    end
->>>>>>> develop
-
-      unless capacities['heating_system_2_heating_capacity'].nil?
-        measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = capacities['heating_system_2_heating_capacity']
-      end
-
-      unless capacities['cooling_system_cooling_capacity'].nil?
-        measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = capacities['cooling_system_cooling_capacity']
-      end
-
-      unless capacities['heat_pump_heating_capacity'].nil?
-        measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = capacities['heat_pump_heating_capacity']
-      end
-
-      unless capacities['heat_pump_cooling_capacity'].nil?
-        measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = capacities['heat_pump_cooling_capacity']
-      end
-
-      unless capacities['heat_pump_backup_heating_capacity'].nil?
-        measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = capacities['heat_pump_backup_heating_capacity']
       end
 
       # Get software program used and version
@@ -542,8 +512,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     return false
   end
 
-  def get_heating_system(hpxml)
-    hpxml.heating_systems.each do |heating_system|
+  def get_heating_system(hpxml_bldg)
+    hpxml_bldg.heating_systems.each do |heating_system|
       next unless heating_system.primary_system
       next if heating_system.is_shared_system
 
