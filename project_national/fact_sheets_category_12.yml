@@ -94,10 +94,10 @@ workflow_generator:
 
 
 ### -- Upgrades ---
-# Category 10:  Heat Pumps with Existing Backup + Light Touch Envelope
+# Category 12:  Heat Pumps with Existing Backup + Advanced Envelope
 upgrades:
-  - upgrade_name: EnergyStar ducted ASHP w/ existing natural gas backup + light touch envelope
-    # Category 6, Measure 1 + Category 2, Measure 1
+  - upgrade_name: EnergyStar ducted ASHP w/ existing natural gas backup + advanced envelope
+    # Category 6, Measure 1 + Category 2, Measure 3
 
     package_apply_logic: &dualfuel_ASHP_apply_logic_NG
       - HVAC Has Ducts|Yes
@@ -273,24 +273,6 @@ upgrades:
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       #General air sealing - 30% total reduction in ACH50 for homes with greater than 10 ACH50
       #30% is consistent with median reduction documented in https://doi.org/10.20357/B7FP4D 
-      - &infiltration_30pct_reduction
-        option: Infiltration Reduction|30%
-        apply_logic:
-          - or:
-            - Infiltration|50 ACH50
-            - Infiltration|40 ACH50
-            - Infiltration|30 ACH50
-            - Infiltration|25 ACH50
-            - Infiltration|20 ACH50
-            - Infiltration|18.5 ACH50
-            - Infiltration|15 ACH50
-            - Infiltration|11.25 ACH50
-        costs:
-          - value: 0.53 # from LBNL data for general air sealing (https://doi.org/10.20357/B7FP4D).
-                        # Interpolated between 20% and 40% reductions to get $0.44/ft2,
-                        # then used 1.2052 multiplier to inflate from Jan 2019 to April 2023 https://www.bls.gov/data/inflation_calculator.htm
-            multiplier: Floor Area, Conditioned (ft^2)
-        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category1 #improving leakage a lot, and insulation
         option: Duct Leakage and Insulation|10% Leakage, R-8
         apply_logic:
@@ -834,8 +816,8 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 18 # remdb
 
-  - upgrade_name: EnergyStar ducted ASHP w/ existing propane backup + light touch envelope
-    # Category 6, Measure 1 + Category 2, Measure 1
+  - upgrade_name: EnergyStar ducted ASHP w/ existing propane backup + advanced envelope
+    # Category 6, Measure 1 + Category 2, Measure 3
 
     package_apply_logic: &dualfuel_ASHP_apply_logic_propane
       - HVAC Has Ducts|Yes
@@ -915,7 +897,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -968,8 +950,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: EnergyStar ducted ASHP w/ existing fuel oil backup + light touch envelope
-    # Category 6, Measure 1 + Category 2, Measure 1
+  - upgrade_name: EnergyStar ducted ASHP w/ existing fuel oil backup + advanced envelope
+    # Category 6, Measure 1 + Category 2, Measure 3
 
     package_apply_logic: &dualfuel_ASHP_apply_logic_FO
       - HVAC Has Ducts|Yes
@@ -1048,7 +1030,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -1101,8 +1083,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing natural gas backup + light touch envelope 
-    # Category 6, Measure 2 + Category 2, Measure 1
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing natural gas backup + advanced envelope
+    # Category 6, Measure 2 + Category 2, Measure 3
     package_apply_logic: *dualfuel_ASHP_apply_logic_NG
     options:
       #ASHP
@@ -1173,7 +1155,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -1226,8 +1208,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing propane backup + light touch envelope 
-    # Category 6, Measure 2 + Category 2, Measure 1
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing propane backup + advanced envelope
+    # Category 6, Measure 2 + Category 2, Measure 3
     package_apply_logic: *dualfuel_ASHP_apply_logic_propane
     options:
       #ASHP
@@ -1283,7 +1265,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -1336,8 +1318,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing fuel oil backup + light touch envelope 
-    # Category 6, Measure 2 + Category 2, Measure 1
+  - upgrade_name: EnergyStar cold climate ducted ASHP w/ existing fuel oil backup + advanced envelope
+    # Category 6, Measure 2 + Category 2, Measure 3
     package_apply_logic: *dualfuel_ASHP_apply_logic_FO
 
     options:
@@ -1391,7 +1373,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -1444,8 +1426,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: Higher efficiency ducted ASHP w/ existing natural gas backup + light touch envelope  
-    # Category 6, Measure 3 + Category 2, Measure 1
+  - upgrade_name: Higher efficiency ducted ASHP w/ existing natural gas backup + advanced envelope
+    # Category 6, Measure 3 + Category 2, Measure 3
     package_apply_logic: *dualfuel_ASHP_apply_logic_NG
     options:
       #ASHP
@@ -1508,7 +1490,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -1561,8 +1543,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: Higher efficiency ducted ASHP w/ existing propane backup + light touch envelope  
-    # Category 6, Measure 3 + Category 2, Measure 1
+  - upgrade_name: Higher efficiency ducted ASHP w/ existing propane backup + advanced envelope
+    # Category 6, Measure 3 + Category 2, Measure 3
     package_apply_logic: *dualfuel_ASHP_apply_logic_propane
     options:
       #ASHP
@@ -1618,7 +1600,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -1671,8 +1653,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: Higher efficiency ducted ASHP w/ existing fuel oil backup + light touch envelope  
-    # Category 6, Measure 3 + Category 2, Measure 1
+  - upgrade_name: Higher efficiency ducted ASHP w/ existing fuel oil backup + advanced envelope  
+    # Category 6, Measure 3 + Category 2, Measure 3
     package_apply_logic: *dualfuel_ASHP_apply_logic_FO
     options:
       #ASHP
@@ -1728,7 +1710,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -1781,8 +1763,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: EnergyStar ductless MSHP w/ existing natural gas backup + light touch envelope  
-    # Category 6, Measure 4 + Category 2, Measure 1
+  - upgrade_name: EnergyStar ductless MSHP w/ existing natural gas backup + advanced envelope 
+    # Category 6, Measure 4 + Category 2, Measure 3
     package_apply_logic: &dualfuel_MSHP_apply_logic_NG
       - HVAC Has Ducts|No
       - Heating Fuel|Natural Gas
@@ -1836,7 +1818,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -1889,8 +1871,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: EnergyStar ductless MSHP w/ existing propane backup + light touch envelope  
-    # Category 6, Measure 4 + Category 2, Measure 1
+  - upgrade_name: EnergyStar ductless MSHP w/ existing propane backup + advanced envelope
+    # Category 6, Measure 4 + Category 2, Measure 3
     package_apply_logic: &dualfuel_MSHP_apply_logic_propane
       - HVAC Has Ducts|No
       - Heating Fuel|Propane
@@ -1923,7 +1905,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -1976,8 +1958,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: EnergyStar ductless MSHP w/ existing fuel oil backup + light touch envelope  
-    # Category 6, Measure 4 + Category 2, Measure 1
+  - upgrade_name: EnergyStar ductless MSHP w/ existing fuel oil backup + advanced envelope
+    # Category 6, Measure 4 + Category 2, Measure 3
     package_apply_logic: &dualfuel_MSHP_apply_logic_FO
       - HVAC Has Ducts|No
       - Heating Fuel|Fuel Oil
@@ -2009,7 +1991,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -2062,8 +2044,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing natural gas backup + light touch envelope  
-    # Category 6, Measure 5 + Category 2, Measure 1
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing natural gas backup + advanced envelope  
+    # Category 6, Measure 5 + Category 2, Measure 3
     package_apply_logic: *dualfuel_MSHP_apply_logic_NG
     options:
       - &ductless_MSHP_EnergyStarCC_exist_backup
@@ -2106,7 +2088,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -2159,8 +2141,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing propane backup + light touch envelope  
-    # Category 6, Measure 5 + Category 2, Measure 1
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing propane backup + advanced envelope  
+    # Category 6, Measure 5 + Category 2, Measure 3
     package_apply_logic: *dualfuel_MSHP_apply_logic_propane
     options:
       - *ductless_MSHP_EnergyStarCC_exist_backup
@@ -2187,7 +2169,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -2240,8 +2222,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing fuel oil backup + light touch envelope  
-    # Category 6, Measure 5 + Category 2, Measure 1
+  - upgrade_name: EnergyStar cold climate ductless MSHP w/ existing fuel oil backup + advanced envelope
+    # Category 6, Measure 5 + Category 2, Measure 3
     package_apply_logic: *dualfuel_MSHP_apply_logic_FO
     options:
       - *ductless_MSHP_EnergyStarCC_exist_backup
@@ -2268,7 +2250,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -2321,8 +2303,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: Higher efficiency ductless MSHP w/ existing natural gas backup + light touch envelope  
-    # Category 6, Measure 6 + Category 2, Measure 1
+  - upgrade_name: Higher efficiency ductless MSHP w/ existing natural gas backup + advanced envelope
+    # Category 6, Measure 6 + Category 2, Measure 3
     package_apply_logic: *dualfuel_MSHP_apply_logic_NG
     options:
       - &ductless_MSHP_HigherEfficiency_exist_backup
@@ -2365,7 +2347,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -2418,8 +2400,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: Higher efficiency ductless MSHP w/ existing propane backup + light touch envelope  
-    # Category 6, Measure 6 + Category 2, Measure 1
+  - upgrade_name: Higher efficiency ductless MSHP w/ existing propane backup + advanced envelope
+    # Category 6, Measure 6 + Category 2, Measure 3
     package_apply_logic: *dualfuel_MSHP_apply_logic_propane
     options:
       - *ductless_MSHP_HigherEfficiency_exist_backup
@@ -2446,7 +2428,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
@@ -2499,8 +2481,8 @@ upgrades:
       - *add_exhaust_ventilation_IECC_3A-3B-3C
 
 
-  - upgrade_name: Higher efficiency ductless MSHP w/ existing fuel oil backup + light touch envelope  
-    # Category 6, Measure 6 + Category 2, Measure 1
+  - upgrade_name: Higher efficiency ductless MSHP w/ existing fuel oil backup + advanced envelope
+    # Category 6, Measure 6 + Category 2, Measure 3
     package_apply_logic: *dualfuel_MSHP_apply_logic_FO
     options:
       - *ductless_MSHP_HigherEfficiency_exist_backup
@@ -2527,7 +2509,7 @@ upgrades:
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
-      - *infiltration_30pct_reduction
+      
       ####
       # Intermediate Enclosure Measures
       - *ducts_category1
