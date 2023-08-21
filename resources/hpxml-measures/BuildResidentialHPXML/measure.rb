@@ -3131,7 +3131,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     args[:apply_validation] = args[:apply_validation].is_initialized ? args[:apply_validation].get : false
     args[:apply_defaults] = args[:apply_defaults].is_initialized ? args[:apply_defaults].get : false
-    args[:apply_validation] = true if args[:apply_defaults]
     args[:geometry_unit_left_wall_is_adiabatic] = (args[:geometry_unit_left_wall_is_adiabatic].is_initialized && args[:geometry_unit_left_wall_is_adiabatic].get)
     args[:geometry_unit_right_wall_is_adiabatic] = (args[:geometry_unit_right_wall_is_adiabatic].is_initialized && args[:geometry_unit_right_wall_is_adiabatic].get)
     args[:geometry_unit_front_wall_is_adiabatic] = (args[:geometry_unit_front_wall_is_adiabatic].is_initialized && args[:geometry_unit_front_wall_is_adiabatic].get)
@@ -3175,10 +3174,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Write HPXML file again if defaults applied
-    if args[:apply_defaults]
-      XMLHelper.write_file(hpxml_doc, hpxml_path)
-    end
     runner.registerInfo("Wrote file: #{hpxml_path}")
 
     # Uncomment for debugging purposes
@@ -3443,17 +3438,23 @@ class HPXMLFile
     hpxml_doc = hpxml.to_oga()
     XMLHelper.write_file(hpxml_doc, hpxml_path)
 
-    if args[:apply_validation]
-      # Check for invalid HPXML file
+    if args[:apply_defaults]
+      # Always check for invalid HPXML file before applying defaults
       if not validate_hpxml(runner, hpxml, hpxml_doc, hpxml_path)
         return false
       end
-    end
 
-    if args[:apply_defaults]
       eri_version = Constants.ERIVersions[-1]
       HPXMLDefaults.apply(runner, hpxml, eri_version, weather, epw_file: epw_file)
       hpxml_doc = hpxml.to_oga()
+      XMLHelper.write_file(hpxml_doc, hpxml_path)
+    end
+
+    if args[:apply_validation]
+      # Optionally check for invalid HPXML file (with or without defaults applied)
+      if not validate_hpxml(runner, hpxml, hpxml_doc, hpxml_path)
+        return false
+      end
     end
 
     return hpxml_doc
