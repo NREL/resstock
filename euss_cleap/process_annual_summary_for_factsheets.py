@@ -124,7 +124,7 @@ class SavingsExtraction:
         hc = ["_".join([x for x in chain(*[re.split('(\d+)',x) for x in y.lower().split(" ")]) if x not in ["", "-"]]) for y in hc]
         self.res_meta_cols = [
             "building_id", 
-            "build_existing_model.sample_weight",
+            # "build_existing_model.sample_weight",
             ]
         self.res_meta_cols += [f"build_existing_model.{x}" for x in hc]
         self.res_meta_cols += ["rep_income", "sample_weight", "wall_rating", "ceiling_roof_rating", "infiltration_rating", "combined_envelope_rating"]
@@ -327,7 +327,7 @@ class SavingsExtraction:
             DFB = pd.concat(DFB, axis=0)
 
             # adjust weight by number of package
-            DFB["build_existing_model.sample_weight"] /= len(pkgs)
+            # DFB["build_existing_model.sample_weight"] /= len(pkgs)
             DFB["sample_weight"] /= len(pkgs)
 
             return DF.reset_index(), DFB.reset_index()
@@ -905,7 +905,7 @@ class SavingsExtraction:
             dfb = pd.concat(dfb, axis=0).reset_index(drop=True)
             del fu, fb
             # adjust weight by number of package
-            dfb["build_existing_model.sample_weight"] /= len(pkgs)
+            # dfb["build_existing_model.sample_weight"] /= len(pkgs)
             dfb["sample_weight"] /= len(pkgs)
 
         else:
@@ -1151,7 +1151,7 @@ class SavingsExtraction:
         # retain only 1 pkg worth of data by averaging
         if isinstance(pkgs, list):
             df = df.copy().groupby(meta_cols)[new_cols].mean().reset_index()
-            df["build_existing_model.sample_weight"] *= len(pkgs)
+            # df["build_existing_model.sample_weight"] *= len(pkgs)
             df["sample_weight"] *= len(pkgs)  # redo weight
 
         # df.to_parquet(output_file)
