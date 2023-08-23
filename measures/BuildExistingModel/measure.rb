@@ -328,15 +328,16 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../existing.xml')
 
     geometry_building_num_units = 1
-    whole_building = true
+    whole_building = true # FIXME: remove
     if whole_building
       resstock_arguments_runner.result.stepValues.each do |step_value|
         next if step_value.name != 'geometry_building_num_units'
 
         geometry_building_num_units = Integer(get_value_from_workflow_step_value(step_value))
       end
+      geometry_building_num_units = 2 if geometry_building_num_units > 1 # FIXME: remove
     end
-    geometry_building_num_units = 2 if geometry_building_num_units > 1 # FIXME
+    register_value(runner, 'geometry_building_num_units', geometry_building_num_units)
 
     (1..geometry_building_num_units).each do |unit_number|
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]

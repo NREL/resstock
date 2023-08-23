@@ -1546,11 +1546,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
     runner.registerInfo("Wrote annual output results to #{annual_output_path}.")
 
+    values = get_values_from_runner_past_results(runner, 'build_existing_model')
+
     results_out.each do |name, value|
       next if name.nil? || value.nil?
 
       name = OpenStudio::toUnderscoreCase(name).chomp('_')
 
+      value /= values['geometry_building_num_units']
       runner.registerValue(name, value)
       runner.registerInfo("Registering #{value} for #{name}.")
     end
