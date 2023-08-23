@@ -1414,7 +1414,7 @@ if __name__ == "__main__":
     euss_dir = Path(__file__).resolve().parent / "data_" / "community_building_samples_with_upgrade_cost_and_bill" / community_name
 
     if community_name == "hill_district":
-        emission_type = "lrmer_low_re_cost_30" # 25 not availble for hill_district due to the yaml referencing a different EUSS yml to start
+        emission_type = "lrmer_low_re_cost_25_2025_start" #"lrmer_low_re_cost_30" # 25 not availble for hill_district due to the yaml referencing a different EUSS yml to start
     else:
         emission_type = "lrmer_low_re_cost_25_2025_start"
 
