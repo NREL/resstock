@@ -607,16 +607,16 @@ class HPXMLTest < Minitest::Test
         next if message.include? 'In calculating the design coil UA for Coil:Cooling:Water' # Warning for unused cooling coil for fan coil
       end
       # Boilers
-      if hpxml.heating_systems.select{ |h| h.heating_system_type == HPXML::HVACTypeBoiler }.size > 0
+      if hpxml.heating_systems.select { |h| h.heating_system_type == HPXML::HVACTypeBoiler }.size > 0
         next if message.include? 'Missing temperature setpoint for LeavingSetpointModulated mode' # These warnings are fine, simulation continues with assigning plant loop setpoint to boiler, which is the expected one
       end
       # GSHPs
-      if hpxml.heat_pumps.select{ |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
+      if hpxml.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
         next if message.include?('CheckSimpleWAHPRatedCurvesOutputs') && message.include?('WaterToAirHeatPump:EquationFit') # FUTURE: Check these
         next if message.include? 'Actual air mass flow rate is smaller than 25% of water-to-air heat pump coil rated air flow rate.' # FUTURE: Remove this when https://github.com/NREL/EnergyPlus/issues/9125 is resolved
       end
       # GSHPs with only heating or cooling
-      if hpxml.heat_pumps.select{ |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir && (hp.fraction_heat_load_served == 0 || hp.fraction_cool_load_served == 0) }.size > 0
+      if hpxml.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir && (hp.fraction_heat_load_served == 0 || hp.fraction_cool_load_served == 0) }.size > 0
         next if message.include? 'heating capacity is disproportionate (> 20% different) to total cooling capacity' # safe to ignore
       end
       # Solar thermal systems
