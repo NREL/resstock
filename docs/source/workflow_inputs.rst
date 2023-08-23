@@ -591,6 +591,7 @@ Building construction is entered in ``/HPXML/Building/BuildingDetails/BuildingSu
   Element                                                    Type      Units      Constraints                        Required  Default   Notes
   =========================================================  ========  =========  =================================  ========  ========  =======================================================================
   ``ResidentialFacilityType``                                string               See [#]_                           Yes                 Type of dwelling unit
+  ``NumberofUnits``                                          integer              >= 1                               No        1         Unit multiplier [#]_
   ``NumberofConditionedFloors``                              double               > 0                                Yes                 Number of conditioned floors (including a conditioned basement; excluding a conditioned crawlspace)
   ``NumberofConditionedFloorsAboveGrade``                    double               > 0, <= NumberofConditionedFloors  Yes                 Number of conditioned floors above grade (including a walkout basement)
   ``NumberofBedrooms``                                       integer              >= 0                               Yes                 Number of bedrooms
@@ -600,6 +601,8 @@ Building construction is entered in ``/HPXML/Building/BuildingDetails/BuildingSu
   =========================================================  ========  =========  =================================  ========  ========  =======================================================================
 
   .. [#] ResidentialFacilityType choices are "single-family detached", "single-family attached", "apartment unit", or "manufactured home".
+  .. [#] NumberofUnits defines the number of similar dwelling units represented by the HPXML ``Building`` element.
+         EnergyPlus simulation results will be multiplied by this value.
   .. [#] If NumberofBathrooms not provided, calculated as NumberofBedrooms/2 + 0.5 based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
   .. [#] If neither ConditionedBuildingVolume nor AverageCeilingHeight provided, AverageCeilingHeight defaults to the lesser of 8.0 and InfiltrationVolume / ConditionedFloorArea.
          If needed, additional defaulting is performed using the following relationship: ConditionedBuildingVolume = ConditionedFloorArea * AverageCeilingHeight + ConditionedCrawlspaceVolume.

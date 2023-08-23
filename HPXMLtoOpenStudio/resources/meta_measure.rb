@@ -50,15 +50,16 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
 
   # Remove unused objects automatically added by OpenStudio?
   remove_objects = []
-  if model.alwaysOnContinuousSchedule.directUseCount == 0
-    remove_objects << ['Schedule:Constant', model.alwaysOnContinuousSchedule.name.to_s]
-  end
-  if model.alwaysOnDiscreteSchedule.directUseCount == 0
-    remove_objects << ['Schedule:Constant', model.alwaysOnDiscreteSchedule.name.to_s]
-  end
-  if model.alwaysOffDiscreteSchedule.directUseCount == 0
-    remove_objects << ['Schedule:Constant', model.alwaysOffDiscreteSchedule.name.to_s]
-  end
+  # FIXME: Need to revert this code
+  # if model.alwaysOnContinuousSchedule.directUseCount == 0
+  #  remove_objects << ['Schedule:Constant', model.alwaysOnContinuousSchedule.name.to_s]
+  # end
+  # if model.alwaysOnDiscreteSchedule.directUseCount == 0
+  #  remove_objects << ['Schedule:Constant', model.alwaysOnDiscreteSchedule.name.to_s]
+  # end
+  # if model.alwaysOffDiscreteSchedule.directUseCount == 0
+  #  remove_objects << ['Schedule:Constant', model.alwaysOffDiscreteSchedule.name.to_s]
+  # end
 
   # Translate model to workspace
   forward_translator = OpenStudio::EnergyPlus::ForwardTranslator.new

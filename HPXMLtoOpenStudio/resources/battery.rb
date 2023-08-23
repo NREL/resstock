@@ -135,7 +135,7 @@ class Battery
 
     loss_adj_object_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
     loss_adj_object = OpenStudio::Model::OtherEquipment.new(loss_adj_object_def)
-    obj_name = Constants.ObjectNameBatteryLossesAdjustment(elcs.name)
+    obj_name = Constants.ObjectNameBatteryLossesAdjustment
     loss_adj_object.setName(obj_name)
     loss_adj_object.setEndUseSubcategory(obj_name)
     loss_adj_object.setFuelType(EPlus.fuel_type(HPXML::FuelTypeElectricity))
@@ -160,8 +160,9 @@ class Battery
     battery_losses_pcm.setCallingPoint('EndOfSystemTimestepBeforeHVACReporting')
     battery_losses_pcm.addProgram(battery_losses_program)
 
+    # FIXME: Shouldn't need this; can use OtherEquipment output var instead
     battery_losses_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, 'losses')
-    battery_losses_output_var.setName("#{Constants.ObjectNameBatteryLossesAdjustment(elcs.name)} outvar")
+    battery_losses_output_var.setName("#{obj_name} outvar")
     battery_losses_output_var.setTypeOfDataInVariable('Summed')
     battery_losses_output_var.setUpdateFrequency('SystemTimestep')
     battery_losses_output_var.setEMSProgramOrSubroutineName(battery_losses_program)
@@ -170,6 +171,7 @@ class Battery
     elcd.additionalProperties.setFeature('HPXML_ID', battery.id)
     elcs.additionalProperties.setFeature('HPXML_ID', battery.id)
     elcs.additionalProperties.setFeature('UsableCapacity_kWh', Float(usable_capacity_kwh))
+    elcs.additionalProperties.setFeature('BatteryLosses', battery_losses_output_var.name.to_s)
   end
 
   def self.get_battery_default_values(has_garage = false)

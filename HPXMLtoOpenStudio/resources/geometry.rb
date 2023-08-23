@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 class Geometry
-  def self.create_space_and_zone(model, spaces, location)
+  def self.create_space_and_zone(model, spaces, location, zone_multiplier)
     if not spaces.keys.include? location
       thermal_zone = OpenStudio::Model::ThermalZone.new(model)
       thermal_zone.setName(location)
+      thermal_zone.additionalProperties.setFeature('ObjectType', location)
+      thermal_zone.setMultiplier(zone_multiplier)
 
       space = OpenStudio::Model::Space.new(model)
       space.setName(location)
@@ -158,7 +160,7 @@ class Geometry
     return OpenStudio::reverse(create_floor_vertices(length, width, z_origin, default_azimuths))
   end
 
-  def self.explode_surfaces(model, hpxml, walls_top)
+  def self.explode_surfaces(model, hpxml_bldg, walls_top)
     # Re-position surfaces so as to not shade each other and to make it easier to visualize the building.
 
     gap_distance = UnitConversions.convert(10.0, 'ft', 'm') # distance between surfaces of the same azimuth
@@ -203,7 +205,7 @@ class Geometry
     end
     explode_distance = max_azimuth_length / (2.0 * Math.tan(UnitConversions.convert(180.0 / nsides, 'deg', 'rad')))
 
-    add_neighbor_shading(model, max_azimuth_length, hpxml, walls_top)
+    add_neighbor_shading(model, max_azimuth_length, hpxml_bldg, walls_top)
 
     # Initial distance of shifts at 90-degrees to horizontal outward
     azimuth_side_shifts = {}
@@ -306,11 +308,11 @@ class Geometry
     end
   end
 
-  def self.add_neighbor_shading(model, length, hpxml, walls_top)
+  def self.add_neighbor_shading(model, length, hpxml_bldg, walls_top)
     z_origin = 0 # shading surface always starts at grade
 
     shading_surfaces = []
-    hpxml.neighbor_buildings.each do |neighbor_building|
+    hpxml_bldg.neighbor_buildings.each do |neighbor_building|
       height = neighbor_building.height.nil? ? walls_top : neighbor_building.height
 
       vertices = create_wall_vertices(length, height, z_origin, neighbor_building.azimuth)
@@ -331,22 +333,22 @@ class Geometry
     end
   end
 
-  def self.calculate_zone_volume(hpxml, location)
+  def self.calculate_zone_volume(hpxml_bldg, location)
     if [HPXML::LocationBasementUnconditioned,
         HPXML::LocationCrawlspaceUnvented,
         HPXML::LocationCrawlspaceVented,
         HPXML::LocationGarage].include? location
-      floor_area = hpxml.slabs.select { |s| s.interior_adjacent_to == location }.map { |s| s.area }.sum(0.0)
+      floor_area = hpxml_bldg.slabs.select { |s| s.interior_adjacent_to == location }.map { |s| s.area }.sum(0.0)
       if location == HPXML::LocationGarage
         height = 8.0
       else
-        height = hpxml.foundation_walls.select { |w| w.interior_adjacent_to == location }.map { |w| w.height }.max
+        height = hpxml_bldg.foundation_walls.select { |w| w.interior_adjacent_to == location }.map { |w| w.height }.max
       end
       return floor_area * height
     elsif [HPXML::LocationAtticUnvented,
            HPXML::LocationAtticVented].include? location
-      floor_area = hpxml.floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? location }.map { |s| s.area }.sum(0.0)
-      roofs = hpxml.roofs.select { |r| r.interior_adjacent_to == location }
+      floor_area = hpxml_bldg.floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? location }.map { |s| s.area }.sum(0.0)
+      roofs = hpxml_bldg.roofs.select { |r| r.interior_adjacent_to == location }
       avg_pitch = roofs.map { |r| r.pitch }.sum(0.0) / roofs.size
       # Assume square hip roof for volume calculation
       length = floor_area**0.5
@@ -355,15 +357,15 @@ class Geometry
     end
   end
 
-  def self.set_zone_volumes(spaces, hpxml, apply_ashrae140_assumptions)
+  def self.set_zone_volumes(spaces, hpxml_bldg, apply_ashrae140_assumptions)
     # Living space
-    spaces[HPXML::LocationLivingSpace].thermalZone.get.setVolume(UnitConversions.convert(hpxml.building_construction.conditioned_building_volume, 'ft^3', 'm^3'))
+    spaces[HPXML::LocationLivingSpace].thermalZone.get.setVolume(UnitConversions.convert(hpxml_bldg.building_construction.conditioned_building_volume, 'ft^3', 'm^3'))
 
     # Basement, crawlspace, garage
     spaces.keys.each do |location|
       next unless [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? location
 
-      volume = calculate_zone_volume(hpxml, location)
+      volume = calculate_zone_volume(hpxml_bldg, location)
       spaces[location].thermalZone.get.setVolume(UnitConversions.convert(volume, 'ft^3', 'm^3'))
     end
 
@@ -374,7 +376,7 @@ class Geometry
       if apply_ashrae140_assumptions
         volume = 3463 # Hardcode the attic volume to match ASHRAE 140 Table 7-2 specification
       else
-        volume = calculate_zone_volume(hpxml, location)
+        volume = calculate_zone_volume(hpxml_bldg, location)
       end
 
       spaces[location].thermalZone.get.setVolume(UnitConversions.convert(volume, 'ft^3', 'm^3'))
@@ -519,7 +521,7 @@ class Geometry
     return UnitConversions.convert(tilts.max, 'rad', 'deg')
   end
 
-  def self.apply_occupants(model, runner, hpxml, num_occ, space, schedules_file, unavailable_periods)
+  def self.apply_occupants(model, runner, hpxml_bldg, num_occ, space, schedules_file, unavailable_periods)
     occ_gain, _hrs_per_day, sens_frac, _lat_frac = get_occupancy_default_values()
     activity_per_person = UnitConversions.convert(occ_gain, 'Btu/hr', 'W')
 
@@ -535,17 +537,17 @@ class Geometry
     end
     if people_sch.nil?
       people_unavailable_periods = Schedule.get_unavailable_periods(runner, people_col_name, unavailable_periods)
-      weekday_sch = hpxml.building_occupancy.weekday_fractions.split(',').map(&:to_f)
+      weekday_sch = hpxml_bldg.building_occupancy.weekday_fractions.split(',').map(&:to_f)
       weekday_sch = weekday_sch.map { |v| v / weekday_sch.max }.join(',')
-      weekend_sch = hpxml.building_occupancy.weekend_fractions.split(',').map(&:to_f)
+      weekend_sch = hpxml_bldg.building_occupancy.weekend_fractions.split(',').map(&:to_f)
       weekend_sch = weekend_sch.map { |v| v / weekend_sch.max }.join(',')
-      monthly_sch = hpxml.building_occupancy.monthly_multipliers
+      monthly_sch = hpxml_bldg.building_occupancy.monthly_multipliers
       people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction, unavailable_periods: people_unavailable_periods)
       people_sch = people_sch.schedule
     else
-      runner.registerWarning("Both '#{people_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekday_fractions.nil?
-      runner.registerWarning("Both '#{people_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekend_fractions.nil?
-      runner.registerWarning("Both '#{people_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml.building_occupancy.monthly_multipliers.nil?
+      runner.registerWarning("Both '#{people_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml_bldg.building_occupancy.weekday_fractions.nil?
+      runner.registerWarning("Both '#{people_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml_bldg.building_occupancy.weekend_fractions.nil?
+      runner.registerWarning("Both '#{people_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml_bldg.building_occupancy.monthly_multipliers.nil?
     end
 
     # Create schedule
