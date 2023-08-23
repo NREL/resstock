@@ -10,7 +10,7 @@ require 'fileutils'
 class BuildResidentialHPXMLTest < Minitest::Test
   def setup
     @output_path = File.join(File.dirname(__FILE__), 'extra_files')
-    @model_save = false # true helpful for debugging, i.e., can render osm in 3D
+    @model_save = true # true helpful for debugging, i.e., can render osm in 3D
   end
 
   def teardown
@@ -23,8 +23,15 @@ class BuildResidentialHPXMLTest < Minitest::Test
       # Base files to derive from
       'base-sfd.xml' => nil,
       'base-sfd2.xml' => 'base-sfd.xml',
+
       'base-sfa.xml' => 'base-sfd.xml',
+      'base-sfa2.xml' => 'base-sfa.xml',
+      'base-sfa3.xml' => 'base-sfa.xml',
+
       'base-mf.xml' => 'base-sfd.xml',
+      'base-mf2.xml' => 'base-mf.xml',
+      'base-mf3.xml' => 'base-mf.xml',
+      'base-mf4.xml' => 'base-mf.xml',
 
       # Extra files to test
       'extra-auto.xml' => 'base-sfd.xml',
@@ -347,6 +354,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
   def _set_measure_argument_values(hpxml_file, args)
     args['hpxml_path'] = File.join(File.dirname(__FILE__), "extra_files/#{hpxml_file}")
     args['apply_defaults'] = true
+    args['apply_validation'] = true
 
     # Base
     if ['base-sfd.xml'].include? hpxml_file
@@ -621,7 +629,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['hot_tub_present'] = false
       args['hot_tub_heater_type'] = HPXML::HeaterTypeElectricResistance
     elsif ['base-sfd2.xml'].include? hpxml_file
-      args['hpxml_path_in'] = 'workflow/sample_files/base.xml'
+      args['hpxml_path_in'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfd.xml')
     elsif ['base-sfa.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
       args['geometry_unit_cfa'] = 1800.0
@@ -636,6 +644,10 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['window_area_left'] = 0
       args['window_area_right'] = 0
       args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
+    elsif ['base-sfa2.xml'].include? hpxml_file
+      args['hpxml_path_in'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfa.xml')
+    elsif ['base-sfa3.xml'].include? hpxml_file
+      args['hpxml_path_in'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfa2.xml')
     elsif ['base-mf.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
       args['geometry_unit_cfa'] = 900.0
@@ -661,6 +673,12 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['ducts_number_of_return_registers'] = 1
       args['door_area'] = 20.0
       args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
+    elsif ['base-mf2.xml'].include? hpxml_file
+      args['hpxml_path_in'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf.xml')
+    elsif ['base-mf3.xml'].include? hpxml_file
+      args['hpxml_path_in'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf2.xml')
+    elsif ['base-mf4.xml'].include? hpxml_file
+      args['hpxml_path_in'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf3.xml')
     end
 
     # Extras

@@ -1447,9 +1447,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     duct_location_choices << HPXML::LocationLivingSpace
     duct_location_choices << HPXML::LocationBasementConditioned
     duct_location_choices << HPXML::LocationBasementUnconditioned
+    duct_location_choices << HPXML::LocationCrawlspace
     duct_location_choices << HPXML::LocationCrawlspaceVented
     duct_location_choices << HPXML::LocationCrawlspaceUnvented
     duct_location_choices << HPXML::LocationCrawlspaceConditioned
+    duct_location_choices << HPXML::LocationAttic
     duct_location_choices << HPXML::LocationAtticVented
     duct_location_choices << HPXML::LocationAtticUnvented
     duct_location_choices << HPXML::LocationGarage
@@ -1812,8 +1814,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     water_heater_location_choices << HPXML::LocationBasementConditioned
     water_heater_location_choices << HPXML::LocationBasementUnconditioned
     water_heater_location_choices << HPXML::LocationGarage
+    water_heater_location_choices << HPXML::LocationAttic
     water_heater_location_choices << HPXML::LocationAtticVented
     water_heater_location_choices << HPXML::LocationAtticUnvented
+    water_heater_location_choices << HPXML::LocationCrawlspace
     water_heater_location_choices << HPXML::LocationCrawlspaceVented
     water_heater_location_choices << HPXML::LocationCrawlspaceUnvented
     water_heater_location_choices << HPXML::LocationCrawlspaceConditioned
@@ -2229,9 +2233,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     battery_location_choices << HPXML::LocationLivingSpace
     battery_location_choices << HPXML::LocationBasementConditioned
     battery_location_choices << HPXML::LocationBasementUnconditioned
+    battery_location_choices << HPXML::LocationCrawlspace
     battery_location_choices << HPXML::LocationCrawlspaceVented
     battery_location_choices << HPXML::LocationCrawlspaceUnvented
     battery_location_choices << HPXML::LocationCrawlspaceConditioned
+    battery_location_choices << HPXML::LocationAttic
     battery_location_choices << HPXML::LocationAtticVented
     battery_location_choices << HPXML::LocationAtticUnvented
     battery_location_choices << HPXML::LocationGarage
@@ -3135,7 +3141,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     args[:apply_validation] = args[:apply_validation].is_initialized ? args[:apply_validation].get : false
     args[:apply_defaults] = args[:apply_defaults].is_initialized ? args[:apply_defaults].get : false
-    args[:apply_validation] = true if args[:apply_defaults]
     args[:geometry_unit_left_wall_is_adiabatic] = (args[:geometry_unit_left_wall_is_adiabatic].is_initialized && args[:geometry_unit_left_wall_is_adiabatic].get)
     args[:geometry_unit_right_wall_is_adiabatic] = (args[:geometry_unit_right_wall_is_adiabatic].is_initialized && args[:geometry_unit_right_wall_is_adiabatic].get)
     args[:geometry_unit_front_wall_is_adiabatic] = (args[:geometry_unit_front_wall_is_adiabatic].is_initialized && args[:geometry_unit_front_wall_is_adiabatic].get)
@@ -3187,10 +3192,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Write HPXML file again if defaults applied
-    if args[:apply_defaults]
-      XMLHelper.write_file(hpxml_doc, hpxml_path)
-    end
     runner.registerInfo("Wrote file: #{hpxml_path}")
 
     # Uncomment for debugging purposes
@@ -3457,19 +3458,24 @@ class HPXMLFile
     unique_hpxml_ids(hpxml_doc)
     XMLHelper.write_file(hpxml_doc, hpxml_path)
 
-    if args[:apply_validation]
-      # Check for invalid HPXML file
+    if args[:apply_defaults]
+      # Always check for invalid HPXML file before applying defaults
       if not validate_hpxml(runner, hpxml, hpxml_doc, hpxml_path)
         return false
       end
-    end
 
-    if args[:apply_defaults]
       eri_version = Constants.ERIVersions[-1]
-      # FIXME: Address this when multiple buildings
       HPXMLDefaults.apply(runner, hpxml, hpxml_bldg, eri_version, weather, epw_file: epw_file)
       hpxml_doc = hpxml.to_doc()
       unique_hpxml_ids(hpxml_doc)
+      XMLHelper.write_file(hpxml_doc, hpxml_path)
+    end
+
+    if args[:apply_validation]
+      # Optionally check for invalid HPXML file (with or without defaults applied)
+      if not validate_hpxml(runner, hpxml, hpxml_doc, hpxml_path)
+        return false
+      end
     end
 
     return hpxml_doc
@@ -5091,7 +5097,7 @@ class HPXMLFile
         hvac_system.distribution_system_idref = hpxml_bldg.hvac_distributions[-1].id
       end
       set_duct_leakages(args, hpxml_bldg.hvac_distributions[-1])
-      set_ducts(args, hpxml_bldg.hvac_distributions[-1])
+      set_ducts(hpxml_bldg, args, hpxml_bldg.hvac_distributions[-1])
     end
 
     if fan_coil_distribution_systems.size > 0
@@ -5116,13 +5122,38 @@ class HPXMLFile
                                                     duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
   end
 
-  def self.set_ducts(args, hvac_distribution)
+  def self.get_location(location, foundation_type, attic_type)
+    if location == HPXML::LocationCrawlspace
+      if foundation_type == HPXML::FoundationTypeCrawlspaceUnvented
+        return HPXML::LocationCrawlspaceUnvented
+      elsif foundation_type == HPXML::FoundationTypeCrawlspaceVented
+        return HPXML::LocationCrawlspaceVented
+      elsif foundation_type == HPXML::FoundationTypeCrawlspaceConditioned
+        return HPXML::LocationCrawlspaceConditioned
+      else
+        fail "Specified '#{location}' but foundation type is '#{foundation_type}'."
+      end
+    elsif location == HPXML::LocationAttic
+      if attic_type == HPXML::AtticTypeUnvented
+        return HPXML::LocationAtticUnvented
+      elsif attic_type == HPXML::AtticTypeVented
+        return HPXML::LocationAtticVented
+      elsif attic_type == HPXML::AtticTypeConditioned
+        return HPXML::LocationLivingSpace
+      else
+        fail "Specified '#{location}' but attic type is '#{attic_type}'."
+      end
+    end
+    return location
+  end
+
+  def self.set_ducts(hpxml_bldg, args, hvac_distribution)
     if args[:ducts_supply_location].is_initialized
-      ducts_supply_location = args[:ducts_supply_location].get
+      ducts_supply_location = get_location(args[:ducts_supply_location].get, hpxml_bldg.foundations[-1].foundation_type, hpxml_bldg.attics[-1].attic_type)
     end
 
     if args[:ducts_return_location].is_initialized
-      ducts_return_location = args[:ducts_return_location].get
+      ducts_return_location = get_location(args[:ducts_return_location].get, hpxml_bldg.foundations[-1].foundation_type, hpxml_bldg.attics[-1].attic_type)
     end
 
     if args[:ducts_supply_surface_area].is_initialized
@@ -5513,7 +5544,7 @@ class HPXMLFile
     end
 
     if args[:water_heater_location].is_initialized
-      location = args[:water_heater_location].get
+      location = get_location(args[:water_heater_location].get, hpxml_bldg.foundations[-1].foundation_type, hpxml_bldg.attics[-1].attic_type)
     end
 
     if args[:water_heater_tank_volume].is_initialized
@@ -5798,7 +5829,7 @@ class HPXMLFile
     return unless args[:battery_present]
 
     if args[:battery_location].is_initialized
-      location = args[:battery_location].get
+      location = get_location(args[:battery_location].get, hpxml_bldg.foundations[-1].foundation_type, hpxml_bldg.attics[-1].attic_type)
     end
 
     if args[:battery_power].is_initialized
