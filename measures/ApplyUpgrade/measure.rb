@@ -318,10 +318,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Initialize measure keys with hpxml_path arguments
+    # Set BuildResidentialHPXML arguments
     hpxml_path = File.expand_path('../upgraded.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
-    measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
@@ -331,13 +330,28 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0][step_value.name] = value
     end
 
-    # Set additional properties
     additional_properties = []
     ['ceiling_insulation_r'].each do |arg_name|
       arg_value = measures['ResStockArguments'][0][arg_name]
       additional_properties << "#{arg_name}=#{arg_value}"
     end
     measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
+
+    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
+    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
+
+    measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = values['simulation_control_timestep']
+    if !values['simulation_control_run_period_begin_month'].nil? && !values['simulation_control_run_period_begin_day_of_month'].nil? && !values['simulation_control_run_period_end_month'].nil? && !values['simulation_control_run_period_end_day_of_month'].nil?
+      begin_month = "#{Date::ABBR_MONTHNAMES[values['simulation_control_run_period_begin_month']]}"
+      begin_day = values['simulation_control_run_period_begin_day_of_month']
+      end_month = "#{Date::ABBR_MONTHNAMES[values['simulation_control_run_period_end_month']]}"
+      end_day = values['simulation_control_run_period_end_day_of_month']
+      measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
+    end
+    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = values['simulation_control_run_period_calendar_year']
+
+    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # we don't need this, but otherwise upgraded home.xml doesn't look like baseline home.xml
+    measures['BuildResidentialHPXML'][0]['apply_validation'] = true
 
     # Retain HVAC capacities
     capacities = get_system_capacities(hpxml, system_upgrades)
@@ -402,21 +416,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # Get software program used and version
-    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
-    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
-
-    # Get registered values and pass them to BuildResidentialHPXML
-    measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = values['simulation_control_timestep']
-    if !values['simulation_control_run_period_begin_month'].nil? && !values['simulation_control_run_period_begin_day_of_month'].nil? && !values['simulation_control_run_period_end_month'].nil? && !values['simulation_control_run_period_end_day_of_month'].nil?
-      begin_month = "#{Date::ABBR_MONTHNAMES[values['simulation_control_run_period_begin_month']]}"
-      begin_day = values['simulation_control_run_period_begin_day_of_month']
-      end_month = "#{Date::ABBR_MONTHNAMES[values['simulation_control_run_period_end_month']]}"
-      end_day = values['simulation_control_run_period_end_day_of_month']
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
-    end
-    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = values['simulation_control_run_period_calendar_year']
-
     # Emissions
     if values.keys.include?('emissions_electricity_values_or_filepaths')
       measures['BuildResidentialHPXML'][0]['emissions_scenario_names'] = values['emissions_scenario_names']
@@ -449,12 +448,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = values['utility_bill_pv_monthly_grid_connection_fee_units']
     measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = values['utility_bill_pv_monthly_grid_connection_fees']
 
-    # Get registered values and pass them to BuildResidentialScheduleFile
+    # Set BuildResidentialScheduleFile arguments
+    measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # Specify measures to run
-    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
     measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] },
                                measures_dir => {} }
 
