@@ -51,6 +51,12 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'extra-emissions-fossil-fuel-factors.xml' => 'base-sfd.xml',
       'extra-bills-fossil-fuel-rates.xml' => 'base-sfd.xml',
       'extra-seasons-building-america.xml' => 'base-sfd.xml',
+      'extra-ducts-crawlspace.xml' => 'base-sfd.xml',
+      'extra-ducts-attic.xml' => 'base-sfd.xml',
+      'extra-water-heater-crawlspace.xml' => 'base-sfd.xml',
+      'extra-water-heater-attic.xml' => 'base-sfd.xml',
+      'extra-battery-crawlspace.xml' => 'base-sfd.xml',
+      'extra-battery-attic.xml' => 'base-sfd.xml',
 
       'extra-sfa-atticroof-flat.xml' => 'base-sfa.xml',
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
@@ -330,6 +336,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
   def _set_measure_argument_values(hpxml_file, args)
     args['hpxml_path'] = File.join(File.dirname(__FILE__), "extra_files/#{hpxml_file}")
     args['apply_defaults'] = true
+    args['apply_validation'] = true
 
     # Base
     if ['base-sfd.xml'].include? hpxml_file
@@ -805,6 +812,34 @@ class BuildResidentialHPXMLTest < Minitest::Test
     elsif ['extra-seasons-building-america.xml'].include? hpxml_file
       args['hvac_control_heating_season_period'] = HPXML::BuildingAmerica
       args['hvac_control_cooling_season_period'] = HPXML::BuildingAmerica
+    elsif ['extra-ducts-crawlspace.xml'].include? hpxml_file
+      args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceUnvented
+      args['geometry_foundation_height'] = 4
+      args['floor_over_foundation_assembly_r'] = 18.7
+      args['foundation_wall_insulation_distance_to_bottom'] = 4
+      args['ducts_supply_location'] = HPXML::LocationCrawlspace
+      args['ducts_return_location'] = HPXML::LocationCrawlspace
+    elsif ['extra-ducts-attic.xml'].include? hpxml_file
+      args['ducts_supply_location'] = HPXML::LocationAttic
+      args['ducts_return_location'] = HPXML::LocationAttic
+    elsif ['extra-water-heater-crawlspace.xml'].include? hpxml_file
+      args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceUnvented
+      args['geometry_foundation_height'] = 4
+      args['floor_over_foundation_assembly_r'] = 18.7
+      args['foundation_wall_insulation_distance_to_bottom'] = 4
+      args['water_heater_location'] = HPXML::LocationCrawlspace
+    elsif ['extra-water-heater-attic.xml'].include? hpxml_file
+      args['water_heater_location'] = HPXML::LocationAttic
+    elsif ['extra-battery-crawlspace.xml'].include? hpxml_file
+      args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceUnvented
+      args['geometry_foundation_height'] = 4
+      args['floor_over_foundation_assembly_r'] = 18.7
+      args['foundation_wall_insulation_distance_to_bottom'] = 4
+      args['battery_present'] = true
+      args['battery_location'] = HPXML::LocationCrawlspace
+    elsif ['extra-battery-attic.xml'].include? hpxml_file
+      args['battery_present'] = true
+      args['battery_location'] = HPXML::LocationAttic
     elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
       args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
       args['ducts_supply_leakage_to_outside_value'] = 0.0

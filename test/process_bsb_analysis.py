@@ -1,12 +1,11 @@
 import os
+import sys
 import pandas as pd
 from functools import reduce
 import csv
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '../../resources/hpxml-measures/workflow/tests')))
+from compare import read_csv
 
-def read_csv(csv_file_path, **kwargs) -> pd.DataFrame:
-    default_na_values = pd._libs.parsers.STR_NA_VALUES
-    df = pd.read_csv(csv_file_path, na_values=list(default_na_values - {"None"}), keep_default_na=False, **kwargs)
-    return df
 
 if __name__ == '__main__':
 
@@ -106,14 +105,12 @@ if __name__ == '__main__':
     for dp in dps:
       df_national = read_csv('project_national/national_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col, skiprows=[1])
       df_national = df_national.drop(drops, axis=1)
-
       df_nationals.append(df_national)
 
     dps = sorted(os.listdir('project_testing/testing_baseline/simulation_output/up00'))
     for dp in dps:
       df_testing = read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col, skiprows=[1])
       df_testing = df_testing.drop(drops, axis=1)
-
       df_testings.append(df_testing)
 
     df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals).round(1)
@@ -133,28 +130,28 @@ if __name__ == '__main__':
     df_nationals = []
     df_testings = []
     index_col = ['time']
-    drops = ['building_id', 'timedst', 'timeutc']
+    drops = ['timedst', 'timeutc']
 
     groups = sorted(os.listdir('project_national/national_baseline/parquet/timeseries/upgrade=0'))
     for group in groups:
         df_national = pd.read_parquet('project_national/national_baseline/parquet/timeseries/upgrade=0/{}'.format(group)).reset_index()
         df_national = df_national.drop(drops, axis=1)
-        df_national = df_national.groupby(index_col).sum()
-
         df_nationals.append(df_national)
 
     groups = sorted(os.listdir('project_testing/testing_baseline/parquet/timeseries/upgrade=0'))
     for group in groups:
         df_testing = pd.read_parquet('project_testing/testing_baseline/parquet/timeseries/upgrade=0/{}'.format(group)).reset_index()
         df_testing = df_testing.drop(drops, axis=1)
-        df_testing = df_testing.groupby(index_col).sum()
-
         df_testings.append(df_testing)
 
-    df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals).round(1)
+    df_national = pd.concat(df_nationals).sort_values(['building_id', 'time'])
+    df_national = df_national.drop(['building_id'], axis=1)
+    df_national = df_national.groupby(index_col).sum().round(1)
     df_national['PROJECT'] = 'project_national'
 
-    df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings).round(1)
+    df_testing = pd.concat(df_testings).sort_values(['building_id', 'time'])
+    df_testing = df_testing.drop(['building_id'], axis=1)
+    df_testing = df_testing.groupby(index_col).sum().round(1)
     df_testing['PROJECT'] = 'project_testing'
 
     buildstockbatch = pd.concat([df_national, df_testing]).fillna(0)
@@ -254,7 +251,6 @@ if __name__ == '__main__':
 
         df_national = read_csv('project_national/national_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp), index_col=index_col, skiprows=[1])
         df_national = df_national.drop(drops, axis=1)
-
         df_nationals.append(df_national)
 
     dps = sorted(os.listdir('project_testing/testing_upgrades/simulation_output/up00'))
@@ -265,13 +261,12 @@ if __name__ == '__main__':
 
         df_testing = read_csv('project_testing/testing_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp), index_col=index_col, skiprows=[1])
         df_testing = df_testing.drop(drops, axis=1)
-
         df_testings.append(df_testing)
 
-    df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals).round(2)
+    df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals).round(1)
     df_national['PROJECT'] = 'project_national'
 
-    df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings).round(2)
+    df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings).round(1)
     df_testing['PROJECT'] = 'project_testing'
 
     results_output = pd.concat([df_national, df_testing]).fillna(0)
@@ -285,7 +280,7 @@ if __name__ == '__main__':
     df_nationals = []
     df_testings = []
     index_col = ['time']
-    drops = ['building_id', 'timedst', 'timeutc']
+    drops = ['timedst', 'timeutc']
 
     groups = sorted(os.listdir('project_national/national_baseline/parquet/timeseries/upgrade=0'))
     for group in groups:
@@ -295,8 +290,6 @@ if __name__ == '__main__':
 
             df_national = pd.read_parquet('project_national/national_upgrades/parquet/timeseries/upgrade={}/{}'.format(i, group)).reset_index()
             df_national = df_national.drop(drops, axis=1)
-            df_national = df_national.groupby(index_col).sum()
-
             df_nationals.append(df_national)
 
     groups = sorted(os.listdir('project_testing/testing_baseline/parquet/timeseries/upgrade=0'))
@@ -307,14 +300,16 @@ if __name__ == '__main__':
 
             df_testing = pd.read_parquet('project_testing/testing_upgrades/parquet/timeseries/upgrade={}/{}'.format(i, group)).reset_index()
             df_testing = df_testing.drop(drops, axis=1)
-            df_testing = df_testing.groupby(index_col).sum()
-
             df_testings.append(df_testing)
 
-    df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals).round(2)
+    df_national = pd.concat(df_nationals).sort_values(['building_id', 'time'])
+    df_national = df_national.drop(['building_id'], axis=1)
+    df_national = df_national.groupby(index_col).sum().round(1)
     df_national['PROJECT'] = 'project_national'
 
-    df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings).round(2)
+    df_testing = pd.concat(df_testings).sort_values(['building_id', 'time'])
+    df_testing = df_testing.drop(['building_id'], axis=1)
+    df_testing = df_testing.groupby(index_col).sum().round(1)
     df_testing['PROJECT'] = 'project_testing'
 
     buildstockbatch = pd.concat([df_national, df_testing]).fillna(0)
