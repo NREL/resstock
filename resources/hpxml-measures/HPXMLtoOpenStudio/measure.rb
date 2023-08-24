@@ -1474,7 +1474,8 @@ class OSModel
 
         airloop_map[sys_id] = HVAC.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
                                                                  sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                                                 living_zone, @hpxml.site.ground_conductivity, @hvac_unavailable_periods)
+                                                                 living_zone, @hpxml.site.ground_conductivity, @hpxml.site.ground_diffusivity,
+                                                                 @hvac_unavailable_periods)
 
       end
 
