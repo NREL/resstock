@@ -14,6 +14,12 @@ __New Features__
   - Allow duct locations to be provided while defaulting duct areas (i.e., without providing duct area/fraction inputs).
   - Add generic "attic" and "crawlspace" location choices for supply/return ducts, water heater, and battery.
   - Always validate the HPXML file before applying defaults and only optionally validate the final HPXML file.
+  - Add soil and moisture type arguments for determining ground conductivity and diffusivity.
+- Ground source heat pump enhancements:
+  - Connect to `HVACPlant/GeothermalLoop` and `BuildingSummary/Site/Soil` HPXML elements.
+  - Allow optional inputs related to geothermal loop: loop flow, borehole count/length/spacing/diameter/configuration, grout conductivity, pipe conductivity/diameter/shank spacing.
+  - Allow optional ground diffusivity input for site soil.
+  - Connect to the [G-Function Library](https://gdr.openei.org/submissions/1325) (in the Geothermal Data Repository) for using precalculated g-function values with GSHP modeling.
 
 __Bugfixes__
 - Fixes lighting multipliers not being applied when kWh/yr inputs are used.

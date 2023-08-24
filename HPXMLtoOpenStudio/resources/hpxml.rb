@@ -52,7 +52,7 @@ class HPXML < Object
                  :climate_and_risk_zones, :air_infiltration, :air_infiltration_measurements, :attics,
                  :foundations, :roofs, :rim_joists, :walls, :foundation_walls, :floors, :slabs, :windows,
                  :skylights, :doors, :partition_wall_mass, :furniture_mass, :heating_systems,
-                 :cooling_systems, :heat_pumps, :hvac_plant, :hvac_controls, :hvac_distributions,
+                 :cooling_systems, :heat_pumps, :geothermal_loops, :hvac_plant, :hvac_controls, :hvac_distributions,
                  :ventilation_fans, :water_heating_systems, :hot_water_distributions, :water_fixtures,
                  :water_heating, :solar_thermal_systems, :pv_systems, :inverters, :generators,
                  :batteries, :clothes_washers, :clothes_dryers, :dishwashers, :refrigerators,
@@ -157,6 +157,19 @@ class HPXML < Object
   FuelTypeWoodPellets = 'wood pellets'
   FurnitureMassTypeLightWeight = 'light-weight'
   FurnitureMassTypeHeavyWeight = 'heavy-weight'
+  GeothermalLoopBorefieldConfigurationRectangle = 'Rectangle'
+  GeothermalLoopBorefieldConfigurationZonedRectangle = 'Zoned Rectangle'
+  GeothermalLoopBorefieldConfigurationOpenRectangle = 'Open Rectangle'
+  GeothermalLoopBorefieldConfigurationC = 'C'
+  GeothermalLoopBorefieldConfigurationL = 'L'
+  GeothermalLoopBorefieldConfigurationU = 'U'
+  GeothermalLoopBorefieldConfigurationLopsidedU = 'Lopsided U'
+  GeothermalLoopLoopConfigurationDiagonal = 'diagonal'
+  GeothermalLoopLoopConfigurationHorizontal = 'horizontal'
+  GeothermalLoopLoopConfigurationOther = 'other'
+  GeothermalLoopLoopConfigurationVertical = 'vertical'
+  GeothermalLoopGroutTypeStandard = 'standard'
+  GeothermalLoopGroutTypeThermallyEnhanced = 'thermally enhanced'
   HeaterTypeElectricResistance = 'electric resistance'
   HeaterTypeGas = 'gas fired'
   HeaterTypeHeatPump = 'heat pump'
@@ -300,6 +313,16 @@ class HPXML < Object
   SidingTypeSyntheticStucco = 'synthetic stucco'
   SidingTypeVinyl = 'vinyl siding'
   SidingTypeWood = 'wood siding'
+  SiteSoilMoistureTypeDry = 'dry'
+  SiteSoilMoistureTypeMixed = 'mixed'
+  SiteSoilMoistureTypeWet = 'wet'
+  SiteSoilSoilTypeClay = 'clay'
+  SiteSoilSoilTypeGravel = 'gravel'
+  SiteSoilSoilTypeLoam = 'loam'
+  SiteSoilSoilTypeOther = 'other'
+  SiteSoilSoilTypeSand = 'sand'
+  SiteSoilSoilTypeSilt = 'silt'
+  SiteSoilSoilTypeUnknown = 'unknown'
   SiteTypeUrban = 'urban'
   SiteTypeSuburban = 'suburban'
   SiteTypeRural = 'rural'
@@ -740,6 +763,7 @@ class HPXML < Object
     @heating_systems.to_oga(@doc)
     @cooling_systems.to_oga(@doc)
     @heat_pumps.to_oga(@doc)
+    @geothermal_loops.to_oga(@doc)
     @hvac_plant.to_oga(@doc)
     @hvac_controls.to_oga(@doc)
     @hvac_distributions.to_oga(@doc)
@@ -796,6 +820,7 @@ class HPXML < Object
     @heating_systems = HeatingSystems.new(self, hpxml)
     @cooling_systems = CoolingSystems.new(self, hpxml)
     @heat_pumps = HeatPumps.new(self, hpxml)
+    @geothermal_loops = GeothermalLoops.new(self, hpxml)
     @hvac_plant = HVACPlant.new(self, hpxml)
     @hvac_controls = HVACControls.new(self, hpxml)
     @hvac_distributions = HVACDistributions.new(self, hpxml)
@@ -1446,7 +1471,7 @@ class HPXML < Object
 
   class Site < BaseElement
     ATTRS = [:site_type, :surroundings, :vertical_surroundings, :shielding_of_home, :orientation_of_front_of_home, :azimuth_of_front_of_home, :fuels,
-             :ground_conductivity]
+             :soil_type, :moisture_type, :ground_conductivity, :ground_diffusivity]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -1470,7 +1495,16 @@ class HPXML < Object
           XMLHelper.add_element(fuel_types_available, 'Fuel', fuel, :string)
         end
       end
-      XMLHelper.add_extension(site, 'GroundConductivity', @ground_conductivity, :float, @ground_conductivity_isdefaulted) unless @ground_conductivity.nil?
+      if (not @soil_type.nil?) || (not @moisture_type.nil?) || (not @ground_conductivity.nil?) || (not @ground_diffusivity.nil?)
+        soil = XMLHelper.add_element(site, 'Soil')
+        XMLHelper.add_element(soil, 'SoilType', @soil_type, :string, @soil_type_isdefaulted) unless @soil_type.nil?
+        XMLHelper.add_element(soil, 'MoistureType', @moisture_type, :string, @moisture_type_isdefaulted) unless @moisture_type.nil?
+        XMLHelper.add_element(soil, 'Conductivity', @ground_conductivity, :float, @ground_conductivity_isdefaulted) unless @ground_conductivity.nil?
+        if not @ground_diffusivity.nil?
+          extension = XMLHelper.create_elements_as_needed(soil, ['extension'])
+          XMLHelper.add_element(extension, 'Diffusivity', @ground_diffusivity, :float, @ground_diffusivity_isdefaulted) unless @ground_diffusivity.nil?
+        end
+      end
 
       if site.children.size == 0
         bldg_summary = XMLHelper.get_element(doc, '/HPXML/Building/BuildingDetails/BuildingSummary')
@@ -1491,7 +1525,10 @@ class HPXML < Object
       @orientation_of_front_of_home = XMLHelper.get_value(site, 'OrientationOfFrontOfHome', :string)
       @azimuth_of_front_of_home = XMLHelper.get_value(site, 'AzimuthOfFrontOfHome', :integer)
       @fuels = XMLHelper.get_values(site, 'FuelTypesAvailable/Fuel', :string)
-      @ground_conductivity = XMLHelper.get_value(site, 'extension/GroundConductivity', :float)
+      @soil_type = XMLHelper.get_value(site, 'Soil/SoilType', :string)
+      @moisture_type = XMLHelper.get_value(site, 'Soil/MoistureType', :string)
+      @ground_conductivity = XMLHelper.get_value(site, 'Soil/Conductivity', :float)
+      @ground_diffusivity = XMLHelper.get_value(site, 'Soil/extension/Diffusivity', :float)
     end
   end
 
@@ -4011,6 +4048,89 @@ class HPXML < Object
     end
   end
 
+  class GeothermalLoops < BaseArrayElement
+    def add(**kwargs)
+      self << GeothermalLoop.new(@hpxml_object, **kwargs)
+    end
+
+    def from_oga(hpxml)
+      return if hpxml.nil?
+
+      XMLHelper.get_elements(hpxml, 'Building/BuildingDetails/Systems/HVAC/HVACPlant/GeothermalLoop').each do |geothermal_loop|
+        self << GeothermalLoop.new(@hpxml_object, geothermal_loop)
+      end
+    end
+  end
+
+  class GeothermalLoop < BaseElement
+    ATTRS = [:id, :loop_configuration, :loop_flow,
+             :num_bore_holes, :bore_spacing, :bore_length, :bore_diameter,
+             :grout_type, :grout_conductivity,
+             :pipe_cond, :pipe_size, :shank_spacing,
+             :bore_config]
+    attr_accessor(*ATTRS)
+
+    def delete
+      @hpxml_object.geothermal_loops.delete(self)
+    end
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def to_oga(doc)
+      return if nil?
+
+      hvac_plant = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'Systems', 'HVAC', 'HVACPlant'])
+      geothermal_loop = XMLHelper.add_element(hvac_plant, 'GeothermalLoop')
+      sys_id = XMLHelper.add_element(geothermal_loop, 'SystemIdentifier')
+      XMLHelper.add_attribute(sys_id, 'id', @id)
+      XMLHelper.add_element(geothermal_loop, 'LoopConfiguration', @loop_configuration, :string, @loop_configuration_isdefaulted) unless @loop_configuration.nil?
+      XMLHelper.add_element(geothermal_loop, 'LoopFlow', @loop_flow, :float, @loop_flow_isdefaulted) unless @loop_flow.nil?
+      if (not @num_bore_holes.nil?) || (not @bore_spacing.nil?) || (not @bore_length.nil?) || (not @bore_diameter.nil?)
+        boreholes_or_trenches = XMLHelper.add_element(geothermal_loop, 'BoreholesOrTrenches')
+        XMLHelper.add_element(boreholes_or_trenches, 'Count', @num_bore_holes, :integer, @num_bore_holes_isdefaulted) unless @num_bore_holes.nil?
+        XMLHelper.add_element(boreholes_or_trenches, 'Length', @bore_length, :float, @bore_length_isdefaulted) unless @bore_length.nil?
+        XMLHelper.add_element(boreholes_or_trenches, 'Spacing', @bore_spacing, :float, @bore_spacing_isdefaulted) unless @bore_spacing.nil?
+        XMLHelper.add_element(boreholes_or_trenches, 'Diameter', @bore_diameter, :float, @bore_diameter_isdefaulted) unless @bore_diameter.nil?
+      end
+      if (not @grout_type.nil?) || (not @grout_conductivity.nil?)
+        grout = XMLHelper.add_element(geothermal_loop, 'Grout')
+        XMLHelper.add_element(grout, 'Type', @grout_type, :string, @grout_type_isdefaulted) unless @grout_type.nil?
+        XMLHelper.add_element(grout, 'Conductivity', @grout_conductivity, :float, @grout_conductivity_isdefaulted) unless @grout_conductivity.nil?
+      end
+      if (not @pipe_cond.nil?) || (not @pipe_size.nil?) || (not @shank_spacing.nil?)
+        pipe = XMLHelper.add_element(geothermal_loop, 'Pipe')
+        XMLHelper.add_element(pipe, 'Conductivity', @pipe_cond, :float, @pipe_cond_isdefaulted) unless @pipe_cond.nil?
+        XMLHelper.add_element(pipe, 'Diameter', @pipe_size, :float, @pipe_size_isdefaulted) unless @pipe_size.nil?
+        XMLHelper.add_element(pipe, 'ShankSpacing', @shank_spacing, :float, @shank_spacing_isdefaulted) unless @shank_spacing.nil?
+      end
+      if not @bore_config.nil?
+        extension = XMLHelper.create_elements_as_needed(geothermal_loop, ['extension'])
+        XMLHelper.add_element(extension, 'BorefieldConfiguration', @bore_config, :string, @bore_config_isdefaulted) unless @bore_config.nil?
+      end
+    end
+
+    def from_oga(geothermal_loop)
+      return if geothermal_loop.nil?
+
+      @id = HPXML::get_id(geothermal_loop)
+      @loop_configuration = XMLHelper.get_value(geothermal_loop, 'LoopConfiguration', :string)
+      @loop_flow = XMLHelper.get_value(geothermal_loop, 'LoopFlow', :float)
+      @num_bore_holes = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Count', :integer)
+      @bore_length = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Length', :float)
+      @bore_spacing = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Spacing', :float)
+      @bore_diameter = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Diameter', :float)
+      @grout_type = XMLHelper.get_value(geothermal_loop, 'Grout/Type', :string)
+      @grout_conductivity = XMLHelper.get_value(geothermal_loop, 'Grout/Conductivity', :float)
+      @pipe_cond = XMLHelper.get_value(geothermal_loop, 'Pipe/Conductivity', :float)
+      @pipe_size = XMLHelper.get_value(geothermal_loop, 'Pipe/Diameter', :float)
+      @shank_spacing = XMLHelper.get_value(geothermal_loop, 'Pipe/ShankSpacing', :float)
+      @bore_config = XMLHelper.get_value(geothermal_loop, 'extension/BorefieldConfiguration', :string)
+    end
+  end
+
   class HeatPumps < BaseArrayElement
     def add(**kwargs)
       self << HeatPump.new(@hpxml_object, **kwargs)
@@ -4044,7 +4164,8 @@ class HPXML < Object
              :pump_watts_per_ton, :fan_watts_per_cfm, :is_shared_system, :number_of_units_served, :shared_loop_watts,
              :shared_loop_motor_efficiency, :airflow_defect_ratio, :charge_defect_ratio,
              :heating_airflow_cfm, :cooling_airflow_cfm, :location, :primary_heating_system, :primary_cooling_system,
-             :heating_capacity_retention_fraction, :heating_capacity_retention_temp, :crankcase_heater_watts]
+             :heating_capacity_retention_fraction, :heating_capacity_retention_temp, :crankcase_heater_watts,
+             :geothermal_loop_idref]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -4056,6 +4177,17 @@ class HPXML < Object
         return hvac_distribution
       end
       fail "Attached HVAC distribution system '#{@distribution_system_idref}' not found for HVAC system '#{@id}'."
+    end
+
+    def geothermal_loop
+      return if @geothermal_loop_idref.nil?
+
+      @hpxml_object.geothermal_loops.each do |geothermal_loop|
+        next unless geothermal_loop.id == @geothermal_loop_idref
+
+        return geothermal_loop
+      end
+      fail "Attached geothermal loop '#{@geothermal_loop_idref}' not found for heat pump '#{@id}'."
     end
 
     def is_dual_fuel
@@ -4097,6 +4229,7 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; distribution_system; rescue StandardError => e; errors << e.message; end
+      begin; geothermal_loop; rescue StandardError => e; errors << e.message; end
       return errors
     end
 
@@ -4181,6 +4314,10 @@ class HPXML < Object
         XMLHelper.add_element(annual_efficiency, 'Units', UnitsCOP, :string)
         XMLHelper.add_element(annual_efficiency, 'Value', @heating_efficiency_cop, :float, @heating_efficiency_cop_isdefaulted)
       end
+      if not @geothermal_loop_idref.nil?
+        attached_to_geothermal_loop = XMLHelper.add_element(heat_pump, 'AttachedToGeothermalLoop')
+        XMLHelper.add_attribute(attached_to_geothermal_loop, 'idref', @geothermal_loop_idref)
+      end
       XMLHelper.add_extension(heat_pump, 'AirflowDefectRatio', @airflow_defect_ratio, :float, @airflow_defect_ratio_isdefaulted) unless @airflow_defect_ratio.nil?
       XMLHelper.add_extension(heat_pump, 'ChargeDefectRatio', @charge_defect_ratio, :float, @charge_defect_ratio_isdefaulted) unless @charge_defect_ratio.nil?
       XMLHelper.add_extension(heat_pump, 'FanPowerWattsPerCFM', @fan_watts_per_cfm, :float, @fan_watts_per_cfm_isdefaulted) unless @fan_watts_per_cfm.nil?
@@ -4242,6 +4379,7 @@ class HPXML < Object
       @heating_efficiency_hspf = XMLHelper.get_value(heat_pump, "AnnualHeatingEfficiency[Units='#{UnitsHSPF}']/Value", :float)
       @heating_efficiency_hspf2 = XMLHelper.get_value(heat_pump, "AnnualHeatingEfficiency[Units='#{UnitsHSPF2}']/Value", :float)
       @heating_efficiency_cop = XMLHelper.get_value(heat_pump, "AnnualHeatingEfficiency[Units='#{UnitsCOP}']/Value", :float)
+      @geothermal_loop_idref = HPXML::get_idref(XMLHelper.get_element(heat_pump, 'AttachedToGeothermalLoop'))
       @airflow_defect_ratio = XMLHelper.get_value(heat_pump, 'extension/AirflowDefectRatio', :float)
       @charge_defect_ratio = XMLHelper.get_value(heat_pump, 'extension/ChargeDefectRatio', :float)
       @fan_watts_per_cfm = XMLHelper.get_value(heat_pump, 'extension/FanPowerWattsPerCFM', :float)

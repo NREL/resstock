@@ -930,7 +930,10 @@
     "parent_hpxml": "sample_files/base-bldgtype-multifamily.xml"
   },
   "sample_files/base-bldgtype-multifamily-shared-ground-loop-ground-to-air-heat-pump.xml": {
-    "parent_hpxml": "sample_files/base-bldgtype-multifamily.xml"
+    "parent_hpxml": "sample_files/base-bldgtype-multifamily.xml",
+    "heat_pump_type": "ground-to-air",
+    "heat_pump_heating_efficiency_type": "COP",
+    "heat_pump_cooling_efficiency_type": "EER"
   },
   "sample_files/base-bldgtype-multifamily-shared-laundry-room.xml": {
     "parent_hpxml": "sample_files/base-bldgtype-multifamily.xml"
@@ -2385,6 +2388,19 @@
   "sample_files/base-hvac-furnace-x3-dse.xml": {
     "parent_hpxml": "sample_files/base.xml"
   },
+  "sample_files/base-hvac-geothermal-loop.xml": {
+    "parent_hpxml": "sample_files/base-hvac-ground-to-air-heat-pump.xml",
+    "geothermal_loop_loop_flow": 10.0,
+    "geothermal_loop_boreholes_count": 9,
+    "geothermal_loop_boreholes_length": 314.961,
+    "geothermal_loop_boreholes_spacing": 16.4042,
+    "geothermal_loop_boreholes_diameter": 5.905512,
+    "geothermal_loop_grout_conductivity": 0.5,
+    "geothermal_loop_pipe_conductivity": 0.3,
+    "geothermal_loop_pipe_diameter": "1\" pipe",
+    "geothermal_loop_pipe_shank_spacing": 2.5,
+    "geothermal_loop_borefield_configuration": "Lopsided U"
+  },
   "sample_files/base-hvac-ground-to-air-heat-pump.xml": {
     "parent_hpxml": "sample_files/base.xml",
     "heating_system_type": "none",
@@ -2406,6 +2422,30 @@
     "heat_pump_backup_type": "integrated",
     "heat_pump_backup_heating_efficiency": 1,
     "heat_pump_backup_heating_capacity": 36000
+  },
+  "sample_files/base-hvac-ground-to-air-heat-pump-1ton.xml": {
+    "parent_hpxml": "sample_files/base-hvac-ground-to-air-heat-pump.xml",
+    "heat_pump_heating_capacity": 12000,
+    "heat_pump_cooling_capacity": 12000,
+    "heat_pump_backup_heating_capacity": 12000
+  },
+  "sample_files/base-hvac-ground-to-air-heat-pump-2ton.xml": {
+    "parent_hpxml": "sample_files/base-hvac-ground-to-air-heat-pump.xml",
+    "heat_pump_heating_capacity": 24000,
+    "heat_pump_cooling_capacity": 24000,
+    "heat_pump_backup_heating_capacity": 24000
+  },
+  "sample_files/base-hvac-ground-to-air-heat-pump-4ton.xml": {
+    "parent_hpxml": "sample_files/base-hvac-ground-to-air-heat-pump.xml",
+    "heat_pump_heating_capacity": 48000,
+    "heat_pump_cooling_capacity": 48000,
+    "heat_pump_backup_heating_capacity": 48000
+  },
+  "sample_files/base-hvac-ground-to-air-heat-pump-5ton.xml": {
+    "parent_hpxml": "sample_files/base-hvac-ground-to-air-heat-pump.xml",
+    "heat_pump_heating_capacity": 60000,
+    "heat_pump_cooling_capacity": 60000,
+    "heat_pump_backup_heating_capacity": 60000
   },
   "sample_files/base-hvac-ground-to-air-heat-pump-cooling-only.xml": {
     "parent_hpxml": "sample_files/base-hvac-ground-to-air-heat-pump.xml",
@@ -3087,6 +3127,15 @@
   "sample_files/base-misc-ground-conductivity.xml": {
     "parent_hpxml": "sample_files/base.xml",
     "site_ground_conductivity": 0.8
+  },
+  "sample_files/base-misc-ground-diffusivity.xml": {
+    "parent_hpxml": "sample_files/base-hvac-ground-to-air-heat-pump.xml",
+    "site_ground_diffusivity": 0.03
+  },
+  "sample_files/base-misc-soil-type-sand-moisture-type-dry.xml": {
+    "parent_hpxml": "sample_files/base-hvac-ground-to-air-heat-pump.xml",
+    "site_soil_type": "sand",
+    "site_moisture_type": "dry"
   },
   "sample_files/base-misc-loads-large-uncommon.xml": {
     "parent_hpxml": "sample_files/base-schedules-simple.xml",

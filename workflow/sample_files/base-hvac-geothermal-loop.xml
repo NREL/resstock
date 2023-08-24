@@ -11,9 +11,6 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
-      <HVACSizingControl>
-        <HeatPumpSizingMethodology>HERS</HeatPumpSizingMethodology>
-      </HVACSizingControl>
       <UtilityBillScenarios>
         <UtilityBillScenario>
           <Name>Bills</Name>
@@ -329,6 +326,8 @@
               <DistributionSystem idref='HVACDistribution1'/>
               <HeatPumpType>ground-to-air</HeatPumpType>
               <HeatPumpFuel>electricity</HeatPumpFuel>
+              <HeatingCapacity>36000.0</HeatingCapacity>
+              <CoolingCapacity>36000.0</CoolingCapacity>
               <CoolingSensibleHeatFraction>0.73</CoolingSensibleHeatFraction>
               <BackupType>integrated</BackupType>
               <BackupSystemFuel>electricity</BackupSystemFuel>
@@ -336,6 +335,7 @@
                 <Units>Percent</Units>
                 <Value>1.0</Value>
               </BackupAnnualHeatingEfficiency>
+              <BackupHeatingCapacity>36000.0</BackupHeatingCapacity>
               <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
@@ -354,6 +354,24 @@
             <GeothermalLoop>
               <SystemIdentifier id='GeothermalLoop1'/>
               <LoopConfiguration>vertical</LoopConfiguration>
+              <LoopFlow>10.0</LoopFlow>
+              <BoreholesOrTrenches>
+                <Count>9</Count>
+                <Length>314.961</Length>
+                <Spacing>16.4042</Spacing>
+                <Diameter>5.905512</Diameter>
+              </BoreholesOrTrenches>
+              <Grout>
+                <Conductivity>0.5</Conductivity>
+              </Grout>
+              <Pipe>
+                <Conductivity>0.3</Conductivity>
+                <Diameter>1.0</Diameter>
+                <ShankSpacing>2.5</ShankSpacing>
+              </Pipe>
+              <extension>
+                <BorefieldConfiguration>Lopsided U</BorefieldConfiguration>
+              </extension>
             </GeothermalLoop>
           </HVACPlant>
           <HVACControl>

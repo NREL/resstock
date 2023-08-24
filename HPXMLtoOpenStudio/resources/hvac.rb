@@ -226,7 +226,8 @@ class HVAC
 
   def self.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
                                          sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                         control_zone, ground_conductivity, hvac_unavailable_periods)
+                                         control_zone, ground_conductivity, ground_diffusivity,
+                                         hvac_unavailable_periods)
 
     obj_name = Constants.ObjectNameGroundSourceHeatPump
 
@@ -273,14 +274,14 @@ class HVAC
     # Ground Heat Exchanger
     ground_heat_exch_vert = OpenStudio::Model::GroundHeatExchangerVertical.new(model)
     ground_heat_exch_vert.setName(obj_name + ' exchanger')
-    ground_heat_exch_vert.setBoreHoleRadius(UnitConversions.convert(hp_ap.bore_diameter / 2.0, 'in', 'm'))
+    ground_heat_exch_vert.setBoreHoleRadius(UnitConversions.convert(heat_pump.geothermal_loop.bore_diameter / 2.0, 'in', 'm'))
     ground_heat_exch_vert.setGroundThermalConductivity(UnitConversions.convert(ground_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
-    ground_heat_exch_vert.setGroundThermalHeatCapacity(UnitConversions.convert(ground_conductivity / hp_ap.ground_diffusivity, 'Btu/(ft^3*F)', 'J/(m^3*K)'))
+    ground_heat_exch_vert.setGroundThermalHeatCapacity(UnitConversions.convert(ground_conductivity / ground_diffusivity, 'Btu/(ft^3*F)', 'J/(m^3*K)'))
     ground_heat_exch_vert.setGroundTemperature(UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'C'))
-    ground_heat_exch_vert.setGroutThermalConductivity(UnitConversions.convert(hp_ap.grout_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
-    ground_heat_exch_vert.setPipeThermalConductivity(UnitConversions.convert(hp_ap.pipe_cond, 'Btu/(hr*ft*R)', 'W/(m*K)'))
+    ground_heat_exch_vert.setGroutThermalConductivity(UnitConversions.convert(heat_pump.geothermal_loop.grout_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
+    ground_heat_exch_vert.setPipeThermalConductivity(UnitConversions.convert(heat_pump.geothermal_loop.pipe_cond, 'Btu/(hr*ft*R)', 'W/(m*K)'))
     ground_heat_exch_vert.setPipeOutDiameter(UnitConversions.convert(hp_ap.pipe_od, 'in', 'm'))
-    ground_heat_exch_vert.setUTubeDistance(UnitConversions.convert(hp_ap.shank_spacing, 'in', 'm'))
+    ground_heat_exch_vert.setUTubeDistance(UnitConversions.convert(heat_pump.geothermal_loop.shank_spacing, 'in', 'm'))
     ground_heat_exch_vert.setPipeThickness(UnitConversions.convert((hp_ap.pipe_od - hp_ap.pipe_id) / 2.0, 'in', 'm'))
     ground_heat_exch_vert.setMaximumLengthofSimulation(1)
     ground_heat_exch_vert.setGFunctionReferenceRatio(0.0005)
@@ -3357,33 +3358,32 @@ class HVAC
 
   def self.set_gshp_assumptions(heat_pump, weather)
     hp_ap = heat_pump.additional_properties
+    geothermal_loop = heat_pump.geothermal_loop
 
     hp_ap.design_chw = [85.0, weather.design.CoolingDrybulb - 15.0, weather.data.AnnualAvgDrybulb + 10.0].max # Temperature of water entering indoor coil,use 85F as lower bound
     hp_ap.design_delta_t = 10.0
     hp_ap.fluid_type = Constants.FluidPropyleneGlycol
-    hp_ap.frac_glycol = 0.3
+    hp_ap.frac_glycol = 0.2 # we've changed this from 0.3 to 0.2
     if hp_ap.fluid_type == Constants.FluidWater
       hp_ap.design_hw = [45.0, weather.design.HeatingDrybulb + 35.0, weather.data.AnnualAvgDrybulb - 10.0].max # Temperature of fluid entering indoor coil, use 45F as lower bound for water
     else
       hp_ap.design_hw = [35.0, weather.design.HeatingDrybulb + 35.0, weather.data.AnnualAvgDrybulb - 10.0].min # Temperature of fluid entering indoor coil, use 35F as upper bound
     end
-    hp_ap.ground_diffusivity = 0.0208
-    hp_ap.grout_conductivity = 0.4 # Btu/h-ft-R
-    hp_ap.bore_diameter = 5.0 # in
-    hp_ap.pipe_size = 0.75 # in
+    pipe_size = geothermal_loop.pipe_size
     # Pipe nominal size conversion to pipe outside diameter and inside diameter,
     # only pipe sizes <= 2" are used here with DR11 (dimension ratio),
-    if hp_ap.pipe_size == 0.75 # 3/4" pipe
+    if pipe_size == 0.75 # 3/4" pipe
       hp_ap.pipe_od = 1.050 # in
       hp_ap.pipe_id = 0.859 # in
-    elsif hp_ap.pipe_size == 1.0 # 1" pipe
+    elsif pipe_size == 1.0 # 1" pipe
       hp_ap.pipe_od = 1.315 # in
       hp_ap.pipe_id = 1.076 # in
-    elsif hp_ap.pipe_size == 1.25 # 1-1/4" pipe
+    elsif pipe_size == 1.25 # 1-1/4" pipe
       hp_ap.pipe_od = 1.660 # in
       hp_ap.pipe_id = 1.358 # in
+    else
+      fail "Unexpected pipe size: #{pipe_size}"
     end
-    hp_ap.pipe_cond = 0.23 # Btu/h-ft-R; Pipe thermal conductivity, default to high density polyethylene
     hp_ap.u_tube_spacing_type = 'b'
     # Calculate distance between pipes
     if hp_ap.u_tube_spacing_type == 'as'
@@ -3394,9 +3394,18 @@ class HVAC
       hp_ap.u_tube_spacing = 0.9661
     elsif hp_ap.u_tube_spacing_type == 'c'
       # Both tubes placed against outer edge of borehole
-      hp_ap.u_tube_spacing = hp_ap.bore_diameter - 2 * hp_ap.pipe_od
+      hp_ap.u_tube_spacing = geothermal_loop.bore_diameter - 2 * hp_ap.pipe_od
     end
-    hp_ap.shank_spacing = hp_ap.u_tube_spacing + hp_ap.pipe_od # Distance from center of pipe to center of pipe
+  end
+
+  def self.valid_borefield_configs
+    valid_configs = { HPXML::GeothermalLoopBorefieldConfigurationRectangle => { 'num_boreholes' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 'filename' => 'rectangle_5m_v1.0.json' },
+                      HPXML::GeothermalLoopBorefieldConfigurationOpenRectangle => { 'num_boreholes' => [8, 10], 'filename' => 'Open_configurations_5m_v1.0.json' },
+                      HPXML::GeothermalLoopBorefieldConfigurationC => { 'num_boreholes' => [7, 9], 'filename' => 'C_configurations_5m_v1.0.json' },
+                      HPXML::GeothermalLoopBorefieldConfigurationL => { 'num_boreholes' => [4, 5, 6, 7, 8, 9, 10], 'filename' => 'L_configurations_5m_v1.0.json' },
+                      HPXML::GeothermalLoopBorefieldConfigurationU => { 'num_boreholes' => [7, 9, 10], 'filename' => 'U_configurations_5m_v1.0.json' },
+                      HPXML::GeothermalLoopBorefieldConfigurationLopsidedU => { 'num_boreholes' => [6, 7, 8, 9, 10], 'filename' => 'LopU_configurations_5m_v1.0.json' } }
+    return valid_configs
   end
 
   def self.calc_mshp_hspf(cop_47, c_d, capacity_ratio, cfm_tons, fan_power_rated, heat_eir_ft_spec, heat_cap_ft_spec)

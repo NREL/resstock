@@ -322,17 +322,36 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml.site.site_type = HPXML::SiteTypeRural
     hpxml.site.shielding_of_home = HPXML::ShieldingExposed
     hpxml.site.ground_conductivity = 0.8
+    hpxml.site.ground_diffusivity = 0.9
+    hpxml.site.soil_type = HPXML::SiteSoilSoilTypeClay
+    hpxml.site.moisture_type = HPXML::SiteSoilMoistureTypeDry
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_site_values(hpxml_default, HPXML::SiteTypeRural, HPXML::ShieldingExposed, 0.8)
+    _test_default_site_values(hpxml_default, HPXML::SiteTypeRural, HPXML::ShieldingExposed, 0.8, 0.9, HPXML::SiteSoilSoilTypeClay, HPXML::SiteSoilMoistureTypeDry)
 
     # Test defaults
     hpxml.site.site_type = nil
     hpxml.site.shielding_of_home = nil
     hpxml.site.ground_conductivity = nil
+    hpxml.site.ground_diffusivity = nil
+    hpxml.site.soil_type = nil
+    hpxml.site.moisture_type = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_site_values(hpxml_default, HPXML::SiteTypeSuburban, HPXML::ShieldingNormal, 1.0)
+    _test_default_site_values(hpxml_default, HPXML::SiteTypeSuburban, HPXML::ShieldingNormal, 1.0, 0.0208, HPXML::SiteSoilSoilTypeUnknown, HPXML::SiteSoilMoistureTypeMixed)
+
+    # Test defaults w/ gravel soil type
+    hpxml.site.soil_type = HPXML::SiteSoilSoilTypeGravel
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_site_values(hpxml_default, HPXML::SiteTypeSuburban, HPXML::ShieldingNormal, 0.6355, 0.0194, HPXML::SiteSoilSoilTypeGravel, HPXML::SiteSoilMoistureTypeMixed)
+
+    # Test defaults w/ conductivity but no diffusivity
+    hpxml.site.ground_conductivity = 0.8
+    hpxml.site.soil_type = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_site_values(hpxml_default, HPXML::SiteTypeSuburban, HPXML::ShieldingNormal, 0.8, 0.0208, nil, nil)
   end
 
   def test_neighbor_buildings
@@ -1670,6 +1689,48 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_ground_to_air_heat_pump_values(hpxml_default.heat_pumps[0], 30.0, 0.375, 0, nil, nil, nil)
+  end
+
+  def test_geothermal_loops
+    # Test inputs not overridden by defaults
+    hpxml = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
+    hpxml.geothermal_loops[0].loop_configuration = HPXML::GeothermalLoopLoopConfigurationVertical
+    hpxml.geothermal_loops[0].loop_flow = 1
+    hpxml.geothermal_loops[0].num_bore_holes = 2
+    hpxml.geothermal_loops[0].bore_spacing = 3
+    hpxml.geothermal_loops[0].bore_length = 100
+    hpxml.geothermal_loops[0].bore_diameter = 5
+    hpxml.geothermal_loops[0].grout_type = HPXML::GeothermalLoopGroutTypeThermallyEnhanced
+    hpxml.geothermal_loops[0].grout_conductivity = 6
+    hpxml.geothermal_loops[0].pipe_cond = 7
+    hpxml.geothermal_loops[0].pipe_size = 1.0
+    hpxml.geothermal_loops[0].shank_spacing = 9
+    hpxml.geothermal_loops[0].bore_config = HPXML::GeothermalLoopBorefieldConfigurationRectangle
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_geothermal_loop_values(hpxml_default.geothermal_loops[0], HPXML::GeothermalLoopLoopConfigurationVertical, 1, 2, 3, 100, 5, HPXML::GeothermalLoopGroutTypeThermallyEnhanced, 6, 7, 1.0, 9, HPXML::GeothermalLoopBorefieldConfigurationRectangle)
+
+    # Test defaults
+    hpxml.geothermal_loops[0].loop_flow = nil
+    hpxml.geothermal_loops[0].num_bore_holes = nil
+    hpxml.geothermal_loops[0].bore_spacing = nil
+    hpxml.geothermal_loops[0].bore_length = nil
+    hpxml.geothermal_loops[0].bore_diameter = nil
+    hpxml.geothermal_loops[0].grout_type = nil
+    hpxml.geothermal_loops[0].grout_conductivity = nil
+    hpxml.geothermal_loops[0].pipe_cond = nil
+    hpxml.geothermal_loops[0].pipe_size = nil
+    hpxml.geothermal_loops[0].shank_spacing = nil
+    hpxml.geothermal_loops[0].bore_config = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_geothermal_loop_values(hpxml_default.geothermal_loops[0], HPXML::GeothermalLoopLoopConfigurationVertical, nil, nil, 16.4, nil, 5.0, HPXML::GeothermalLoopGroutTypeStandard, 0.4, 0.23, 0.75, 2.0161, HPXML::GeothermalLoopBorefieldConfigurationRectangle)
+
+    # Test defaults w/ thermally enhanced grout type
+    hpxml.geothermal_loops[0].grout_type = HPXML::GeothermalLoopGroutTypeThermallyEnhanced
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_geothermal_loop_values(hpxml_default.geothermal_loops[0], HPXML::GeothermalLoopLoopConfigurationVertical, nil, nil, 16.4, nil, 5.0, HPXML::GeothermalLoopGroutTypeThermallyEnhanced, 0.8, 0.23, 0.75, 2.0161, HPXML::GeothermalLoopBorefieldConfigurationRectangle)
   end
 
   def test_hvac_location
@@ -3686,10 +3747,21 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     end
   end
 
-  def _test_default_site_values(hpxml, site_type, shielding_of_home, ground_conductivity)
+  def _test_default_site_values(hpxml, site_type, shielding_of_home, ground_conductivity, ground_diffusivity, soil_type, moisture_type)
     assert_equal(site_type, hpxml.site.site_type)
     assert_equal(shielding_of_home, hpxml.site.shielding_of_home)
     assert_equal(ground_conductivity, hpxml.site.ground_conductivity)
+    assert_equal(ground_diffusivity, hpxml.site.ground_diffusivity)
+    if soil_type.nil?
+      assert_nil(hpxml.site.soil_type)
+    else
+      assert_equal(soil_type, hpxml.site.soil_type)
+    end
+    if moisture_type.nil?
+      assert_nil(hpxml.site.moisture_type)
+    else
+      assert_equal(moisture_type, hpxml.site.moisture_type)
+    end
   end
 
   def _test_default_neighbor_building_values(hpxml, azimuths)
@@ -4224,6 +4296,36 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     else
       assert_equal(backup_heating_capacity, heat_pump.backup_heating_capacity)
     end
+  end
+
+  def _test_default_geothermal_loop_values(geothermal_loop, loop_configuration, loop_flow,
+                                           num_bore_holes, bore_spacing, bore_length, bore_diameter,
+                                           grout_type, grout_conductivity, pipe_cond, pipe_size, shank_spacing,
+                                           bore_config)
+    assert_equal(loop_configuration, geothermal_loop.loop_configuration)
+    if loop_flow.nil?
+      assert(geothermal_loop.loop_flow > 0)
+    else
+      assert_equal(loop_flow, geothermal_loop.loop_flow)
+    end
+    if num_bore_holes.nil?
+      assert(geothermal_loop.num_bore_holes > 0)
+    else
+      assert_equal(num_bore_holes, geothermal_loop.num_bore_holes)
+    end
+    assert_equal(bore_spacing, geothermal_loop.bore_spacing)
+    if bore_length.nil?
+      assert(geothermal_loop.bore_length > 0)
+    else
+      assert_equal(bore_length, geothermal_loop.bore_length)
+    end
+    assert_equal(bore_diameter, geothermal_loop.bore_diameter)
+    assert_equal(grout_type, geothermal_loop.grout_type)
+    assert_equal(grout_conductivity, geothermal_loop.grout_conductivity)
+    assert_equal(pipe_cond, geothermal_loop.pipe_cond)
+    assert_equal(pipe_size, geothermal_loop.pipe_size)
+    assert_equal(shank_spacing, geothermal_loop.shank_spacing)
+    assert_equal(bore_config, geothermal_loop.bore_config)
   end
 
   def _test_default_hvac_location_values(hvac_system, location)
