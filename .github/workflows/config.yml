@@ -26,6 +26,11 @@ jobs:
         with:
           path: resources/options_lookup.tsv
           name: options_lookup
+          
+      - name: Generate buildstocks for yml_precomputed tests
+        run: |
+          pip install pandas
+          python test/update_yml_precomputed_files.py
 
   unit-tests:
     runs-on: ubuntu-latest
@@ -39,6 +44,7 @@ jobs:
 
       - name: Install gems
         run: |
+          gem install bundler
           rm -f Gemfile.lock && bundle install
 
       - name: Download formatted options_lookup
@@ -46,7 +52,7 @@ jobs:
         with:
           path: resources
           name: options_lookup
-
+        
       - name: Run integrity checks for all projects
         run: |
           bundle exec rake unit_tests:project_integrity_checks
@@ -153,7 +159,6 @@ jobs:
       - name: Process results
         run: |
           pip install plotly
-          
           python test/process_bsb_analysis.py
 
       - name: Run tests
@@ -321,6 +326,11 @@ jobs:
         with:
           path: resources
           name: options_lookup
+
+      - name: Download buildstocks for yml_precomputed
+        uses: actions/download-artifact@v3
+        with:
+          path: test/tests_yml_files/yml_precomputed*/buildstock*.csv
 
       - name: Commit latest results
         shell: bash        

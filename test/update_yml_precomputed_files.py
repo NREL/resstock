@@ -27,10 +27,6 @@ def save_project_yaml(cfg, project_file):
         yaml.dump(cfg, f)
 
 
-def openstudio_exe():
-    return os.environ.get("OPENSTUDIO_EXE", "openstudio")
-
-
 def generate_buildstock():
     cfg = load_project_yaml(project_file)
     cfg["sampler"]["args"]["n_datapoints"] = 2
@@ -39,7 +35,7 @@ def generate_buildstock():
     save_project_yaml(cfg, tmp_file)
 
     result = subprocess.run(
-        [openstudio_exe(), "workflow/run_analysis.rb", "-y", tmp_file, "-s"],
+        ["ruby", "workflow/run_analysis.rb", "-y", tmp_file, "-s"],
         capture_output=True,
         text=True,
     )

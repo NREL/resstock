@@ -3,6 +3,8 @@
 require 'parallel'
 require 'json'
 require 'yaml'
+require 'optparse'
+require 'pathname'
 
 require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling_lib'
