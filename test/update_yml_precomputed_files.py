@@ -27,23 +27,35 @@ def save_project_yaml(cfg, project_file):
         yaml.dump(cfg, f)
 
 
+def openstudio_exe():
+     return os.environ.get("OPENSTUDIO_EXE", "openstudio")
+
+
 def generate_buildstock():
+    output_dir = test_dir / "yml_precomputed" / "testing_baseline"
     cfg = load_project_yaml(project_file)
     cfg["sampler"]["args"]["n_datapoints"] = 2
-    cfg["output_directory"] = "test/tests_yml_files/yml_precomputed"
+    cfg["output_directory"] = str(output_dir)
     tmp_file = project_file.parent / (project_file.stem + "_tmp" + project_file.suffix)
     save_project_yaml(cfg, tmp_file)
 
     result = subprocess.run(
-        ["ruby", "workflow/run_analysis.rb", "-y", tmp_file, "-s"],
+        [openstudio_exe(), resstock_dir/"workflow"/"run_analysis.rb", "-y", tmp_file, "-s"],
         capture_output=True,
         text=True,
     )
-    print(f"stdout=\n{result.stdout}")
-    if result.stderr:
-        print(f"stderr=\n{result.stderr}")
-    else:
+    print(result)
+    if not result.stderr:
         tmp_file.unlink()
+
+    # copy file
+    result = subprocess.run(
+        ["mv", output_dir / "buildstock.csv",  output_dir.parent / "buildstock.csv"],
+        capture_output=True,
+        text=True,
+        )
+    print(result)
+    output_dir.rmdir()
 
 
 def adjust_buildstock_for_yml_precomputed_tests():
@@ -64,6 +76,7 @@ def adjust_buildstock_for_yml_precomputed_tests():
     df["sample_weight"] = [226.2342, 1.000009]
     output_file3 = test_dir / "yml_precomputed_weight" / "buildstock.csv"
     df.to_csv(output_file3, index=False)
+    print("yml_precomputed tests buildstocks updated.")
 
 
 if __name__ == "__main__":
