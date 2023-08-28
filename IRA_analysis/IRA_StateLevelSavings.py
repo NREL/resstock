@@ -99,7 +99,7 @@ class IRAAnalysis:
     @staticmethod
     def validate_output_directory(output_dir):
         if output_dir is None:
-            output_dir = Path(__file__).resolve().parent / "output_by_technology"
+            output_dir = Path(__file__).resolve().parent / "output_by_state_1980s_percent"
         else:
             output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -248,21 +248,33 @@ class IRAAnalysis:
         return df
 
     @staticmethod
-    def remap_city(df):
-        df["urban"] = df["in.city"].map(
+    def remap_vintage(df):
+        df["vintage_filter"] = df["in.vintage"].map(
             {
-                # TODO: remap urban nominators, figure out logic
-                "SomeLogicGoesHere": "urban",
-                "In another census Place": "non-urban",
-                "Not in a census Place": "non-urban"
+                "<1940": "before 1980",
+                "1940s": "before 1980",
+                "1950s": "before 1980",
+                "1960s": "before 1980",
+                "1970s": "before 1980",
+                "1980s": "after 1980",
+                "1990s": "after 1980",
+                "2000s": "after 1980",
+                "2010s": "after 1980",
             }
         )
         return df
+
+    @staticmethod
+    def remap_city(df):
+        df['city'] = df['in.city'].apply(lambda x: 'non-urban' if x == ('In another census Place' or 'Not in a census Place') else 'urban')
+        return df
     
     def remap_columns(self, df):
+        df = self.remap_vintage(df)
         df = self.remap_building_type(df)
         df = self.remap_federal_poverty(df)
         df = self.remap_area_median_income(df)
+        df = self.remap_city(df)
         return df
 
     @staticmethod
@@ -1058,12 +1070,13 @@ def main(euss_dir):
     groupby_cols = [
         "in.state",
         "in.county", # New column
-        #"in.city", # Need to remap this before integration; mimick AMI remap
+        "vintage_filter", # Need to remap
+        "in.city", # Need to remap this before integration; mimick AMI remap
         "in.heating_fuel",
         "building_type",
         "in.tenure",
         "AMI",  # "AMI", "FPL"
-        #"in.building_america_climate_zone",# BA Climate Zone, may need to remap?
+        "in.building_america_climate_zone",# BA Climate Zone, may need to remap?
     ]
 
     # TODO:  turn coarsening off
@@ -1078,7 +1091,7 @@ def main(euss_dir):
 
     ## Set control variables
     # TODOO: set as false
-    coarsening = True  # <--- # whether to use coarsening_map
+    coarsening = False  # <--- # whether to use coarsening_map
     as_percentage = True  # <--- # whether to calculate savings as pct
 
     # TODO: only coarsening
