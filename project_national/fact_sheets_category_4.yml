@@ -4,14 +4,14 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/medium_run_category_4_20230711/
+output_directory: /projects/abctypol/largeee/test_runs/medium_run_category_4_20230825/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: precomputed
   args:
-    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230609.csv #../buildstock_100_20230609.csv # relative to file
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230809.csv #../buildstock_100_20230609.csv # relative to file
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
@@ -142,6 +142,14 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Cooling Type|None
+        costs: &Room_AC_cost
+        # Source: survey of big box stores best-selling Room AC units with a linear regression for cost (y) and tons of refrigeration (x)
+        # Resulting equation - y = 16.87 + 396.17x
+          - value: 16.87
+            multiplier: Fixed (1)
+          - value: 33.01
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &Room_AC_lifetime 5 # dummy value
       - &eff_central_ac_southeast_and_southwest
         option: HVAC Cooling Efficiency|AC, SEER 15
         apply_logic:
@@ -228,14 +236,8 @@ upgrades:
             - HVAC Cooling Efficiency|Room AC, EER 8.5
             - HVAC Cooling Efficiency|Room AC, EER 9.8
             - HVAC Cooling Efficiency|Room AC, EER 10.7
-        costs: &Room_AC_cost
-        # Source: survey of big box stores best-selling Room AC units with a linear regression for cost (y) and tons of refrigeration (x)
-        # Resulting equation - y = 16.87 + 396.17x
-          - value: 16.87
-            multiplier: Fixed (1)
-          - value: 33.01
-            multiplier: Size, Heating System Primary (kBtu/h)
-        lifetime: &Room_AC_lifetime 5 # dummy value
+        costs: *Room_AC_cost
+        lifetime: *Room_AC_lifetime # dummy value
 
   - upgrade_name: ENERGYSTAR Central AC
     options:
