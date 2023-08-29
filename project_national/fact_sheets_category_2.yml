@@ -152,12 +152,6 @@ upgrades:
             - Windows|Single, Clear, Metal, Exterior Clear Storm
             - Windows|Single, Clear, Non-metal
             - Windows|Single, Clear, Non-metal, Exterior Clear Storm
-        costs:
-          - value: 0.53 # from LBNL data for general air sealing (https://doi.org/10.20357/B7FP4D).
-                        # Interpolated between 20% and 40% reductions to get $0.44/ft2,
-                        # then used 1.2052 multiplier to inflate from Jan 2019 to April 2023 https://www.bls.gov/data/inflation_calculator.htm
-            multiplier: Floor Area, Conditioned (ft^2)
-        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &infiltration_15pct_reduction_windows
         option: Infiltration Reduction|15%
         apply_logic:
@@ -169,12 +163,6 @@ upgrades:
             - Windows|Double, Clear, Non-metal, Air
             - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm
             - Windows|Double, Low-E, Non-metal, Air, M-Gain
-        costs: &costs_infiltration_15pct_reduction
-          - value: 0.35 # from LBNL data for general air sealing (https://doi.org/10.20357/B7FP4D).
-                        # liinear Interpolated for the 20% (0.34) and 40% reductions (0.54) to get $0.29/ft2,
-                        # then used 1.2052 multiplier to inflate from Jan 2019 to April 2023 https://www.bls.gov/data/inflation_calculator.htm
-            multiplier: Floor Area, Conditioned (ft^2)
-        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf      
 
   - upgrade_name: EnergyStar Windows
     options:  
