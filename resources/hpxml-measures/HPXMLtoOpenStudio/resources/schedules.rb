@@ -1389,6 +1389,7 @@ class SchedulesFile
 
     import()
     battery_schedules
+    expand_schedules
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_unavailable_periods(unavailable_periods)
     convert_setpoints
@@ -1641,6 +1642,16 @@ class SchedulesFile
     end
   end
 
+  def expand_schedules
+    # Expand schedules with fewer elements such that all the schedules have the same number of elements
+    max_size = @schedules.map { |_k, v| v.size }.uniq.max
+    @schedules.each do |col, values|
+      if values.size < max_size
+        @schedules[col] = values.map { |v| [v] * (max_size / values.size) }.flatten
+      end
+    end
+  end
+
   def set_unavailable_periods(unavailable_periods)
     if @unavailable_periods_csv_data.nil?
       @unavailable_periods_csv_data = Schedule.get_unavailable_periods_csv_data
@@ -1673,7 +1684,7 @@ class SchedulesFile
           if schedule_name == ColumnWaterHeaterSetpoint
             # Temperature of tank < 2C indicates of possibility of freeze.
             @tmp_schedules[schedule_name][i] = UnitConversions.convert(2.0, 'C', 'F') if @tmp_schedules[column_name][i] == 1.0
-          else
+          elsif ![SchedulesFile::ColumnHeatingSetpoint, SchedulesFile::ColumnCoolingSetpoint].include?(schedule_name)
             @tmp_schedules[schedule_name][i] *= (1.0 - @tmp_schedules[column_name][i])
           end
         end

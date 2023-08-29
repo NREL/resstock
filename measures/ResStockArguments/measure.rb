@@ -342,6 +342,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_backup_use_existing_system', false)
+    arg.setDisplayName('Heat Pump: Backup Use Existing System')
+    arg.setDescription('Whether the heat pump uses the existing system as backup.')
+    args << arg
+
     return args
   end
 
@@ -398,7 +403,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
                ['2500-2999', HPXML::ResidentialTypeApartment] => 2648, # AHS 2021, multi-family weighted average
                ['3000-3999', HPXML::ResidentialTypeSFD] => 3310, # AHS 2021, 1 detached and mobile home weighted average
                ['3000-3999', HPXML::ResidentialTypeSFA] => 3228, # AHS 2021, 1 attached
-               ['3000-3999', HPXML::ResidentialTypeApartment] => 33171, # AHS 2021, multi-family weighted average
+               ['3000-3999', HPXML::ResidentialTypeApartment] => 3171, # AHS 2021, multi-family weighted average
                ['4000+', HPXML::ResidentialTypeSFD] => 5587, # AHS 2021, 1 detached and mobile home weighted average
                ['4000+', HPXML::ResidentialTypeSFA] => 7414, # AHS 2019, 1 attached
                ['4000+', HPXML::ResidentialTypeApartment] => 6348 } # AHS 2021, 4,000 or more all unit average
@@ -494,6 +499,25 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           (args[:heating_system_2_type] != 'none' && args[:heating_system_2_has_flue_or_chimney] == 'true') ||
           (args[:water_heater_type] != 'none' && args[:water_heater_has_flue_or_chimney] == 'true')
       args[:air_leakage_has_flue_or_chimney_in_conditioned_space] = true
+    end
+
+    # HVAC Secondary
+    if args[:heating_system_2_type] != 'none'
+      if args[:heating_system_type] != 'none'
+        if ((args[:heating_system_fraction_heat_load_served] + args[:heating_system_2_fraction_heat_load_served]) > 1.0)
+          info_msg = "Adjusted fraction of heat load served by the primary heating system (#{args[:heating_system_fraction_heat_load_served]}"
+          args[:heating_system_fraction_heat_load_served] = 1.0 - args[:heating_system_2_fraction_heat_load_served]
+          info_msg += " to #{args[:heating_system_fraction_heat_load_served]}) to allow for a secondary heating system (#{args[:heating_system_2_fraction_heat_load_served]})."
+          runner.registerInfo(info_msg)
+        end
+      elsif args[:heat_pump_type] != 'none'
+        if ((args[:heat_pump_fraction_heat_load_served] + args[:heating_system_2_fraction_heat_load_served]) > 1.0)
+          info_msg = "Adjusted fraction of heat load served by the primary heating system (#{args[:heat_pump_fraction_heat_load_served]}"
+          args[:heat_pump_fraction_heat_load_served] = 1.0 - args[:heating_system_2_fraction_heat_load_served]
+          info_msg += " to #{args[:heat_pump_fraction_heat_load_served]}) to allow for a secondary heating system (#{args[:heating_system_2_fraction_heat_load_served]})."
+          runner.registerInfo(info_msg)
+        end
+      end
     end
 
     # HVAC Faults
@@ -706,6 +730,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       rim_joist_assembly_r = assembly_exterior_r + assembly_interior_r
     end
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
+
+    # Heat Pump Backup
+    if args[:heat_pump_backup_use_existing_system].is_initialized
+      args_to_delete.delete('heat_pump_backup_use_existing_system')
+    end
 
     args.each do |arg_name, arg_value|
       begin

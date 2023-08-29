@@ -29,6 +29,7 @@ jobs:
 
   unit-tests:
     runs-on: ubuntu-latest
+    needs: [format-files]
     container:
       image: docker://nrel/openstudio:3.6.1
     steps:
@@ -72,6 +73,7 @@ jobs:
 
   analysis-tests:
     runs-on: ubuntu-latest
+    needs: [format-files]
     container:
       image: docker://nrel/openstudio:3.6.1
     steps:
@@ -105,6 +107,7 @@ jobs:
 
   integration-tests:
     runs-on: ubuntu-latest
+    needs: [format-files]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -141,15 +144,16 @@ jobs:
           gunzip -v project_national/national_upgrades/results_csvs/*.csv.gz
           gunzip -v project_testing/testing_upgrades/results_csvs/*.csv.gz
           
-          tar -xvf project_national/national_baseline/simulation_output/*.tar.gz -C project_national/national_baseline/simulation_output
-          tar -xvf project_testing/testing_baseline/simulation_output/*.tar.gz -C project_testing/testing_baseline/simulation_output
+          tar -xvf project_national/national_baseline/simulation_output/*.tar.gz -C project_national/national_baseline/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw'
+          tar -xvf project_testing/testing_baseline/simulation_output/*.tar.gz -C project_testing/testing_baseline/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw' --wildcards '*in.osm' --wildcards '*in.idf'
           
-          tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output
-          tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output
+          tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw'
+          tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw' --wildcards '*in.osm' --wildcards '*in.idf'
 
       - name: Process results
         run: |
-          pip install pandas==1.5.3
+          pip install plotly
+          
           python test/process_bsb_analysis.py
 
       - name: Run tests
@@ -173,8 +177,8 @@ jobs:
           path: |
             project_national/national_baseline/results_csvs/results_up00.csv
             project_testing/testing_baseline/results_csvs/results_up00.csv
-            project_national/national_upgrades/results_csvs/results_up15.csv
-            project_testing/testing_upgrades/results_csvs/results_up15.csv
+            project_national/national_upgrades/results_csvs/results_up16.csv
+            project_testing/testing_upgrades/results_csvs/results_up16.csv
           name: buildstockbatch_results_csvs
 
   compare-tools:
@@ -244,7 +248,7 @@ jobs:
       - name: Compare samples and results
         run: |          
           pip install numpy
-          pip install pandas==1.5.3
+          pip install pandas
           pip install plotly
           pip install kaleido
           
@@ -260,9 +264,9 @@ jobs:
           python test/compare.py -a results -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
           
           python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc build_existing_model.geometry_foundation_type -x results_output_foundation_type.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc build_existing_model.census_region -x results_output_cr.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.census_region -af sum -x results_output_cr_sum.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          # python test/compare.py -a visualize -dc build_existing_model.geometry_foundation_type -x results_output_foundation_type.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          # python test/compare.py -a visualize -dc build_existing_model.census_region -x results_output_cr.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          # python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.census_region -af sum -x results_output_cr_sum.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
           
           mkdir test/base_results/comparisons/baseline/timeseries
                     
@@ -288,7 +292,7 @@ jobs:
 
   update-results:
     runs-on: ubuntu-latest
-    needs: [format-files,integration-tests]
+    needs: [integration-tests]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -318,19 +322,6 @@ jobs:
           path: resources
           name: options_lookup
 
-      - name: Build documentation
-        run: |
-          ruby docs/read_the_docs/source/workflow_inputs/create_characteristics_rst.rb
-          ruby docs/read_the_docs/source/workflow_outputs/csv_tables.rb
-          cd docs/read_the_docs
-          make html SPHINXOPTS="-W --keep-going -n"
-
-      - name: Save Docs
-        uses: actions/upload-artifact@v3
-        with:
-          name: documentation
-          path: docs/read_the_docs/_build/html/
-
       - name: Commit latest results
         shell: bash        
         run: |
@@ -352,3 +343,16 @@ jobs:
             echo "Pushing to branch: $branch_name"
             git push -u origin $branch_name
           fi
+
+      - name: Build documentation
+        run: |
+          ruby docs/read_the_docs/source/workflow_inputs/create_characteristics_rst.rb
+          ruby docs/read_the_docs/source/workflow_outputs/csv_tables.rb
+          cd docs/read_the_docs
+          make html SPHINXOPTS="-W --keep-going -n"
+
+      - name: Save Docs
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: docs/read_the_docs/_build/html/

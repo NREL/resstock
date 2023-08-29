@@ -334,6 +334,7 @@ Peak building electricity outputs are listed below.
    ==================================  =============================================================
    Peak Electricity: Winter Total (W)  Maximum value in Dec/Jan/Feb (or Jun/Jul/Aug in the southern hemisphere)
    Peak Electricity: Summer Total (W)  Maximum value in Jun/Jul/Aug (or Dec/Jan/Feb in the southern hemisphere)
+   Peak Electricity: Annual Total (W)  Maximum value in any month
    ==================================  =============================================================
 
 Peak Building Loads
@@ -402,6 +403,21 @@ Annual hot water uses are listed below.
    Hot Water: Fixtures (gal)            Showers and faucets.
    Hot Water: Distribution Waste (gal) 
    ===================================  ====================
+
+Resilience
+~~~~~~~~~~
+
+Resilience outputs are listed below.
+
+   ===================================  ====================
+   Type                                 Notes
+   ===================================  ====================
+   Resilience: Battery (hr)             Average length of time the battery state of charge can meet the electric load [#]_
+   ===================================  ====================
+
+  .. [#] Calculation is performed every timestep and then averaged, which assumes a power outage is equally likely to occur every hour of the year.
+         The entire electric load is treated as a "critical load" that would be supported during an outage.
+         Resilience hours are set to 0 for any timestep where the battery is not charged, even if there is sufficient PV to power the building.
 
 HVAC Capacities
 ~~~~~~~~~~~~~~~
@@ -497,6 +513,7 @@ Depending on the outputs requested, the file may include:
    Zone Temperatures                    Zone temperatures (in deg-F) for each space (e.g., living space, attic, garage, basement, crawlspace, etc.) plus heating/cooling setpoints.
    Airflows                             Airflow rates (in cfm) for infiltration, mechanical ventilation (including clothes dryer exhaust), natural ventilation, whole house fans.
    Weather                              Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
+   Resilience                           Resilience outputs (currently only average resilience hours for battery storage).
    EnergyPlus Output Variables          These are optional and can be requested with the ReportSimulationOutput ``user_output_variables`` argument.
    ===================================  ==================================================================================================================================
 
@@ -513,35 +530,44 @@ Note that if the home is not fully conditioned (e.g., a room air conditioner tha
 Utility Bill Outputs
 --------------------
 
-OpenStudio-HPXML can optionally generate a utility bills output file.
-The utility bills output file is called ``results_bills.csv`` (or ``results_bills.json`` or ``results_bills.msgpack``) and located in the run directory.
+OpenStudio-HPXML can optionally generate utility bill output files (annual, monthly, or both).
+The annual utility bills output file is called ``results_bills.csv`` (or ``results_bills.json`` or ``results_bills.msgpack``) and located in the run directory.
+The monthly utility bills output file is called ``results_bills_monthly.csv`` (or ``results_bills_monthly.json`` or ``results_bills_monthly.msgpack``) and located in the run directory.
 
-Results for each utility bill scenario defined in the HPXML file are listed as shown below.
+Annual Bills by Fuel Use
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-   =============================================  ====================
-   Type                                           Notes
-   =============================================  ====================
-   <ScenarioName>: Total ($)                      Scenario annual total charges.
-   <ScenarioName>: Electricity: Fixed ($)         Scenario annual fixed charges for electricity.
-   <ScenarioName>: Electricity: Energy ($)        Scenario annual energy charges for electricity.
-   <ScenarioName>: Electricity: PV Credit ($)     Scenario annual production credit (negative value) for PV.
-   <ScenarioName>: Electricity: Total ($)         Scenario annual total charges for electricity.
-   <ScenarioName>: Natural Gas: Fixed ($)         Scenario annual fixed charges for natural gas.
-   <ScenarioName>: Natural Gas: Energy ($)        Scenario annual energy charges for natural gas.
-   <ScenarioName>: Natural Gas: Total ($)         Scenario annual total charges for natural gas.
-   <ScenarioName>: Fuel Oil: Fixed ($)            Scenario annual fixed charges for fuel oil.
-   <ScenarioName>: Fuel Oil: Energy ($)           Scenario annual energy charges for fuel oil.
-   <ScenarioName>: Fuel Oil: Total ($)            Scenario annual total charges for fuel oil.
-   <ScenarioName>: Propane: Fixed ($)             Scenario annual fixed charges for propane.
-   <ScenarioName>: Propane: Energy ($)            Scenario annual energy charges for propane.
-   <ScenarioName>: Propane: Total ($)             Scenario annual total charges for propane.
-   <ScenarioName>: Wood Cord: Fixed ($)           Scenario annual fixed charges for wood cord.
-   <ScenarioName>: Wood Cord: Energy ($)          Scenario annual energy charges for wood cord.
-   <ScenarioName>: Wood Cord: Total ($)           Scenario annual total charges for wood cord.
-   <ScenarioName>: Wood Pellets: Fixed ($)        Scenario annual fixed charges for wood pellets.
-   <ScenarioName>: Wood Pellets: Energy ($)       Scenario annual energy charges for wood pellets.
-   <ScenarioName>: Wood Pellets: Total ($)        Scenario annual total charges for wood pellets.
-   <ScenarioName>: Coal: Fixed ($)                Scenario annual fixed charges for coal.
-   <ScenarioName>: Coal: Energy ($)               Scenario annual energy charges for coal.
-   <ScenarioName>: Coal: Total ($)                Scenario annual total charges for coal.
-   =============================================  ====================
+Annual results for each utility bill scenario defined in the HPXML file are listed as shown below.
+
+   =================================================  ====================
+   Type                                               Notes
+   =================================================  ====================
+   <ScenarioName>: Total (USD)                        Scenario annual total charges.
+   <ScenarioName>: Electricity: Fixed (USD)           Scenario annual fixed charges for electricity.
+   <ScenarioName>: Electricity: Energy (USD)          Scenario annual energy charges for electricity.
+   <ScenarioName>: Electricity: PV Credit (USD)       Scenario annual production credit (negative value) for PV.
+   <ScenarioName>: Electricity: Total (USD)           Scenario annual total charges for electricity.
+   <ScenarioName>: Natural Gas: Fixed (USD)           Scenario annual fixed charges for natural gas.
+   <ScenarioName>: Natural Gas: Energy (USD)          Scenario annual energy charges for natural gas.
+   <ScenarioName>: Natural Gas: Total (USD)           Scenario annual total charges for natural gas.
+   <ScenarioName>: Fuel Oil: Fixed (USD)              Scenario annual fixed charges for fuel oil.
+   <ScenarioName>: Fuel Oil: Energy (USD)             Scenario annual energy charges for fuel oil.
+   <ScenarioName>: Fuel Oil: Total (USD)              Scenario annual total charges for fuel oil.
+   <ScenarioName>: Propane: Fixed (USD)               Scenario annual fixed charges for propane.
+   <ScenarioName>: Propane: Energy (USD)              Scenario annual energy charges for propane.
+   <ScenarioName>: Propane: Total (USD)               Scenario annual total charges for propane.
+   <ScenarioName>: Wood Cord: Fixed (USD)             Scenario annual fixed charges for wood cord.
+   <ScenarioName>: Wood Cord: Energy (USD)            Scenario annual energy charges for wood cord.
+   <ScenarioName>: Wood Cord: Total (USD)             Scenario annual total charges for wood cord.
+   <ScenarioName>: Wood Pellets: Fixed (USD)          Scenario annual fixed charges for wood pellets.
+   <ScenarioName>: Wood Pellets: Energy (USD)         Scenario annual energy charges for wood pellets.
+   <ScenarioName>: Wood Pellets: Total (USD)          Scenario annual total charges for wood pellets.
+   <ScenarioName>: Coal: Fixed (USD)                  Scenario annual fixed charges for coal.
+   <ScenarioName>: Coal: Energy (USD)                 Scenario annual energy charges for coal.
+   <ScenarioName>: Coal: Total (USD)                  Scenario annual total charges for coal.
+   =================================================  ====================
+
+Monthly Bills by Fuel Use
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Monthly results for each utility bill scenario defined in the HPXML file are listed as rows corresponding to Month, and columns corresponding to Type.

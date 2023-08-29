@@ -4,7 +4,7 @@ require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minite
 require_relative 'integrity_checks'
 require_relative '../resources/buildstock'
 
-class TestResStockErrors < MiniTest::Test
+class TestResStockErrors < Minitest::Test
   def before_setup
     @project_dir_name = File.basename(File.dirname(__FILE__))
     @lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
