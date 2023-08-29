@@ -1,16 +1,8 @@
 # frozen_string_literal: true
 
-require 'openstudio'
-if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), 'hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), 'hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
-end
-require File.join(resources_path, 'meta_measure')
-
 require 'csv'
+
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
 class TsvFile
   def initialize(full_path, runner)
@@ -452,6 +444,7 @@ def get_data_for_sample(buildstock_csv_path, building_id, runner)
 end
 
 class RunOSWs
+  require 'openstudio'
   require 'csv'
   require 'json'
 
