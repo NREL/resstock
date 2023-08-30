@@ -328,7 +328,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../existing.xml')
 
     geometry_building_num_units = 1
-    whole_building = true # FIXME: remove
+    whole_building = false # FIXME: remove
     if whole_building
       resstock_arguments_runner.result.stepValues.each do |step_value|
         next if step_value.name != 'geometry_building_num_units'
@@ -360,6 +360,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"
       end
+      additional_properties << "has_ghpwh=#{bldg_data['Water Heater Efficiency'] == 'Natural Gas Heat Pump'}" # FIXME: this is specific to another project
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       # Get software program used and version
