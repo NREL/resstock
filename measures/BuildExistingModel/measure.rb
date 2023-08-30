@@ -329,10 +329,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Initialize measure keys with hpxml_path arguments
+    # Set BuildResidentialHPXML arguments
     hpxml_path = File.expand_path('../existing.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
-    measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
@@ -341,7 +340,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0][step_value.name] = value
     end
 
-    # Set additional properties
     additional_properties = []
     ['ceiling_insulation_r'].each do |arg_name|
       arg_value = measures['ResStockArguments'][0][arg_name]
@@ -349,11 +347,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
     measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
-    # Get software program used and version
     measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
     measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
 
-    # Get registered values and pass them to BuildResidentialHPXML
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = args[:simulation_control_timestep].get if args[:simulation_control_timestep].is_initialized
     if args[:simulation_control_run_period_begin_month].is_initialized && args[:simulation_control_run_period_begin_day_of_month].is_initialized && args[:simulation_control_run_period_end_month].is_initialized && args[:simulation_control_run_period_end_day_of_month].is_initialized
       begin_month = "#{Date::ABBR_MONTHNAMES[args[:simulation_control_run_period_begin_month].get]}"
@@ -363,6 +359,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
     end
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args[:simulation_control_run_period_calendar_year].get if args[:simulation_control_run_period_calendar_year].is_initialized
+
+    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # for apply_hvac_sizing since ApplyUpgrade sets HVAC capacities
+    measures['BuildResidentialHPXML'][0]['apply_validation'] = true
 
     # Emissions
     if args[:emissions_scenario_names].is_initialized
@@ -677,12 +676,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       register_value(runner, 'utility_bill_pv_monthly_grid_connection_fees', utility_bill_pv_monthly_grid_connection_fees)
     end
 
-    # Get registered values and pass them to BuildResidentialScheduleFile
+    # Set BuildResidentialScheduleFile arguments
+    measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args[:building_id]
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # Specify measures to run
-    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # for apply_hvac_sizing
     if run_hescore_workflow
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
     else
