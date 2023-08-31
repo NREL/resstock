@@ -30,7 +30,7 @@ jobs:
       - name: Generate precomputed buildstocks
         run: |
           pip install pandas
-          
+          sudo gem install parallel
           python test/update_yml_precomputed_files.py
 
       - name: Upload precomputed buildstock
@@ -165,7 +165,6 @@ jobs:
       - name: Process results
         run: |
           pip install plotly
-          
           python test/process_bsb_analysis.py
 
       - name: Run tests
