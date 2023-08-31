@@ -341,4 +341,21 @@ class WeatherProcess
     end
     return mainsAvgTemp, mainsMonthlyTemps, mainsDailyTemps
   end
+
+  def self.get_undisturbed_ground_temperature(weather, climate_zone_iecc)
+    ground_temps_csv = File.join(File.dirname(__FILE__), 'data', 'ground_temperatures.csv')
+    if not File.exist?(ground_temps_csv)
+      fail 'Could not find ground_temperatures.csv'
+    end
+
+    iecc_zone = (climate_zone_iecc.nil? ? nil : climate_zone_iecc.zone)
+    if not iecc_zone.nil?
+      require 'csv'
+
+      CSV.foreach(ground_temps_csv) do |row|
+        return UnitConversions.convert(Float(row[1]), 'C', 'F') if row[0].to_s == iecc_zone
+      end
+    end
+    return weather.data.AnnualAvgDrybulb
+  end
 end

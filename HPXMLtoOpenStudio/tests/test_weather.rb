@@ -4,6 +4,7 @@ require_relative '../resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
+require_relative '../measure.rb'
 require_relative '../resources/weather.rb'
 require_relative '../resources/unit_conversions.rb'
 require_relative '../resources/psychrometrics.rb'
@@ -210,5 +211,59 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     # Check runner
     assert_equal(0, runner.result.stepErrors.size)
     assert_equal(1, runner.result.stepWarnings.select { |w| w == 'No design condition info found; calculating design conditions from EPW weather data.' }.size)
+  end
+
+  def test_ground_temperatures
+    hpxml = HPXML.new(hpxml_path: File.join(weather_dir, '..', 'workflow', 'sample_files', 'base.xml'))
+    climate_zone_iecc = hpxml.climate_and_risk_zones.climate_zone_ieccs[0]
+
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+    weather = WeatherProcess.new(epw_path: File.join(weather_dir, hpxml.climate_and_risk_zones.weather_station_epw_filepath), runner: runner)
+
+    iecc_zones = Constants.IECCZones + ['7A', '7AK', '7B', '8AK']
+    iecc_zones.each do |iz|
+      climate_zone_iecc.zone = iz
+      ground_temp_f = WeatherProcess.get_undisturbed_ground_temperature(weather, climate_zone_iecc)
+      if iz == '1A'
+        gtf = 25.9
+      elsif iz == '2A'
+        gtf = 20.9
+      elsif iz == '2B'
+        gtf = 25.0
+      elsif iz == '3A'
+        gtf = 17.9
+      elsif iz == '3B'
+        gtf = 19.7
+      elsif iz == '3C'
+        gtf = 17.0
+      elsif iz == '4A'
+        gtf = 14.7
+      elsif iz == '4B'
+        gtf = 16.3
+      elsif iz == '4C'
+        gtf = 13.3
+      elsif iz == '5A'
+        gtf = 11.5
+      elsif iz == '5B'
+        gtf = 12.9
+      elsif iz == '6A'
+        gtf = 9.0
+      elsif iz == '6B'
+        gtf = 9.3
+      elsif iz == '7A'
+        gtf = 7.0
+      elsif iz == '7AK'
+        gtf = 5.4
+      elsif iz == '7B'
+        gtf = 6.5
+      elsif iz == '8AK'
+        gtf = 2.3
+      elsif ['1B', '1C', '2C', '5C', '6C', '7', '8'].include?(iz)
+        gtf = UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'C')
+      else
+        fail "No expected value for #{iz}"
+      end
+      assert_equal(UnitConversions.convert(gtf, 'C', 'F'), ground_temp_f)
+    end
   end
 end
