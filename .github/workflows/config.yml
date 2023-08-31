@@ -26,18 +26,18 @@ jobs:
         with:
           path: resources/options_lookup.tsv
           name: options_lookup
-      
-      - name: Download and Install OpenStudio
-        run: |
-          wget -q https://github.com/NREL/OpenStudio/releases/download/v3.6.1/OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
-          sudo apt install -y ./OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
-          openstudio openstudio_version
-          which openstudio
 
-      - name: Generate buildstocks for yml_precomputed tests
+      - name: Generate precomputed buildstocks
         run: |
           pip install pandas
+          
           python test/update_yml_precomputed_files.py
+
+      - name: Upload precomputed buildstock
+        uses: actions/upload-artifact@v3
+        with:
+          path: test/tests_yml_files/yml_precomputed*/buildstock*.csv
+          name: precomputed_buildstocks
 
   unit-tests:
     runs-on: ubuntu-latest
@@ -58,7 +58,7 @@ jobs:
         with:
           path: resources
           name: options_lookup
-        
+
       - name: Run integrity checks for all projects
         run: |
           bundle exec rake unit_tests:project_integrity_checks
@@ -165,6 +165,7 @@ jobs:
       - name: Process results
         run: |
           pip install plotly
+          
           python test/process_bsb_analysis.py
 
       - name: Run tests
@@ -333,10 +334,11 @@ jobs:
           path: resources
           name: options_lookup
 
-      - name: Download buildstocks for yml_precomputed
+      - name: Download precomputed buildstocks
         uses: actions/download-artifact@v3
         with:
-          path: test/tests_yml_files/yml_precomputed*/buildstock*.csv
+          path: precomputed
+          name: precomputed_buildstocks
 
       - name: Commit latest results
         shell: bash        
@@ -348,9 +350,13 @@ jobs:
           cp -r results/baseline/timeseries/*.csv test/base_results/baseline/timeseries
           cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
           cp -r results/upgrades/timeseries/*.csv test/base_results/upgrades/timeseries
+          cp -r precomputed/buildstock.csv test/tests_yml_files/yml_precomputed
+          cp -r precomputed/buildstock_extra.csv test/tests_yml_files/yml_precomputed_outdated
+          cp -r precomputed/buildstock_missing.csv test/tests_yml_files/yml_precomputed_outdated
+          cp -r precomputed/buildstock.csv test/tests_yml_files/yml_precomputed_weight
           git add test/base_results
-          git add docs
           git add resources/options_lookup.tsv
+          git add test/tests_yml_files
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"
