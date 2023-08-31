@@ -4,7 +4,7 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/small_run_category_13_20230814/
+output_directory: /projects/abctypol/largeee/test_runs/small_run_category_13_20230831/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -14,7 +14,7 @@ sampler:
     sample_file: /projects/abctypol/largeee/buildstocks/buildstock_100_20230809.csv #../buildstock_30k_20230809.csv # relative to file
 
 baseline:
-  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+  n_buildings_represented: 138765649 # American Community Survey 2021 5-year, does not include AK, HI, and territories
   skip_sims: false
 
 eagle:
@@ -751,11 +751,13 @@ upgrades:
 
   - upgrade_name: HPWH + Light Touch Envelope
   # Category 4, Measure 4 + Category 2, Measure 1
-    options: 
+    package_apply_logic: &water_heater_pkg
       - *water_heater_fuel_type
       - *water_heater_efficiency_electric_heat_pump_50_gal_3_pt_45_uef
       - *water_heater_efficiency_electric_heat_pump_66_gal_3_pt_35_uef
       - *water_heater_efficiency_electric_heat_pump_80_gal_3_pt_45_uef
+
+    options: 
       ####
       # Light Touch Envelope:
       #Attic floor insulation up to IECC 2021 levels for homes with vented attics with R-13 or less insulation
@@ -856,11 +858,9 @@ upgrades:
 
   - upgrade_name: HPWH + Intermediate Envelope
   # Category 4, Measure 4 + Category 2, Measure 2
+    package_apply_logic: *water_heater_pkg
     options: 
-      - *water_heater_fuel_type
-      - *water_heater_efficiency_electric_heat_pump_50_gal_3_pt_45_uef
-      - *water_heater_efficiency_electric_heat_pump_66_gal_3_pt_35_uef
-      - *water_heater_efficiency_electric_heat_pump_80_gal_3_pt_45_uef
+
       ####
       # Light Touch Envelope:
       - *attic_insulation_IECC_CZ1A
@@ -1028,11 +1028,8 @@ upgrades:
 
   - upgrade_name: HPWH + Advanced Envelope
   # Category 4, Measure 4 + Category 2, Measure 3
+    package_apply_logic: *water_heater_pkg
     options: 
-      - *water_heater_fuel_type
-      - *water_heater_efficiency_electric_heat_pump_50_gal_3_pt_45_uef
-      - *water_heater_efficiency_electric_heat_pump_66_gal_3_pt_35_uef
-      - *water_heater_efficiency_electric_heat_pump_80_gal_3_pt_45_uef
       ####
       # Light Touch Envelope:
       - *attic_insulation_IECC_CZ1A
@@ -1457,7 +1454,6 @@ upgrades:
       - or:
         - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
         - HVAC Heating Type And Fuel|Propane Fuel Furnace
-        - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace
         - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
 
     options: 
@@ -1497,7 +1493,6 @@ upgrades:
         - Misc Gas Grill|Gas Grill
         - Misc Gas Lighting|Gas Lighting
       - or:
-        - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
         - HVAC Heating Type And Fuel|Propane Fuel Boiler
         - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
         - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
