@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require 'parallel'
 require 'json'
-require 'yaml'
-require 'optparse'
+require 'parallel'
 require 'pathname'
+require 'optparse'
 require 'time'
+require 'yaml'
 require 'zlib'
 
 require_relative '../resources/buildstock'
@@ -61,20 +61,26 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
   # Create or read buildstock.csv
   outfile = File.join('../lib/housing_characteristics/buildstock.csv')
   if !['precomputed'].include?(cfg['sampler']['type'])
+    # TODO: this should write directly to the results_dir...
+    # run_sampling_lib::write_csv should  not take a relative path relative to
+    # the resources/run_sampling_lib.rb but an absolute path
     create_buildstock_csv(project_directory, n_datapoints, outfile)
     src = File.expand_path(File.join(File.dirname(__FILE__), '../lib/housing_characteristics/buildstock.csv'))
-    des = results_dir
-    FileUtils.cp(src, des)
+    buildstock_csv_path = File.join(results_dir, "buildstock.csv")
+    FileUtils.cp(src, buildstock_csv_path)
 
     return if samplingonly
 
     datapoints = (1..n_datapoints).to_a
   else
-    src = File.expand_path(File.join(File.dirname(yml), cfg['sampler']['args']['sample_file']))
-    des = File.expand_path(File.join(File.dirname(__FILE__), outfile))
-    FileUtils.cp(src, des)
+    # If buildingstock_csv is absolute, just use that
+    # If relative: relative to yml
+    buildstock_csv_path = cfg['sampler']['args']['sample_file']
+    unless (Pathname.new buildstock_csv_path).absolute?
+      buildstock_csv_path = File.expand_path(File.join(File.dirname(yml), buildstock_csv_path))
+    end
 
-    buildstock_csv = CSV.read(des, headers: true)
+    buildstock_csv = CSV.read(buildstock_csv_path, headers: true)
     datapoints = buildstock_csv['Building'].map { |x| Integer(x) }
     n_datapoints = datapoints.size
   end
@@ -117,6 +123,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
     }
 
     bld_exist_model_args = {
+      'buildstock_csv_path': buildstock_csv_path,
       'building_id': '',
       'sample_weight': Float(cfg['baseline']['n_buildings_represented']) / n_datapoints # aligns with buildstockbatch
     }
