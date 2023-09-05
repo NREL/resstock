@@ -4,7 +4,7 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/small_run_category_15_20230817/
+output_directory: /projects/abctypol/largeee/test_runs/small_run_category_15_20230905/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -31,7 +31,7 @@ baseline:
 eagle:
   n_jobs: 1
   minutes_per_sim: 4
-  account: opanalysis #cityprize #abctypol
+  account: abctypol #cityprize #abctypol
   postprocessing:
     time: 20
     n_workers: 1
@@ -99,7 +99,7 @@ workflow_generator:
         simple_filepath: data/simple_rates/State.tsv
 
     simulation_output_report:
-      timeseries_frequency: monthly 
+      timeseries_frequency: timestep # monthly 
       include_timeseries_total_consumptions: true
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
