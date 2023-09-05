@@ -6,6 +6,7 @@ require 'yaml'
 require 'optparse'
 require 'pathname'
 require 'time'
+require 'zlib'
 
 require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling_lib'
@@ -457,11 +458,50 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
   return true
 end
 
-def create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
+def checksum_dir_content(directory_path)
+  files = Dir.glob('**/*', base: directory_path).select { |fn| File.file?(fn) }
+  dir_checksum = Zlib::crc32(files.map { |rel_path|
+    [
+      rel_path,
+      File.mtime(File.join(directory_path, rel_path)), # mtime is affected by the copy, but we passed preserve = true
+      File.size(File.join(directory_path, rel_path))
+    ]
+  }.to_s)
+  return dir_checksum
+end
+
+def create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir, debug: false)
+  redo_needed = true
+  if File.directory?(lib_dir)
+    lib_resources_dir = File.join(lib_dir, File.basename(resources_dir))
+    resource_matches = checksum_dir_content(resources_dir) == checksum_dir_content(lib_resources_dir)
+    if resource_matches
+      lib_housing_characteristics_dir = File.join(lib_dir, File.basename(housing_characteristics_dir))
+      housing_matches = checksum_dir_content(housing_characteristics_dir) == checksum_dir_content(lib_housing_characteristics_dir)
+      if housing_matches
+        redo_needed = false
+      elsif debug
+        puts "Housing directory is outdated: #{lib_housing_characteristics_dir}"
+      end
+    elsif debug
+      puts "Resources directory is outdated: #{lib_resources_dir}"
+    end
+  elsif debug
+    puts "Creating lib_dir"
+  end
+
+  if !redo_needed
+    if debug
+      puts "Lib folder is up to date"
+    end
+    return
+  end
   FileUtils.rm_rf(lib_dir)
   Dir.mkdir(lib_dir)
-  FileUtils.cp_r(resources_dir, lib_dir)
-  FileUtils.cp_r(housing_characteristics_dir, lib_dir)
+
+  # Preserve object’s group, user and **modification time** on copying
+  FileUtils.cp_r(resources_dir, lib_dir, preserve: true)
+  FileUtils.cp_r(housing_characteristics_dir, lib_dir, preserve: true)
 end
 
 def create_buildstock_csv(project_dir, num_samples, outfile)
