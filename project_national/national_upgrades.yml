@@ -89,7 +89,7 @@ upgrades:
     options:
       - &geometry_foundation_type_unvented_crawlspace
         option: Geometry Foundation Type|Unvented Crawlspace
-        apply_logic: &foundation_type_logic
+        apply_logic:
           and:
             - Geometry Foundation Type|Vented Crawlspace
             - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
@@ -99,11 +99,6 @@ upgrades:
           - value: 0.84
             multiplier: Floor Area, Foundation (ft^2)
         lifetime: 999
-      - &geometry_foundation_type_unvented_crawlspace_water_heater
-        option: Water Heater Location|Unvented Crawlspace
-        apply_logic: 
-          - *foundation_type_logic
-          - Water Heater Location|Vented Crawlspace
       - &insulation_foundation_wall_wall_r_10_exterior
         option: Insulation Foundation Wall|Wall R-10, Exterior
         apply_logic:
@@ -254,7 +249,6 @@ upgrades:
       - *insulation_wall_wood_stud_r_13
       - *insulation_sheathing_r_5
       - *geometry_foundation_type_unvented_crawlspace
-      - *geometry_foundation_type_unvented_crawlspace_water_heater
       - *insulation_foundation_wall_wall_r_10_exterior
       - *insulation_rim_joist_r_13_interior
       - *insulation_ceiling_r_60
