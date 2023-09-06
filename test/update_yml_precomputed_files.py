@@ -6,6 +6,7 @@ Run scipt to update buildstock.csv for tests:
 """
 
 import os
+import sys
 import subprocess
 import yaml
 from pathlib import Path
@@ -31,6 +32,12 @@ def openstudio_exe():
      return os.environ.get("OPENSTUDIO_EXE", "openstudio")
 
 
+def read_csv(csv_file_path, **kwargs) -> pd.DataFrame:
+     default_na_values = pd._libs.parsers.STR_NA_VALUES
+     df = pd.read_csv(csv_file_path, na_values=list(default_na_values - {"None"}), keep_default_na=False, **kwargs)
+     return df
+
+
 def generate_buildstock():
     output_dir = test_dir / "yml_precomputed" / "testing_baseline"
     cfg = load_project_yaml(project_file)
@@ -40,13 +47,16 @@ def generate_buildstock():
     save_project_yaml(cfg, tmp_file)
 
     result = subprocess.run(
-        [openstudio_exe(), resstock_dir/"workflow"/"run_analysis.rb", "-y", tmp_file, "-s"],
+        [openstudio_exe(), resstock_dir / "workflow" / "run_analysis.rb", "-y", tmp_file, "-s"],
         capture_output=True,
         text=True,
     )
     print(result)
     if not result.stderr:
         tmp_file.unlink()
+    else:
+        print(f"{tmp_file} did not run successfully, existing.\n{result.stderr}")
+        sys.exit(1)
 
     # copy file
     result = subprocess.run(
@@ -60,7 +70,7 @@ def generate_buildstock():
 
 def adjust_buildstock_for_yml_precomputed_tests():
     input_file = test_dir / "yml_precomputed" / "buildstock.csv"
-    df = pd.read_csv(input_file)
+    df = read_csv(input_file)
     df1 = df.copy()
 
     # For yml_precomputed_outdated
