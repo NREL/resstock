@@ -34,10 +34,16 @@ jobs:
           openstudio openstudio_version
           which openstudio
 
-      - name: Generate buildstocks for yml_precomputed tests
+      - name: Generate precomputed buildstocks
         run: |
           pip install pandas
           python test/update_yml_precomputed_files.py
+      
+      - name: Upload precomputed buildstocks
+         uses: actions/upload-artifact@v3
+         with:
+           path: test/tests_yml_files/yml_precomputed*/buildstock*.csv
+           name: precomputed_buildstocks
 
   unit-tests:
     runs-on: ubuntu-latest
@@ -102,6 +108,12 @@ jobs:
         with:
           path: resources
           name: options_lookup
+
+      - name: Download precomputed buildstocks
+         uses: actions/download-artifact@v3
+         with:
+           path: test/tests_yml_files
+           name: precomputed_buildstocks
 
       - name: Run run_analysis.rb
         run: |
@@ -333,10 +345,11 @@ jobs:
           path: resources
           name: options_lookup
 
-      - name: Download buildstocks for yml_precomputed
-        uses: actions/download-artifact@v3
-        with:
-          path: test/tests_yml_files/yml_precomputed*/buildstock*.csv
+      - name: Download precomputed buildstocks
+         uses: actions/download-artifact@v3
+         with:
+           path: test/tests_yml_files
+           name: precomputed_buildstocks
 
       - name: Commit latest results
         shell: bash        
