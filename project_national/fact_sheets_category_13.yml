@@ -4,38 +4,38 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/small_run_category_13_20230831/
+output_directory: /projects/abctypol/largeee/test_runs/medium_run_category_13_20230907/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: precomputed
   args:
-    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_100_20230809.csv #../buildstock_30k_20230809.csv # relative to file
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230809.csv #../buildstock_30k_20230809.csv # relative to file
 
 baseline:
   n_buildings_represented: 138765649 # American Community Survey 2021 5-year, does not include AK, HI, and territories
   skip_sims: false
 
-eagle:
-  n_jobs: 1
-  minutes_per_sim: 4
-  account: abctypol 
-  postprocessing:
-    time: 20
-    n_workers: 1
-  sampling:
-    time: 90
-
 # eagle:
-#   n_jobs: 50
+#   n_jobs: 1
 #   minutes_per_sim: 4
-#   account: abctypol
+#   account: abctypol 
 #   postprocessing:
-#     time: 80
-#     n_workers: 20
+#     time: 20
+#     n_workers: 1
 #   sampling:
-#     time: 5
+#     time: 90
+
+eagle:
+  n_jobs: 50
+  minutes_per_sim: 4
+  account: abctypol
+  postprocessing:
+    time: 80
+    n_workers: 20
+  sampling:
+    time: 5
 
 
 postprocessing:
@@ -88,7 +88,7 @@ workflow_generator:
         simple_filepath: data/simple_rates/State.tsv
 
     simulation_output_report:
-      timeseries_frequency: timestep # monthly 
+      timeseries_frequency: monthly 
       include_timeseries_total_consumptions: true
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
@@ -99,7 +99,7 @@ workflow_generator:
       - measure_dir_name: QOIReport
 
     server_directory_cleanup:
-      retain_in_idf: true
+      retain_in_idf: false
       retain_schedules_csv: false
 
 ### -- Upgrades --- HPWH + measure packages
@@ -509,7 +509,7 @@ upgrades:
       # Wall/Floor Furnace as secondary systems
       # Set secondary Wall/Floor Furnace fuel type
       - &propane_wallfloor_furnace_secondary_heating_type_fuel
-        option: HVAC Secondary Heating Fuel|Propane Fuel
+        option: HVAC Secondary Heating Fuel|Propane
         apply_logic:
           - HVAC Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
       # Set secondary fuel Wall/Floor Furnace efficiency levels
@@ -752,12 +752,24 @@ upgrades:
   - upgrade_name: HPWH + Light Touch Envelope
   # Category 4, Measure 4 + Category 2, Measure 1
     package_apply_logic: &water_heater_pkg
+      - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+      - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+      - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+      - or:
+        - Bedrooms|1
+        - Bedrooms|2
+        - Bedrooms|3
+        - Bedrooms|4
+        - Bedrooms|5
+
+
+
+
+    options: 
       - *water_heater_fuel_type
       - *water_heater_efficiency_electric_heat_pump_50_gal_3_pt_45_uef
       - *water_heater_efficiency_electric_heat_pump_66_gal_3_pt_35_uef
       - *water_heater_efficiency_electric_heat_pump_80_gal_3_pt_45_uef
-
-    options: 
       ####
       # Light Touch Envelope:
       #Attic floor insulation up to IECC 2021 levels for homes with vented attics with R-13 or less insulation
@@ -860,7 +872,10 @@ upgrades:
   # Category 4, Measure 4 + Category 2, Measure 2
     package_apply_logic: *water_heater_pkg
     options: 
-
+      - *water_heater_fuel_type
+      - *water_heater_efficiency_electric_heat_pump_50_gal_3_pt_45_uef
+      - *water_heater_efficiency_electric_heat_pump_66_gal_3_pt_35_uef
+      - *water_heater_efficiency_electric_heat_pump_80_gal_3_pt_45_uef
       ####
       # Light Touch Envelope:
       - *attic_insulation_IECC_CZ1A
@@ -1030,6 +1045,10 @@ upgrades:
   # Category 4, Measure 4 + Category 2, Measure 3
     package_apply_logic: *water_heater_pkg
     options: 
+      - *water_heater_fuel_type
+      - *water_heater_efficiency_electric_heat_pump_50_gal_3_pt_45_uef
+      - *water_heater_efficiency_electric_heat_pump_66_gal_3_pt_35_uef
+      - *water_heater_efficiency_electric_heat_pump_80_gal_3_pt_45_uef
       ####
       # Light Touch Envelope:
       - *attic_insulation_IECC_CZ1A
