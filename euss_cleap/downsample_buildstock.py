@@ -654,7 +654,7 @@ key_HC = [
 ]
 
 ## [0] setup input
-communities = ["louisville", "san_jose", "columbia", "north_birmingham", "jackson_county", "duluth", ] 
+communities = ["louisville", "san_jose", "columbia", "north_birmingham", "jackson_county", "duluth", "lawrence",] 
 # excluding: "hill_district" as it has its own run
 method = 1 # <--- TODO
 n = 1000 # <----
@@ -667,6 +667,7 @@ n = 1000 # <----
 # buildstock_database = Path("/Users/lliu2/Documents/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_buildstock.csv")
 # df_main = pd.read_csv(buildstock_database, dtype=str)
 buildstock_database = Path("/Users/lliu2/Documents/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")
+#buildstock_database = Path("data_/euss_res_final_2018_550k_20220901/results_up00.parquet")
 df_main = pd.read_parquet(buildstock_database)
 
     ## [2] define buildstock to match:
@@ -725,9 +726,14 @@ for community in communities:
         n_represented = sum(puma_dict.values())
     elif community == "north_birmingham":
         # TBD
+        puma_dict = {
+            "AL, 01302": 5154,
+            "AL, 01304": 7291,
+        }
         # df_match = df_main.loc[df_main["build_existing_model.county"]=="AL, Jefferson County"].reset_index(drop=True)
-        df_match = df_main.loc[df_main["build_existing_model.city"]=="AL, Birmingham"].reset_index(drop=True)
-        n_represented = 471 # TODO (n_households: https://www.point2homes.com/US/Neighborhood/AL/Birmingham/North-Birmingham-Demographics.html)
+        # df_match = df_main.loc[df_main["build_existing_model.city"]=="AL, Birmingham"].reset_index(drop=True)
+        df_match = df_main.loc[df_main["build_existing_model.puma"].isin(puma_dict.keys())].reset_index(drop=True)
+        n_represented = sum(puma_dict.values()) # TODO (n_households: https://www.point2homes.com/US/Neighborhood/AL/Birmingham/North-Birmingham-Demographics.html)
     elif community == "louisville":
         # Use county
         # df_match = df_main.loc[df_main["build_existing_model.city"]=="KY, Louisville Jefferson County Metro Government Balance"].reset_index(drop=True)
@@ -736,9 +742,12 @@ for community in communities:
     elif community == "jackson_county":
         df_match = df_main.loc[df_main["build_existing_model.county"]=="IL, Jackson County"].reset_index(drop=True)
         n_represented = 27723 # https://www.census.gov/quickfacts/jacksoncountyillinois
+    elif community == "lawrence":
+        df_match = df_main.loc[df_main["build_existing_model.county"]=="MA, Essex County"].reset_index(drop=True)
+        n_represented = 31378 
     else:
         raise ValueError(f"unsupported community = {community}, "
-            "valid: [duluth, san_jose, columbia, north_birmingham, louisville, jackson_county]")
+            "valid: [duluth, san_jose, columbia, north_birmingham, louisville, jackson_county, lawrence]")
 
     if len(df_match) == 0:
         logger.info("df_match is empty!")
