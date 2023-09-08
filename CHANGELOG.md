@@ -15,6 +15,7 @@ Fixes
 - Fix/clarify duct location assignment by defining Duct Location.tsv, making Duct Leakage and Insulation (formerly Duct) depend on Duct Location, and making HVAC Has Ducts depend on HVAC Has Shared Systems. Includes fixes on standalone and shared heating system assignment for Other Fuel. ([#1104](https://github.com/NREL/resstock/pull/1104), [#1112](https://github.com/NREL/resstock/pull/1112))
 - Correct refrigerator rated annual kWh based on EF and an assumed volume of 20.9cft. ([#1118](https://github.com/NREL/resstock/pull/1118))
 - Minor changes to heating and cooling setpoint TSV due to refactoring of prune_rules handling in resstock-estimation ([#1132](https://github.com/NREL/resstock/pull/1132))
+- Minor changes to heating and cooling setpoint TSV after a bug fix ([#1136](https://github.com/NREL/resstock/pull/1136))
 
 ## ResStock v3.1.0
 ###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
