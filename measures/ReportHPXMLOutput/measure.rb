@@ -92,6 +92,9 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     bldg_outputs[BO::SystemsHeatPumpBackupCapacity] = BaseOutput.new
     bldg_outputs[BO::SystemsWaterHeaterVolume] = BaseOutput.new
     bldg_outputs[BO::SystemsMechanicalVentilationFlowRate] = BaseOutput.new
+    bldg_outputs[BO::SystemsGeothermalLoopBoreholesCount] = BaseOutput.new
+    bldg_outputs[BO::SystemsGeothermalLoopBoreholesDepth] = BaseOutput.new
+    bldg_outputs[BO::SystemsGeothermalLoopFlowRate] = BaseOutput.new
 
     # Building outputs
     bldg_outputs.each do |bldg_type, bldg_output|
@@ -286,6 +289,18 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
         next unless ventilation_fan.used_for_whole_building_ventilation
 
         bldg_output += ventilation_fan.flow_rate.to_f
+      end
+    elsif bldg_type == BO::SystemsGeothermalLoopBoreholesCount
+      hpxml.geothermal_loops.each do |geothermal_loop|
+        bldg_output += geothermal_loop.num_bore_holes
+      end
+    elsif bldg_type == BO::SystemsGeothermalLoopBoreholesDepth
+      hpxml.geothermal_loops.each do |geothermal_loop|
+        bldg_output += geothermal_loop.bore_length
+      end
+    elsif bldg_type == BO::SystemsGeothermalLoopFlowRate
+      hpxml.geothermal_loops.each do |geothermal_loop|
+        bldg_output += geothermal_loop.loop_flow
       end
     end
     return bldg_output

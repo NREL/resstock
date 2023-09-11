@@ -276,6 +276,12 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['systems_water_heater_tank_volume_gal']
     elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
       cost_mult += hpxml['systems_mechanical_ventilation_flow_rate_cfm']
+    elsif cost_mult_type == 'Number, Geothermal Loop Boreholes (count)'
+      cost_mult += hpxml['systems_geothermal_loop_number_boreholes_count']
+    elsif cost_mult_type == 'Depth, Geothermal Loop Boreholes (ft)'
+      cost_mult += hpxml['systems_geothermal_loop_boreholes_depth_ft']
+    elsif cost_mult_type == 'Flow Rate, Geothermal Loop (gpm)'
+      cost_mult += hpxml['systems_geothermal_loop_flow_rate_gpm']
     end
     return cost_mult
   end # end get_cost_multiplier
