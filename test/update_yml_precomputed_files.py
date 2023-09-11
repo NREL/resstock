@@ -40,6 +40,8 @@ def read_csv(csv_file_path, **kwargs) -> pd.DataFrame:
 
 def generate_buildstock():
     output_dir = test_dir / "yml_precomputed" / "testing_baseline"
+    if output_dir.exists():
+        output_dir.rmdir()
     cfg = load_project_yaml(project_file)
     cfg["sampler"]["args"]["n_datapoints"] = 2
     cfg["output_directory"] = str(output_dir)
