@@ -8,14 +8,22 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 # weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 # sampler:
-  # type: residential_quota
-  # args:
-    # n_datapoints: 5
+#   type: residential_quota
+#   args:
+#     n_datapoints: 200
+
+# sampler:
+#   type: precomputed
+#   args:
+#     sample_file: buildstock.csv
 
 sampler:
-  type: precomputed
+  type: residential_quota_downselect
   args:
-    sample_file: buildstock.csv
+    n_datapoints: 100
+    logic:
+      - ASHRAE IECC Climate Zone 2004|1A
+    resample: true
 
 workflow_generator:
   type: residential_hpxml
@@ -61,6 +69,7 @@ workflow_generator:
 
 baseline:
   n_buildings_represented: 139647020 # American Community Survey 2021 5-year, B25001, does not include territories
+  skip_sims: true
 
 upgrades:
   - upgrade_name: GSHP
@@ -72,14 +81,14 @@ upgrades:
           - value: 50.0
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
-      - option: HVAC Cooling Efficiency|Ducted Heat Pump
+#      - option: HVAC Cooling Efficiency|Ducted Heat Pump
 
 eagle:
   n_jobs: 3
   minutes_per_sim: 30
-  account: <account you are authorized to use>
+  account: geostock
   postprocessing:
     time: 20
     n_workers: 1
   sampling:
-    time: 5
+    time: 30
