@@ -68,6 +68,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
     hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
+    puts model
 
     # Set paths
     output_path = File.join(output_dir, "results_hpxml.#{output_format}")
@@ -92,10 +93,13 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     bldg_outputs[BO::SystemsHeatPumpBackupCapacity] = BaseOutput.new
     bldg_outputs[BO::SystemsWaterHeaterVolume] = BaseOutput.new
     bldg_outputs[BO::SystemsMechanicalVentilationFlowRate] = BaseOutput.new
+    bldg_outputs[BO::SystemsGeothermalLoopBoreholesCount] = BaseOutput.new
+    bldg_outputs[BO::SystemsGeothermalLoopBoreholesDepth] = BaseOutput.new
+    bldg_outputs[BO::SystemsGeothermalLoopFlowRate] = BaseOutput.new
 
     # Building outputs
     bldg_outputs.each do |bldg_type, bldg_output|
-      bldg_output.output = get_bldg_output(hpxml, bldg_type)
+      bldg_output.output = get_bldg_output(hpxml, bldg_type, model)
     end
 
     # Primary and Secondary
@@ -170,7 +174,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     attr_accessor(:output, :units)
   end
 
-  def get_bldg_output(hpxml, bldg_type)
+  def get_bldg_output(hpxml, bldg_type, model = nil)
     bldg_output = 0.0
     if bldg_type == BO::EnclosureWallAreaThermalBoundary
       hpxml.walls.each do |wall|
@@ -286,6 +290,18 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
         next unless ventilation_fan.used_for_whole_building_ventilation
 
         bldg_output += ventilation_fan.flow_rate.to_f
+      end
+    elsif bldg_type == BO::SystemsGeothermalLoopBoreholesCount
+      model.getGroundHeatExchangerVerticals.each do |ground_heat_exch_vert|
+        bldg_output += ground_heat_exch_vert.numberofBoreHoles.get
+      end
+    elsif bldg_type == BO::SystemsGeothermalLoopBoreholesDepth
+      model.getGroundHeatExchangerVerticals.each do |ground_heat_exch_vert|
+        bldg_output += UnitConversions.convert(ground_heat_exch_vert.boreHoleLength.get, 'm', 'ft')
+      end
+    elsif bldg_type == BO::SystemsGeothermalLoopFlowRate
+      model.getGroundHeatExchangerVerticals.each do |ground_heat_exch_vert|
+        bldg_output += UnitConversions.convert(ground_heat_exch_vert.designFlowRate.get, 'm^3/s', 'gal/min')
       end
     end
     return bldg_output

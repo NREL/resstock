@@ -20,18 +20,25 @@ class BO
   SystemsHeatPumpBackupCapacity = 'Systems: Heat Pump Backup Capacity'
   SystemsWaterHeaterVolume = 'Systems: Water Heater Tank Volume'
   SystemsMechanicalVentilationFlowRate = 'Systems: Mechanical Ventilation Flow Rate'
+  SystemsGeothermalLoopBoreholesCount = 'Systems: Geothermal Loop Number Boreholes'
+  SystemsGeothermalLoopBoreholesDepth = 'Systems: Geothermal Loop Boreholes Depth'
+  SystemsGeothermalLoopFlowRate = 'Systems: Geothermal Loop Flow Rate'
 
   def self.get_units(bldg_type)
     if bldg_type.include? 'Area'
       return 'ft^2'
-    elsif bldg_type.include? 'Perimeter'
+    elsif bldg_type.include?('Perimeter') || bldg_type.include?('Depth')
       return 'ft'
     elsif bldg_type.include? 'Capacity'
       return 'Btu/h'
     elsif bldg_type.include? 'Tank Volume'
       return 'gal'
+    elsif bldg_type.include? 'Loop Flow Rate'
+      return 'gpm'
     elsif bldg_type.include? 'Flow Rate'
       return 'cfm'
+    elsif bldg_type.include? 'Number'
+      return 'count'
     elsif bldg_type == 'Fixed'
       return '1'
     end

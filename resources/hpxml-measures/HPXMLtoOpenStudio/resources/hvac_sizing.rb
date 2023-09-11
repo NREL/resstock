@@ -1889,7 +1889,6 @@ class HVACSizing
     bore_spacing = 20.0 # ft, distance between bores
     pipe_r_value = gshp_hx_pipe_rvalue(hvac_cooling_ap)
     nom_length_heat, nom_length_cool = gshp_hxbore_ft_per_ton(weather, hvac_cooling_ap, bore_spacing, pipe_r_value)
-
     bore_length_heat = nom_length_heat * hvac_sizing_values.Heat_Capacity / UnitConversions.convert(1.0, 'ton', 'Btu/hr')
     bore_length_cool = nom_length_cool * hvac_sizing_values.Cool_Capacity / UnitConversions.convert(1.0, 'ton', 'Btu/hr')
     bore_length = [bore_length_heat, bore_length_cool].max
