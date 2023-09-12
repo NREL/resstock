@@ -8,7 +8,7 @@ By: Lixi.Liu@nrel.gov
 Date: 09/12/2023
 Updated: 
 """
-
+import getpass
 from pathlib import Path
 import re
 from itertools import chain
@@ -215,7 +215,13 @@ def get_most_matched_buildings(downselected_euss_bl, hc_list, common_hc):
     
 
 # Load EUSS results
-result_file = Path("/Users/lliu2/Documents/Documents_Files/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")  # <---
+if getpass.getuser() == "lliu2":
+    result_file = Path("/Users/lliu2/Documents/Documents_Files/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")
+elif getpass.getuser() == "ylou":
+    result_file = Path(".") # <-- change yours here
+else:
+    raise ValueError("need to specify result_file path")
+
 euss_bl = pd.read_parquet(result_file)
 file_type = "internal_dataset"
 
@@ -231,7 +237,7 @@ hc_list, common_hc = extract_common_housing_characteristics(downselected_euss_bl
 
 # Do matching
 best_matched_euss_bl, match_meet_criteria = get_most_matched_buildings(downselected_euss_bl, hc_list, common_hc)
-# TODO: new method that prioritize must_match hc first
+# TODO: new method that prioritizes must_match hc first
 breakpoint()
 
 
