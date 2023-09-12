@@ -8,10 +8,13 @@ By: Lixi.Liu@nrel.gov
 Date: 09/12/2023
 Updated: 
 """
-import pandas as pd
+
 from pathlib import Path
 import re
 from itertools import chain
+import json
+import numpy as np
+import pandas as pd
 
 
 
@@ -76,7 +79,7 @@ def apply_downselection(euss_bl, downselection, file_type):
 
     return euss_bl
 
-def get_housing_characteristics_list(euss_bl, file_type):
+def get_housing_characteristics_list(euss_bl, file_type, return_count=False):
     if file_type == "buildstock":
         HC = [x for x in euss_bl.columns if x != get_building_column(file_type)]
 
@@ -88,14 +91,52 @@ def get_housing_characteristics_list(euss_bl, file_type):
     if file_type == "oedi_dataset":
         HC = [x for x in euss_bl.columns if x.startswith("in.")]
         # TODO: remove not_HC
+    if return_count:
+        return len(HC)
     return HC
+
+
+def get_must_match_housing_characteristcs(file_type):
+    must_match_hc = [
+        "State",
+        "ASHRAE IECC Climate Zone 2004",
+        "Geometry Building Type RECS",
+        "Vintage ACS",
+        "Geometry Floor Area Bin",
+        "Heating Fuel",
+        "Geometry Wall Type",
+        "Water Heater Fuel",
+        "HVAC Heating Type",
+        "HVAC Cooling Type",
+    ]
+    if file_type == "internal_dataset":
+        must_match_hc = convert_to_internal_format(must_match_hc)
+    if file_type == "oedi_dataset":
+        must_match_hc = convert_to_oedi_format(must_match_hc)
+    return must_match_hc
+
+def check_must_match_housing_characteristcs(matched, file_type):
+    """ matched: pd.Series """
+    must_match_hc = get_must_match_housing_characteristcs(file_type)
+    matched_hc = matched.replace(False, np.nan).dropna().index
+
+    must_match_matched = sorted(set(must_match_hc).intersection(set(matched_hc)))
+    must_match_missed = sorted(set(must_match_hc)-set(matched_hc))
+    print(f" - id: {matched.name} matched {len(must_match_matched)} / {len(must_match_hc)} must-match housing characteristics")
+    if len(must_match_missed) > 0: 
+        print(f"   but not matching: {must_match_missed}")
+
+    return must_match_matched, must_match_missed
+
 
 def extract_common_housing_characteristics(euss_bl, file_type):
     """ 
     Note: hc_list can have repeated hc if there are more than 1 most-common field value for that hc
     returns:
-        hc_list: list of housing characteristics from euss_bl
-        common_hc: list of most-common field value for each hc in hc_list
+        hc_list: list 
+            list of housing characteristics from euss_bl
+        common_hc: list 
+            most-common field value for each hc in hc_list
     """
     HC = get_housing_characteristics_list(euss_bl, file_type)
 
@@ -109,12 +150,73 @@ def extract_common_housing_characteristics(euss_bl, file_type):
         hc_list += [hc for x in common_vals]
 
     return hc_list, common_hc
+
+
+def get_common_values_of(selected_hc, hc_list, common_hc):
+    return [common_hc[hc_list.index(x)] for x in selected_hc]
+
+
+def get_most_matched_buildings(downselected_euss_bl, hc_list, common_hc):
+    """ Search within downselected_euss_bl for the list of building(s) matching
+    the most common_hc
+
+    Args:
+        downselected_euss_bl: pd.DataFrame
+            input result to search
+        hc_list: list 
+            list of housing characteristics to search (not guarenteed to be unique)
+        common_hc: list
+            most-common field value for each hc in hc_list
+
+    Returns:
+        best_matched_euss_bl: pd.DataFrame
+            result for most-matched building(s)
+        match_meet_criteria: bool
+            whether the matched building(s) match all must-match housing characteristics
+    """
+    matched = []
+    for hc, val in zip(hc_list, common_hc):
+        matched.append(downselected_euss_bl[hc]==val)
+    matched = pd.concat(matched, axis=1)
+    total_matched = matched.sum(axis=1).sort_values(ascending=False)
+
+    # get all building_ids with the most matches
+    max_matched_count = total_matched.values[0]
+    best_matched_idx = (total_matched[total_matched == max_matched_count]).index.to_list()
+    best_matched_euss_bl = downselected_euss_bl.loc[best_matched_idx]
+
+    # check 
+    print(f"Using result_file: {result_file}")
+    print(f"and downselection criteria:")
+    print(json.dumps(downselection, indent=4, sort_keys=True))
+    print(f"The best matched {bldg_id}s are: {best_matched_idx}, with ")
+    print(f"each matching {max_matched_count} / {get_housing_characteristics_list(euss_bl, file_type, return_count=True)} housing characteristics")
+    # print(matched.loc[best_matched_idx].replace(False, np.nan).dropna(how="all", axis=1).transpose())
+    to_keep = []
+    for idx, row in matched.loc[best_matched_idx].iterrows():
+        must_match_matched, must_match_missed = check_must_match_housing_characteristcs(row, file_type)
+        if must_match_missed:
+            common_values_missed = get_common_values_of(must_match_missed, hc_list, common_hc)
+            print(best_matched_euss_bl.loc[row.name, must_match_missed])
+            print(f"These must-match field values should be: {common_values_missed}")
+        else:
+            to_keep.append(row.name)
+
+    if to_keep:
+        best_matched_euss_bl.loc[to_keep]
+        match_meet_criteria = True
+        print(f"\n** Final best matched {bldg_id}s meeting must-match criteria are: {to_keep}")
+        print("Note: if there are more than 1 best-matched, pick one randomly as the 'most representative'")
+    else:
+        match_meet_criteria = False
+        print(f"\n * No best matched {bldg_id}s meeting must-match criteria found, returning initial best-matched results based on match count")
+        
+    return best_matched_euss_bl, match_meet_criteria
     
 
-
 # Load EUSS results
-results_to_sample = Path("/Users/lliu2/Documents/Documents_Files/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")  # <---
-euss_bl = pd.read_parquet(results_to_sample)
+result_file = Path("/Users/lliu2/Documents/Documents_Files/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")  # <---
+euss_bl = pd.read_parquet(result_file)
 file_type = "internal_dataset"
 
 # Specify downselection
@@ -123,21 +225,13 @@ downselection = {
     "Heating Fuel": ["Electricity"]
 }
 
-downselected_euss_bl = apply_downselection(euss_bl, downselection, file_type)
+bldg_id = get_building_column(file_type)
+downselected_euss_bl = apply_downselection(euss_bl, downselection, file_type).set_index(bldg_id)
 hc_list, common_hc = extract_common_housing_characteristics(downselected_euss_bl, file_type)
 
 # Do matching
-matched = []
-for hc, val in zip(hc_list, common_hc):
-    matched.append(downselected_euss_bl[hc]==val)
-matched = pd.concat(matched, axis=1).sum(axis=1).sort_values(ascending=False)
-
-# get all building_ids with the most matches
-best_matched = (matched[matched == matched.values[0]]).index.to_list()
-best_matched_euss_bl = downselected_euss_bl.loc[best_matched]
-
-# How to handle if there are more than 1:
-
+best_matched_euss_bl, match_meet_criteria = get_most_matched_buildings(downselected_euss_bl, hc_list, common_hc)
+# TODO: new method that prioritize must_match hc first
 breakpoint()
 
 
