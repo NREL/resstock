@@ -151,6 +151,20 @@ def extract_common_housing_characteristics(euss_bl, file_type):
 
     return hc_list, common_hc
 
+def extract_must_match_common_housing_characteristics(euss_bl, must_match_hc):
+    """ 
+    returns:
+        must_match_common_hc: list 
+            most-common field value for each hc in must_match_hc
+    """
+    must_match_common_hc = []
+    for hc in must_match_hc:
+        vals = euss_bl[hc].value_counts()
+        common_vals = (vals[vals == vals.values[0]]).index.to_list()
+        must_match_common_hc += common_vals
+
+    return must_match_common_hc
+
 
 def get_common_values_of(selected_hc, hc_list, common_hc):
     return [common_hc[hc_list.index(x)] for x in selected_hc]
@@ -212,13 +226,42 @@ def get_most_matched_buildings(downselected_euss_bl, hc_list, common_hc):
         print(f"\n * No best matched {bldg_id}s meeting must-match criteria found, returning initial best-matched results based on match count")
         
     return best_matched_euss_bl, match_meet_criteria
+
+def get_must_matched_buildings(downselected_euss_bl, must_match_hc, must_match_common_hc):
+    """ Search within downselected_euss_bl for the list of building(s) matching
+    all common_hc
+
+    Args:
+        downselected_euss_bl: pd.DataFrame
+            input result to search
+        must_match_hc: list 
+            list of housing characteristics to search (must match)
+        must_match_common_hc: list
+            most-common field value for each hc in hc_list
+
+    Returns:
+        must_matched_euss_bl: pd.DataFrame
+            result for must-matched building(s)
+    """
+    matched = []
+    for hc, val in zip(must_match_hc, must_match_common_hc):
+        matched.append(downselected_euss_bl[hc]==val)
+    matched = pd.concat(matched, axis=1)
+    total_matched = matched.sum(axis=1).sort_values(ascending=False)
+
+    # get all building_ids with the most matches
+    max_matched_count = total_matched.values[0]
+    best_matched_idx = (total_matched[total_matched == max_matched_count]).index.to_list()
+    must_matched_euss_bl = downselected_euss_bl.loc[best_matched_idx]
+
+    return must_matched_euss_bl
     
 
 # Load EUSS results
 if getpass.getuser() == "lliu2":
     result_file = Path("/Users/lliu2/Documents/Documents_Files/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")
-elif getpass.getuser() == "ylou":
-    result_file = Path(".") # <-- change yours here
+elif getpass.getuser() == "ylou2":
+    result_file = Path("../euss_cleap/data_/euss_res_final_2018_550k_20220901/results_up00.parquet")
 else:
     raise ValueError("need to specify result_file path")
 
@@ -235,8 +278,13 @@ bldg_id = get_building_column(file_type)
 downselected_euss_bl = apply_downselection(euss_bl, downselection, file_type).set_index(bldg_id)
 hc_list, common_hc = extract_common_housing_characteristics(downselected_euss_bl, file_type)
 
+# Get the most-common field value for each hc in must_match_hc
+must_match_hc = get_must_match_housing_characteristcs(file_type)
+must_match_common_hc = extract_must_match_common_housing_characteristics(downselected_euss_bl, must_match_hc)
 # Do matching
-best_matched_euss_bl, match_meet_criteria = get_most_matched_buildings(downselected_euss_bl, hc_list, common_hc)
+must_matched_euss_bl = get_must_matched_buildings(downselected_euss_bl, must_match_hc, must_match_common_hc)
+best_matched_euss_bl, match_meet_criteria = get_most_matched_buildings(must_matched_euss_bl, hc_list, common_hc)
+
 # TODO: new method that prioritizes must_match hc first
 breakpoint()
 
