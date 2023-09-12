@@ -217,13 +217,14 @@ def get_most_matched_buildings(downselected_euss_bl, hc_list, common_hc):
 # Load EUSS results
 if getpass.getuser() == "lliu2":
     result_file = Path("/Users/lliu2/Documents/Documents_Files/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")
+    file_type = "internal_dataset"
 elif getpass.getuser() == "ylou":
     result_file = Path(".") # <-- change yours here
+    file_type = "internal_dataset" # <-- change yours here
 else:
     raise ValueError("need to specify result_file path")
 
 euss_bl = pd.read_parquet(result_file)
-file_type = "internal_dataset"
 
 # Specify downselection
 downselection = {
