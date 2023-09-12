@@ -260,13 +260,12 @@ def get_must_matched_buildings(downselected_euss_bl, must_match_hc, must_match_c
 # Load EUSS results
 if getpass.getuser() == "lliu2":
     result_file = Path("/Users/lliu2/Documents/Documents_Files/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")
-elif getpass.getuser() == "ylou2":
-    result_file = Path("../euss_cleap/data_/euss_res_final_2018_550k_20220901/results_up00.parquet")
+elif getpass.getuser() == "ylou":
+    result_file = Path(".") # <-- change yours here
 else:
     raise ValueError("need to specify result_file path")
 
 euss_bl = pd.read_parquet(result_file)
-file_type = "internal_dataset"
 
 # Specify downselection
 downselection = {
