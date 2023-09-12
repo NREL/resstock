@@ -1,12 +1,15 @@
 """
-Electrical Panel Project: support controls simulation in OCHRE
-Downselect 20 (occupied) SFD in VT from EUSS 1.0, using newly sampled buildstock for VT containing:
+This script is used to find the buildings from EUSS 1.0 annual summary file 
+best-matching those from a newly sampled buildstock. 
 
-- 5 homes with electric heating fuel
-- 15 homes with non-electric heating fuel
+Note: Matching is only possible if housing characteristics parameters and options
+are relatively consistent between the summary file and the sampled buildstock.
+
+Use cases: find the representative electrically heated home in Maine from EUSS
 
 By: Lixi.Liu@nrel.gov
 Date: 02/03/2023
+Updated: 09/12/2023
 """
 import pandas as pd
 from pathlib import Path
@@ -83,8 +86,8 @@ def downselect_buildstock(bst_to_match, bst_to_search, HC_to_match, HC_to_search
 # --- Main ---
 
 # new buildstock
-buildstock_to_match = Path("/Users/lliu2/Downloads/buildstock-vt-5-electric.csv")  # <---
-vt_bst = pd.read_csv(buildstock_to_match)
+buildstock_to_match = Path("/Users/lliu2/Downloads/buildstock-to-match.csv")  # <---
+bst = pd.read_csv(buildstock_to_match)
 
 # EUSS results, with in.<> and out.<> columns
 results_to_sample = Path("/Users/lliu2/Downloads/euss_baseline-vt.csv")  # <---
@@ -125,7 +128,7 @@ HC = [
 
 # 1. downselect EUSS results
 euss_hc = [f"in.{x.lower().replace(' ', '_')}" for x in HC]
-euss_results = downselect_buildstock(vt_bst, euss_bl, HC, euss_hc)
+euss_results = downselect_buildstock(bst, euss_bl, HC, euss_hc)
 
 # save to file
 output_file = results_to_sample.parent / (
