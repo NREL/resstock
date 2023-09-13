@@ -4,14 +4,14 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/small_run_category_15_20230906/
+output_directory: /projects/abctypol/largeee/test_runs/small_run_category_15_20230913/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: precomputed
   args:
-    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_100_20230809.csv #../buildstock_30k_20230809.csv # relative to file
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230809.csv #../buildstock_30k_20230809.csv # relative to file
 
 #sampler:
 #  type: residential_quota_downselect
@@ -28,25 +28,25 @@ baseline:
   n_buildings_represented: 138765649 # American Community Survey 2021 5-year, does not include AK, HI, and territories
   skip_sims: false
 
-eagle:
-  n_jobs: 1
-  minutes_per_sim: 4
-  account: abctypol #cityprize #abctypol
-  postprocessing:
-    time: 20
-    n_workers: 1
-  sampling:
-    time: 90
-
 # eagle:
-#   n_jobs: 50
+#   n_jobs: 1
 #   minutes_per_sim: 4
-#   account: abctypol
+#   account: abctypol #cityprize #abctypol
 #   postprocessing:
-#     time: 80
-#     n_workers: 20
+#     time: 20
+#     n_workers: 1
 #   sampling:
-#     time: 5
+#     time: 90
+
+eagle:
+  n_jobs: 50
+  minutes_per_sim: 4
+  account: abctypol
+  postprocessing:
+    time: 80
+    n_workers: 20
+  sampling:
+    time: 5
 
 
 postprocessing:
