@@ -1,0 +1,40 @@
+2023-09-12 23:26:39,377 - INFO - Log file avaialble: /Users/lliu2/Documents/GitHub/resstock/euss_sampling/output__building_search.log
+2023-09-12 23:26:39,377 - INFO - ==========================================================
+2023-09-12 23:26:39,377 - INFO - 
+This script is used to find the most "representative" or "typical" buildings from 
+an existing result summary or buildstock file for a given set of selection criteria.
+
+Use case example: find the representative electrically heated home in Maine from EUSS R1.0
+
+By: Lixi.Liu@nrel.gov, Yingli.Lou@nrel.gov
+Date: 09/12/2023
+Updated: 09/12/2023
+
+2023-09-12 23:26:39,377 - INFO - ==========================================================
+2023-09-12 23:26:39,462 - INFO - Using result_file: /Users/lliu2/Documents/GitHub/resstock/euss_sampling/ME_baseline_metadata_and_annual_results.csv
+2023-09-12 23:26:39,462 - INFO - and downselection criteria:
+2023-09-12 23:26:39,462 - INFO - {
+    "Heating Fuel": [
+        "Electricity"
+    ],
+    "State": [
+        "ME"
+    ]
+}
+2023-09-12 23:26:39,462 - INFO - 203 bldg_id were available to search by matching the most prevalent value of the following:
+2023-09-12 23:26:39,462 - INFO -  1. 5 must-match housing characteristics (must_match_hc): 
+	['Geometry Building Type RECS', 'Vintage ACS', 'Geometry Floor Area Bin', 'Heating Fuel', 'State']
+2023-09-12 23:26:39,462 - INFO -  2. 5 prefer-match housing characteristics (prefer_match_hc): 
+	['ASHRAE IECC Climate Zone 2004', 'Geometry Wall Type', 'Water Heater Fuel', 'HVAC Heating Type', 'HVAC Cooling Type']
+2023-09-12 23:26:39,462 - INFO -  3. Return bldg_id(s) with the highest matching count while meeting 1 and 2
+
+2023-09-12 23:26:39,462 - INFO - Search result:
+2023-09-12 23:26:39,464 - INFO - 1. 29 / 203 bldg_id(s) have full match to must_match_hc
+2023-09-12 23:26:39,465 - INFO - 2. 4 / 29 bldg_id(s) have match for up to 5 / 5 prefer_match_hc
+2023-09-12 23:26:39,474 - INFO - 3. The best matched bldg_id(s) are: [95923], 
+2023-09-12 23:26:39,474 - INFO -    with each matching overall 121 / 157 housing characteristics
+2023-09-12 23:26:39,475 - INFO -  - id: 95923 matched 5 / 5 must_match_hc
+2023-09-12 23:26:39,475 - INFO - 
+** Final best-matched bldg_id(s) meeting all must_match_hc are: [95923]
+2023-09-12 23:26:39,475 - INFO - Note: if there are more than 1 best-matched, pick one randomly as the 'most representative'
+2023-09-12 23:26:39,476 - INFO - Downselected best-matched results output to: /Users/lliu2/Documents/GitHub/resstock/euss_sampling/output__downselected_most_representative_building.csv
