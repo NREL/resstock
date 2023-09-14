@@ -27,7 +27,7 @@ jobs:
           path: resources/options_lookup.tsv
           name: options_lookup
 
-  unit-tests-1:
+  unit-tests:
     runs-on: ubuntu-latest
     needs: [format-files]
     container:
@@ -40,61 +40,16 @@ jobs:
       - name: Install gems
         run: |
           rm -f Gemfile.lock && bundle install
-      
+
       - name: Download formatted options_lookup
         uses: actions/download-artifact@v3
         with:
           path: resources
           name: options_lookup
-
+      
       - name: Run integrity checks for all projects
         run: |
           bundle exec rake unit_tests:project_integrity_checks
-
-  precomputed-buildstocks:
-    runs-on: ubuntu-latest    
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
-          
-      - name: Download and Install OpenStudio
-        run: |
-          wget -q https://github.com/NREL/OpenStudio/releases/download/v3.6.1/OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
-          sudo apt install -y ./OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
-          openstudio openstudio_version
-          which openstudio
-
-      - name: Generate precomputed buildstocks
-        run: |
-          pip install pandas
-          python test/update_yml_precomputed_files.py
-      
-      - name: Upload precomputed buildstocks
-        uses: actions/upload-artifact@v3
-        with:
-          path: test/tests_yml_files/yml_precomputed*/buildstock*.csv
-          name: precomputed_buildstocks
-
-  unit-tests-2:
-    runs-on: ubuntu-latest
-    needs: [format-files]
-    container:
-      image: docker://nrel/openstudio:3.6.1
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
-
-      - name: Install gems
-        run: |
-          rm -f Gemfile.lock && bundle install
-
-      - name: Download formatted options_lookup
-        uses: actions/download-artifact@v3
-        with:
-          path: resources
-          name: options_lookup
 
       - name: Run all integrity check unit tests
         run: |
@@ -116,9 +71,35 @@ jobs:
           path: coverage
           name: coverage
 
+  precomputed-buildstocks:
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Download and Install OpenStudio
+        run: |
+          wget -q https://github.com/NREL/OpenStudio/releases/download/v3.6.1/OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
+          sudo apt install -y ./OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
+          openstudio openstudio_version
+          which openstudio
+
+      - name: Generate precomputed buildstocks
+        run: |
+          pip install pandas
+          python test/update_yml_precomputed_files.py
+      
+      - name: Upload precomputed buildstocks
+        uses: actions/upload-artifact@v3
+        with:
+          path: test/tests_yml_files/yml_precomputed*/buildstock*.csv
+          name: precomputed_buildstocks
+
   analysis-tests:
     runs-on: ubuntu-latest
-    needs: [format-files]
+    needs: [precomputed-buildstocks]
     container:
       image: docker://nrel/openstudio:3.6.1
     steps:
@@ -342,7 +323,7 @@ jobs:
 
   update-results:
     runs-on: ubuntu-latest
-    needs: [integration-tests]
+    needs: [integration-tests, precomputed-buildstocks]
     steps:
       - uses: actions/checkout@v3
         with:
