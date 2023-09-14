@@ -104,9 +104,9 @@ workflow_generator:
 
 ### -- Upgrades --- HPWH + measure packages
 upgrades:
-  - upgrade_name: 96% AFUE NG Furnace + Light Touch Envelope
+  - upgrade_name: 96% AFUE NG Furnace + Light Touch Envelope - existing Natural Gas
   # Category 4, Measure 5 + Category 2, Measure 1
-    package_apply_logic: &natural_gas_hookup_furnace  
+    package_apply_logic: &natural_gas_hookup_furnace_ng  
       - or:
         - Heating Fuel|Natural Gas
         - Water Heater Fuel|Natural Gas
@@ -116,14 +116,13 @@ upgrades:
         - Misc Gas Fireplace|Gas Fireplace
         - Misc Gas Grill|Gas Grill
         - Misc Gas Lighting|Gas Lighting
-      - or:
-        - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-        - HVAC Heating Type And Fuel|Propane Fuel Furnace
-        - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+      - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
 
     options: 
       - &Furnace_fuel_type
         option: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+      - &ng_heating_type
+        option: Heating Fuel|Natural Gas
       - &96pct_AFUE_furnace
         option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
         apply_logic:
@@ -236,9 +235,9 @@ upgrades:
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
 
-  - upgrade_name: 96% AFUE NG Boiler + Light Touch Envelope
-  # Category 4, Measure 6 + Category 2, Measure 1
-    package_apply_logic: &natural_gas_hookup_boiler 
+  - upgrade_name: 96% AFUE NG Furnace + Light Touch Envelope - existing Propane
+  # Category 4, Measure 5 + Category 2, Measure 1
+    package_apply_logic: &natural_gas_hookup_furnace_propane  
       - or:
         - Heating Fuel|Natural Gas
         - Water Heater Fuel|Natural Gas
@@ -248,14 +247,64 @@ upgrades:
         - Misc Gas Fireplace|Gas Fireplace
         - Misc Gas Grill|Gas Grill
         - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Propane Fuel Furnace
+
+    options: 
+      - *Furnace_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_furnace
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+
+  - upgrade_name: 96% AFUE NG Furnace + Light Touch Envelope - existing Fuel Oil
+  # Category 4, Measure 5 + Category 2, Measure 1
+    package_apply_logic: &natural_gas_hookup_furnace_fo  
       - or:
-        - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
-        - HVAC Heating Type And Fuel|Propane Fuel Boiler
-        - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+
+    options: 
+      - *Furnace_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_furnace
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+
+  - upgrade_name: 96% AFUE NG Boiler + Light Touch Envelope - existing Natural Gas
+  # Category 4, Measure 6 + Category 2, Measure 1
+    package_apply_logic: &natural_gas_hookup_boiler_ng 
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
 
     options: 
       - &Boiler_fuel_type
         option: HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+      - *ng_heating_type
       - &96pct_AFUE_boiler
         option: HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
         apply_logic:
@@ -278,11 +327,65 @@ upgrades:
       - *infiltration_30pct_reduction
       ####
 
-  - upgrade_name: 96% AFUE NG Furnace + Intermediate Envelope
+  - upgrade_name: 96% AFUE NG Boiler + Light Touch Envelope - existing Propane
+  # Category 4, Measure 6 + Category 2, Measure 1
+    package_apply_logic: &natural_gas_hookup_boiler_propane 
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Propane Fuel Boiler
+
+    options: 
+      - *Boiler_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_boiler
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+
+  - upgrade_name: 96% AFUE NG Boiler + Light Touch Envelope - existing Fuel Oil
+  # Category 4, Measure 6 + Category 2, Measure 1
+    package_apply_logic: &natural_gas_hookup_boiler_fo
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+
+    options: 
+      - *Boiler_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_boiler
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+
+
+  - upgrade_name: 96% AFUE NG Furnace + Intermediate Envelope - existing Natural Gas
   # Category 4, Measure 5 + Category 2, Measure 2
-    package_apply_logic: *natural_gas_hookup_furnace
+    package_apply_logic: *natural_gas_hookup_furnace_ng
     options: 
       - *Furnace_fuel_type
+      - *ng_heating_type
       - *96pct_AFUE_furnace
       ####
       # Light Touch Envelope:
@@ -449,11 +552,74 @@ upgrades:
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       #insulate finished attics and cathedral ceilings to R-30
 
-  - upgrade_name: 96% AFUE NG Boiler + Intermediate Envelope
+  - upgrade_name: 96% AFUE NG Furnace + Intermediate Envelope - existing Propane
   # Category 4, Measure 5 + Category 2, Measure 2
-    package_apply_logic: *natural_gas_hookup_boiler
+    package_apply_logic: *natural_gas_hookup_furnace_propane
+    options: 
+      - *Furnace_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_furnace
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+  - upgrade_name: 96% AFUE NG Furnace + Intermediate Envelope - existing Fuel Oil
+  # Category 4, Measure 5 + Category 2, Measure 2
+    package_apply_logic: *natural_gas_hookup_furnace_fo
+    options: 
+      - *Furnace_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_furnace
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+  - upgrade_name: 96% AFUE NG Boiler + Intermediate Envelope - existing Natural Gas
+  # Category 4, Measure 5 + Category 2, Measure 2
+    package_apply_logic: *natural_gas_hookup_boiler_ng
     options: 
       - *Boiler_fuel_type
+      - *ng_heating_type
       - *96pct_AFUE_boiler
       ####
       # Light Touch Envelope:
@@ -478,11 +644,73 @@ upgrades:
       - *seal_vented_crawlspaces
       - *seal_vented_duct_location
 
-  - upgrade_name: 96% AFUE NG Furnace + Advanced Envelope
+  - upgrade_name: 96% AFUE NG Boiler + Intermediate Envelope - existing Propane
   # Category 4, Measure 5 + Category 2, Measure 2
-    package_apply_logic: *natural_gas_hookup_furnace
+    package_apply_logic: *natural_gas_hookup_boiler_propane
+    options: 
+      - *Boiler_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_boiler
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+  - upgrade_name: 96% AFUE NG Boiler + Intermediate Envelope - existing Fuel Oil
+  # Category 4, Measure 5 + Category 2, Measure 2
+    package_apply_logic: *natural_gas_hookup_boiler_fo
+    options: 
+      - *Boiler_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_boiler
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+
+
+  - upgrade_name: 96% AFUE NG Furnace + Advanced Envelope - existing Natural Gas
+  # Category 4, Measure 5 + Category 2, Measure 2
+    package_apply_logic: *natural_gas_hookup_furnace_ng
     options: 
       - *Furnace_fuel_type
+      - *ng_heating_type
       - *96pct_AFUE_furnace
       ####
       # Light Touch Envelope:
@@ -892,11 +1120,254 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 18 # remdb
 
-  - upgrade_name: 96% AFUE NG Boiler + Advanced Envelope
+  - upgrade_name: 96% AFUE NG Furnace + Advanced Envelope - existing Propane
   # Category 4, Measure 5 + Category 2, Measure 2
-    package_apply_logic: *natural_gas_hookup_boiler
+    package_apply_logic: *natural_gas_hookup_furnace_propane
+    options: 
+      - *Furnace_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_furnace
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
+  - upgrade_name: 96% AFUE NG Furnace + Advanced Envelope - existing Fuel Oil
+  # Category 4, Measure 5 + Category 2, Measure 2
+    package_apply_logic: *natural_gas_hookup_furnace_fo
+    options: 
+      - *Furnace_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_furnace
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
+  - upgrade_name: 96% AFUE NG Boiler + Advanced Envelope - existing Natural Gas
+  # Category 4, Measure 5 + Category 2, Measure 2
+    package_apply_logic: *natural_gas_hookup_boiler_ng
     options: 
       - *Boiler_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_boiler
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
+  - upgrade_name: 96% AFUE NG Boiler + Advanced Envelope - existing Propane
+  # Category 4, Measure 5 + Category 2, Measure 2
+    package_apply_logic: *natural_gas_hookup_boiler_propane
+    options: 
+      - *Boiler_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_boiler
+      ####
+      # Light Touch Envelope:
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      ####
+      # Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      # EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+      ####
+      # Advanced Enclosure Measures
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
+
+  - upgrade_name: 96% AFUE NG Boiler + Advanced Envelope - existing Fuel Oil
+  # Category 4, Measure 5 + Category 2, Measure 2
+    package_apply_logic: *natural_gas_hookup_boiler_fo
+    options: 
+      - *Boiler_fuel_type
+      - *ng_heating_type
       - *96pct_AFUE_boiler
       ####
       # Light Touch Envelope:

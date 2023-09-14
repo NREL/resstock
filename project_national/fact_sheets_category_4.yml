@@ -294,9 +294,9 @@ upgrades:
           - value: 4631.88 # Median installed cost for 80 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
             multiplier: Fixed (1)
 
-  - upgrade_name: 96% AFUE Natural Gas Furnace
+  - upgrade_name: 96% AFUE Natural Gas Furnace - existing Natural Gas
 
-    package_apply_logic: &natural_gas_hookup_furnace  
+    package_apply_logic: &natural_gas_hookup_furnace_ng  
       - or:
         - Heating Fuel|Natural Gas
         - Water Heater Fuel|Natural Gas
@@ -306,14 +306,13 @@ upgrades:
         - Misc Gas Fireplace|Gas Fireplace
         - Misc Gas Grill|Gas Grill
         - Misc Gas Lighting|Gas Lighting
-      - or:
-        - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-        - HVAC Heating Type And Fuel|Propane Fuel Furnace
-        - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+      - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
 
     options:
       - &Furnace_fuel_type
         option: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+      - &ng_heating_type
+        option: Heating Fuel|Natural Gas
       - &96pct_AFUE_furnace
         option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
         apply_logic:
@@ -330,8 +329,9 @@ upgrades:
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: &NG_furnace_96_lifetime 15 # do we need a lifetime here?
 
-  - upgrade_name: 96% AFUE Natural Gas Boiler
-    package_apply_logic: &natural_gas_hookup_boiler 
+  - upgrade_name: 96% AFUE Natural Gas Furnace - existing Propane
+
+    package_apply_logic: &natural_gas_hookup_furnace_propane  
       - or:
         - Heating Fuel|Natural Gas
         - Water Heater Fuel|Natural Gas
@@ -341,14 +341,49 @@ upgrades:
         - Misc Gas Fireplace|Gas Fireplace
         - Misc Gas Grill|Gas Grill
         - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Propane Fuel Furnace
+
+    options:
+      - *Furnace_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_furnace
+
+  - upgrade_name: 96% AFUE Natural Gas Furnace - existing Fuel Oil
+
+    package_apply_logic: &natural_gas_hookup_furnace_fo 
       - or:
-        - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
-        - HVAC Heating Type And Fuel|Propane Fuel Boiler
-        - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+
+    options:
+      - *Furnace_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_furnace
+
+  - upgrade_name: 96% AFUE Natural Gas Boiler - existing Natural Gas
+    package_apply_logic: &natural_gas_hookup_boiler_ng 
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
 
     options:
       - &Boiler_fuel_type
         option: HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+      - *ng_heating_type
       - &96pct_AFUE_boiler
         option: HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
         apply_logic:
@@ -363,3 +398,39 @@ upgrades:
           - value: 60.2
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: &natural_gas_boiler_fed_min_96_percent_lifetime 15 # do we need a lifetime here?
+
+  - upgrade_name: 96% AFUE Natural Gas Boiler - existing Propane
+    package_apply_logic: &natural_gas_hookup_boiler_propane 
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Propane Fuel Boiler
+
+    options:
+      - *Boiler_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_boiler
+
+  - upgrade_name: 96% AFUE Natural Gas Boiler - existing Fuel Oil
+    package_apply_logic: &natural_gas_hookup_boiler_fo 
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+
+    options:
+      - *Boiler_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_boiler
