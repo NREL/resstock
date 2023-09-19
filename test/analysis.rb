@@ -6,6 +6,7 @@ def expected_baseline_columns
   return [
     'building_id',
     'job_id',
+    'worker_folder',
     'completed_status',
     'report_simulation_output.add_timeseries_dst_column',
     'report_simulation_output.add_timeseries_utc_column',
