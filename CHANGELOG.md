@@ -6,7 +6,7 @@ Features
 - Include HVAC secondary heating capabilities for project_testing ([#1090](https://github.com/NREL/resstock/pull/1090))
 - For heat pump upgrades, adds the ability to set the existing primary (non-shared) heating system as the backup system using only a single option from the lookup ([#1074](https://github.com/NREL/resstock/pull/1074))
 - options_saturations.csv is added to project_*/resources/ folder ([#1132](https://github.com/NREL/resstock/pull/1132))
-- Add Water Heater Location, update Geometry Garage ([#1125](https://github.com/NREL/resstock/pull/1125))
+- Add Water Heater Location and Geometry Space Combination, update Geometry Garage and Geometry Floor Area Bin to RECS2020, update RECS2020 microdata from v2 to v4, auto-generate buildstocks for yml_precomputed tests ([#1125](https://github.com/NREL/resstock/pull/1125))
 
 Fixes
 - Set standard format for options_lookup ([#962](https://github.com/NREL/resstock/pull/962))
