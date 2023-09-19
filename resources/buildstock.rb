@@ -516,7 +516,7 @@ class RunOSWs
     end
     column_headers = column_headers.sort
 
-    ['completed_status', 'completed_at', 'started_at', 'job_id', 'building_id'].each do |col|
+    ['completed_status', 'completed_at', 'started_at', 'worker_folder', 'job_id', 'building_id'].each do |col|
       column_headers.delete(col)
       column_headers.insert(0, col)
     end
