@@ -68,7 +68,6 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
     hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
-    puts model
 
     # Set paths
     output_path = File.join(output_dir, "results_hpxml.#{output_format}")
