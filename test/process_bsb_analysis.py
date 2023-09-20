@@ -38,7 +38,6 @@ if __name__ == '__main__':
     df = pd.concat(frames)
     df = df.rename(columns={'building_id': 'OSW'})
     del df['job_id']
-    del df['worker_folder']
 
     build_existing_models = []
     report_simulation_outputs = ['color_index']
@@ -199,7 +198,6 @@ if __name__ == '__main__':
     df = pd.concat(frames)
     df = df.rename(columns={'building_id': 'OSW'})
     del df['job_id']
-    del df['worker_folder']
 
     report_simulation_outputs = ['color_index']
     report_utility_bills = []
