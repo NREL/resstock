@@ -497,9 +497,9 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
   hpxml_path = File.join(output_dir, 'home.xml')
   change_arguments(osw, building_id, hpxml_path, output_dir)
 
-  worker_folder_ = 'NA'
+  worker_folder_ = job_id
   worker_folder_ = worker_folder if keep_run_folders
-  cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{job_id}. Worker Folder: #{worker_folder_}\n"
+  cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{worker_folder_}\n"
   upgrade = upgrade_name != 'Baseline'
   started_at, completed_at, completed_status, result_output, cli_output = RunOSWs.run(osw, worker_dir, cli_output, upgrade, measures, reporting_measures, measures_only)
 
@@ -507,8 +507,7 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
   completed_at = create_timestamp(completed_at)
 
   result_output['building_id'] = building_id
-  result_output['job_id'] = job_id
-  result_output['worker_folder'] = worker_folder_
+  result_output['job_id'] = worker_folder_
   result_output['started_at'] = started_at
   result_output['completed_at'] = completed_at
   result_output['completed_status'] = completed_status
@@ -615,7 +614,7 @@ OptionParser.new do |opts|
   end
 
   options[:keep_run_folders] = false
-  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints; also populates worker_folder in cli_output.log and results-xxx.csv files') do |_t|
+  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints; also populates run folder in cli_output.log and results-xxx.csv files') do |_t|
     options[:keep_run_folders] = true
   end
 
