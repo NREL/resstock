@@ -1,0 +1,114 @@
+# bsb env: buildstock-2023.05.0
+# Please check: n=100, use timestep, else monthly timeseries_frequency
+schema_version: '0.3'
+os_version: 3.6.1
+buildstock_directory: ../ # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /projects/abctypol/largeee/test_runs/small_run_baseline_20230810_30k/
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: precomputed
+  args:
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230809.csv #../buildstock_30k_20230809.csv # relative to file
+
+#sampler:
+#  type: residential_quota_downselect
+#  args:
+#    n_datapoints: 30000 #2200010 #30000 #100
+#    logic:
+#      not:
+#        - or: 
+#          - State|HI
+#          - State|AK
+#    resample: true
+
+baseline:
+  n_buildings_represented: 138765649 # American Community Survey 2021 5-year, does not include AK, HI, and territories
+  skip_sims: false
+
+# eagle:
+#   n_jobs: 1
+#   minutes_per_sim: 4
+#   account: opanalysis #cityprize #abctypol
+#   postprocessing:
+#     time: 20
+#     n_workers: 1
+#   sampling:
+#     time: 90
+
+eagle:
+  n_jobs: 50
+  minutes_per_sim: 4
+  account: abctypol
+  postprocessing:
+    time: 80
+    n_workers: 20
+  sampling:
+    time: 5
+
+
+postprocessing:
+  keep_individual_timeseries: false
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: largeee
+      prefix: test_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: largeee_test_runs
+      max_crawling_time: 1200
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    emissions:
+      - scenario_name: LRMER_HighRECost_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_HighRECost_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+      - scenario_name: LRMER_LowRECost_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_LowRECost_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+      - scenario_name: LRMER_MidCase_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_MidCase_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+    utility_bills:
+      - scenario_name: Utility Rates - Fixed + Variable
+        simple_filepath: data/simple_rates/State.tsv
+
+    simulation_output_report:
+      timeseries_frequency: monthly 
+      include_timeseries_total_consumptions: true
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_total_loads: false
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: true
+      retain_schedules_csv: false

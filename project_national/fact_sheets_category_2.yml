@@ -1,0 +1,1191 @@
+# bsb env: buildstock-2023.05.0
+# Please check: n=100, use timestep, else monthly timeseries_frequency
+schema_version: '0.3'
+os_version: 3.6.1
+buildstock_directory: ../ # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /projects/abctypol/largeee/test_runs/medium_run_category_2_20230814/
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: precomputed
+  args:
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230809.csv #../buildstock_100_20230609.csv # relative to file
+
+baseline:
+  n_buildings_represented: 138765649 # American Community Survey 2021 5-year, does not include AK, HI, and territories
+  skip_sims: true
+
+eagle:
+  n_jobs: 50
+  minutes_per_sim: 4
+  account: abctypol
+  postprocessing:
+    time: 80
+    n_workers: 20
+  sampling:
+    time: 5
+
+# eagle:
+#   n_jobs: 1
+#   minutes_per_sim: 4
+#   account: abctypol
+#   postprocessing:
+#     time: 20
+#     n_workers: 1
+#   sampling:
+#     time: 5
+
+postprocessing:
+  keep_individual_timeseries: true # false
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: largeee
+      prefix: test_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: largeee_test_runs
+      max_crawling_time: 1200
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    emissions:
+      - scenario_name: LRMER_HighRECost_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_HighRECost_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+      - scenario_name: LRMER_LowRECost_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_LowRECost_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+      - scenario_name: LRMER_MidCase_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_MidCase_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+    utility_bills:
+      - scenario_name: Utility Rates - Fixed + Variable
+        simple_filepath: data/simple_rates/State.tsv
+
+    simulation_output_report:
+      timeseries_frequency: timestep # monthly 
+      include_timeseries_total_consumptions: true
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_total_loads: false
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+### -- Upgrades ---
+upgrades:
+  - upgrade_name: Thin Triple Windows 
+    options:  
+      - &thin_triple_windows_northern
+        option: Windows|Triple, Thin, Northern
+        apply_logic:
+          - Energystar Climate Zone 2023|Northern
+          - not: Windows|Triple, Low-E, Non-metal, Air, L-Gain
+        costs:
+          - value: 46.30 
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &thin_triple_windows_north_central
+        option: Windows|Triple, Thin, North-Central
+        apply_logic:
+          - Energystar Climate Zone 2023|North-Central
+          - not: Windows|Triple, Low-E, Non-metal, Air, L-Gain
+        costs:
+          - value: 46.30 
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &thin_triple_windows_south_central
+        option: Windows|Triple, Thin, South-Central
+        apply_logic:
+          - Energystar Climate Zone 2023|South-Central
+          - not: Windows|Triple, Low-E, Non-metal, Air, L-Gain
+        costs:
+          - value: 46.30 
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &thin_triple_windows_southern
+        option: Windows|Triple, Thin, Southern
+        apply_logic:
+          - and:
+            - Energystar Climate Zone 2023|Southern
+            - not: Windows|Triple, Low-E, Non-metal, Air, L-Gain
+        costs:
+          - value: 46.30 
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &infiltration_30pct_reduction_windows
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - not: Vintage|2000s
+          - not: Vintage|2010s
+          - or:
+            - Windows|Single, Clear, Metal
+            - Windows|Single, Clear, Metal, Exterior Clear Storm
+            - Windows|Single, Clear, Non-metal
+            - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+      - &infiltration_15pct_reduction_windows
+        option: Infiltration Reduction|15%
+        apply_logic:
+          - not: Vintage|2000s
+          - not: Vintage|2010s
+          - or:
+            - Windows|Double, Clear, Metal, Air
+            - Windows|Double, Clear, Metal, Air, Exterior Clear Storm
+            - Windows|Double, Clear, Non-metal, Air
+            - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm
+            - Windows|Double, Low-E, Non-metal, Air, M-Gain
+
+  - upgrade_name: EnergyStar Windows
+    options:  
+      - &EnergyStar_window_northern
+        option: Windows|EnergyStar, Northern
+        apply_logic:
+          - Energystar Climate Zone 2023|Northern
+        costs:
+          - value: 44.40
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &EnergyStar_window_north_central
+        option: Windows|EnergyStar, North-Central
+        apply_logic:
+          - Energystar Climate Zone 2023|North-Central
+        costs:
+          - value: 41.50
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &EnergyStar_window_south_central
+        option: Windows|EnergyStar, South-Central
+        apply_logic:
+          - Energystar Climate Zone 2023|South-Central
+        costs:
+          - value: 38.70
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &EnergyStar_window_southern
+        option: Windows|EnergyStar, Southern
+        apply_logic:
+          - Energystar Climate Zone 2023|Southern
+          - not: Windows|Triple, Low-E, Non-metal, Air, L-Gain
+        costs:
+          - value: 32.50
+            multiplier: Window Area (ft^2)
+        lifetime: 30  
+      - *infiltration_30pct_reduction_windows
+      - *infiltration_15pct_reduction_windows
+
+  - upgrade_name: Light Touch Envelope
+    options:
+      #Attic floor insulation up to IECC 2021 levels for homes with vented attics with R-13 or less insulation
+      - &attic_insulation_IECC_CZ1A
+        option: Insulation Ceiling|R-30
+        apply_logic:
+          - ASHRAE IECC Climate Zone 2004|1A
+          - Geometry Attic Type|Vented Attic
+          - or:
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+        costs:
+          - value: 0.0482 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.0344 https://www.bls.gov/data/inflation_calculator.htm
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
+          - value: 0.2163 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.1545
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf 
+      - &attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+        option: Insulation Ceiling|R-49
+        apply_logic:
+          - or:
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C
+          - Geometry Attic Type|Vented Attic
+          - or:
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+        costs:
+          - value: 0.0482 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.0344 https://www.bls.gov/data/inflation_calculator.htm
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
+          - value: 0.2163 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.1545
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+        option: Insulation Ceiling|R-60
+        apply_logic:
+          - or:
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - Geometry Attic Type|Vented Attic
+          - or:
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
+        costs:
+          - value: 0.0482 # $/(ft^2 * Delta R-value), from original REMDB xlsx for blown cellulose (0.0154+0.019)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.0344 https://www.bls.gov/data/inflation_calculator.htm
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
+          - value: 0.2163 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004)
+                          # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 0.1545
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #General air sealing - 30% total reduction in ACH50 for homes with greater than 10 ACH50
+      #30% is consistent with median reduction documented in https://doi.org/10.20357/B7FP4D 
+      - &infiltration_30pct_reduction
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|18.5 ACH50
+            - Infiltration|15 ACH50
+            - Infiltration|11.25 ACH50
+        costs:
+          - value: 0.53 # from LBNL data for general air sealing (https://doi.org/10.20357/B7FP4D).
+                        # Interpolated between 20% and 40% reductions to get $0.44/ft2,
+                        # then used 1.2052 multiplier to inflate from Jan 2019 to April 2023 https://www.bls.gov/data/inflation_calculator.htm
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+  
+  - upgrade_name: Intermediate Envelope
+    #
+    options:
+    #Light Touch Envelope Measures
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      - &ducts_category1 #improving leakage a lot, and insulation
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|30% Leakage, Uninsulated
+            - Duct Leakage and Insulation|30% Leakage, R-4
+            - Duct Leakage and Insulation|30% Leakage, R-6
+        costs:
+          - value: 3.08 # 2.2 $/(ft^2) is the mid-value from REMDB, 30% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2145&bcId=6185
+                        # REMDB doesn't have the data for 30% Leakage, R-4 and 30% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 2.2
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category2 #improving leakage a lot only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|30% Leakage, R-8
+        costs:
+          - value: 1.134 # 0.81 $/(ft^2) is Mid-value from REMDB https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2143&bcId=6187
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category3 #improving leakage some, and insulation
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|20% Leakage, Uninsulated
+            - Duct Leakage and Insulation|20% Leakage, R-4
+            - Duct Leakage and Insulation|20% Leakage, R-6 
+        costs:
+          - value: 2.52 # 1.8 $/(ft^2) is Mid-value from REMDB, 20% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2145&bcId=6716
+                        # REMDB doesn't have the data for 20% Leakage, R-4 and 20% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023) to 1.8
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category4 #improving leakage some only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|20% Leakage, R-8
+        costs:
+          - value: 0.56 # 0.4 $/(ft^2) is the Mid-value from REMDB https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2143&bcId=6718
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      # ducts categories 5 & 6 from ABC work do not apply to any duct configurations in the current ResStock baseline
+        # - &ducts_category5 #improving leakage a little, and insulation
+        #   option: Ducts|10% Leakage, R-8
+        #   apply_logic:
+        #     or: 
+        #       - Ducts|15% Leakage, Uninsulated
+        #       - Ducts|15% Leakage, R-4
+        #       - Ducts|15% Leakage, R-6
+        #       - Ducts|14% Leakage, Uninsulated
+        #       - Ducts|14% Leakage, R-4
+        #       - Ducts|14% Leakage, R-6
+        #   costs:
+        #     - value: 2.06 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+        #       multiplier: Duct Unconditioned Surface Area (ft^2)
+        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+        # - &ducts_category6 #improving leakage a little only
+        #   option: Ducts|10% Leakage, R-8
+        #   apply_logic:
+        #     or: 
+        #       - Ducts|15% Leakage, R-8
+        #       - Ducts|14% Leakage, R-8
+        #   costs:
+        #     - value: 0.26 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+        #       multiplier: Duct Unconditioned Surface Area (ft^2)
+        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &ducts_category7 #improving insulation only
+        option: Duct Leakage and Insulation|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Duct Leakage and Insulation|10% Leakage, Uninsulated
+            - Duct Leakage and Insulation|10% Leakage, R-4
+            - Duct Leakage and Insulation|10% Leakage, R-6
+        costs:
+          - value: 1.96 # 1.4 $/(ft^2) Mid-value from REMDB, 10% Leakage, Uninsulated to 10% Leakage, R-8
+                        # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2144&bcId=6725
+                        # REMDB doesn't have the data for 10% Leakage, R-4 and 10% Leakage, R-6 to 10% Leakage, R-8
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #### ducts_category8 is removed 8/21/2023 because it adds insulation to ducts that are in conditioned space, adding no value ####
+      - &Drill-and-fill
+        option: Insulation Wall|Wood Stud, R-13
+        apply_logic:
+          - Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.70 # 2.24 is from LBNL data (https://doi.org/10.20357/B7FP4D); 
+                        # mid-value of NREL REMDB: 2.20 (https://remdb.nrel.gov/measures?group_id=12&component_type_id=184&actionId=703&bcId=2015)
+                        #then used 1.2052 multiplier to 2.24 to inflate from Jan 2019 to April 2023
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &foundation_wall_insulation #adding even if there is already exterior foundation wall insulation - is that what's wanted? <-- isn't there logic below to only do this if uninsulated?
+        option: Insulation Foundation Wall|Wall R-10, Interior
+        apply_logic: #including vented crawlspaces since they will be sealed and become unvented crawlspaces in the same package. 
+          - or:
+            - Geometry Foundation Type|Unvented Crawlspace
+            - Geometry Foundation Type|Vented Crawlspace
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 2.38 # 1.7 $/(ft^2) is the mid-value from REMDB https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2469&bcId=6565
+                        # EUSS RR1 use 3.1 instead of 1.7
+                         # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &foundation_wall_insulation_finished_basement
+        option: Insulation Foundation Wall|Wall R-10, Interior
+        apply_logic: 
+          - Geometry Foundation Type|Heated Basement
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 4.96 # $/ft2 (3.54* $/ft2 * 1.4 inflation) based on cost in BEopt
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf        
+      - &rim_joist_insulation
+        option: Insulation Rim Joist|R-10, Exterior
+        apply_logic: 
+          - or:
+            - Geometry Foundation Type|Unvented Crawlspace
+            - Geometry Foundation Type|Vented Crawlspace
+            - Geometry Foundation Type|Heated Basement
+          - Insulation Foundation Wall|Uninsulated
+        costs:
+          - value: 2.52 # $/ft2 (1.8* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2469&bcId=6565
+            multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+
+      # Unvented Crawlspace Location for Ducts
+      - &seal_vented_duct_location
+        option: Duct Location|Unvented Crawlspace
+        apply_logic:
+          - Duct Location|Vented Crawlspace
+          - Geometry Foundation Type|Vented Crawlspace
+          - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+              - Geometry Building Level MF|None
+              - Geometry Building Level MF|Bottom
+
+      #seal crawlspace vents
+      - &seal_vented_crawlspaces
+        option: Geometry Foundation Type|Unvented Crawlspace
+        apply_logic:
+          - Geometry Foundation Type|Vented Crawlspace
+          - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+              - Geometry Building Level MF|None
+              - Geometry Building Level MF|Bottom
+        costs:
+          - value: 1.176 # $/ft2 (0.84* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=14&component_type_id=334&actionId=2600&bcId=5169
+            multiplier: Floor Area, Foundation (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+
+  - upgrade_name: Advanced Enclosure with mix of ERVs and exhaust-only ventilation
+    #Up
+    options:
+      #Light Enclosure Measures
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      #Intermediate Enclosure Measures
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      #- *ducts_category5
+      #- *ducts_category6
+      - *ducts_category7
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_crawlspaces
+      - *seal_vented_duct_location
+      #EnergyStar Windows
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_south_central
+      - *EnergyStar_window_southern
+
+      #1 XPS (R-5/in) Exterior wall insulation for dwelling units with wall insulation of less than R-19  
+      - &exterior_wall_insulation
+        option: Insulation Sheathing|R-5
+        apply_logic:
+          - or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-15
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+
+        costs:
+          - value: 1.85 # chioke's eqn
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_6ACH50
+          - or: &climate_1_through_2
+            - ASHRAE IECC Climate Zone 2004|1A
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+          - or:
+            - Infiltration|6 ACH50
+        costs:
+          - value: 0.43 # 0.31 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_7ACH50
+          - or: *climate_1_through_2
+          - Infiltration|7 ACH50
+        costs:
+          - value: 0.73 # # 0.52 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_8ACH50
+          - or: *climate_1_through_2
+          - Infiltration|8 ACH50
+        costs:
+          - value: 1.02 # 0.73 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_10ACH50
+          - or: *climate_1_through_2
+          - Infiltration|10 ACH50
+        costs:
+          - value: 1.68 # 1.2 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_15ACH50
+          - or: *climate_1_through_2
+          - Infiltration|15 ACH50
+        costs:
+          - value: 3.08 # 2.2 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_20ACH50
+          - or: *climate_1_through_2
+          - Infiltration|20 ACH50
+        costs:
+          - value: 4.62 # 3.3 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_25ACH50
+          - or: *climate_1_through_2
+          - Infiltration|25 ACH50
+        costs:
+          - value: 6.02 # 4.3 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_30ACH50
+          - or: *climate_1_through_2
+          - Infiltration|30 ACH50
+        costs:
+          - value: 7.52 # 5.37 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_40ACH50
+          - or: *climate_1_through_2
+          - Infiltration|40 ACH50
+        costs:
+          - value: 10.47 # 7.48 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+        option: Infiltration|5 ACH50
+        apply_logic: &air_sealing_dwellings_1_through_2_baseline_50ACH50
+          - or: *climate_1_through_2
+          - Infiltration|50 ACH50
+        costs:
+          - value: 13.42 # 9.59 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_4ACH50
+          - or: &climate_3_through_7
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - Infiltration|4 ACH50
+        costs:
+          - value: 0.43 # 0.31 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_5ACH50
+          - or: *climate_3_through_7
+          - Infiltration|5 ACH50
+        costs:
+          - value: 0.73 # 0.52 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_6ACH50
+          - or: *climate_3_through_7
+          - Infiltration|6 ACH50
+        costs:
+          - value: 1.02 # 0.73 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_7ACH50
+          - or: *climate_3_through_7
+          - Infiltration|7 ACH50
+        costs:
+          - value: 1.32 # 0.94 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_8ACH50
+          - or: *climate_3_through_7
+          - Infiltration|8 ACH50
+        costs:
+          - value: 1.68 # 1.2 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_10ACH50
+          - or: *climate_3_through_7
+          - Infiltration|10 ACH50
+        costs:
+          - value: 2.24 # 1.6 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_15ACH50
+          - or: *climate_3_through_7
+          - Infiltration|15 ACH50
+        costs:
+          - value: 3.64 # 2.6 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_20ACH50
+          - or: *climate_3_through_7
+          - Infiltration|20 ACH50
+        costs:
+          - value: 5.18 # 3.7 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_25ACH50
+          - or: *climate_3_through_7
+          - Infiltration|25 ACH50
+        costs:
+          - value: 6.58 # 4.7 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_30ACH50
+          - or: *climate_3_through_7
+          - Infiltration|30 ACH50
+        costs:
+          - value: 8.07 # 5.77 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_40ACH50
+          - or: *climate_3_through_7
+          - Infiltration|40 ACH50
+        costs:
+          - value: 11.01 # 7.86 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+        option: Infiltration|3 ACH50
+        apply_logic: &air_sealing_dwellings_3_through_7_baseline_50ACH50
+          - or: *climate_3_through_7
+          - Infiltration|50 ACH50
+        costs:
+          - value: 13.94 # 9.96 linear regression based on the data in remdb
+                        # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 60
+      #insulate finished attics and cathedral ceilings to R-30
+      - &roof_insulation_to_R30
+        option: Insulation Roof|Finished, R-30
+        apply_logic: 
+          - or:
+            - Geometry Attic Type|Finished Attic or Cathedral Ceilings
+            - Geometry Building Level MF|Top
+          - or:
+            - Insulation Roof|Finished, Uninsulated
+            - Insulation Roof|Finished, R-7
+            - Insulation Roof|Finished, R-13
+            - Insulation Roof|Finished, R-19
+        costs:
+          - value: 6.02 # $/ft2 (4.3* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=13&component_type_id=395&actionId=2621&bcId=6283
+            multiplier: Roof Area (ft^2)
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+ 
+      - &add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+        option: Mechanical Ventilation|ERV, 72%
+        apply_logic:
+          - or:
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|15 ACH50
+            - Infiltration|10 ACH50
+            - Infiltration|8 ACH50
+            - Infiltration|7 ACH50
+            - Infiltration|6 ACH50
+            - Infiltration|5 ACH50
+            - Infiltration|4 ACH50
+        costs:
+          - value: 1820 # remdb has 2010 prices for ERV 70%;
+                        #ERV, 70% Unit value: $1820 (1300 * 1.4) + $6.72/cfm (4.8 * 1.4)
+            multiplier: Fixed (1)
+          - value: 6.72
+            multiplier: Flow Rate, Mechanical Ventilation (cfm)
+        lifetime: 18 # remdb
+      - &add_exhaust_ventilation_IECC_CZ1A-2A-2B
+        option: Mechanical Ventilation|Exhaust
+        apply_logic:
+          - or:
+            - ASHRAE IECC Climate Zone 2004|1A
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|15 ACH50
+            - Infiltration|10 ACH50
+            - Infiltration|8 ACH50
+            - Infiltration|7 ACH50
+            - Infiltration|6 ACH50
+        costs:
+          - value: 504 # remdb as 2020 prices for "install exhaust"
+                       # 360*1.4 = $504
+            multiplier: Fixed (1)
+        lifetime: 18 # remdb
+      - &add_exhaust_ventilation_IECC_3A-3B-3C
+        option: Mechanical Ventilation|Exhaust
+        apply_logic:
+          - or:
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|15 ACH50
+            - Infiltration|10 ACH50
+            - Infiltration|8 ACH50
+            - Infiltration|7 ACH50
+            - Infiltration|6 ACH50
+            - Infiltration|5 ACH50
+            - Infiltration|4 ACH50
+        costs:
+          - value: 504 # remdb as 2020 prices for "install exhaust"
+                       # 360*1.4 = $504
+            multiplier: Fixed (1)
+        lifetime: 18 # remdb
+
+
+  # - upgrade_name: Duct Sealing and Insulation Test
+  #   #Up
+  #   options:
+  #     #Intermediate Enclosure Measures
+  #     # - *ducts_category1
+  #     # - *ducts_category2
+  #     # - *ducts_category3
+  #     # - *ducts_category4
+  #     # #- *ducts_category5
+  #     # #- *ducts_category6
+  #     # - *ducts_category7
+
+
+  # - upgrade_name: Advanced Enclosure with ERVs for all
+  #   #Up
+  #   options:
+  #     #Light Enclosure Measures
+  #     - *attic_insulation_IECC_CZ1A
+  #     - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+  #     - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+  #     #Intermediate Enclosure Measures
+  #     - *ducts_category1
+  #     - *ducts_category2
+  #     - *ducts_category3
+  #     - *ducts_category4
+  #     #- *ducts_category5
+  #     #- *ducts_category6
+  #     - *ducts_category7
+  #     - *Drill-and-fill
+  #     - *foundation_wall_insulation
+  #     - *foundation_wall_insulation_finished_basement
+  #     - *rim_joist_insulation
+  #     - *seal_vented_crawlspaces
+  #     - *seal_vented_duct_location
+  #     #EnergyStar Windows
+  #     - *EnergyStar_window_northern
+  #     - *EnergyStar_window_north_central
+  #     - *EnergyStar_window_south_central
+  #     - *EnergyStar_window_southern
+      
+  #     #1 XPS (R-5/in) Exterior wall insulation for dwelling units with wall insulation of less than R-19  
+  #     - &exterior_wall_insulation
+  #       option: Insulation Sheathing|R-5
+  #       apply_logic:
+  #         - or:
+  #           - Insulation Wall|Wood Stud, Uninsulated
+  #           - Insulation Wall|Wood Stud, R-7
+  #           - Insulation Wall|Wood Stud, R-11
+  #           - Insulation Wall|Wood Stud, R-13
+  #           - Insulation Wall|Wood Stud, R-15
+  #           - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+  #           - Insulation Wall|CMU, 6-in Hollow, R-7
+  #           - Insulation Wall|CMU, 6-in Hollow, R-11
+  #           - Insulation Wall|CMU, 6-in Hollow, R-15
+
+  #       costs:
+  #         - value: 1.85 # chioke's eqn
+  #           multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+  #       option: Infiltration|5 ACH50
+  #       apply_logic: &air_sealing_dwellings_1_through_2_baseline_6ACH50
+  #         - or: &climate_1_through_2
+  #           - ASHRAE IECC Climate Zone 2004|1A
+  #           - ASHRAE IECC Climate Zone 2004|2A
+  #           - ASHRAE IECC Climate Zone 2004|2B
+  #         - or:
+  #           - Infiltration|6 ACH50
+  #       costs:
+  #         - value: 0.43 # 0.31 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+  #     - &infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+  #       option: Infiltration|5 ACH50
+  #       apply_logic: &air_sealing_dwellings_1_through_2_baseline_7ACH50
+  #         - or: *climate_1_through_2
+  #         - Infiltration|7 ACH50
+  #       costs:
+  #         - value: 0.73 # # 0.52 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+  #       option: Infiltration|5 ACH50
+  #       apply_logic: &air_sealing_dwellings_1_through_2_baseline_8ACH50
+  #         - or: *climate_1_through_2
+  #         - Infiltration|8 ACH50
+  #       costs:
+  #         - value: 1.02 # 0.73 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+  #       option: Infiltration|5 ACH50
+  #       apply_logic: &air_sealing_dwellings_1_through_2_baseline_10ACH50
+  #         - or: *climate_1_through_2
+  #         - Infiltration|10 ACH50
+  #       costs:
+  #         - value: 1.68 # 1.2 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+  #       option: Infiltration|5 ACH50
+  #       apply_logic: &air_sealing_dwellings_1_through_2_baseline_15ACH50
+  #         - or: *climate_1_through_2
+  #         - Infiltration|15 ACH50
+  #       costs:
+  #         - value: 3.08 # 2.2 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+  #       option: Infiltration|5 ACH50
+  #       apply_logic: &air_sealing_dwellings_1_through_2_baseline_20ACH50
+  #         - or: *climate_1_through_2
+  #         - Infiltration|20 ACH50
+  #       costs:
+  #         - value: 4.62 # 3.3 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+  #       option: Infiltration|5 ACH50
+  #       apply_logic: &air_sealing_dwellings_1_through_2_baseline_25ACH50
+  #         - or: *climate_1_through_2
+  #         - Infiltration|25 ACH50
+  #       costs:
+  #         - value: 6.02 # 4.3 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+  #       option: Infiltration|5 ACH50
+  #       apply_logic: &air_sealing_dwellings_1_through_2_baseline_30ACH50
+  #         - or: *climate_1_through_2
+  #         - Infiltration|30 ACH50
+  #       costs:
+  #         - value: 7.52 # 5.37 linear regression based on the data in remdb
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+  #       option: Infiltration|5 ACH50
+  #       apply_logic: &air_sealing_dwellings_1_through_2_baseline_40ACH50
+  #         - or: *climate_1_through_2
+  #         - Infiltration|40 ACH50
+  #       costs:
+  #         - value: 10.47 # 7.48 linear regression based on the data in remdb
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+  #       option: Infiltration|5 ACH50
+  #       apply_logic: &air_sealing_dwellings_1_through_2_baseline_50ACH50
+  #         - or: *climate_1_through_2
+  #         - Infiltration|50 ACH50
+  #       costs:
+  #         - value: 13.42 # 9.59 linear regression based on the data in remdb
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_4ACH50
+  #         - or: &climate_3_through_7
+  #           - ASHRAE IECC Climate Zone 2004|3A
+  #           - ASHRAE IECC Climate Zone 2004|3B
+  #           - ASHRAE IECC Climate Zone 2004|3C
+  #           - ASHRAE IECC Climate Zone 2004|4A
+  #           - ASHRAE IECC Climate Zone 2004|4B
+  #           - ASHRAE IECC Climate Zone 2004|4C
+  #           - ASHRAE IECC Climate Zone 2004|5A
+  #           - ASHRAE IECC Climate Zone 2004|5B
+  #           - ASHRAE IECC Climate Zone 2004|6A
+  #           - ASHRAE IECC Climate Zone 2004|6B
+  #           - ASHRAE IECC Climate Zone 2004|7A
+  #           - ASHRAE IECC Climate Zone 2004|7B
+  #         - Infiltration|4 ACH50
+  #       costs:
+  #         - value: 0.43 # 0.31 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_5ACH50
+  #         - or: *climate_3_through_7
+  #         - Infiltration|5 ACH50
+  #       costs:
+  #         - value: 0.73 # 0.52 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_6ACH50
+  #         - or: *climate_3_through_7
+  #         - Infiltration|6 ACH50
+  #       costs:
+  #         - value: 1.02 # 0.73 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_7ACH50
+  #         - or: *climate_3_through_7
+  #         - Infiltration|7 ACH50
+  #       costs:
+  #         - value: 1.32 # 0.94 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_8ACH50
+  #         - or: *climate_3_through_7
+  #         - Infiltration|8 ACH50
+  #       costs:
+  #         - value: 1.68 # 1.2 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_10ACH50
+  #         - or: *climate_3_through_7
+  #         - Infiltration|10 ACH50
+  #       costs:
+  #         - value: 2.24 # 1.6 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_15ACH50
+  #         - or: *climate_3_through_7
+  #         - Infiltration|15 ACH50
+  #       costs:
+  #         - value: 3.64 # 2.6 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_20ACH50
+  #         - or: *climate_3_through_7
+  #         - Infiltration|20 ACH50
+  #       costs:
+  #         - value: 5.18 # 3.7 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_25ACH50
+  #         - or: *climate_3_through_7
+  #         - Infiltration|25 ACH50
+  #       costs:
+  #         - value: 6.58 # 4.7 from remdb https://remdb.nrel.gov/measures?group_id=10&component_type_id=376&actionId=1934
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_30ACH50
+  #         - or: *climate_3_through_7
+  #         - Infiltration|30 ACH50
+  #       costs:
+  #         - value: 8.07 # 5.77 linear regression based on the data in remdb
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_40ACH50
+  #         - or: *climate_3_through_7
+  #         - Infiltration|40 ACH50
+  #       costs:
+  #         - value: 11.01 # 7.86 linear regression based on the data in remdb
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+  #       option: Infiltration|3 ACH50
+  #       apply_logic: &air_sealing_dwellings_3_through_7_baseline_50ACH50
+  #         - or: *climate_3_through_7
+  #         - Infiltration|50 ACH50
+  #       costs:
+  #         - value: 13.94 # 9.96 linear regression based on the data in remdb
+  #                       # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
+  #           multiplier: Floor Area, Conditioned (ft^2)
+  #       lifetime: 60
+  #     - &add_ERV_all_climates
+  #       option: Mechanical Ventilation|ERV, 72%
+  #       apply_logic:       
+  #         - or:
+  #           - *air_sealing_dwellings_1_through_2_baseline_6ACH50
+  #           - *air_sealing_dwellings_1_through_2_baseline_7ACH50
+  #           - *air_sealing_dwellings_1_through_2_baseline_8ACH50
+  #           - *air_sealing_dwellings_1_through_2_baseline_10ACH50
+  #           - *air_sealing_dwellings_1_through_2_baseline_15ACH50
+  #           - *air_sealing_dwellings_1_through_2_baseline_20ACH50
+  #           - *air_sealing_dwellings_1_through_2_baseline_25ACH50
+  #           - *air_sealing_dwellings_1_through_2_baseline_30ACH50
+  #           - *air_sealing_dwellings_1_through_2_baseline_40ACH50
+  #           - *air_sealing_dwellings_1_through_2_baseline_50ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_4ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_5ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_6ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_7ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_8ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_10ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_15ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_20ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_25ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_30ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_40ACH50
+  #           - *air_sealing_dwellings_3_through_7_baseline_50ACH50
+  #       costs:
+  #         - value: 1820 # remdb has 2010 prices for ERV 70%;
+  #                       #ERV, 70% Unit value: $1820 (1300 * 1.4) + $6.72/cfm (4.8 * 1.4)
+  #           multiplier: Fixed (1)
+  #         - value: 6.72
+  #           multiplier: Flow Rate, Mechanical Ventilation (cfm)
+  #       lifetime: 18 # remdb
+  #     - &roof_insulation_to_R30
+  #       option: Insulation Roof|Finished, R-30
+  #       apply_logic: 
+  #         - or:
+  #           - Geometry Attic Type|Finished Attic or Cathedral Ceilings
+  #           - Geometry Building Level MF|Top
+  #         - or:
+  #           - Insulation Roof|Finished, Uninsulated
+  #           - Insulation Roof|Finished, R-7
+  #           - Insulation Roof|Finished, R-13
+  #           - Insulation Roof|Finished, R-19
+  #       costs:
+  #         - value: 6.02 # $/ft2 (4.3* $/ft2 * 1.4 inflation) https://remdb.nrel.gov/measures?group_id=13&component_type_id=395&actionId=2621&bcId=6283
+  #           multiplier: Roof Area (ft^2)
+  #       lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+  

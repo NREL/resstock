@@ -1,0 +1,436 @@
+# bsb env: buildstock-2023.05.0
+# Please check: n=100, use timestep, else monthly timeseries_frequency
+schema_version: '0.3'
+os_version: 3.6.1
+buildstock_directory: ../ # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /projects/abctypol/largeee/test_runs/medium_run_category_4_20230915/
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: precomputed
+  args:
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230809.csv #../buildstock_100_20230609.csv # relative to file
+
+baseline:
+  n_buildings_represented: 138765649 # American Community Survey 2021 5-year, does not include AK, HI, and territories
+  skip_sims: true
+
+eagle:
+  n_jobs: 50
+  minutes_per_sim: 4
+  account: abctypol
+  postprocessing:
+    time: 60
+    n_workers: 10
+  sampling:
+    time: 5
+
+postprocessing:
+  keep_individual_timeseries: true
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: largeee
+      prefix: test_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: largeee_test_runs
+      max_crawling_time: 1200
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    emissions:
+      - scenario_name: LRMER_HighRECost_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_HighRECost_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+      - scenario_name: LRMER_LowRECost_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_LowRECost_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+      - scenario_name: LRMER_MidCase_2030boxavg
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_MidCase_2030boxavg
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+
+    utility_bills:
+      - scenario_name: Utility Rates - Fixed + Variable
+        simple_filepath: data/simple_rates/State.tsv
+
+    simulation_output_report:
+      timeseries_frequency: timestep #monthly
+      include_timeseries_total_consumptions: true
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_total_loads: false
+      output_variables:
+        - name: Site Outdoor Air Drybulb Temperature
+        - name: Zone Mean Air Temperature
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: true
+      retain_schedules_csv: false
+
+### -- Upgrades ---
+upgrades:
+  - upgrade_name: Universal Cooling
+    options:
+      - &add_room_ac
+        option: HVAC Cooling Type|Room AC
+        apply_logic:
+          - HVAC Has Ducts|No
+          - HVAC Cooling Type|None
+      - &add_room_ac_add_27_partial_space_conditioning
+        option: HVAC Cooling Partial Space Conditioning|27% Conditioned
+        apply_logic:
+          - HVAC Has Ducts|No
+          - HVAC Cooling Type|None
+          - Geometry Floor Area Bin|4000+
+      - &add_room_ac_add_36_partial_space_conditioning
+        option: HVAC Cooling Partial Space Conditioning|36% Conditioned
+        apply_logic:
+          - HVAC Has Ducts|No
+          - HVAC Cooling Type|None
+          - Geometry Floor Area Bin|2500-3999
+      - &add_room_ac_add_37_partial_space_conditioning
+        option: HVAC Cooling Partial Space Conditioning|37% Conditioned
+        apply_logic:
+          - HVAC Has Ducts|No
+          - HVAC Cooling Type|None
+          - Geometry Floor Area Bin|1500-2499
+      - &add_room_ac_add_52_partial_space_conditioning
+        option: HVAC Cooling Partial Space Conditioning|52% Conditioned
+        apply_logic:
+          - HVAC Has Ducts|No
+          - HVAC Cooling Type|None
+          - Geometry Floor Area Bin|0-1499
+      - &add_central_ac
+        option: HVAC Cooling Type|Central AC
+        apply_logic:
+          - HVAC Has Ducts|Yes
+          - HVAC Cooling Type|None
+      - &add_central_ac_add_100_partial_space_conditioning
+        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
+        apply_logic:
+          - HVAC Has Ducts|Yes
+          - HVAC Cooling Type|None
+      - &eff_room_ac
+        option: HVAC Cooling Efficiency|Room AC, EER 12.0 #TBD
+        apply_logic:
+          - HVAC Has Ducts|No
+          - HVAC Cooling Type|None
+        costs: &Room_AC_cost
+        # Source: survey of big box stores best-selling Room AC units with a linear regression for cost (y) and tons of refrigeration (x)
+        # Resulting equation - y = 16.87 + 396.17x
+          - value: 16.87
+            multiplier: Fixed (1)
+          - value: 33.01
+            multiplier: Size, Cooling System Primary (kBtu/h)
+        lifetime: &Room_AC_lifetime 5 # dummy value
+      - &eff_central_ac_southeast_and_southwest
+        option: HVAC Cooling Efficiency|AC, SEER 15
+        apply_logic:
+          - HVAC Has Ducts|Yes
+          - HVAC Cooling Type|None
+          - or:
+            - State|CA
+            - State|NV
+            - State|AZ
+            - State|NM
+            - State|OK
+            - State|TX
+            - State|AR
+            - State|LA
+            - State|KY
+            - State|TN
+            - State|MS
+            - State|AL
+            - State|GA
+            - State|FL
+            - State|SC
+            - State|NC
+            - State|VA
+            - State|DC
+            - State|MD
+            - State|DE
+        costs: &AC_SEER_15_cost
+        # Source: 2800 * 1.4 inflation + 42 * 1.4 inflation from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=375&actionId=1933&bcId=5852
+          - value: 3920
+            multiplier: Fixed (1)
+          - value: 58.8
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &AC_SEER_15_lifetime 15 # do we need a lifetime here?
+
+      - &eff_central_ac_us_others
+        option: HVAC Cooling Efficiency|AC, SEER 14
+        apply_logic:
+          - HVAC Has Ducts|Yes
+          - HVAC Cooling Type|None
+          - or:
+            - State|WA
+            - State|OR
+            - State|MT
+            - State|ID
+            - State|WY
+            - State|UT
+            - State|CO
+            - State|ND
+            - State|SD
+            - State|NE
+            - State|KS
+            - State|MN
+            - State|IA
+            - State|MO
+            - State|WI
+            - State|IL
+            - State|MI
+            - State|IN
+            - State|OH
+            - State|WV
+            - State|PA
+            - State|NJ
+            - State|NY
+            - State|CT
+            - State|RI
+            - State|MA
+            - State|VT
+            - State|NH
+            - State|ME
+        costs: &AC_SEER_14_cost
+        # Source: 2700 * 1.4 inflation + 42 * 1.4 inflation from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=375&actionId=1933&bcId=5852
+          - value: 3780
+            multiplier: Fixed (1)
+          - value: 58.8
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &AC_SEER_14_lifetime 15 # do we need a lifetime here?
+
+  - upgrade_name: ENERGYSTAR Room AC
+    options:
+      - &energystar_room_ac
+        option: HVAC Cooling Efficiency|Room AC, EER 12.0
+        apply_logic:
+          - or:
+            - HVAC Cooling Efficiency|Room AC, EER 8.5
+            - HVAC Cooling Efficiency|Room AC, EER 9.8
+            - HVAC Cooling Efficiency|Room AC, EER 10.7
+        costs: *Room_AC_cost
+        lifetime: *Room_AC_lifetime # dummy value
+
+  - upgrade_name: ENERGYSTAR Central AC
+    options:
+      - &energystar_central_ac
+        option: HVAC Cooling Efficiency|AC, SEER 15.2
+        apply_logic:
+          - or:
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 15
+        costs: &AC_fed_min_southern_state_SEER_15_cost
+        # Source: Interpolated between SEER 15 and SEER 16 2840 * 1.4 inflation + 42 * 1.4 inflation 
+        # from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=375&actionId=1933&bcId=5852
+          - value: 3976
+            multiplier: Fixed (1)
+          - value: 58.8
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &AC_fed_min_southern_state_SEER_15_lifetime 15 # do we need a lifetime here?
+
+  - upgrade_name: HPWH
+    options:
+      - &water_heater_fuel_type
+        option: Water Heater Fuel|Electricity
+        apply_logic:
+          - not: Water Heater Fuel|Electricity
+      - &water_heater_efficiency_electric_heat_pump_50_gal_3_pt_45_uef
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+        apply_logic:
+          - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - or:
+            - Bedrooms|1
+            - Bedrooms|2
+            - Bedrooms|3
+        costs:
+          - value: 2712.82 # Median installed cost for 50 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+            multiplier: Fixed (1)
+
+      - &water_heater_efficiency_electric_heat_pump_66_gal_3_pt_35_uef
+        option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        apply_logic:
+          - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+          - Bedrooms|4
+        costs:
+          - value: 3736.48  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+            multiplier: Fixed (1)
+
+      - &water_heater_efficiency_electric_heat_pump_80_gal_3_pt_45_uef
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        apply_logic:
+          - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+          - Bedrooms|5
+        costs:
+          - value: 4631.88 # Median installed cost for 80 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+            multiplier: Fixed (1)
+
+  - upgrade_name: 96% AFUE Natural Gas Furnace - existing Natural Gas
+
+    package_apply_logic: &natural_gas_hookup_furnace_ng  
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+
+    options:
+      - &Furnace_fuel_type
+        option: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+      - &ng_heating_type
+        option: Heating Fuel|Natural Gas
+      - &96pct_AFUE_furnace
+        option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
+        apply_logic:
+          - or:
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs: &NG_furnace_96_cost
+        # Source: 2500 * 1.4 inflation +  * 1.4 inflation from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=308&actionId=1104&bcId=4812
+          - value: 3500
+            multiplier: Fixed (1)
+          - value: 5.46
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &NG_furnace_96_lifetime 15 # do we need a lifetime here?
+
+  - upgrade_name: 96% AFUE Natural Gas Furnace - existing Propane
+
+    package_apply_logic: &natural_gas_hookup_furnace_propane  
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Propane Fuel Furnace
+
+    options:
+      - *Furnace_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_furnace
+
+  - upgrade_name: 96% AFUE Natural Gas Furnace - existing Fuel Oil
+
+    package_apply_logic: &natural_gas_hookup_furnace_fo 
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+
+    options:
+      - *Furnace_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_furnace
+
+  - upgrade_name: 96% AFUE Natural Gas Boiler - existing Natural Gas
+    package_apply_logic: &natural_gas_hookup_boiler_ng 
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+
+    options:
+      - &Boiler_fuel_type
+        option: HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+      - *ng_heating_type
+      - &96pct_AFUE_boiler
+        option: HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
+        apply_logic:
+          - or:
+            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+        costs: &NG_boiler_fed_min_96_percent_cost
+        # Source: 3100 * 1.4 inflation + 43 * 1.4 inflation from remdb - https://remdb.nrel.gov/measures?group_id=2&component_type_id=367&actionId=1900&bcId=5778
+          - value: 4340
+            multiplier: Fixed (1)
+          - value: 60.2
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &natural_gas_boiler_fed_min_96_percent_lifetime 15 # do we need a lifetime here?
+
+  - upgrade_name: 96% AFUE Natural Gas Boiler - existing Propane
+    package_apply_logic: &natural_gas_hookup_boiler_propane 
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Propane Fuel Boiler
+
+    options:
+      - *Boiler_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_boiler
+
+  - upgrade_name: 96% AFUE Natural Gas Boiler - existing Fuel Oil
+    package_apply_logic: &natural_gas_hookup_boiler_fo 
+      - or:
+        - Heating Fuel|Natural Gas
+        - Water Heater Fuel|Natural Gas
+        - Clothes Dryer|Gas
+        - Misc Hot Tub Spa|Natural Gas
+        - Misc Pool Heater|Natural Gas
+        - Misc Gas Fireplace|Gas Fireplace
+        - Misc Gas Grill|Gas Grill
+        - Misc Gas Lighting|Gas Lighting
+      - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+
+    options:
+      - *Boiler_fuel_type
+      - *ng_heating_type
+      - *96pct_AFUE_boiler
