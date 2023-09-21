@@ -72,7 +72,7 @@ def create_input_tsv(model):
         "Vintage": ["<1940", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s"],
     }
 
-    # https://github.com/NREL/resstock/blob/324563f9f616e4d71cc19843b6d5492a387e4b79/measures/ResStockArguments/measure.rb
+    # https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments/measure.rb
     df_fa = pd.DataFrame(data=[
         ('0-499', "Mobile Home", 298),
         ('0-499', "Single-Family Detached", 298),
@@ -119,8 +119,8 @@ def create_input_tsv(model):
         ('3000-3999', "Mobile Home", 3310),
         ('3000-3999', "Single-Family Detached", 3310),
         ('3000-3999', "Single-Family Attached", 3228),
-        ('3000-3999', "Multi-Family with 2 - 4 Units", 33171),
-        ('3000-3999', "Multi-Family with 5+ Units", 33171),
+        ('3000-3999', "Multi-Family with 2 - 4 Units", 3171),
+        ('3000-3999', "Multi-Family with 5+ Units", 3171),
 
         ('4000+', "Mobile Home", 5587),
         ('4000+', "Single-Family Detached", 5587),
