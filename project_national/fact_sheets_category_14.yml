@@ -4,7 +4,7 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/medium_run_category_14_20230915/
+output_directory: /projects/abctypol/largeee/test_runs/medium_run_category_14_20230920/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -35,7 +35,7 @@ eagle:
     time: 80
     n_workers: 20
   sampling:
-    time: 10
+    time: 25
 
 
 postprocessing:
@@ -107,15 +107,6 @@ upgrades:
   - upgrade_name: 96% AFUE NG Furnace + Light Touch Envelope - existing Natural Gas
   # Category 4, Measure 5 + Category 2, Measure 1
     package_apply_logic: &natural_gas_hookup_furnace_ng  
-      - or:
-        - Heating Fuel|Natural Gas
-        - Water Heater Fuel|Natural Gas
-        - Clothes Dryer|Gas
-        - Misc Hot Tub Spa|Natural Gas
-        - Misc Pool Heater|Natural Gas
-        - Misc Gas Fireplace|Gas Fireplace
-        - Misc Gas Grill|Gas Grill
-        - Misc Gas Lighting|Gas Lighting
       - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
 
     options: 
@@ -239,7 +230,6 @@ upgrades:
   # Category 4, Measure 5 + Category 2, Measure 1
     package_apply_logic: &natural_gas_hookup_furnace_propane  
       - or:
-        - Heating Fuel|Natural Gas
         - Water Heater Fuel|Natural Gas
         - Clothes Dryer|Gas
         - Misc Hot Tub Spa|Natural Gas
@@ -247,6 +237,7 @@ upgrades:
         - Misc Gas Fireplace|Gas Fireplace
         - Misc Gas Grill|Gas Grill
         - Misc Gas Lighting|Gas Lighting
+        - Cooking Range|Gas
       - HVAC Heating Type And Fuel|Propane Fuel Furnace
 
     options: 
@@ -265,7 +256,6 @@ upgrades:
   # Category 4, Measure 5 + Category 2, Measure 1
     package_apply_logic: &natural_gas_hookup_furnace_fo  
       - or:
-        - Heating Fuel|Natural Gas
         - Water Heater Fuel|Natural Gas
         - Clothes Dryer|Gas
         - Misc Hot Tub Spa|Natural Gas
@@ -273,6 +263,7 @@ upgrades:
         - Misc Gas Fireplace|Gas Fireplace
         - Misc Gas Grill|Gas Grill
         - Misc Gas Lighting|Gas Lighting
+        - Cooking Range|Gas
       - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
 
     options: 
@@ -290,15 +281,6 @@ upgrades:
   - upgrade_name: 96% AFUE NG Boiler + Light Touch Envelope - existing Natural Gas
   # Category 4, Measure 6 + Category 2, Measure 1
     package_apply_logic: &natural_gas_hookup_boiler_ng 
-      - or:
-        - Heating Fuel|Natural Gas
-        - Water Heater Fuel|Natural Gas
-        - Clothes Dryer|Gas
-        - Misc Hot Tub Spa|Natural Gas
-        - Misc Pool Heater|Natural Gas
-        - Misc Gas Fireplace|Gas Fireplace
-        - Misc Gas Grill|Gas Grill
-        - Misc Gas Lighting|Gas Lighting
       - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
 
     options: 
@@ -331,7 +313,6 @@ upgrades:
   # Category 4, Measure 6 + Category 2, Measure 1
     package_apply_logic: &natural_gas_hookup_boiler_propane 
       - or:
-        - Heating Fuel|Natural Gas
         - Water Heater Fuel|Natural Gas
         - Clothes Dryer|Gas
         - Misc Hot Tub Spa|Natural Gas
@@ -339,6 +320,7 @@ upgrades:
         - Misc Gas Fireplace|Gas Fireplace
         - Misc Gas Grill|Gas Grill
         - Misc Gas Lighting|Gas Lighting
+        - Cooking Range|Gas
       - HVAC Heating Type And Fuel|Propane Fuel Boiler
 
     options: 
@@ -357,7 +339,6 @@ upgrades:
   # Category 4, Measure 6 + Category 2, Measure 1
     package_apply_logic: &natural_gas_hookup_boiler_fo
       - or:
-        - Heating Fuel|Natural Gas
         - Water Heater Fuel|Natural Gas
         - Clothes Dryer|Gas
         - Misc Hot Tub Spa|Natural Gas
@@ -365,6 +346,7 @@ upgrades:
         - Misc Gas Fireplace|Gas Fireplace
         - Misc Gas Grill|Gas Grill
         - Misc Gas Lighting|Gas Lighting
+        - Cooking Range|Gas
       - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
 
     options: 
