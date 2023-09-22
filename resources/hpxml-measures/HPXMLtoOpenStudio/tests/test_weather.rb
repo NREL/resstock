@@ -4,7 +4,6 @@ require_relative '../resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
-require_relative '../measure.rb'
 require_relative '../resources/weather.rb'
 require_relative '../resources/unit_conversions.rb'
 require_relative '../resources/psychrometrics.rb'
@@ -50,7 +49,7 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     [19.3, 19.9, 30.3, 31.1, 47.4, 57.9, 59.1, 61.0, 52.4, 38.4, 27.0, 23.0].each_with_index do |monthly_temp, i|
       assert_in_delta(monthly_temp, weather.data.MonthlyAvgDailyLowDrybulbs[i], 0.1)
     end
-    [44.1, 40.9, 40.6, 42.2, 48.2, 54.3, 59.5, 62.8, 63.1, 60.4, 55.3, 49.4].each_with_index do |monthly_temp, i|
+    [45.6, 42.4, 42.2, 43.7, 49.7, 55.8, 61.0, 64.3, 64.6, 61.9, 56.8, 51.0].each_with_index do |monthly_temp, i|
       assert_in_delta(monthly_temp, weather.data.GroundMonthlyTemps[i], 0.1)
     end
 
@@ -99,7 +98,7 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     [66.1, 65.9, 66.6, 68.8, 70.7, 73.7, 75.2, 74.5, 75.2, 71.9, 70.6, 69.1].each_with_index do |monthly_temp, i|
       assert_in_delta(monthly_temp, weather.data.MonthlyAvgDailyLowDrybulbs[i], 0.1)
     end
-    [75.6, 75.0, 74.9, 75.2, 76.4, 77.6, 78.7, 79.3, 79.4, 78.9, 77.8, 76.7].each_with_index do |monthly_temp, i|
+    [74.9, 74.2, 74.2, 74.5, 75.7, 76.9, 77.9, 78.6, 78.6, 78.1, 77.1, 75.9].each_with_index do |monthly_temp, i|
       assert_in_delta(monthly_temp, weather.data.GroundMonthlyTemps[i], 0.1)
     end
 
@@ -148,7 +147,7 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     [61.0, 61.9, 59.7, 54.5, 50.8, 46.7, 45.3, 47.7, 50.1, 50.6, 57.9, 59.6].each_with_index do |monthly_temp, i|
       assert_in_delta(monthly_temp, weather.data.MonthlyAvgDailyLowDrybulbs[i], 0.1)
     end
-    [59.2, 58.0, 57.9, 58.5, 60.7, 62.9, 64.9, 66.1, 66.2, 65.2, 63.3, 61.1].each_with_index do |monthly_temp, i|
+    [59.7, 58.6, 58.5, 59.1, 61.3, 63.5, 65.5, 66.7, 66.8, 65.8, 63.9, 61.7].each_with_index do |monthly_temp, i|
       assert_in_delta(monthly_temp, weather.data.GroundMonthlyTemps[i], 0.1)
     end
 
@@ -197,7 +196,7 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     [22.1, 17.4, 30.4, 34.4, 40.8, 54.1, 57.5, 55.6, 48.1, 33.5, 30.0, 18.9].each_with_index do |monthly_temp, i|
       assert_in_delta(monthly_temp, weather.data.MonthlyAvgDailyLowDrybulbs[i], 0.1)
     end
-    [41.3, 37.9, 37.6, 39.2, 45.7, 52.2, 57.9, 61.4, 61.8, 58.8, 53.4, 47.1].each_with_index do |monthly_temp, i|
+    [43.0, 39.6, 39.3, 40.9, 47.5, 54.0, 59.6, 63.2, 63.5, 60.6, 55.1, 48.8].each_with_index do |monthly_temp, i|
       assert_in_delta(monthly_temp, weather.data.GroundMonthlyTemps[i], 0.1)
     end
 
@@ -214,56 +213,34 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
   end
 
   def test_ground_temperatures
-    hpxml = HPXML.new(hpxml_path: File.join(weather_dir, '..', 'workflow', 'sample_files', 'base.xml'))
-    climate_zone_iecc = hpxml.climate_and_risk_zones.climate_zone_ieccs[0]
-
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    weather = WeatherProcess.new(epw_path: File.join(weather_dir, hpxml.climate_and_risk_zones.weather_station_epw_filepath), runner: runner)
 
-    iecc_zones = Constants.IECCZones + ['7A', '7AK', '7B', '8AK']
-    iecc_zones.each do |iz|
-      climate_zone_iecc.zone = iz
-      ground_temp_f = WeatherProcess.get_undisturbed_ground_temperature(weather, climate_zone_iecc)
-      if iz == '1A'
-        gtf = 25.9
-      elsif iz == '2A'
-        gtf = 20.9
-      elsif iz == '2B'
-        gtf = 25.0
-      elsif iz == '3A'
-        gtf = 17.9
-      elsif iz == '3B'
-        gtf = 19.7
-      elsif iz == '3C'
-        gtf = 17.0
-      elsif iz == '4A'
-        gtf = 14.7
-      elsif iz == '4B'
-        gtf = 16.3
-      elsif iz == '4C'
-        gtf = 13.3
-      elsif iz == '5A'
-        gtf = 11.5
-      elsif iz == '5B'
-        gtf = 12.9
-      elsif iz == '6A'
-        gtf = 9.0
-      elsif iz == '6B'
-        gtf = 9.3
-      elsif iz == '7A'
-        gtf = 7.0
-      elsif iz == '7AK'
-        gtf = 5.4
-      elsif iz == '7B'
-        gtf = 6.5
-      elsif iz == '8AK'
-        gtf = 2.3
-      elsif ['1B', '1C', '2C', '5C', '6C', '7', '8'].include?(iz)
-        gtf = UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'C')
-      else
-        fail "No expected value for #{iz}"
+    ['USA_CO_Denver.Intl.AP.725650_TMY3.epw',
+     'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw',
+     'ZAF_Cape.Town.688160_IWEC.epw',
+     'US_CO_Boulder_AMY_2012.epw',
+     'USA_FL_Miami.Intl.AP.722020_TMY3.epw',
+     'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw',
+     'USA_MN_Duluth.Intl.AP.727450_TMY3.epw'].each do |epw_filename|
+      weather = WeatherProcess.new(epw_path: File.join(weather_dir, epw_filename), runner: runner)
+      ground_temp_f = weather.data.GroundMonthlyTemps.sum(0.0) / weather.data.GroundMonthlyTemps.size
+
+      if epw_filename == 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
+        gtf = 53.25
+      elsif epw_filename == 'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw'
+        gtf = 76.38
+      elsif epw_filename == 'ZAF_Cape.Town.688160_IWEC.epw'
+        gtf = 62.6
+      elsif epw_filename == 'US_CO_Boulder_AMY_2012.epw'
+        gtf = 51.24
+      elsif epw_filename == 'USA_FL_Miami.Intl.AP.722020_TMY3.epw'
+        gtf = 75.69
+      elsif epw_filename == 'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'
+        gtf = 74.42
+      elsif epw_filename == 'USA_MN_Duluth.Intl.AP.727450_TMY3.epw'
+        gtf = 41.97
       end
-      assert_equal(UnitConversions.convert(gtf, 'C', 'F'), ground_temp_f)
+      assert_in_delta(gtf, ground_temp_f, 0.01)
     end
   end
 end

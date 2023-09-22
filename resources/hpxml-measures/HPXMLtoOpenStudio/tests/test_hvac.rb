@@ -716,8 +716,8 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     # Get HPXML values
     geothermal_loop = hpxml.geothermal_loops[0]
     bore_radius = UnitConversions.convert(geothermal_loop.bore_diameter / 2.0, 'in', 'm')
-    grout_conductivity = UnitConversions.convert(geothermal_loop.grout_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)')
-    pipe_cond = UnitConversions.convert(geothermal_loop.pipe_cond, 'Btu/(hr*ft*R)', 'W/(m*K)')
+    grout_conductivity = UnitConversions.convert(0.4, 'Btu/(hr*ft*R)', 'W/(m*K)')
+    pipe_conductivity = UnitConversions.convert(0.23, 'Btu/(hr*ft*R)', 'W/(m*K)')
     shank_spacing = UnitConversions.convert(geothermal_loop.shank_spacing, 'in', 'm')
 
     # Check ghx
@@ -725,7 +725,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     ghx = model.getGroundHeatExchangerVerticals[0]
     assert_in_epsilon(bore_radius, ghx.boreHoleRadius.get, 0.01)
     assert_in_epsilon(grout_conductivity, ghx.groutThermalConductivity.get, 0.01)
-    assert_in_epsilon(pipe_cond, ghx.pipeThermalConductivity.get, 0.01)
+    assert_in_epsilon(pipe_conductivity, ghx.pipeThermalConductivity.get, 0.01)
     assert_in_epsilon(shank_spacing, ghx.uTubeDistance.get, 0.01)
 
     # Check G-Functions
@@ -746,9 +746,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     bore_spacing = UnitConversions.convert(7.0, 'm', 'ft')
     bore_depth = UnitConversions.convert(150.0, 'm', 'ft')
     bore_diameter = UnitConversions.convert(UnitConversions.convert(80.0, 'mm', 'm'), 'm', 'in') * 2
-    valid_configs = HVAC.valid_borefield_configs
-    g_functions_filename = valid_configs[bore_config]['filename']
-    actual_lntts, actual_gfnc_coeff = HVACSizing.gshp_gfnc_coeff(bore_config, g_functions_filename, num_bore_holes, bore_spacing, bore_depth, bore_diameter)
+    valid_bore_configs = HVAC.valid_bore_configs
+    g_functions_filename = valid_bore_configs[bore_config]
+    g_functions_json = HVAC.get_g_functions_json(g_functions_filename)
+
+    actual_lntts, actual_gfnc_coeff = HVACSizing.gshp_gfnc_coeff(bore_config, g_functions_json, num_bore_holes, bore_spacing, bore_depth, bore_diameter)
 
     expected_lntts = [-8.5, -7.8, -7.2, -6.5, -5.9, -5.2, -4.5, -3.963, -3.27, -2.864, -2.577, -2.171, -1.884, -1.191, -0.497, -0.274, -0.051, 0.196, 0.419, 0.642, 0.873, 1.112, 1.335, 1.679, 2.028, 2.275, 3.003]
     expected_gfnc_coeff = [2.619, 2.967, 3.279, 3.700, 4.190, 5.107, 6.680, 8.537, 11.991, 14.633, 16.767, 20.083, 22.593, 28.734, 34.345, 35.927, 37.342, 38.715, 39.768, 40.664, 41.426, 42.056, 42.524, 43.054, 43.416, 43.594, 43.885]
@@ -762,14 +764,16 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
   end
 
   def test_all_g_function_configs_exist
-    require 'json'
+    valid_configs = { HPXML::GeothermalLoopBorefieldConfigurationRectangle => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                      HPXML::GeothermalLoopBorefieldConfigurationOpenRectangle => [8, 10],
+                      HPXML::GeothermalLoopBorefieldConfigurationC => [7, 9],
+                      HPXML::GeothermalLoopBorefieldConfigurationL => [4, 5, 6, 7, 8, 9, 10],
+                      HPXML::GeothermalLoopBorefieldConfigurationU => [7, 9, 10],
+                      HPXML::GeothermalLoopBorefieldConfigurationLopsidedU => [6, 7, 8, 9, 10] }
 
-    valid_configs = HVAC.valid_borefield_configs
-    valid_configs.each do |bore_config, num_boreholes_and_filename|
-      valid_num_bores = num_boreholes_and_filename['num_boreholes']
-      g_functions_filename = num_boreholes_and_filename['filename']
-      g_functions_filepath = File.join(File.dirname(__FILE__), '../resources/g_functions', g_functions_filename)
-      g_functions_json = JSON.parse(File.read(g_functions_filepath), symbolize_names: true)
+    valid_configs.each do |bore_config, valid_num_bores|
+      g_functions_filename = HVAC.valid_bore_configs[bore_config]
+      g_functions_json = HVAC.get_g_functions_json(g_functions_filename)
       valid_num_bores.each do |num_bore_holes|
         HVACSizing.get_g_functions(g_functions_json, bore_config, num_bore_holes, '5._192._0.08') # b_h_rb is arbitrary
       end

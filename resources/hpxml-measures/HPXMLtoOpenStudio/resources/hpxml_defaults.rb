@@ -484,7 +484,7 @@ class HPXMLDefaults
     end
 
     if hpxml.site.soil_type.nil? && hpxml.site.ground_conductivity.nil? && hpxml.site.ground_diffusivity.nil?
-      hpxml.site.soil_type = HPXML::SiteSoilSoilTypeUnknown
+      hpxml.site.soil_type = HPXML::SiteSoilTypeUnknown
       hpxml.site.soil_type_isdefaulted = true
     end
 
@@ -493,78 +493,58 @@ class HPXMLDefaults
       hpxml.site.moisture_type_isdefaulted = true
     end
 
+    # Conductivity/diffusivity values come from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4813881 (with the exception of "unknown")
     if hpxml.site.ground_conductivity.nil? && hpxml.site.ground_diffusivity.nil?
-      if hpxml.site.soil_type == HPXML::SiteSoilSoilTypeSand
+      if hpxml.site.soil_type == HPXML::SiteSoilTypeSand
         if hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeDry
           hpxml.site.ground_conductivity = 0.2311 # Btu/hr-ft-F
-          hpxml.site.ground_conductivity_isdefaulted = true
-
           hpxml.site.ground_diffusivity = 0.0097 # ft^2/hr
-          hpxml.site.ground_diffusivity_isdefaulted = true
         elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeWet
           hpxml.site.ground_conductivity = 1.3865 # Btu/hr-ft-F
-          hpxml.site.ground_conductivity_isdefaulted = true
-
           hpxml.site.ground_diffusivity = 0.0322 # ft^2/hr
-          hpxml.site.ground_diffusivity_isdefaulted = true
         elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeMixed
           hpxml.site.ground_conductivity = ((0.2311 + 1.3865) / 2.0).round(4) # Btu/hr-ft-F
-          hpxml.site.ground_conductivity_isdefaulted = true
-
           hpxml.site.ground_diffusivity = ((0.0097 + 0.0322) / 2.0).round(4) # ft^2/hr
-          hpxml.site.ground_diffusivity_isdefaulted = true
         end
-      elsif hpxml.site.soil_type == HPXML::SiteSoilSoilTypeSilt || hpxml.site.soil_type == HPXML::SiteSoilSoilTypeClay
+        hpxml.site.ground_conductivity_isdefaulted = true
+        hpxml.site.ground_diffusivity_isdefaulted = true
+      elsif hpxml.site.soil_type == HPXML::SiteSoilTypeSilt || hpxml.site.soil_type == HPXML::SiteSoilTypeClay
         if hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeDry
           hpxml.site.ground_conductivity = 0.2889 # Btu/hr-ft-F
-          hpxml.site.ground_conductivity_isdefaulted = true
-
           hpxml.site.ground_diffusivity = 0.0120 # ft^2/hr
-          hpxml.site.ground_diffusivity_isdefaulted = true
         elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeWet
           hpxml.site.ground_conductivity = 0.9821 # Btu/hr-ft-F
-          hpxml.site.ground_conductivity_isdefaulted = true
-
           hpxml.site.ground_diffusivity = 0.0194 # ft^2/hr
-          hpxml.site.ground_diffusivity_isdefaulted = true
         elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeMixed
           hpxml.site.ground_conductivity = ((0.2889 + 0.9821) / 2.0).round(4) # Btu/hr-ft-F
-          hpxml.site.ground_conductivity_isdefaulted = true
-
           hpxml.site.ground_diffusivity = ((0.0120 + 0.0194) / 2.0).round(4) # ft^2/hr
-          hpxml.site.ground_diffusivity_isdefaulted = true
         end
-      elsif hpxml.site.soil_type == HPXML::SiteSoilSoilTypeLoam
-        hpxml.site.ground_conductivity = 1.2132 # Btu/hr-ft-F
         hpxml.site.ground_conductivity_isdefaulted = true
-
-        hpxml.site.ground_diffusivity = 0.0353 # ft^2/hr
         hpxml.site.ground_diffusivity_isdefaulted = true
-      elsif hpxml.site.soil_type == HPXML::SiteSoilSoilTypeGravel
+      elsif hpxml.site.soil_type == HPXML::SiteSoilTypeLoam
+        hpxml.site.ground_conductivity = 1.2132 # Btu/hr-ft-F
+        hpxml.site.ground_diffusivity = 0.0353 # ft^2/hr
+
+        hpxml.site.ground_conductivity_isdefaulted = true
+        hpxml.site.ground_diffusivity_isdefaulted = true
+      elsif hpxml.site.soil_type == HPXML::SiteSoilTypeGravel
         if hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeDry
           hpxml.site.ground_conductivity = 0.2311 # Btu/hr-ft-F
-          hpxml.site.ground_conductivity_isdefaulted = true
-
           hpxml.site.ground_diffusivity = 0.0097 # ft^2/hr
-          hpxml.site.ground_diffusivity_isdefaulted = true
         elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeWet
           hpxml.site.ground_conductivity = 1.0399 # Btu/hr-ft-F
-          hpxml.site.ground_conductivity_isdefaulted = true
-
           hpxml.site.ground_diffusivity = 0.0291 # ft^2/hr
-          hpxml.site.ground_diffusivity_isdefaulted = true
         elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeMixed
           hpxml.site.ground_conductivity = ((0.2311 + 1.0399) / 2.0).round(4) # Btu/hr-ft-F
-          hpxml.site.ground_conductivity_isdefaulted = true
-
           hpxml.site.ground_diffusivity = ((0.0097 + 0.0291) / 2.0).round(4) # ft^2/hr
-          hpxml.site.ground_diffusivity_isdefaulted = true
         end
-      elsif hpxml.site.soil_type == HPXML::SiteSoilSoilTypeUnknown
-        hpxml.site.ground_conductivity = 1.0 # Btu/hr-ft-F
         hpxml.site.ground_conductivity_isdefaulted = true
-
+        hpxml.site.ground_diffusivity_isdefaulted = true
+      elsif hpxml.site.soil_type == HPXML::SiteSoilTypeUnknown
+        hpxml.site.ground_conductivity = 1.0 # Btu/hr-ft-F
         hpxml.site.ground_diffusivity = 0.0208 # ft^2/hr
+
+        hpxml.site.ground_conductivity_isdefaulted = true
         hpxml.site.ground_diffusivity_isdefaulted = true
       end
     elsif hpxml.site.ground_conductivity.nil?
@@ -1616,9 +1596,9 @@ class HPXMLDefaults
           heat_pump.geothermal_loop_idref = hpxml.geothermal_loops[-1].id
         end
 
-        if heat_pump.geothermal_loop.pipe_size.nil?
-          heat_pump.geothermal_loop.pipe_size = 0.75 # in
-          heat_pump.geothermal_loop.pipe_size_isdefaulted = true
+        if heat_pump.geothermal_loop.pipe_diameter.nil?
+          heat_pump.geothermal_loop.pipe_diameter = 0.75 # in
+          heat_pump.geothermal_loop.pipe_diameter_isdefaulted = true
         end
 
         HVAC.set_gshp_assumptions(heat_pump, weather)
@@ -1635,23 +1615,31 @@ class HPXMLDefaults
         end
 
         if heat_pump.geothermal_loop.grout_type.nil? && heat_pump.geothermal_loop.grout_conductivity.nil?
-          heat_pump.geothermal_loop.grout_type = HPXML::GeothermalLoopGroutTypeStandard
+          heat_pump.geothermal_loop.grout_type = HPXML::GeothermalLoopGroutOrPipeTypeStandard
           heat_pump.geothermal_loop.grout_type_isdefaulted = true
         end
 
         if heat_pump.geothermal_loop.grout_conductivity.nil?
-          if heat_pump.geothermal_loop.grout_type == HPXML::GeothermalLoopGroutTypeStandard
+          if heat_pump.geothermal_loop.grout_type == HPXML::GeothermalLoopGroutOrPipeTypeStandard
             heat_pump.geothermal_loop.grout_conductivity = 0.4 # Btu/h-ft-R
-            heat_pump.geothermal_loop.grout_conductivity_isdefaulted = true
-          elsif heat_pump.geothermal_loop.grout_type == HPXML::GeothermalLoopGroutTypeThermallyEnhanced
+          elsif heat_pump.geothermal_loop.grout_type == HPXML::GeothermalLoopGroutOrPipeTypeThermallyEnhanced
             heat_pump.geothermal_loop.grout_conductivity = 0.8 # Btu/h-ft-R
-            heat_pump.geothermal_loop.grout_conductivity_isdefaulted = true
           end
+          heat_pump.geothermal_loop.grout_conductivity_isdefaulted = true
         end
 
-        if heat_pump.geothermal_loop.pipe_cond.nil?
-          heat_pump.geothermal_loop.pipe_cond = 0.23 # Btu/h-ft-R; Pipe thermal conductivity, default to high density polyethylene
-          heat_pump.geothermal_loop.pipe_cond_isdefaulted = true
+        if heat_pump.geothermal_loop.pipe_type.nil? && heat_pump.geothermal_loop.pipe_conductivity.nil?
+          heat_pump.geothermal_loop.pipe_type = HPXML::GeothermalLoopGroutOrPipeTypeStandard
+          heat_pump.geothermal_loop.pipe_type_isdefaulted = true
+        end
+
+        if heat_pump.geothermal_loop.pipe_conductivity.nil?
+          if heat_pump.geothermal_loop.pipe_type == HPXML::GeothermalLoopGroutOrPipeTypeStandard
+            heat_pump.geothermal_loop.pipe_conductivity = 0.23 # Btu/h-ft-R; Pipe thermal conductivity, default to high density polyethylene
+          elsif heat_pump.geothermal_loop.pipe_type == HPXML::GeothermalLoopGroutOrPipeTypeThermallyEnhanced
+            heat_pump.geothermal_loop.pipe_conductivity = 0.40 # Btu/h-ft-R; 0.7 W/m-K from https://www.dropbox.com/scl/fi/91yp8e9v34vdh1isvrfvy/GeoPerformX-Spec-Sheet.pdf?rlkey=kw7p01gs46z9lfjs78bo8aujq&dl=0
+          end
+          heat_pump.geothermal_loop.pipe_conductivity_isdefaulted = true
         end
 
         if heat_pump.geothermal_loop.shank_spacing.nil?
@@ -3070,7 +3058,7 @@ class HPXMLDefaults
               geothermal_loop.num_bore_holes_isdefaulted = true
             end
             if geothermal_loop.bore_length.nil?
-              geothermal_loop.bore_length = hvac_sizing_values.GSHP_Bore_Depth # this is the length (i.e., depth) of each borehole?
+              geothermal_loop.bore_length = hvac_sizing_values.GSHP_Bore_Depth
               geothermal_loop.bore_length_isdefaulted = true
             end
             if geothermal_loop.bore_config.nil?

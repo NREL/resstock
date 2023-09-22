@@ -48,7 +48,7 @@ class HVACSizing
       apply_hvac_equipment_adjustments(hvac_sizing_values, weather, hvac_heating, hvac_cooling, hvac_system)
       apply_hvac_installation_quality(hvac_sizing_values, hvac_heating, hvac_cooling)
       apply_hvac_fixed_capacities(hvac_sizing_values, hvac_heating, hvac_cooling)
-      apply_hvac_ground_loop(hvac_sizing_values, weather, hvac_cooling, @hpxml.climate_and_risk_zones.climate_zone_ieccs[0])
+      apply_hvac_ground_loop(hvac_sizing_values, weather, hvac_cooling)
       apply_hvac_finalize_airflows(hvac_sizing_values, hvac_heating, hvac_cooling)
 
       all_hvac_sizing_values[hvac_system] = hvac_sizing_values
@@ -1877,7 +1877,7 @@ class HVACSizing
     end
   end
 
-  def self.apply_hvac_ground_loop(hvac_sizing_values, weather, hvac_cooling, climate_zone_iecc)
+  def self.apply_hvac_ground_loop(hvac_sizing_values, weather, hvac_cooling)
     '''
     GSHP Ground Loop Sizing Calculations
     '''
@@ -1891,7 +1891,7 @@ class HVACSizing
     bore_diameter = geothermal_loop.bore_diameter
     grout_conductivity = geothermal_loop.grout_conductivity
     pipe_r_value = gshp_hx_pipe_rvalue(hvac_cooling)
-    nom_length_heat, nom_length_cool = gshp_hxbore_ft_per_ton(weather, hvac_cooling_ap, bore_spacing, bore_diameter, grout_conductivity, pipe_r_value, climate_zone_iecc)
+    nom_length_heat, nom_length_cool = gshp_hxbore_ft_per_ton(weather, hvac_cooling_ap, bore_spacing, bore_diameter, grout_conductivity, pipe_r_value)
 
     loop_flow = geothermal_loop.loop_flow
     if loop_flow.nil?
@@ -1903,10 +1903,10 @@ class HVACSizing
       num_bore_holes = [1, (UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton') + 0.5).floor].max
     end
 
-    min_bore_depth = UnitConversions.convert(24.0, 'm', 'ft') # based on g-function library
-    # In NY that's the depth that requires a mining permit, which has been a barrier for Dandelion Energy with installing GSHPs.
+    min_bore_depth = Float(UnitConversions.convert(24.0, 'm', 'ft').round) # based on g-function library
+    # In NY the following is the depth that requires a mining permit, which has been a barrier for Dandelion Energy with installing GSHPs.
     # Sounds like people are pushing ever deeper but for now we can apply this limit and add a note about where it came from.
-    max_bore_depth = UnitConversions.convert(152.0, 'm', 'ft')
+    max_bore_depth = 500.0 # ft
 
     bore_depth = geothermal_loop.bore_length
     if bore_depth.nil?
@@ -1916,7 +1916,7 @@ class HVACSizing
       bore_depth = (bore_length / num_bore_holes).floor # ft
 
       active_length = 5 # the active length starts about 5 ft below the surface
-      for _i in 0..4
+      for _i in 0..active_length - 1
         if (bore_depth + active_length < min_bore_depth) && (num_bore_holes > 1)
           num_bore_holes -= 1
           bore_depth = (bore_length / num_bore_holes).floor
@@ -1938,14 +1938,16 @@ class HVACSizing
       bore_config = HPXML::GeothermalLoopBorefieldConfigurationRectangle
     end
 
-    valid_configs = HVAC.valid_borefield_configs
-    valid_num_bores = valid_configs[bore_config]['num_boreholes']
+    valid_configs = HVAC.valid_bore_configs
+    g_functions_filename = valid_configs[bore_config]
+    g_functions_json = HVAC.get_g_functions_json(g_functions_filename)
+    valid_num_bores = HVAC.get_valid_num_bores(g_functions_json)
+
     unless valid_num_bores.include? num_bore_holes
       fail "Number of bore holes (#{num_bore_holes}) with borefield configuration '#{bore_config}' not supported."
     end
 
-    g_functions_filename = valid_configs[bore_config]['filename']
-    lntts, gfnc_coeff = gshp_gfnc_coeff(bore_config, g_functions_filename, num_bore_holes, bore_spacing, bore_depth, bore_diameter)
+    lntts, gfnc_coeff = gshp_gfnc_coeff(bore_config, g_functions_json, num_bore_holes, bore_spacing, bore_depth, bore_diameter)
 
     hvac_sizing_values.GSHP_Loop_flow = loop_flow
     hvac_sizing_values.GSHP_Bore_Depth = bore_depth
@@ -2643,10 +2645,10 @@ class HVACSizing
     hvac_cooling_ap = hvac_cooling.additional_properties
 
     # Thermal Resistance of Pipe
-    return Math.log(hvac_cooling_ap.pipe_od / hvac_cooling_ap.pipe_id) / 2.0 / Math::PI / hvac_cooling.geothermal_loop.pipe_cond
+    return Math.log(hvac_cooling_ap.pipe_od / hvac_cooling_ap.pipe_id) / 2.0 / Math::PI / hvac_cooling.geothermal_loop.pipe_conductivity
   end
 
-  def self.gshp_hxbore_ft_per_ton(weather, hvac_cooling_ap, bore_spacing, bore_diameter, grout_conductivity, pipe_r_value, climate_zone_iecc)
+  def self.gshp_hxbore_ft_per_ton(weather, hvac_cooling_ap, bore_spacing, bore_diameter, grout_conductivity, pipe_r_value)
     if hvac_cooling_ap.u_tube_spacing_type == 'b'
       beta_0 = 17.4427
       beta_1 = -0.6052
@@ -2665,19 +2667,14 @@ class HVACSizing
     rtf_DesignMon_Heat = [0.25, (71.0 - weather.data.MonthlyAvgDrybulbs[0]) / @htd].max
     rtf_DesignMon_Cool = [0.25, (weather.data.MonthlyAvgDrybulbs[6] - 76.0) / @ctd].max
 
-    ground_temp_f = WeatherProcess.get_undisturbed_ground_temperature(weather, climate_zone_iecc)
+    ground_temp_f = weather.data.GroundMonthlyTemps.sum(0.0) / weather.data.GroundMonthlyTemps.size
     nom_length_heat = (1.0 - hvac_cooling_ap.heat_rated_eirs[0]) * (r_value_bore + r_value_ground * rtf_DesignMon_Heat) / (ground_temp_f - (2.0 * hvac_cooling_ap.design_hw - hvac_cooling_ap.design_delta_t) / 2.0) * UnitConversions.convert(1.0, 'ton', 'Btu/hr')
     nom_length_cool = (1.0 + hvac_cooling_ap.cool_rated_eirs[0]) * (r_value_bore + r_value_ground * rtf_DesignMon_Cool) / ((2.0 * hvac_cooling_ap.design_chw + hvac_cooling_ap.design_delta_t) / 2.0 - ground_temp_f) * UnitConversions.convert(1.0, 'ton', 'Btu/hr')
 
     return nom_length_heat, nom_length_cool
   end
 
-  def self.gshp_gfnc_coeff(bore_config, g_functions_filename, num_bore_holes, bore_spacing, bore_depth, bore_diameter)
-    require 'json'
-
-    g_functions_filepath = File.join(File.dirname(__FILE__), 'g_functions', g_functions_filename)
-    g_functions_json = JSON.parse(File.read(g_functions_filepath), symbolize_names: true)
-
+  def self.gshp_gfnc_coeff(bore_config, g_functions_json, num_bore_holes, bore_spacing, bore_depth, bore_diameter)
     actuals = { 'b' => UnitConversions.convert(bore_spacing, 'ft', 'm'),
                 'h' => UnitConversions.convert(bore_depth, 'ft', 'm'),
                 'rb' => UnitConversions.convert(bore_diameter / 2.0, 'in', 'm') }
@@ -2729,12 +2726,8 @@ class HVACSizing
       correction_factor = Math.log(rb_actual_over_rb)
       g_functions = g_functions.map { |v| v - correction_factor }
 
-      fail "Found different logtimes for '#{bore_config}' with H=#{h1} and H=#{h2}." if logtimes[0] != logtimes[1]
-
       return logtimes[0], g_functions
     end
-
-    fail "Could not find gfnc_coeff from '#{g_functions_filename}'."
   end
 
   def self.get_g_functions(g_functions_json, bore_config, num_bore_holes, b_h_rb)
@@ -2763,8 +2756,6 @@ class HVACSizing
         end
       end
     end
-
-    fail "Could not find g-values for '#{bore_config}' with '#{num_bore_holes}' boreholes."
   end
 
   def self.calculate_average_r_value(surfaces)

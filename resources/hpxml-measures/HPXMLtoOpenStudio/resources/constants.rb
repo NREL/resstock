@@ -90,6 +90,12 @@ class Constants
     return __method__.to_s
   end
 
+  def self.MoistureTypes
+    return [HPXML::SiteSoilMoistureTypeDry,
+            HPXML::SiteSoilMoistureTypeMixed,
+            HPXML::SiteSoilMoistureTypeWet]
+  end
+
   def self.ObjectNameAirflow
     return 'airflow'
   end
@@ -464,6 +470,16 @@ class Constants
 
   def self.ScheduleTypeLimitsTemperature
     return 'Temperature'
+  end
+
+  def self.SoilTypes
+    return [HPXML::SiteSoilTypeClay,
+            HPXML::SiteSoilTypeGravel,
+            HPXML::SiteSoilTypeLoam,
+            # HPXML::SiteSoilTypeOther,
+            HPXML::SiteSoilTypeSand,
+            HPXML::SiteSoilTypeSilt,
+            HPXML::SiteSoilTypeUnknown]
   end
 
   def self.StateCodesMap

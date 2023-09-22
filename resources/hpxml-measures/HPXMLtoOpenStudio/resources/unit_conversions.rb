@@ -69,7 +69,6 @@ class UnitConversions
     ['ft^2', 'in^2'] => 144.0,
     ['ft^2', 'm^2'] => 0.09290304,
     ['m^2', 'ft^2'] => 1.0 / 0.09290304,
-    ['m^2/s', 'ft^2/hr'] => 38750.1,
 
     # Volume
     ['ft^3', 'gal'] => 7.480519480579059,
@@ -133,6 +132,9 @@ class UnitConversions
     # Thermal Conductivity
     ['btu/(hr*ft*r)', 'w/(m*k)'] => 1.731,
     ['btu*in/(hr*ft^2*r)', 'w/(m*k)'] => 0.14425,
+
+    # Thermal Diffusivity
+    ['m^2/s', 'ft^2/hr'] => 38750.1,
 
     # Infiltration
     ['ft^2/(s^2*r)', 'l^2/(s^2*cm^4*k)'] => 0.001672,

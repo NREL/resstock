@@ -519,7 +519,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
       elsif ['invalid-soil-type'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.site.soil_type = HPXML::SiteSoilSoilTypeOther
+        hpxml.site.soil_type = HPXML::SiteSoilTypeOther
       elsif ['invalid-shared-vent-in-unit-flowrate'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-mechvent.xml'))
         hpxml.ventilation_fans[0].rated_flow_rate = 80
@@ -851,8 +851,8 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'hvac-distribution-multiple-attached-heating' => ["Multiple heating systems found attached to distribution system 'HVACDistribution1'."],
                             'hvac-dse-multiple-attached-cooling' => ["Multiple cooling systems found attached to distribution system 'HVACDistribution1'."],
                             'hvac-dse-multiple-attached-heating' => ["Multiple heating systems found attached to distribution system 'HVACDistribution1'."],
-                            'hvac-gshp-invalid-bore-depth' => ['Bore depth (1260.0) not between 78.74 and 498.688 ft'],
-                            'hvac-gshp-invalid-num-bore-holes' => ["Number of bore holes (5) with borefield configuration 'Lopsided U' not supported"],
+                            'hvac-gshp-invalid-bore-depth' => ['Bore depth (1260.0) not between 79.0 and 500.0 ft.'],
+                            'hvac-gshp-invalid-num-bore-holes' => ["Number of bore holes (5) with borefield configuration 'Lopsided U' not supported."],
                             'hvac-inconsistent-fan-powers' => ["Fan powers for heating system 'HeatingSystem1' and cooling system 'CoolingSystem1' are attached to a single distribution system and therefore must be the same."],
                             'hvac-invalid-distribution-system-type' => ["Incorrect HVAC distribution system type for HVAC type: 'Furnace'. Should be one of: ["],
                             'hvac-shared-boiler-multiple' => ['More than one shared heating system found.'],
@@ -881,6 +881,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'leap-year-TMY' => ['Specified a leap year (2008) but weather data has 8760 hours.'],
                             'net-area-negative-wall' => ["Calculated a negative net surface area for surface 'Wall1'."],
                             'net-area-negative-roof' => ["Calculated a negative net surface area for surface 'Roof1'."],
+                            'orphaned-geothermal-loop' => ["Geothermal loop 'GeothermalLoop1' found but no heat pump attached to it."],
                             'orphaned-hvac-distribution' => ["Distribution system 'HVACDistribution1' found but no HVAC system attached to it."],
                             'refrigerators-multiple-primary' => ['More than one refrigerator designated as the primary.'],
                             'refrigerators-no-primary' => ['Could not find a primary refrigerator.'],
@@ -1127,6 +1128,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['net-area-negative-wall'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.windows[0].area = 1000
+      elsif ['orphaned-geothermal-loop'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-geothermal-loop.xml'))
+        hpxml.heat_pumps[0].geothermal_loop_idref = nil
       elsif ['orphaned-hvac-distribution'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-furnace-gas-room-ac.xml'))
         hpxml.heating_systems[0].delete
