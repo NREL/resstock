@@ -240,7 +240,6 @@
       <sch:assert role='ERROR' test='count(h:Systems/h:HVAC/h:HVACPlant/h:HeatingSystem) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/HVAC/HVACPlant/HeatingSystem</sch:assert> <!-- see [HeatingSystem] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:HVAC/h:HVACPlant/h:CoolingSystem) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/HVAC/HVACPlant/CoolingSystem</sch:assert> <!-- see [CoolingSystem] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:HVAC/h:HVACPlant/h:HeatPump) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/HVAC/HVACPlant/HeatPump</sch:assert> <!-- see [HeatPump] -->
-      <sch:assert role='ERROR' test='count(h:Systems/h:HVAC/h:HVACPlant/h:GeothermalLoop) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/HVAC/HVACPlant/GeothermalLoop</sch:assert> <!-- see [GeothermalLoop] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:HVAC/h:HVACControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Systems/HVAC/HVACControl</sch:assert> <!-- See [HVACControl=Heating] and/or [HVACControl=Cooling] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:HVAC/h:HVACDistribution) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/HVAC/HVACDistribution</sch:assert> <!-- see [HVACDistribution] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/MechanicalVentilation/VentilationFans/VentilationFan</sch:assert> <!-- See [VentilationFan] -->
@@ -300,6 +299,8 @@
       <sch:assert role='ERROR' test='count(h:ShieldingofHome) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ShieldingofHome</sch:assert>
       <sch:assert role='ERROR' test='count(h:Soil) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Soil</sch:assert> <!-- See [Soil] -->
       <sch:assert role='ERROR' test='count(h:extension/h:Neighbors) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/Neighbors</sch:assert> <!-- See [Neighbors] -->
+      <!-- Deprecated old GroundConductivity input; see https://github.com/NREL/OpenStudio-HPXML/issues/1202 -->
+      <sch:assert role='ERROR' test='count(h:extension/h:GroundConductivity) = 0'>extension/GroundConductivity has been replaced by /HPXML/Building/BuildingDetails/BuildingSummary/Site/Soil/Conductivity</sch:assert>
     </sch:rule>
   </sch:pattern>
 
@@ -1170,6 +1171,7 @@
   <sch:pattern>
     <sch:title>[HeatPumpType=GroundSource]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACPlant/h:HeatPump[h:HeatPumpType="ground-to-air"]'>
+      <sch:assert role='ERROR' test='count(../../../../h:Systems/h:HVAC/h:HVACPlant/h:GeothermalLoop) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/HVAC/HVACPlant/GeothermalLoop</sch:assert> <!-- see [GeothermalLoop] -->
       <sch:assert role='ERROR' test='count(../../h:HVACDistribution/h:DistributionSystemType/h:AirDistribution/h:AirDistributionType[text()="regular velocity"]) + count(../../h:HVACDistribution/h:DistributionSystemType/h:Other[text()="DSE"]) &gt;= 1'>Expected 1 or more element(s) for xpath: ../../HVACDistribution/DistributionSystemType/AirDistribution/AirDistributionType[text()="regular velocity"] | ../../HVACDistribution/DistributionSystemType/Other[text()="DSE"]</sch:assert> <!-- See [HVACDistribution] -->
       <sch:assert role='ERROR' test='count(h:IsSharedSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [HeatPumpType=GroundSourceWithSharedLoop] -->
       <sch:assert role='ERROR' test='count(h:DistributionSystem) = 1'>Expected 1 element(s) for xpath: DistributionSystem</sch:assert>
@@ -1206,7 +1208,6 @@
       <sch:assert role='ERROR' test='count(../../../../h:BuildingSummary/h:BuildingConstruction[h:ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]) = 1'>Expected 1 element(s) for xpath: ../../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]</sch:assert>
       <sch:assert role='ERROR' test='count(h:NumberofUnitsServed) = 1'>Expected 1 element(s) for xpath: NumberofUnitsServed</sch:assert>
       <sch:assert role='ERROR' test='number(h:NumberofUnitsServed) &gt; 1 or not(h:NumberofUnitsServed)'>Expected NumberofUnitsServed to be greater than 1</sch:assert>
-      <sch:assert role='ERROR' test='count(h:AttachedToGeothermalLoop) &lt;= 1'>Expected 0 or 1 element(s) for xpath: AttachedToGeothermalLoop</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:SharedLoopWatts) = 1'>Expected 1 element(s) for xpath: extension/SharedLoopWatts</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:SharedLoopWatts) &gt;= 0 or not(h:extension/h:SharedLoopWatts)'>Expected extension/SharedLoopWatts to be greater than or equal to 0</sch:assert>
     </sch:rule>
@@ -1306,8 +1307,7 @@
       <sch:assert role='ERROR' test='count(h:BoreholesOrTrenches/h:Diameter) &lt;= 1'>Expected 0 or 1 element(s) for xpath: BoreholesOrTrenches/Diameter</sch:assert>
       <sch:assert role='ERROR' test='number(h:BoreholesOrTrenches/h:Diameter) &gt; 0 or not(h:BoreholesOrTrenches/h:Diameter)'>Expected BoreholesOrTrenches/Diameter to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:Grout/h:Type) + count(h:Grout/h:Conductivity) &gt;= 0'>Expected 0 or more element(s) for xpath: Grout/Type | Grout/Conductivity</sch:assert>
-      <sch:assert role='ERROR' test='count(h:Pipe/h:Conductivity) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Pipe/Conductivity</sch:assert>
-      <sch:assert role='ERROR' test='number(h:Pipe/h:Conductivity) &gt; 0 or not(h:Pipe/h:Conductivity)'>Expected Pipe/Conductivity to be greater than 0</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Pipe/h:Type) + count(h:Pipe/h:Conductivity) &gt;= 0'>Expected 0 or more element(s) for xpath: Pipe/Type | Pipe/Conductivity</sch:assert>
       <sch:assert role='ERROR' test='count(h:Pipe/h:Diameter) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Pipe/Diameter</sch:assert>
       <sch:assert role='ERROR' test='number(h:Pipe/h:Diameter) = 0.75 or number(h:Pipe/h:Diameter) = 1.0 or number(h:Pipe/h:Diameter) = 1.25 or not(h:Pipe/h:Diameter)'>Expected Pipe/Diameter to be 0.75, 1.0, or 1.25</sch:assert>
       <sch:assert role='ERROR' test='count(h:Pipe/h:ShankSpacing) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Pipe/ShankSpacing</sch:assert>

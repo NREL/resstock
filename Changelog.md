@@ -20,6 +20,7 @@ __New Features__
   - Allow optional inputs related to geothermal loop: loop flow, borehole count/length/spacing/diameter/configuration, grout conductivity, pipe conductivity/diameter/shank spacing.
   - Allow optional ground diffusivity input for site soil.
   - Connect to the [G-Function Library](https://gdr.openei.org/submissions/1325) (in the Geothermal Data Repository) for using precalculated g-function values with GSHP modeling.
+  - **Breaking change**: Replaces `BuildingSummary/Site/extension/GroundConductivity` with `BuildingSummary/Site/Soil/Conductivity`.
 
 __Bugfixes__
 - Fixes lighting multipliers not being applied when kWh/yr inputs are used.

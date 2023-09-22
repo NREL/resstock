@@ -1208,10 +1208,7 @@ class HPXMLTest < Minitest::Test
       if hpxml.total_fraction_cool_load_served == 0
         assert_equal(0, unmet_hours_clg)
       else
-        if hpxml_path.include? '1ton'
-        else
-          assert_operator(unmet_hours_clg, :<, 350)
-        end
+        assert_operator(unmet_hours_clg, :<, 350)
       end
     end
 
