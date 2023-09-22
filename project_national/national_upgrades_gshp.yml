@@ -12,18 +12,18 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 #   args:
 #     n_datapoints: 200
 
-# sampler:
-#   type: precomputed
-#   args:
-#     sample_file: buildstock.csv
-
 sampler:
-  type: residential_quota_downselect
+  type: precomputed
   args:
-    n_datapoints: 100
-    logic:
-      - ASHRAE IECC Climate Zone 2004|1A
-    resample: true
+    sample_file: buildstock_concatenated3.csv
+
+# sampler:
+  # type: residential_quota_downselect
+  # args:
+    # n_datapoints: 100
+    # logic:
+      # - ASHRAE IECC Climate Zone 2004|1A
+    # resample: true
 
 workflow_generator:
   type: residential_hpxml
@@ -81,7 +81,7 @@ upgrades:
           - value: 50.0
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
-#      - option: HVAC Cooling Efficiency|Ducted Heat Pump
+      - option: HVAC Cooling Efficiency|Ducted Heat Pump
 
 eagle:
   n_jobs: 3
