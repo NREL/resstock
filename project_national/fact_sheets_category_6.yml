@@ -37,16 +37,31 @@ eagle:
   sampling:
     time: 25
 
+# postprocessing:
+#   keep_individual_timeseries: false
+#   aws:
+#     region_name: us-west-2
+#     s3:
+#       bucket: largeee
+#       prefix: test_runs
+#     athena:
+#       glue_service_role: service-role/AWSGlueServiceRole-default
+#       database_name: largeee_test_runs
+#       max_crawling_time: 1200
+
 postprocessing:
   keep_individual_timeseries: false
+  partition_columns:
+    - State
+    - County
   aws:
     region_name: us-west-2
     s3:
       bucket: largeee
-      prefix: test_runs
+      prefix: largeee_runs
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
-      database_name: largeee_test_runs
+      database_name: largeee_runs
       max_crawling_time: 1200
 
 workflow_generator:
