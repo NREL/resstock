@@ -8,6 +8,7 @@ import re
 import math
 from itertools import chain
 import logging
+import matplotlib.pyplot as plt
 
 from postprocess_electrical_panel_size_nec import (
 	apply_standard_method, 
@@ -18,7 +19,8 @@ from postprocess_electrical_panel_size_nec import (
 
 from apply_panel_regression_model import (
 	load_model,
-	apply_model_to_results
+	apply_model_to_results,
+	sort_index,
 	)
 
 
@@ -53,7 +55,7 @@ def min_amperage_main_breaker(x):
     if pd.isnull(x):
         return np.nan
 
-    standard_sizes = np.array([50, 60, 70, 100, 125, 150, 200, 300, 400, 600]) # it is not permitted to size service below 100 A (NEC 230.79(C))
+    standard_sizes = np.array([75, 100, 150, 200, 300, 400, 600]) # it is not permitted to size service below 100 A (NEC 230.79(C))
     factors = standard_sizes / x
 
     cond = standard_sizes[factors >= 1]
@@ -67,15 +69,24 @@ def min_amperage_main_breaker(x):
     return cond[0]
 
 
+def plot_panel_amps(df_b, groupby_cols, metric_cols, ext, output_dir):
+	dfi = df_b.groupby(groupby_cols+metric_cols)["sample_weight"].sum().unstack()
+	fig, ax = plt.subplots()
+	sort_index(sort_index(dfi, axis=0), axis=1).plot(kind="bar", ax=ax)
+	fig.savefig(output_dir / f"panel_amp_estimate_{ext}.png", dpi=400, bbox_inches="tight")
+
+
 ## -- main --
 community_name = "san_jose" # <--
 baseline_panel_calc_method = "regression" # <--- ["peak", "nec", "regression"]
 
-datadir = Path(".").resolve() / "data_" / "community_building_samples_with_upgrade_cost_and_bill"
+datadir = Path(".").resolve() / "data_" / "community_building_samples_with_upgrade_cost_and_bill" / community_name
+plotdir = datadir / "panel_upgrade_plots"
+plotdir.mkdir(parents=True, exist_ok=True)
 setup_logging(community_name, datadir / f"output__panel_upgrade__{community_name}.log")
 
 ### baseline
-df_b = pd.read_parquet(datadir / community_name / f"up00__{community_name}.parquet")
+df_b = pd.read_parquet(datadir / f"up00__{community_name}.parquet")
 df_b = df_b.loc[df_b["completed_status"]=="Success"].set_index("building_id")
 
 baseline_amps = []
@@ -119,6 +130,7 @@ baseline_amps = pd.concat(baseline_amps, axis=1)
 
 # Map regressed results to single panel size
 baseline_amps["reg_predicted_panel_amp"] = baseline_amps["predicted_panel_amp"]
+baseline_amps.loc[baseline_amps["predicted_panel_amp"] == "<100", "reg_predicted_panel_amp"] = "75"
 baseline_amps.loc[baseline_amps["predicted_panel_amp"] == "101-199", "reg_predicted_panel_amp"] = "150"
 cond = baseline_amps["predicted_panel_amp"] == "200+"
 baseline_amps.loc[cond, "reg_predicted_panel_amp"] = baseline_amps.loc[cond].apply(lambda x: min_amperage_main_breaker(
@@ -135,11 +147,14 @@ elif baseline_panel_calc_method == "regression":
 else:
 	raise ValueError(f"Unsupported baseline_panel_calc_method={baseline_panel_calc_method}")
 
+# plot baseline amps
+df_b = pd.concat([df_b, baseline_panel_amp.rename("baseline_panel_amp")], axis=1)
+plot_panel_amps(df_b, ["build_existing_model.geometry_building_type_recs"], ["baseline_panel_amp"], "baseline", plotdir)
 
 ### upgrade
 DF_by_peak_delta, DF_by_nec = [], []
 for upn in range(1, 11):
-	df = pd.read_parquet(datadir / community_name / f"up{upn:02d}__{community_name}.parquet")
+	df = pd.read_parquet(datadir / f"up{upn:02d}__{community_name}.parquet")
 	df = df.loc[df["completed_status"]=="Success"].set_index("building_id").sort_index()
 
 	idx = sorted(set(df_b.index).intersection(set(df.index)))
@@ -222,8 +237,21 @@ for upn in range(1, 11):
 	cond_replace = (delta_loads > 0) & (new_panel_amp >= bl_panel_amp)
 	n_replace = dfu.loc[cond_replace, "sample_weight"].sum()
 	pct_replace = n_replace / n_applicable
+
+	## calculate new required amp and plot
+	dfu = pd.concat([dfu, bl_panel_amp.rename("new_nec_panel_amp")], axis=1)
+
+	# Note: standard method can result in lower value panels than new load method, TODO figure out why
+	# dff = apply_standard_method(dfu)
+	# dff["new_nec_panel_amp"] = dff["std_m_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
+	# dfu.loc[cond_replace, "new_nec_panel_amp"] = dff.loc[cond_replace, "new_nec_panel_amp"]
+
+	dfu.loc[cond_replace, "new_nec_panel_amp"] = dfu.loc[cond_replace, "new_load_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
+	plot_panel_amps(dfu, ["build_existing_model.geometry_building_type_recs"], ["new_nec_panel_amp"], f"new_load__{upgrade_name}", plotdir)
+
 	
 	# --- NEC 220.87 (Load Study) ---
+	# Note: it does not work for vacant homes
 	new_loads = calculate_new_loads(dfb, dfu, upgrade_name=upgrade_name)
 	new_panel_amp_load_study = (bl_peak_kw*1000*1.25 + new_loads) / 240 # W/V = [A] # TODO: new load should be at 100% DF
 
@@ -232,14 +260,10 @@ for upn in range(1, 11):
 	pct_replace_load_study = cond_replace_load_study / n_applicable
 
 
-	# if upgrade_name not in ["Basic enclosure", "Enhanced enclosure"]:
-	# 	breakpoint()
-
-
 	# combine
 	df_replace = pd.Series(
 		[int(n_applicable), pct_replace, pct_replace_load_study], 
-		index=["n_applicable", "220.83 new_loads", "load_study"]
+		index=["n_applicable", "220.83 new_load", "220.87 load_study"]
 		).rename(upgrade_name)
 	DF_by_nec.append(df_replace)
 
@@ -248,7 +272,7 @@ DF_by_peak_delta = pd.concat(DF_by_peak_delta, axis=1).transpose()
 DF_by_peak_delta.index.name = "upgrade_name"
 logger.info(f"\nOf those applicable to each upgrade package, the fraction seeing electric peak increase post-upgrade: \n{DF_by_peak_delta}")
 
-DF_by_peak_delta.to_csv(datadir / community_name /  f"fraction_of_peak_increase_{community_name}.csv", index=True)
+DF_by_peak_delta.to_csv(datadir /  f"fraction_of_peak_increase_{community_name}.csv", index=True)
 
 # Based on NEC calc, assuming baseline_amp
 DF_by_nec = pd.concat(DF_by_nec, axis=1).transpose()
@@ -256,4 +280,4 @@ DF_by_nec.index.name = "upgrade_name"
 DF_by_nec["average"] = DF_by_nec[DF_by_nec.columns[1:]].mean(axis=1)
 logger.info(f"\nOf those applicable to each upgrade package, the fraction likely requiring panel upgrade based on NEC calculation: \n{DF_by_nec}")
 
-DF_by_nec.to_csv(datadir / community_name / f"fraction_of_panel_upgrade_nec_{community_name}.csv", index=True)
+DF_by_nec.to_csv(datadir / f"fraction_of_panel_upgrade_nec_{community_name}.csv", index=True)

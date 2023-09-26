@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import re
 import itertools
 
-# from plotting_functions import sort_index
 
 def load_model(model_file):
     model = pickle.load(open(model_file, "rb"))
@@ -278,6 +277,44 @@ def validate_model_with_dummy_data(model):
     assert len(check[check==False])==0, f"Predicted panel amperage does not match LBNL input and output dummy data: \n{check[check==False]}"
     print("Model validated against dummy data!")
 
+def extract_left_edge(val):
+    # for sorting things like AMI
+    if val is None:
+        return np.nan
+    if not isinstance(val, str):
+        return val
+    first = val[0]
+    if re.search(r"\d", val) or first in ["<", ">"] or first.isdigit():
+        vals = [int(x) for x in re.split("\-| |\%|\<|\+|\>|s|th|p|A|B|C| ", val) if re.match("\d", x)]
+        if len(vals) > 0:
+            num = vals[0]
+            if "<" in val:
+                num -= 1
+            if ">" in val:
+                num += 1
+            return num
+    return val
+
+def sort_index(df, axis="index", **kwargs):
+    """ axis: ['index', 'columns'] """
+    if axis in [0, "index"]:
+        try:
+            df = df.reindex(sorted(df.index, key=extract_left_edge, **kwargs))
+        except TypeError:
+            df = df.reindex(sorted(df.index, **kwargs))
+        return df
+
+    if axis in [1, "columns"]:
+        col_index_name = df.columns.name
+        try:
+            cols = sorted(df.columns, key=extract_left_edge, **kwargs)
+        except TypeError:
+            cols = sorted(df.columns, **kwargs)
+        df = df[cols]
+        df.columns.name = col_index_name
+        return df
+    raise ValueError(f"axis={axis} is invalid")
+
 def plot_output_saturation(df, output_dir, panel_metrics, sfd_only=False):
     print(f"Plots output to: {output_dir}")
     cond = df["completed_status"] == "Success"
@@ -320,11 +357,11 @@ def _plot_bar(df, groupby_cols, metric_cols, output_dir=None):
     else:
         dfi = df.groupby(groupby_cols)[metric_cols].sum()
         metric_cols = ["predicted_panel_amp_expected_value"]
+        breakpoint()
 
     fig, ax = plt.subplots()
     sort_index(sort_index(dfi, axis=0), axis=1).plot(kind="bar", ax=ax)
     if output_dir is not None:
-        metric_cols
         metric = "__by__".join(groupby_cols+metric_cols)
         fig.savefig(output_dir / f"bar_{metric}.png", dpi=400, bbox_inches="tight")
 
