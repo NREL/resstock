@@ -18,7 +18,7 @@ Correct duct inconsistencies and costs in results.
 Add "hvac_has_ducts" and "duct_location" to baseline file.
 Add "duct_conditioned_surface_area", "duct_unconditioned_surface_area", "duct_total_surface_area" to baseline and upgrade files. Use "duct_total_surface_area" for upgrade cost calc.
 Override relevant "upgrade_costs.option_<>" columns and "upgrade_costs.upgrade_cost_usd" in upgrade files, remove buildings that no longer has an upgrade after duct fix.
-inpuput data directory: data_/community_building_samples/{community}/up<#>.parquet
+input data directory: data_/community_building_samples/{community}/up<#>.parquet
 output data directory: data_/community_building_samples/{community}/up<#>_duct_corrected.parquet
 
 3. upgrade_cost_and_bill.py <community>
@@ -52,3 +52,7 @@ output data directory: results/{community}/
 7. saving_results_reports_for_{community}.ipynb
 input data directory: data_/community_building_samples_with_upgrade_cost_and_bill/{community}/processed_upgrade_results.parquet or processed_upgrade_results_tired.parquet or processed_upgrade_results_TOU.parquet
 output data directory: results/{community}/
+
+###
+To run panel upgrade estimation for san_jose
+$ python add_panel_upgrade.py

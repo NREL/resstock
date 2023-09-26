@@ -416,7 +416,7 @@ def _fixed_load_well_pump(row):
         return 2000 
     return 0
 
-def _special_load_electric_dryer(row):
+def _special_load_electric_dryer(row, apply_demand_factor=True):
     """Clothes Dryers. NEC 220-18
     Use 5000 watts or nameplate rating whichever is larger (in another version, use DF=1 for # appliance <=4)
     240V, 22/24/30A breaker (vented), 30/40A (ventless heat pump), 30A (ventless electric)
@@ -432,9 +432,12 @@ def _special_load_electric_dryer(row):
     else:
         rating = 5600 * 1
 
+    if not apply_demand_factor:
+        return rating
+
     return max(5000, rating)
 
-def _special_load_electric_range(row): 
+def _special_load_electric_range(row, apply_demand_factor=True): 
     """ Assuming a single electric range (combined oven/stovetop) for each dwelling unit """
     if row["completed_status"] != "Success":
         return np.nan
@@ -450,10 +453,14 @@ def _special_load_electric_range(row):
         range_power = 12000  # 40*240 or 14000 #TODO: This should be the full nameplate rating (max connected load) of an electric induction range
 
     ## Electric, non-induction
-    # range-oven: 10-12.1-13.5kW (240V, 40A)
-    # cooktop: 9.2kW (240V, 40A), 7.7-10.5kW (240V, 40/50A), 7.4kW (240V, 40A)
-    # For cooktop + wall oven = 11+0.65*4.5 = 14kW or 0.65*(8+4.5) = 8kW
-    range_power = 12000  # or 12500 #TODO: This should be the full nameplate rating (max connected load) of an electric non-induction range
+    if "Electric" in row["build_existing_model.cooking_range"]:
+        # range-oven: 10-12.1-13.5kW (240V, 40A)
+        # cooktop: 9.2kW (240V, 40A), 7.7-10.5kW (240V, 40/50A), 7.4kW (240V, 40A)
+        # For cooktop + wall oven = 11+0.65*4.5 = 14kW or 0.65*(8+4.5) = 8kW
+        range_power = 12000  # or 12500 #TODO: This should be the full nameplate rating (max connected load) of an electric non-induction range
+
+    if not apply_demand_factor:
+        return range_power
 
     if range_power <= 12000:
         range_power_w_df = min(range_power, 8000)
@@ -504,25 +511,9 @@ def hvac_cooling_conversion(nom_cool_cap, system_type=None):
 
     return nom_cool_cap * KBTU_H_TO_W
 
-def _special_load_space_conditioning(row):
-    """Heating or Air Conditioning. NEC 220-19.
-    Take the larger between heating and cooling. Demand Factor = 1
-    Include the air handler when using either one. (guessing humidifier too?)
-    For heat pumps, include the compressor and the max. amount of electric heat which can be energized with the compressor running
-
-    1 Btu/h = 0.29307103866W
-
-    Returns:
-        max(loads) : int
-            special_load_for_heating_or_cooling
-        cooling_motor : float
-            size of cooling motor,
-            = size_cooling_system_primary if central
-            = approximate size of window AC if not central
-            = 0 when heating is max load
-    """
+def _special_load_space_heating(row):
     if row["completed_status"] != "Success":
-        return np.nan, np.nan
+        return np.nan
 
     if ((row["build_existing_model.heating_fuel"] == "Electricity") | (
         "ASHP" in row["build_existing_model.hvac_heating_efficiency"]
@@ -557,6 +548,13 @@ def _special_load_space_conditioning(row):
     if row["build_existing_model.hvac_has_ducts"] == "Yes":
         heating_load += hvac_fan_motor
 
+    return heating_load
+
+
+def _special_load_space_cooling(row):
+    if row["completed_status"] != "Success":
+        return np.nan, False
+
     cooling_load = hvac_cooling_conversion(
         row["upgrade_costs.size_cooling_system_primary_k_btu_h"],
         system_type=row["build_existing_model.hvac_heating_type"]
@@ -566,16 +564,42 @@ def _special_load_space_conditioning(row):
     if row["build_existing_model.hvac_has_ducts"] == "Yes":
         cooling_load += hvac_fan_motor + hvac_blower_motor
         cooling_is_window_unit = False
+
+    if cooling_is_window_unit:
+        cooling_motor /= (int(row["build_existing_model.bedrooms"]) + 1)
+    
+    return cooling_load, cooling_motor
+
+
+
+def _special_load_space_conditioning(row):
+    """Heating or Air Conditioning. NEC 220-19.
+    Take the larger between heating and cooling. Demand Factor = 1
+    Include the air handler when using either one. (guessing humidifier too?)
+    For heat pumps, include the compressor and the max. amount of electric heat which can be energized with the compressor running
+
+    1 Btu/h = 0.29307103866W
+
+    Returns:
+        max(loads) : int
+            special_load_for_heating_or_cooling
+        cooling_motor : float
+            size of cooling motor,
+            = size_cooling_system_primary if central
+            = approximate size of window AC if not central
+            = 0 when heating is max load
+    """
+    if row["completed_status"] != "Success":
+        return np.nan, np.nan
+
+    heating_load = _special_load_space_heating(row)
+    cooling_load, cooling_motor = _special_load_space_cooling(row)
     
     # combine
     loads = np.array([heating_load, cooling_load])
 
-    if cooling_is_window_unit:
-        cooling_motor /= (int(row["build_existing_model.bedrooms"]) + 1)
-    else:
-        cooling_motor = cooling_load
-
     return max(loads), cooling_motor # Always include cooling motor in largest motor at 25%
+
 
 def _special_load_motor(row):
     """Largest motor (only one). NEC 220-14, 430-24
@@ -1051,6 +1075,117 @@ def apply_optional_method(dfi, new_load_calc=False):
         df["opt_m_nec_electrical_panel_amp"] = df["opt_m_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
 
         return df
+
+def apply_new_load_method_220_83(dfi, new_hvac_loads: pd.Series, n_kit=2, n_ldr=1):
+    """
+    Use NEC 220.83 (A) (has_new_hvac_load=False) for existing + additional new loads calc 
+    where additional AC or space-heating IS NOT being installed
+    
+    Use NEC 220.83 (B) (has_new_hvac_load=True) where additional AC or space-heating IS being installed
+
+    new_hvac_loads: pd.Series indicating where dfi rows has new electric HVAC loads
+    """
+
+    df = dfi.copy()
+    
+
+    df.loc[new_hvac_loads, "new_load_demand_load_total_VA"] = df.loc[new_hvac_loads].apply(lambda x: new_load_total_220_83(x, n_kit=n_kit, n_ldr=n_ldr, has_new_hvac_load=True), axis=1)
+    df.loc[~new_hvac_loads, "new_load_demand_load_total_VA"] = df.loc[~new_hvac_loads].apply(lambda x: new_load_total_220_83(x, n_kit=n_kit, n_ldr=n_ldr, has_new_hvac_load=False), axis=1)
+    df["new_load_nec_min_amp"] = df["new_load_demand_load_total_VA"] / 240
+    df["new_load_nec_electrical_panel_amp"] = df["new_load_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
+
+    return df
+
+
+def new_load_total_220_83(row, n_kit=2, n_ldr=1, has_new_hvac_load=False):
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    cooling_load, _ = _special_load_space_cooling(row)
+
+    hvac_loads = sum(
+        [
+            _special_load_space_heating(row),
+            cooling_load,
+        ])
+
+    other_loads = sum(
+        [
+            _general_load_lighting(row),
+            _general_load_kitchen(row, n=n_kit),
+            _general_load_laundry(row, n=n_ldr),
+            _fixed_load_water_heater(row),
+            _fixed_load_dishwasher(row),
+            _fixed_load_garbage_disposal(row),
+            _fixed_load_garbage_compactor(row),
+            _fixed_load_hot_tub_spa(row),
+            _fixed_load_well_pump(row),
+            _special_load_electric_dryer(row),
+            _special_load_electric_range(row),
+            _special_load_pool_heater(row),
+            _special_load_pool_pump(row),
+            _special_load_EVSE(row)
+        ]
+    ) # no largest motor load
+
+    threshold_load = 8000 # kVA
+    if has_new_hvac_load:
+        # 100% HVAC loads + 100% of 1st 8kVA other_loads + 40% of remainder other_loads
+        total_loads = hvac_loads + apply_demand_factor_to_general_load_optm(other_loads, threshold_load=threshold_load)
+
+    else:
+        # 100% of 1st 8kVA all loads + 40% of remainder loads
+        total_loads = apply_demand_factor_to_general_load_optm(hvac_loads + other_loads, threshold_load=threshold_load)
+
+    return total_loads
+
+
+def get_all_loads(row, n_kit=2, n_ldr=1):
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    cooling_load, _ = _special_load_space_cooling(row)
+
+    all_loads = [
+            _general_load_lighting(row), # 0
+            _general_load_kitchen(row, n=n_kit), # 1
+            _general_load_laundry(row, n=n_ldr), # 2
+            _fixed_load_water_heater(row), # 3
+            _fixed_load_dishwasher(row), # 4
+            _fixed_load_garbage_disposal(row), # 5
+            _fixed_load_garbage_compactor(row), # 6
+            _fixed_load_hot_tub_spa(row), # 7
+            _fixed_load_well_pump(row), # 8
+            _special_load_space_heating(row), # 9
+            cooling_load, # 10
+            _special_load_electric_dryer(row), # 11
+            _special_load_electric_range(row), # 12
+            _special_load_pool_heater(row), # 13
+            _special_load_pool_pump(row), # 14
+            _special_load_EVSE(row) # 15
+        ] # no largest motor load
+
+    return all_loads
+
+
+def calculate_new_loads(df_baseline, df_upgrade, upgrade_name=None):
+    baseline_loads = df_baseline.apply(lambda x: get_all_loads(x, n_kit=2, n_ldr=1), axis=1).apply(pd.Series)
+    upgrade_loads = df_upgrade.apply(lambda x: get_all_loads(x, n_kit=2, n_ldr=1), axis=1).apply(pd.Series)
+
+    new_loads = (upgrade_loads - baseline_loads).clip(lower=0).sum(axis=1).rename("new_load_VA")
+
+    # Override for envelope only upgrade because shared heating sizing is affected by envelope when it shouldn't
+    if upgrade_name in ["Basic enclosure", "Enhanced enclosure"]:
+        diff = new_loads[new_loads>0]
+        diff = baseline_loads.loc[diff.index].compare(
+            upgrade_loads.loc[diff.index]
+            )
+        if len(diff)>0:
+            assert (diff.columns.get_level_values(0).unique() == [9]).sum(), f"Unexpected diff found: {diff}"
+            new_loads = new_loads.clip(upper=0)
+
+    return new_loads
+
 
 
 if __name__ == "__main__":
