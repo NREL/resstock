@@ -1,0 +1,101 @@
+import re
+import logging
+from utils import agg_col_renamer
+import polars as pl
+from collections import defaultdict
+
+logger = logging.getLogger(__name__)
+
+
+# def add_all_fuels_emissions(df):
+#     scenario2cols = defaultdict(list)
+#     for col in df.columns:
+#         if (match := re.search(r'out\.emissions\.\S*\.(\S+)\.co2e_kg', col)):
+#             scenario2cols[match[1]].append(col)
+#     new_cols = []
+#     for scenario, cols in scenario2cols.items():
+#         new_col = f'out.emissions.all_fuels.{scenario}.co2e_kg'
+#         new_cols.append(pl.sum_horizontal(cols).alias(new_col))
+#     return df.with_columns(new_cols)
+
+
+def verify_single_option(option2cols, up_df):
+    """
+    verify that a building is not getting duplicated option applied.
+    For example, out.params.option_1_name and out.params.option_2_name for a given row both
+    has HVAC Cooling Type|Room AC and HVAC Cooling Type|Central AC. Here, HVAC Cooling Type
+    was applied multiple times to the same building. This should never happen in a valid
+    resstock run, but adding this check just in case because the reset of the workflow
+    assumes that there is only one option applied to a building.
+    """
+    multi_application_cols = []
+    for opt, cols in option2cols.items():
+        multi_application_cols.append(
+            pl.sum_horizontal(pl.col(cols).is_not_null()).alias(opt) > 1
+        )
+    assert up_df.select(pl.sum_horizontal(multi_application_cols)).sum().collect()['sum'].to_list() == [0]
+
+
+def add_upgrade_cols(up_df):
+    """
+    Add upgrade.option columns to the dataframe based one out.params.option_(\d*)_name columns
+    """
+    col2opts = up_df.select(pl.col("^out.params.option_(\d*)_name$").backward_fill().str.split("|").list.first()).first().collect().to_dicts()[0]
+    option2cols = defaultdict(list)
+    for col, opt in col2opts.items():
+        if opt is None:
+            continue
+        option2cols[opt].append(col)
+    upgrade_cols = []
+    for opt, cols in option2cols.items():
+        upgrade_col_name = f"upgrade.{opt.lower().replace(' ', '_')}"
+        upgrade_cols.append(
+            pl.coalesce(pl.col(cols)).str.split("|").list.get(1).alias(upgrade_col_name)
+        )
+    return up_df.with_columns(upgrade_cols)
+
+
+def process_upgrade(bs_df: pl.LazyFrame, up_df: pl.LazyFrame | None = None) -> pl.LazyFrame:
+    bs_front_cols = ['bldg_id', 'upgrade', 'weight', 'applicability']
+    all_cols = list(bs_df.columns)
+    emission_cols = [col for col in all_cols if col.endswith('co2e_kg')]
+
+    energy_cols = [col for col in all_cols if 'energy_consumption' in col and 'intensity' not in col]
+    intensity_cols = [col for col in all_cols if 'energy_consumption_intensity' in col]
+    hot_water_cols = [col for col in all_cols if col.startswith("out.hot_water.")]
+    load_cols = [col for col in all_cols if col.startswith("out.load.") and col.endswith(".kbtu")]
+    peak_cols = [col for col in all_cols if ".peak." in col]
+    unmet_hours_cols = [col for col in all_cols if col.startswith("out.unmet_hours.")]
+    bs_params_cols = [col for col in all_cols if col.startswith("out.params.")]
+    bill_cols = [col for col in all_cols if col.startswith("out.bill_costs.")]
+    in_cols = [col for col in all_cols if col.startswith('in.')]
+    outcols_to_keep = energy_cols + hot_water_cols + load_cols + peak_cols + unmet_hours_cols + emission_cols\
+                      + bill_cols
+    bs_df = bs_df.select(bs_front_cols + in_cols + outcols_to_keep + bs_params_cols)
+
+    bs_df = bs_df.rename({col: agg_col_renamer(col) for col in bs_df.columns})
+    # bs_df = add_all_fuels_emissions(bs_df)
+
+    if up_df is None:
+        return bs_df
+
+    up_front_cols = ['bldg_id', 'upgrade', 'applicability']
+    up_params_cols = [col for col in up_df.columns if col.startswith("out.params.")]
+    up_df = up_df.select(up_front_cols + outcols_to_keep + up_params_cols)
+    up_df = up_df.rename({col: agg_col_renamer(col) for col in bs_df.columns})
+    # up_df = add_all_fuels_emissions(up_df)
+    up_df = up_df.rename({col: agg_col_renamer(col) for col in up_df.columns})
+    outcols = set([col for col in up_df.columns if col.startswith("out.") and not col.startswith("out.params")])
+    bs_out_df = bs_df.select(['bldg_id'] + [pl.col(col).alias(f"baseline_{col}") for col in outcols])
+    up_df = up_df.join(bs_out_df, on='bldg_id')
+    up_df = up_df.with_columns([(pl.col(f"baseline_{col}") - pl.col(col)).alias(f"{col}.savings")
+                                for col in outcols])
+    upgrade_opt_cols = []
+    col2upname = up_df.select(pl.col("^out.params.option_(\d*)_name$").str.split("|").list.get(0).first()).head(1).collect().to_dicts()[0]
+    for col, upname in col2upname.items():
+        if upname is None:
+            continue
+        upgrade_col_name = f"upgrade.{upname.lower().replace(' ', '_')}"
+        upgrade_opt_cols.append(pl.col(col).str.split("|").list.get(1).alias(upgrade_col_name))
+    up_df = add_upgrade_cols(up_df)
+    return up_df.select(pl.exclude("^out.params.option_.*$"))
