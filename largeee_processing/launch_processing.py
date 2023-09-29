@@ -3,10 +3,9 @@ from largeee import LARGEEE
 import polars.selectors as cs
 import os
 
-run_folder = "full_runs_2"
+run_folder = "med_run_2"
 output_folder = "dashboard_data"
 state_split = True
-process_synthetic = True
 
 run_names = [
     "medium_run_baseline_20230810",  # baseline
@@ -145,12 +144,6 @@ def write_all():
         run_names=run_names,
         state_split=state_split
     )
-
-    if process_synthetic:
-        print("Replacing medium runs with syntehtic full runs")
-        for key in largee_run.parquet_paths:
-            largee_run.parquet_paths[key] = largee_run.parquet_paths[key].replace("medium", "full")
-        largee_run.add_state_to_parquets()
 
     for group_name, states in state_grouping.items():
         write_group(largee_run, group_name, states)
