@@ -25,7 +25,9 @@ This folder contains python scripts to process largeee run result and generate c
 
    `run_names`: This is the list of run names uploaded to Athena. __The first run is assumed to be baseline run__. Modify this to process new runs.
 
-   `export_chars`: These are the housing characteristics what will be exported in the characteristics file. You can add/remove as needed.
+   `wide_chars`: These are the housing characteristics what will be exported in the wide-format characteristics file. You can add/remove as needed. Wide format includes 'weight' column by default.
+
+   `long_chars`: These are the housing characteristics what will be exported in the long-format characteristics file. You can add/remove as needed.
 
 6. Start the processing.
    

@@ -5,7 +5,7 @@ from polars.type_aliases import SelectorType
 import os
 
 output_folder = "med_run_output"
-state_split = True
+state_split = False
 
 state_grouping: dict[str, list[str] | None] = {
     "Mountain & Pacific Northwest": ["MT", "ID", "WY", "NV", "UT", "CO", "AZ", "NM", "OR", "WA"],
@@ -40,33 +40,18 @@ run_names = [
     "medium_run_category_14_20230921",
     "medium_run_category_15_20230920"
 ]
-
-export_chars = {
-    "in.geometry_building_type_recs": "Building type RECS",
-    'in.vintage': 'Vintage',
-    'in.geometry_floor_area': 'Area bin',
-    'in.heating_fuel': 'Heating fuel',
-    'in.hvac_cooling_type': 'Cooling type',
-    'in.hvac_heating_efficiency': 'Heating type',
-    'in.geometry_wall_type': 'Wall type',
-    'in.geometry_foundation_type': 'Foundation type',
-    'in.windows': 'Windows',
-    'in.cooking_range': 'Stove fuel',
-    'in.water_heater_fuel': 'Water heater fuel',
-    'in.clothes_dryer': 'Clothes dryer fuel',
-    'in.infiltration': 'Infiltration',
-    'in.insulation_wall': 'Wall insulation',
-    'in.insulation_ceiling': 'Ceiling insulation',
-    'in.geometry_attic_type': 'Attic type',
-    'in.income': 'Income',
-    'in.area_median_income': 'Area median income',
-    'in.tenure': 'Tenure',
-    'in.building_america_climate_zone': 'BA Climate Zone',
-    'in.ashrae_iecc_climate_zone_2004': 'IECC Climate zone',
-    'in.state': 'State',
-    'in.county': 'County',
-    'in.census_division': 'Census division',
-}
+wide_chars = [
+    'in.area_median_income', 'in.ashrae_iecc_climate_zone_2004', 'in.building_america_climate_zone',
+    'in.census_division', 'in.state', 'in.county', 'in.geometry_building_type_recs', 'in.vintage',
+    'in.geometry_floor_area', 'in.heating_fuel'
+]
+long_chars = [
+  'in.clothes_dryer', 'in.cooking_range', 'in.geometry_attic_type', 'in.geometry_building_type_recs',
+  'in.vintage', 'in.area_median_income', 'in.geometry_floor_area', 'in.geometry_foundation_type',
+  'in.geometry_wall_type', 'in.heating_fuel', 'in.hvac_cooling_type', 'in.hvac_heating_efficiency',
+  'in.income', 'in.infiltration', 'in.insulation_ceiling', 'in.insulation_wall', 'in.tenure',
+  'in.water_heater_fuel', 'in.windows'
+]
 
 
 def write_df(df: pl.DataFrame, id_vars: tuple[str, ...], col_selector: SelectorType, variable_name: str,
@@ -104,13 +89,16 @@ def write_group(largee_run: LARGEEE, group_name: str, filter_states: list[str] |
     all_selectors = cs_energy_cols | cs_energy_saving_cols | cs_upgrade_cost_cols | cs_bill_cols |\
         cs_bill_saving_cols | cs_emission_saving_cols | cs_emission_cols | cs_upgrade_opt_cols
     all_selectors |= cs.starts_with("bldg_id", "in.state", "upgrade", "weight")
-    all_selectors |= cs.contains(export_chars.keys())
+    all_selectors |= cs.contains(set(long_chars) | set(wide_chars))
 
     bs_df, up_df = largee_run.get_bs_up_df(filter_states=filter_states, column_selector=all_selectors)
 
-    write_df(bs_df, id_vars=('bldg_id', 'weight'), col_selector=cs.by_name(export_chars.keys()),
+    write_df(bs_df, id_vars=('bldg_id', 'weight'), col_selector=cs.by_name(wide_chars),
              variable_name="characteristics",
              value_name="value", group_name=group_name, filename="characteristics_wide")
+    write_df(bs_df, id_vars=('bldg_id', ), col_selector=cs.by_name(long_chars),
+             variable_name="characteristics",
+             value_name="value", group_name=group_name, filename="characteristics_long", melted=True)
 
     write_df(bs_df, id_vars=bs_id_cols, col_selector=cs_energy_cols, variable_name="energy type", value_name="value",
              group_name=group_name, filename="baseline_energy_wide")
