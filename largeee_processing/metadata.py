@@ -1,4 +1,3 @@
-import re
 import logging
 from utils import agg_col_renamer
 import polars as pl
@@ -7,48 +6,49 @@ from collections import defaultdict
 logger = logging.getLogger(__name__)
 
 
-# def add_all_fuels_emissions(df):
-#     scenario2cols = defaultdict(list)
-#     for col in df.columns:
-#         if (match := re.search(r'out\.emissions\.\S*\.(\S+)\.co2e_kg', col)):
-#             scenario2cols[match[1]].append(col)
-#     new_cols = []
-#     for scenario, cols in scenario2cols.items():
-#         new_col = f'out.emissions.all_fuels.{scenario}.co2e_kg'
-#         new_cols.append(pl.sum_horizontal(cols).alias(new_col))
-#     return df.with_columns(new_cols)
-
-
-def verify_single_option(option2cols, up_df):
+def verify_single_application_per_param(param2cols, up_df):
     """
-    verify that a building is not getting duplicated option applied.
-    For example, out.params.option_1_name and out.params.option_2_name for a given row both
+    verify that a building is not getting duplicated parameter applied.
+    For example, say out.params.option_1_name and out.params.option_2_name for a given row
     has HVAC Cooling Type|Room AC and HVAC Cooling Type|Central AC. Here, HVAC Cooling Type
     was applied multiple times to the same building. This should never happen in a valid
-    resstock run, but adding this check just in case because the reset of the workflow
-    assumes that there is only one option applied to a building.
+    resstock run.
     """
     multi_application_cols = []
-    for opt, cols in option2cols.items():
+    for param, cols in param2cols.items():
+        # For each paramn count how many of the columns have non-null values. If more than one
+        # (which is an error) it will have a value 1 otherwise 0. Save this in a new column named
+        # param. Later we will sum all these columns to see if any building has more than one
+        # non-null column for any parameter
         multi_application_cols.append(
-            pl.sum_horizontal(pl.col(cols).is_not_null()).alias(opt) > 1
+            pl.sum_horizontal(pl.col(cols).is_not_null()).alias(param) > 1
         )
     assert up_df.select(pl.sum_horizontal(multi_application_cols)).sum().collect()['sum'].to_list() == [0]
 
 
-def add_upgrade_cols(up_df):
+def add_upgrade_option_cols(up_df):
     """
-    Add upgrade.option columns to the dataframe based one out.params.option_(\d*)_name columns
+    Add upgrade.<param> columns to the dataframe based one out.params.option_(\d*)_name columns
+    Each of the out.params.option_(\d*)_name columns has a value like "HVAC Cooling Type|Room AC"
+    Sometimes same parameter (HVAC Cooling Type) is spread accross multiple columns, but one column
+    always have only one type of parameter.
     """
-    col2opts = up_df.select(pl.col("^out.params.option_(\d*)_name$").backward_fill().str.split("|").list.first()).first().collect().to_dicts()[0]
-    option2cols = defaultdict(list)
-    for col, opt in col2opts.items():
-        if opt is None:
+    # Find out which paramter each of the option_<num>_name columns represent
+    col2param = up_df.select(pl.col(r"^out.params.option_(\d*)_name$")
+                             .backward_fill().str.split("|").list.first()).first().collect().to_dicts()[0]
+    # Group all columns we need to look at for each parameter
+    param2cols = defaultdict(list)
+    for col, param in col2param.items():
+        if param is None:
             continue
-        option2cols[opt].append(col)
+        param2cols[param].append(col)
+    # Add each parameter as a column to the dataframe, and value being the option taken by the param
+    # We need to look at all columns for each parameter to find the value, and take the first non-null value
+    # Only one of the columns belonging to a parameter shuld have a non-null value
+    verify_single_application_per_param(param2cols, up_df)
     upgrade_cols = []
-    for opt, cols in option2cols.items():
-        upgrade_col_name = f"upgrade.{opt.lower().replace(' ', '_')}"
+    for param, cols in param2cols.items():
+        upgrade_col_name = f"upgrade.{param.lower().replace(' ', '_')}"
         upgrade_cols.append(
             pl.coalesce(pl.col(cols)).str.split("|").list.get(1).alias(upgrade_col_name)
         )
@@ -69,8 +69,8 @@ def process_upgrade(bs_df: pl.LazyFrame, up_df: pl.LazyFrame | None = None) -> p
     bs_params_cols = [col for col in all_cols if col.startswith("out.params.")]
     bill_cols = [col for col in all_cols if col.startswith("out.bill_costs.")]
     in_cols = [col for col in all_cols if col.startswith('in.')]
-    outcols_to_keep = energy_cols + hot_water_cols + load_cols + peak_cols + unmet_hours_cols + emission_cols\
-                      + bill_cols
+    outcols_to_keep = energy_cols + hot_water_cols + load_cols + peak_cols + unmet_hours_cols + emission_cols
+    outcols_to_keep += bill_cols
     bs_df = bs_df.select(bs_front_cols + in_cols + outcols_to_keep + bs_params_cols)
 
     bs_df = bs_df.rename({col: agg_col_renamer(col) for col in bs_df.columns})
@@ -80,6 +80,7 @@ def process_upgrade(bs_df: pl.LazyFrame, up_df: pl.LazyFrame | None = None) -> p
         return bs_df
 
     up_front_cols = ['bldg_id', 'upgrade', 'applicability']
+    up_front_cols.extend([col for col in up_df.columns if col.startswith('in.')])
     up_params_cols = [col for col in up_df.columns if col.startswith("out.params.")]
     up_df = up_df.select(up_front_cols + outcols_to_keep + up_params_cols)
     up_df = up_df.rename({col: agg_col_renamer(col) for col in bs_df.columns})
@@ -91,11 +92,12 @@ def process_upgrade(bs_df: pl.LazyFrame, up_df: pl.LazyFrame | None = None) -> p
     up_df = up_df.with_columns([(pl.col(f"baseline_{col}") - pl.col(col)).alias(f"{col}.savings")
                                 for col in outcols])
     upgrade_opt_cols = []
-    col2upname = up_df.select(pl.col("^out.params.option_(\d*)_name$").str.split("|").list.get(0).first()).head(1).collect().to_dicts()[0]
-    for col, upname in col2upname.items():
-        if upname is None:
+    col2paramname = up_df.select(
+        pl.col("^out.params.option_(\d*)_name$").str.split("|").list.get(0).first()).head(1).collect().to_dicts()[0]
+    for col, paramname in col2paramname.items():
+        if paramname is None:
             continue
-        upgrade_col_name = f"upgrade.{upname.lower().replace(' ', '_')}"
+        upgrade_col_name = f"upgrade.{paramname.lower().replace(' ', '_')}"
         upgrade_opt_cols.append(pl.col(col).str.split("|").list.get(1).alias(upgrade_col_name))
-    up_df = add_upgrade_cols(up_df)
+    up_df = add_upgrade_option_cols(up_df)
     return up_df.select(pl.exclude("^out.params.option_.*$"))

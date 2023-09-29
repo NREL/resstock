@@ -40,7 +40,7 @@ upgrade_costs_re = re.compile(
     r"^upgrade_costs\.(?!.*(_yrs|applicable|floor_area_conditioned_ft_2)$).*$"
 )
 bill_costs_re = re.compile(
-   r"^report_utility_bills\.utility_rates_fixed_variable(_electricity|_natural_gas|_fuel_oil|_propane)?_total_usd$"
+    r"^report_utility_bills\.utility_rates_fixed_variable(_electricity|_natural_gas|_fuel_oil|_propane)?_total_usd$"
 )
 all_outcols_re = [endues_energy_col_re, emissions_re, energy_use_re, hot_water_re, load_delivered_re,
                   peak_electricity_re, peak_load_re, unmet_hours_re, bill_costs_re]
@@ -136,18 +136,21 @@ def get_outcols(metadata_parquet_list) -> List[str]:
     return sorted_outcols
 
 
-def read_formatted_metadata_file(file_path: str, upgrade_name: str, outcols):
+def read_formatted_metadata_file(file_path: str, upgrade_name: str, outcols: list[str],
+                                 filter_states: list[str] | None = None):
     df = pl.scan_parquet(file_path).filter(pl.col("completed_status") == "Success")
+    if filter_states is not None:
+        df = df.filter(pl.col("build_existing_model.state").is_in(filter_states))
     applicable_cols = [col for col in df.columns if "applicable" in col]
     df = df.select(pl.exclude(applicable_cols))
     df = df.rename({
         col: col
-             .replace("building_id", "bldg_id")
-             .replace("upgrade_costs.floor_area_conditioned_ft_2", "in.sqft")
-             .replace("build_existing_model.sample_weight", "weight")
-             .replace("build_existing_model.", "in.")
-             .replace("upgrade_costs.", "out.params.")
-             .replace("apply_upgrade.upgrade_name", "out.params.upgrade_name")
+        .replace("building_id", "bldg_id")
+        .replace("upgrade_costs.floor_area_conditioned_ft_2", "in.sqft")
+        .replace("build_existing_model.sample_weight", "weight")
+        .replace("build_existing_model.", "in.")
+        .replace("upgrade_costs.", "out.params.")
+        .replace("apply_upgrade.upgrade_name", "out.params.upgrade_name")
         for col in df.columns
     })
 
@@ -158,38 +161,3 @@ def read_formatted_metadata_file(file_path: str, upgrade_name: str, outcols):
     df = df.with_columns(pl.lit(True).alias("applicability"))
     df = df.select(cs.starts_with("bldg_id", "weight", "upgrade", "applicability", "in.", "out."))
     return df
-
-
-def get_bs_metadata_and_annual(baseline_path: str, outcols: List[str]) -> pl.LazyFrame:
-    """Process the baseline metadata into the SightGlass format
-    """
-    logger.info("Calling process_baseline_metadata")
-    df = read_formatted_metadata_file(baseline_path, 'baseline', outcols)
-    # PUMA Substitution
-    # here = pathlib.Path(__file__).resolve()
-    # pumas = gpd.read_file(
-    #     here.parent / "gisdata" / "ipums_pums_2010_simple_t100_area_conus.geojson"
-    # )
-    # puma_map = pumas[["GISJOIN", "puma_tsv"]].set_index("puma_tsv")["GISJOIN"].to_dict()
-
-    # # County Substitution
-    # county_map = (
-    #     pd.read_csv(
-    #         here.parent / "gisdata" / "spatial_county_lookup_table.csv",
-    #         usecols=["long_name", "original_FIP"],
-    #     )
-    #     .set_index("long_name")["original_FIP"]
-    #     .to_dict()
-    # )
-    # df = df.with_columns(pl.col("in.county").map_dict(county_map))
-    # df = df.with_columns(pl.col("in.puma").map_dict(puma_map)) -> puma mapping is incomplete
-    # df = df
-    # df = df.with_columns(pl.Series(range(len(df))).alias("metadata_index"))
-    return df
-
-
-def get_up_annual(
-    file_path, upgrade_name, outcols: List[str]
-) -> pl.LazyFrame:
-    up_df = read_formatted_metadata_file(file_path, upgrade_name, outcols)
-    return up_df
