@@ -3,19 +3,20 @@
 This folder contains python scripts to process largeee run result and generate csv files that can be used in Tableau for the factsheet dashboard. A significant section of the code is copied from https://github.com/NREL/SightGlassDataProcessing/tree/main/telescope and adapted to use polars instead of pandas. 
 
 ## Getting started
-1. Clone the repository to your computer and navigate to this (largeee_processing) folder.
-2. Create a new python 3.10 environment with:
+1. Clone the repository to your computer.
+2. Open a command promt (or "conda prompt" in Windows) and `cd` into this (largeee_processing) folder.
+3. Create a new python 3.10 environment with:
    
    `conda create -n largeee python=3.10`
-3. Activate the environment
+4. Activate the environment
    
    `conda activate largeee`
 
-4. Install the requirements:
+5. Install the requirements:
    
    `pip install -r requirements.txt`
 
-5. Open `launch_processing.py` with your favorite code editor and modify the following variables near the top of the files.
+6. Open `launch_processing.py` with your favorite code editor and modify the following variables near the top of the files.
    
    `output_folder`: Modify this to change the name of the output folder.
 
@@ -29,7 +30,7 @@ This folder contains python scripts to process largeee run result and generate c
 
    `long_chars`: These are the housing characteristics what will be exported in the long-format characteristics file. You can add/remove as needed.
 
-6. Start the processing.
+7. Start the processing.
    
    `python launch_processing.py`
 
