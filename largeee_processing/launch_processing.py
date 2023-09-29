@@ -1,11 +1,26 @@
 import polars as pl
 from largeee import LARGEEE
 import polars.selectors as cs
+from polars.type_aliases import SelectorType
 import os
 
-run_folder = "med_run_2"
-output_folder = "dashboard_data"
+output_folder = "med_run_output"
 state_split = True
+
+state_grouping: dict[str, list[str] | None] = {
+    "Mountain & Pacific Northwest": ["MT", "ID", "WY", "NV", "UT", "CO", "AZ", "NM", "OR", "WA"],
+    "California": ["CA"],
+    "Florida & Georgia": ["FL", "GA"],
+    "Central Atlantic": ["SC", "NC", "VA", "DC", "MD", "DE"],
+    "Three-Fifths of East North Central": ["MI", "IL", "IN"],
+    "West North Central & Wisconsin": ["ND", "SD", "NE", "KS", "MN", "IA", "MO", "WI"],
+    "New York & New Jersey": ["NY", "NJ"],
+    "PA-OH-WV": ["PA", "OH", "WV"],
+    "Texas": ["TX"],
+    "East South Central": ["KY", "TN", "MS", "AL"],
+    "New England": ["ME", "NH", "VT", "MA", "CT", "RI"],
+    "Northeast West South Central": ["OK", "AR", "LA"]
+}
 
 run_names = [
     "medium_run_baseline_20230810",  # baseline
@@ -53,23 +68,8 @@ export_chars = {
     'in.census_division': 'Census division',
 }
 
-state_grouping: dict[str, list[str] | None] = {
-    "Mountain & Pacific Northwest": ["MT", "ID", "WY", "NV", "UT", "CO", "AZ", "NM", "OR", "WA"],
-    "California": ["CA"],
-    "Florida & Georgia": ["FL", "GA"],
-    "Central Atlantic": ["SC", "NC", "VA", "DC", "MD", "DE"],
-    "Three-Fifths of East North Central": ["MI", "IL", "IN"],
-    "West North Central & Wisconsin": ["ND", "SD", "NE", "KS", "MN", "IA", "MO", "WI"],
-    "New York & New Jersey": ["NY", "NJ"],
-    "PA-OH-WV": ["PA", "OH", "WV"],
-    "Texas": ["TX"],
-    "East South Central": ["KY", "TN", "MS", "AL"],
-    "New England": ["ME", "NH", "VT", "MA", "CT", "RI"],
-    "Northeast West South Central": ["OK", "AR", "LA"]
-}
 
-
-def write_df(df: pl.DataFrame, id_vars: tuple[str, ...], col_selector: cs.SelectorType, variable_name: str,
+def write_df(df: pl.DataFrame, id_vars: tuple[str, ...], col_selector: SelectorType, variable_name: str,
              value_name: str, group_name: str, filename: str, melted: bool = False):
     cols = cs.expand_selector(df, col_selector)
     df = df.select(id_vars + cols)
@@ -77,11 +77,11 @@ def write_df(df: pl.DataFrame, id_vars: tuple[str, ...], col_selector: cs.Select
         df = df.melt(id_vars=id_vars, value_vars=cols,
                      variable_name=variable_name, value_name=value_name)
     final_df = df
-    print(f"Writing {output_folder}/{run_folder}/.../{group_name}/{filename}")
-    os.makedirs(f"{output_folder}/{run_folder}/head/{group_name}", exist_ok=True)
-    os.makedirs(f"{output_folder}/{run_folder}/full/{group_name}", exist_ok=True)
-    final_df.write_csv(f"{output_folder}/{run_folder}/full/{group_name}/{filename}.csv")
-    final_df.head(1000).write_csv(f"{output_folder}/{run_folder}/head/{group_name}/{filename}.csv")
+    print(f"Writing {output_folder}/.../{group_name}/{filename}")
+    os.makedirs(f"{output_folder}/head/{group_name}", exist_ok=True)
+    os.makedirs(f"{output_folder}/full/{group_name}", exist_ok=True)
+    final_df.write_csv(f"{output_folder}/full/{group_name}/{filename}.csv")
+    final_df.head(1000).write_csv(f"{output_folder}/head/{group_name}/{filename}.csv")
 
 
 def write_group(largee_run: LARGEEE, group_name: str, filter_states: list[str] | None = None):
@@ -148,7 +148,7 @@ def write_all():
     for group_name, states in state_grouping.items():
         write_group(largee_run, group_name, states)
     upgrade_report_df = largee_run.get_combined_upgrade_report()
-    upgrade_report_df.write_csv(f"{output_folder}/{run_folder}/upgrade_report.csv")
+    upgrade_report_df.write_csv(f"{output_folder}/upgrade_report.csv")
 
 
 if __name__ == "__main__":

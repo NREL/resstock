@@ -3,7 +3,8 @@ import polars as pl
 from collections import defaultdict
 from resstock import get_outcols, read_formatted_metadata_file
 from metadata import process_upgrade
-import polars.selectors as cs
+from polars.type_aliases import SelectorType
+from typing import Union
 
 
 class LARGEEE:
@@ -67,7 +68,7 @@ class LARGEEE:
             print(f"Updated {upgrade_name} with state")
 
     def get_bs_up_df(self, filter_states: list[str] | None = None,
-                     column_selector: cs.SelectorType | None = None) -> tuple[pl.DataFrame, pl.DataFrame]:
+                     column_selector: Union[SelectorType, None] = None) -> tuple[pl.DataFrame, pl.DataFrame]:
         bs_df = read_formatted_metadata_file(self.parquet_paths['1.0'], 'baseline', self.outcols, filter_states)
         processed_bs_df = process_upgrade(bs_df)
         if column_selector is not None:
