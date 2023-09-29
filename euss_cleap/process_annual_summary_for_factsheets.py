@@ -1182,6 +1182,7 @@ class SavingsExtraction:
         vr_electricity = pd.read_csv(
             rates_dir / "Variable Elec Cost by State from EIA State Data.csv"
         ).set_index(["State"])["Variable Elec Cost $/kWh"]
+        vr_electricity.loc["US"] = vr_electricity.mean()
         vr_natural_gas = pd.read_csv(rates_dir / "NG costs by state.csv").set_index(
             ["State"]
         )[
@@ -1190,9 +1191,11 @@ class SavingsExtraction:
         vr_fuel_oil = pd.read_csv(
             rates_dir / "Fuel Oil Prices Averaged by State.csv"
         ).set_index(["State"])["Average FO Price [$/gal]"]
+        vr_fuel_oil.loc["US"] = vr_fuel_oil.mean()
         vr_propane = pd.read_csv(rates_dir / "Propane costs by state.csv").set_index(
             ["State"]
         )["Average Weekly Cost [$/gal]"]
+        vr_propane.loc["US"] = vr_propane.mean()
 
         assert (
             len(set(vr_electricity.index)) >= 50
@@ -1213,10 +1216,10 @@ class SavingsExtraction:
 
         # $/kWh, $/therm, $/mmbtu, $/mmbtu
         return [
-            vr_electricity,
-            vr_natural_gas,
-            vr_fuel_oil / hc_fuel_oil,
-            vr_propane / hc_propane,
+            vr_electricity.rename("el_rate_dollar_per_kwh"),
+            vr_natural_gas.rename("ng_rate_dollar_per_therm"),
+            (vr_fuel_oil / hc_fuel_oil).rename("fo_rate_dollar_per_mmbtu"),
+            (vr_propane / hc_propane).rename("pp_rate_dollar_per_mmbtu"),
         ]
 
     @staticmethod
