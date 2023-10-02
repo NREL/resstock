@@ -44,20 +44,21 @@ class LARGEEE:
         for cat in range(0, len(self.run_names)):
             available_upgrades = self.run_objs[cat].get_available_upgrades()
             for upgrade in available_upgrades:
+                upgrade = int(upgrade)
                 if int(upgrade) == 0:
                     local_path = self.run_objs[cat]._download_results_csv()
                 else:
                     local_path = self.run_objs[cat]._download_upgrades_csv(upgrade_id=int(upgrade))
-                parquet_paths[f"{cat}.{upgrade}"] = str(local_path)
+                parquet_paths[f"{cat}.{upgrade:02d}"] = str(local_path)
                 print(f"Run {cat} upgrade {upgrade} parquet downloaded")
         return parquet_paths
 
     def add_state_to_parquets(self):
-        bs_df = read_formatted_metadata_file(self.parquet_paths['1.0'], 'baseline', self.outcols)
-        bs_df = pl.scan_parquet(self.parquet_paths['1.0']).filter(pl.col("completed_status") == "Success")
+        bs_df = read_formatted_metadata_file(self.parquet_paths['1.00'], 'baseline', self.outcols)
+        bs_df = pl.scan_parquet(self.parquet_paths['1.00']).filter(pl.col("completed_status") == "Success")
         state_map_df = bs_df.select("building_id", "build_existing_model.state").collect()
         for upgrade_name, path in self.parquet_paths.items():
-            if upgrade_name.endswith(".0"):  # skip baseline - they already have state
+            if upgrade_name.endswith(".00"):  # skip baseline - they already have state
                 continue
             if 'build_existing_model.state' in pl.scan_parquet(path).columns:
                 print(f"Already has state: {upgrade_name}")
@@ -69,13 +70,13 @@ class LARGEEE:
 
     def get_bs_up_df(self, filter_states: list[str] | None = None,
                      column_selector: Union[SelectorType, None] = None) -> tuple[pl.DataFrame, pl.DataFrame]:
-        bs_df = read_formatted_metadata_file(self.parquet_paths['1.0'], 'baseline', self.outcols, filter_states)
+        bs_df = read_formatted_metadata_file(self.parquet_paths['1.00'], 'baseline', self.outcols, filter_states)
         processed_bs_df = process_upgrade(bs_df)
         if column_selector is not None:
             processed_bs_df = processed_bs_df.select(column_selector)
         processed_up_df_list: list[pl.DataFrame] = []
         for upgrade_name, path in self.parquet_paths.items():
-            if upgrade_name.endswith(".0"):  # skip baseline for each run
+            if upgrade_name.endswith(".00"):  # skip baseline for each run
                 continue
             if not filter_states:
                 print(f"Processing {upgrade_name} at {path}.")
@@ -95,7 +96,7 @@ class LARGEEE:
     def get_upgrade_names(self):
         upgrade_name_dict = defaultdict(list)
         for upgrade_num, path in self.parquet_paths.items():
-            if upgrade_num.endswith(".0"):  # skip baseline for each run
+            if upgrade_num.endswith(".00"):  # skip baseline for each run
                 continue
             upgrade_name = (pl.scan_parquet(path)
                             .filter(pl.col("completed_status") == "Success")
@@ -112,7 +113,8 @@ class LARGEEE:
             pd_report_df = self.run_objs[cat].report.get_success_report()
             schema = {col: pl.Int64 if "%" not in col else pl.Float64 for col in pd_report_df.columns}
             report_df = pl.from_pandas(pd_report_df, include_index=True, schema_overrides=schema)
-            report_df = report_df.with_columns(pl.concat_str(pl.lit(f"{cat}."), pl.col('upgrade')).alias("upgrade"))
+            report_df = report_df.with_columns(pl.concat_str(pl.lit(f"{cat}."),
+                                                             pl.col('upgrade').cast(str).str.zfill(2)).alias("upgrade"))
             report_dfs.append(report_df)
         # _, up_df = self.get_bs_up_df()
         combined_report_df = pl.concat(report_dfs, how='diagonal')

@@ -4,7 +4,7 @@ import polars.selectors as cs
 from polars.type_aliases import SelectorType
 import os
 
-output_folder = "med_run_output"
+output_folder = "med_run_output3"
 state_split = False
 
 state_grouping: dict[str, list[str] | None] = {
