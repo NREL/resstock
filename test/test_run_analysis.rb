@@ -116,6 +116,12 @@ class TestRunAnalysis < Minitest::Test
         next if _expected_warning_message(message, 'No interior lighting specified, the model will not include interior lighting energy use. [context: /HPXML/Building/BuildingDetails]')
         next if _expected_warning_message(message, 'No exterior lighting specified, the model will not include exterior lighting energy use. [context: /HPXML/Building/BuildingDetails]')
         next if _expected_warning_message(message, 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.')
+        next if _expected_warning_message(message, 'Cooling capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem[CoolingSystemType="room air conditioner" or CoolingSystemType="packaged terminal air conditioner"]')
+        next if _expected_warning_message(message, 'Cooling capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem[CoolingSystemType="central air conditioner"]')
+        next if _expected_warning_message(message, 'Cooling capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem[CoolingSystemType="mini-split"]')
+        next if _expected_warning_message(message, 'Heating capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Fireplace]')
+        next if _expected_warning_message(message, 'Heating capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/SpaceHeater]')
+        next if _expected_warning_message(message, 'Backup heating capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[BackupType="integrated" or BackupSystemFuel]')
       end
 
       flunk "Unexpected cli_output.log message found: #{message}"
