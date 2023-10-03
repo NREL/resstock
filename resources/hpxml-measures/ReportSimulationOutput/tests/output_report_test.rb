@@ -70,8 +70,8 @@ class ReportSimulationOutputTest < Minitest::Test
     "End Use: #{FT::Elec}: #{EUT::WellPump} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::PoolHeater} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::PoolPump} (MBtu)",
-    "End Use: #{FT::Elec}: #{EUT::HotTubHeater} (MBtu)",
-    "End Use: #{FT::Elec}: #{EUT::HotTubPump} (MBtu)",
+    "End Use: #{FT::Elec}: #{EUT::PermanentSpaHeater} (MBtu)",
+    "End Use: #{FT::Elec}: #{EUT::PermanentSpaPump} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::PV} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::Generator} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::Battery} (MBtu)",
@@ -82,7 +82,7 @@ class ReportSimulationOutputTest < Minitest::Test
     "End Use: #{FT::Gas}: #{EUT::ClothesDryer} (MBtu)",
     "End Use: #{FT::Gas}: #{EUT::RangeOven} (MBtu)",
     "End Use: #{FT::Gas}: #{EUT::PoolHeater} (MBtu)",
-    "End Use: #{FT::Gas}: #{EUT::HotTubHeater} (MBtu)",
+    "End Use: #{FT::Gas}: #{EUT::PermanentSpaHeater} (MBtu)",
     "End Use: #{FT::Gas}: #{EUT::Grill} (MBtu)",
     "End Use: #{FT::Gas}: #{EUT::Lighting} (MBtu)",
     "End Use: #{FT::Gas}: #{EUT::Fireplace} (MBtu)",
@@ -326,7 +326,7 @@ class ReportSimulationOutputTest < Minitest::Test
 
   BaseHPXMLTimeseriesColsZoneTemps = [
     'Temperature: Attic - Unvented',
-    'Temperature: Living Space',
+    'Temperature: Conditioned Space',
     'Temperature: Heating Setpoint',
     'Temperature: Cooling Setpoint',
   ]
@@ -347,15 +347,15 @@ class ReportSimulationOutputTest < Minitest::Test
   ]
 
   BaseHPXMLTimeseriesColsStandardOutputVariables = [
-    'Zone People Occupant Count: Living Space',
-    'Zone People Total Heating Energy: Living Space'
+    'Zone People Occupant Count: Conditioned Space',
+    'Zone People Total Heating Energy: Conditioned Space'
   ]
 
   BaseHPXMLTimeseriesColsAdvancedOutputVariables = [
     'Surface Construction Index: Door1',
     'Surface Construction Index: Foundationwall1',
     'Surface Construction Index: Floor1',
-    'Surface Construction Index: Furniture Mass Living Space 1',
+    'Surface Construction Index: Furniture Mass Conditioned Space 1',
     'Surface Construction Index: Inferred Conditioned Ceiling',
     'Surface Construction Index: Inferred Conditioned Floor',
     'Surface Construction Index: Partition Wall Mass',
@@ -458,8 +458,8 @@ class ReportSimulationOutputTest < Minitest::Test
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::WellPump} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::PoolHeater} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::PoolPump} (lb)",
-               "Emissions: #{scenario}: #{FT::Elec}: #{EUT::HotTubHeater} (lb)",
-               "Emissions: #{scenario}: #{FT::Elec}: #{EUT::HotTubPump} (lb)",
+               "Emissions: #{scenario}: #{FT::Elec}: #{EUT::PermanentSpaHeater} (lb)",
+               "Emissions: #{scenario}: #{FT::Elec}: #{EUT::PermanentSpaPump} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::PV} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::Generator} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::Battery} (lb)",
@@ -469,7 +469,7 @@ class ReportSimulationOutputTest < Minitest::Test
                "Emissions: #{scenario}: #{FT::Gas}: #{EUT::ClothesDryer} (lb)",
                "Emissions: #{scenario}: #{FT::Gas}: #{EUT::RangeOven} (lb)",
                "Emissions: #{scenario}: #{FT::Gas}: #{EUT::PoolHeater} (lb)",
-               "Emissions: #{scenario}: #{FT::Gas}: #{EUT::HotTubHeater} (lb)",
+               "Emissions: #{scenario}: #{FT::Gas}: #{EUT::PermanentSpaHeater} (lb)",
                "Emissions: #{scenario}: #{FT::Gas}: #{EUT::Grill} (lb)",
                "Emissions: #{scenario}: #{FT::Gas}: #{EUT::Lighting} (lb)",
                "Emissions: #{scenario}: #{FT::Gas}: #{EUT::Fireplace} (lb)",
@@ -847,7 +847,7 @@ class ReportSimulationOutputTest < Minitest::Test
 
   def test_timeseries_hourly_enduses_power_outage_natvent_availability
     energy_use_total_col = "Energy Use: #{TE::Total}"
-    temperature_living_space_col = 'Temperature: Living Space'
+    temperature_conditioned_space_col = 'Temperature: Conditioned Space'
 
     args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage.xml'),
                   'skip_validation' => true,
@@ -856,9 +856,9 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_zone_temperatures' => true }
     _annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(timeseries_csv))
-    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_living_space_col])
+    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_conditioned_space_col])
     schedule_regular_total = values[energy_use_total_col].sum(0.0)
-    schedule_regular_temp = values[temperature_living_space_col].sum(0.0) / values[temperature_living_space_col].size
+    schedule_regular_temp = values[temperature_conditioned_space_col].sum(0.0) / values[temperature_conditioned_space_col].size
 
     args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage-natvent-available.xml'),
                   'skip_validation' => true,
@@ -867,9 +867,9 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_zone_temperatures' => true }
     _annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(timeseries_csv))
-    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_living_space_col])
+    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_conditioned_space_col])
     schedule_available_total = values[energy_use_total_col].sum(0.0)
-    schedule_available_temp = values[temperature_living_space_col].sum(0.0) / values[temperature_living_space_col].size
+    schedule_available_temp = values[temperature_conditioned_space_col].sum(0.0) / values[temperature_conditioned_space_col].size
 
     args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage-natvent-unavailable.xml'),
                   'skip_validation' => true,
@@ -878,9 +878,9 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_zone_temperatures' => true }
     _annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(timeseries_csv))
-    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_living_space_col])
+    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_conditioned_space_col])
     schedule_unavailable_total = values[energy_use_total_col].sum(0.0)
-    schedule_unavailable_temp = values[temperature_living_space_col].sum(0.0) / values[temperature_living_space_col].size
+    schedule_unavailable_temp = values[temperature_conditioned_space_col].sum(0.0) / values[temperature_conditioned_space_col].size
 
     assert_operator(schedule_regular_total, :>, schedule_available_total)
     assert_operator(schedule_available_total, :<, schedule_unavailable_total)

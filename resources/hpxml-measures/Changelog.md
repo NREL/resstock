@@ -1,10 +1,22 @@
 ## OpenStudio-HPXML v1.7.0
 
 __New Features__
-- **Breaking change**: Updates to newer proposed HPXML v4.0:
+- **Breaking change**: Updates to official HPXML v4.0:
+  - HPXML namespace changed from http://hpxmlonline.com/2019/10 to http://hpxmlonline.com/2023/09
+  - Replaces "living space" with "conditioned space", which better represents what is modeled.
+  - Replaces `HotTubs/HotTub` with `Spas/PermanentSpa`.
   - Replaces `PortableHeater` and `FixedHeater` with `SpaceHeater`.
+- Allows simulating whole multifamily (MF) buildings, where each dwelling unit is described by a separate `Building` element.
+  - Allows `NumberofUnits` to be used as a multiplier on dwelling unit simulation results to reduce simulation runtime.
+  - **Breaking change**: Multiple elements move from `SoftwareInfo/extension` to `BuildingDetails/BuildingSummary/extension` to allow variation across MF dwelling units:
+    - `HVACSizingControl`
+    - `ShadingControl`
+    - `SchedulesFilePath`
+    - `NaturalVentilationAvailabilityDaysperWeek`
+  - Note: Batteries are not currently supported. Dehumidifiers and ground-source heat pumps are only supported if `NumberofUnits` is 1.
 - Adds manufactured home belly as a foundation type and allows modeling ducts in a manufactured home belly.
 - Output updates:
+  - **Breaking change**: "Hot Tub" outputs renamed to "Permanent Spa".
   - Adds "Peak Electricity: Annual Total (W)" output.
   - Adds battery resilience hours output; allows requesting timeseries output.
   - ReportUtilityBills measure: Allows reporting monthly utility bills in addition to (or instead of) annual bills.
@@ -16,6 +28,7 @@ __New Features__
   - Always validate the HPXML file before applying defaults and only optionally validate the final HPXML file.
 
 __Bugfixes__
+- Fixes battery resilience output to properly incorporate battery losses.
 - Fixes lighting multipliers not being applied when kWh/yr inputs are used.
 - Fixes running detailed schedules with mixed timesteps (e.g., hourly heating/cooling setpoints and 15-minutely miscellaneous plug load schedules).
 - Fixes calculation of utility bill fixed costs for simulations with abbreviated run periods.

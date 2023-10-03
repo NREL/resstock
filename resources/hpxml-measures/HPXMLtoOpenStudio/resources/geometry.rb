@@ -358,8 +358,8 @@ class Geometry
   end
 
   def self.set_zone_volumes(spaces, hpxml_bldg, apply_ashrae140_assumptions)
-    # Living space
-    spaces[HPXML::LocationLivingSpace].thermalZone.get.setVolume(UnitConversions.convert(hpxml_bldg.building_construction.conditioned_building_volume, 'ft^3', 'm^3'))
+    # Conditioned space
+    spaces[HPXML::LocationConditionedSpace].thermalZone.get.setVolume(UnitConversions.convert(hpxml_bldg.building_construction.conditioned_building_volume, 'ft^3', 'm^3'))
 
     # Basement, crawlspace, garage
     spaces.keys.each do |location|
@@ -533,7 +533,7 @@ class Geometry
     people_sch = nil
     people_col_name = SchedulesFile::ColumnOccupants
     if not schedules_file.nil?
-      people_sch = schedules_file.create_schedule_file(col_name: people_col_name)
+      people_sch = schedules_file.create_schedule_file(model, col_name: people_col_name)
     end
     if people_sch.nil?
       people_unavailable_periods = Schedule.get_unavailable_periods(runner, people_col_name, unavailable_periods)

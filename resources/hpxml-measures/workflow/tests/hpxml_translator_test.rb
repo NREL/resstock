@@ -14,8 +14,7 @@ class HPXMLTest < Minitest::Test
 
     schema_path = File.join(File.dirname(__FILE__), '..', '..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
     @schema_validator = XMLValidator.get_schema_validator(schema_path)
-    schematron_path = File.join(File.dirname(__FILE__), '..', '..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schematron', 'EPvalidator.xml')
-    @schematron_validator = XMLValidator.get_schematron_validator(schematron_path)
+    @schematron_path = File.join(File.dirname(__FILE__), '..', '..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schematron', 'EPvalidator.xml')
   end
 
   def test_simulations
@@ -30,31 +29,8 @@ class HPXMLTest < Minitest::Test
     sample_files_dirs.each do |sample_files_dir|
       Dir["#{sample_files_dir}/*.xml"].sort.each do |xml|
         next if xml.end_with? '-10x.xml'
-        # FIXME: Need to address these files
-        next if xml.include? 'real_homes'
-        next if xml.include? 'base-bldgtype-multifamily'
-        next if xml.include? 'base-hvac-undersized'
-        next if xml.include? 'base-multiple-buildings.xml'
-        next if xml.include? 'base-two-buildings'
-        next if xml.include? '-dehumidifier'
-        # GSHP:
-        next if xml.include? 'ground-to-air'
-        next if xml.include? 'base-hvac-multiple'
-        # DHW:
-        next if xml.include? '-desuperheater'
-        next if xml.include?('-combi') || xml.include?('-indirect')
-        next if xml.include?('-hpwh') || xml.include?('tank-heat-pump')
-        next if xml.include? '-dhw-multiple'
-        next if xml.include? '-stratified'
-        next if xml.include? '-solar'
-        # Ducts:
-        next if xml.include? 'base-hvac-ducts'
-        next if xml.include? 'base-foundation-belly-wing'
-        # Battery:
-        next if xml.include? '-battery'
-        next if xml.include? 'base-residents-5'
-        next if xml.include? 'base-misc-defaults'
-        next if xml.include? 'base-misc-emissions'
+        next if xml.include? 'base-multiple-buildings' # Tested by test_multiple_buildings()
+        next if xml.include? 'base-bldgtype-multifamily-shared-mechvent-multiple' # FIXME: Won't work w/ unit multipliers until https://github.com/NREL/EnergyPlus/pull/10131 is available in E+
 
         xmls << File.absolute_path(xml)
       end
@@ -66,10 +42,12 @@ class HPXMLTest < Minitest::Test
     all_bill_results = {}
     Parallel.map(xmls, in_threads: Parallel.processor_count) do |xml|
       xml_name = File.basename(xml)
-      all_results[xml_name], all_bill_results[xml_name] = _run_xml(xml, Parallel.worker_number)
+      results = _run_xml(xml, Parallel.worker_number)
+      all_results[xml_name], all_bill_results[xml_name], timeseries_results = results
 
-      # Also run with a 10x unit multiplier and check how the results compare to the original run
-      _run_xml(xml, Parallel.worker_number, true, all_results[xml_name])
+      # Also run with a 10x unit multiplier (2 identical dwelling units each with a 5x
+      # unit multiplier) and check how the results compare to the original run
+      _run_xml(xml, Parallel.worker_number, true, all_results[xml_name], timeseries_results)
     end
 
     _write_results(all_results.sort_by { |k, _v| k.downcase }.to_h, results_out)
@@ -235,8 +213,8 @@ class HPXMLTest < Minitest::Test
         # Check timeseries columns exist
         timeseries_rows = CSV.read(File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
         assert_equal(1, timeseries_rows[0].select { |r| r == 'Time' }.size)
-        assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Occupant Count: Living Space' }.size)
-        assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Total Heating Energy: Living Space' }.size)
+        assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Occupant Count: Conditioned Space' }.size)
+        assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Total Heating Energy: Conditioned Space' }.size)
       else
         refute(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
       end
@@ -321,38 +299,40 @@ class HPXMLTest < Minitest::Test
   end
 
   def test_multiple_buildings
-    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
-    xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base-multiple-buildings.xml')
-    csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
-    run_log = File.join(File.dirname(xml), 'run', 'run.log')
+    sample_files_dir = File.join(File.dirname(__FILE__), '..', 'sample_files')
+    Dir["#{sample_files_dir}/base-multiple-buildings*.xml"].sort.each do |xml|
+      rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+      csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
+      run_log = File.join(File.dirname(xml), 'run', 'run.log')
 
-    # Check successful simulation when providing correct building ID
-    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyBuilding_2"
-    system(command, err: File::NULL)
-    assert_equal(true, File.exist?(csv_output_path))
+      # Check successful simulation when providing correct building ID
+      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyBuilding_2"
+      system(command, err: File::NULL)
+      assert_equal(true, File.exist?(csv_output_path))
 
-    # Check that we have exactly one warning (i.e., check we are only validating a single Building element against schematron)
-    assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.' }.size)
+      # Check that we have exactly one warning (i.e., check we are only validating a single Building element against schematron)
+      assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.' }.size)
 
-    # Check unsuccessful simulation when providing incorrect building ID
-    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyFoo"
-    system(command, err: File::NULL)
-    assert_equal(false, File.exist?(csv_output_path))
-    assert_equal(1, File.readlines(run_log).select { |l| l.include? "Could not find Building element with ID 'MyFoo'." }.size)
+      # Check unsuccessful simulation when providing incorrect building ID
+      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyFoo"
+      system(command, err: File::NULL)
+      assert_equal(false, File.exist?(csv_output_path))
+      assert_equal(1, File.readlines(run_log).select { |l| l.include? "Could not find Building element with ID 'MyFoo'." }.size)
 
-    # Check unsuccessful simulation when not providing building ID
-    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\""
-    system(command, err: File::NULL)
-    assert_equal(false, File.exist?(csv_output_path))
-    assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.' }.size)
+      # Check unsuccessful simulation when not providing building ID
+      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\""
+      system(command, err: File::NULL)
+      assert_equal(false, File.exist?(csv_output_path))
+      assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.' }.size)
 
-    # Check successful simulation when running whole building
-    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id ALL"
-    system(command, err: File::NULL)
-    assert_equal(true, File.exist?(csv_output_path))
+      # Check successful simulation when running whole building
+      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id ALL"
+      system(command, err: File::NULL)
+      assert_equal(true, File.exist?(csv_output_path))
 
-    # Check that we now have three warnings, one for each Building element
-    assert_equal(3, File.readlines(run_log).select { |l| l.include? 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.' }.size)
+      # Check that we now have three warnings, one for each Building element
+      assert_equal(3, File.readlines(run_log).select { |l| l.include? 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.' }.size)
+    end
   end
 
   def test_release_zips
@@ -385,21 +365,39 @@ class HPXMLTest < Minitest::Test
 
   private
 
-  def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil)
+  def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, timeseries_results_1x = nil)
+    unit_multiplier = 1
     if apply_unit_multiplier
-      # Create copy of the HPXML w/ unit multiplier set to 10
-      unit_multiplier = 10
-      hpxml = HPXML.new(hpxml_path: xml)
+      hpxml = HPXML.new(hpxml_path: xml, building_id: 'ALL')
       hpxml.buildings.each do |hpxml_bldg|
-        if hpxml_bldg.building_construction.number_of_units.nil?
-          hpxml_bldg.building_construction.number_of_units = 1
+        next unless hpxml_bldg.building_construction.number_of_units.nil?
+
+        hpxml_bldg.building_construction.number_of_units = 1
+      end
+      orig_multiplier = hpxml.buildings.map { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units }.sum
+
+      # Create copy of the HPXML where the number of Building elements is doubled
+      # and each Building is assigned a unit multiplier of 5 (2x5=10).
+      n_bldgs = hpxml.buildings.size
+      for i in 0..n_bldgs - 1
+        hpxml_bldg = hpxml.buildings[i]
+        if hpxml_bldg.dehumidifiers.size > 0
+          # FIXME: Dehumidifiers currently don't give good results w/ unit multipliers
+        elsif hpxml_bldg.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
+          # FIXME: GSHPs currently don't give good results w/ unit multipliers
+        elsif hpxml_bldg.batteries.size > 0
+          # FIXME: Batteries currently don't work with whole SFA/MF buildings
+          return
+        else
+          hpxml_bldg.building_construction.number_of_units *= 5
         end
-        hpxml_bldg.building_construction.number_of_units *= unit_multiplier
+        hpxml.buildings << hpxml_bldg.dup
       end
       xml.gsub!('.xml', '-10x.xml')
-      XMLHelper.write_file(hpxml.to_doc(), xml)
-    else
-      unit_multiplier = 1
+      hpxml_doc = hpxml.to_doc()
+      hpxml.set_unique_hpxml_ids(hpxml_doc)
+      XMLHelper.write_file(hpxml_doc, xml)
+      unit_multiplier = hpxml.buildings.map { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units }.sum / orig_multiplier
     end
 
     print "Testing #{File.basename(xml)}...\n"
@@ -409,10 +407,7 @@ class HPXMLTest < Minitest::Test
     # inside the ReportSimulationOutput measure.
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" \"#{File.join(File.dirname(__FILE__), '../run_simulation.rb')}\" -x \"#{xml}\" --add-component-loads -o \"#{rundir}\" --debug --monthly ALL"
-    if xml.include? 'base-multiple-buildings.xml'
-      command += ' -b MyBuilding'
-    end
-    if xml.include? 'base-two-buildings.xml'
+    if unit_multiplier > 1
       command += ' -b ALL'
     end
     success = system(command)
@@ -438,7 +433,8 @@ class HPXMLTest < Minitest::Test
 
     # Check outputs
     hpxml_defaults_path = File.join(rundir, 'in.xml')
-    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, schema_validator: @schema_validator, schematron_validator: @schematron_validator) # Validate in.xml to ensure it can be run back through OS-HPXML
+    schematron_validator = XMLValidator.get_schematron_validator(@schematron_path)
+    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, schema_validator: @schema_validator, schematron_validator: schematron_validator, building_id: 'ALL') # Validate in.xml to ensure it can be run back through OS-HPXML
     if not hpxml.errors.empty?
       puts 'ERRORS:'
       hpxml.errors.each do |error|
@@ -447,45 +443,45 @@ class HPXMLTest < Minitest::Test
       flunk "EPvalidator.xml error in #{hpxml_defaults_path}."
     end
     bill_results = _get_bill_results(bills_csv_path)
-    results = _get_simulation_results(annual_csv_path, xml, unit_multiplier)
-    _verify_outputs(rundir, xml, results, hpxml.header, hpxml.buildings[0])
+    results = _get_simulation_results(annual_csv_path)
+    timeseries_results = _get_simulation_timeseries_results(timeseries_csv_path)
+    _verify_outputs(rundir, xml, results, hpxml, unit_multiplier)
     if unit_multiplier > 1
-      _check_unit_multiplier_results(results_1x, results, unit_multiplier)
+      _check_unit_multiplier_results(hpxml.buildings[0], results_1x, results, timeseries_results_1x, timeseries_results, unit_multiplier)
     end
 
-    return results, bill_results
+    return results, bill_results, timeseries_results
   end
 
-  def _get_simulation_results(annual_csv_path, xml, unit_multiplier)
+  def _get_simulation_results(annual_csv_path)
     # Grab all outputs from reporting measure CSV annual results
     results = {}
     CSV.foreach(annual_csv_path) do |row|
       next if row.nil? || (row.size < 2)
-      next if row[0].start_with? 'System Use:'
-      next if row[0].start_with? 'Emissions:'
 
       results[row[0]] = Float(row[1])
     end
 
-    # Check discrepancy between total load and sum of component loads
-    if not xml.include? 'ASHRAE_Standard_140'
-      sum_component_htg_loads = results.select { |k, _v| k.start_with? 'Component Load: Heating:' }.values.sum(0.0)
-      sum_component_clg_loads = results.select { |k, _v| k.start_with? 'Component Load: Cooling:' }.values.sum(0.0)
-      total_htg_load_delivered = results['Load: Heating: Delivered (MBtu)']
-      total_clg_load_delivered = results['Load: Cooling: Delivered (MBtu)']
-      abs_htg_load_delta = (total_htg_load_delivered - sum_component_htg_loads).abs
-      abs_clg_load_delta = (total_clg_load_delivered - sum_component_clg_loads).abs
-      avg_htg_load = [total_htg_load_delivered, sum_component_htg_loads].sum / 2.0
-      avg_clg_load = [total_clg_load_delivered, sum_component_clg_loads].sum / 2.0
-      if avg_htg_load > 0
-        abs_htg_load_frac = abs_htg_load_delta / avg_htg_load
+    return results
+  end
+
+  def _get_simulation_timeseries_results(timeseries_csv_path)
+    results = {}
+    headers = nil
+    CSV.foreach(timeseries_csv_path).with_index do |row, i|
+      row = row[1..-1] # Skip time column
+      if i == 0 # Header row
+        headers = row
+        next
+      elsif i == 1 # Units row
+        headers = headers.zip(row).map { |header, units| "#{header} (#{units})" }
+        next
       end
-      if avg_clg_load > 0
-        abs_clg_load_frac = abs_clg_load_delta / avg_clg_load
+
+      for i in 0..row.size - 1
+        results[headers[i]] = [] if results[headers[i]].nil?
+        results[headers[i]] << Float(row[i])
       end
-      # Check that the difference is less than 1.5 MBtu or less than 10%
-      assert((abs_htg_load_delta < 1.5 * unit_multiplier) || (!abs_htg_load_frac.nil? && abs_htg_load_frac < 0.1))
-      assert((abs_clg_load_delta < 1.5 * unit_multiplier) || (!abs_clg_load_frac.nil? && abs_clg_load_frac < 0.1))
     end
 
     return results
@@ -506,9 +502,11 @@ class HPXMLTest < Minitest::Test
     return results
   end
 
-  def _verify_outputs(rundir, hpxml_path, results, hpxml_header, hpxml_bldg)
+  def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     assert(File.exist? File.join(rundir, 'eplusout.msgpack'))
 
+    hpxml_header = hpxml.header
+    hpxml_bldg = hpxml.buildings[0]
     sqlFile = OpenStudio::SqlFile.new(File.join(rundir, 'eplusout.sql'), false)
 
     # Collapse windows further using same logic as measure.rb
@@ -563,7 +561,7 @@ class HPXMLTest < Minitest::Test
       if hpxml_bldg.windows.empty?
         next if message.include? 'No windows specified, the model will not include window heat transfer.'
       end
-      if hpxml_bldg.pv_systems.empty? && !hpxml_bldg.batteries.empty? && hpxml_header.schedules_filepaths.empty?
+      if hpxml_bldg.pv_systems.empty? && !hpxml_bldg.batteries.empty? && hpxml_bldg.header.schedules_filepaths.empty?
         next if message.include? 'Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.'
       end
       if hpxml_path.include? 'base-location-capetown-zaf.xml'
@@ -581,6 +579,12 @@ class HPXMLTest < Minitest::Test
       if hpxml_path.include? 'base-location-AMY-2012.xml'
         next if message.include? 'No design condition info found; calculating design conditions from EPW weather data.'
       end
+      if hpxml_bldg.building_construction.number_of_units > 1
+        next if message.include? 'NumberofUnits is greater than 1, indicating that the HPXML Building represents multiple dwelling units; simulation outputs will reflect this unit multiplier.'
+      end
+
+      # FIXME: Revert this eventually
+      next if message.include? 'Cannot currently handle an HPXML with multiple Building elements'
 
       flunk "Unexpected run.log message found for #{File.basename(hpxml_path)}: #{message}"
     end
@@ -600,6 +604,7 @@ class HPXMLTest < Minitest::Test
     messages.each do |message|
       # General
       next if message.include? 'Schedule:Constant="ALWAYS ON CONTINUOUS", Blank Schedule Type Limits Name input'
+      next if message.include? 'Schedule:Constant="ALWAYS ON DISCRETE", Blank Schedule Type Limits Name input'
       next if message.include? 'Schedule:Constant="ALWAYS OFF DISCRETE", Blank Schedule Type Limits Name input'
       next if message.include? 'Entered Zone Volumes differ from calculated zone volume'
       next if message.include? 'PerformancePrecisionTradeoffs: Carroll MRT radiant exchange method is selected.'
@@ -718,8 +723,7 @@ class HPXMLTest < Minitest::Test
       end
     end
     assert_equal(0, num_unused_objects)
-    # FIXME: Revert once the meta_measure.rb code is reverted
-    # assert_equal(0, num_unused_schedules)
+    assert_equal(0, num_unused_schedules)
     assert_equal(0, num_unused_constructions)
 
     # Check for Output:Meter and Output:Variable warnings
@@ -735,13 +739,34 @@ class HPXMLTest < Minitest::Test
     assert_equal(0, num_invalid_output_meters)
     assert_equal(0, num_invalid_output_variables)
 
+    # Check discrepancy between total load and sum of component loads
+    if not hpxml_path.include? 'ASHRAE_Standard_140'
+      sum_component_htg_loads = results.select { |k, _v| k.start_with? 'Component Load: Heating:' }.values.sum(0.0)
+      sum_component_clg_loads = results.select { |k, _v| k.start_with? 'Component Load: Cooling:' }.values.sum(0.0)
+      total_htg_load_delivered = results['Load: Heating: Delivered (MBtu)']
+      total_clg_load_delivered = results['Load: Cooling: Delivered (MBtu)']
+      abs_htg_load_delta = (total_htg_load_delivered - sum_component_htg_loads).abs
+      abs_clg_load_delta = (total_clg_load_delivered - sum_component_clg_loads).abs
+      avg_htg_load = [total_htg_load_delivered, sum_component_htg_loads].sum / 2.0
+      avg_clg_load = [total_clg_load_delivered, sum_component_clg_loads].sum / 2.0
+      if avg_htg_load > 0
+        abs_htg_load_frac = abs_htg_load_delta / avg_htg_load
+      end
+      if avg_clg_load > 0
+        abs_clg_load_frac = abs_clg_load_delta / avg_clg_load
+      end
+      # Check that the difference is less than 1.5 MBtu or less than 10%
+      assert((abs_htg_load_delta < 1.5 * unit_multiplier) || (!abs_htg_load_frac.nil? && abs_htg_load_frac < 0.1))
+      assert((abs_clg_load_delta < 1.5 * unit_multiplier) || (!abs_clg_load_frac.nil? && abs_clg_load_frac < 0.1))
+    end
+
+    return if (hpxml.buildings.size > 1) || (hpxml_bldg.building_construction.number_of_units > 1)
+
     # Timestep
     timestep = hpxml_header.timestep.nil? ? 60 : hpxml_header.timestep
     query = 'SELECT NumTimestepsPerHour FROM Simulations'
     sql_value = sqlFile.execAndReturnFirstDouble(query).get
     assert_equal(60 / timestep, sql_value)
-
-    unit_multiplier = hpxml_bldg.building_construction.number_of_units
 
     # Conditioned Floor Area
     if (hpxml_bldg.total_fraction_cool_load_served > 0) || (hpxml_bldg.total_fraction_heat_load_served > 0) # EnergyPlus will only report conditioned floor area if there is an HVAC system
@@ -751,7 +776,7 @@ class HPXMLTest < Minitest::Test
       end
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='InputVerificationandResultsSummary' AND ReportForString='Entire Facility' AND TableName='Zone Summary' AND RowName='Conditioned Total' AND ColumnName='Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
-      assert_in_epsilon(hpxml_value * unit_multiplier, sql_value, 0.1)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
     end
 
     # Enclosure Roofs
@@ -782,7 +807,7 @@ class HPXMLTest < Minitest::Test
       query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{roof_id}' OR RowName LIKE '#{roof_id}:%') AND ColumnName='Net Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
-      assert_in_epsilon(hpxml_value * unit_multiplier, sql_value, 0.1)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
       # Solar absorptance
       hpxml_value = roof.solar_absorptance
@@ -828,7 +853,7 @@ class HPXMLTest < Minitest::Test
         query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND RowName='#{slab_id}' AND ColumnName='Gross Area' AND Units='m2'"
         sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
         assert_operator(sql_value, :>, 0.01)
-        assert_in_epsilon(hpxml_value * unit_multiplier, sql_value, 0.1)
+        assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
         # Tilt
         query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND RowName='#{slab_id}' AND ColumnName='Tilt' AND Units='deg'"
@@ -899,7 +924,7 @@ class HPXMLTest < Minitest::Test
       end
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
-      assert_in_epsilon(hpxml_value * unit_multiplier, sql_value, 0.1)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
       # Solar absorptance
       if wall.respond_to?(:solar_absorptance) && (not wall.solar_absorptance.nil?)
@@ -976,7 +1001,7 @@ class HPXMLTest < Minitest::Test
       query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{floor_id}' AND ColumnName='Net Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
-      assert_in_epsilon(hpxml_value * unit_multiplier, sql_value, 0.1)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
       # Tilt
       if floor.is_ceiling
@@ -1009,7 +1034,7 @@ class HPXMLTest < Minitest::Test
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='#{col_name}' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
-      assert_in_epsilon(hpxml_value * unit_multiplier, sql_value, 0.1)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
       # U-Factor
       if subsurface.is_exterior
@@ -1079,7 +1104,7 @@ class HPXMLTest < Minitest::Test
         query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{door_id}' AND ColumnName='Gross Area' AND Units='m2'"
         sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
         assert_operator(sql_value, :>, 0.01)
-        assert_in_epsilon(hpxml_value * unit_multiplier, sql_value, 0.1)
+        assert_in_epsilon(hpxml_value, sql_value, 0.1)
       end
 
       # R-Value
@@ -1124,7 +1149,7 @@ class HPXMLTest < Minitest::Test
       if not fan_cfis.empty?
         if (fan_sup + fan_exh + fan_bal + vent_fan_kitchen + vent_fan_bath).empty?
           # CFIS only, check for positive mech vent energy that is less than the energy if it had run 24/7
-          fan_gj = fan_cfis.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0) * unit_multiplier
+          fan_gj = fan_cfis.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
           assert_operator(mv_energy, :>, 0)
           assert_operator(mv_energy, :<, fan_gj)
         end
@@ -1132,19 +1157,19 @@ class HPXMLTest < Minitest::Test
         # Supply, exhaust, ERV, HRV, etc., check for appropriate mech vent energy
         fan_gj = 0
         if not fan_sup.empty?
-          fan_gj += fan_sup.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0) * unit_multiplier
+          fan_gj += fan_sup.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
         end
         if not fan_exh.empty?
-          fan_gj += fan_exh.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0) * unit_multiplier
+          fan_gj += fan_exh.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
         end
         if not fan_bal.empty?
-          fan_gj += fan_bal.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0) * unit_multiplier
+          fan_gj += fan_bal.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
         end
         if not vent_fan_kitchen.empty?
-          fan_gj += vent_fan_kitchen.map { |vent_kitchen| UnitConversions.convert(vent_kitchen.unit_fan_power * vent_kitchen.hours_in_operation * vent_kitchen.count * 365.0, 'Wh', 'GJ') }.sum(0.0) * unit_multiplier
+          fan_gj += vent_fan_kitchen.map { |vent_kitchen| UnitConversions.convert(vent_kitchen.unit_fan_power * vent_kitchen.hours_in_operation * vent_kitchen.count * 365.0, 'Wh', 'GJ') }.sum(0.0)
         end
         if not vent_fan_bath.empty?
-          fan_gj += vent_fan_bath.map { |vent_bath| UnitConversions.convert(vent_bath.unit_fan_power * vent_bath.hours_in_operation * vent_bath.count * 365.0, 'Wh', 'GJ') }.sum(0.0) * unit_multiplier
+          fan_gj += vent_fan_bath.map { |vent_bath| UnitConversions.convert(vent_bath.unit_fan_power * vent_bath.hours_in_operation * vent_bath.count * 365.0, 'Wh', 'GJ') }.sum(0.0)
         end
         # Maximum error that can be caused by rounding
         assert_in_delta(mv_energy, fan_gj, 0.006)
@@ -1163,7 +1188,7 @@ class HPXMLTest < Minitest::Test
       # Location
       hpxml_value = appliance.location
       if hpxml_value.nil? || HPXML::conditioned_locations.include?(hpxml_value) || [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
-        hpxml_value = HPXML::LocationLivingSpace
+        hpxml_value = HPXML::LocationConditionedSpace
       end
       tabular_value = tabular_map[appliance.class]
       query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{tabular_value.upcase}')"
@@ -1289,59 +1314,124 @@ class HPXMLTest < Minitest::Test
     GC.start()
   end
 
-  def _check_unit_multiplier_results(results_1x, results_10x, unit_multiplier)
+  def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results_10x, timeseries_results_1x, timeseries_results_10x, unit_multiplier)
     # Check that results_10x are expected compared to results_1x
-    assert_equal(results_1x.keys.sort, results_10x.keys.sort)
-    results_1x.each do |key, val_1x|
-      if key.include?('HVAC Design Temperature')
-        assert_equal(val_1x, results_10x[key])
-      elsif key.include?('Unmet Hours')
-        # Check that the difference is less than 20 hrs
-        assert_in_delta(val_1x, results_10x[key], 20)
+
+    def get_tolerances(key)
+      # FIXME: Tighten these tolerances
+      if key.include?('(MBtu)') || key.include?('(kBtu)') || key.include?('(kWh)')
+        # Check that the energy difference is less than 0.5 MBtu or less than 5%
+        abs_delta_tol = 0.5 # MBtu
+        abs_frac_tol = 0.05
+        if key.include?('(kBtu)')
+          abs_delta_tol = UnitConversions.convert(abs_delta_tol, 'MBtu', 'kBtu')
+        elsif key.include?('(kWh)')
+          abs_delta_tol = UnitConversions.convert(abs_delta_tol, 'MBtu', 'kWh')
+        end
+      elsif key.include?('Peak Electricity:')
+        # Check that the peak electricity difference is less than 1000 W or less than 10%
+        # Wider tolerances than others because a small change in when an event (like the
+        # water heating firing) occurs can significantly impact the peak.
+        abs_delta_tol = 1000.0
+        abs_frac_tol = 0.1
+      elsif key.include?('Peak Load:')
+        # Check that the peak load difference is less than 0.5 kBtu/hr or less than 5%
+        abs_delta_tol = 0.5
+        abs_frac_tol = 0.05
+      elsif key.include?('Hot Water:')
+        # Check that the hot water usage difference is less than 10 gal/yr or less than 2%
+        abs_delta_tol = 10.0
+        abs_frac_tol = 0.02
+      elsif key.include?('Resilience: Battery')
+        # Check that the battery resilience difference is less than 1 hr or less than 1%
+        abs_delta_tol = 1.0
+        abs_frac_tol = 0.01
+      elsif key.include?('HVAC Capacity:') || key.include?('HVAC Design Load:')
+        # Check that the HVAC capacity/design load difference is less than 500 Btu/h or less than 1%
+        abs_delta_tol = 500.0
+        abs_frac_tol = 0.01
+      elsif key.include?('Airflow:')
+        # Check that airflow rate difference is less than 0.1 cfm or less than 1%
+        abs_delta_tol = 0.1
+        abs_frac_tol = 0.01
+      elsif key.include?('Unmet Hours:')
+        # Check that the unmet hours difference is less than 20 hrs
+        abs_delta_tol = 20
+        abs_frac_tol = nil
+      elsif key.include?('HVAC Design Temperature:') || key.include?('Weather:')
+        # Check that there is no difference
+        abs_delta_tol = 0
+        abs_frac_tol = nil
       else
-        # Compare 10 * 1x results to 10x results
-        abs_val_delta = (val_1x * unit_multiplier - results_10x[key]).abs
-        avg_val = [val_1x * unit_multiplier, results_10x[key]].sum / 2.0
-        if avg_val > 0
-          abs_val_frac = abs_val_delta / avg_val
-        end
-        # FIXME: Tighten these tolerances
-        if key.include?('(MBtu)')
-          # Check that the energy difference is less than 0.5 MBtu or less than 5%
-          abs_delta_tol = 0.5
-          abs_frac_tol = 0.05
-        elsif key.include?('Peak Electricity')
-          # Check that the peak electricity difference is less than 1000 W or less than 10%
-          # Wider tolerances than others because a small change in when an event (like the
-          # water heating firing) occurs can significantly impact the peak.
-          abs_delta_tol = 1000.0
-          abs_frac_tol = 0.1
-        elsif key.include?('Peak Load')
-          # Check that the peak load difference is less than 0.5 kBtu/hr or less than 5%
-          abs_delta_tol = 0.5
-          abs_frac_tol = 0.05
-        elsif key.include?('Hot Water')
-          # Check that the hot water usage difference is less than 10 gal/yr or less than 1%
-          abs_delta_tol = 10.0
-          abs_frac_tol = 0.01
-        elsif key.include?('Resilience: Battery')
-          # Check that the battery resilience difference is less than 1 hr or less than 1%
-          abs_delta_tol = 1.0
-          abs_frac_tol = 0.01
-        elsif key.include?('HVAC Capacity') || key.include?('HVAC Design Load')
-          # Check that the HVAC capacity/design load difference is less than 500 Btu/h or less than 1%
-          abs_delta_tol = 500.0
-          abs_frac_tol = 0.01
-        else
-          fail "Unexpected results key: #{key}."
-        end
-        # Uncomment this line to debug:
-        # puts "[#{key}] 1x=#{val_1x * unit_multiplier} 10x=#{results_10x[key]}"
-        assert((abs_val_delta < abs_delta_tol) || (!abs_val_frac.nil? && abs_val_frac < abs_frac_tol))
+        fail "Unexpected results key: #{key}."
       end
+
+      return abs_delta_tol, abs_frac_tol
     end
 
-    # FIXME: Compare timeseries output too
+    # Number of systems and thermal zones change between the 1x and 10x runs,
+    # so remove these from the comparison
+    ['System Use:', 'Temperature:'].each do |key|
+      annual_results_1x.delete_if { |k, _v| k.start_with? key }
+      annual_results_10x.delete_if { |k, _v| k.start_with? key }
+      timeseries_results_1x.delete_if { |k, _v| k.start_with? key }
+      timeseries_results_10x.delete_if { |k, _v| k.start_with? key }
+    end
+
+    # Compare annual and timeseries results
+    assert_equal(annual_results_1x.keys.sort, annual_results_10x.keys.sort)
+    assert_equal(timeseries_results_1x.keys.sort, timeseries_results_10x.keys.sort)
+
+    { annual_results_1x => annual_results_10x,
+      timeseries_results_1x => timeseries_results_10x }.each do |results_1x, results_10x|
+      results_1x.each do |key, vals_1x|
+        abs_delta_tol, abs_frac_tol = get_tolerances(key)
+
+        vals_10x = results_10x[key]
+        if not vals_1x.is_a? Array
+          vals_1x = [vals_1x]
+          vals_10x = [vals_10x]
+        end
+
+        vals_1x.zip(vals_10x).each do |val_1x, val_10x|
+          if not (key.include?('Unmet Hours') ||
+                  key.include?('HVAC Design Temperature') ||
+                  key.include?('Weather'))
+            # These outputs shouldn't change based on the unit multiplier
+            val_1x *= unit_multiplier
+          end
+
+          abs_val_delta = (val_1x - val_10x).abs
+          avg_val = [val_1x, val_10x].sum / 2.0
+          if avg_val > 0
+            abs_val_frac = abs_val_delta / avg_val
+          end
+
+          # FIXME: Address these
+          if hpxml_bldg.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
+            next if key.include?('Airflow:')
+            next if key.include?('Peak')
+          end
+          if hpxml_bldg.water_heating_systems.select { |wh| [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? wh.water_heater_type }.size > 0
+            next if key.include?('Hot Water')
+          end
+
+          # Uncomment these lines to debug:
+          # if val_1x != 0 or val_10x != 0
+          #   puts "[#{key}] 1x=#{val_1x} 10x=#{val_10x}"
+          # end
+          if abs_frac_tol.nil?
+            if abs_delta_tol == 0
+              assert_equal(val_1x, val_10x)
+            else
+              assert_in_delta(val_1x, val_10x, abs_delta_tol)
+            end
+          else
+            assert((abs_val_delta <= abs_delta_tol) || (!abs_val_frac.nil? && abs_val_frac <= abs_frac_tol))
+          end
+        end
+      end
+    end
   end
 
   def _write_results(results, csv_out)
@@ -1349,6 +1439,10 @@ class HPXMLTest < Minitest::Test
 
     output_keys = []
     results.values.each do |xml_results|
+      # Don't include emissions and system uses in output file/CI results
+      xml_results.delete_if { |k, _v| k.start_with? 'Emissions:' }
+      xml_results.delete_if { |k, _v| k.start_with? 'System Use:' }
+
       xml_results.keys.each do |key|
         next if output_keys.include? key
 

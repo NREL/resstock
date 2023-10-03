@@ -290,12 +290,12 @@ class Constants
     return 'misc pool pump'
   end
 
-  def self.ObjectNameMiscHotTubHeater
-    return 'misc hot tub heater'
+  def self.ObjectNameMiscPermanentSpaHeater
+    return 'misc permanent spa heater'
   end
 
-  def self.ObjectNameMiscHotTubPump
-    return 'misc hot tub pump'
+  def self.ObjectNameMiscPermanentSpaPump
+    return 'misc permanent spa pump'
   end
 
   def self.ObjectNameMiscPlugLoads

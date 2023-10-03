@@ -15,17 +15,14 @@ class HPXMLDefaults
     infil_measurement = Airflow.get_infiltration_measurement_of_interest(hpxml_bldg.air_infiltration_measurements)
 
     # Check for presence of fuels once
-    has_fuel = {}
-    hpxml_doc = hpxml.to_doc
-    Constants.FossilFuels.each do |fuel|
-      has_fuel[fuel] = hpxml_bldg.has_fuel(fuel, hpxml_doc)
-    end
+    has_fuel = hpxml_bldg.has_fuels(Constants.FossilFuels, hpxml.to_doc)
 
-    apply_header(hpxml.header, epw_file, weather)
-    apply_header_sizing(hpxml.header, hpxml_bldg, weather, nbeds)
+    apply_header(hpxml.header, epw_file)
     apply_building(hpxml_bldg, epw_file)
     apply_emissions_scenarios(hpxml.header, has_fuel)
     apply_utility_bill_scenarios(runner, hpxml.header, hpxml_bldg, has_fuel)
+    apply_building_header(hpxml.header, hpxml_bldg, weather)
+    apply_building_header_sizing(hpxml_bldg, weather, nbeds)
     apply_site(hpxml_bldg)
     apply_neighbor_buildings(hpxml_bldg)
     apply_building_occupancy(hpxml_bldg, schedules_file)
@@ -58,7 +55,7 @@ class HPXMLDefaults
     apply_appliances(hpxml_bldg, nbeds, eri_version, schedules_file)
     apply_lighting(hpxml_bldg, schedules_file)
     apply_ceiling_fans(hpxml_bldg, nbeds, weather, schedules_file)
-    apply_pools_and_hot_tubs(hpxml_bldg, cfa, schedules_file)
+    apply_pools_and_permanent_spas(hpxml_bldg, cfa, schedules_file)
     apply_plug_loads(hpxml_bldg, cfa, schedules_file)
     apply_fuel_loads(hpxml_bldg, cfa, schedules_file)
     apply_pv_systems(hpxml_bldg)
@@ -66,7 +63,7 @@ class HPXMLDefaults
     apply_batteries(hpxml_bldg)
 
     # Do HVAC sizing after all other defaults have been applied
-    apply_hvac_sizing(hpxml.header, hpxml_bldg, weather, cfa)
+    apply_hvac_sizing(hpxml_bldg, weather, cfa)
   end
 
   def self.get_default_azimuths(hpxml_bldg)
@@ -107,7 +104,7 @@ class HPXMLDefaults
 
   private
 
-  def self.apply_header(hpxml_header, epw_file, weather)
+  def self.apply_header(hpxml_header, epw_file)
     if hpxml_header.timestep.nil?
       hpxml_header.timestep = 60
       hpxml_header.timestep_isdefaulted = true
@@ -146,11 +143,6 @@ class HPXMLDefaults
       hpxml_header.temperature_capacitance_multiplier_isdefaulted = true
     end
 
-    if hpxml_header.natvent_days_per_week.nil?
-      hpxml_header.natvent_days_per_week = 3
-      hpxml_header.natvent_days_per_week_isdefaulted = true
-    end
-
     hpxml_header.unavailable_periods.each do |unavailable_period|
       if unavailable_period.begin_hour.nil?
         unavailable_period.begin_hour = 0
@@ -165,82 +157,89 @@ class HPXMLDefaults
         unavailable_period.natvent_availability_isdefaulted = true
       end
     end
+  end
 
-    if hpxml_header.shading_summer_begin_month.nil? || hpxml_header.shading_summer_begin_day.nil? || hpxml_header.shading_summer_end_month.nil? || hpxml_header.shading_summer_end_day.nil?
-      if not weather.nil?
-        # Default based on Building America seasons
-        _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
-        begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(default_cooling_months, sim_calendar_year)
-        if not begin_month.nil? # Check if no summer
-          hpxml_header.shading_summer_begin_month = begin_month
-          hpxml_header.shading_summer_begin_day = begin_day
-          hpxml_header.shading_summer_end_month = end_month
-          hpxml_header.shading_summer_end_day = end_day
-          hpxml_header.shading_summer_begin_month_isdefaulted = true
-          hpxml_header.shading_summer_begin_day_isdefaulted = true
-          hpxml_header.shading_summer_end_month_isdefaulted = true
-          hpxml_header.shading_summer_end_day_isdefaulted = true
-        end
+  def self.apply_building_header_sizing(hpxml_bldg, weather, nbeds)
+    if hpxml_bldg.header.manualj_heating_design_temp.nil?
+      hpxml_bldg.header.manualj_heating_design_temp = weather.design.HeatingDrybulb.round(2)
+      hpxml_bldg.header.manualj_heating_design_temp_isdefaulted = true
+    end
+
+    if hpxml_bldg.header.manualj_cooling_design_temp.nil?
+      hpxml_bldg.header.manualj_cooling_design_temp = weather.design.CoolingDrybulb.round(2)
+      hpxml_bldg.header.manualj_cooling_design_temp_isdefaulted = true
+    end
+
+    if hpxml_bldg.header.manualj_heating_setpoint.nil?
+      hpxml_bldg.header.manualj_heating_setpoint = 70.0 # deg-F, per Manual J
+      hpxml_bldg.header.manualj_heating_setpoint_isdefaulted = true
+    end
+
+    if hpxml_bldg.header.manualj_cooling_setpoint.nil?
+      hpxml_bldg.header.manualj_cooling_setpoint = 75.0 # deg-F, per Manual J
+      hpxml_bldg.header.manualj_cooling_setpoint_isdefaulted = true
+    end
+
+    if hpxml_bldg.header.manualj_humidity_setpoint.nil?
+      hpxml_bldg.header.manualj_humidity_setpoint = 0.5 # 50%
+      if hpxml_bldg.dehumidifiers.size > 0
+        hpxml_bldg.header.manualj_humidity_setpoint = [hpxml_bldg.header.manualj_humidity_setpoint, hpxml_bldg.dehumidifiers[0].rh_setpoint].min
       end
+      hpxml_bldg.header.manualj_humidity_setpoint_isdefaulted = true
+    end
+
+    if hpxml_bldg.header.manualj_internal_loads_sensible.nil?
+      if hpxml_bldg.refrigerators.size + hpxml_bldg.freezers.size <= 1
+        hpxml_bldg.header.manualj_internal_loads_sensible = 2400.0 # Btuh, per Manual J
+      else
+        hpxml_bldg.header.manualj_internal_loads_sensible = 3600.0 # Btuh, per Manual J
+      end
+      hpxml_bldg.header.manualj_internal_loads_sensible_isdefaulted = true
+    end
+
+    if hpxml_bldg.header.manualj_internal_loads_latent.nil?
+      hpxml_bldg.header.manualj_internal_loads_latent = 0.0 # Btuh
+      hpxml_bldg.header.manualj_internal_loads_latent_isdefaulted = true
+    end
+
+    if hpxml_bldg.header.manualj_num_occupants.nil?
+      hpxml_bldg.header.manualj_num_occupants = nbeds + 1 # Per Manual J
+      hpxml_bldg.header.manualj_num_occupants_isdefaulted = true
     end
   end
 
-  def self.apply_header_sizing(hpxml_header, hpxml_bldg, weather, nbeds)
-    if hpxml_header.allow_increased_fixed_capacities.nil?
-      hpxml_header.allow_increased_fixed_capacities = false
-      hpxml_header.allow_increased_fixed_capacities_isdefaulted = true
+  def self.apply_building_header(hpxml_header, hpxml_bldg, weather)
+    if hpxml_bldg.header.natvent_days_per_week.nil?
+      hpxml_bldg.header.natvent_days_per_week = 3
+      hpxml_bldg.header.natvent_days_per_week_isdefaulted = true
     end
 
-    if hpxml_header.heat_pump_sizing_methodology.nil? && (hpxml_bldg.heat_pumps.size > 0)
-      hpxml_header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingHERS
-      hpxml_header.heat_pump_sizing_methodology_isdefaulted = true
+    if hpxml_bldg.header.heat_pump_sizing_methodology.nil? && (hpxml_bldg.heat_pumps.size > 0)
+      hpxml_bldg.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingHERS
+      hpxml_bldg.header.heat_pump_sizing_methodology_isdefaulted = true
     end
 
-    if hpxml_header.manualj_heating_design_temp.nil?
-      hpxml_header.manualj_heating_design_temp = weather.design.HeatingDrybulb.round(2)
-      hpxml_header.manualj_heating_design_temp_isdefaulted = true
+    if hpxml_bldg.header.allow_increased_fixed_capacities.nil?
+      hpxml_bldg.header.allow_increased_fixed_capacities = false
+      hpxml_bldg.header.allow_increased_fixed_capacities_isdefaulted = true
     end
 
-    if hpxml_header.manualj_cooling_design_temp.nil?
-      hpxml_header.manualj_cooling_design_temp = weather.design.CoolingDrybulb.round(2)
-      hpxml_header.manualj_cooling_design_temp_isdefaulted = true
-    end
-
-    if hpxml_header.manualj_heating_setpoint.nil?
-      hpxml_header.manualj_heating_setpoint = 70.0 # deg-F, per Manual J
-      hpxml_header.manualj_heating_setpoint_isdefaulted = true
-    end
-
-    if hpxml_header.manualj_cooling_setpoint.nil?
-      hpxml_header.manualj_cooling_setpoint = 75.0 # deg-F, per Manual J
-      hpxml_header.manualj_cooling_setpoint_isdefaulted = true
-    end
-
-    if hpxml_header.manualj_humidity_setpoint.nil?
-      hpxml_header.manualj_humidity_setpoint = 0.5 # 50%
-      if hpxml_bldg.dehumidifiers.size > 0
-        hpxml_header.manualj_humidity_setpoint = [hpxml_header.manualj_humidity_setpoint, hpxml_bldg.dehumidifiers[0].rh_setpoint].min
+    if hpxml_bldg.header.shading_summer_begin_month.nil? || hpxml_bldg.header.shading_summer_begin_day.nil? || hpxml_bldg.header.shading_summer_end_month.nil? || hpxml_bldg.header.shading_summer_end_day.nil?
+      if not weather.nil?
+        # Default based on Building America seasons
+        _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+        begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(default_cooling_months, hpxml_header.sim_calendar_year)
+        if not begin_month.nil? # Check if no summer
+          hpxml_bldg.header.shading_summer_begin_month = begin_month
+          hpxml_bldg.header.shading_summer_begin_day = begin_day
+          hpxml_bldg.header.shading_summer_end_month = end_month
+          hpxml_bldg.header.shading_summer_end_day = end_day
+          hpxml_bldg.header.shading_summer_begin_month_isdefaulted = true
+          hpxml_bldg.header.shading_summer_begin_day_isdefaulted = true
+          hpxml_bldg.header.shading_summer_end_month_isdefaulted = true
+          hpxml_bldg.header.shading_summer_end_day_isdefaulted = true
+        end
       end
-      hpxml_header.manualj_humidity_setpoint_isdefaulted = true
-    end
-
-    if hpxml_header.manualj_internal_loads_sensible.nil?
-      if hpxml_bldg.refrigerators.size + hpxml_bldg.freezers.size <= 1
-        hpxml_header.manualj_internal_loads_sensible = 2400.0 # Btuh, per Manual J
-      else
-        hpxml_header.manualj_internal_loads_sensible = 3600.0 # Btuh, per Manual J
-      end
-      hpxml_header.manualj_internal_loads_sensible_isdefaulted = true
-    end
-
-    if hpxml_header.manualj_internal_loads_latent.nil?
-      hpxml_header.manualj_internal_loads_latent = 0.0 # Btuh
-      hpxml_header.manualj_internal_loads_latent_isdefaulted = true
-    end
-
-    if hpxml_header.manualj_num_occupants.nil?
-      hpxml_header.manualj_num_occupants = nbeds + 1 # Per Manual J
-      hpxml_header.manualj_num_occupants_isdefaulted = true
     end
   end
 
@@ -1616,7 +1615,7 @@ class HPXMLDefaults
           ducts.each do |duct|
             primary_duct_area, secondary_duct_area = HVAC.get_default_duct_surface_area(duct.duct_type, ncfl_ag, cfa_served, n_returns).map { |area| area / ducts.size }
             primary_duct_location, secondary_duct_location = HVAC.get_default_duct_locations(hpxml_bldg)
-            if primary_duct_location.nil? # If a home doesn't have any non-living spaces (outside living space), place all ducts in living space.
+            if primary_duct_location.nil? # If a home doesn't have any unconditioned spaces, place all ducts in conditioned space.
               duct.duct_surface_area = primary_duct_area + secondary_duct_area
               duct.duct_surface_area_isdefaulted = true
               duct.duct_location = secondary_duct_location
@@ -1711,7 +1710,7 @@ class HPXMLDefaults
       # Set default location based on distribution system
       dist_system = hvac_system.distribution_system
       if dist_system.nil?
-        hvac_system.location = HPXML::LocationLivingSpace
+        hvac_system.location = HPXML::LocationConditionedSpace
       else
         dist_type = dist_system.distribution_system_type
         if dist_type == HPXML::HVACDistributionTypeAir
@@ -1725,7 +1724,7 @@ class HPXMLDefaults
             uncond_duct_locations[d.duct_location] += d.duct_surface_area
           end
           if uncond_duct_locations.empty?
-            hvac_system.location = HPXML::LocationLivingSpace
+            hvac_system.location = HPXML::LocationConditionedSpace
           else
             hvac_system.location = uncond_duct_locations.key(uncond_duct_locations.values.max)
             if hvac_system.location == HPXML::LocationOutside
@@ -1746,7 +1745,7 @@ class HPXMLDefaults
             has_dse_of_one = false
           end
           if has_dse_of_one
-            hvac_system.location = HPXML::LocationLivingSpace
+            hvac_system.location = HPXML::LocationConditionedSpace
           else
             hvac_system.location = HPXML::LocationUnconditionedSpace
           end
@@ -2124,7 +2123,7 @@ class HPXMLDefaults
         clothes_washer.is_shared_appliance_isdefaulted = true
       end
       if clothes_washer.location.nil?
-        clothes_washer.location = HPXML::LocationLivingSpace
+        clothes_washer.location = HPXML::LocationConditionedSpace
         clothes_washer.location_isdefaulted = true
       end
       if clothes_washer.rated_annual_kwh.nil?
@@ -2171,7 +2170,7 @@ class HPXMLDefaults
         clothes_dryer.is_shared_appliance_isdefaulted = true
       end
       if clothes_dryer.location.nil?
-        clothes_dryer.location = HPXML::LocationLivingSpace
+        clothes_dryer.location = HPXML::LocationConditionedSpace
         clothes_dryer.location_isdefaulted = true
       end
       if clothes_dryer.combined_energy_factor.nil? && clothes_dryer.energy_factor.nil?
@@ -2219,7 +2218,7 @@ class HPXMLDefaults
         dishwasher.is_shared_appliance_isdefaulted = true
       end
       if dishwasher.location.nil?
-        dishwasher.location = HPXML::LocationLivingSpace
+        dishwasher.location = HPXML::LocationConditionedSpace
         dishwasher.location_isdefaulted = true
       end
       if dishwasher.place_setting_capacity.nil?
@@ -2287,7 +2286,7 @@ class HPXMLDefaults
         end
       else # primary refrigerator
         if refrigerator.location.nil?
-          refrigerator.location = HPXML::LocationLivingSpace
+          refrigerator.location = HPXML::LocationConditionedSpace
           refrigerator.location_isdefaulted = true
         end
         if refrigerator.rated_annual_kwh.nil?
@@ -2349,7 +2348,7 @@ class HPXMLDefaults
     if hpxml_bldg.cooking_ranges.size > 0
       cooking_range = hpxml_bldg.cooking_ranges[0]
       if cooking_range.location.nil?
-        cooking_range.location = HPXML::LocationLivingSpace
+        cooking_range.location = HPXML::LocationConditionedSpace
         cooking_range.location_isdefaulted = true
       end
       if cooking_range.is_induction.nil?
@@ -2496,7 +2495,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_pools_and_hot_tubs(hpxml_bldg, cfa, schedules_file)
+  def self.apply_pools_and_permanent_spas(hpxml_bldg, cfa, schedules_file)
     nbeds = hpxml_bldg.building_construction.additional_properties.adjusted_number_of_bedrooms
     hpxml_bldg.pools.each do |pool|
       next if pool.type == HPXML::TypeNone
@@ -2554,59 +2553,59 @@ class HPXMLDefaults
       end
     end
 
-    hpxml_bldg.hot_tubs.each do |hot_tub|
-      next if hot_tub.type == HPXML::TypeNone
+    hpxml_bldg.permanent_spas.each do |spa|
+      next if spa.type == HPXML::TypeNone
 
-      if hot_tub.pump_type != HPXML::TypeNone
+      if spa.pump_type != HPXML::TypeNone
         # Pump
-        if hot_tub.pump_kwh_per_year.nil?
-          hot_tub.pump_kwh_per_year = MiscLoads.get_hot_tub_pump_default_values(cfa, nbeds)
-          hot_tub.pump_kwh_per_year_isdefaulted = true
+        if spa.pump_kwh_per_year.nil?
+          spa.pump_kwh_per_year = MiscLoads.get_permanent_spa_pump_default_values(cfa, nbeds)
+          spa.pump_kwh_per_year_isdefaulted = true
         end
-        if hot_tub.pump_usage_multiplier.nil?
-          hot_tub.pump_usage_multiplier = 1.0
-          hot_tub.pump_usage_multiplier_isdefaulted = true
+        if spa.pump_usage_multiplier.nil?
+          spa.pump_usage_multiplier = 1.0
+          spa.pump_usage_multiplier_isdefaulted = true
         end
-        schedules_file_includes_hot_tub_pump = (schedules_file.nil? ? false : schedules_file.includes_col_name(SchedulesFile::ColumnHotTubPump))
-        if hot_tub.pump_weekday_fractions.nil? && !schedules_file_includes_hot_tub_pump
-          hot_tub.pump_weekday_fractions = Schedule.HotTubPumpWeekdayFractions
-          hot_tub.pump_weekday_fractions_isdefaulted = true
+        schedules_file_includes_permanent_spa_pump = (schedules_file.nil? ? false : schedules_file.includes_col_name(SchedulesFile::ColumnPermanentSpaPump))
+        if spa.pump_weekday_fractions.nil? && !schedules_file_includes_permanent_spa_pump
+          spa.pump_weekday_fractions = Schedule.PermanentSpaPumpWeekdayFractions
+          spa.pump_weekday_fractions_isdefaulted = true
         end
-        if hot_tub.pump_weekend_fractions.nil? && !schedules_file_includes_hot_tub_pump
-          hot_tub.pump_weekend_fractions = Schedule.HotTubPumpWeekendFractions
-          hot_tub.pump_weekend_fractions_isdefaulted = true
+        if spa.pump_weekend_fractions.nil? && !schedules_file_includes_permanent_spa_pump
+          spa.pump_weekend_fractions = Schedule.PermanentSpaPumpWeekendFractions
+          spa.pump_weekend_fractions_isdefaulted = true
         end
-        if hot_tub.pump_monthly_multipliers.nil? && !schedules_file_includes_hot_tub_pump
-          hot_tub.pump_monthly_multipliers = Schedule.HotTubPumpMonthlyMultipliers
-          hot_tub.pump_monthly_multipliers_isdefaulted = true
+        if spa.pump_monthly_multipliers.nil? && !schedules_file_includes_permanent_spa_pump
+          spa.pump_monthly_multipliers = Schedule.PermanentSpaPumpMonthlyMultipliers
+          spa.pump_monthly_multipliers_isdefaulted = true
         end
       end
 
-      next unless hot_tub.heater_type != HPXML::TypeNone
+      next unless spa.heater_type != HPXML::TypeNone
 
       # Heater
-      if hot_tub.heater_load_value.nil?
-        default_heater_load_units, default_heater_load_value = MiscLoads.get_hot_tub_heater_default_values(cfa, nbeds, hot_tub.heater_type)
-        hot_tub.heater_load_units = default_heater_load_units
-        hot_tub.heater_load_value = default_heater_load_value
-        hot_tub.heater_load_value_isdefaulted = true
+      if spa.heater_load_value.nil?
+        default_heater_load_units, default_heater_load_value = MiscLoads.get_permanent_spa_heater_default_values(cfa, nbeds, spa.heater_type)
+        spa.heater_load_units = default_heater_load_units
+        spa.heater_load_value = default_heater_load_value
+        spa.heater_load_value_isdefaulted = true
       end
-      if hot_tub.heater_usage_multiplier.nil?
-        hot_tub.heater_usage_multiplier = 1.0
-        hot_tub.heater_usage_multiplier_isdefaulted = true
+      if spa.heater_usage_multiplier.nil?
+        spa.heater_usage_multiplier = 1.0
+        spa.heater_usage_multiplier_isdefaulted = true
       end
-      schedules_file_includes_hot_tub_heater = (schedules_file.nil? ? false : schedules_file.includes_col_name(SchedulesFile::ColumnHotTubHeater))
-      if hot_tub.heater_weekday_fractions.nil? && !schedules_file_includes_hot_tub_heater
-        hot_tub.heater_weekday_fractions = Schedule.HotTubHeaterWeekdayFractions
-        hot_tub.heater_weekday_fractions_isdefaulted = true
+      schedules_file_includes_permanent_spa_heater = (schedules_file.nil? ? false : schedules_file.includes_col_name(SchedulesFile::ColumnPermanentSpaHeater))
+      if spa.heater_weekday_fractions.nil? && !schedules_file_includes_permanent_spa_heater
+        spa.heater_weekday_fractions = Schedule.PermanentSpaHeaterWeekdayFractions
+        spa.heater_weekday_fractions_isdefaulted = true
       end
-      if hot_tub.heater_weekend_fractions.nil? && !schedules_file_includes_hot_tub_heater
-        hot_tub.heater_weekend_fractions = Schedule.HotTubHeaterWeekendFractions
-        hot_tub.heater_weekend_fractions_isdefaulted = true
+      if spa.heater_weekend_fractions.nil? && !schedules_file_includes_permanent_spa_heater
+        spa.heater_weekend_fractions = Schedule.PermanentSpaHeaterWeekendFractions
+        spa.heater_weekend_fractions_isdefaulted = true
       end
-      if hot_tub.heater_monthly_multipliers.nil? && !schedules_file_includes_hot_tub_heater
-        hot_tub.heater_monthly_multipliers = Schedule.HotTubHeaterMonthlyMultipliers
-        hot_tub.heater_monthly_multipliers_isdefaulted = true
+      if spa.heater_monthly_multipliers.nil? && !schedules_file_includes_permanent_spa_heater
+        spa.heater_monthly_multipliers = Schedule.PermanentSpaHeaterMonthlyMultipliers
+        spa.heater_monthly_multipliers_isdefaulted = true
       end
     end
   end
@@ -2819,11 +2818,11 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_hvac_sizing(hpxml_header, hpxml_bldg, weather, cfa)
+  def self.apply_hvac_sizing(hpxml_bldg, weather, cfa)
     hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml_bldg)
 
     # Calculate building design loads and equipment capacities/airflows
-    bldg_design_loads, all_hvac_sizing_values = HVACSizing.calculate(weather, hpxml_header, hpxml_bldg, cfa, hvac_systems)
+    bldg_design_loads, all_hvac_sizing_values = HVACSizing.calculate(weather, hpxml_bldg, cfa, hvac_systems)
 
     hvacpl = hpxml_bldg.hvac_plant
     tol = 10 # Btuh

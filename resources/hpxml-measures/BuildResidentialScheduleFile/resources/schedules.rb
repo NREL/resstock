@@ -33,17 +33,6 @@ class ScheduleGenerator
     @debug = debug
   end
 
-  def get_random_seed
-    if @random_seed.nil?
-      @runner.registerInfo('Unable to retrieve the schedules random seed; setting it to 1.')
-      seed = 1
-    else
-      @runner.registerInfo("Retrieved the schedules random seed; setting it to #{@random_seed}.")
-      seed = @random_seed
-    end
-    return seed
-  end
-
   def self.export_columns
     return [SchedulesFile::ColumnOccupants,
             SchedulesFile::ColumnLightingInterior,
@@ -89,7 +78,7 @@ class ScheduleGenerator
 
   def create_stochastic_schedules(args:)
     # initialize a random number generator
-    prng = Random.new(get_random_seed)
+    prng = Random.new(@random_seed)
 
     # pre-load the probability distribution csv files for speed
     cluster_size_prob_map = read_activity_cluster_size_probs(resources_path: args[:resources_path])

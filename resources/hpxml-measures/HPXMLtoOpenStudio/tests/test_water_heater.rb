@@ -490,7 +490,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     iam_coeff3 = -0.3057
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.8 * solar_thermal_system.collector_area
 
@@ -563,7 +563,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     iam_coeff3 = 0
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.8 * solar_thermal_system.collector_area
 
@@ -636,7 +636,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     iam_coeff3 = 0
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = UnitConversions.convert(solar_thermal_system.storage_volume, 'gal', 'm^3')
-    storage_tank_height = UnitConversions.convert(4.513, 'ft', 'm')
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = UnitConversions.convert(0.1, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     pump_power = 0.8 * solar_thermal_system.collector_area
 
@@ -709,7 +709,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     iam_coeff3 = 0
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.0
 
@@ -780,7 +780,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     collector_storage_volume = UnitConversions.convert(solar_thermal_system.storage_volume, 'gal', 'm^3')
     ther_eff = 1.0
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.8 * solar_thermal_system.collector_area
 

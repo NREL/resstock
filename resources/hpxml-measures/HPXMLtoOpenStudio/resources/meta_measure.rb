@@ -50,16 +50,20 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
 
   # Remove unused objects automatically added by OpenStudio?
   remove_objects = []
-  # FIXME: Need to revert this code
-  # if model.alwaysOnContinuousSchedule.directUseCount == 0
-  #  remove_objects << ['Schedule:Constant', model.alwaysOnContinuousSchedule.name.to_s]
-  # end
-  # if model.alwaysOnDiscreteSchedule.directUseCount == 0
-  #  remove_objects << ['Schedule:Constant', model.alwaysOnDiscreteSchedule.name.to_s]
-  # end
-  # if model.alwaysOffDiscreteSchedule.directUseCount == 0
-  #  remove_objects << ['Schedule:Constant', model.alwaysOffDiscreteSchedule.name.to_s]
-  # end
+  if model.alwaysOnContinuousSchedule.directUseCount == 0
+    remove_objects << ['Schedule:Constant', model.alwaysOnContinuousSchedule.name.to_s]
+  end
+  if model.alwaysOnDiscreteSchedule.directUseCount == 0
+    remove_objects << ['Schedule:Constant', model.alwaysOnDiscreteSchedule.name.to_s]
+  end
+  if model.alwaysOffDiscreteSchedule.directUseCount == 0
+    remove_objects << ['Schedule:Constant', model.alwaysOffDiscreteSchedule.name.to_s]
+  end
+  model.getScheduleConstants.each do |sch|
+    next unless sch.directUseCount == 0
+
+    remove_objects << ['Schedule:Constant', sch.name.to_s]
+  end
 
   # Translate model to workspace
   forward_translator = OpenStudio::EnergyPlus::ForwardTranslator.new
@@ -68,7 +72,7 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
   success = report_ft_errors_warnings(forward_translator, rundir)
 
   # Remove objects
-  remove_objects.each do |remove_object|
+  remove_objects.uniq.each do |remove_object|
     workspace.getObjectByTypeAndName(remove_object[0].to_IddObjectType, remove_object[1]).get.remove
   end
 

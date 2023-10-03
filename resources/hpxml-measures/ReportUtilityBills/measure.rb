@@ -185,11 +185,8 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
                        FT::Coal => HPXML::FuelTypeCoal }
 
     # Check for presence of fuels once
-    has_fuel = { HPXML::FuelTypeElectricity => true }
-    hpxml_doc = hpxml.to_doc
-    Constants.FossilFuels.each do |fuel|
-      has_fuel[fuel] = @hpxml_bldg.has_fuel(fuel, hpxml_doc)
-    end
+    has_fuel = @hpxml_bldg.has_fuels(Constants.FossilFuels, hpxml.to_doc)
+    has_fuel[HPXML::FuelTypeElectricity] = true
 
     # Fuel outputs
     fuels.each do |(fuel_type, is_production), fuel|
