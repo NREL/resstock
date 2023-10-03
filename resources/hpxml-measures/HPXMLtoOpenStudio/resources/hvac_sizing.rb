@@ -154,8 +154,8 @@ class HVACSizing
         @cool_design_temps[location] = @hpxml.header.manualj_cooling_design_temp
         @heat_design_temps[location] = @hpxml.header.manualj_heating_design_temp
       elsif HPXML::conditioned_locations.include? location
-        @cool_design_temps[location] = process_design_temp_cooling(weather, HPXML::LocationLivingSpace)
-        @heat_design_temps[location] = process_design_temp_heating(weather, HPXML::LocationLivingSpace)
+        @cool_design_temps[location] = process_design_temp_cooling(weather, HPXML::LocationConditionedSpace)
+        @heat_design_temps[location] = process_design_temp_heating(weather, HPXML::LocationConditionedSpace)
       else
         @cool_design_temps[location] = process_design_temp_cooling(weather, location)
         @heat_design_temps[location] = process_design_temp_heating(weather, location)
@@ -164,7 +164,7 @@ class HVACSizing
   end
 
   def self.process_design_temp_heating(weather, location)
-    if location == HPXML::LocationLivingSpace
+    if location == HPXML::LocationConditionedSpace
       heat_temp = @heat_setpoint
 
     elsif location == HPXML::LocationGarage
@@ -201,7 +201,7 @@ class HVACSizing
   end
 
   def self.process_design_temp_cooling(weather, location)
-    if location == HPXML::LocationLivingSpace
+    if location == HPXML::LocationConditionedSpace
       cool_temp = @cool_setpoint
 
     elsif location == HPXML::LocationGarage
@@ -226,7 +226,7 @@ class HVACSizing
       end
 
       # Calculate the garage cooling design temperature based on Table 4C
-      # Linearly interpolate between having living space over the garage and not having living space above the garage
+      # Linearly interpolate between having conditioned space over the garage and not having conditioned space above the garage
       if @daily_range_num == 0.0
         cool_temp = (@hpxml.header.manualj_cooling_design_temp +
                      (11.0 * garage_frac_under_conditioned) +
@@ -952,7 +952,7 @@ class HVACSizing
     @hpxml.slabs.each do |slab|
       next unless slab.is_thermal_boundary
 
-      if slab.interior_adjacent_to == HPXML::LocationLivingSpace # Slab-on-grade
+      if slab.interior_adjacent_to == HPXML::LocationConditionedSpace # Slab-on-grade
         f_value = calc_slab_f_value(slab, @hpxml.site.ground_conductivity)
         bldg_design_loads.Heat_Slabs += f_value * slab.exposed_perimeter * @htd
       elsif HPXML::conditioned_below_grade_locations.include? slab.interior_adjacent_to
@@ -2010,7 +2010,7 @@ class HVACSizing
       end
     end
     if (not min_compressor_temp.nil?) && (min_compressor_temp > @hpxml.header.manualj_heating_design_temp)
-      # Calculate the heating load at the switchover temperature to limit uninitialized capacity
+      # Calculate the heating load at the switchover temperature to limit unutilized capacity
       temp_heat_design_temp = @hpxml.header.manualj_heating_design_temp
       @hpxml.header.manualj_heating_design_temp = min_compressor_temp
       _alternate_bldg_design_loads, alternate_all_hvac_sizing_values = calculate(weather, @hpxml, @cfa, [hvac_system])
@@ -2353,7 +2353,7 @@ class HVACSizing
 
     space_UAs = { HPXML::LocationOutside => 0.0,
                   HPXML::LocationGround => 0.0,
-                  HPXML::LocationLivingSpace => 0.0 }
+                  HPXML::LocationConditionedSpace => 0.0 }
 
     # Surface UAs
     (@hpxml.roofs + @hpxml.floors + @hpxml.walls + @hpxml.foundation_walls).each do |surface|
@@ -2363,7 +2363,7 @@ class HVACSizing
       if [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? HPXML::LocationOutside
         space_UAs[HPXML::LocationOutside] += (1.0 / surface.insulation_assembly_r_value) * surface.area
       elsif HPXML::conditioned_locations.include?(surface.interior_adjacent_to) || HPXML::conditioned_locations.include?(surface.exterior_adjacent_to)
-        space_UAs[HPXML::LocationLivingSpace] += (1.0 / surface.insulation_assembly_r_value) * surface.area
+        space_UAs[HPXML::LocationConditionedSpace] += (1.0 / surface.insulation_assembly_r_value) * surface.area
       elsif [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? HPXML::LocationGround
         if surface.is_a? HPXML::FoundationWall
           _u_wall_with_soil, u_wall_without_soil = get_foundation_wall_properties(surface)
@@ -2418,7 +2418,7 @@ class HVACSizing
           sum_uat += ua * ground_db
         elsif (ua_type == HPXML::LocationOutside) || (ua_type == 'infil')
           sum_uat += ua * design_db
-        elsif ua_type == HPXML::LocationLivingSpace
+        elsif ua_type == HPXML::LocationConditionedSpace
           sum_uat += ua * conditioned_design_temp
         elsif ua_type == 'total'
         # skip
@@ -2438,7 +2438,7 @@ class HVACSizing
       max_temp_rise = 50.0
 
       # Estimate from running a few cases in E+ and DOE2 since the
-      # attic will always be a little warmer than the living space
+      # attic will always be a little warmer than the conditioned space
       # when the roof is insulated
       min_temp_rise = 5.0
 
@@ -2450,7 +2450,7 @@ class HVACSizing
       space_UAs.each do |ua_type, ua|
         if (ua_type == HPXML::LocationOutside) || (ua_type == 'infil')
           ua_outside += ua
-        elsif ua_type == HPXML::LocationLivingSpace
+        elsif ua_type == HPXML::LocationConditionedSpace
           ua_conditioned += ua
         elsif not ((ua_type == 'total') || (ua_type == HPXML::LocationGround))
           fail "Unexpected space ua type: '#{ua_type}'."
