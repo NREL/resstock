@@ -328,26 +328,45 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../existing.xml')
 
     geometry_building_num_units = 1
-    whole_building = false # FIXME: remove
-    if whole_building
-      resstock_arguments_runner.result.stepValues.each do |step_value|
-        next if step_value.name != 'geometry_building_num_units'
-
+    resstock_arguments_runner.result.stepValues.each do |step_value|
+      if step_value.name == 'geometry_building_num_units'
         geometry_building_num_units = Integer(get_value_from_workflow_step_value(step_value))
       end
-      geometry_building_num_units = 2 if geometry_building_num_units > 1 # FIXME: remove
     end
     register_value(runner, 'geometry_building_num_units', geometry_building_num_units)
 
-    (1..geometry_building_num_units).each do |unit_number|
+    whole_sfa_mf_building = true
+    num_units = 1
+    unit_multiplier = nil
+    if whole_sfa_mf_building && geometry_building_num_units > 1
+      geometry_num_floors_above_grade = 1
+      resstock_arguments_runner.result.stepValues.each do |step_value|
+        if step_value.name == 'geometry_num_floors_above_grade'
+          geometry_num_floors_above_grade = get_value_from_workflow_step_value(step_value)
+        end
+      end
+      unit_multiplier = (geometry_building_num_units / Float(geometry_num_floors_above_grade)).ceil
+      num_units = Integer(geometry_num_floors_above_grade)
+    end
+
+    (1..num_units).each do |unit_number|
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
+
       if unit_number > 1
         measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
+        measures['BuildResidentialHPXML'][0]['battery_present'] = 'false'
+      end
+
+      if !unit_multiplier.nil?
+        if unit_multiplier == geometry_building_num_units
+          unit_multiplier = geometry_building_num_units - ((num_units - 1) * unit_multiplier)
+        end
+        measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
       end
 
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
-        next if value == ''
+        next if value == '' || step_value.name == 'geometry_num_floors_above_grade'
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end

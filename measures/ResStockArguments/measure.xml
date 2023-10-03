@@ -3,14 +3,21 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>083ff08c-ef99-446b-a661-d94d85f5e4d3</version_id>
-  <version_modified>2023-08-09T19:50:37Z</version_modified>
+  <version_id>f25fc1f8-ecbf-4536-865d-e70a1c13a8e5</version_id>
+  <version_modified>2023-10-03T23:34:14Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
   <description>Measure that pre-processes the arguments passed to the BuildResidentialHPXML and BuildResidentialScheduleFile measures.</description>
   <modeler_description>Passes in all arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.</modeler_description>
   <arguments>
+    <argument>
+      <name>existing_hpxml_path</name>
+      <display_name>existing_hpxml_path</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
     <argument>
       <name>schedules_filepaths</name>
       <display_name>schedules_filepaths</display_name>
@@ -147,6 +154,13 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>unit_multiplier</name>
+      <display_name>unit_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>geometry_unit_type</name>
       <display_name>Geometry: Unit Type</display_name>
       <description>The type of dwelling unit. Use single-family attached for a dwelling unit with 1 or more stories, attached units to one or both sides, and no units above/below. Use apartment unit for a dwelling unit with 1 story, attached units to one, two, or three sides, and units above and/or below.</description>
@@ -257,7 +271,7 @@
     <argument>
       <name>geometry_garage_protrusion</name>
       <display_name>Geometry: Garage Protrusion</display_name>
-      <description>The fraction of the garage that is protruding from the living space. Only applies to single-family detached units.</description>
+      <description>The fraction of the garage that is protruding from the conditioned space. Only applies to single-family detached units.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -4290,9 +4304,9 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_present</name>
-      <display_name>Hot Tub: Present</display_name>
-      <description>Whether there is a hot tub.</description>
+      <name>permanent_spa_present</name>
+      <display_name>Permanent Spa: Present</display_name>
+      <description>Whether there is a permanent spa.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -4309,23 +4323,23 @@
       </choices>
     </argument>
     <argument>
-      <name>hot_tub_pump_annual_kwh</name>
-      <display_name>hot_tub_pump_annual_kwh</display_name>
+      <name>permanent_spa_pump_annual_kwh</name>
+      <display_name>permanent_spa_pump_annual_kwh</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_pump_usage_multiplier</name>
-      <display_name>hot_tub_pump_usage_multiplier</display_name>
+      <name>permanent_spa_pump_usage_multiplier</name>
+      <display_name>permanent_spa_pump_usage_multiplier</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_heater_type</name>
-      <display_name>Hot Tub: Heater Type</display_name>
-      <description>The type of hot tub heater. Use 'none' if there is no hot tub heater.</description>
+      <name>permanent_spa_heater_type</name>
+      <display_name>Permanent Spa: Heater Type</display_name>
+      <description>The type of permanent spa heater. Use 'none' if there is no permanent spa heater.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -4350,22 +4364,22 @@
       </choices>
     </argument>
     <argument>
-      <name>hot_tub_heater_annual_kwh</name>
-      <display_name>hot_tub_heater_annual_kwh</display_name>
+      <name>permanent_spa_heater_annual_kwh</name>
+      <display_name>permanent_spa_heater_annual_kwh</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_heater_annual_therm</name>
-      <display_name>hot_tub_heater_annual_therm</display_name>
+      <name>permanent_spa_heater_annual_therm</name>
+      <display_name>permanent_spa_heater_annual_therm</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_heater_usage_multiplier</name>
-      <display_name>hot_tub_heater_usage_multiplier</display_name>
+      <name>permanent_spa_heater_usage_multiplier</name>
+      <display_name>permanent_spa_heater_usage_multiplier</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -4657,6 +4671,14 @@
       <description>This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.</description>
       <type>Integer</type>
       <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>building_id</name>
+      <display_name>BuildingID</display_name>
+      <description>The ID of the HPXML Building. Only required if there are multiple Building elements in the HPXML file. Use 'ALL' to apply schedules to all the HPXML Buildings (dwelling units) of a multifamily building.</description>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -5161,7 +5183,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>17214A3F</checksum>
+      <checksum>FAF74158</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>

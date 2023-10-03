@@ -40,7 +40,7 @@ class AddWholeBuildingSharedHpwhAndCirculationLoops < OpenStudio::Measure::Model
     hpxml_path = File.expand_path('../existing.xml')
     hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL') if File.exist?(hpxml_path)
 
-    if hpxml.header.extension_properties['has_ghpwh'] == 'false'
+    if hpxml.buildings[0].header.extension_properties['has_ghpwh'] == 'false'
       runner.registerAsNotApplicable('Building does not have gHPWH. Skipping AddWholeBuildingSharedHpwhAndCirculationLoops measure ...')
       return true
     end

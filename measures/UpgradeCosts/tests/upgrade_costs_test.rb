@@ -699,7 +699,7 @@ class UpgradeCostsTest < Minitest::Test
     upgraded_hpxml = HPXML.new(hpxml_path: upgraded_path)
 
     # Set additional properties
-    _set_additional_properties(existing_hpxml, upgraded_hpxml)
+    _set_additional_properties(existing_hpxml.buildings[0], upgraded_hpxml.buildings[0])
 
     # Create instance of the measures
     hpxml_output_report = ReportHPXMLOutput.new

@@ -3736,17 +3736,17 @@ class HPXMLFile
              (!elec_schedule_filepath.nil? && es.elec_schedule_filepath != elec_schedule_filepath) ||
              (!elec_num_headers.nil? && es.elec_schedule_number_of_header_rows != elec_num_headers) ||
              (!elec_column_num.nil? && es.elec_schedule_column_number != elec_column_num) ||
-             (!fuel_units.nil? && es.natural_gas_units != fuel_units) ||
+             (!es.natural_gas_units.nil? && !fuel_units.nil? && es.natural_gas_units != fuel_units) ||
              (!natural_gas_value.nil? && es.natural_gas_value != natural_gas_value) ||
-             (!fuel_units.nil? && es.propane_units != fuel_units) ||
+             (!es.propane_units.nil? && !fuel_units.nil? && es.propane_units != fuel_units) ||
              (!propane_value.nil? && es.propane_value != propane_value) ||
-             (!fuel_units.nil? && es.fuel_oil_units != fuel_units) ||
+             (!es.fuel_oil_units.nil? && !fuel_units.nil? && es.fuel_oil_units != fuel_units) ||
              (!fuel_oil_value.nil? && es.fuel_oil_value != fuel_oil_value) ||
-             (!fuel_units.nil? && es.coal_units != fuel_units) ||
+             (!es.coal_units.nil? && !fuel_units.nil? && es.coal_units != fuel_units) ||
              (!coal_value.nil? && es.coal_value != coal_value) ||
-             (!fuel_units.nil? && es.wood_units != fuel_units) ||
+             (!es.wood_units.nil? && !fuel_units.nil? && es.wood_units != fuel_units) ||
              (!wood_value.nil? && es.wood_value != wood_value) ||
-             (!fuel_units.nil? && es.wood_pellets_units != fuel_units) ||
+             (!es.wood_pellets_units.nil? && !fuel_units.nil? && es.wood_pellets_units != fuel_units) ||
              (!wood_pellets_value.nil? && es.wood_pellets_value != wood_pellets_value)
             errors << "HPXML header already includes an emissions scenario named '#{name}' with type '#{emissions_type}'."
           else
