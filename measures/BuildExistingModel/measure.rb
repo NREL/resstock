@@ -342,10 +342,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     (1..geometry_building_num_units).each do |unit_number|
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
       if unit_number > 1
-        measures['BuildResidentialHPXML'][0]['hpxml_path_in'] = hpxml_path
+        measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
       end
-
-      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
 
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
@@ -367,7 +365,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
       measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
 
-      # Get registered values and pass them to BuildResidentialHPXML
+      # Get argument values and pass them to BuildResidentialHPXML
       measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = args[:simulation_control_timestep].get if args[:simulation_control_timestep].is_initialized
       if args[:simulation_control_run_period_begin_month].is_initialized && args[:simulation_control_run_period_begin_day_of_month].is_initialized && args[:simulation_control_run_period_end_month].is_initialized && args[:simulation_control_run_period_end_day_of_month].is_initialized
         begin_month = "#{Date::ABBR_MONTHNAMES[args[:simulation_control_run_period_begin_month].get]}"
@@ -379,7 +377,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args[:simulation_control_run_period_calendar_year].get if args[:simulation_control_run_period_calendar_year].is_initialized
 
       # Emissions
-      if args[:emissions_scenario_names].is_initialized && unit_number == 1
+      if args[:emissions_scenario_names].is_initialized
 
         if !bldg_data.keys.include?('Generation And Emissions Assessment Region')
           runner.registerError('Emissions scenario(s) were specified, but could not find the Generation and Emissions Assessment (GEA) region.')
@@ -436,7 +434,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
 
       # Utility Bills
-      if args[:utility_bill_scenario_names].is_initialized && unit_number == 1
+      if args[:utility_bill_scenario_names].is_initialized
 
         utility_bill_scenario_names = args[:utility_bill_scenario_names].get.split(',').map(&:strip)
 
@@ -631,9 +629,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = utility_bill_pv_monthly_grid_connection_fees
       end
 
-      # Get registered values and pass them to BuildResidentialScheduleFile
-      measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args[:building_id]
-      measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
+      # Get argument values and pass them to BuildResidentialScheduleFile
+      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path, 'schedules_random_seed' => args[:building_id], 'output_csv_path' => File.expand_path('../schedules.csv'), 'building_id' => unit_number }]
 
       # Specify measures to run
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # for apply_hvac_sizing
