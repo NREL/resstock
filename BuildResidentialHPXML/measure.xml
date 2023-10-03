@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>454be750-6a0b-4acf-9ab5-53b386e8d9f1</version_id>
-  <version_modified>2023-08-18T19:24:49Z</version_modified>
+  <version_id>b6d82c99-dec3-47cb-bdda-c57ac815878b</version_id>
+  <version_modified>2023-09-26T19:22:42Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -745,7 +745,7 @@
     <argument>
       <name>geometry_garage_protrusion</name>
       <display_name>Geometry: Garage Protrusion</display_name>
-      <description>The fraction of the garage that is protruding from the living space. Only applies to single-family detached units.</description>
+      <description>The fraction of the garage that is protruding from the conditioned space. Only applies to single-family detached units.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -1399,7 +1399,6 @@
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
       <choices>
         <choice>
           <value>1</value>
@@ -2989,8 +2988,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -3133,8 +3132,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -3799,8 +3798,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -4652,8 +4651,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5007,8 +5006,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5158,8 +5157,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5299,8 +5298,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5441,8 +5440,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5519,8 +5518,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5597,8 +5596,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5675,8 +5674,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -6285,9 +6284,9 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_present</name>
-      <display_name>Hot Tub: Present</display_name>
-      <description>Whether there is a hot tub.</description>
+      <name>permanent_spa_present</name>
+      <display_name>Permanent Spa: Present</display_name>
+      <description>Whether there is a permanent spa.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -6304,26 +6303,26 @@
       </choices>
     </argument>
     <argument>
-      <name>hot_tub_pump_annual_kwh</name>
-      <display_name>Hot Tub: Pump Annual kWh</display_name>
-      <description>The annual energy consumption of the hot tub pump. If not provided, the OS-HPXML default is used.</description>
+      <name>permanent_spa_pump_annual_kwh</name>
+      <display_name>Permanent Spa: Pump Annual kWh</display_name>
+      <description>The annual energy consumption of the permanent spa pump. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>kWh/yr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_pump_usage_multiplier</name>
-      <display_name>Hot Tub: Pump Usage Multiplier</display_name>
-      <description>Multiplier on the hot tub pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.</description>
+      <name>permanent_spa_pump_usage_multiplier</name>
+      <display_name>Permanent Spa: Pump Usage Multiplier</display_name>
+      <description>Multiplier on the permanent spa pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_heater_type</name>
-      <display_name>Hot Tub: Heater Type</display_name>
-      <description>The type of hot tub heater. Use 'none' if there is no hot tub heater.</description>
+      <name>permanent_spa_heater_type</name>
+      <display_name>Permanent Spa: Heater Type</display_name>
+      <description>The type of permanent spa heater. Use 'none' if there is no permanent spa heater.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -6348,27 +6347,27 @@
       </choices>
     </argument>
     <argument>
-      <name>hot_tub_heater_annual_kwh</name>
-      <display_name>Hot Tub: Heater Annual kWh</display_name>
-      <description>The annual energy consumption of the electric resistance hot tub heater. If not provided, the OS-HPXML default is used.</description>
+      <name>permanent_spa_heater_annual_kwh</name>
+      <display_name>Permanent Spa: Heater Annual kWh</display_name>
+      <description>The annual energy consumption of the electric resistance permanent spa heater. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>kWh/yr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_heater_annual_therm</name>
-      <display_name>Hot Tub: Heater Annual therm</display_name>
-      <description>The annual energy consumption of the gas fired hot tub heater. If not provided, the OS-HPXML default is used.</description>
+      <name>permanent_spa_heater_annual_therm</name>
+      <display_name>Permanent Spa: Heater Annual therm</display_name>
+      <description>The annual energy consumption of the gas fired permanent spa heater. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>therm/yr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_heater_usage_multiplier</name>
-      <display_name>Hot Tub: Heater Usage Multiplier</display_name>
-      <description>Multiplier on the hot tub heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.</description>
+      <name>permanent_spa_heater_usage_multiplier</name>
+      <display_name>Permanent Spa: Heater Usage Multiplier</display_name>
+      <description>Multiplier on the permanent spa heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -6741,19 +6740,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>EB330C72</checksum>
+      <checksum>D0F900F0</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>6D43B4D8</checksum>
+      <checksum>84CB0D65</checksum>
     </file>
     <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>9CC9525F</checksum>
+      <checksum>09CBC38A</checksum>
     </file>
   </files>
 </measure>
