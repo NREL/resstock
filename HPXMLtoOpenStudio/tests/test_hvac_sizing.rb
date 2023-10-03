@@ -208,7 +208,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
 
     # Test heat pump
     hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed-heating-capacity-17f.xml')
-    hpxml.header.allow_increased_fixed_capacities = true
+    hpxml_bldg.header.allow_increased_fixed_capacities = true
     hpxml_bldg.heat_pumps[0].heating_capacity /= 10.0
     hpxml_bldg.heat_pumps[0].heating_capacity_17F /= 10.0
     hpxml_bldg.heat_pumps[0].backup_heating_capacity /= 10.0
@@ -233,9 +233,9 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
 
     # Test heating/cooling design temps
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
-    hpxml, _hpxml_bldg = _create_hpxml('base.xml')
-    hpxml.header.manualj_heating_design_temp = 0.0
-    hpxml.header.manualj_cooling_design_temp = 100.0
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.header.manualj_heating_design_temp = 0.0
+    hpxml_bldg.header.manualj_cooling_design_temp = 100.0
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _model, _test_hpxml, test_hpxml_bldg = _test_measure(args_hash)
     assert_operator(test_hpxml_bldg.hvac_plant.hdl_total, :>, base_hpxml_bldg.hvac_plant.hdl_total)
@@ -243,9 +243,9 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
 
     # Test heating/cooling setpoints
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
-    hpxml, _hpxml_bldg = _create_hpxml('base.xml')
-    hpxml.header.manualj_heating_setpoint = 72.5
-    hpxml.header.manualj_cooling_setpoint = 72.5
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.header.manualj_heating_setpoint = 72.5
+    hpxml_bldg.header.manualj_cooling_setpoint = 72.5
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _model, _test_hpxml, test_hpxml_bldg = _test_measure(args_hash)
     assert_operator(test_hpxml_bldg.hvac_plant.hdl_total, :>, base_hpxml_bldg.hvac_plant.hdl_total)
@@ -253,9 +253,9 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
 
     # Test internal loads
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
-    hpxml, _hpxml_bldg = _create_hpxml('base.xml')
-    hpxml.header.manualj_internal_loads_sensible = 1000.0
-    hpxml.header.manualj_internal_loads_latent = 500.0
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.header.manualj_internal_loads_sensible = 1000.0
+    hpxml_bldg.header.manualj_internal_loads_latent = 500.0
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _model, _test_hpxml, test_hpxml_bldg = _test_measure(args_hash)
     assert_equal(test_hpxml_bldg.hvac_plant.hdl_total, base_hpxml_bldg.hvac_plant.hdl_total)
@@ -264,8 +264,8 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
 
     # Test number of occupants
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
-    hpxml, _hpxml_bldg = _create_hpxml('base.xml')
-    hpxml.header.manualj_num_occupants = 10
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.header.manualj_num_occupants = 10
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _model, _test_hpxml, test_hpxml_bldg = _test_measure(args_hash)
     assert_equal(test_hpxml_bldg.hvac_plant.hdl_total, base_hpxml_bldg.hvac_plant.hdl_total)

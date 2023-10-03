@@ -65,6 +65,7 @@ class ReportUtilityBillsTest < Minitest::Test
     @measure = ReportUtilityBills.new
     @hpxml_path = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-pv.xml')
     hpxml = HPXML.new(hpxml_path: @hpxml_path)
+    @hpxml_bldg = hpxml.buildings[0]
 
     @hpxml_header = hpxml.header
     @hpxml_header.utility_bill_scenarios.clear
@@ -77,14 +78,9 @@ class ReportUtilityBillsTest < Minitest::Test
                                              fuel_oil_marginal_rate: 3.495346153846154)
 
     # Check for presence of fuels once
-    has_fuel = {}
-    hpxml_doc = hpxml.to_doc
-    @hpxml_bldg = hpxml.buildings[0]
-    Constants.FossilFuels.each do |fuel|
-      has_fuel[fuel] = @hpxml_bldg.has_fuel(fuel, hpxml_doc)
-    end
+    has_fuel = @hpxml_bldg.has_fuels(Constants.FossilFuels, hpxml.to_doc)
 
-    HPXMLDefaults.apply_header(@hpxml_header, nil, nil)
+    HPXMLDefaults.apply_header(@hpxml_header, nil)
     HPXMLDefaults.apply_utility_bill_scenarios(nil, @hpxml_header, @hpxml_bldg, has_fuel)
 
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))

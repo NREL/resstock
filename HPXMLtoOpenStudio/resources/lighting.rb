@@ -66,7 +66,7 @@ class Lighting
       interior_obj_name = Constants.ObjectNameLightingInterior
       if not schedules_file.nil?
         design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: interior_col_name, annual_kwh: int_kwh)
-        interior_sch = schedules_file.create_schedule_file(col_name: interior_col_name)
+        interior_sch = schedules_file.create_schedule_file(model, col_name: interior_col_name)
       end
       if interior_sch.nil?
         interior_unavailable_periods = Schedule.get_unavailable_periods(runner, interior_col_name, unavailable_periods)
@@ -93,7 +93,7 @@ class Lighting
       ltg_def = OpenStudio::Model::LightsDefinition.new(model)
       ltg = OpenStudio::Model::Lights.new(ltg_def)
       ltg.setName(interior_obj_name)
-      ltg.setSpace(spaces[HPXML::LocationLivingSpace])
+      ltg.setSpace(spaces[HPXML::LocationConditionedSpace])
       ltg.setEndUseSubcategory(interior_obj_name)
       ltg_def.setName(interior_obj_name)
       ltg_def.setLightingLevel(design_level)
@@ -112,7 +112,7 @@ class Lighting
       garage_obj_name = Constants.ObjectNameLightingGarage
       if not schedules_file.nil?
         design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: garage_col_name, annual_kwh: grg_kwh)
-        garage_sch = schedules_file.create_schedule_file(col_name: garage_col_name)
+        garage_sch = schedules_file.create_schedule_file(model, col_name: garage_col_name)
       end
       if garage_sch.nil?
         garage_unavailable_periods = Schedule.get_unavailable_periods(runner, garage_col_name, unavailable_periods)
@@ -148,7 +148,7 @@ class Lighting
       exterior_obj_name = Constants.ObjectNameLightingExterior
       if not schedules_file.nil?
         design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: exterior_col_name, annual_kwh: ext_kwh)
-        exterior_sch = schedules_file.create_schedule_file(col_name: exterior_col_name)
+        exterior_sch = schedules_file.create_schedule_file(model, col_name: exterior_col_name)
       end
       if exterior_sch.nil?
         exterior_unavailable_periods = Schedule.get_unavailable_periods(runner, exterior_col_name, unavailable_periods)
@@ -181,7 +181,7 @@ class Lighting
       exterior_holiday_kwh_per_day = lighting.holiday_kwh_per_day * unit_multiplier
       if not schedules_file.nil?
         design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: exterior_holiday_col_name, daily_kwh: exterior_holiday_kwh_per_day)
-        exterior_holiday_sch = schedules_file.create_schedule_file(col_name: exterior_holiday_col_name)
+        exterior_holiday_sch = schedules_file.create_schedule_file(model, col_name: exterior_holiday_col_name)
       end
       if exterior_holiday_sch.nil?
         exterior_holiday_unavailable_periods = Schedule.get_unavailable_periods(runner, exterior_holiday_col_name, unavailable_periods)

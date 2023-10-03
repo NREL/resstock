@@ -26,6 +26,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
     args['hpxml_output_path'] = hpxml
     args['output_csv_path'] = File.join(rundir, 'stochastic.csv')
     args['debug'] = debug
+    args['building_id'] = building_id
     update_args_hash(measures, measure_subdir, args)
   end
 

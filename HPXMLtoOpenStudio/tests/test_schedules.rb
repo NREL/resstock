@@ -189,9 +189,9 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
   def test_stochastic_vacancy_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-vacancy.xml'))
-    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
+    model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
-    schedules_paths = hpxml.header.schedules_filepaths.collect { |sfp|
+    schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|
       FilePath.check_path(sfp,
                           File.dirname(args_hash['hpxml_path']),
                           'Schedules')
@@ -199,8 +199,7 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
 
     column_name = hpxml.header.unavailable_periods[0].column_name
 
-    sf = SchedulesFile.new(model: model,
-                           schedules_paths: schedules_paths,
+    sf = SchedulesFile.new(schedules_paths: schedules_paths,
                            year: 2007,
                            unavailable_periods: hpxml.header.unavailable_periods,
                            output_path: @tmp_schedule_file_path)
@@ -230,7 +229,7 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
   def test_stochastic_vacancy_schedules2
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-vacancy.xml'))
-    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
+    model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
     column_name = hpxml.header.unavailable_periods[0].column_name
 
@@ -242,14 +241,13 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
                                          end_day: 28,
                                          natvent_availability: HPXML::ScheduleUnavailable)
 
-    schedules_paths = hpxml.header.schedules_filepaths.collect { |sfp|
+    schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|
       FilePath.check_path(sfp,
                           File.dirname(args_hash['hpxml_path']),
                           'Schedules')
     }
 
-    sf = SchedulesFile.new(model: model,
-                           schedules_paths: schedules_paths,
+    sf = SchedulesFile.new(schedules_paths: schedules_paths,
                            year: 2007,
                            unavailable_periods: hpxml.header.unavailable_periods,
                            output_path: @tmp_schedule_file_path)
@@ -279,9 +277,9 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
   def test_stochastic_vacancy_year_round_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-vacancy-year-round.xml'))
-    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
+    model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
-    schedules_paths = hpxml.header.schedules_filepaths.collect { |sfp|
+    schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|
       FilePath.check_path(sfp,
                           File.dirname(args_hash['hpxml_path']),
                           'Schedules')
@@ -289,8 +287,7 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
 
     column_name = hpxml.header.unavailable_periods[0].column_name
 
-    sf = SchedulesFile.new(model: model,
-                           schedules_paths: schedules_paths,
+    sf = SchedulesFile.new(schedules_paths: schedules_paths,
                            year: 2007,
                            unavailable_periods: hpxml.header.unavailable_periods,
                            output_path: @tmp_schedule_file_path)
@@ -320,9 +317,9 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
   def test_stochastic_power_outage_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-power-outage.xml'))
-    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
+    model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
-    schedules_paths = hpxml.header.schedules_filepaths.collect { |sfp|
+    schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|
       FilePath.check_path(sfp,
                           File.dirname(args_hash['hpxml_path']),
                           'Schedules')
@@ -330,8 +327,7 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
 
     column_name = hpxml.header.unavailable_periods[0].column_name
 
-    sf = SchedulesFile.new(model: model,
-                           schedules_paths: schedules_paths,
+    sf = SchedulesFile.new(schedules_paths: schedules_paths,
                            year: 2007,
                            unavailable_periods: hpxml.header.unavailable_periods,
                            output_path: @tmp_schedule_file_path)
@@ -362,7 +358,7 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
   def test_stochastic_power_outage_schedules2
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-power-outage.xml'))
-    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
+    model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
     column_name = hpxml.header.unavailable_periods[0].column_name
 
@@ -375,14 +371,13 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
                                          end_day: 27,
                                          end_hour: 24)
 
-    schedules_paths = hpxml.header.schedules_filepaths.collect { |sfp|
+    schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|
       FilePath.check_path(sfp,
                           File.dirname(args_hash['hpxml_path']),
                           'Schedules')
     }
 
-    sf = SchedulesFile.new(model: model,
-                           schedules_paths: schedules_paths,
+    sf = SchedulesFile.new(schedules_paths: schedules_paths,
                            year: 2007,
                            unavailable_periods: hpxml.header.unavailable_periods,
                            output_path: @tmp_schedule_file_path)

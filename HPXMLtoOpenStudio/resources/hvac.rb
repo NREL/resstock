@@ -226,7 +226,13 @@ class HVAC
 
   def self.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
                                          sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                         control_zone, ground_conductivity, hvac_unavailable_periods)
+                                         control_zone, ground_conductivity, hvac_unavailable_periods,
+                                         unit_multiplier)
+
+    if unit_multiplier > 1
+      # FIXME: Figure out how to allow this. If we allow it, update docs and hpxml_translator_test.rb too.
+      fail 'NumberofUnits greater than 1 is not supported for ground-to-air heat pumps.'
+    end
 
     obj_name = Constants.ObjectNameGroundSourceHeatPump
 
@@ -240,6 +246,10 @@ class HVAC
       hp_ap.fluid_type = Constants.FluidWater
       runner.registerWarning("Specified #{hp_ap.fluid_type} fluid type and 0 fraction of glycol, so assuming #{Constants.FluidWater} fluid type.")
     end
+
+    # Apply unit multiplier
+    hp_ap.GSHP_Loop_flow *= unit_multiplier
+    hp_ap.GSHP_Bore_Holes = hp_ap.GSHP_Bore_Holes.to_i * unit_multiplier
 
     # Cooling Coil
     clg_total_cap_curve = create_curve_quad_linear(model, hp_ap.cool_cap_curve_spec[0], obj_name + ' clg total cap curve')
@@ -285,7 +295,7 @@ class HVAC
     ground_heat_exch_vert.setMaximumLengthofSimulation(1)
     ground_heat_exch_vert.setGFunctionReferenceRatio(0.0005)
     ground_heat_exch_vert.setDesignFlowRate(UnitConversions.convert(hp_ap.GSHP_Loop_flow, 'gal/min', 'm^3/s'))
-    ground_heat_exch_vert.setNumberofBoreHoles(hp_ap.GSHP_Bore_Holes.to_i)
+    ground_heat_exch_vert.setNumberofBoreHoles(hp_ap.GSHP_Bore_Holes)
     ground_heat_exch_vert.setBoreHoleLength(UnitConversions.convert(hp_ap.GSHP_Bore_Depth, 'ft', 'm'))
     ground_heat_exch_vert.removeAllGFunctions
     for i in 0..(hp_ap.GSHP_G_Functions[0].size - 1)
@@ -711,11 +721,16 @@ class HVAC
     set_sequential_load_fractions(model, control_zone, ideal_air, sequential_heat_load_fracs, sequential_cool_load_fracs, hvac_unavailable_periods)
   end
 
-  def self.apply_dehumidifiers(runner, model, dehumidifiers, living_space, unavailable_periods, unit_multiplier)
+  def self.apply_dehumidifiers(runner, model, dehumidifiers, conditioned_space, unavailable_periods, unit_multiplier)
     dehumidifier_id = dehumidifiers[0].id # Syncs with the ReportSimulationOutput measure, which only looks at first dehumidifier ID
 
     if dehumidifiers.map { |d| d.rh_setpoint }.uniq.size > 1
       fail 'All dehumidifiers must have the same setpoint but multiple setpoints were specified.'
+    end
+
+    if unit_multiplier > 1
+      # FIXME: Figure out how to allow this. If we allow it, update docs and hpxml_translator_test.rb too.
+      fail 'NumberofUnits greater than 1 is not supported for dehumidifiers.'
     end
 
     # Dehumidifier coefficients
@@ -738,7 +753,7 @@ class HVAC
     # Apply unit multiplier
     total_capacity *= unit_multiplier
 
-    control_zone = living_space.thermalZone.get
+    control_zone = conditioned_space.thermalZone.get
     obj_name = Constants.ObjectNameDehumidifier
 
     rh_setpoint = dehumidifiers[0].rh_setpoint * 100.0 # (EnergyPlus uses 60 for 60% RH)
@@ -778,11 +793,11 @@ class HVAC
     zone_hvac.additionalProperties.setFeature('HPXML_ID', dehumidifier_id) # Used by reporting measure
 
     if total_fraction_served < 1.0
-      adjust_dehumidifier_load_EMS(total_fraction_served, zone_hvac, model, living_space)
+      adjust_dehumidifier_load_EMS(total_fraction_served, zone_hvac, model, conditioned_space)
     end
   end
 
-  def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, living_space, schedules_file,
+  def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, conditioned_space, schedules_file,
                               unavailable_periods)
     obj_name = Constants.ObjectNameCeilingFan
     medium_cfm = 3000.0 # From ANSI 301-2019
@@ -797,7 +812,7 @@ class HVAC
     if not schedules_file.nil?
       annual_kwh *= Schedule.CeilingFanMonthlyMultipliers(weather: weather).split(',').map(&:to_f).sum(0.0) / 12.0
       ceiling_fan_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: ceiling_fan_col_name, annual_kwh: annual_kwh)
-      ceiling_fan_sch = schedules_file.create_schedule_file(col_name: ceiling_fan_col_name)
+      ceiling_fan_sch = schedules_file.create_schedule_file(model, col_name: ceiling_fan_col_name)
     end
     if ceiling_fan_sch.nil?
       ceiling_fan_unavailable_periods = Schedule.get_unavailable_periods(runner, ceiling_fan_col_name, unavailable_periods)
@@ -818,7 +833,7 @@ class HVAC
     equip_def.setName(obj_name)
     equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
     equip.setName(equip_def.name.to_s)
-    equip.setSpace(living_space)
+    equip.setSpace(conditioned_space)
     equip_def.setDesignLevel(ceiling_fan_design_level)
     equip_def.setFractionRadiant(0.558)
     equip_def.setFractionLatent(0)
@@ -827,14 +842,14 @@ class HVAC
     equip.setSchedule(ceiling_fan_sch)
   end
 
-  def self.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, heating_days, cooling_days, year, schedules_file)
+  def self.apply_setpoints(model, runner, weather, hvac_control, conditioned_zone, has_ceiling_fan, heating_days, cooling_days, year, schedules_file)
     heating_sch = nil
     cooling_sch = nil
     if not schedules_file.nil?
-      heating_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnHeatingSetpoint)
+      heating_sch = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnHeatingSetpoint)
     end
     if not schedules_file.nil?
-      cooling_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnCoolingSetpoint)
+      cooling_sch = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnCoolingSetpoint)
     end
 
     # permit mixing detailed schedules with simple schedules
@@ -867,10 +882,10 @@ class HVAC
 
     # Set the setpoint schedules
     thermostat_setpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
-    thermostat_setpoint.setName("#{living_zone.name} temperature setpoint")
+    thermostat_setpoint.setName("#{conditioned_zone.name} temperature setpoint")
     thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_sch)
     thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_sch)
-    living_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
+    conditioned_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
   end
 
   def self.create_setpoint_schedules(runner, heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
@@ -1588,7 +1603,7 @@ class HVAC
     end
   end
 
-  def self.adjust_dehumidifier_load_EMS(fraction_served, zone_hvac, model, living_space)
+  def self.adjust_dehumidifier_load_EMS(fraction_served, zone_hvac, model, conditioned_space)
     # adjust hvac load to space when dehumidifier serves less than 100% dehumidification load. (With E+ dehumidifier object, it can only model 100%)
 
     # sensor
@@ -1608,7 +1623,7 @@ class HVAC
     dehumidifier_load_adj_def.setFractionLost(0)
     dehumidifier_load_adj = OpenStudio::Model::OtherEquipment.new(dehumidifier_load_adj_def)
     dehumidifier_load_adj.setName("#{zone_hvac.name} sens htg adj")
-    dehumidifier_load_adj.setSpace(living_space)
+    dehumidifier_load_adj.setSpace(conditioned_space)
     dehumidifier_load_adj.setSchedule(model.alwaysOnDiscreteSchedule)
 
     dehumidifier_load_adj_act = OpenStudio::Model::EnergyManagementSystemActuator.new(dehumidifier_load_adj, *EPlus::EMSActuatorOtherEquipmentPower, dehumidifier_load_adj.space.get)
@@ -3676,7 +3691,7 @@ class HVAC
         break
       end
     end
-    secondary_duct_location = HPXML::LocationLivingSpace
+    secondary_duct_location = HPXML::LocationConditionedSpace
 
     return primary_duct_location, secondary_duct_location
   end
@@ -4231,8 +4246,6 @@ class HVAC
       htg_sys.pilot_light_btuh *= unit_multiplier unless htg_sys.pilot_light_btuh.nil?
       htg_sys.electric_auxiliary_energy *= unit_multiplier unless htg_sys.electric_auxiliary_energy.nil?
       htg_sys.fan_watts *= unit_multiplier unless htg_sys.fan_watts.nil?
-      # FIXME: fan_coil_watts?
-      # FIXME: shared_loop_watts?
     end
     hpxml_bldg.cooling_systems.each do |clg_sys|
       clg_sys.cooling_capacity *= unit_multiplier
@@ -4240,8 +4253,6 @@ class HVAC
       clg_sys.crankcase_heater_watts *= unit_multiplier unless clg_sys.crankcase_heater_watts.nil?
       clg_sys.integrated_heating_system_capacity *= unit_multiplier unless clg_sys.integrated_heating_system_capacity.nil?
       clg_sys.integrated_heating_system_airflow_cfm *= unit_multiplier unless clg_sys.integrated_heating_system_airflow_cfm.nil?
-      # FIXME: shared_loop_watts?
-      # FIXME: fan_coil_watts?
     end
     hpxml_bldg.heat_pumps.each do |hp_sys|
       hp_sys.cooling_capacity *= unit_multiplier
@@ -4252,7 +4263,6 @@ class HVAC
       hp_sys.heating_capacity_17F *= unit_multiplier unless hp_sys.heating_capacity_17F.nil?
       hp_sys.backup_heating_capacity *= unit_multiplier unless hp_sys.backup_heating_capacity.nil?
       hp_sys.crankcase_heater_watts *= unit_multiplier unless hp_sys.crankcase_heater_watts.nil?
-      # FIXME: shared_loop_watts?
     end
   end
 
