@@ -289,9 +289,9 @@ class Geometry
       return false
     end
 
-    # create living zone
-    living_zone = OpenStudio::Model::ThermalZone.new(model)
-    living_zone.setName(HPXML::LocationLivingSpace)
+    # create conditioned zone
+    conditioned_zone = OpenStudio::Model::ThermalZone.new(model)
+    conditioned_zone.setName(HPXML::LocationConditionedSpace)
 
     # loop through the number of floors
     foundation_polygon_with_wrong_zs = nil
@@ -343,11 +343,11 @@ class Geometry
           se_point = OpenStudio::Point3d.new(length, 0, z)
           l_se_point = OpenStudio::Point3d.new(length - garage_width, 0, z)
           if ((garage_depth < width) || (garage_protrusion > 0)) && (garage_protrusion < 1) # garage protrudes but not fully
-            living_polygon = make_polygon(sw_point, nw_point, ne_point, garage_ne_point, garage_nw_point, l_se_point)
-          elsif garage_protrusion < 1 # garage fits perfectly within living space
-            living_polygon = make_polygon(sw_point, nw_point, garage_nw_point, garage_sw_point)
+            conditioned_polygon = make_polygon(sw_point, nw_point, ne_point, garage_ne_point, garage_nw_point, l_se_point)
+          elsif garage_protrusion < 1 # garage fits perfectly within conditioned space
+            conditioned_polygon = make_polygon(sw_point, nw_point, garage_nw_point, garage_sw_point)
           else # garage fully protrudes
-            living_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
+            conditioned_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
           end
         elsif garage_position == 'Left'
           sw_point = OpenStudio::Point3d.new(0, 0, z)
@@ -356,14 +356,14 @@ class Geometry
           se_point = OpenStudio::Point3d.new(length, 0, z)
           l_sw_point = OpenStudio::Point3d.new(garage_width, 0, z)
           if ((garage_depth < width) || (garage_protrusion > 0)) && (garage_protrusion < 1) # garage protrudes but not fully
-            living_polygon = make_polygon(garage_nw_point, nw_point, ne_point, se_point, l_sw_point, garage_ne_point)
-          elsif garage_protrusion < 1 # garage fits perfectly within living space
-            living_polygon = make_polygon(garage_se_point, garage_ne_point, ne_point, se_point)
+            conditioned_polygon = make_polygon(garage_nw_point, nw_point, ne_point, se_point, l_sw_point, garage_ne_point)
+          elsif garage_protrusion < 1 # garage fits perfectly within conditioned space
+            conditioned_polygon = make_polygon(garage_se_point, garage_ne_point, ne_point, se_point)
           else # garage fully protrudes
-            living_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
+            conditioned_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
           end
         end
-        foundation_polygon_with_wrong_zs = living_polygon
+        foundation_polygon_with_wrong_zs = conditioned_polygon
       else # first floor without garage or above first floor
 
         if has_garage
@@ -378,9 +378,9 @@ class Geometry
             se_point = OpenStudio::Point3d.new(length, 0, z)
             l_se_point = OpenStudio::Point3d.new(length - garage_width, 0, z)
             if garage_protrusion > 0 # garage protrudes
-              living_polygon = make_polygon(sw_point, nw_point, ne_point, garage_se_point, garage_sw_point, l_se_point)
+              conditioned_polygon = make_polygon(sw_point, nw_point, ne_point, garage_se_point, garage_sw_point, l_se_point)
             else # garage does not protrude
-              living_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
+              conditioned_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
             end
           elsif garage_position == 'Left'
             sw_point = OpenStudio::Point3d.new(0, 0, z)
@@ -389,9 +389,9 @@ class Geometry
             se_point = OpenStudio::Point3d.new(length, 0, z)
             l_sw_point = OpenStudio::Point3d.new(garage_width, 0, z)
             if garage_protrusion > 0 # garage protrudes
-              living_polygon = make_polygon(garage_sw_point, nw_point, ne_point, se_point, l_sw_point, garage_se_point)
+              conditioned_polygon = make_polygon(garage_sw_point, nw_point, ne_point, se_point, l_sw_point, garage_se_point)
             else # garage does not protrude
-              living_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
+              conditioned_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
             end
           end
 
@@ -401,9 +401,9 @@ class Geometry
           nw_point = OpenStudio::Point3d.new(0, width, z)
           ne_point = OpenStudio::Point3d.new(length, width, z)
           se_point = OpenStudio::Point3d.new(length, 0, z)
-          living_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
+          conditioned_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
           if z == rim_joist_height
-            foundation_polygon_with_wrong_zs = living_polygon
+            foundation_polygon_with_wrong_zs = conditioned_polygon
           end
 
         end
@@ -411,26 +411,26 @@ class Geometry
       end
 
       # make space
-      living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, average_ceiling_height, model)
-      living_space = living_space.get
-      assign_indexes(model, living_polygon, living_space)
+      conditioned_space = OpenStudio::Model::Space::fromFloorPrint(conditioned_polygon, average_ceiling_height, model)
+      conditioned_space = conditioned_space.get
+      assign_indexes(model, conditioned_polygon, conditioned_space)
 
       if floor > 0
-        living_space_name = "#{HPXML::LocationLivingSpace}|story #{floor + 1}"
+        conditioned_space_name = "#{HPXML::LocationConditionedSpace}|story #{floor + 1}"
       else
-        living_space_name = HPXML::LocationLivingSpace
+        conditioned_space_name = HPXML::LocationConditionedSpace
       end
-      living_space.setName(living_space_name)
-      living_space_type = OpenStudio::Model::SpaceType.new(model)
-      living_space_type.setStandardsSpaceType(HPXML::LocationLivingSpace)
-      living_space.setSpaceType(living_space_type)
+      conditioned_space.setName(conditioned_space_name)
+      conditioned_space_type = OpenStudio::Model::SpaceType.new(model)
+      conditioned_space_type.setStandardsSpaceType(HPXML::LocationConditionedSpace)
+      conditioned_space.setSpaceType(conditioned_space_type)
 
-      # set these to the living zone
-      living_space.setThermalZone(living_zone)
+      # set these to the conditioned zone
+      conditioned_space.setThermalZone(conditioned_zone)
 
       m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
       m[2, 3] = z
-      living_space.changeTransformation(OpenStudio::Transformation.new(m))
+      conditioned_space.changeTransformation(OpenStudio::Transformation.new(m))
     end
 
     # Attic
@@ -527,8 +527,8 @@ class Geometry
         end
         attic_zone.setName(attic_space_name)
       elsif attic_type == HPXML::AtticTypeConditioned
-        attic_space.setThermalZone(living_zone)
-        attic_space_name = HPXML::LocationLivingSpace
+        attic_space.setThermalZone(conditioned_zone)
+        attic_space_name = HPXML::LocationConditionedSpace
       end
       attic_space.setName(attic_space_name)
       attic_space_type = OpenStudio::Model::SpaceType.new(model)
@@ -622,7 +622,7 @@ class Geometry
 
     if has_garage && attic_type != HPXML::AtticTypeFlatRoof
       if num_floors > 1
-        space_with_roof_over_garage = living_space
+        space_with_roof_over_garage = conditioned_space
       else
         space_with_roof_over_garage = garage_space
       end
@@ -654,10 +654,10 @@ class Geometry
         end
 
         if num_floors == 1
-          nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, living_space.zOrigin + nw_point.z)
-          ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, living_space.zOrigin + ne_point.z)
-          sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, living_space.zOrigin + sw_point.z)
-          se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, living_space.zOrigin + se_point.z)
+          nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, conditioned_space.zOrigin + nw_point.z)
+          ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, conditioned_space.zOrigin + ne_point.z)
+          sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, conditioned_space.zOrigin + sw_point.z)
+          se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, conditioned_space.zOrigin + se_point.z)
         else
           nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, num_floors * nw_point.z + rim_joist_height)
           ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, num_floors * ne_point.z + rim_joist_height)
@@ -675,8 +675,8 @@ class Geometry
 
         if num_floors == 1
           if not attic_type == HPXML::AtticTypeConditioned
-            roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, living_space.zOrigin + average_ceiling_height + garage_attic_height)
-            roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, living_space.zOrigin + average_ceiling_height + garage_attic_height)
+            roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, conditioned_space.zOrigin + average_ceiling_height + garage_attic_height)
+            roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, conditioned_space.zOrigin + average_ceiling_height + garage_attic_height)
           else
             roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, garage_attic_height + average_ceiling_height)
             roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, garage_attic_height + average_ceiling_height)
@@ -711,7 +711,7 @@ class Geometry
 
         if attic_type == HPXML::AtticTypeConditioned
           garage_attic_space_name = attic_space_name
-          garage_attic_space.setThermalZone(living_zone)
+          garage_attic_space.setThermalZone(conditioned_zone)
         else
           if num_floors > 1
             garage_attic_space_name = attic_space_name
@@ -1389,7 +1389,7 @@ class Geometry
   def self.get_conditioned_spaces(spaces)
     conditioned_spaces = []
     spaces.each do |space|
-      next unless space.spaceType.get.standardsSpaceType.get == HPXML::LocationLivingSpace
+      next unless space.spaceType.get.standardsSpaceType.get == HPXML::LocationConditionedSpace
 
       conditioned_spaces << space
     end
@@ -1649,27 +1649,27 @@ class Geometry
     ne_point = OpenStudio::Point3d.new(x, 0, rim_joist_height)
     sw_point = OpenStudio::Point3d.new(0, -y, rim_joist_height)
     se_point = OpenStudio::Point3d.new(x, -y, rim_joist_height)
-    living_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
+    conditioned_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
 
     # foundation
     foundation_polygon = nil
     if (foundation_height > 0) && foundation_polygon.nil?
-      foundation_polygon = living_polygon
+      foundation_polygon = conditioned_polygon
     end
 
-    # create living zone
-    living_zone = OpenStudio::Model::ThermalZone.new(model)
-    living_zone.setName(HPXML::LocationLivingSpace)
+    # create conditioned zone
+    conditioned_zone = OpenStudio::Model::ThermalZone.new(model)
+    conditioned_zone.setName(HPXML::LocationConditionedSpace)
 
     # first floor
-    living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, average_ceiling_height, model)
-    living_space = living_space.get
-    assign_indexes(model, living_polygon, living_space)
-    living_space.setName(HPXML::LocationLivingSpace)
-    living_space_type = OpenStudio::Model::SpaceType.new(model)
-    living_space_type.setStandardsSpaceType(HPXML::LocationLivingSpace)
-    living_space.setSpaceType(living_space_type)
-    living_space.setThermalZone(living_zone)
+    conditioned_space = OpenStudio::Model::Space::fromFloorPrint(conditioned_polygon, average_ceiling_height, model)
+    conditioned_space = conditioned_space.get
+    assign_indexes(model, conditioned_polygon, conditioned_space)
+    conditioned_space.setName(HPXML::LocationConditionedSpace)
+    conditioned_space_type = OpenStudio::Model::SpaceType.new(model)
+    conditioned_space_type.setStandardsSpaceType(HPXML::LocationConditionedSpace)
+    conditioned_space.setSpaceType(conditioned_space_type)
+    conditioned_space.setThermalZone(conditioned_zone)
 
     # Adiabatic surfaces for walls
     adb_facade_hash = { 'left' => adiabatic_left_wall, 'right' => adiabatic_right_wall, 'front' => adiabatic_front_wall, 'back' => adiabatic_back_wall }
@@ -1693,15 +1693,15 @@ class Geometry
 
     # additional floors
     for story in 2..num_floors
-      new_living_space = living_space.clone.to_Space.get
-      assign_indexes(model, living_polygon, new_living_space)
-      new_living_space.setName("living space|story #{story}")
-      new_living_space.setSpaceType(living_space_type)
+      new_conditioned_space = conditioned_space.clone.to_Space.get
+      assign_indexes(model, conditioned_polygon, new_conditioned_space)
+      new_conditioned_space.setName("conditioned space|story #{story}")
+      new_conditioned_space.setSpaceType(conditioned_space_type)
 
       m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
       m[2, 3] = average_ceiling_height * (story - 1)
-      new_living_space.setTransformation(OpenStudio::Transformation.new(m))
-      new_living_space.setThermalZone(living_zone)
+      new_conditioned_space.setTransformation(OpenStudio::Transformation.new(m))
+      new_conditioned_space.setThermalZone(conditioned_zone)
     end
 
     # attic
@@ -1709,10 +1709,10 @@ class Geometry
     if attic_type != HPXML::AtticTypeFlatRoof
       attic_space = get_attic_space(model, x, y, average_ceiling_height, num_floors, roof_pitch, roof_type, rim_joist_height)
       if attic_type == HPXML::AtticTypeConditioned
-        attic_space_name = HPXML::LocationLivingSpace
+        attic_space_name = HPXML::LocationConditionedSpace
         attic_space.setName(attic_space_name)
-        attic_space.setThermalZone(living_zone)
-        attic_space.setSpaceType(living_space_type)
+        attic_space.setThermalZone(conditioned_zone)
+        attic_space.setSpaceType(conditioned_space_type)
         attic_space_type = OpenStudio::Model::SpaceType.new(model)
         attic_space_type.setStandardsSpaceType(attic_space_name)
       else
@@ -2018,26 +2018,26 @@ class Geometry
     ne_point = OpenStudio::Point3d.new(x, 0, rim_joist_height)
     sw_point = OpenStudio::Point3d.new(0, -y, rim_joist_height)
     se_point = OpenStudio::Point3d.new(x, -y, rim_joist_height)
-    living_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
+    conditioned_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
 
     # foundation
     if (foundation_height > 0) && foundation_polygon.nil?
-      foundation_polygon = living_polygon
+      foundation_polygon = conditioned_polygon
     end
 
-    # create living zone
-    living_zone = OpenStudio::Model::ThermalZone.new(model)
-    living_zone.setName(HPXML::LocationLivingSpace)
+    # create conditioned zone
+    conditioned_zone = OpenStudio::Model::ThermalZone.new(model)
+    conditioned_zone.setName(HPXML::LocationConditionedSpace)
 
     # first floor
-    living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, average_ceiling_height, model)
-    living_space = living_space.get
-    assign_indexes(model, living_polygon, living_space)
-    living_space.setName(HPXML::LocationLivingSpace)
-    living_space_type = OpenStudio::Model::SpaceType.new(model)
-    living_space_type.setStandardsSpaceType(HPXML::LocationLivingSpace)
-    living_space.setSpaceType(living_space_type)
-    living_space.setThermalZone(living_zone)
+    conditioned_space = OpenStudio::Model::Space::fromFloorPrint(conditioned_polygon, average_ceiling_height, model)
+    conditioned_space = conditioned_space.get
+    assign_indexes(model, conditioned_polygon, conditioned_space)
+    conditioned_space.setName(HPXML::LocationConditionedSpace)
+    conditioned_space_type = OpenStudio::Model::SpaceType.new(model)
+    conditioned_space_type.setStandardsSpaceType(HPXML::LocationConditionedSpace)
+    conditioned_space.setSpaceType(conditioned_space_type)
+    conditioned_space.setThermalZone(conditioned_zone)
 
     # Map surface facades to adiabatic walls
     adb_facade_hash = { 'left' => adiabatic_left_wall, 'right' => adiabatic_right_wall, 'front' => adiabatic_front_wall, 'back' => adiabatic_back_wall }
@@ -2052,7 +2052,7 @@ class Geometry
       adb_levels += ['Floor']
     end
 
-    # Make living space surfaces adiabatic
+    # Make conditioned space surfaces adiabatic
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
         os_facade = get_facade_for_surface(surface)

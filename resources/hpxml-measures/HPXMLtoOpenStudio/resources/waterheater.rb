@@ -58,7 +58,7 @@ class Waterheater
     return loop
   end
 
-  def self.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, living_zone, eri_version, schedules_file, unavailable_periods)
+  def self.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, eri_version, schedules_file, unavailable_periods)
     obj_name_hpwh = Constants.ObjectNameWaterHeater
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
     t_set_c = get_t_set_c(water_heating_system.temperature, water_heating_system.water_heater_type)
@@ -123,7 +123,7 @@ class Waterheater
     hpwh = setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, control_setpoint_schedule)
 
     # Amb temp & RH sensors, temp sensor shared across programs
-    amb_temp_sensor, amb_rh_sensors = get_loc_temp_rh_sensors(model, obj_name_hpwh, loc_schedule, loc_space, living_zone)
+    amb_temp_sensor, amb_rh_sensors = get_loc_temp_rh_sensors(model, obj_name_hpwh, loc_schedule, loc_space, conditioned_zone)
     hpwh_inlet_air_program = add_hpwh_inlet_air_and_zone_heat_gain_program(model, obj_name_hpwh, loc_space, hpwh_tamb, hpwh_rhamb, tank, coil, fan, amb_temp_sensor, amb_rh_sensors)
 
     # EMS for the HPWH control logic
@@ -825,7 +825,7 @@ class Waterheater
     return fan
   end
 
-  def self.get_loc_temp_rh_sensors(model, obj_name_hpwh, loc_schedule, loc_space, living_zone)
+  def self.get_loc_temp_rh_sensors(model, obj_name_hpwh, loc_schedule, loc_space, conditioned_zone)
     rh_sensors = []
     if not loc_schedule.nil?
       amb_temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
@@ -840,7 +840,7 @@ class Waterheater
       elsif loc_schedule.name.get == HPXML::LocationOtherHousingUnit
         amb_rh_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Air Relative Humidity')
         amb_rh_sensor.setName("#{obj_name_hpwh} amb rh")
-        amb_rh_sensor.setKeyName(living_zone.name.to_s)
+        amb_rh_sensor.setKeyName(conditioned_zone.name.to_s)
         rh_sensors << amb_rh_sensor
       else
         amb_rh_sensor1 = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Site Outdoor Air Relative Humidity')
@@ -848,7 +848,7 @@ class Waterheater
         amb_rh_sensor1.setKeyName('Environment')
         amb_rh_sensor2 = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Air Relative Humidity')
         amb_rh_sensor2.setName("#{obj_name_hpwh} amb2 rh")
-        amb_rh_sensor2.setKeyName(living_zone.name.to_s)
+        amb_rh_sensor2.setKeyName(conditioned_zone.name.to_s)
         rh_sensors << amb_rh_sensor1
         rh_sensors << amb_rh_sensor2
       end
@@ -1409,15 +1409,15 @@ class Waterheater
     iecc_zone = (climate_zone_iecc.nil? ? nil : climate_zone_iecc.zone)
     if ['1A', '1B', '1C', '2A', '2B', '2C', '3B', '3C'].include? iecc_zone
       location_hierarchy = [HPXML::LocationGarage,
-                            HPXML::LocationLivingSpace]
+                            HPXML::LocationConditionedSpace]
     elsif ['3A', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8'].include? iecc_zone
       location_hierarchy = [HPXML::LocationBasementConditioned,
                             HPXML::LocationBasementUnconditioned,
-                            HPXML::LocationLivingSpace]
+                            HPXML::LocationConditionedSpace]
     elsif iecc_zone.nil?
       location_hierarchy = [HPXML::LocationBasementConditioned,
                             HPXML::LocationBasementUnconditioned,
-                            HPXML::LocationLivingSpace]
+                            HPXML::LocationConditionedSpace]
     end
     location_hierarchy.each do |location|
       if hpxml.has_location(location)
