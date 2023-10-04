@@ -838,29 +838,55 @@ Assumption
 **********
 
 
-.. _ducts:
+.. _duct_leakage_and_insulation:
 
-Ducts
------
+Duct Leakage and Insulation
+---------------------------
 
 Description
 ***********
 
-Duct insulation and leakage levels.
+Duct insulation and leakage to outside from the portion of ducts in unconditioned spaces
 
 Created by
 **********
 
-manually created
+sources/other/tsv_maker.py
 
 Source
 ******
 
-IECC 2009; Lucas and Cole, 'Impacts of the 2009 IECC for Residential Buildings at State Level', 2009; Wilson et al., 'Building America House Simulation Protocols', 2014
+Duct insulation as a function of location: IECC 2009; Leakage distribution: Lucas and Cole, 'Impacts of the 2009 IECC for Residential Buildings at State Level', 2009
 
 Assumption
 **********
 
+Ducts entirely in conditioned spaces will not have any leakage to outside. Ducts with R-4/R-8 insulation were previously assigned to Geometry Foundation Type = Ambient or Slab. They now correspond to those with Duct Location = Garage, Unvented Attic, or Vented Attic.
+
+.. _duct_location:
+
+Duct Location
+-------------
+
+Description
+***********
+
+Location of Duct System
+
+Created by
+**********
+
+sources/other/tsv_maker.py
+
+Source
+******
+
+OpenStudio-HPXML v1.6.0 and Wilson et al., 'Building America House Simulation Protocols', 2014
+
+Assumption
+**********
+
+Based on default duct location assignment in OpenStudio-HPXML: the first present space type in the order of: basement - conditioned, basement - unconditioned, crawlspace - conditioned, crawlspace - vented, crawlspace - unvented, attic - vented, attic - unvented, garage, or living space
 
 .. _eaves:
 
@@ -1007,7 +1033,7 @@ U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 Assumption
 **********
 
-Multi-Family building types have Flat Roof (None) only.; 1-story Single-Family building types cannot have Finished Attic/Cathedral Ceiling because that attic type is modeled as a new story and 1-story does not a second story. 4+story Single-Family and mobile homes are an impossible combination.
+Multi-Family building types and Mobile Homes have Flat Roof (None) only.; 1-story Single-Family building types cannot have Finished Attic/Cathedral Ceiling because that attic type is modeled as a new story and 1-story does not a second story. 4+story Single-Family and mobile homes are an impossible combination.
 
 .. _geometry_building_horizontal_location_mf:
 
@@ -1242,12 +1268,12 @@ The finished floor area of the dwelling unit using bins from the U.S. Energy Inf
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-The sample counts and sample weights are constructed using U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.; Geometry Floor Area bins are from the UNITSIZE field of the 2017 American Housing Survey (AHS).
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.; Geometry Floor Area bins are from the UNITSIZE field of the 2017 American Housing Survey (AHS).
 
 Assumption
 **********
@@ -1291,17 +1317,42 @@ The size of an attached garage.
 Created by
 **********
 
-sources/recs/2009/tsv_maker.py (manually modified by Joe Robertson)
+sources/recs/recs2020/tsv_maker.py
 
 Source
 ******
 
-U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
 Assumption
 **********
 
-All mobile homes and multi-family units do not have an attached garage.; All units with Ambient foundations do not have an attached garage.; Vented Crawlspace, Unvented Crawlspace, Heated basement, Slab, and Unheated basement foundation type samples are lumped together due to low sample counts.
+Only Single-Family Detached homes are assigned a probability for attached garage.; No garage for ambient (i.e., pier & beam) foundation type.; Due to modeling constraints restricting that garage cannot be larger or deeper than livable space: Single-family detached units that are 0-1499 square feet can only have a maximum of a 1 car garage.; Single-family detached units that are 0-1499 square feet and 3+ stories cannot have a garage.; The geometry stories distributions are all the same except for 0-1499 square feet and 3 stories.; Single-family detached units that are 1500-2499 square feet can not have a 3 car garage.; Single-family detached units that are 2500-3999 square feet and a heated basement can not have a 3 car garage. Due to low sample sizes, 1. Crawl, basements, and slab are lumped.; 2. Story levels are lumped together.; 2. Census Division RECS is grouped into Census Region.; 2. Vintage ACS is progressively grouped into: pre-1960, 1960-1999, and 2000+.
+
+.. _geometry_space_combination:
+
+Geometry Space Combination
+--------------------------
+
+Description
+***********
+
+Valid combinations of building type, building level mf, attic, foundation, and garage
+
+Created by
+**********
+
+sources/recs/recs2020/tsv_maker.py
+
+Source
+******
+
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+Assumption
+**********
+
+For building level mf, only multi-family (MF) can have top, middle, or bottom units,; For foundation, mobile home (MH) has ambient only, MF cannot have ambient or heated basement, single-family attached cannot have ambient.; For attic, MH and MF have no attic.; For (attached) garage, only single-family detached without ambient foundation type can have garage.
 
 .. _geometry_stories:
 
@@ -1524,7 +1575,7 @@ The sample counts and sample weights are constructed using U.S. EIA 2020 Residen
 Assumption
 **********
 
-Ducted Heat Pump HVAC type assumed to have ducts; Non-Ducted Heat Pump HVAC type assumed to have no ducts; There are likely homes with non-ducted heat pump having ducts (Central AC with non-ducted HP) But due to structure of ResStock we are not accounting those homes; Evaporative or swamp cooler assigned Void option
+Ducted Heat Pump HVAC type assumed to have ducts; Non-Ducted Heat Pump HVAC type assumed to have no ducts; There are likely homes with non-ducted heat pump having ducts (Central AC with non-ducted HP) But due to structure of ResStock we are not accounting those homes; Evaporative or Swamp Cooler assigned Void option; None of the shared system options currently modeled (in HVAC Shared Efficiencies) are ducted, therefore where there are discrepancies between HVAC Heating Type, HVAC Cooling Type, and HVAC Has Shared System, HVAC Has Shared System takes precedence. (e.g., Central AC + Ducted Heating + Shared Heating and Cooling = No (Ducts)) (This is a temporary fix and will change when ducted shared system options are introduced.)
 
 .. _hvac_has_shared_system:
 
@@ -1549,7 +1600,7 @@ The sample counts and sample weights are constructed using U.S. EIA 2020 Residen
 Assumption
 **********
 
-Due to low sample sizes, the fallback rules are applied in following order; [1] Vintage: Vintage ACS 20 year bin[2] HVAC Cooling Type: Lump 1) Central AC and Ducted Heat Pump and 2) Non-Ducted Heat Pump and None[3] HVAC Heating Type: Lump 1) Ducted Heating and Ducted Heat Pump and 2) Non-Ducted Heat Pump and None[4] HVAC Cooling Type: Lump 1) Central AC and Ducted Heat Pump and 2) Non-Ducted Heat Pump, Non-Ducted Heating, and None[5] HVAC Heating Type: Lump 1) Ducted Heating and Ducted Heat Pump and 2) Non-Ducted Heat Pump, None, and Room AC[6] Vintage: Vintage pre 1960s and post 2000[7] Vintage: All vintages; Evaporative or swamp cooler Cooling Type assigned Void option; Ducted Heat Pump assigned for both heating and cooling, other combinations assigned Void option; Non-Ducted Heat Pump assigned for both heating and cooling, other combinations assigned Void option
+Due to low sample sizes, the fallback rules are applied in following order; [1] Vintage: Vintage ACS 20 year bin[2] HVAC Cooling Type: Lump 1) Central AC and Ducted Heat Pump and 2) Non-Ducted Heat Pump and None[3] HVAC Heating Type: Lump 1) Ducted Heating and Ducted Heat Pump and 2) Non-Ducted Heat Pump and None[4] HVAC Cooling Type: Lump 1) Central AC and Ducted Heat Pump and 2) Non-Ducted Heat Pump, Non-Ducted Heating, and None[5] HVAC Heating Type: Lump 1) Ducted Heating and Ducted Heat Pump and 2) Non-Ducted Heat Pump, None, and Room AC[6] Vintage: Vintage pre 1960s and post 2000[7] Vintage: All vintages; Evaporative or Swamp Cooler Cooling Type assigned Void option; Ducted Heat Pump assigned for both heating and cooling, other combinations assigned Void option; Non-Ducted Heat Pump assigned for both heating and cooling, other combinations assigned Void option
 
 .. _hvac_has_zonal_electric_heating:
 
@@ -1598,7 +1649,7 @@ The sample counts and sample weights are constructed using U.S. EIA 2020 Residen
 Assumption
 **********
 
-Check the assumptions on the source tsv files.; If a house has a wall furnace with fuel other than natural_gas, efficiency level based on natural_gas from expanded_HESC_HVAC_efficiencies.tsv is assigned.; If a house has a heat pump with fuel other than electricity (presumed dual-fuel heat pump), the heating type is assumed to be furnace and not heat pump.; The shipment volume for boiler was not available, so shipment volume for furnace in furnace-shipments-table.tsv was used instead.; Due to low sample size for some categories, the HVAC Has Shared System categories 'Cooling Only' and 'None' are combined for the purpose of querying Heating Efficiency distributions.; For 'other' heating system types, we assign them to Electric Baseboard if fuel is Electric, and assign them to Wall/Floor Furnace if fuel is natural_gas, fuel_oil or propane.
+Check the assumptions on the source tsv files.; If a house has a wall furnace with fuel other than natural_gas, efficiency level based on natural_gas from expanded_HESC_HVAC_efficiencies.tsv is assigned.; If a house has a heat pump with fuel other than electricity (presumed dual-fuel heat pump), the heating type is assumed to be furnace and not heat pump.; The shipment volume for boiler was not available, so shipment volume for furnace in furnace-shipments-table.tsv was used instead.; Due to low sample size for some categories, the HVAC Has Shared System categories 'Cooling Only' and 'None' are combined for the purpose of querying Heating Efficiency distributions.; For 'other' heating system types, we assign them to Electric Baseboard if fuel is Electric, and assign them to Wall/Floor Furnace if fuel is natural_gas, fuel_oil or propane.; For Other Fuel, the lowest efficiency systems are assumed.
 
 .. _hvac_heating_type:
 
@@ -3452,6 +3503,31 @@ Assumption
 **********
 
 Single-Family Detached and Mobile Homes have in unit water heaters.; As Not Applicable option for Single-Family Attached option is 100%; Assuming Single-Family Attached in-unit water heater distribution from RECS 2009; Due to low sample sizes, fallback rules applied with lumping of:; [1] State: Census Division RECS; [2] Vintage ACS: Combining Vintage pre 1960s and post 2000; [3] State: Census Region
+
+.. _water_heater_location:
+
+Water Heater Location
+---------------------
+
+Description
+***********
+
+location of water heater.
+
+Created by
+**********
+
+sources/recs/recs2020/tsv_maker.py
+
+Source
+******
+
+U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+Assumption
+**********
+
+H2OMAIN = other is equally distributed amongst attic and crawlspace.; H2OMAIN does not apply to multi-family, therefore Water heater location for multi-family with in-unit water heater is taken after the combined distribution of other builing types.; Per expert judgement, water heaters can not be outside or in vented spaces for IECC Climate Zones 4-8 due to pipe-freezing risk.; Where samples < 10, data is aggregated in the following order:; 1. Building Type lumped into single-family, multi-family, and mobile home.; 2. 1 + Foundation Type combined. 3. 2 + Attic Type combined; 4. 3 + Garage combined.; 5. Single-/Multi-Family + Foundation combined + Attic combined + Garage combined.; 6. 5 + pre-1960 combined.; 7. 5 + pre-1960 combined / post-2020 combined.; 8. 7 + IECC Climate Zone lumped into: 1-2+3A, 3B-3C, 4, 5, 6, 7 except AK, 7AK-8AK.; 9. 7 + IECC Climate Zone lumped into: 1-2-3, 4-8.
 
 .. _window_areas:
 
