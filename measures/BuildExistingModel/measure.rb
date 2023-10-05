@@ -338,6 +338,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     whole_sfa_mf_building = true
     num_units = 1
     unit_multiplier = nil
+
+    # optionally calculate unit_multiplier equal to number of units per floor of the building
     if whole_sfa_mf_building && geometry_building_num_units > 1
       geometry_num_floors_above_grade = 1
       resstock_arguments_runner.result.stepValues.each do |step_value|
@@ -349,26 +351,28 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       num_units = Integer(geometry_num_floors_above_grade)
     end
 
+    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     (1..num_units).each do |unit_number|
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
-
-      if unit_number > 1
-        measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
-        measures['BuildResidentialHPXML'][0]['battery_present'] = 'false'
-      end
-
-      if !unit_multiplier.nil?
-        if unit_multiplier == geometry_building_num_units
-          unit_multiplier = geometry_building_num_units - ((num_units - 1) * unit_multiplier)
-        end
-        measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
-      end
 
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
         next if value == '' || step_value.name == 'geometry_num_floors_above_grade'
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
+      end
+
+      if unit_number > 1
+        measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
+        measures['BuildResidentialHPXML'][0]['battery_present'] = 'false' # limitation of OS-HPXML
+      end
+
+      if !unit_multiplier.nil?
+        if unit_number == num_units # the final unit gets the remainder
+          unit_multiplier = geometry_building_num_units - ((num_units - 1) * unit_multiplier)
+        end
+        measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
+        measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
       end
 
       # Set additional properties
@@ -648,23 +652,30 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = utility_bill_pv_monthly_grid_connection_fees
       end
 
-      # Get argument values and pass them to BuildResidentialScheduleFile
-      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path, 'schedules_random_seed' => args[:building_id], 'output_csv_path' => File.expand_path('../schedules.csv'), 'building_id' => unit_number }]
-
       # Specify measures to run
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # for apply_hvac_sizing
-      if run_hescore_workflow
-        measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
-      else
-        measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] }
-      end
-
-      new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
       if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
         register_logs(runner, new_runner)
         return false
       end
-    end # end (1..geometry_building_num_units).each
+    end # end (1..num_units).each do |unit_number|
+
+    if not run_hescore_workflow
+      # Get argument values and pass them to BuildResidentialScheduleFile
+      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path,
+                                                    'hpxml_output_path' => hpxml_path,
+                                                    'schedules_random_seed' => args[:building_id],
+                                                    'output_csv_path' => File.expand_path('../schedules.csv'),
+                                                    'building_id' => 'ALL' }]
+
+      # Specify measures to run
+      measures_hash = { 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] }
+      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
+        register_logs(runner, new_runner)
+        return false
+      end
+    end
 
     # Copy existing.xml to home.xml for downstream HPXMLtoOpenStudio
     # We need existing.xml (and not just home.xml) for UpgradeCosts
@@ -688,7 +699,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Report some additional location and model characteristics
     if File.exist?(hpxml_path)
-      hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
+      hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'MyBuilding')
     else
       runner.registerWarning("BuildExistingModel measure could not find '#{hpxml_path}'.")
       return true

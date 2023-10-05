@@ -318,6 +318,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Initialize measure keys with hpxml_path arguments
     hpxml_path = File.expand_path('../upgraded.xml')
 
+    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
       unit_number += 1
 
@@ -332,15 +333,23 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
-      if unit_number > 1
-        measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
-      end
 
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
-        next if value == ''
+        next if value == '' || step_value.name == 'geometry_num_floors_above_grade'
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
+      end
+
+      if unit_number > 1
+        measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
+        measures['BuildResidentialHPXML'][0]['battery_present'] = 'false' # limitation of OS-HPXML
+      end
+
+      unit_multiplier = hpxml_bldg.building_construction.number_of_units
+      if unit_multiplier > 1
+        measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
+        measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
       end
 
       # Set additional properties
@@ -462,28 +471,51 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = values['utility_bill_pv_monthly_grid_connection_fees']
 
       # Get registered values and pass them to BuildResidentialScheduleFile
-      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path, 'schedules_random_seed' => values['building_id'], 'output_csv_path' => File.expand_path('../schedules.csv'), 'building_id' => building_id }]
+      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path,
+                                                    'hpxml_output_path' => hpxml_path,
+                                                    'schedules_random_seed' => values['building_id'],
+                                                    'output_csv_path' => File.expand_path('../schedules.csv'),
+                                                    'building_id' => 'ALL' }]
 
       # Specify measures to run
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
-      measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] },
-                                 measures_dir => {} }
-
-      upgrade_measures = measures.keys - ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile']
-      upgrade_measures.each do |upgrade_measure|
-        measures_to_apply_hash[measures_dir][upgrade_measure] = measures[upgrade_measure]
-      end
-      measures_to_apply_hash.each_with_index do |(dir, measures_to_apply), i|
-        next if measures_to_apply.empty?
-
-        osw_out = 'upgraded.osw'
-        osw_out = "upgraded#{i + 1}.osw" if i > 0
-        new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-        next unless not apply_measures(dir, measures_to_apply, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', osw_out)
-
+      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
+      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
         register_logs(runner, new_runner)
         return false
       end
+    end # end hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
+
+    # Get registered values and pass them to BuildResidentialScheduleFile
+    measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path,
+                                                  'hpxml_output_path' => hpxml_path,
+                                                  'schedules_random_seed' => values['building_id'],
+                                                  'output_csv_path' => File.expand_path('../schedules.csv'),
+                                                  'building_id' => 'ALL' }]
+
+    # Specify measures to run
+    measures_hash = { 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] }
+    if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+      register_logs(runner, new_runner)
+      return false
+    end
+
+    # Specify measures to run
+    measures_to_apply_hash = { measures_dir => {} }
+
+    upgrade_measures = measures.keys - ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile']
+    upgrade_measures.each do |upgrade_measure|
+      measures_to_apply_hash[measures_dir][upgrade_measure] = measures[upgrade_measure]
+    end
+    measures_to_apply_hash.each_with_index do |(dir, measures_to_apply), i|
+      next if measures_to_apply.empty?
+
+      osw_out = 'upgraded.osw'
+      osw_out = "upgraded#{i + 1}.osw" if i > 0
+      next unless not apply_measures(dir, measures_to_apply, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', osw_out)
+
+      register_logs(runner, new_runner)
+      return false
     end
 
     # Copy upgraded.xml to home.xml for downstream HPXMLtoOpenStudio
