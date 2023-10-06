@@ -347,7 +347,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
           geometry_num_floors_above_grade = get_value_from_workflow_step_value(step_value)
         end
       end
-      unit_multiplier = (geometry_building_num_units / Float(geometry_num_floors_above_grade)).ceil
+      geometry_num_floors_above_grade = [geometry_num_floors_above_grade, geometry_building_num_units].min # for project_testing
+      unit_multiplier = (geometry_building_num_units / Float(geometry_num_floors_above_grade)).floor
       num_units = Integer(geometry_num_floors_above_grade)
     end
 
