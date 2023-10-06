@@ -333,11 +333,16 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         geometry_building_num_units = Integer(get_value_from_workflow_step_value(step_value))
       end
     end
-    register_value(runner, 'geometry_building_num_units', geometry_building_num_units)
 
     whole_sfa_mf_building = true
-    num_units = 1
+    num_units_modeled = 1
     unit_multiplier = nil
+
+    if whole_sfa_mf_building
+      register_value(runner, 'geometry_building_num_units', geometry_building_num_units)
+    else
+      register_value(runner, 'geometry_building_num_units', 1)
+    end
 
     # optionally calculate unit_multiplier equal to number of units per floor of the building
     if whole_sfa_mf_building && geometry_building_num_units > 1
@@ -349,11 +354,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
       geometry_num_floors_above_grade = [geometry_num_floors_above_grade, geometry_building_num_units].min # for project_testing
       unit_multiplier = (geometry_building_num_units / Float(geometry_num_floors_above_grade)).floor
-      num_units = Integer(geometry_num_floors_above_grade)
+      num_units_modeled = Integer(geometry_num_floors_above_grade)
     end
+    register_value(runner, 'num_units_modeled', num_units_modeled)
 
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    (1..num_units).each do |unit_number|
+    (1..num_units_modeled).each do |unit_number|
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
 
       resstock_arguments_runner.result.stepValues.each do |step_value|
@@ -369,8 +375,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
 
       if !unit_multiplier.nil?
-        if unit_number == num_units # the final unit gets the remainder
-          unit_multiplier = geometry_building_num_units - ((num_units - 1) * unit_multiplier)
+        if unit_number == num_units_modeled # the final unit gets the remainder
+          unit_multiplier = geometry_building_num_units - ((num_units_modeled - 1) * unit_multiplier)
         end
         measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
         measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
@@ -382,7 +388,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"
       end
+
+      # to call the AddWholeBuildingSharedHPWHAndCirculationLoops measure
       additional_properties << "has_ghpwh=#{bldg_data['Water Heater Efficiency'] == 'Natural Gas Heat Pump'}" # FIXME: this is specific to another project
+      # additional_properties << 'has_ghpwh=true' # FIXME: hardset to true for testing AddWholeBuildingSharedHPWHAndCirculationLoops
+
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       # Get software program used and version
@@ -660,7 +670,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         register_logs(runner, new_runner)
         return false
       end
-    end # end (1..num_units).each do |unit_number|
+    end # end (1..num_units_modeled).each do |unit_number|
 
     if not run_hescore_workflow
       # Get argument values and pass them to BuildResidentialScheduleFile
