@@ -767,8 +767,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
       slab_int_adj_tos.each do |int_adj_to, slabs|
         osm_props = []
         model.getSurfacePropertyExposedFoundationPerimeters.each do |osm_prop|
-          surf = model.getSurfaces.find { |s| s.name.to_s == osm_prop.surfaceName }
-          next unless surf.space.get.name.to_s.start_with? int_adj_to
+          next unless osm_prop.surface.space.get.name.to_s.start_with? int_adj_to
 
           osm_props << osm_prop
         end
@@ -783,8 +782,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
       model.getFoundationKivas.each do |foundation|
         osm_exposed_perimeter = 0.0
         model.getSurfacePropertyExposedFoundationPerimeters.each do |osm_prop|
-          surf = model.getSurfaces.find { |s| s.name.to_s == osm_prop.surfaceName }
-          next unless surf.outsideBoundaryCondition == 'Foundation' && surf.adjacentFoundation.get == foundation
+          next unless osm_prop.surface.outsideBoundaryCondition == 'Foundation' && osm_prop.surface.adjacentFoundation.get == foundation
 
           osm_exposed_perimeter += UnitConversions.convert(osm_prop.totalExposedPerimeter.get, 'm', 'ft')
         end

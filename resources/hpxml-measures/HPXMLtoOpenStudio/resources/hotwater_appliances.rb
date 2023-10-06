@@ -348,7 +348,7 @@ class HotWaterAndAppliances
       end
 
       # Dishwasher
-      next unless not dishwasher.nil?
+      next if dishwasher.nil?
 
       gpd_frac = nil
       if dishwasher.is_shared_appliance && (not dishwasher.hot_water_distribution.nil?)
@@ -358,7 +358,7 @@ class HotWaterAndAppliances
       elsif not dishwasher.is_shared_appliance
         gpd_frac = water_heating_system.fraction_dhw_load_served
       end
-      next unless not gpd_frac.nil?
+      next if gpd_frac.nil?
 
       # Create schedule
       water_dw_schedule = nil
