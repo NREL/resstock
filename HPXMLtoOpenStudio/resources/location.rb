@@ -82,24 +82,34 @@ class Location
   end
 
   def self.get_epw_path(hpxml, hpxml_path)
-    epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
+    epw_filepath = hpxml.climate_and_risk_zones.weather_station_epw_filepath
+    abs_epw_path = File.absolute_path(epw_filepath)
 
-    if not File.exist? epw_path
-      test_epw_path = File.join(File.dirname(hpxml_path), epw_path)
-      epw_path = test_epw_path if File.exist? test_epw_path
+    if not File.exist? abs_epw_path
+      # Check path relative to HPXML file
+      abs_epw_path = File.absolute_path(File.join(File.dirname(hpxml_path), epw_filepath))
     end
-    for level_deep in 1..3
-      next unless not File.exist? epw_path
+    if not File.exist? abs_epw_path
+      # Check for weather path relative to the HPXML file
+      for level_deep in 1..3
+        level = (['..'] * level_deep).join('/')
+        abs_epw_path = File.absolute_path(File.join(File.dirname(hpxml_path), level, 'weather', epw_filepath))
+        break if File.exist? abs_epw_path
+      end
+    end
+    if not File.exist? abs_epw_path
+      # Check for weather path relative to this file
+      for level_deep in 1..3
+        level = (['..'] * level_deep).join('/')
+        abs_epw_path = File.absolute_path(File.join(File.dirname(__FILE__), level, 'weather', epw_filepath))
+        break if File.exist? abs_epw_path
+      end
+    end
+    if not File.exist? abs_epw_path
+      fail "'#{epw_filepath}' could not be found."
+    end
 
-      level = (['..'] * level_deep).join('/')
-      test_epw_path = File.join(File.dirname(__FILE__), level, 'weather', epw_path)
-      epw_path = test_epw_path if File.exist? test_epw_path
-    end
-    if not File.exist?(epw_path)
-      fail "'#{epw_path}' could not be found."
-    end
-
-    return epw_path
+    return abs_epw_path
   end
 
   def self.get_sim_calendar_year(sim_calendar_year, epw_file)

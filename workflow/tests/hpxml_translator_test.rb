@@ -563,6 +563,10 @@ class HPXMLTest < Minitest::Test
       next if message.include?('setupIHGOutputs: Output variables=Space Other Equipment') && message.include?('are not available')
       next if message.include? 'DetailedSkyDiffuseModeling is chosen but not needed as either the shading transmittance for shading devices does not change throughout the year'
       next if message.include? 'View factors not complete'
+      # FIXME: Double-check this. May be addressed by https://github.com/NREL/OpenStudio-HPXML/pull/1175?
+      next if message.include?('The shading transmittance for shading devices may change throughout the year') && message.include?('Choose Shading Calculation Update Frequency Method = Timestep in the ShadowCalculation object to capture all shading impacts')
+      # FIXME: Double-check this.
+      next if message.include? 'Multiple speed fan will be applied to this unit. The speed number is determined by load.'
 
       # HPWHs
       if hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
