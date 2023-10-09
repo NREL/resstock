@@ -382,7 +382,7 @@ class SavingsExtraction:
 
         dfu2 = pd.concat([dfu[other_cols], dfb[output_cols]], axis=1)[dfu.columns]
 
-        for metric in ["energy", "emission"]:
+        for metric in ["emission", "energy"]:
             cols_enduse = []
             for eu in end_uses:
 
@@ -406,15 +406,33 @@ class SavingsExtraction:
                 if len(available_enduses) > 0:
                     delta = dfb[available_enduses].sum(axis=1) - dfu[
                         available_enduses
-                    ].sum(axis=1)
+                    ].sum(axis=1) # savings
+
+                    # if end_uses == ["range_oven"]:
+                    #     breakpoint()
+
                     dfu2[fuel_col] -= delta  # changing baseline df
                     dfu2[total_col] -= delta
 
+            print("\n # 1 --------")
+            print(dfu["apply_upgrade.upgrade_name"].unique())
+            print(dfb[total_col].describe())
+            print(dfu2[total_col].describe())
+            print((dfb[total_col] - dfu2[total_col]).describe())
+            print()
+
         # get those with end_uses upgraded only and replace with dfu
-        _, _, name_cols_else = self._get_upgrade_costs_columns(dfu, end_uses)
-        cond = dfu[name_cols_else].replace(na_rep).fillna("").sum(axis=1)  # replace None with ""
+        _, name_cols, _ = self._get_upgrade_costs_columns(dfu, end_uses)
+        cond = dfu[name_cols].replace(na_rep).fillna("").sum(axis=1)  # replace None with ""
         cond = cond == ""  # where all cols are None
         dfu2.loc[cond] = dfu.loc[cond]
+
+        print("\n # 2 --------")
+        print(dfu["apply_upgrade.upgrade_name"].unique())
+        print(dfb[total_col].describe())
+        print(dfu2[total_col].describe())
+        print((dfb[total_col] - dfu2[total_col]).describe())
+        print()
 
         # QC
         for metric in ["energy", "emission"]:
@@ -431,6 +449,9 @@ class SavingsExtraction:
                     (cond2 & ~cond), "build_existing_model.vacancy_status"
                 ].value_counts()
             )
+
+        # if end_uses == ["range_oven"]:
+        #     breakpoint()
 
         return dfu2
 
@@ -1409,44 +1430,55 @@ def main(euss_dir):
     )
 
     # [9] Electric dryer: Clothes dryer (pkg 7)
-    DF.append(
-        SE.get_data(
+    df7 = SE.get_data(
             7,
             "clothes_dryer.electric",
             adjustment_type="extract_end_uses",
             end_uses=["clothes_dryer"],
         )
-    )
 
     # [10] Heat pump dryer: Clothes dryer (pkg 8, 9, 10)
-    DF.append(
-        SE.get_data(
-            [8, 9, 10],
+
+    df8 = SE.get_data(
+            8, # [8, 9, 10],
             "clothes_dryer.heat_pump",
             adjustment_type="extract_end_uses",
             end_uses=["clothes_dryer"],
         )
-    )
+
+    # Intervene to ensure both cooking type has the same number of datapoints
+    # notes: turns on Min-Eff Electrification has 10878 failed sims which cause 
+    # electric cooking and dryer to have 2/3 fewer datapoints than induction and HP dryer
+    bldgs = sorted(set(df7["building_id"]).intersection(df8["building_id"]))
+    df7 = df7.loc[df7["building_id"].isin(bldgs)].sort_values(by=["building_id"])
+    df8 = df8.loc[df8["building_id"].isin(bldgs)].sort_values(by=["building_id"])
+
+    DF.append(df7)
+    DF.append(df8)
 
     # [11] Electric cooking: Cooking (pkg 7)
-    DF.append(
-        SE.get_data(
+    df7 = SE.get_data(
             7,
             "cooking.electric",
             adjustment_type="extract_end_uses",
             end_uses=["range_oven"],
         )
-    )
 
     # [12] Induction cooking: Cooking (pkg 8, 9, 10)
-    DF.append(
-        SE.get_data(
-            [8, 9, 10],
+    df8 = SE.get_data(
+            8, # [8, 9, 10],
             "cooking.induction",
             adjustment_type="extract_end_uses",
             end_uses=["range_oven"],
         )
-    )
+
+    # Intervene to ensure both cooking type has the same number of datapoints
+    bldgs = sorted(set(df7["building_id"]).intersection(df8["building_id"]))
+    df7 = df7.loc[df7["building_id"].isin(bldgs)].sort_values(by=["building_id"])
+    df8 = df8.loc[df8["building_id"].isin(bldgs)].sort_values(by=["building_id"])
+
+    DF.append(df7)
+    DF.append(df8)
 
     ## rest of the full electrification packages
     # [13] pkg 7 - all
