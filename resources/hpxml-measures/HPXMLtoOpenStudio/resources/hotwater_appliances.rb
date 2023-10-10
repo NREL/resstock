@@ -10,7 +10,7 @@ class HotWaterAndAppliances
     ncfl = hpxml.building_construction.number_of_conditioned_floors
     has_uncond_bsmnt = hpxml.has_location(HPXML::LocationBasementUnconditioned)
     fixtures_usage_multiplier = hpxml.water_heating.water_fixtures_usage_multiplier
-    living_space = spaces[HPXML::LocationLivingSpace]
+    conditioned_space = spaces[HPXML::LocationConditionedSpace]
     nbeds = hpxml.building_construction.additional_properties.adjusted_number_of_bedrooms
 
     # Get appliances, etc.
@@ -66,7 +66,7 @@ class HotWaterAndAppliances
       end
 
       cw_space = clothes_washer.additional_properties.space
-      cw_space = living_space if cw_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
+      cw_space = conditioned_space if cw_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
       add_electric_equipment(model, Constants.ObjectNameClothesWasher, cw_space, cw_design_level_w, cw_frac_sens, cw_frac_lat, cw_power_schedule)
     end
 
@@ -98,7 +98,7 @@ class HotWaterAndAppliances
       end
 
       cd_space = clothes_dryer.additional_properties.space
-      cd_space = living_space if cd_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
+      cd_space = conditioned_space if cd_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
       add_electric_equipment(model, Constants.ObjectNameClothesDryer, cd_space, cd_design_level_e, cd_frac_sens, cd_frac_lat, cd_schedule)
       add_other_equipment(model, Constants.ObjectNameClothesDryer, cd_space, cd_design_level_f, cd_frac_sens, cd_frac_lat, cd_schedule, clothes_dryer.fuel_type)
     end
@@ -129,7 +129,7 @@ class HotWaterAndAppliances
       end
 
       dw_space = dishwasher.additional_properties.space
-      dw_space = living_space if dw_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
+      dw_space = conditioned_space if dw_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
       add_electric_equipment(model, Constants.ObjectNameDishwasher, dw_space, dw_design_level_w, dw_frac_sens, dw_frac_lat, dw_power_schedule)
     end
 
@@ -159,7 +159,7 @@ class HotWaterAndAppliances
       end
 
       rf_space = refrigerator.additional_properties.space
-      rf_space = living_space if rf_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
+      rf_space = conditioned_space if rf_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
       add_electric_equipment(model, Constants.ObjectNameRefrigerator, rf_space, fridge_design_level, rf_frac_sens, rf_frac_lat, fridge_schedule)
     end
 
@@ -189,7 +189,7 @@ class HotWaterAndAppliances
       end
 
       fz_space = freezer.additional_properties.space
-      fz_space = living_space if fz_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
+      fz_space = conditioned_space if fz_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
       add_electric_equipment(model, Constants.ObjectNameFreezer, fz_space, freezer_design_level, fz_frac_sens, fz_frac_lat, freezer_schedule)
     end
 
@@ -221,7 +221,7 @@ class HotWaterAndAppliances
       end
 
       cook_space = cooking_range.additional_properties.space
-      cook_space = living_space if cook_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
+      cook_space = conditioned_space if cook_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
       add_electric_equipment(model, Constants.ObjectNameCookingRange, cook_space, cook_design_level_e, cook_frac_sens, cook_frac_lat, cook_schedule)
       add_other_equipment(model, Constants.ObjectNameCookingRange, cook_space, cook_design_level_f, cook_frac_sens, cook_frac_lat, cook_schedule, cooking_range.fuel_type)
     end
@@ -315,7 +315,7 @@ class HotWaterAndAppliances
           if dist_pump_design_level.nil?
             dist_pump_design_level = fixtures_schedule_obj.calc_design_level_from_daily_kwh(dist_pump_annual_kwh / 365.0)
           end
-          dist_pump = add_electric_equipment(model, Constants.ObjectNameHotWaterRecircPump, living_space, dist_pump_design_level * gpd_frac, 0.0, 0.0, fixtures_schedule)
+          dist_pump = add_electric_equipment(model, Constants.ObjectNameHotWaterRecircPump, conditioned_space, dist_pump_design_level * gpd_frac, 0.0, 0.0, fixtures_schedule)
           if not dist_pump.nil?
             dist_pump.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
           end
@@ -386,8 +386,8 @@ class HotWaterAndAppliances
         water_design_level_sens = fixtures_schedule_obj.calc_design_level_from_daily_kwh(UnitConversions.convert(water_sens_btu, 'Btu', 'kWh') / 365.0)
         water_design_level_lat = fixtures_schedule_obj.calc_design_level_from_daily_kwh(UnitConversions.convert(water_lat_btu, 'Btu', 'kWh') / 365.0)
       end
-      add_other_equipment(model, Constants.ObjectNameWaterSensible, living_space, water_design_level_sens, 1.0, 0.0, fixtures_schedule, nil)
-      add_other_equipment(model, Constants.ObjectNameWaterLatent, living_space, water_design_level_lat, 0.0, 1.0, fixtures_schedule, nil)
+      add_other_equipment(model, Constants.ObjectNameWaterSensible, conditioned_space, water_design_level_sens, 1.0, 0.0, fixtures_schedule, nil)
+      add_other_equipment(model, Constants.ObjectNameWaterLatent, conditioned_space, water_design_level_lat, 0.0, 1.0, fixtures_schedule, nil)
     end
   end
 
@@ -1066,7 +1066,7 @@ class HotWaterAndAppliances
     extra_refrigerator_location_hierarchy = [HPXML::LocationGarage,
                                              HPXML::LocationBasementUnconditioned,
                                              HPXML::LocationBasementConditioned,
-                                             HPXML::LocationLivingSpace]
+                                             HPXML::LocationConditionedSpace]
 
     extra_refrigerator_location = nil
     extra_refrigerator_location_hierarchy.each do |location|

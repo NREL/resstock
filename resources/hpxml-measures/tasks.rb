@@ -119,11 +119,13 @@ def create_hpxmls
   puts "\n"
 
   # Print warnings about extra files
-  dirs.each do |dir|
-    Dir["#{workflow_dir}/#{dir}/*.xml"].each do |hpxml|
-      next if abs_hpxml_files.include? File.absolute_path(hpxml)
+  if abs_hpxml_files.size == json_inputs.size
+    dirs.each do |dir|
+      Dir["#{workflow_dir}/#{dir}/*.xml"].each do |hpxml|
+        next if abs_hpxml_files.include? File.absolute_path(hpxml)
 
-      puts "Warning: Extra HPXML file found at #{File.absolute_path(hpxml)}"
+        puts "Warning: Extra HPXML file found at #{File.absolute_path(hpxml)}"
+      end
     end
   end
 end
@@ -302,7 +304,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     end
   end
   hpxml.roofs.each do |roof|
-    next unless roof.interior_adjacent_to == HPXML::LocationLivingSpace
+    next unless roof.interior_adjacent_to == HPXML::LocationConditionedSpace
 
     roof.interior_finish_type = HPXML::InteriorFinishGypsumBoard
   end
@@ -310,7 +312,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     if surface.is_a?(HPXML::FoundationWall) && surface.interior_adjacent_to != HPXML::LocationBasementConditioned
       surface.interior_finish_type = HPXML::InteriorFinishNone
     end
-    next unless [HPXML::LocationLivingSpace,
+    next unless [HPXML::LocationConditionedSpace,
                  HPXML::LocationBasementConditioned].include?(surface.interior_adjacent_to) &&
                 [HPXML::LocationOutside,
                  HPXML::LocationGround,
@@ -357,7 +359,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       adjacent_to = HPXML::LocationOtherHousingUnit
     end
     wall = hpxml.walls.select { |w|
-             w.interior_adjacent_to == HPXML::LocationLivingSpace &&
+             w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
                w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
            }[0]
     wall.exterior_adjacent_to = adjacent_to
@@ -386,13 +388,13 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.cooking_ranges[0].location = adjacent_to
   elsif ['base-bldgtype-multifamily-adjacent-to-multiple.xml'].include? hpxml_file
     wall = hpxml.walls.select { |w|
-             w.interior_adjacent_to == HPXML::LocationLivingSpace &&
+             w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
                w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
            }[0]
     wall.delete
     hpxml.walls.add(id: "Wall#{hpxml.walls.size + 1}",
                     exterior_adjacent_to: HPXML::LocationOtherHeatedSpace,
-                    interior_adjacent_to: HPXML::LocationLivingSpace,
+                    interior_adjacent_to: HPXML::LocationConditionedSpace,
                     wall_type: HPXML::WallTypeWoodStud,
                     area: 100,
                     solar_absorptance: 0.7,
@@ -401,7 +403,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     insulation_assembly_r_value: 23.0)
     hpxml.walls.add(id: "Wall#{hpxml.walls.size + 1}",
                     exterior_adjacent_to: HPXML::LocationOtherMultifamilyBufferSpace,
-                    interior_adjacent_to: HPXML::LocationLivingSpace,
+                    interior_adjacent_to: HPXML::LocationConditionedSpace,
                     wall_type: HPXML::WallTypeWoodStud,
                     area: 100,
                     solar_absorptance: 0.7,
@@ -410,7 +412,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     insulation_assembly_r_value: 23.0)
     hpxml.walls.add(id: "Wall#{hpxml.walls.size + 1}",
                     exterior_adjacent_to: HPXML::LocationOtherNonFreezingSpace,
-                    interior_adjacent_to: HPXML::LocationLivingSpace,
+                    interior_adjacent_to: HPXML::LocationConditionedSpace,
                     wall_type: HPXML::WallTypeWoodStud,
                     area: 100,
                     solar_absorptance: 0.7,
@@ -419,7 +421,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     insulation_assembly_r_value: 23.0)
     hpxml.walls.add(id: "Wall#{hpxml.walls.size + 1}",
                     exterior_adjacent_to: HPXML::LocationOtherHousingUnit,
-                    interior_adjacent_to: HPXML::LocationLivingSpace,
+                    interior_adjacent_to: HPXML::LocationConditionedSpace,
                     wall_type: HPXML::WallTypeWoodStud,
                     area: 100,
                     solar_absorptance: 0.7,
@@ -431,27 +433,27 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.floors[0].insulation_id = 'Floor1Insulation'
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationOtherNonFreezingSpace,
-                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     interior_adjacent_to: HPXML::LocationConditionedSpace,
                      floor_type: HPXML::FloorTypeWoodFrame,
                      area: 550,
                      insulation_assembly_r_value: 18.7,
                      floor_or_ceiling: HPXML::FloorOrCeilingFloor)
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationOtherMultifamilyBufferSpace,
-                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     interior_adjacent_to: HPXML::LocationConditionedSpace,
                      floor_type: HPXML::FloorTypeWoodFrame,
                      area: 200,
                      insulation_assembly_r_value: 18.7,
                      floor_or_ceiling: HPXML::FloorOrCeilingFloor)
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationOtherHeatedSpace,
-                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     interior_adjacent_to: HPXML::LocationConditionedSpace,
                      floor_type: HPXML::FloorTypeWoodFrame,
                      area: 150,
                      insulation_assembly_r_value: 2.1,
                      floor_or_ceiling: HPXML::FloorOrCeilingFloor)
     wall = hpxml.walls.select { |w|
-             w.interior_adjacent_to == HPXML::LocationLivingSpace &&
+             w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
                w.exterior_adjacent_to == HPXML::LocationOtherMultifamilyBufferSpace
            }[0]
     hpxml.windows.add(id: "Window#{hpxml.windows.size + 1}",
@@ -462,7 +464,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                       fraction_operable: 0.67,
                       wall_idref: wall.id)
     wall = hpxml.walls.select { |w|
-             w.interior_adjacent_to == HPXML::LocationLivingSpace &&
+             w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
                w.exterior_adjacent_to == HPXML::LocationOtherHeatedSpace
            }[0]
     hpxml.doors.add(id: "Door#{hpxml.doors.size + 1}",
@@ -471,7 +473,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     azimuth: 0,
                     r_value: 4.4)
     wall = hpxml.walls.select { |w|
-             w.interior_adjacent_to == HPXML::LocationLivingSpace &&
+             w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
                w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
            }[0]
     hpxml.doors.add(id: "Door#{hpxml.doors.size + 1}",
@@ -522,7 +524,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     end
     hpxml.walls.add(id: "Wall#{hpxml.walls.size + 1}",
                     exterior_adjacent_to: HPXML::LocationAtticUnvented,
-                    interior_adjacent_to: HPXML::LocationLivingSpace,
+                    interior_adjacent_to: HPXML::LocationConditionedSpace,
                     wall_type: HPXML::WallTypeWoodStud,
                     area: 316,
                     solar_absorptance: 0.7,
@@ -531,7 +533,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     insulation_assembly_r_value: 23.0)
     hpxml.walls.add(id: "Wall#{hpxml.walls.size + 1}",
                     exterior_adjacent_to: HPXML::LocationOutside,
-                    interior_adjacent_to: HPXML::LocationLivingSpace,
+                    interior_adjacent_to: HPXML::LocationConditionedSpace,
                     wall_type: HPXML::WallTypeWoodStud,
                     siding: HPXML::SidingTypeWood,
                     area: 240,
@@ -554,7 +556,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     end
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationAtticUnvented,
-                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     interior_adjacent_to: HPXML::LocationConditionedSpace,
                      floor_type: HPXML::FloorTypeWoodFrame,
                      area: 450,
                      interior_finish_type: HPXML::InteriorFinishGypsumBoard,
@@ -699,7 +701,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.rim_joists << hpxml.rim_joists[-1].dup
     hpxml.rim_joists[-1].id = "RimJoist#{hpxml.rim_joists.size}"
     hpxml.rim_joists[-1].insulation_id = "RimJoist#{hpxml.rim_joists.size}Insulation"
-    hpxml.rim_joists[-1].interior_adjacent_to = HPXML::LocationLivingSpace
+    hpxml.rim_joists[-1].interior_adjacent_to = HPXML::LocationConditionedSpace
     hpxml.rim_joists[-1].area = 116
   elsif ['base-foundation-conditioned-basement-wall-insulation.xml'].include? hpxml_file
     hpxml.foundation_walls.each do |foundation_wall|
@@ -802,7 +804,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.floors[0].area = 675
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationCrawlspaceUnvented,
-                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     interior_adjacent_to: HPXML::LocationConditionedSpace,
                      floor_type: HPXML::FloorTypeWoodFrame,
                      area: 675,
                      insulation_assembly_r_value: 18.7,
@@ -922,7 +924,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     insulation_assembly_r_value: 4)
     hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                      exterior_adjacent_to: HPXML::LocationGarage,
-                     interior_adjacent_to: HPXML::LocationLivingSpace,
+                     interior_adjacent_to: HPXML::LocationConditionedSpace,
                      floor_type: HPXML::FloorTypeWoodFrame,
                      area: 400,
                      insulation_assembly_r_value: 39.3,
@@ -962,7 +964,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     floors_map.each_with_index do |(floor_type, assembly_r), _i|
       hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                        exterior_adjacent_to: exterior_adjacent_to,
-                       interior_adjacent_to: HPXML::LocationLivingSpace,
+                       interior_adjacent_to: HPXML::LocationConditionedSpace,
                        floor_type: floor_type,
                        area: area / floors_map.size,
                        insulation_assembly_r_value: assembly_r,
@@ -981,7 +983,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     floors_map.each_with_index do |(floor_type, assembly_r), _i|
       hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
                        exterior_adjacent_to: exterior_adjacent_to,
-                       interior_adjacent_to: HPXML::LocationLivingSpace,
+                       interior_adjacent_to: HPXML::LocationConditionedSpace,
                        floor_type: floor_type,
                        area: area / floors_map.size,
                        insulation_assembly_r_value: assembly_r,
@@ -1049,7 +1051,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     walls_map.each_with_index do |(wall_type, assembly_r), i|
       hpxml.walls.add(id: "Wall#{hpxml.walls.size + 1}",
                       exterior_adjacent_to: HPXML::LocationOutside,
-                      interior_adjacent_to: HPXML::LocationLivingSpace,
+                      interior_adjacent_to: HPXML::LocationConditionedSpace,
                       wall_type: wall_type,
                       siding: siding_types[i % siding_types.size][0],
                       color: siding_types[i % siding_types.size][1],
@@ -1389,7 +1391,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.hvac_distributions[0].ducts[-1].id = "Ducts#{hpxml.hvac_distributions[0].ducts.size}"
     hpxml.hvac_distributions[0].ducts[2].duct_location = HPXML::LocationExteriorWall
     hpxml.hvac_distributions[0].ducts[2].duct_surface_area = 37.5
-    hpxml.hvac_distributions[0].ducts[3].duct_location = HPXML::LocationLivingSpace
+    hpxml.hvac_distributions[0].ducts[3].duct_location = HPXML::LocationConditionedSpace
     hpxml.hvac_distributions[0].ducts[3].duct_surface_area = 12.5
   elsif ['base-hvac-ducts-effective-rvalue.xml'].include? hpxml_file
     hpxml.hvac_distributions[0].ducts[0].duct_insulation_r_value = nil
@@ -1629,7 +1631,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                             energy_factor: 1.6,
                             rh_setpoint: 0.5,
                             fraction_served: 0.25,
-                            location: HPXML::LocationLivingSpace)
+                            location: HPXML::LocationConditionedSpace)
   end
   if ['base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml',
       'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-furnace.xml'].include? hpxml_file
@@ -1698,7 +1700,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                     number_of_units_served: 6,
                                     fuel_type: HPXML::FuelTypeNaturalGas,
                                     water_heater_type: HPXML::WaterHeaterTypeStorage,
-                                    location: HPXML::LocationLivingSpace,
+                                    location: HPXML::LocationConditionedSpace,
                                     tank_volume: 120,
                                     fraction_dhw_load_served: 1.0,
                                     heating_capacity: 40000,
@@ -1722,7 +1724,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.water_heating_systems.add(id: "WaterHeatingSystem#{hpxml.water_heating_systems.size + 1}",
                                     fuel_type: HPXML::FuelTypeNaturalGas,
                                     water_heater_type: HPXML::WaterHeaterTypeStorage,
-                                    location: HPXML::LocationLivingSpace,
+                                    location: HPXML::LocationConditionedSpace,
                                     tank_volume: 50,
                                     fraction_dhw_load_served: 0.2,
                                     heating_capacity: 40000,
@@ -1732,7 +1734,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.water_heating_systems.add(id: "WaterHeatingSystem#{hpxml.water_heating_systems.size + 1}",
                                     fuel_type: HPXML::FuelTypeElectricity,
                                     water_heater_type: HPXML::WaterHeaterTypeHeatPump,
-                                    location: HPXML::LocationLivingSpace,
+                                    location: HPXML::LocationConditionedSpace,
                                     tank_volume: 80,
                                     fraction_dhw_load_served: 0.2,
                                     energy_factor: 2.3,
@@ -1740,20 +1742,20 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.water_heating_systems.add(id: "WaterHeatingSystem#{hpxml.water_heating_systems.size + 1}",
                                     fuel_type: HPXML::FuelTypeElectricity,
                                     water_heater_type: HPXML::WaterHeaterTypeTankless,
-                                    location: HPXML::LocationLivingSpace,
+                                    location: HPXML::LocationConditionedSpace,
                                     fraction_dhw_load_served: 0.2,
                                     energy_factor: 0.99,
                                     temperature: 125.0)
     hpxml.water_heating_systems.add(id: "WaterHeatingSystem#{hpxml.water_heating_systems.size + 1}",
                                     fuel_type: HPXML::FuelTypeNaturalGas,
                                     water_heater_type: HPXML::WaterHeaterTypeTankless,
-                                    location: HPXML::LocationLivingSpace,
+                                    location: HPXML::LocationConditionedSpace,
                                     fraction_dhw_load_served: 0.1,
                                     energy_factor: 0.82,
                                     temperature: 125.0)
     hpxml.water_heating_systems.add(id: "WaterHeatingSystem#{hpxml.water_heating_systems.size + 1}",
                                     water_heater_type: HPXML::WaterHeaterTypeCombiStorage,
-                                    location: HPXML::LocationLivingSpace,
+                                    location: HPXML::LocationConditionedSpace,
                                     tank_volume: 50,
                                     fraction_dhw_load_served: 0.1,
                                     related_hvac_idref: 'HeatingSystem1',
@@ -2032,7 +2034,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                               primary_indicator: false)
     end
     hpxml.freezers.add(id: "Freezer#{hpxml.freezers.size + 1}",
-                       location: HPXML::LocationLivingSpace,
+                       location: HPXML::LocationConditionedSpace,
                        rated_annual_kwh: 400)
     if hpxml_file == 'base-misc-usage-multiplier.xml'
       hpxml.freezers[-1].usage_multiplier = 0.9
@@ -2050,12 +2052,12 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.pools[0].heater_weekday_fractions = '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003'
     hpxml.pools[0].heater_weekend_fractions = '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003'
     hpxml.pools[0].heater_monthly_multipliers = '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
-    hpxml.hot_tubs[0].pump_weekday_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
-    hpxml.hot_tubs[0].pump_weekend_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
-    hpxml.hot_tubs[0].pump_monthly_multipliers = '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
-    hpxml.hot_tubs[0].heater_weekday_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
-    hpxml.hot_tubs[0].heater_weekend_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
-    hpxml.hot_tubs[0].heater_monthly_multipliers = '0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921'
+    hpxml.permanent_spas[0].pump_weekday_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
+    hpxml.permanent_spas[0].pump_weekend_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
+    hpxml.permanent_spas[0].pump_monthly_multipliers = '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
+    hpxml.permanent_spas[0].heater_weekday_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
+    hpxml.permanent_spas[0].heater_weekend_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
+    hpxml.permanent_spas[0].heater_monthly_multipliers = '0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921'
   end
   if ['base-bldgtype-multifamily-shared-laundry-room.xml',
       'base-bldgtype-multifamily-shared-laundry-room-multiple-water-heaters.xml'].include? hpxml_file

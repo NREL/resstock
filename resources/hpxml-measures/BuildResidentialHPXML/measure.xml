@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>ffed7f3b-ac98-43c7-b4f7-12d1cf046dfc</version_id>
-  <version_modified>2023-09-21T23:18:28Z</version_modified>
+  <version_id>b6d82c99-dec3-47cb-bdda-c57ac815878b</version_id>
+  <version_modified>2023-09-26T19:22:42Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -186,102 +186,11 @@
       </choices>
     </argument>
     <argument>
-      <name>site_soil_and_moisture_type</name>
-      <display_name>Site: Soil and Moisture Type</display_name>
-      <description>Type of soil and moisture. This is used to inform ground conductivity and diffusivity. If not provided, the OS-HPXML default is used.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>clay, dry</value>
-          <display_name>clay, dry</display_name>
-        </choice>
-        <choice>
-          <value>clay, mixed</value>
-          <display_name>clay, mixed</display_name>
-        </choice>
-        <choice>
-          <value>clay, wet</value>
-          <display_name>clay, wet</display_name>
-        </choice>
-        <choice>
-          <value>gravel, dry</value>
-          <display_name>gravel, dry</display_name>
-        </choice>
-        <choice>
-          <value>gravel, mixed</value>
-          <display_name>gravel, mixed</display_name>
-        </choice>
-        <choice>
-          <value>gravel, wet</value>
-          <display_name>gravel, wet</display_name>
-        </choice>
-        <choice>
-          <value>loam, dry</value>
-          <display_name>loam, dry</display_name>
-        </choice>
-        <choice>
-          <value>loam, mixed</value>
-          <display_name>loam, mixed</display_name>
-        </choice>
-        <choice>
-          <value>loam, wet</value>
-          <display_name>loam, wet</display_name>
-        </choice>
-        <choice>
-          <value>sand, dry</value>
-          <display_name>sand, dry</display_name>
-        </choice>
-        <choice>
-          <value>sand, mixed</value>
-          <display_name>sand, mixed</display_name>
-        </choice>
-        <choice>
-          <value>sand, wet</value>
-          <display_name>sand, wet</display_name>
-        </choice>
-        <choice>
-          <value>silt, dry</value>
-          <display_name>silt, dry</display_name>
-        </choice>
-        <choice>
-          <value>silt, mixed</value>
-          <display_name>silt, mixed</display_name>
-        </choice>
-        <choice>
-          <value>silt, wet</value>
-          <display_name>silt, wet</display_name>
-        </choice>
-        <choice>
-          <value>unknown, dry</value>
-          <display_name>unknown, dry</display_name>
-        </choice>
-        <choice>
-          <value>unknown, mixed</value>
-          <display_name>unknown, mixed</display_name>
-        </choice>
-        <choice>
-          <value>unknown, wet</value>
-          <display_name>unknown, wet</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>site_ground_conductivity</name>
       <display_name>Site: Ground Conductivity</display_name>
-      <description>Conductivity of the ground soil. If provided, overrides the previous site and moisture type input.</description>
+      <description>Conductivity of the ground soil. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>Btu/hr-ft-F</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>site_ground_diffusivity</name>
-      <display_name>Site: Ground Diffusivity</display_name>
-      <description>Diffusivity of the ground soil. If provided, overrides the previous site and moisture type input.</description>
-      <type>Double</type>
-      <units>ft^2/hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -836,7 +745,7 @@
     <argument>
       <name>geometry_garage_protrusion</name>
       <display_name>Geometry: Garage Protrusion</display_name>
-      <description>The fraction of the garage that is protruding from the living space. Only applies to single-family detached units.</description>
+      <description>The fraction of the garage that is protruding from the conditioned space. Only applies to single-family detached units.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -1490,7 +1399,6 @@
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
       <choices>
         <choice>
           <value>1</value>
@@ -2864,172 +2772,6 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>geothermal_loop_configuration</name>
-      <display_name>Geothermal Loop: Configuration</display_name>
-      <description>Configuration of the geothermal loop. Only applies to ground-to-air heat pump type.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>none</default_value>
-      <choices>
-        <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>vertical</value>
-          <display_name>vertical</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geothermal_loop_borefield_configuration</name>
-      <display_name>Geothermal Loop: Borefield Configuration</display_name>
-      <description>Borefield configuration of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default is used.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>Rectangle</value>
-          <display_name>Rectangle</display_name>
-        </choice>
-        <choice>
-          <value>Open Rectangle</value>
-          <display_name>Open Rectangle</display_name>
-        </choice>
-        <choice>
-          <value>C</value>
-          <display_name>C</display_name>
-        </choice>
-        <choice>
-          <value>L</value>
-          <display_name>L</display_name>
-        </choice>
-        <choice>
-          <value>U</value>
-          <display_name>U</display_name>
-        </choice>
-        <choice>
-          <value>Lopsided U</value>
-          <display_name>Lopsided U</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geothermal_loop_loop_flow</name>
-      <display_name>Geothermal Loop: Loop Flow</display_name>
-      <description>Water flow rate through the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default is used.</description>
-      <type>Double</type>
-      <units>gpm</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>geothermal_loop_boreholes_count</name>
-      <display_name>Geothermal Loop: Boreholes Count</display_name>
-      <description>Number of boreholes. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default is used.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>geothermal_loop_boreholes_length</name>
-      <display_name>Geothermal Loop: Boreholes Length</display_name>
-      <description>Average length of each borehole (vertical). Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default is used.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>geothermal_loop_boreholes_spacing</name>
-      <display_name>Geothermal Loop: Boreholes Spacing</display_name>
-      <description>Distance between bores. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default is used.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>geothermal_loop_boreholes_diameter</name>
-      <display_name>Geothermal Loop: Boreholes Diameter</display_name>
-      <description>Diameter of bores. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default is used.</description>
-      <type>Double</type>
-      <units>in</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>geothermal_loop_grout_type</name>
-      <display_name>Geothermal Loop: Grout Type</display_name>
-      <description>Grout type of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default is used.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>standard</value>
-          <display_name>standard</display_name>
-        </choice>
-        <choice>
-          <value>thermally enhanced</value>
-          <display_name>thermally enhanced</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geothermal_loop_pipe_type</name>
-      <display_name>Geothermal Loop: Pipe Type</display_name>
-      <description>Pipe type of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default is used.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>standard</value>
-          <display_name>standard</display_name>
-        </choice>
-        <choice>
-          <value>thermally enhanced</value>
-          <display_name>thermally enhanced</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geothermal_loop_pipe_diameter</name>
-      <display_name>Geothermal Loop: Pipe Diameter</display_name>
-      <description>Pipe diameter of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default is used.</description>
-      <type>Choice</type>
-      <units>in</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>3/4" pipe</value>
-          <display_name>3/4" pipe</display_name>
-        </choice>
-        <choice>
-          <value>1" pipe</value>
-          <display_name>1" pipe</display_name>
-        </choice>
-        <choice>
-          <value>1-1/4" pipe</value>
-          <display_name>1-1/4" pipe</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geothermal_loop_pipe_shank_spacing</name>
-      <display_name>Geothermal Loop: Pipe Shank Spacing</display_name>
-      <description>Measured as center-to-center (not edge-to-edge) distance between two branches of a vertical U-tube. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default is used.</description>
-      <type>Double</type>
-      <units>in</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
       <name>heating_system_2_type</name>
       <display_name>Heating System 2: Type</display_name>
       <description>The type of the second heating system.</description>
@@ -3246,8 +2988,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -3390,8 +3132,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -4056,8 +3798,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -4909,8 +4651,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5264,8 +5006,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5415,8 +5157,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5556,8 +5298,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5698,8 +5440,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5776,8 +5518,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5854,8 +5596,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -5932,8 +5674,8 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
         </choice>
         <choice>
           <value>basement - conditioned</value>
@@ -6542,9 +6284,9 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_present</name>
-      <display_name>Hot Tub: Present</display_name>
-      <description>Whether there is a hot tub.</description>
+      <name>permanent_spa_present</name>
+      <display_name>Permanent Spa: Present</display_name>
+      <description>Whether there is a permanent spa.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -6561,26 +6303,26 @@
       </choices>
     </argument>
     <argument>
-      <name>hot_tub_pump_annual_kwh</name>
-      <display_name>Hot Tub: Pump Annual kWh</display_name>
-      <description>The annual energy consumption of the hot tub pump. If not provided, the OS-HPXML default is used.</description>
+      <name>permanent_spa_pump_annual_kwh</name>
+      <display_name>Permanent Spa: Pump Annual kWh</display_name>
+      <description>The annual energy consumption of the permanent spa pump. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>kWh/yr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_pump_usage_multiplier</name>
-      <display_name>Hot Tub: Pump Usage Multiplier</display_name>
-      <description>Multiplier on the hot tub pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.</description>
+      <name>permanent_spa_pump_usage_multiplier</name>
+      <display_name>Permanent Spa: Pump Usage Multiplier</display_name>
+      <description>Multiplier on the permanent spa pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_heater_type</name>
-      <display_name>Hot Tub: Heater Type</display_name>
-      <description>The type of hot tub heater. Use 'none' if there is no hot tub heater.</description>
+      <name>permanent_spa_heater_type</name>
+      <display_name>Permanent Spa: Heater Type</display_name>
+      <description>The type of permanent spa heater. Use 'none' if there is no permanent spa heater.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -6605,27 +6347,27 @@
       </choices>
     </argument>
     <argument>
-      <name>hot_tub_heater_annual_kwh</name>
-      <display_name>Hot Tub: Heater Annual kWh</display_name>
-      <description>The annual energy consumption of the electric resistance hot tub heater. If not provided, the OS-HPXML default is used.</description>
+      <name>permanent_spa_heater_annual_kwh</name>
+      <display_name>Permanent Spa: Heater Annual kWh</display_name>
+      <description>The annual energy consumption of the electric resistance permanent spa heater. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>kWh/yr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_heater_annual_therm</name>
-      <display_name>Hot Tub: Heater Annual therm</display_name>
-      <description>The annual energy consumption of the gas fired hot tub heater. If not provided, the OS-HPXML default is used.</description>
+      <name>permanent_spa_heater_annual_therm</name>
+      <display_name>Permanent Spa: Heater Annual therm</display_name>
+      <description>The annual energy consumption of the gas fired permanent spa heater. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <units>therm/yr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>hot_tub_heater_usage_multiplier</name>
-      <display_name>Hot Tub: Heater Usage Multiplier</display_name>
-      <description>Multiplier on the hot tub heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.</description>
+      <name>permanent_spa_heater_usage_multiplier</name>
+      <display_name>Permanent Spa: Heater Usage Multiplier</display_name>
+      <description>Multiplier on the permanent spa heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.</description>
       <type>Double</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -6998,19 +6740,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>7CB92CC4</checksum>
+      <checksum>D0F900F0</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>6D43B4D8</checksum>
+      <checksum>84CB0D65</checksum>
     </file>
     <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>41258568</checksum>
+      <checksum>09CBC38A</checksum>
     </file>
   </files>
 </measure>

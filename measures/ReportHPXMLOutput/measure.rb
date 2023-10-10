@@ -238,7 +238,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     elsif bldg_type == BO::EnclosureDuctAreaUnconditioned
       hpxml.hvac_distributions.each do |hvac_distribution|
         hvac_distribution.ducts.each do |duct|
-          next if [HPXML::LocationLivingSpace,
+          next if [HPXML::LocationConditionedSpace,
                    HPXML::LocationBasementConditioned].include?(duct.duct_location)
 
           bldg_output += duct.duct_surface_area * duct.duct_surface_area_multiplier
