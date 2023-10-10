@@ -11,7 +11,7 @@ weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 sampler:
   type: precomputed
   args:
-    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230809.csv #../buildstock_100_20230609.csv # relative to file
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_2m_20230809.csv #../buildstock_100_20230609.csv # relative to file
 
 baseline:
   n_buildings_represented: 138765649 # American Community Survey 2021 5-year, does not include AK, HI, and territories
@@ -27,15 +27,26 @@ baseline:
 #   sampling:
 #     time: 5
 
+# eagle:
+#   n_jobs: 50
+#   minutes_per_sim: 4
+#   account: abctypol
+#   postprocessing:
+#     time: 80
+#     n_workers: 20
+#   sampling:
+#     time: 5
+
 eagle:
-  n_jobs: 50
-  minutes_per_sim: 4
+  n_jobs: 600
+  minutes_per_sim: 2
   account: abctypol
   postprocessing:
-    time: 80
-    n_workers: 20
+    time: 2880
+    n_workers: 32
+    node_memory_mb: 180224
   sampling:
-    time: 5
+    time: 60
 
 # postprocessing:
 #   keep_individual_timeseries: false
