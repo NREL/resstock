@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class HVACSizing
-  def self.calculate(weather, hpxml, cfa, hvac_systems)
+  def self.calculate(runner, weather, hpxml, cfa, hvac_systems)
     # Calculates heating/cooling design loads, and selects equipment
     # values (e.g., capacities, airflows) specific to each HVAC system.
     # Calculations generally follow ACCA Manual J/S.
@@ -45,10 +45,10 @@ class HVACSizing
       apply_hvac_loads(hvac_heating, hvac_sizing_values, system_design_loads, ducts_heat_load, ducts_cool_load_sens, ducts_cool_load_lat)
       apply_hvac_size_limits(hvac_cooling)
       apply_hvac_heat_pump_logic(hvac_sizing_values, hvac_cooling)
-      apply_hvac_equipment_adjustments(hvac_sizing_values, weather, hvac_heating, hvac_cooling, hvac_system)
+      apply_hvac_equipment_adjustments(runner, hvac_sizing_values, weather, hvac_heating, hvac_cooling, hvac_system)
       apply_hvac_installation_quality(hvac_sizing_values, hvac_heating, hvac_cooling)
       apply_hvac_fixed_capacities(hvac_sizing_values, hvac_heating, hvac_cooling)
-      apply_hvac_ground_loop(hvac_sizing_values, weather, hvac_cooling)
+      apply_hvac_ground_loop(runner, hvac_sizing_values, weather, hvac_cooling)
       apply_hvac_finalize_airflows(hvac_sizing_values, hvac_heating, hvac_cooling)
 
       all_hvac_sizing_values[hvac_system] = hvac_sizing_values
@@ -1328,7 +1328,7 @@ class HVACSizing
     bldg_design_loads.Cool_Tot += total_ducts_cool_load_sens.to_f + total_ducts_cool_load_lat.to_f
   end
 
-  def self.apply_hvac_equipment_adjustments(hvac_sizing_values, weather, hvac_heating, hvac_cooling, hvac_system)
+  def self.apply_hvac_equipment_adjustments(runner, hvac_sizing_values, weather, hvac_heating, hvac_cooling, hvac_system)
     '''
     Equipment Adjustments
     '''
@@ -1567,7 +1567,7 @@ class HVACSizing
            HPXML::HVACTypeHeatPumpMiniSplit,
            HPXML::HVACTypeHeatPumpPTHP,
            HPXML::HVACTypeHeatPumpRoom].include? @heating_type
-      process_heat_pump_adjustment(hvac_sizing_values, weather, hvac_heating, total_cap_curve_value, hvac_system)
+      process_heat_pump_adjustment(runner, hvac_sizing_values, weather, hvac_heating, total_cap_curve_value, hvac_system)
       hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load_Supp
       if @heating_type == HPXML::HVACTypeHeatPumpAirToAir
         hvac_sizing_values.Heat_Airflow = calc_airflow_rate_manual_s(hvac_sizing_values.Heat_Capacity, (@supply_air_temp - @heat_setpoint))
@@ -1877,7 +1877,7 @@ class HVACSizing
     end
   end
 
-  def self.apply_hvac_ground_loop(hvac_sizing_values, weather, hvac_cooling)
+  def self.apply_hvac_ground_loop(runner, hvac_sizing_values, weather, hvac_cooling)
     '''
     GSHP Ground Loop Sizing Calculations
     '''
@@ -1903,10 +1903,10 @@ class HVACSizing
       num_bore_holes = [1, (UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton') + 0.5).floor].max
     end
 
-    min_bore_depth = Float(UnitConversions.convert(24.0, 'm', 'ft').round) # based on g-function library
+    min_bore_depth = UnitConversions.convert(24.0, 'm', 'ft').round # based on g-function library
     # In NY the following is the depth that requires a mining permit, which has been a barrier for Dandelion Energy with installing GSHPs.
     # Sounds like people are pushing ever deeper but for now we can apply this limit and add a note about where it came from.
-    max_bore_depth = 500.0 # ft
+    max_bore_depth = 500 # ft
 
     bore_depth = geothermal_loop.bore_length
     if bore_depth.nil?
@@ -1916,21 +1916,31 @@ class HVACSizing
       bore_depth = (bore_length / num_bore_holes).floor # ft
 
       active_length = 5 # the active length starts about 5 ft below the surface
-      for _i in 0..active_length - 1
-        if (bore_depth + active_length < min_bore_depth) && (num_bore_holes > 1)
+      for _i in 0..50
+        if (bore_depth + active_length < min_bore_depth) || (num_bore_holes > 10)
           num_bore_holes -= 1
           bore_depth = (bore_length / num_bore_holes).floor
-        elsif bore_depth + active_length > max_bore_depth
+        elsif (bore_depth + active_length > max_bore_depth)
           num_bore_holes += 1
           bore_depth = (bore_length / num_bore_holes).floor
+        end
+
+        if ((num_bore_holes == 1) && (bore_depth < min_bore_depth)) || ((num_bore_holes == 10) && (bore_depth > max_bore_depth))
+          break # we can't do any better
         end
       end
 
       bore_depth = (bore_length / num_bore_holes).floor + active_length
     end
 
-    if (bore_depth < min_bore_depth) || (bore_depth > max_bore_depth)
-      fail "Bore depth (#{bore_depth}) not between #{min_bore_depth.round(3)} and #{max_bore_depth.round(3)} ft."
+    if bore_depth < min_bore_depth
+      bore_depth = min_bore_depth
+      runner.registerWarning("Reached a minimum of 1 borehole; setting bore depth to the minimum (#{min_bore_depth} ft).")
+    end
+
+    if bore_depth > max_bore_depth
+      bore_depth = max_bore_depth
+      runner.registerWarning("Reached a maximum of 10 boreholes; setting bore depth to the maximum (#{max_bore_depth} ft).")
     end
 
     bore_config = geothermal_loop.bore_config
@@ -1974,7 +1984,7 @@ class HVACSizing
     end
   end
 
-  def self.process_heat_pump_adjustment(hvac_sizing_values, weather, hvac_heating, total_cap_curve_value, hvac_system)
+  def self.process_heat_pump_adjustment(runner, hvac_sizing_values, weather, hvac_heating, total_cap_curve_value, hvac_system)
     '''
     Adjust heat pump sizing
     '''
@@ -2000,7 +2010,7 @@ class HVACSizing
       # Calculate the heating load at the switchover temperature to limit unutilized capacity
       temp_heat_design_temp = @hpxml.header.manualj_heating_design_temp
       @hpxml.header.manualj_heating_design_temp = min_compressor_temp
-      _alternate_bldg_design_loads, alternate_all_hvac_sizing_values = calculate(weather, @hpxml, @cfa, [hvac_system])
+      _alternate_bldg_design_loads, alternate_all_hvac_sizing_values = calculate(runner, weather, @hpxml, @cfa, [hvac_system])
       heating_load = alternate_all_hvac_sizing_values[hvac_system].Heat_Load
       heating_db = min_compressor_temp
       @hpxml.header.manualj_heating_design_temp = temp_heat_design_temp

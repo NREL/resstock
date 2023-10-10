@@ -115,6 +115,8 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'hvac-frac-load-served' => ['Expected sum(FractionHeatLoadServed) to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails]',
                                                         'Expected sum(FractionCoolLoadServed) to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails]'],
                             'hvac-gshp-invalid-bore-config' => ["Expected BorefieldConfiguration to be 'Rectangle' or 'Open Rectangle' or 'C' or 'L' or 'U' or 'Lopsided U' [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/GeothermalLoop, id: \"GeothermalLoop1\"]"],
+                            'hvac-gshp-invalid-bore-depth-low' => ['Expected BoreholesOrTrenches/Length to be greater than or equal to 79 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/GeothermalLoop, id: "GeothermalLoop1"]'],
+                            'hvac-gshp-invalid-bore-depth-high' => ['Expected BoreholesOrTrenches/Length to be less than or equal to 500 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/GeothermalLoop, id: "GeothermalLoop1"]'],
                             'hvac-location-heating-system' => ['A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.'],
                             'hvac-location-cooling-system' => ['A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.'],
                             'hvac-location-heat-pump' => ['A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.'],
@@ -378,6 +380,12 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['hvac-gshp-invalid-bore-config'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-geothermal-loop.xml'))
         hpxml.geothermal_loops[0].bore_config = 'Invalid'
+      elsif ['hvac-gshp-invalid-bore-depth-low'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-geothermal-loop.xml'))
+        hpxml.geothermal_loops[0].bore_length = 78
+      elsif ['hvac-gshp-invalid-bore-depth-high'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-geothermal-loop.xml'))
+        hpxml.geothermal_loops[0].bore_length = 501
       elsif ['hvac-location-heating-system'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-boiler-oil-only.xml'))
         hpxml.heating_systems[0].location = HPXML::LocationBasementUnconditioned
@@ -887,7 +895,6 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'hvac-distribution-multiple-attached-heating' => ["Multiple heating systems found attached to distribution system 'HVACDistribution1'."],
                             'hvac-dse-multiple-attached-cooling' => ["Multiple cooling systems found attached to distribution system 'HVACDistribution1'."],
                             'hvac-dse-multiple-attached-heating' => ["Multiple heating systems found attached to distribution system 'HVACDistribution1'."],
-                            'hvac-gshp-invalid-bore-depth' => ['Bore depth (1260.0) not between 79.0 and 500.0 ft.'],
                             'hvac-gshp-invalid-num-bore-holes' => ["Number of bore holes (5) with borefield configuration 'Lopsided U' not supported."],
                             'hvac-inconsistent-fan-powers' => ["Fan powers for heating system 'HeatingSystem1' and cooling system 'CoolingSystem1' are attached to a single distribution system and therefore must be the same."],
                             'hvac-invalid-distribution-system-type' => ["Incorrect HVAC distribution system type for HVAC type: 'Furnace'. Should be one of: ["],
@@ -1051,12 +1058,16 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml.heating_systems << hpxml.heating_systems[0].dup
         hpxml.heating_systems[1].id = "HeatingSystem#{hpxml.heating_systems.size}"
         hpxml.heating_systems[0].primary_system = false
-      elsif ['hvac-gshp-invalid-bore-depth'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-geothermal-loop.xml'))
-        hpxml.geothermal_loops[0].bore_length = 1260
+      elsif ['hvac-gshp-invalid-bore-depth-autosized'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-ground-to-air-heat-pump.xml'))
+        hpxml.site.ground_conductivity = 0.1
       elsif ['hvac-gshp-invalid-num-bore-holes'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-geothermal-loop.xml'))
         hpxml.geothermal_loops[0].num_bore_holes = 5
+      elsif ['hvac-gshp-invalid-num-bore-holes-autosized'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-ground-to-air-heat-pump.xml'))
+        hpxml.heat_pumps[0].cooling_capacity *= 2
+        hpxml.site.ground_conductivity = 0.08
       elsif ['hvac-inconsistent-fan-powers'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.cooling_systems[0].fan_watts_per_cfm = 0.55
@@ -1338,6 +1349,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                               'duct-lto-cfm25' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
                               'duct-lto-cfm50' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
                               'duct-lto-percent' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
+                              'hvac-gshp-bore-depth-autosized-high' => ['Reached a maximum of 10 boreholes; setting bore depth to the maximum (500 ft).'],
                               'hvac-setpoint-adjustments' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
                               'hvac-setpoint-adjustments-daily-setbacks' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
                               'hvac-setpoint-adjustments-daily-schedules' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
@@ -1454,6 +1466,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
           duct.duct_surface_area = nil
           duct.duct_location = nil
         end
+      elsif ['hvac-gshp-bore-depth-autosized-high'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-ground-to-air-heat-pump.xml'))
+        hpxml.site.ground_conductivity = 0.08
       elsif ['hvac-setpoint-adjustments'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.hvac_controls[0].heating_setpoint_temp = 76.0
