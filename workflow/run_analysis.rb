@@ -13,7 +13,7 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_ids, keep_run_folders, samplingonly)
+def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_ids, keep_run_folders, samplingonly)
   fail "YML file does not exist at '#{yml}'." if !File.exist?(yml)
 
   cfg = YAML.load_file(yml)
@@ -87,7 +87,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
   upgrade_names = ['Baseline']
   if cfg.keys.include?('upgrades')
     cfg['upgrades'].each do |upgrade|
-      upgrade_names << upgrade['upgrade_name'].gsub(' ', '')
+      upgrade_names << upgrade['upgrade_name'].gsub(/[^0-9A-Za-z]/, '')
     end
   end
 
@@ -414,7 +414,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
   all_results_output = {}
   all_cli_output = []
 
-  Parallel.map(workflow_and_building_ids, in_threads: n_threads) do |upgrade_name, workflow, building_id|
+  Parallel.map(workflow_and_building_ids, in_threads: in_threads) do |upgrade_name, workflow, building_id|
     job_id = Parallel.worker_number + 1
     if keep_run_folders
       folder_id = workflow_and_building_ids.index([upgrade_name, workflow, building_id]) + 1
@@ -423,9 +423,9 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
     end
 
     all_results_output[upgrade_name] = [] if !all_results_output.keys.include?(upgrade_name)
-    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug_arg)
+    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug_arg, keep_run_folders)
 
-    info = "[Parallel(n_jobs=#{n_threads})]: "
+    info = "[Parallel(n_jobs=#{in_threads})]: "
     max_size = "#{workflow_and_building_ids.size}".size
     info += "%#{max_size}s" % "#{all_results_output.values.flatten.size}"
     info += " / #{workflow_and_building_ids.size}"
@@ -482,7 +482,7 @@ def get_elapsed_time(t1, t0)
   return t
 end
 
-def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
+def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug, keep_run_folders)
   scenario_osw_dir = File.join(results_dir, 'osw', upgrade_name)
   scenario_xml_dir = File.join(results_dir, 'xml', upgrade_name)
 
@@ -497,7 +497,9 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
   hpxml_path = File.join(output_dir, 'home.xml')
   change_arguments(osw, building_id, hpxml_path, output_dir)
 
-  cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{job_id}.\n"
+  worker_folder_ = job_id
+  worker_folder_ = worker_folder if keep_run_folders
+  cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{worker_folder_}\n"
   upgrade = upgrade_name != 'Baseline'
   started_at, completed_at, completed_status, result_output, cli_output = RunOSWs.run(osw, worker_dir, cli_output, upgrade, measures, reporting_measures, measures_only)
 
@@ -505,7 +507,7 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
   completed_at = create_timestamp(completed_at)
 
   result_output['building_id'] = building_id
-  result_output['job_id'] = job_id
+  result_output['job_id'] = worker_folder_
   result_output['started_at'] = started_at
   result_output['completed_at'] = completed_at
   result_output['completed_status'] = completed_status
@@ -612,7 +614,7 @@ OptionParser.new do |opts|
   end
 
   options[:keep_run_folders] = false
-  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints') do |_t|
+  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints; also populates run folder in cli_output.log and results-xxx.csv files') do |_t|
     options[:keep_run_folders] = true
   end
 

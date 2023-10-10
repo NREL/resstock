@@ -1090,7 +1090,7 @@ class Constructions
     # Add remaining partition walls within spaces (those without geometric representation)
     # as internal mass object.
     obj_name = 'partition wall mass'
-    imdef = create_os_int_mass_and_def(model, obj_name, spaces[HPXML::LocationLivingSpace], partition_wall_area)
+    imdef = create_os_int_mass_and_def(model, obj_name, spaces[HPXML::LocationConditionedSpace], partition_wall_area)
 
     apply_wood_stud_wall(model, [imdef], constr_name,
                          0, 1, 3.5, false, 0.16,
@@ -1118,7 +1118,7 @@ class Constructions
       furnSolarAbsorptance = 0.6
       furnSpecHeat = mat.cp
       furnDensity = mat.rho
-      if location == HPXML::LocationLivingSpace
+      if location == HPXML::LocationConditionedSpace
         furnAreaFraction = furniture_mass.area_fraction
         furnMass = mass_lb_per_sqft
       elsif location == HPXML::LocationBasementUnconditioned
