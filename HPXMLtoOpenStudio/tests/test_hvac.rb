@@ -684,14 +684,14 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingWaterToAirHeatPumpEquationFits.size)
     clg_coil = model.getCoilCoolingWaterToAirHeatPumpEquationFits[0]
-    cop = 5.36 # Expected values
+    cop = 4.87 # Expected values
     assert_in_epsilon(cop, clg_coil.ratedCoolingCoefficientofPerformance, 0.01)
     assert_in_epsilon(clg_capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01)
 
     # Check heating coil
     assert_equal(1, model.getCoilHeatingWaterToAirHeatPumpEquationFits.size)
     htg_coil = model.getCoilHeatingWaterToAirHeatPumpEquationFits[0]
-    cop = 3.65 # Expected values
+    cop = 3.6 # Expected values
     assert_in_epsilon(cop, htg_coil.ratedHeatingCoefficientofPerformance, 0.01)
     assert_in_epsilon(htg_capacity, htg_coil.ratedHeatingCapacity.get, 0.01)
 
@@ -706,6 +706,78 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     unitary_system = model.getAirLoopHVACUnitarySystems[0]
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} IQ")
     assert(program_values.empty?) # Check no EMS program
+  end
+
+  def test_geothermal_loop
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-geothermal-loop.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    geothermal_loop = hpxml.geothermal_loops[0]
+    bore_radius = UnitConversions.convert(geothermal_loop.bore_diameter / 2.0, 'in', 'm')
+    grout_conductivity = UnitConversions.convert(0.4, 'Btu/(hr*ft*R)', 'W/(m*K)')
+    pipe_conductivity = UnitConversions.convert(0.23, 'Btu/(hr*ft*R)', 'W/(m*K)')
+    shank_spacing = UnitConversions.convert(geothermal_loop.shank_spacing, 'in', 'm')
+
+    # Check ghx
+    assert(1, model.getGroundHeatExchangerVerticals.size)
+    ghx = model.getGroundHeatExchangerVerticals[0]
+    assert_in_epsilon(bore_radius, ghx.boreHoleRadius.get, 0.01)
+    assert_in_epsilon(grout_conductivity, ghx.groutThermalConductivity.get, 0.01)
+    assert_in_epsilon(pipe_conductivity, ghx.pipeThermalConductivity.get, 0.01)
+    assert_in_epsilon(shank_spacing, ghx.uTubeDistance.get, 0.01)
+
+    # Check G-Functions
+    # Expected values
+    # 4_4: 1: g: 5._96._0.075 from "LopU_configurations_5m_v1.0.json"
+    lntts = [-8.5, -7.8, -7.2, -6.5, -5.9, -5.2, -4.5, -3.963, -3.27, -2.864, -2.577, -2.171, -1.884, -1.191, -0.497, -0.274, -0.051, 0.196, 0.419, 0.642, 0.873, 1.112, 1.335, 1.679, 2.028, 2.275, 3.003]
+    gfnc_coeff = [2.209271810327404, 2.5553235626058273, 2.8519138306223555, 3.2001519249819794, 3.523354932375397, 4.001549412014162, 4.669089316628495, 5.359101946268944, 6.552379489671893, 7.429815477491777, 8.121820314543074, 9.173143912712952, 9.946213029499233, 11.781039134458084, 13.403268695619028, 13.854454372473098, 14.260003929688882, 14.655669234316463, 14.962475413080817, 15.224731293240202, 15.450225154706388, 15.638568709166531, 15.778910465988814, 15.938820677805234, 16.047959625600665, 16.1015379064994, 16.188353466015815]
+    gFunctions = lntts.zip(gfnc_coeff)
+    ghx.gFunctions.each_with_index do |gFunction, i|
+      assert_in_epsilon(gFunction.lnValue, gFunctions[i][0], 0.01)
+      assert_in_epsilon(gFunction.gValue, gFunctions[i][1], 0.01)
+    end
+  end
+
+  def test_g_function_library_linear_interpolation_example
+    bore_config = HPXML::GeothermalLoopBorefieldConfigurationRectangle
+    num_bore_holes = 40
+    bore_spacing = UnitConversions.convert(7.0, 'm', 'ft')
+    bore_depth = UnitConversions.convert(150.0, 'm', 'ft')
+    bore_diameter = UnitConversions.convert(UnitConversions.convert(80.0, 'mm', 'm'), 'm', 'in') * 2
+    valid_bore_configs = HVAC.valid_bore_configs
+    g_functions_filename = valid_bore_configs[bore_config]
+    g_functions_json = HVAC.get_g_functions_json(g_functions_filename)
+
+    actual_lntts, actual_gfnc_coeff = HVACSizing.gshp_gfnc_coeff(bore_config, g_functions_json, num_bore_holes, bore_spacing, bore_depth, bore_diameter)
+
+    expected_lntts = [-8.5, -7.8, -7.2, -6.5, -5.9, -5.2, -4.5, -3.963, -3.27, -2.864, -2.577, -2.171, -1.884, -1.191, -0.497, -0.274, -0.051, 0.196, 0.419, 0.642, 0.873, 1.112, 1.335, 1.679, 2.028, 2.275, 3.003]
+    expected_gfnc_coeff = [2.619, 2.967, 3.279, 3.700, 4.190, 5.107, 6.680, 8.537, 11.991, 14.633, 16.767, 20.083, 22.593, 28.734, 34.345, 35.927, 37.342, 38.715, 39.768, 40.664, 41.426, 42.056, 42.524, 43.054, 43.416, 43.594, 43.885]
+
+    expected_lntts.zip(actual_lntts).each do |v1, v2|
+      assert_in_epsilon(v1, v2, 0.01)
+    end
+    expected_gfnc_coeff.zip(actual_gfnc_coeff).each do |v1, v2|
+      assert_in_epsilon(v1, v2, 0.01)
+    end
+  end
+
+  def test_all_g_function_configs_exist
+    valid_configs = { HPXML::GeothermalLoopBorefieldConfigurationRectangle => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                      HPXML::GeothermalLoopBorefieldConfigurationOpenRectangle => [8, 10],
+                      HPXML::GeothermalLoopBorefieldConfigurationC => [7, 9],
+                      HPXML::GeothermalLoopBorefieldConfigurationL => [4, 5, 6, 7, 8, 9, 10],
+                      HPXML::GeothermalLoopBorefieldConfigurationU => [7, 9, 10],
+                      HPXML::GeothermalLoopBorefieldConfigurationLopsidedU => [6, 7, 8, 9, 10] }
+
+    valid_configs.each do |bore_config, valid_num_bores|
+      g_functions_filename = HVAC.valid_bore_configs[bore_config]
+      g_functions_json = HVAC.get_g_functions_json(g_functions_filename)
+      valid_num_bores.each do |num_bore_holes|
+        HVACSizing.get_g_functions(g_functions_json, bore_config, num_bore_holes, '5._192._0.08') # b_h_rb is arbitrary
+      end
+    end
   end
 
   def test_shared_chiller_baseboard
@@ -862,14 +934,14 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingWaterToAirHeatPumpEquationFits.size)
     clg_coil = model.getCoilCoolingWaterToAirHeatPumpEquationFits[0]
-    cop = 5.36 # Expected values
+    cop = 4.87 # Expected values
     assert_in_epsilon(cop, clg_coil.ratedCoolingCoefficientofPerformance, 0.01)
     assert_in_epsilon(clg_capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01)
 
     # Check heating coil
     assert_equal(1, model.getCoilHeatingWaterToAirHeatPumpEquationFits.size)
     htg_coil = model.getCoilHeatingWaterToAirHeatPumpEquationFits[0]
-    cop = 3.65 # Expected values
+    cop = 3.6 # Expected values
     assert_in_epsilon(cop, htg_coil.ratedHeatingCoefficientofPerformance, 0.01)
     assert_in_epsilon(htg_capacity, htg_coil.ratedHeatingCapacity.get, 0.01)
 

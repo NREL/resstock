@@ -65,7 +65,7 @@ class HPXMLDefaults
     apply_batteries(hpxml)
 
     # Do HVAC sizing after all other defaults have been applied
-    apply_hvac_sizing(hpxml, weather, cfa)
+    apply_hvac_sizing(runner, hpxml, weather, cfa)
   end
 
   def self.get_default_azimuths(hpxml)
@@ -483,9 +483,76 @@ class HPXMLDefaults
       hpxml.site.shielding_of_home_isdefaulted = true
     end
 
-    if hpxml.site.ground_conductivity.nil?
+    if hpxml.site.soil_type.nil? && hpxml.site.ground_conductivity.nil? && hpxml.site.ground_diffusivity.nil?
+      hpxml.site.soil_type = HPXML::SiteSoilTypeUnknown
+      hpxml.site.soil_type_isdefaulted = true
+    end
+
+    if hpxml.site.moisture_type.nil? && hpxml.site.ground_conductivity.nil? && hpxml.site.ground_diffusivity.nil?
+      hpxml.site.moisture_type = HPXML::SiteSoilMoistureTypeMixed
+      hpxml.site.moisture_type_isdefaulted = true
+    end
+
+    # Conductivity/diffusivity values come from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4813881 (with the exception of "unknown")
+    if hpxml.site.ground_conductivity.nil? && hpxml.site.ground_diffusivity.nil?
+      if hpxml.site.soil_type == HPXML::SiteSoilTypeSand
+        if hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeDry
+          hpxml.site.ground_conductivity = 0.2311 # Btu/hr-ft-F
+          hpxml.site.ground_diffusivity = 0.0097 # ft^2/hr
+        elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeWet
+          hpxml.site.ground_conductivity = 1.3865 # Btu/hr-ft-F
+          hpxml.site.ground_diffusivity = 0.0322 # ft^2/hr
+        elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeMixed
+          hpxml.site.ground_conductivity = ((0.2311 + 1.3865) / 2.0).round(4) # Btu/hr-ft-F
+          hpxml.site.ground_diffusivity = ((0.0097 + 0.0322) / 2.0).round(4) # ft^2/hr
+        end
+        hpxml.site.ground_conductivity_isdefaulted = true
+        hpxml.site.ground_diffusivity_isdefaulted = true
+      elsif hpxml.site.soil_type == HPXML::SiteSoilTypeSilt || hpxml.site.soil_type == HPXML::SiteSoilTypeClay
+        if hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeDry
+          hpxml.site.ground_conductivity = 0.2889 # Btu/hr-ft-F
+          hpxml.site.ground_diffusivity = 0.0120 # ft^2/hr
+        elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeWet
+          hpxml.site.ground_conductivity = 0.9821 # Btu/hr-ft-F
+          hpxml.site.ground_diffusivity = 0.0194 # ft^2/hr
+        elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeMixed
+          hpxml.site.ground_conductivity = ((0.2889 + 0.9821) / 2.0).round(4) # Btu/hr-ft-F
+          hpxml.site.ground_diffusivity = ((0.0120 + 0.0194) / 2.0).round(4) # ft^2/hr
+        end
+        hpxml.site.ground_conductivity_isdefaulted = true
+        hpxml.site.ground_diffusivity_isdefaulted = true
+      elsif hpxml.site.soil_type == HPXML::SiteSoilTypeLoam
+        hpxml.site.ground_conductivity = 1.2132 # Btu/hr-ft-F
+        hpxml.site.ground_diffusivity = 0.0353 # ft^2/hr
+
+        hpxml.site.ground_conductivity_isdefaulted = true
+        hpxml.site.ground_diffusivity_isdefaulted = true
+      elsif hpxml.site.soil_type == HPXML::SiteSoilTypeGravel
+        if hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeDry
+          hpxml.site.ground_conductivity = 0.2311 # Btu/hr-ft-F
+          hpxml.site.ground_diffusivity = 0.0097 # ft^2/hr
+        elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeWet
+          hpxml.site.ground_conductivity = 1.0399 # Btu/hr-ft-F
+          hpxml.site.ground_diffusivity = 0.0291 # ft^2/hr
+        elsif hpxml.site.moisture_type == HPXML::SiteSoilMoistureTypeMixed
+          hpxml.site.ground_conductivity = ((0.2311 + 1.0399) / 2.0).round(4) # Btu/hr-ft-F
+          hpxml.site.ground_diffusivity = ((0.0097 + 0.0291) / 2.0).round(4) # ft^2/hr
+        end
+        hpxml.site.ground_conductivity_isdefaulted = true
+        hpxml.site.ground_diffusivity_isdefaulted = true
+      elsif hpxml.site.soil_type == HPXML::SiteSoilTypeUnknown
+        hpxml.site.ground_conductivity = 1.0 # Btu/hr-ft-F
+        hpxml.site.ground_diffusivity = 0.0208 # ft^2/hr
+
+        hpxml.site.ground_conductivity_isdefaulted = true
+        hpxml.site.ground_diffusivity_isdefaulted = true
+      end
+    elsif hpxml.site.ground_conductivity.nil?
       hpxml.site.ground_conductivity = 1.0 # Btu/hr-ft-F
       hpxml.site.ground_conductivity_isdefaulted = true
+    elsif hpxml.site.ground_diffusivity.nil?
+      hpxml.site.ground_diffusivity = 0.0208 # ft^2/hr
+      hpxml.site.ground_diffusivity_isdefaulted = true
     end
 
     hpxml.site.additional_properties.aim2_shelter_coeff = Airflow.get_aim2_shelter_coefficient(hpxml.site.shielding_of_home)
@@ -1523,9 +1590,63 @@ class HPXMLDefaults
         HVAC.set_mshp_downselected_speed_indices(heat_pump)
 
       elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
+        if heat_pump.geothermal_loop.nil?
+          hpxml.geothermal_loops.add(id: "GeothermalLoop#{hpxml.geothermal_loops.size + 1}",
+                                     loop_configuration: HPXML::GeothermalLoopLoopConfigurationVertical)
+          heat_pump.geothermal_loop_idref = hpxml.geothermal_loops[-1].id
+        end
+
+        if heat_pump.geothermal_loop.pipe_diameter.nil?
+          heat_pump.geothermal_loop.pipe_diameter = 0.75 # in
+          heat_pump.geothermal_loop.pipe_diameter_isdefaulted = true
+        end
+
         HVAC.set_gshp_assumptions(heat_pump, weather)
         HVAC.set_curves_gshp(heat_pump)
 
+        if heat_pump.geothermal_loop.bore_spacing.nil?
+          heat_pump.geothermal_loop.bore_spacing = 16.4 # ft, distance between bores
+          heat_pump.geothermal_loop.bore_spacing_isdefaulted = true
+        end
+
+        if heat_pump.geothermal_loop.bore_diameter.nil?
+          heat_pump.geothermal_loop.bore_diameter = 5.0 # in
+          heat_pump.geothermal_loop.bore_diameter_isdefaulted = true
+        end
+
+        if heat_pump.geothermal_loop.grout_type.nil? && heat_pump.geothermal_loop.grout_conductivity.nil?
+          heat_pump.geothermal_loop.grout_type = HPXML::GeothermalLoopGroutOrPipeTypeStandard
+          heat_pump.geothermal_loop.grout_type_isdefaulted = true
+        end
+
+        if heat_pump.geothermal_loop.grout_conductivity.nil?
+          if heat_pump.geothermal_loop.grout_type == HPXML::GeothermalLoopGroutOrPipeTypeStandard
+            heat_pump.geothermal_loop.grout_conductivity = 0.4 # Btu/h-ft-R
+          elsif heat_pump.geothermal_loop.grout_type == HPXML::GeothermalLoopGroutOrPipeTypeThermallyEnhanced
+            heat_pump.geothermal_loop.grout_conductivity = 0.8 # Btu/h-ft-R
+          end
+          heat_pump.geothermal_loop.grout_conductivity_isdefaulted = true
+        end
+
+        if heat_pump.geothermal_loop.pipe_type.nil? && heat_pump.geothermal_loop.pipe_conductivity.nil?
+          heat_pump.geothermal_loop.pipe_type = HPXML::GeothermalLoopGroutOrPipeTypeStandard
+          heat_pump.geothermal_loop.pipe_type_isdefaulted = true
+        end
+
+        if heat_pump.geothermal_loop.pipe_conductivity.nil?
+          if heat_pump.geothermal_loop.pipe_type == HPXML::GeothermalLoopGroutOrPipeTypeStandard
+            heat_pump.geothermal_loop.pipe_conductivity = 0.23 # Btu/h-ft-R; Pipe thermal conductivity, default to high density polyethylene
+          elsif heat_pump.geothermal_loop.pipe_type == HPXML::GeothermalLoopGroutOrPipeTypeThermallyEnhanced
+            heat_pump.geothermal_loop.pipe_conductivity = 0.40 # Btu/h-ft-R; 0.7 W/m-K from https://www.dropbox.com/scl/fi/91yp8e9v34vdh1isvrfvy/GeoPerformX-Spec-Sheet.pdf?rlkey=kw7p01gs46z9lfjs78bo8aujq&dl=0
+          end
+          heat_pump.geothermal_loop.pipe_conductivity_isdefaulted = true
+        end
+
+        if heat_pump.geothermal_loop.shank_spacing.nil?
+          hp_ap = heat_pump.additional_properties
+          heat_pump.geothermal_loop.shank_spacing = hp_ap.u_tube_spacing + hp_ap.pipe_od # Distance from center of pipe to center of pipe
+          heat_pump.geothermal_loop.shank_spacing_isdefaulted = true
+        end
       elsif [HPXML::HVACTypeHeatPumpWaterLoopToAir].include? heat_pump.heat_pump_type
         HVAC.set_heat_pump_temperatures(heat_pump, runner)
 
@@ -2813,11 +2934,11 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_hvac_sizing(hpxml, weather, cfa)
+  def self.apply_hvac_sizing(runner, hpxml, weather, cfa)
     hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml)
 
     # Calculate building design loads and equipment capacities/airflows
-    bldg_design_loads, all_hvac_sizing_values = HVACSizing.calculate(weather, hpxml, cfa, hvac_systems)
+    bldg_design_loads, all_hvac_sizing_values = HVACSizing.calculate(runner, weather, hpxml, cfa, hvac_systems)
 
     hvacpl = hpxml.hvac_plant
     tol = 10 # Btuh
@@ -2925,11 +3046,31 @@ class HPXMLDefaults
           htg_sys.additional_properties.GSHP_Bore_Depth = hvac_sizing_values.GSHP_Bore_Depth
           htg_sys.additional_properties.GSHP_Bore_Holes = hvac_sizing_values.GSHP_Bore_Holes
           htg_sys.additional_properties.GSHP_G_Functions = hvac_sizing_values.GSHP_G_Functions
+
+          geothermal_loop = htg_sys.geothermal_loop
+          if not geothermal_loop.nil?
+            if geothermal_loop.loop_flow.nil?
+              geothermal_loop.loop_flow = hvac_sizing_values.GSHP_Loop_flow
+              geothermal_loop.loop_flow_isdefaulted = true
+            end
+            if geothermal_loop.num_bore_holes.nil?
+              geothermal_loop.num_bore_holes = hvac_sizing_values.GSHP_Bore_Holes
+              geothermal_loop.num_bore_holes_isdefaulted = true
+            end
+            if geothermal_loop.bore_length.nil?
+              geothermal_loop.bore_length = hvac_sizing_values.GSHP_Bore_Depth
+              geothermal_loop.bore_length_isdefaulted = true
+            end
+            if geothermal_loop.bore_config.nil?
+              geothermal_loop.bore_config = hvac_sizing_values.GSHP_Bore_Config
+              geothermal_loop.bore_config_isdefaulted = true
+            end
+          end
         end
       end
 
       # Cooling system
-      next unless not clg_sys.nil?
+      next if clg_sys.nil?
 
       # Cooling capacities
       if clg_sys.cooling_capacity.nil? || ((clg_sys.cooling_capacity - hvac_sizing_values.Cool_Capacity).abs >= 1.0)

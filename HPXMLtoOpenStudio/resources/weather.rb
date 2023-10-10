@@ -308,9 +308,12 @@ class WeatherProcess
     bo = (data.MonthlyAvgDrybulbs.max - data.MonthlyAvgDrybulbs.min) * 0.5
 
     @data.GroundMonthlyTemps = []
+    # The regression coefficients are from L. Xing's simplified design model ground temperatures (Appendix A-3) and the nearest TMY3 station's annual dry bulb.
+    adj_annual_avg_drybulb_c = 0.91 * UnitConversions.convert(data.AnnualAvgDrybulb, 'F', 'C') + 1.82
+    adj_annual_avg_drybulb_f = UnitConversions.convert(adj_annual_avg_drybulb_c, 'C', 'F')
     for i in 0..11
       theta = amon[i] * 24.0
-      @data.GroundMonthlyTemps << UnitConversions.convert(data.AnnualAvgDrybulb - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0, 'R', 'F')
+      @data.GroundMonthlyTemps << UnitConversions.convert(adj_annual_avg_drybulb_f - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0, 'R', 'F')
     end
   end
 
