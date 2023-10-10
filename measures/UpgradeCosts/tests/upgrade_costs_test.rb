@@ -310,7 +310,7 @@ class UpgradeCostsTest < Minitest::Test
       'Slab Perimeter, Exposed, Conditioned (ft)' => 140.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 126.6,
       'Number, Geothermal Loop Boreholes (count)' => 5.0,
-      'Depth, Geothermal Loop Boreholes (ft)' => 274.0,
+      'Depth, Geothermal Loop Boreholes (ft)' => 297.0,
       'Flow Rate, Geothermal Loop (gpm)' => 15.0
     }
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_GSHP_ElecTanklessWH.osw', cost_multipliers)
