@@ -1,4 +1,4 @@
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://hpxmlonline.com/2019/10" targetNamespace="http://hpxmlonline.com/2019/10" elementFormDefault="qualified" version="4.0">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://hpxmlonline.com/2023/09" targetNamespace="http://hpxmlonline.com/2023/09" elementFormDefault="qualified" version="4.0">
     <xs:element name="HPXML">
         <xs:complexType>
             <xs:sequence>
@@ -197,65 +197,6 @@
 			<xs:element name="Year" type="IECCYear"/>
 			<xs:element name="ClimateZone" type="ClimateZoneIECC"/>
 			<xs:element minOccurs="0" ref="extension"/>
-		</xs:sequence>
-		<xs:attribute name="dataSource" type="DataSource"/>
-	</xs:complexType>
-	<xs:complexType name="DetailedConstruction">
-		<xs:annotation>
-			<xs:documentation>Can be used to describe properties for each individual material in the construction</xs:documentation>
-		</xs:annotation>
-		<xs:sequence>
-			<xs:group ref="SystemInfo"/>
-			<xs:element maxOccurs="unbounded" name="ConstructionLayer">
-				<xs:annotation>
-					<xs:documentation>Layers should be ordered from exterior to interior. Do not include air films.</xs:documentation>
-				</xs:annotation>
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element minOccurs="0" name="LayerType" type="ConstructionLayerType"/>
-						<xs:element minOccurs="0" name="LayerThickness" type="LengthMeasurement">
-							<xs:annotation>
-								<xs:documentation>[in]</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element maxOccurs="unbounded" name="LayerMaterial">
-							<xs:complexType>
-								<xs:sequence>
-									<xs:element minOccurs="0" name="AreaFraction" type="FractionGreaterThanZero">
-										<xs:annotation>
-											<xs:documentation>Fraction of the layer's area defined by this material. Values across all materials in a layer should sum to 1.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="MaterialType" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>E.g., "wood", "concrete", "drywall", etc.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="Conductivity" type="HPXMLDoubleGreaterThanZero">
-										<xs:annotation>
-											<xs:documentation>[Btu/hr-ft-F]</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="Density" type="HPXMLDoubleGreaterThanZero">
-										<xs:annotation>
-											<xs:documentation>[lb/ft3]</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="SpecificHeat" type="HPXMLDoubleGreaterThanZero">
-										<xs:annotation>
-											<xs:documentation>[Btu/lb-F]</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="RValue" type="RValue"/>
-									<xs:element ref="extension" minOccurs="0"/>
-								</xs:sequence>
-							</xs:complexType>
-						</xs:element>
-						<xs:element ref="extension" minOccurs="0"/>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-			<xs:element ref="extension" minOccurs="0"/>
 		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
@@ -1048,7 +989,6 @@
 									<xs:element name="RadiantBarrierLocation" type="RadiantBarrierLocation" minOccurs="0"/>
 									<xs:element name="RadiantBarrierGrade" type="InsulationGrade" minOccurs="0"/>
 									<xs:element minOccurs="0" name="Insulation" type="InsulationInfo"/>
-									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element ref="extension" minOccurs="0"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -1089,7 +1029,6 @@
 									<xs:element minOccurs="0" name="SolarAbsorptance" type="SolarAbsorptance"/>
 									<xs:element minOccurs="0" name="Emittance" type="Emittance"/>
 									<xs:element minOccurs="0" name="Insulation" type="InsulationInfo"/>
-									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element minOccurs="0" name="FloorJoists" type="StudProperties"/>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
 										<xs:complexType>
@@ -1142,8 +1081,9 @@
 									<xs:element minOccurs="0" name="SolarAbsorptance" type="SolarAbsorptance"/>
 									<xs:element minOccurs="0" name="Emittance" type="Emittance"/>
 									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"/>
+									<xs:element name="RadiantBarrier" type="HPXMLBoolean" minOccurs="0"/>
+									<xs:element name="RadiantBarrierGrade" type="InsulationGrade" minOccurs="0"/>
 									<xs:element minOccurs="0" maxOccurs="1" name="Insulation" type="InsulationInfo"/>
-									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
 										<xs:complexType>
 											<xs:sequence>
@@ -1211,7 +1151,6 @@
 									<xs:element minOccurs="0" name="InteriorStuds" type="StudProperties"/>
 									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"/>
 									<xs:element maxOccurs="1" minOccurs="0" name="Insulation" type="FoundationWallInsulationInfo"/>
-									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -1250,8 +1189,9 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="InteriorFinish" type="InteriorFinishInfo"/>
+									<xs:element name="RadiantBarrier" type="HPXMLBoolean" minOccurs="0"/>
+									<xs:element name="RadiantBarrierGrade" type="InsulationGrade" minOccurs="0"/>
 									<xs:element minOccurs="0" maxOccurs="1" name="Insulation" type="InsulationInfo"/>
-									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -1306,7 +1246,6 @@
 									<xs:element minOccurs="0" name="FloorCovering" type="FloorCovering"/>
 									<xs:element maxOccurs="1" minOccurs="0" name="PerimeterInsulation" type="SlabPerimeterInsulationInfo"/>
 									<xs:element minOccurs="0" name="UnderSlabInsulation" type="UnderSlabInsulationInfo"/>
-									<xs:element minOccurs="0" name="DetailedConstruction" type="DetailedConstruction"/>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -2408,7 +2347,7 @@
 							</xs:annotation>
 						</xs:element>
 						<xs:element minOccurs="0" ref="AttachedToSpace"/>
-						<xs:element minOccurs="0" name="Location" type="LightingLocation"/>
+						<xs:element minOccurs="0" name="Location" type="LightingAndPlugLoadLocation"/>
 						<xs:element name="Count" type="HPXMLInteger" minOccurs="0"/>
 						<xs:element minOccurs="0" name="FractionofUnitsInLocation" type="Fraction">
 							<xs:annotation>
@@ -2478,7 +2417,7 @@
 						<xs:element minOccurs="0" name="AttachedToLightingGroup" type="LocalReference"/>
 						<xs:element name="LightingControlType" type="LightingControls" minOccurs="0"/>
 						<xs:element name="NumberofLightingControls" type="IntegerGreaterThanOrEqualToZero" minOccurs="0"/>
-						<xs:element name="Location" type="LightingLocation" minOccurs="0"/>
+						<xs:element name="Location" type="LightingAndPlugLoadLocation" minOccurs="0"/>
 						<xs:element ref="extension" minOccurs="0"/>
 					</xs:sequence>
 					<xs:attribute name="dataSource" type="DataSource"/>
@@ -2602,196 +2541,128 @@
 		</xs:choice>
 		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
-	<xs:complexType name="Pools">
+	<xs:complexType name="PoolSpaType">
 		<xs:sequence>
-			<xs:element maxOccurs="unbounded" name="Pool">
+			<xs:group ref="SystemInfo"/>
+			<xs:element minOccurs="0" name="Type" type="PoolType">
+				<xs:annotation>
+					<xs:documentation>Indicates if the pool or spa is above or below ground.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="Volume" type="Volume">
+				<xs:annotation>
+					<xs:documentation>[gal] Volume of pool or spa.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="MonthsPerYearofOperation" type="MonthsPerYear">
+				<xs:annotation>
+					<xs:documentation>Months per year pool or spa is in operation.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="ReturnPipeDiameter" type="LengthMeasurement">
+				<xs:annotation>
+					<xs:documentation>[in]</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="SuctionPipeDiameter" type="LengthMeasurement">
+				<xs:annotation>
+					<xs:documentation>[in]</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="FilterType" type="PoolFilterType">
+				<xs:annotation>
+					<xs:documentation>Type of filter used, if any.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="Pumps">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:group ref="SystemInfo"/>
-						<xs:element minOccurs="0" name="Type" type="PoolType">
+						<xs:element maxOccurs="unbounded" name="Pump">
 							<xs:annotation>
-								<xs:documentation>Indicates if the pool is above or below ground.</xs:documentation>
+								<xs:documentation>Pool or spa pump: a mechanical assembly consisting of a &#8220;wet-end,&#8221; which houses the impeller and a motor. The pump increases the &#8220;head&#8221; and &#8220;flow&#8221; of the water (ENERGY STAR, 2013).</xs:documentation>
 							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="Volume" type="Volume">
-							<xs:annotation>
-								<xs:documentation>[gal] Volume of pool.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="MonthsPerYearofOperation" type="MonthsPerYear">
-							<xs:annotation>
-								<xs:documentation>Months per year pool is in operation.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="ReturnPipeDiameter" type="LengthMeasurement">
-							<xs:annotation>
-								<xs:documentation>[in]</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="SuctionPipeDiameter" type="LengthMeasurement">
-							<xs:annotation>
-								<xs:documentation>[in]</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="FilterType" type="PoolFilterType">
-							<xs:annotation>
-								<xs:documentation>Type of filter used, if any.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="PoolPumps">
 							<xs:complexType>
 								<xs:sequence>
-									<xs:element maxOccurs="unbounded" name="PoolPump">
+									<xs:group ref="SystemInfo"/>
+									<xs:element minOccurs="0" ref="ConnectedDevice"/>
+									<xs:element minOccurs="0" name="Type" type="PoolPumpType"/>
+									<xs:element minOccurs="0" name="Manufacturer" type="HPXMLString">
 										<xs:annotation>
-											<xs:documentation>Pool pump: a mechanical assembly consisting of a &#8220;wet-end,&#8221; which houses the impeller and a motor. The pump increases the &#8220;head&#8221; and
-												&#8220;flow&#8221; of the water (ENERGY STAR, 2013).</xs:documentation>
+											<xs:documentation>Manufacturer of pool or spa pump.</xs:documentation>
 										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="SerialNumber" type="HPXMLString">
+										<xs:annotation>
+											<xs:documentation>Serial number of pool or spa pump.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="ModelNumber" type="HPXMLString">
+										<xs:annotation>
+											<xs:documentation>Model number of pool or spa pump.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="ThirdPartyCertification" type="PoolPump3rdPartyCertification" maxOccurs="unbounded">
+										<xs:annotation>
+											<xs:documentation>Independent organization has verified that product or appliance meets or exceeds the standard in question (ENERGY STAR, CEE, or other)</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="EnergyFactor" type="Efficiency">
+										<xs:annotation>
+											<xs:documentation>[gal/Wh] The measure of overall pool or spa filter pump efficiency in units of gallons per watt-hour, as determined using the applicable test method in Section 4.1.2. Energy factor is analogous to other energy factors such as miles per gallon. Energy factor (EF) is calculated as: EF (gal/Wh) = flow rate (gpm) * 60 &#247; power (watts) (ANSI/APSP/ICC-15 2011).</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="SpeedSetting" type="PoolPumpSpeedSetting">
+										<xs:annotation>
+											<xs:documentation>The speed setting at which the Energy Factor was measured (ENERGY STAR, 2013).</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="RatedHorsepower" type="Power">
+										<xs:annotation>
+											<xs:documentation>The motor power output designed by the manufacturer for a rated RPM, voltage and frequency. May be less than total horsepower where the service factor is greater than 1.0, or equal to total horsepower where the service factor = 1.0 (ANSI/APSP/ICC-15 2011).</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="TotalHorsepower" type="Power">
+										<xs:annotation>
+											<xs:documentation>The total horsepower, or product of the rated horsepower and the service factor of a motor used on a pool or spa pump (also known as SFHP) based on the maximum continuous duty motor power output rating allowable for the nameplate ambient rating and motor insulation class (e.g., total horsepower = rated horsepower * service factor) (ANSI/APSP/ICC-15 2011).</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="ServiceFactor" type="HPXMLDouble">
+										<xs:annotation>
+											<xs:documentation>A multiplier applied to the rated horsepower of a pump motor to indicate the percent above nameplate horsepower at which the motor can operate continuously without exceeding its allowable insulation class temperature limit, provided that other design parameters, such rated voltage, frequency and ambient temperature, are within limits. A 1.5 hp pump with a 1.65 service factor produces 2.475 hp (total horsepower) at the maximum service factor point (ANSI/APSP/ICC-15 2011).</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element maxOccurs="unbounded" minOccurs="0" name="PumpSpeed">
 										<xs:complexType>
 											<xs:sequence>
-												<xs:group ref="SystemInfo"/>
-												<xs:element minOccurs="0" ref="ConnectedDevice"/>
-												<xs:element minOccurs="0" name="Type" type="PoolPumpType"/>
-												<xs:element minOccurs="0" name="Manufacturer" type="HPXMLString">
+												<xs:element minOccurs="0" name="Power" type="Power">
 													<xs:annotation>
-														<xs:documentation>Manufacturer of pool pump.</xs:documentation>
+														<xs:documentation>[W]</xs:documentation>
 													</xs:annotation>
 												</xs:element>
-												<xs:element minOccurs="0" name="SerialNumber" type="HPXMLString">
+												<xs:element minOccurs="0" name="MotorNominalSpeed" type="Speed">
 													<xs:annotation>
-														<xs:documentation>Serial number of pool pump.</xs:documentation>
+														<xs:documentation>[Rev/min] The number of revolutions of the motor shaft in a given unit of time, expressed as revolutions per minute (RPM) (ENERGY STAR, 2013).</xs:documentation>
 													</xs:annotation>
 												</xs:element>
-												<xs:element minOccurs="0" name="ModelNumber" type="HPXMLString">
+												<xs:element minOccurs="0" name="FlowRate" type="FlowRate">
 													<xs:annotation>
-														<xs:documentation>Model number of pool pump.</xs:documentation>
+														<xs:documentation>[gal/min] The volume of water flowing through the filtration system in a given time, usually measured in gallons per minute (gpm) (ANSI/APSP/ICC-15 2011).</xs:documentation>
 													</xs:annotation>
 												</xs:element>
-												<xs:element minOccurs="0" name="ThirdPartyCertification" type="PoolPump3rdPartyCertification" maxOccurs="unbounded">
+												<xs:element minOccurs="0" name="HoursPerDay" type="HoursPerDay">
 													<xs:annotation>
-														<xs:documentation>Independent organization has verified that product or appliance meets or exceeds the standard in question (ENERGY STAR, CEE,
-															or other)</xs:documentation>
+														<xs:documentation>[hours] Number of hours per day a pool pump operates at a particular speed setting.</xs:documentation>
 													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="EnergyFactor" type="Efficiency">
-													<xs:annotation>
-														<xs:documentation>[gal/Wh] The measure of overall pool filter pump efficiency in units of gallons per watt-hour, as determined using the
-															applicable test method in Section 4.1.2. Energy factor is analogous to other energy factors such as miles per gallon. Energy factor (EF) is
-															calculated as: EF (gal/Wh) = flow rate (gpm) * 60 &#247; power (watts) (ANSI/APSP/ICC-15 2011).</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="SpeedSetting" type="PoolPumpSpeedSetting">
-													<xs:annotation>
-														<xs:documentation>The speed setting at which the Energy Factor was measured (ENERGY STAR, 2013).</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="RatedHorsepower" type="Power">
-													<xs:annotation>
-														<xs:documentation>The motor power output designed by the manufacturer for a rated RPM, voltage and frequency. May be less than total horsepower
-															where the service factor is greater than 1.0, or equal to total horsepower where the service factor = 1.0 (ANSI/APSP/ICC-15
-															2011).</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="TotalHorsepower" type="Power">
-													<xs:annotation>
-														<xs:documentation>The total horsepower, or product of the rated horsepower and the service factor of a motor used on a pool pump (also known as
-															SFHP) based on the maximum continuous duty motor power output rating allowable for the nameplate ambient rating and motor insulation class
-															(e.g., total horsepower = rated horsepower * service factor) (ANSI/APSP/ICC-15 2011).</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="ServiceFactor" type="HPXMLDouble">
-													<xs:annotation>
-														<xs:documentation>A multiplier applied to the rated horsepower of a pump motor to indicate the percent above nameplate horsepower at which the
-															motor can operate continuously without exceeding its allowable insulation class temperature limit, provided that other design parameters,
-															such rated voltage, frequency and ambient temperature, are within limits. A 1.5 hp pump with a 1.65 service factor produces 2.475 hp (total
-															horsepower) at the maximum service factor point (ANSI/APSP/ICC-15 2011).</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element maxOccurs="unbounded" minOccurs="0" name="PumpSpeed">
-													<xs:complexType>
-														<xs:sequence>
-															<xs:element minOccurs="0" name="Power" type="Power">
-																<xs:annotation>
-																	<xs:documentation>[W]</xs:documentation>
-																</xs:annotation>
-															</xs:element>
-															<xs:element minOccurs="0" name="MotorNominalSpeed" type="Speed">
-																<xs:annotation>
-																	<xs:documentation>[Rev/min] The number of revolutions of the motor shaft in a given unit of time, expressed as revolutions per
-																		minute (RPM) (ENERGY STAR, 2013).</xs:documentation>
-																</xs:annotation>
-															</xs:element>
-															<xs:element minOccurs="0" name="FlowRate" type="FlowRate">
-																<xs:annotation>
-																	<xs:documentation>[gal/min] The volume of water flowing through the filtration system in a given time, usually measured in gallons
-																		per minute (gpm) (ANSI/APSP/ICC-15 2011).</xs:documentation>
-																</xs:annotation>
-															</xs:element>
-															<xs:element minOccurs="0" name="HoursPerDay" type="HoursPerDay">
-																<xs:annotation>
-																	<xs:documentation>[hours] Number of hours per day a pool pump operates at a particular speed setting.</xs:documentation>
-																</xs:annotation>
-															</xs:element>
-															<xs:element minOccurs="0" ref="extension"/>
-														</xs:sequence>
-														<xs:attribute name="dataSource" type="DataSource"/>
-													</xs:complexType>
-												</xs:element>
-												<xs:element minOccurs="0" name="Load">
-													<xs:complexType>
-														<xs:sequence>
-															<xs:element name="Units" type="PlugLoadUnits"/>
-															<xs:element name="Value" type="HPXMLDouble"/>
-														</xs:sequence>
-													</xs:complexType>
 												</xs:element>
 												<xs:element minOccurs="0" ref="extension"/>
 											</xs:sequence>
 											<xs:attribute name="dataSource" type="DataSource"/>
 										</xs:complexType>
 									</xs:element>
-								</xs:sequence>
-								<xs:attribute name="dataSource" type="DataSource"/>
-							</xs:complexType>
-						</xs:element>
-						<xs:element minOccurs="0" name="Cleaner">
-							<xs:complexType>
-								<xs:sequence>
-									<xs:group ref="SystemInfo"/>
-									<xs:element minOccurs="0" ref="ConnectedDevice"/>
-									<xs:element minOccurs="0" name="Type" type="PoolCleanerType">
-										<xs:annotation>
-											<xs:documentation>Type of pool cleaner used, if any.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="HoursPerDay" type="HoursPerDay">
-										<xs:annotation>
-											<xs:documentation>Hours per day pool cleaner is used. </xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" ref="extension"/>
-								</xs:sequence>
-								<xs:attribute name="dataSource" type="DataSource"/>
-							</xs:complexType>
-						</xs:element>
-						<xs:element minOccurs="0" name="Heater">
-							<xs:complexType>
-								<xs:sequence>
-									<xs:group ref="SystemInfo"/>
-									<xs:element minOccurs="0" ref="ConnectedDevice"/>
-									<xs:element minOccurs="0" name="Type" type="PoolHeaterType">
-										<xs:annotation>
-											<xs:documentation>Type of heater used to heat pool, if any.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="HoursPerDay" type="HoursPerDay">
-										<xs:annotation>
-											<xs:documentation>Hours per day pool heater is used.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
 									<xs:element minOccurs="0" name="Load">
 										<xs:complexType>
 											<xs:sequence>
-												<xs:element name="Units" type="PoolHeaterUnits"/>
+												<xs:element name="Units" type="PlugLoadUnits"/>
 												<xs:element name="Value" type="HPXMLDouble"/>
 											</xs:sequence>
 										</xs:complexType>
@@ -2799,6 +2670,53 @@
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="dataSource" type="DataSource"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element minOccurs="0" name="Cleaner">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:group ref="SystemInfo"/>
+						<xs:element minOccurs="0" ref="ConnectedDevice"/>
+						<xs:element minOccurs="0" name="Type" type="PoolCleanerType">
+							<xs:annotation>
+								<xs:documentation>Type of pool or spa cleaner used, if any.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="HoursPerDay" type="HoursPerDay">
+							<xs:annotation>
+								<xs:documentation>Hours per day pool or spa cleaner is used. </xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" ref="extension"/>
+					</xs:sequence>
+					<xs:attribute name="dataSource" type="DataSource"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element minOccurs="0" name="Heater">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:group ref="SystemInfo"/>
+						<xs:element minOccurs="0" ref="ConnectedDevice"/>
+						<xs:element minOccurs="0" name="Type" type="PoolHeaterType">
+							<xs:annotation>
+								<xs:documentation>Type of heater used to heat pool or spa, if any.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="HoursPerDay" type="HoursPerDay">
+							<xs:annotation>
+								<xs:documentation>Hours per day pool or spa heater is used.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="Load">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="Units" type="PoolHeaterUnits"/>
+									<xs:element name="Value" type="HPXMLDouble"/>
+								</xs:sequence>
 							</xs:complexType>
 						</xs:element>
 						<xs:element minOccurs="0" ref="extension"/>
@@ -2809,208 +2727,17 @@
 		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
-	<xs:complexType name="HotTubs">
+	<xs:complexType name="Pools">
 		<xs:sequence>
-			<xs:element maxOccurs="unbounded" name="HotTub">
+			<xs:element maxOccurs="unbounded" name="Pool">
 				<xs:complexType>
-					<xs:sequence>
-						<xs:group ref="SystemInfo"/>
-						<xs:element minOccurs="0" name="Type" type="PoolType">
-							<xs:annotation>
-								<xs:documentation>Indicates if the hot tub is above or below ground.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="Volume" type="Volume">
-							<xs:annotation>
-								<xs:documentation>[gal] Volume of hot tub.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="MonthsPerYearofOperation" type="MonthsPerYear">
-							<xs:annotation>
-								<xs:documentation>Months per year hot tub is in operation.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="ReturnPipeDiameter" type="LengthMeasurement">
-							<xs:annotation>
-								<xs:documentation>[in]</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="SuctionPipeDiameter" type="LengthMeasurement">
-							<xs:annotation>
-								<xs:documentation>[in]</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="FilterType" type="PoolFilterType">
-							<xs:annotation>
-								<xs:documentation>Type of filter used, if any.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="HotTubPumps">
-							<xs:complexType>
-								<xs:sequence>
-									<xs:element maxOccurs="unbounded" name="HotTubPump">
-										<xs:annotation>
-											<xs:documentation>Pool pump: a mechanical assembly consisting of a &#8220;wet-end,&#8221; which houses the impeller and a motor. The pump increases the &#8220;head&#8221; and
-												&#8220;flow&#8221; of the water (ENERGY STAR, 2013).</xs:documentation>
-										</xs:annotation>
-										<xs:complexType>
-											<xs:sequence>
-												<xs:group ref="SystemInfo"/>
-												<xs:element minOccurs="0" ref="ConnectedDevice"/>
-												<xs:element minOccurs="0" name="Type" type="PoolPumpType"/>
-												<xs:element minOccurs="0" name="Manufacturer" type="HPXMLString">
-													<xs:annotation>
-														<xs:documentation>Manufacturer of hot tub pump.</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="SerialNumber" type="HPXMLString">
-													<xs:annotation>
-														<xs:documentation>Serial number of hot tub pump.</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="ModelNumber" type="HPXMLString">
-													<xs:annotation>
-														<xs:documentation>Model number of hot tub pump.</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="ThirdPartyCertification" type="PoolPump3rdPartyCertification" maxOccurs="unbounded">
-													<xs:annotation>
-														<xs:documentation>Independent organization has verified that product or appliance meets or exceeds the standard in question (ENERGY STAR, CEE,
-															or other)</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="EnergyFactor" type="Efficiency">
-													<xs:annotation>
-														<xs:documentation>[gal/Wh] The measure of overall hot tub filter pump efficiency in units of gallons per watt-hour, as determined using the
-															applicable test method in Section 4.1.2. Energy factor is analogous to other energy factors such as miles per gallon. Energy factor (EF) is
-															calculated as: EF (gal/Wh) = flow rate (gpm) * 60 &#247; power (watts) (ANSI/APSP/ICC-15 2011).</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="SpeedSetting" type="PoolPumpSpeedSetting">
-													<xs:annotation>
-														<xs:documentation>The speed setting at which the Energy Factor was measured (ENERGY STAR, 2013).</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="RatedHorsepower" type="Power">
-													<xs:annotation>
-														<xs:documentation>The motor power output designed by the manufacturer for a rated RPM, voltage and frequency. May be less than total horsepower
-															where the service factor is greater than 1.0, or equal to total horsepower where the service factor = 1.0 (ANSI/APSP/ICC-15
-															2011).</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="TotalHorsepower" type="Power">
-													<xs:annotation>
-														<xs:documentation>The total horsepower, or product of the rated horsepower and the service factor of a motor used on a hot tub pump (also known as
-															SFHP) based on the maximum continuous duty motor power output rating allowable for the nameplate ambient rating and motor insulation class
-															(e.g., total horsepower = rated horsepower * service factor) (ANSI/APSP/ICC-15 2011).</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element minOccurs="0" name="ServiceFactor" type="HPXMLDouble">
-													<xs:annotation>
-														<xs:documentation>A multiplier applied to the rated horsepower of a pump motor to indicate the percent above nameplate horsepower at which the
-															motor can operate continuously without exceeding its allowable insulation class temperature limit, provided that other design parameters,
-															such rated voltage, frequency and ambient temperature, are within limits. A 1.5 hp pump with a 1.65 service factor produces 2.475 hp (total
-															horsepower) at the maximum service factor point (ANSI/APSP/ICC-15 2011).</xs:documentation>
-													</xs:annotation>
-												</xs:element>
-												<xs:element maxOccurs="unbounded" minOccurs="0" name="PumpSpeed">
-													<xs:complexType>
-														<xs:sequence>
-															<xs:element minOccurs="0" name="Power" type="Power">
-																<xs:annotation>
-																	<xs:documentation>[W]</xs:documentation>
-																</xs:annotation>
-															</xs:element>
-															<xs:element minOccurs="0" name="MotorNominalSpeed" type="Speed">
-																<xs:annotation>
-																	<xs:documentation>[Rev/min] The number of revolutions of the motor shaft in a given unit of time, expressed as revolutions per
-																		minute (RPM) (ENERGY STAR, 2013).</xs:documentation>
-																</xs:annotation>
-															</xs:element>
-															<xs:element minOccurs="0" name="FlowRate" type="FlowRate">
-																<xs:annotation>
-																	<xs:documentation>[gal/min] The volume of water flowing through the filtration system in a given time, usually measured in gallons
-																		per minute (gpm) (ANSI/APSP/ICC-15 2011).</xs:documentation>
-																</xs:annotation>
-															</xs:element>
-															<xs:element minOccurs="0" name="HoursPerDay" type="HoursPerDay">
-																<xs:annotation>
-																	<xs:documentation>[hours] Number of hours per day a pool pump operates at a particular speed setting.</xs:documentation>
-																</xs:annotation>
-															</xs:element>
-															<xs:element minOccurs="0" ref="extension"/>
-														</xs:sequence>
-														<xs:attribute name="dataSource" type="DataSource"/>
-													</xs:complexType>
-												</xs:element>
-												<xs:element minOccurs="0" name="Load">
-													<xs:complexType>
-														<xs:sequence>
-															<xs:element name="Units" type="PlugLoadUnits"/>
-															<xs:element name="Value" type="HPXMLDouble"/>
-														</xs:sequence>
-													</xs:complexType>
-												</xs:element>
-												<xs:element minOccurs="0" ref="extension"/>
-											</xs:sequence>
-											<xs:attribute name="dataSource" type="DataSource"/>
-										</xs:complexType>
-									</xs:element>
-								</xs:sequence>
-								<xs:attribute name="dataSource" type="DataSource"/>
-							</xs:complexType>
-						</xs:element>
-						<xs:element minOccurs="0" name="Cleaner">
-							<xs:complexType>
-								<xs:sequence>
-									<xs:group ref="SystemInfo"/>
-									<xs:element minOccurs="0" ref="ConnectedDevice"/>
-									<xs:element minOccurs="0" name="Type" type="PoolCleanerType">
-										<xs:annotation>
-											<xs:documentation>Type of hot tub cleaner used, if any.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="HoursPerDay" type="HoursPerDay">
-										<xs:annotation>
-											<xs:documentation>Hours per day hot tub cleaner is used. </xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" ref="extension"/>
-								</xs:sequence>
-								<xs:attribute name="dataSource" type="DataSource"/>
-							</xs:complexType>
-						</xs:element>
-						<xs:element minOccurs="0" name="Heater">
-							<xs:complexType>
-								<xs:sequence>
-									<xs:group ref="SystemInfo"/>
-									<xs:element minOccurs="0" ref="ConnectedDevice"/>
-									<xs:element minOccurs="0" name="Type" type="PoolHeaterType">
-										<xs:annotation>
-											<xs:documentation>Type of heater used to heat hot tub, if any.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="HoursPerDay" type="HoursPerDay">
-										<xs:annotation>
-											<xs:documentation>Hours per day hot tub heater is used.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="Load">
-										<xs:complexType>
-											<xs:sequence>
-												<xs:element name="Units" type="PoolHeaterUnits"/>
-												<xs:element name="Value" type="HPXMLDouble"/>
-											</xs:sequence>
-										</xs:complexType>
-									</xs:element>
-									<xs:element minOccurs="0" ref="extension"/>
-								</xs:sequence>
-								<xs:attribute name="dataSource" type="DataSource"/>
-							</xs:complexType>
-						</xs:element>
-						<xs:element minOccurs="0" ref="extension"/>
-					</xs:sequence>
-					<xs:attribute name="dataSource" type="DataSource"/>
+					<xs:complexContent>
+						<xs:extension base="PoolSpaType">
+							<xs:sequence>
+								<xs:element ref="extension" minOccurs="0"/>
+							</xs:sequence>
+						</xs:extension>
+					</xs:complexContent>
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
@@ -3025,7 +2752,7 @@
 						<xs:element minOccurs="0" ref="ConnectedDevice"/>
 						<xs:element minOccurs="0" ref="AttachedToSpace"/>
 						<xs:element name="PlugLoadType" type="PlugLoadType" minOccurs="0"/>
-						<xs:element minOccurs="0" name="Location" type="PlugLoadLocation"/>
+						<xs:element minOccurs="0" name="Location" type="LightingAndPlugLoadLocation"/>
 						<xs:element name="Count" type="IntegerGreaterThanOrEqualToZero" minOccurs="0"/>
 						<xs:element minOccurs="0" name="Load">
 							<xs:complexType>
@@ -3062,7 +2789,7 @@
 						<xs:element minOccurs="0" ref="ConnectedDevice"/>
 						<xs:element minOccurs="0" ref="AttachedToSpace"/>
 						<xs:element name="FuelLoadType" type="FuelLoadType" minOccurs="0"/>
-						<xs:element minOccurs="0" name="Location" type="FuelLoadLocation"/>
+						<xs:element minOccurs="0" name="Location" type="LightingAndPlugLoadLocation"/>
 						<xs:element name="Count" type="IntegerGreaterThanOrEqualToZero" minOccurs="0"/>
 						<xs:element minOccurs="0" name="Load">
 							<xs:complexType>
@@ -3855,7 +3582,6 @@
 			<xs:element name="SpaceHeater">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element minOccurs="0" name="Portable" type="HPXMLBoolean"/>
 						<xs:element minOccurs="0" name="AtmosphericBurner" type="HPXMLBoolean"/>
 						<xs:element minOccurs="0" name="AutomaticVentDamper" type="HPXMLBoolean"/>
 						<xs:element minOccurs="0" name="PilotLight" type="HPXMLBoolean"/>
@@ -4012,7 +3738,6 @@
 							</xs:sequence>
 						</xs:complexType>
 					</xs:element>
-					<xs:element name="RoomCoolingType" type="RoomCoolingType" minOccurs="0"/>
 					<xs:element minOccurs="0" name="IntegratedHeatingSystemFuel" type="FuelType"/>
 					<xs:element minOccurs="0" name="IntegratedHeatingSystemCapacity" type="Capacity">
 						<xs:annotation>
@@ -4233,6 +3958,7 @@
 								<xs:documentation>[sq.ft.]</xs:documentation>
 							</xs:annotation>
 						</xs:element>
+						<xs:element minOccurs="0" name="DuctShape" type="DuctShape"/>
 						<xs:element minOccurs="0" ref="extension"/>
 					</xs:sequence>
 					<xs:attribute name="dataSource" type="DataSource"/>
@@ -4555,7 +4281,11 @@
 									<xs:element minOccurs="0" name="GaragePresent" type="HPXMLBoolean"/>
 									<xs:element minOccurs="0" name="GarageLocation" type="GarageLocation"/>
 									<xs:element minOccurs="0" name="SpaceAboveGarage" type="SpaceAboveGarage"/>
-									<xs:element minOccurs="0" name="ManufacturedHomeSections" type="ManufacturedHomeSections"/>
+									<xs:element minOccurs="0" name="ManufacturedHomeSections" type="ManufacturedHomeSections">
+										<xs:annotation>
+											<xs:documentation>The number of sections (width) of the manufactured home. CrossMod is a new style of manufactured home with more flexibility in configuration, higher roof pitch, covered porches, and garages or carports. They look more like a site-built single family detached home, but are manufactured in a factory and assembled on site. </xs:documentation>
+										</xs:annotation>
+									</xs:element>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -4686,7 +4416,85 @@
 			<xs:element name="Appliances" type="Appliances" minOccurs="0"/>
 			<xs:element name="Lighting" type="Lighting" minOccurs="0"/>
 			<xs:element minOccurs="0" name="Pools" type="Pools"/>
-			<xs:element minOccurs="0" name="HotTubs" type="HotTubs"/>
+			<xs:element minOccurs="0" name="Spas">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element maxOccurs="unbounded" name="PermanentSpa" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>A permanently constructed spa where piping and equipment are an integral part of the structure, and not intended to be moved.</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="PoolSpaType">
+										<xs:sequence>
+											<xs:element minOccurs="0" name="AttachedToPool" type="LocalReference"/>
+											<xs:element ref="extension" minOccurs="0"/>
+										</xs:sequence>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:element maxOccurs="unbounded" name="PortableElectricSpa" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>A factory-built electric spa or hot tub, supplied with piping and equipment for temperature-controlled circulated water at the time of sale or sold separately for subsequent attachment.</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:group ref="SystemInfo"/>
+									<xs:element minOccurs="0" name="Manufacturer" type="HPXMLString"/>
+									<xs:element minOccurs="0" name="Model" type="HPXMLString"/>
+									<xs:element minOccurs="0" name="Capacity" type="IntegerGreaterThanZero">
+										<xs:annotation>
+											<xs:documentation>Number of people</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="Volume" type="Volume">
+										<xs:annotation>
+											<xs:documentation>[gal] Rated volume of portable spa</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="StandbyPower" type="Power">
+										<xs:annotation>
+											<xs:documentation>[W] Standby Power as measured by ANSI/APSP/ICC-14</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="MaximumStandbyPowerAllowed" type="Power">
+										<xs:annotation>
+											<xs:documentation>[W] Maximum standby power allowed for this size spa under ANSI/APSP/ICC-14</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="TotalAnnualPowerConsumptionInStandbyMode" minOccurs="0" type="EnergyAndWaterUseTypeDescription">
+										<xs:annotation>
+											<xs:documentation>[kWh] Total annual power consumption in standby mode, based on test procedure in ANSI/APSP/ICC-14. Typically standby power * 8760. </xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="Cover">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element minOccurs="0" name="Manufacturer" type="HPXMLString"/>
+												<xs:element minOccurs="0" name="Model" type="HPXMLString"/>
+											</xs:sequence>
+										</xs:complexType>
+									</xs:element>
+									<xs:element minOccurs="0" name="MonthsPerYearofOperation" type="MonthsPerYear">
+										<xs:annotation>
+											<xs:documentation>Months per year portable spa is in operation.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="FilterType" type="PoolFilterType">
+										<xs:annotation>
+											<xs:documentation>Type of filter used, if any.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" ref="extension"/>
+								</xs:sequence>
+								<xs:attribute name="dataSource" type="DataSource"/>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="dataSource" type="DataSource"/>
+				</xs:complexType>
+			</xs:element>
 			<xs:element name="MiscLoads" type="MiscLoads" minOccurs="0"/>
 			<xs:element minOccurs="0" name="HealthAndSafety" type="HealthAndSafety"/>
 			<xs:element minOccurs="0" ref="extension"/>
@@ -5339,14 +5147,9 @@
 						<xs:element minOccurs="0" name="GlassType" type="GlassType"/>
 						<xs:element minOccurs="0" name="FrameType" type="WindowFrameType"/>
 						<xs:element minOccurs="0" name="Location" type="StormLocation"/>
-						<xs:element minOccurs="0" name="Operable" type="HPXMLBoolean">
+						<xs:element minOccurs="0" name="FractionOperable" type="Fraction">
 							<xs:annotation>
-								<xs:documentation>DEPRECATED. This will be removed in v4.0. Use FractionOperable element instead.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element minOccurs="0" name="FractionOperable" type="HPXMLBoolean">
-							<xs:annotation>
-								<xs:documentation>If the Window/Skylight element represents a single window/skylight, the value should be 0 or 1, otherwise the fraction of area that is operable.</xs:documentation>
+								<xs:documentation>Defined as the sum of the areas for operable storms divided by the sum of the areas for all storms. The fraction should not take into account how much a storm can be opened (e.g., 50% for a double hung storm). If the StormWindow element represents a single storm, the value should be 0 or 1.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 						<xs:element minOccurs="0" name="Condition" type="WindowCondition"/>
@@ -5391,14 +5194,9 @@
 				</xs:complexType>
 			</xs:element>
 			<xs:element minOccurs="0" name="WeatherStripping" type="HPXMLBoolean"/>
-			<xs:element minOccurs="0" name="Operable" type="HPXMLBoolean">
-				<xs:annotation>
-					<xs:documentation>DEPRECATED. This will be removed in v4.0. Use FractionOperable element instead.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
 			<xs:element minOccurs="0" name="FractionOperable" type="Fraction">
 				<xs:annotation>
-					<xs:documentation>The fraction of windows/skylights that are operable. If the Window/Skylight element represents a single window/skylight, the value should be 0 or 1.</xs:documentation>
+					<xs:documentation>Defined as the sum of the areas for operable windows divided by the sum of the areas for all windows. The fraction should not take into account how much a window can be opened (e.g., 50% for a double hung window). If the Window/Skylight element represents a single window/skylight, the value should be 0 or 1.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element minOccurs="0" name="LeakinessDescription" type="BuildingLeakiness"/>
@@ -5592,6 +5390,11 @@
 					<xs:sequence>
 						<xs:element minOccurs="0" name="Finished" type="HPXMLBoolean"/>
 						<xs:element minOccurs="0" name="Conditioned" type="HPXMLBoolean"/>
+						<xs:element minOccurs="0" name="Walkout" type="HPXMLBoolean">
+							<xs:annotation>
+								<xs:documentation>A partially underground basement that has a door directly on grade to the outside, typically built on a sloping lot.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element minOccurs="0" ref="extension"/>
 					</xs:sequence>
 					<xs:attribute name="dataSource" type="DataSource"/>
@@ -6484,18 +6287,6 @@
 	<xs:complexType name="HPXMLDouble">
 		<xs:simpleContent>
 			<xs:extension base="xs:double">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="HPXMLDoubleGreaterThanZero_simple">
-		<xs:restriction base="xs:double">
-			<xs:minExclusive value="0"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="HPXMLDoubleGreaterThanZero">
-		<xs:simpleContent>
-			<xs:extension base="HPXMLDoubleGreaterThanZero_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -7615,6 +7406,9 @@
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="AdjacentTo_simple">
+		<xs:annotation>
+			<xs:documentation>"other housing unit" refers to the living/conditioned space of the adjacent unit.</xs:documentation>
+		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="attic"/>
 			<xs:enumeration value="attic - conditioned"/>
@@ -7648,9 +7442,6 @@
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:complexType name="AdjacentTo">
-		<xs:annotation>
-			<xs:documentation>DEPRECATION WARNING: Choices "other housing unit above" and "other housing unit below" will be deprecated in the future.</xs:documentation>
-		</xs:annotation>
 		<xs:simpleContent>
 			<xs:extension base="AdjacentTo_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
@@ -7851,7 +7642,7 @@
 	</xs:complexType>
 	<!--Lighting Below-->
 	<!--Lighting Controls Below-->
-	<xs:simpleType name="LightingLocation_simple">
+	<xs:simpleType name="LightingAndPlugLoadLocation_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="interior"/>
 			<xs:enumeration value="exterior"/>
@@ -7859,9 +7650,9 @@
 			<xs:enumeration value="common area"/>
 		</xs:restriction>
 	</xs:simpleType>
-	<xs:complexType name="LightingLocation">
+	<xs:complexType name="LightingAndPlugLoadLocation">
 		<xs:simpleContent>
-			<xs:extension base="LightingLocation_simple">
+			<xs:extension base="LightingAndPlugLoadLocation_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -8017,7 +7808,6 @@
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="top side of truss under sheathing"/>
 			<xs:enumeration value="below bottom chord of truss"/>
-			<xs:enumeration value="attic floor"/>
 			<xs:enumeration value="underside of rafters"/>
 			<xs:enumeration value="other"/>
 		</xs:restriction>
@@ -8485,7 +8275,25 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="DuctShape_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="rectangular"/>
+			<xs:enumeration value="round"/>
+			<xs:enumeration value="oval"/>
+			<xs:enumeration value="other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="DuctShape">
+		<xs:simpleContent>
+			<xs:extension base="DuctShape_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="DuctLocation_simple">
+		<xs:annotation>
+			<xs:documentation>"other housing unit" refers to the living/conditioned space of the adjacent unit.</xs:documentation>
+		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="attic"/>
 			<xs:enumeration value="attic - conditioned"/>
@@ -8672,6 +8480,9 @@
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="UnitLocation_simple">
+		<xs:annotation>
+			<xs:documentation>"other housing unit" refers to the living/conditioned space of the adjacent unit.</xs:documentation>
+		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="attic"/>
 			<xs:enumeration value="attic - conditioned"/>
@@ -9316,30 +9127,6 @@
 			<xs:extension base="FuelLoadType_simple"/>
 		</xs:simpleContent>
 	</xs:complexType>
-	<xs:simpleType name="PlugLoadLocation_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="interior"/>
-			<xs:enumeration value="exterior"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="PlugLoadLocation">
-		<xs:simpleContent>
-			<xs:extension base="PlugLoadLocation_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="FuelLoadLocation_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="interior"/>
-			<xs:enumeration value="exterior"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="FuelLoadLocation">
-		<xs:simpleContent>
-			<xs:extension base="FuelLoadLocation_simple"/>
-		</xs:simpleContent>
-	</xs:complexType>
 	<xs:simpleType name="PlugLoadUnits_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="kWh/year"/>
@@ -9353,17 +9140,6 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<xs:simpleType name="FuelLoadUnits_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="therm/year"/>
-			<xs:enumeration value="Btuh"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="FuelLoadUnits">
-		<xs:simpleContent>
-			<xs:extension base="FuelLoadUnits_simple"/>
-		</xs:simpleContent>
-	</xs:complexType>
 	<xs:simpleType name="PoolHeaterUnits_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="kWh/year"/>
@@ -9375,6 +9151,17 @@
 	<xs:complexType name="PoolHeaterUnits">
 		<xs:simpleContent>
 			<xs:extension base="PoolHeaterUnits_simple"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="FuelLoadUnits_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="therm/year"/>
+			<xs:enumeration value="Btuh"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="FuelLoadUnits">
+		<xs:simpleContent>
+			<xs:extension base="FuelLoadUnits_simple"/>
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="WindowCondition_simple">
@@ -9471,6 +9258,9 @@
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="LaundryMachineLocation_simple">
+		<xs:annotation>
+			<xs:documentation>"other housing unit" refers to the living/conditioned space of the adjacent unit.</xs:documentation>
+		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="basement"/>
 			<xs:enumeration value="basement - conditioned"/>
@@ -9536,6 +9326,9 @@
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="RefrigeratorLocation_simple">
+		<xs:annotation>
+			<xs:documentation>"other housing unit" refers to the living/conditioned space of the adjacent unit.</xs:documentation>
+		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="basement"/>
 			<xs:enumeration value="basement - conditioned"/>
@@ -9832,19 +9625,6 @@
 	<xs:complexType name="Fraction">
 		<xs:simpleContent>
 			<xs:extension base="Fraction_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="FractionGreaterThanZero_simple">
-		<xs:annotation>
-			<xs:documentation>A fraction that has to be between 0 (exclusive) and 1 (inclusive)</xs:documentation>
-		</xs:annotation>
-		<xs:restriction base="xs:double"/>
-	</xs:simpleType>
-	<xs:complexType name="FractionGreaterThanZero">
-		<xs:simpleContent>
-			<xs:extension base="FractionGreaterThanOne_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -10536,7 +10316,7 @@
 			<xs:enumeration value="ENERGY STAR Most Efficient"/>
 			<xs:enumeration value="CEE Tier 1"/>
 			<xs:enumeration value="CEE Tier 2"/>
-			<xs:enumeration value="Cee Tier 3"/>
+			<xs:enumeration value="CEE Tier 3"/>
 			<xs:enumeration value="other"/>
 			<xs:enumeration value="unknown"/>
 			<xs:enumeration value="none"/>
@@ -10945,6 +10725,9 @@
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="BatteryLocation_simple">
+		<xs:annotation>
+			<xs:documentation>"other housing unit" refers to the living/conditioned space of the adjacent unit.</xs:documentation>
+		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="attic"/>
 			<xs:enumeration value="attic - conditioned"/>
@@ -11499,25 +11282,6 @@
 	<xs:complexType name="MoisureType">
 		<xs:simpleContent>
 			<xs:extension base="MoistureType_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="ConstructionLayerType_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="exterior finish"/>
-			<xs:enumeration value="sheathing"/>
-			<xs:enumeration value="continuous insulation"/>
-			<xs:enumeration value="framing/cavity insulation"/>
-			<xs:enumeration value="structural core"/>
-			<xs:enumeration value="interior finish"/>
-			<xs:enumeration value="subfloor"/>
-			<xs:enumeration value="other"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="ConstructionLayerType">
-		<xs:simpleContent>
-			<xs:extension base="ConstructionLayerType_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>

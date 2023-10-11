@@ -57,7 +57,7 @@ class HPXMLDefaults
     apply_appliances(hpxml, nbeds, eri_version, schedules_file)
     apply_lighting(hpxml, schedules_file)
     apply_ceiling_fans(hpxml, nbeds, weather, schedules_file)
-    apply_pools_and_hot_tubs(hpxml, cfa, schedules_file)
+    apply_pools_and_permanent_spas(hpxml, cfa, schedules_file)
     apply_plug_loads(hpxml, cfa, schedules_file)
     apply_fuel_loads(hpxml, cfa, schedules_file)
     apply_pv_systems(hpxml)
@@ -1610,7 +1610,7 @@ class HPXMLDefaults
           ducts.each do |duct|
             primary_duct_area, secondary_duct_area = HVAC.get_default_duct_surface_area(duct.duct_type, ncfl_ag, cfa_served, n_returns).map { |area| area / ducts.size }
             primary_duct_location, secondary_duct_location = HVAC.get_default_duct_locations(hpxml)
-            if primary_duct_location.nil? # If a home doesn't have any non-living spaces (outside living space), place all ducts in living space.
+            if primary_duct_location.nil? # If a home doesn't have any unconditioned spaces (outside conditioned space), place all ducts in conditioned space.
               duct.duct_surface_area = primary_duct_area + secondary_duct_area
               duct.duct_surface_area_isdefaulted = true
               duct.duct_location = secondary_duct_location
@@ -1705,7 +1705,7 @@ class HPXMLDefaults
       # Set default location based on distribution system
       dist_system = hvac_system.distribution_system
       if dist_system.nil?
-        hvac_system.location = HPXML::LocationLivingSpace
+        hvac_system.location = HPXML::LocationConditionedSpace
       else
         dist_type = dist_system.distribution_system_type
         if dist_type == HPXML::HVACDistributionTypeAir
@@ -1719,7 +1719,7 @@ class HPXMLDefaults
             uncond_duct_locations[d.duct_location] += d.duct_surface_area
           end
           if uncond_duct_locations.empty?
-            hvac_system.location = HPXML::LocationLivingSpace
+            hvac_system.location = HPXML::LocationConditionedSpace
           else
             hvac_system.location = uncond_duct_locations.key(uncond_duct_locations.values.max)
             if hvac_system.location == HPXML::LocationOutside
@@ -1740,7 +1740,7 @@ class HPXMLDefaults
             has_dse_of_one = false
           end
           if has_dse_of_one
-            hvac_system.location = HPXML::LocationLivingSpace
+            hvac_system.location = HPXML::LocationConditionedSpace
           else
             hvac_system.location = HPXML::LocationUnconditionedSpace
           end
@@ -2118,7 +2118,7 @@ class HPXMLDefaults
         clothes_washer.is_shared_appliance_isdefaulted = true
       end
       if clothes_washer.location.nil?
-        clothes_washer.location = HPXML::LocationLivingSpace
+        clothes_washer.location = HPXML::LocationConditionedSpace
         clothes_washer.location_isdefaulted = true
       end
       if clothes_washer.rated_annual_kwh.nil?
@@ -2165,7 +2165,7 @@ class HPXMLDefaults
         clothes_dryer.is_shared_appliance_isdefaulted = true
       end
       if clothes_dryer.location.nil?
-        clothes_dryer.location = HPXML::LocationLivingSpace
+        clothes_dryer.location = HPXML::LocationConditionedSpace
         clothes_dryer.location_isdefaulted = true
       end
       if clothes_dryer.combined_energy_factor.nil? && clothes_dryer.energy_factor.nil?
@@ -2213,7 +2213,7 @@ class HPXMLDefaults
         dishwasher.is_shared_appliance_isdefaulted = true
       end
       if dishwasher.location.nil?
-        dishwasher.location = HPXML::LocationLivingSpace
+        dishwasher.location = HPXML::LocationConditionedSpace
         dishwasher.location_isdefaulted = true
       end
       if dishwasher.place_setting_capacity.nil?
@@ -2281,7 +2281,7 @@ class HPXMLDefaults
         end
       else # primary refrigerator
         if refrigerator.location.nil?
-          refrigerator.location = HPXML::LocationLivingSpace
+          refrigerator.location = HPXML::LocationConditionedSpace
           refrigerator.location_isdefaulted = true
         end
         if refrigerator.rated_annual_kwh.nil?
@@ -2343,7 +2343,7 @@ class HPXMLDefaults
     if hpxml.cooking_ranges.size > 0
       cooking_range = hpxml.cooking_ranges[0]
       if cooking_range.location.nil?
-        cooking_range.location = HPXML::LocationLivingSpace
+        cooking_range.location = HPXML::LocationConditionedSpace
         cooking_range.location_isdefaulted = true
       end
       if cooking_range.is_induction.nil?
@@ -2490,7 +2490,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_pools_and_hot_tubs(hpxml, cfa, schedules_file)
+  def self.apply_pools_and_permanent_spas(hpxml, cfa, schedules_file)
     nbeds = hpxml.building_construction.additional_properties.adjusted_number_of_bedrooms
     hpxml.pools.each do |pool|
       next if pool.type == HPXML::TypeNone
@@ -2548,59 +2548,59 @@ class HPXMLDefaults
       end
     end
 
-    hpxml.hot_tubs.each do |hot_tub|
-      next if hot_tub.type == HPXML::TypeNone
+    hpxml.permanent_spas.each do |spa|
+      next if spa.type == HPXML::TypeNone
 
-      if hot_tub.pump_type != HPXML::TypeNone
+      if spa.pump_type != HPXML::TypeNone
         # Pump
-        if hot_tub.pump_kwh_per_year.nil?
-          hot_tub.pump_kwh_per_year = MiscLoads.get_hot_tub_pump_default_values(cfa, nbeds)
-          hot_tub.pump_kwh_per_year_isdefaulted = true
+        if spa.pump_kwh_per_year.nil?
+          spa.pump_kwh_per_year = MiscLoads.get_permanent_spa_pump_default_values(cfa, nbeds)
+          spa.pump_kwh_per_year_isdefaulted = true
         end
-        if hot_tub.pump_usage_multiplier.nil?
-          hot_tub.pump_usage_multiplier = 1.0
-          hot_tub.pump_usage_multiplier_isdefaulted = true
+        if spa.pump_usage_multiplier.nil?
+          spa.pump_usage_multiplier = 1.0
+          spa.pump_usage_multiplier_isdefaulted = true
         end
-        schedules_file_includes_hot_tub_pump = (schedules_file.nil? ? false : schedules_file.includes_col_name(SchedulesFile::ColumnHotTubPump))
-        if hot_tub.pump_weekday_fractions.nil? && !schedules_file_includes_hot_tub_pump
-          hot_tub.pump_weekday_fractions = Schedule.HotTubPumpWeekdayFractions
-          hot_tub.pump_weekday_fractions_isdefaulted = true
+        schedules_file_includes_permanent_spa_pump = (schedules_file.nil? ? false : schedules_file.includes_col_name(SchedulesFile::ColumnPermanentSpaPump))
+        if spa.pump_weekday_fractions.nil? && !schedules_file_includes_permanent_spa_pump
+          spa.pump_weekday_fractions = Schedule.PermanentSpaPumpWeekdayFractions
+          spa.pump_weekday_fractions_isdefaulted = true
         end
-        if hot_tub.pump_weekend_fractions.nil? && !schedules_file_includes_hot_tub_pump
-          hot_tub.pump_weekend_fractions = Schedule.HotTubPumpWeekendFractions
-          hot_tub.pump_weekend_fractions_isdefaulted = true
+        if spa.pump_weekend_fractions.nil? && !schedules_file_includes_permanent_spa_pump
+          spa.pump_weekend_fractions = Schedule.PermanentSpaPumpWeekendFractions
+          spa.pump_weekend_fractions_isdefaulted = true
         end
-        if hot_tub.pump_monthly_multipliers.nil? && !schedules_file_includes_hot_tub_pump
-          hot_tub.pump_monthly_multipliers = Schedule.HotTubPumpMonthlyMultipliers
-          hot_tub.pump_monthly_multipliers_isdefaulted = true
+        if spa.pump_monthly_multipliers.nil? && !schedules_file_includes_permanent_spa_pump
+          spa.pump_monthly_multipliers = Schedule.PermanentSpaPumpMonthlyMultipliers
+          spa.pump_monthly_multipliers_isdefaulted = true
         end
       end
 
-      next unless hot_tub.heater_type != HPXML::TypeNone
+      next unless spa.heater_type != HPXML::TypeNone
 
       # Heater
-      if hot_tub.heater_load_value.nil?
-        default_heater_load_units, default_heater_load_value = MiscLoads.get_hot_tub_heater_default_values(cfa, nbeds, hot_tub.heater_type)
-        hot_tub.heater_load_units = default_heater_load_units
-        hot_tub.heater_load_value = default_heater_load_value
-        hot_tub.heater_load_value_isdefaulted = true
+      if spa.heater_load_value.nil?
+        default_heater_load_units, default_heater_load_value = MiscLoads.get_permanent_spa_heater_default_values(cfa, nbeds, spa.heater_type)
+        spa.heater_load_units = default_heater_load_units
+        spa.heater_load_value = default_heater_load_value
+        spa.heater_load_value_isdefaulted = true
       end
-      if hot_tub.heater_usage_multiplier.nil?
-        hot_tub.heater_usage_multiplier = 1.0
-        hot_tub.heater_usage_multiplier_isdefaulted = true
+      if spa.heater_usage_multiplier.nil?
+        spa.heater_usage_multiplier = 1.0
+        spa.heater_usage_multiplier_isdefaulted = true
       end
-      schedules_file_includes_hot_tub_heater = (schedules_file.nil? ? false : schedules_file.includes_col_name(SchedulesFile::ColumnHotTubHeater))
-      if hot_tub.heater_weekday_fractions.nil? && !schedules_file_includes_hot_tub_heater
-        hot_tub.heater_weekday_fractions = Schedule.HotTubHeaterWeekdayFractions
-        hot_tub.heater_weekday_fractions_isdefaulted = true
+      schedules_file_includes_permanent_spa_heater = (schedules_file.nil? ? false : schedules_file.includes_col_name(SchedulesFile::ColumnPermanentSpaHeater))
+      if spa.heater_weekday_fractions.nil? && !schedules_file_includes_permanent_spa_heater
+        spa.heater_weekday_fractions = Schedule.PermanentSpaHeaterWeekdayFractions
+        spa.heater_weekday_fractions_isdefaulted = true
       end
-      if hot_tub.heater_weekend_fractions.nil? && !schedules_file_includes_hot_tub_heater
-        hot_tub.heater_weekend_fractions = Schedule.HotTubHeaterWeekendFractions
-        hot_tub.heater_weekend_fractions_isdefaulted = true
+      if spa.heater_weekend_fractions.nil? && !schedules_file_includes_permanent_spa_heater
+        spa.heater_weekend_fractions = Schedule.PermanentSpaHeaterWeekendFractions
+        spa.heater_weekend_fractions_isdefaulted = true
       end
-      if hot_tub.heater_monthly_multipliers.nil? && !schedules_file_includes_hot_tub_heater
-        hot_tub.heater_monthly_multipliers = Schedule.HotTubHeaterMonthlyMultipliers
-        hot_tub.heater_monthly_multipliers_isdefaulted = true
+      if spa.heater_monthly_multipliers.nil? && !schedules_file_includes_permanent_spa_heater
+        spa.heater_monthly_multipliers = Schedule.PermanentSpaHeaterMonthlyMultipliers
+        spa.heater_monthly_multipliers_isdefaulted = true
       end
     end
   end
