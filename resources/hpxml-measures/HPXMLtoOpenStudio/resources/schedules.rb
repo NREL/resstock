@@ -1098,27 +1098,27 @@ class Schedule
     return '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
   end
 
-  def self.HotTubPumpWeekdayFractions
+  def self.PermanentSpaPumpWeekdayFractions
     return '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
   end
 
-  def self.HotTubPumpWeekendFractions
+  def self.PermanentSpaPumpWeekendFractions
     return '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
   end
 
-  def self.HotTubPumpMonthlyMultipliers
+  def self.PermanentSpaPumpMonthlyMultipliers
     return '0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921'
   end
 
-  def self.HotTubHeaterWeekdayFractions
+  def self.PermanentSpaHeaterWeekdayFractions
     return '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
   end
 
-  def self.HotTubHeaterWeekendFractions
+  def self.PermanentSpaHeaterWeekendFractions
     return '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
   end
 
-  def self.HotTubHeaterMonthlyMultipliers
+  def self.PermanentSpaHeaterMonthlyMultipliers
     return '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
   end
 
@@ -1353,8 +1353,8 @@ class SchedulesFile
   ColumnFuelLoadsFireplace = 'fuel_loads_fireplace'
   ColumnPoolPump = 'pool_pump'
   ColumnPoolHeater = 'pool_heater'
-  ColumnHotTubPump = 'hot_tub_pump'
-  ColumnHotTubHeater = 'hot_tub_heater'
+  ColumnPermanentSpaPump = 'permanent_spa_pump'
+  ColumnPermanentSpaHeater = 'permanent_spa_heater'
   ColumnHotWaterDishwasher = 'hot_water_dishwasher'
   ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
   ColumnHotWaterFixtures = 'hot_water_fixtures'
@@ -1749,8 +1749,8 @@ class SchedulesFile
       ColumnFuelLoadsFireplace,
       ColumnPoolPump,
       ColumnPoolHeater,
-      ColumnHotTubPump,
-      ColumnHotTubHeater,
+      ColumnPermanentSpaPump,
+      ColumnPermanentSpaHeater,
       ColumnHotWaterDishwasher,
       ColumnHotWaterClothesWasher,
       ColumnHotWaterFixtures

@@ -86,7 +86,7 @@ def expected_timeseries_columns(testing)
   ]
   contents += [
     'Energy Use: Net',
-    'Zone People Occupant Count: Living Space'
+    'Zone People Occupant Count: Conditioned Space'
   ] if testing
   return contents
 end
