@@ -68,6 +68,8 @@ The BuildExistingModel and ApplyUpgrade meta measures call the following model m
   3     BuildResidentialScheduleFile  Model              No                      OS-HPXML
   ===== ============================= ================== ========= ============= ==========================
 
+.. _model-measures:
+
 Model Measures
 **************
 

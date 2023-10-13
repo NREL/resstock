@@ -10,5 +10,6 @@ Contents in :ref:`housing_characteristics` are populated based on the national p
    :maxdepth: 2
 
    characteristics
+   arguments_available
    modifying_probability_distributions
-   writing_housing_characteristics   
+   writing_housing_characteristics
