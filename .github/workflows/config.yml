@@ -176,6 +176,13 @@ jobs:
           tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw'
           tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw' --wildcards '*in.osm' --wildcards '*in.idf'
 
+      - name: Upload gshp results
+        uses: actions/upload-artifact@v3
+        with:
+          path: |
+            project_national/national_upgrades_gshp/results_csvs/results_up01.csv
+          name: buildstockbatch_gshp_results_csvs
+
       - name: Process results
         run: |
           pip install plotly
@@ -200,7 +207,6 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           path: |
-            project_national/national_upgrades_gshp/results_csvs/results_up01.csv
             project_national/national_baseline/results_csvs/results_up00.csv
             project_testing/testing_baseline/results_csvs/results_up00.csv
             project_national/national_upgrades/results_csvs/results_up16.csv
