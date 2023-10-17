@@ -182,7 +182,7 @@ def create_input_tsv(model):
 
     ## -- save to tsv file --
     print("** Electrical Panel Amp TSV exported: ")
-    df.to_csv(local_dir / "Electrical Panel Amp.tsv", sep="\t", index=False, lineterminator="\r\n")
+    df.to_csv(local_dir / "Electrical Panel Amp prelim.tsv", sep="\t", index=False, lineterminator="\r\n")
 
     return df
 
@@ -294,6 +294,7 @@ def plot_output_saturation(df, output_dir, panel_metrics, sfd_only=False):
         "build_existing_model.federal_poverty_level",
         "build_existing_model.tenure",
         "build_existing_model.geometry_floor_area_bin",
+        "build_existing_model.geometry_building_type_recs",
     ]:
     
         _plot_bar(df, [hc], panel_metrics, output_dir=output_dir)
@@ -303,6 +304,7 @@ def plot_output_saturation(df, output_dir, panel_metrics, sfd_only=False):
         "build_existing_model.census_division",
         "build_existing_model.ashrae_iecc_climate_zone_2004",
         "build_existing_model.geometry_building_type_recs",
+        "build_existing_model.state",
         "build_existing_model.vintage",
         "build_existing_model.federal_poverty_level",
         "build_existing_model.tenure",
@@ -319,13 +321,15 @@ def _plot_bar(df, groupby_cols, metric_cols, output_dir=None):
     else:
         dfi = df.groupby(groupby_cols)[metric_cols].sum()
         metric_cols = [f"{panel_column_name}_expected_value"]
+    dfi = sort_index(sort_index(dfi, axis=0), axis=1)
 
     fig, ax = plt.subplots()
-    sort_index(sort_index(dfi, axis=0), axis=1).plot(kind="bar", ax=ax)
+    dfi.plot(kind="bar", ax=ax)
     if output_dir is not None:
         metric_cols
         metric = "__by__".join(groupby_cols+metric_cols)
         fig.savefig(output_dir / f"bar_{metric}.png", dpi=400, bbox_inches="tight")
+        dfi.to_csv(output_dir / f"data__bar_{metric}.csv", index=True)
 
 def _plot_bar_stacked(df, groupby_cols, metric_cols, output_dir=None):
     if panel_column_name in metric_cols:
@@ -336,14 +340,16 @@ def _plot_bar_stacked(df, groupby_cols, metric_cols, output_dir=None):
         metric_cols = [f"{panel_column_name}_expected_value"]
 
     dfi = dfi.divide(dfi.sum(axis=1), axis=0)
+    dfi = sort_index(sort_index(dfi, axis=0), axis=1)
 
     fig, ax = plt.subplots()
-    sort_index(sort_index(dfi, axis=0), axis=1).plot(kind="bar", stacked=True, ax=ax)
+    dfi.plot(kind="bar", stacked=True, ax=ax)
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     ax.set_title(f"Saturation of {metric_cols[0]}")
     if output_dir is not None:
         metric = "__by__".join(groupby_cols+metric_cols)
         fig.savefig(output_dir / f"stacked_bar_{metric}.png", dpi=400, bbox_inches="tight")
+        dfi.to_csv(output_dir / f"data__stacked_bar_{metric}.csv", index=True)
 
 
 def read_file(filename, low_memory=True):
@@ -358,7 +364,7 @@ def read_file(filename, low_memory=True):
     return df
 
 
-def main(filename=None, predict_proba=False, retain_proba=False, plot_only=False, sfd_only=False):
+def main(filename=None, predict_proba=False, retain_proba=False, plot_only=False, sfd_only=False, create_tsv=False):
 
     if filename is None:
         filename = local_dir / "test_data" / "euss1_2018_results_up00_100.csv"
@@ -369,11 +375,13 @@ def main(filename=None, predict_proba=False, retain_proba=False, plot_only=False
     model = load_model()
     validate_model_with_dummy_data(model)
 
-    create_input_tsv(model)
+    if create_tsv:
+        create_input_tsv(model)
     
     panel_metrics = [panel_column_name]
     if retain_proba:
         panel_metrics = list(model.classes_)
+        predict_proba = True
 
     if predict_proba and retain_proba:
         ext = "predicted_panels_in_probability"
@@ -446,6 +454,13 @@ if __name__ == "__main__":
         default=False,
         help="Apply calculation to Single-Family Detached only (this is only on plotting for now)",
     )
+    parser.add_argument(
+        "-c",
+        "--create_tsv",
+        action="store_true",
+        default=False,
+        help="Whether to create a ResStock input tsv from the regression model.",
+    )
 
     args = parser.parse_args()
-    main(args.filename, predict_proba=args.predict_proba, retain_proba=args.retain_proba, plot_only=args.plot_only, sfd_only=args.sfd_only)
+    main(args.filename, predict_proba=args.predict_proba, retain_proba=args.retain_proba, plot_only=args.plot_only, sfd_only=args.sfd_only, create_tsv=args.create_tsv,)
