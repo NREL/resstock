@@ -562,7 +562,7 @@ class Version
   def self.check_buildstockbatch_version
     if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed
       bsb_version = ENV['BUILDSTOCKBATCH_VERSION']
-      if bsb_version < BuildStockBatch_Version
+      if Gem::Version.new(bsb_version) < Gem::Version.new(BuildStockBatch_Version)
         fail "BuildStockBatch version #{BuildStockBatch_Version} or above is required. Found version: #{bsb_version}"
       end
     end

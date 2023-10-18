@@ -4,14 +4,14 @@ schema_version: '0.3'
 os_version: 3.6.1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/abctypol/largeee/test_runs/large_run_category_13_20231115/
+output_directory: /projects/abctypol/largeee/test_runs/medium_run_category_13_20231108/
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: precomputed
   args:
-    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_2m_20230809.csv #../buildstock_30k_20230809.csv # relative to file
+    sample_file: /projects/abctypol/largeee/buildstocks/buildstock_30k_20230809.csv #../buildstock_30k_20230809.csv # relative to file
 
 baseline:
   n_buildings_represented: 138765649 # American Community Survey 2021 5-year, does not include AK, HI, and territories
@@ -27,53 +27,53 @@ baseline:
 #   sampling:
 #     time: 90
 
-# eagle:
-#   n_jobs: 50
-#   minutes_per_sim: 4
-#   account: abctypol
-#   postprocessing:
-#     time: 180
-#     n_workers: 20
-#   sampling:
-#     time: 10
-
 eagle:
-  n_jobs: 600
-  minutes_per_sim: 2
+  n_jobs: 50
+  minutes_per_sim: 4
   account: abctypol
   postprocessing:
-    time: 2880
-    n_workers: 32
-    node_memory_mb: 180224
+    time: 180
+    n_workers: 20
   sampling:
-    time: 60
+    time: 10
 
-# postprocessing:
-#   keep_individual_timeseries: false
-#   aws:
-#     region_name: us-west-2
-#     s3:
-#       bucket: largeee
-#       prefix: test_runs
-#     athena:
-#       glue_service_role: service-role/AWSGlueServiceRole-default
-#       database_name: largeee_test_runs
-#       max_crawling_time: 1200
+# eagle:
+#   n_jobs: 600
+#   minutes_per_sim: 2
+#   account: abctypol
+#   postprocessing:
+#     time: 2880
+#     n_workers: 32
+#     node_memory_mb: 180224
+#   sampling:
+#     time: 60
 
 postprocessing:
   keep_individual_timeseries: false
-  partition_columns:
-    - State
-    - County
   aws:
     region_name: us-west-2
     s3:
       bucket: largeee
-      prefix: largeee_runs
+      prefix: test_runs
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
-      database_name: largeee_runs
+      database_name: largeee_test_runs
       max_crawling_time: 1200
+
+# postprocessing:
+#   keep_individual_timeseries: false
+#   partition_columns:
+#     - State
+#     - County
+#   aws:
+#     region_name: us-west-2
+#     s3:
+#       bucket: largeee
+#       prefix: largeee_runs
+#     athena:
+#       glue_service_role: service-role/AWSGlueServiceRole-default
+#       database_name: largeee_runs
+#       max_crawling_time: 1200
       
 
 
