@@ -6,7 +6,7 @@ import os
 
 output_folder = "med_run_output3"
 state_split = False
-
+electrification_adder = 4000  # USD per dwelling unit, additional cost for electrification
 state_grouping: dict[str, list[str] | None] = {
     "Mountain & Pacific Northwest": ["MT", "ID", "WY", "NV", "UT", "CO", "AZ", "NM", "OR", "WA"],
     "California": ["CA"],
@@ -46,21 +46,24 @@ wide_chars = [
     'in.geometry_floor_area', 'in.heating_fuel'
 ]
 long_chars = [
-  'in.clothes_dryer', 'in.cooking_range', 'in.geometry_attic_type', 'in.geometry_building_type_recs',
-  'in.vintage', 'in.area_median_income', 'in.geometry_floor_area', 'in.geometry_foundation_type',
-  'in.geometry_wall_type', 'in.heating_fuel', 'in.hvac_cooling_type', 'in.hvac_heating_efficiency',
-  'in.income', 'in.infiltration', 'in.insulation_ceiling', 'in.insulation_wall', 'in.tenure',
-  'in.water_heater_fuel', 'in.windows'
+    'in.clothes_dryer', 'in.cooking_range', 'in.geometry_attic_type', 'in.geometry_building_type_recs',
+    'in.vintage', 'in.area_median_income', 'in.geometry_floor_area', 'in.geometry_foundation_type',
+    'in.geometry_wall_type', 'in.heating_fuel', 'in.hvac_cooling_type', 'in.hvac_heating_efficiency',
+    'in.income', 'in.infiltration', 'in.insulation_ceiling', 'in.insulation_wall', 'in.tenure',
+    'in.water_heater_fuel', 'in.windows', 'in.misc_pool_heater', 'in.misc_hot_tub_spa', 'in.hvac_cooling_efficiency',
+    'in.hvac_secondary_heating_fuel'
 ]
 
 
 def write_df(df: pl.DataFrame, id_vars: tuple[str, ...], col_selector: SelectorType, variable_name: str,
-             value_name: str, group_name: str, filename: str, melted: bool = False):
+             value_name: str, group_name: str, filename: str, melted: bool = False, drop_nulls: bool = False):
     cols = cs.expand_selector(df, col_selector)
     df = df.select(id_vars + cols)
     if melted:
         df = df.melt(id_vars=id_vars, value_vars=cols,
                      variable_name=variable_name, value_name=value_name)
+        if drop_nulls:
+            df = df.filter(pl.col(value_name).is_not_null())
     final_df = df
     print(f"Writing {output_folder}/.../{group_name}/{filename}")
     os.makedirs(f"{output_folder}/head/{group_name}", exist_ok=True)
@@ -80,7 +83,7 @@ def write_group(largee_run: LARGEEE, group_name: str, filter_states: list[str] |
 
     cs_energy_cols = cs.matches(r"^out\.(.*)\.total.(.*)energy_consumption.kwh$")
     cs_energy_saving_cols = cs.matches(r"^out\.(.*)\.total.(.*)energy_consumption.kwh.savings$")
-    cs_upgrade_cost_cols = cs.matches(r"^out\.params.upgrade_cost_usd$")
+    cs_upgrade_cost_cols = cs.matches(r"^out\.params.upgrade_cost*")
     cs_bill_cols = cs.matches(r"^^out\.bill_costs.(.*).usd$")
     cs_bill_saving_cols = cs.matches(r"^^out\.bill_costs.(.*).usd.savings$")
     cs_emission_saving_cols = cs.matches(r"^out\.emissions.all_fuels.(.*)\.savings$")
@@ -91,7 +94,15 @@ def write_group(largee_run: LARGEEE, group_name: str, filter_states: list[str] |
     all_selectors |= cs.starts_with("bldg_id", "in.state", "upgrade", "weight")
     all_selectors |= cs.contains(set(long_chars) | set(wide_chars))
 
-    bs_df, up_df = largee_run.get_bs_up_df(filter_states=filter_states, column_selector=all_selectors)
+    bs_df, up_df = largee_run.get_bs_up_df(filter_states=filter_states,
+                                           column_selector=all_selectors)
+
+    up_df = up_df.with_columns(
+        pl.when(pl.col("upgrade.needs_electrification_update"))
+        .then(pl.col('out.params.upgrade_cost_usd') + electrification_adder)
+        .otherwise(pl.lit(None))
+        .alias('out.params.upgrade_cost_with_adder_usd')
+        )
 
     write_df(bs_df, id_vars=('bldg_id', 'weight'), col_selector=cs.by_name(wide_chars),
              variable_name="characteristics",
@@ -114,8 +125,14 @@ def write_group(largee_run: LARGEEE, group_name: str, filter_states: list[str] |
     write_df(up_df, id_vars=upgrade_id_cols,
              col_selector=cs_bill_saving_cols, variable_name="bill type", value_name="value",
              group_name=group_name, filename="upgrade_bill_savings_wide")
+
     write_df(up_df, id_vars=upgrade_id_cols, col_selector=cs_upgrade_cost_cols, variable_name="cost type",
              value_name="value",  group_name=group_name, filename="upgrade_cost_wide")
+
+    write_df(up_df, id_vars=upgrade_id_cols, col_selector=cs_upgrade_cost_cols,
+             variable_name="Cost Type", value_name="out.params.upgrade_cost_usd",
+             group_name=group_name, filename="upgrade_cost_long", melted=True, drop_nulls=True)
+
     write_df(up_df, id_vars=upgrade_id_cols, col_selector=cs_emission_saving_cols, variable_name="emission scenario",
              value_name="value",  group_name=group_name, filename="upgrade_emission_savings_wide")
 

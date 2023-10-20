@@ -27,12 +27,71 @@ class LARGEEE:
         if state_split:
             self.add_state_to_parquets()
 
+    def _add_electrification_adder(self, bs_df: pl.DataFrame, up_df: pl.DataFrame):
+        bs_chars = ["in.heating_fuel", "in.hvac_cooling_efficiency", "in.hvac_heating_efficiency",
+                    "in.clothes_dryer", "in.cooking_range", "in.misc_pool_heater",
+                    "in.hvac_cooling_type", "in.water_heater_fuel", "in.hvac_secondary_heating_fuel"]
+        char_df = bs_df.select(["bldg_id"] + bs_chars)
+        up_df = up_df.join(char_df, on="bldg_id", how="left")
+        up_df = up_df.with_columns(
+            pl.when(
+                (
+                    pl.col("upgrade.hvac_heating_efficiency").str.contains("ASHP|MSHP") &
+                    (~pl.col("in.heating_fuel").str.contains("Electricity")
+                     |
+                     pl.col("in.hvac_heating_efficiency").str.contains("Shared")
+                     )
+                )
+                |
+                (
+                    pl.col("upgrade.hvac_cooling_efficiency").str.contains("ASHP|MSHP") &
+                    ~pl.col("in.hvac_cooling_efficiency").str.contains("None")
+                )
+                |
+                (
+                    pl.col("upgrade.clothes_dryer").str.contains("Electric") &
+                    ~pl.col("in.clothes_dryer").str.contains("Electric")
+                )
+                |
+                (
+                    pl.col("upgrade.cooking_range").str.contains("Electric") &
+                    ~pl.col("in.cooking_range").str.contains("Electric")
+                )
+                |
+                (
+                    pl.col("upgrade.misc_pool_heater").str.contains("Electric") &
+                    ~pl.col("in.misc_pool_heater").str.contains("Electric")
+                )
+                |
+                (
+                    pl.col("upgrade.hvac_cooling_type").str.contains("Central AC") &
+                    pl.col("in.hvac_cooling_type").str.contains("None")
+                )
+                |
+                (
+                    pl.col("upgrade.water_heater_fuel").str.contains("Electric") &
+                    ~pl.col("in.water_heater_fuel").str.contains("Electric")
+                )
+                |
+                (
+                    pl.col("upgrade.heating_fuel").str.contains("Electric") &
+                    ~pl.col("in.heating_fuel").str.contains("Electric")
+                )
+                |
+                (
+                    pl.col("upgrade.hvac_secondary_heating_fuel").str.contains("Electric") &
+                    ~pl.col("in.hvac_secondary_heating_fuel").str.contains("Electric")
+                )
+            ).then(pl.lit(True)).otherwise(pl.lit(False)).alias("upgrade.needs_electrification_update")
+        )
+        return up_df.select(pl.exclude(bs_chars))
+
     def _get_run_objs(self):
         for cat in range(0, len(self.run_names)):
             if cat == 0:
                 table_name = self.run_names[0]
             else:
-                table_name = f"{self.run_names[0]}_baseline", f"{self.run_names[cat]}_timeseries",\
+                table_name = f"{self.run_names[0]}_baseline", f"{self.run_names[cat]}_timeseries", \
                     f"{self.run_names[cat]}_upgrades"
             self.run_objs[cat] = BuildStockQuery(workgroup=self.workgroup,
                                                  db_name=self.db_name,
@@ -74,6 +133,7 @@ class LARGEEE:
         processed_bs_df = process_upgrade(bs_df)
         if column_selector is not None:
             processed_bs_df = processed_bs_df.select(column_selector)
+        final_bs_df = processed_bs_df.collect()
         processed_up_df_list: list[pl.DataFrame] = []
         for upgrade_name, path in self.parquet_paths.items():
             if upgrade_name.endswith(".00"):  # skip baseline for each run
@@ -91,7 +151,8 @@ class LARGEEE:
                 p_up_df = p_up_df.select(column_selector)
             processed_up_df_list.append(p_up_df.collect())
         processed_all_up_df = pl.concat(processed_up_df_list, how='diagonal')
-        return processed_bs_df.collect(), processed_all_up_df
+        processed_all_up_df = self._add_electrification_adder(final_bs_df, processed_all_up_df)
+        return final_bs_df, processed_all_up_df
 
     def get_upgrade_names(self):
         upgrade_name_dict = defaultdict(list)
