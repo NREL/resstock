@@ -15,20 +15,6 @@ class SimControls
     # interior shading transmittance, etc.).
     shad.setShadingCalculationUpdateFrequency(20)
 
-    has_windows_varying_transmittance = false
-    hpxml.windows.each do |window|
-      sf_summer = window.interior_shading_factor_summer * window.exterior_shading_factor_summer
-      sf_winter = window.interior_shading_factor_winter * window.exterior_shading_factor_winter
-      next if sf_summer == sf_winter
-
-      has_windows_varying_transmittance = true
-    end
-    if has_windows_varying_transmittance
-      # Detailed diffuse algorithm is required for window interior shading with varying
-      # transmittance schedules
-      shad.setSkyDiffuseModelingAlgorithm('DetailedSkyDiffuseModeling')
-    end
-
     outsurf = model.getOutsideSurfaceConvectionAlgorithm
     outsurf.setAlgorithm('DOE-2')
 

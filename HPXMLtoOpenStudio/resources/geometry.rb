@@ -257,15 +257,6 @@ class Geometry
           end
         end
       end
-      model.getShadingSurfaceGroups.each do |shading_group|
-        next unless [Constants.ObjectNameSkylightShade, Constants.ObjectNameWindowShade].include? shading_group.name.to_s
-
-        shading_group.shadingSurfaces.each do |window_shade|
-          next unless window_shade.additionalProperties.getFeatureAsString('ParentSurface').get == surface.name.to_s
-
-          shading_surfaces << window_shade
-        end
-      end
 
       # Push out horizontally
       distance = explode_distance
