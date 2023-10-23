@@ -1,5 +1,5 @@
-Tasks
-=====
+Running Tasks
+=============
 
 Run ``openstudio tasks.rb`` to see available task commands:
 
