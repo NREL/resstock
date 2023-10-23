@@ -22,7 +22,6 @@ __New Features__
 - Battery losses now split between charging and discharging.
 - Interior/exterior window shading multipliers are now modeled using the EnergyPlus incident solar multiplier.
 - Improvements to HERS & MaxLoad heat pump sizing methodologies.
-- Added README.md documentation for all OpenStudio measures.
 
 __Bugfixes__
 - Fixes battery resilience output to properly incorporate battery losses.
