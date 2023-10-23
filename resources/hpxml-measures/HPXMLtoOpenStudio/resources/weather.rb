@@ -10,7 +10,7 @@ end
 class WeatherData
   def initialize
   end
-  ATTRS ||= [:AnnualAvgDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :MonthlyAvgDrybulbs, :GroundMonthlyTemps, :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs]
+  ATTRS ||= [:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :MonthlyAvgDrybulbs, :GroundMonthlyTemps, :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs]
   attr_accessor(*ATTRS)
 end
 
@@ -113,6 +113,8 @@ class WeatherProcess
     end
 
     @data.AnnualAvgDrybulb = UnitConversions.convert(rowdata.map { |x| x['db'] }.sum(0.0) / rowdata.length, 'C', 'F')
+    @data.AnnualMinDrybulb = UnitConversions.convert(rowdata.map { |x| x['db'] }.min, 'C', 'F')
+    @data.AnnualMaxDrybulb = UnitConversions.convert(rowdata.map { |x| x['db'] }.max, 'C', 'F')
     @data.MonthlyAvgDrybulbs = []
     for i in 1..12
       @data.MonthlyAvgDrybulbs << UnitConversions.convert(monthdbs[i - 1].sum / monthdbs[i - 1].length, 'C', 'F')
