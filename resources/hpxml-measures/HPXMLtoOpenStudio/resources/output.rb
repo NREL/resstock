@@ -143,3 +143,30 @@ class WT
   DiffuseSolar = 'Diffuse Solar Radiation'
   DirectSolar = 'Direct Solar Radiation'
 end
+
+class Outputs
+  def self.get_total_hvac_capacities(hpxml)
+    htg_cap, clg_cap, hp_backup_cap = 0.0, 0.0, 0.0
+    hpxml.hvac_systems.each do |hvac_system|
+      if hvac_system.is_a? HPXML::HeatingSystem
+        next if hvac_system.is_heat_pump_backup_system
+
+        htg_cap += hvac_system.heating_capacity.to_f
+      elsif hvac_system.is_a? HPXML::CoolingSystem
+        clg_cap += hvac_system.cooling_capacity.to_f
+        if hvac_system.has_integrated_heating
+          htg_cap += hvac_system.integrated_heating_system_capacity.to_f
+        end
+      elsif hvac_system.is_a? HPXML::HeatPump
+        htg_cap += hvac_system.heating_capacity.to_f
+        clg_cap += hvac_system.cooling_capacity.to_f
+        if hvac_system.backup_type == HPXML::HeatPumpBackupTypeIntegrated
+          hp_backup_cap += hvac_system.backup_heating_capacity.to_f
+        elsif hvac_system.backup_type == HPXML::HeatPumpBackupTypeSeparate
+          hp_backup_cap += hvac_system.backup_system.heating_capacity.to_f
+        end
+      end
+    end
+    return htg_cap, clg_cap, hp_backup_cap
+  end
+end

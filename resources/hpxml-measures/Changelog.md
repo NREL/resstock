@@ -1,8 +1,9 @@
 ## OpenStudio-HPXML v1.7.0
 
 __New Features__
+- Updates to OpenStudio 3.7.0/EnergyPlus 23.2.
 - **Breaking change**: Updates to official HPXML v4.0:
-  - HPXML namespace changed from http://hpxmlonline.com/2019/10 to http://hpxmlonline.com/2023/09
+  - HPXML namespace changed from http://hpxmlonline.com/2019/10 to http://hpxmlonline.com/2023/09.
   - Replaces "living space" with "conditioned space", which better represents what is modeled.
   - Replaces `HotTubs/HotTub` with `Spas/PermanentSpa`.
   - Replaces `PortableHeater` and `FixedHeater` with `SpaceHeater`.
@@ -19,6 +20,9 @@ __New Features__
   - Add generic "attic" and "crawlspace" location choices for supply/return ducts, water heater, and battery.
   - Always validate the HPXML file before applying defaults and only optionally validate the final HPXML file.
 - Battery losses now split between charging and discharging.
+- Interior/exterior window shading multipliers are now modeled using the EnergyPlus incident solar multiplier.
+- Improvements to HERS & MaxLoad heat pump sizing methodologies.
+- Added README.md documentation for all OpenStudio measures.
 
 __Bugfixes__
 - Fixes battery resilience output to properly incorporate battery losses.
@@ -27,8 +31,11 @@ __Bugfixes__
 - Fixes calculation of utility bill fixed costs for simulations with abbreviated run periods.
 - Fixes error if heat pump `CompressorLockoutTemperature` == `BackupHeatingLockoutTemperature`.
 - Fixes possible "Electricity category end uses do not sum to total" error for a heat pump w/o backup.
+- Fixes ground source heat pump fan/pump adjustment to rated efficiency.
 - Fixes error if conditioned basement has `InsulationSpansEntireSlab=true`.
 - Fixes ReportSimulationOutput outputs for the Parametric Analysis Tool (PAT).
+- Fixes missing radiation exchange between window and sky when an interior/exterior window shading multiplier less than 1 exists.
+- Fixes AC/HP cooling bug when applying cooling equipment adjustment.
 - BuildResidentialHPXML measure: Fixes air distribution CFA served when there is not a central system that meets 100% of the load.
 
 ## OpenStudio-HPXML v1.6.0

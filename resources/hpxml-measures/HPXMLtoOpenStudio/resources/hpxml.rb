@@ -4069,11 +4069,17 @@ class HPXML < Object
     end
 
     def is_dual_fuel
-      if @backup_heating_fuel.nil?
-        return false
-      end
-      if @backup_heating_fuel.to_s == @heat_pump_fuel.to_s
-        return false
+      if backup_system.nil?
+        if @backup_heating_fuel.nil?
+          return false
+        end
+        if @backup_heating_fuel.to_s == @heat_pump_fuel.to_s
+          return false
+        end
+      else
+        if backup_system.heating_system_fuel.to_s == @heat_pump_fuel.to_s
+          return false
+        end
       end
 
       return true
