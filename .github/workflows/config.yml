@@ -137,8 +137,8 @@ jobs:
 
       - name: Download and Install OpenStudio
         run: |
-          wget -q https://github.com/NREL/OpenStudio/releases/download/v3.6.1/OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
-          sudo apt install -y ./OpenStudio-3.6.1+bb9481519e-Ubuntu-20.04-x86_64.deb
+          wget -q https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Ubuntu-20.04-x86_64.deb                  
+          sudo apt install -y ./OpenStudio-3.7.0-rc1+211bb633b0-Ubuntu-20.04-x86_64.deb
           openstudio openstudio_version
           which openstudio
 
@@ -150,7 +150,7 @@ jobs:
 
       - name: Run buildstockbatch
         run: |
-          pip install git+https://github.com/NREL/buildstockbatch.git@v2023.06.0
+          pip install git+https://github.com/NREL/buildstockbatch.git@v2023.10.0
           
           buildstock_local project_national/hp_upgrades.yml
           
@@ -188,13 +188,6 @@ jobs:
           pip install plotly
           python test/process_bsb_analysis.py
 
-      - name: Run tests
-        run: |
-          sudo gem install minitest-reporters
-          sudo gem install simplecov
-          sudo gem install simplecov-html
-          ruby test/test_bsb_analysis.rb
-
       - name: Upload integration results
         uses: actions/upload-artifact@v3
         with:
@@ -212,6 +205,13 @@ jobs:
             project_national/national_upgrades/results_csvs/results_up16.csv
             project_testing/testing_upgrades/results_csvs/results_up16.csv
           name: buildstockbatch_results_csvs
+
+      - name: Run tests
+        run: |
+          sudo gem install minitest-reporters
+          sudo gem install simplecov
+          sudo gem install simplecov-html
+          ruby test/test_bsb_analysis.rb
 
   compare-tools:
     runs-on: ubuntu-latest
