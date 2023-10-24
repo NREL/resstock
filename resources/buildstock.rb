@@ -550,7 +550,7 @@ end
 
 class Version
   ResStock_Version = '3.1.0' # Version of ResStock
-  BuildStockBatch_Version = '2023.5.0' # Minimum required version of BuildStockBatch
+  BuildStockBatch_Version = '2023.10.0' # Minimum required version of BuildStockBatch
 
   def self.check_buildstockbatch_version
     if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed
