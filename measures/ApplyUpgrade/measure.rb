@@ -325,7 +325,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
-      next if step_value.name == 'heat_pump_backup_use_existing_system'
 
       measures['BuildResidentialHPXML'][0][step_value.name] = value
     end
