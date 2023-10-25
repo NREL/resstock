@@ -10,7 +10,7 @@ Features
 - Add Water Heater Location and Geometry Space Combination, update Geometry Garage and Geometry Floor Area Bin to RECS2020, update RECS2020 microdata from v2 to v4, auto-generate buildstocks for yml_precomputed tests ([#1125](https://github.com/NREL/resstock/pull/1125))
 - Add ability to request timeseries resilience output from the yml file ([#1113](https://github.com/NREL/resstock/pull/1113))
 - Add ability to calculate detailed utility bills based on a user-specified TSV file of paths to JSON utility rate tariff files ([#1109](https://github.com/NREL/resstock/pull/1109))
-- Automate creation of new "Arguments" documentation sections for summarizing used (i.e., options_lookup) and unused arguments ([#1146](https://github.com/NREL/resstock/pull/1146))
+- Automate creation of new "Arguments" documentation sections for summarizing arguments in options_lookup.tsv ([#1146](https://github.com/NREL/resstock/pull/1146))
 
 Fixes
 - Set standard format for options_lookup ([#962](https://github.com/NREL/resstock/pull/962))
