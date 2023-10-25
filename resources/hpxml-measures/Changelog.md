@@ -2,7 +2,7 @@
 
 __New Features__
 - Updates to OpenStudio 3.7.0/EnergyPlus 23.2.
-- **Breaking change**: Updates to official HPXML v4.0:
+- **Breaking change**: Updates to HPXML v4.0-rc2:
   - HPXML namespace changed from http://hpxmlonline.com/2019/10 to http://hpxmlonline.com/2023/09.
   - Replaces "living space" with "conditioned space", which better represents what is modeled.
   - Replaces `HotTubs/HotTub` with `Spas/PermanentSpa`.
@@ -21,6 +21,7 @@ __New Features__
   - Always validate the HPXML file before applying defaults and only optionally validate the final HPXML file.
 - Battery losses now split between charging and discharging.
 - Interior/exterior window shading multipliers are now modeled using the EnergyPlus incident solar multiplier.
+- Updates ground temperatures using a correlation based on L. Xing's simplified design model (2014).
 - Improvements to HERS & MaxLoad heat pump sizing methodologies.
 - Added README.md documentation for all OpenStudio measures.
 
