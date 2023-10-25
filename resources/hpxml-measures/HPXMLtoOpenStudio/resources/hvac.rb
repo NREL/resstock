@@ -1093,8 +1093,8 @@ class HVAC
     elsif compressor_type == HPXML::HVACCompressorTypeVariableSpeed
       # Variable speed systems have constant flow ECM blowers, so the air handler can always achieve the design airflow rate by sacrificing blower power.
       # So we assume that there is only one corresponding airflow rate for each compressor speed.
-      eir_fflow_spec = [[1, 0, 0]] * 4
-      cap_fflow_spec = [[1, 0, 0]] * 4
+      eir_fflow_spec = [[1, 0, 0]] * 2
+      cap_fflow_spec = [[1, 0, 0]] * 2
     end
     return cap_fflow_spec, eir_fflow_spec
   end
@@ -1124,8 +1124,8 @@ class HVAC
       eir_fflow_spec = [[2.153618211, -1.737190609, 0.584269478],
                         [2.001041353, -1.58869128, 0.587593517]]
     elsif compressor_type == HPXML::HVACCompressorTypeVariableSpeed
-      cap_fflow_spec = [[1, 0, 0]] * 4
-      eir_fflow_spec = [[1, 0, 0]] * 4
+      cap_fflow_spec = [[1, 0, 0]] * 3
+      eir_fflow_spec = [[1, 0, 0]] * 3
     end
     return cap_fflow_spec, eir_fflow_spec
   end
@@ -1138,8 +1138,6 @@ class HVAC
     set_cool_c_d(cooling_system)
 
     if cooling_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
-      # From "Improved Modeling of Residential Air Conditioners and Heat Pumps for Energy Calculations", Cutler et al
-      # https://www.nrel.gov/docs/fy13osti/56354.pdf
       clg_ap.cool_cap_ft_spec, clg_ap.cool_eir_ft_spec = get_cool_cap_eir_ft_spec(cooling_system.compressor_type)
       if not use_eer
         clg_ap.cool_rated_airflow_rate = clg_ap.cool_rated_cfm_per_ton[0]
@@ -1154,8 +1152,6 @@ class HVAC
       end
 
     elsif cooling_system.compressor_type == HPXML::HVACCompressorTypeTwoStage
-      # From "Improved Modeling of Residential Air Conditioners and Heat Pumps for Energy Calculations", Cutler et al
-      # https://www.nrel.gov/docs/fy13osti/56354.pdf
       clg_ap.cool_rated_airflow_rate = clg_ap.cool_rated_cfm_per_ton[-1]
       clg_ap.cool_fan_speed_ratios = calc_fan_speed_ratios(clg_ap.cool_capacity_ratios, clg_ap.cool_rated_cfm_per_ton, clg_ap.cool_rated_airflow_rate)
       clg_ap.cool_cap_ft_spec, clg_ap.cool_eir_ft_spec = get_cool_cap_eir_ft_spec(cooling_system.compressor_type)
@@ -1164,9 +1160,8 @@ class HVAC
       clg_ap.cool_rated_eirs = clg_ap.cool_eers.map { |cool_eer| calc_eir_from_eer(cool_eer, clg_ap.fan_power_rated) }
 
     elsif cooling_system.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
-      # From Carrier heat pump lab testing
       clg_ap.cooling_capacity_retention_temperature = 82.0
-      clg_ap.cooling_capacity_retention_fraction = 1.033
+      clg_ap.cooling_capacity_retention_fraction = 1.033 # From NEEP data
       clg_ap.cool_rated_airflow_rate = clg_ap.cool_rated_cfm_per_ton[-1]
       clg_ap.cool_fan_speed_ratios = calc_fan_speed_ratios(clg_ap.cool_capacity_ratios, clg_ap.cool_rated_cfm_per_ton, clg_ap.cool_rated_airflow_rate)
       clg_ap.cool_cap_fflow_spec, clg_ap.cool_eir_fflow_spec = get_cool_cap_eir_fflow_spec(cooling_system.compressor_type)
@@ -1212,8 +1207,6 @@ class HVAC
       end
 
     elsif heating_system.compressor_type == HPXML::HVACCompressorTypeTwoStage
-      # From "Improved Modeling of Residential Air Conditioners and Heat Pumps for Energy Calculations", Cutler et al
-      # https://www.nrel.gov/docs/fy13osti/56354.pdf
       htg_ap.heat_cap_ft_spec, htg_ap.heat_eir_ft_spec = get_heat_cap_eir_ft_spec(heating_system.compressor_type, heating_capacity_retention_temp, heating_capacity_retention_fraction)
       htg_ap.heat_rated_airflow_rate = htg_ap.heat_rated_cfm_per_ton[-1]
       htg_ap.heat_fan_speed_ratios = calc_fan_speed_ratios(htg_ap.heat_capacity_ratios, htg_ap.heat_rated_cfm_per_ton, htg_ap.heat_rated_airflow_rate)
@@ -1222,7 +1215,6 @@ class HVAC
 
     elsif heating_system.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
       is_ducted = !heating_system.distribution_system_idref.nil?
-      htg_ap.heat_cap_fflow_spec, htg_ap.heat_eir_fflow_spec = get_heat_cap_eir_fflow_spec(heating_system.compressor_type)
       htg_ap.heat_rated_airflow_rate = htg_ap.heat_rated_cfm_per_ton[-1]
       htg_ap.heat_capacity_ratios = get_heat_capacity_ratios(heating_system, is_ducted)
       htg_ap.heat_fan_speed_ratios = calc_fan_speed_ratios(htg_ap.heat_capacity_ratios, htg_ap.heat_rated_cfm_per_ton, htg_ap.heat_rated_airflow_rate)
@@ -1236,7 +1228,9 @@ class HVAC
 
     # Default data inputs based on NEEP data
     detailed_performance_data = heat_pump.heating_detailed_performance_data
-    max_cap_maint_5 = get_heat_max_capacity_maintainence_5(heat_pump)
+    heating_capacity_retention_temp, heating_capacity_retention_fraction = get_heating_capacity_retention(heat_pump)
+    max_cap_maint_5 = 1.0 - (1.0 - heating_capacity_retention_fraction) * (HVAC::AirSourceHeatRatedODB - 5.0) /
+                            (HVAC::AirSourceHeatRatedODB - heating_capacity_retention_temp)
 
     if is_ducted
       a, b, c, d, e = 0.4348, 0.008923, 1.090, -0.1861, -0.07564
@@ -1285,12 +1279,14 @@ class HVAC
 
     # Default data inputs based on NEEP data
     detailed_performance_data = heat_pump.cooling_detailed_performance_data
+    max_cap_maint_82 = 1.0 - (1.0 - hp_ap.cooling_capacity_retention_fraction) * (HVAC::AirSourceCoolRatedODB - 82.0) /
+                             (HVAC::AirSourceCoolRatedODB - hp_ap.cooling_capacity_retention_temperature)
 
     max_cop_95 = is_ducted ? 0.1953 * seer : 0.06635 * seer + 1.8707
     max_capacity_95 = heat_pump.cooling_capacity * hp_ap.cool_capacity_ratios[-1]
     min_capacity_95 = max_capacity_95 / hp_ap.cool_capacity_ratios[-1] * hp_ap.cool_capacity_ratios[0]
     min_cop_95 = is_ducted ? max_cop_95 * 1.231 : max_cop_95 * (0.01377 * seer + 1.13948)
-    max_capacity_82 = max_capacity_95 * get_cool_max_capacity_retention_82(hp_ap)
+    max_capacity_82 = max_capacity_95 * max_cap_maint_82
     max_cop_82 = is_ducted ? (1.297 * max_cop_95) : (1.375 * max_cop_95)
     min_capacity_82 = min_capacity_95 * 1.099
     min_cop_82 = is_ducted ? (1.402 * min_cop_95) : (1.333 * min_cop_95)
@@ -1335,17 +1331,34 @@ class HVAC
       end
       if is_ducted && heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpAirToAir
         # central ducted
-        return [0.358 / nominal_to_max_ratio, 1.0 / nominal_to_max_ratio]
+        return [0.358 / nominal_to_max_ratio, 1.0, 1.0 / nominal_to_max_ratio]
       elsif !is_ducted
         # wall placement
-        return [0.252 / nominal_to_max_ratio, 1.0 / nominal_to_max_ratio]
+        return [0.252 / nominal_to_max_ratio, 1.0, 1.0 / nominal_to_max_ratio]
       else
         # ducted minisplit
-        return [0.305 / nominal_to_max_ratio, 1.0 / nominal_to_max_ratio]
+        return [0.305 / nominal_to_max_ratio, 1.0, 1.0 / nominal_to_max_ratio]
       end
     end
 
     fail 'Unable to get heating capacity ratios.'
+  end
+
+  def self.drop_var_speed_heating_indice(heat_pump)
+    return unless heat_pump.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
+    return unless heat_pump.is_a? HPXML::HeatPump
+
+    hp_ap = heat_pump.additional_properties
+    nominal_speed_index = hp_ap.heat_capacity_ratios.find_index(1.0)
+
+    # Remove intermediate speed to before creating model, only models min/max speed
+    # Heating
+    hp_ap.heat_cap_fflow_spec.delete_at(nominal_speed_index)
+    hp_ap.heat_eir_fflow_spec.delete_at(nominal_speed_index)
+    hp_ap.heat_plf_fplr_spec.delete_at(nominal_speed_index)
+    hp_ap.heat_rated_cfm_per_ton.delete_at(nominal_speed_index)
+    hp_ap.heat_capacity_ratios.delete_at(nominal_speed_index)
+    hp_ap.heat_fan_speed_ratios.delete_at(nominal_speed_index)
   end
 
   def self.get_default_cool_cfm_per_ton(compressor_type, use_eer = false)
@@ -1376,7 +1389,7 @@ class HVAC
     elsif compressor_type == HPXML::HVACCompressorTypeTwoStage
       return [391.3333, 352.2]
     elsif compressor_type == HPXML::HVACCompressorTypeVariableSpeed
-      return [400.0, 400.0]
+      return [400.0, 400.0, 400.0]
     else
       fail 'Compressor type not supported.'
     end
@@ -2251,17 +2264,6 @@ class HVAC
     end
 
     return calc_cops_from_eir_2speed(cop_c, fan_power_rated)
-  end
-
-  def self.get_heat_max_capacity_maintainence_5(heat_pump)
-    heating_capacity_retention_temp, heating_capacity_retention_fraction = get_heating_capacity_retention(heat_pump)
-    return 1.0 - (1.0 - heating_capacity_retention_fraction) * (HVAC::AirSourceHeatRatedODB - 5.0) / (HVAC::AirSourceHeatRatedODB - heating_capacity_retention_temp)
-  end
-
-  def self.get_cool_max_capacity_retention_82(clg_ap)
-    cooling_capacity_retention_temp = clg_ap.cooling_capacity_retention_temperature
-    cooling_capacity_retention_fraction = clg_ap.cooling_capacity_retention_fraction
-    return 1.0 - (1.0 - cooling_capacity_retention_fraction) * (HVAC::AirSourceCoolRatedODB - 82.0) / (HVAC::AirSourceCoolRatedODB - cooling_capacity_retention_temp)
   end
 
   def self.get_heating_capacity_retention(heat_pump)

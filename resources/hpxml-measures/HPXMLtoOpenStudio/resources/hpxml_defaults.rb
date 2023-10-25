@@ -1502,6 +1502,7 @@ class HPXMLDefaults
 
   def self.apply_detailed_performance_data_for_var_speed_systems(hpxml)
     (hpxml.cooling_systems + hpxml.heat_pumps).each do |hvac_system|
+      HVAC.drop_var_speed_heating_indice(hvac_system)
       is_hp = hvac_system.is_a? HPXML::HeatPump
       system_type = is_hp ? hvac_system.heat_pump_type : hvac_system.cooling_system_type
       next unless [HPXML::HVACTypeCentralAirConditioner,
