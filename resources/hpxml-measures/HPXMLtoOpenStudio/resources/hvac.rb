@@ -2979,7 +2979,7 @@ class HVAC
         cool_nominal_cfm_per_ton = clg_ap.cool_rated_cfm_per_ton[0]
       end
 
-      p_atm = 14.696 # standard atmospheric pressure (psia)
+      p_atm = UnitConversions.convert(1, 'atm', 'psi')
 
       ao = Psychrometrics.CoilAoFactor(runner, dB_rated, p_atm, UnitConversions.convert(1, 'ton', 'kBtu/hr'), cool_nominal_cfm_per_ton, cooling_system.cooling_shr, win)
 
