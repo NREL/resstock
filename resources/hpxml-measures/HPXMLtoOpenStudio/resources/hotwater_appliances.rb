@@ -242,8 +242,7 @@ class HotWaterAndAppliances
         wh_setpoint = Waterheater.get_default_hot_water_temperature(eri_version) if wh_setpoint.nil? # using detailed schedules
         avg_setpoint_temp += wh_setpoint * water_heating_system.fraction_dhw_load_served
       end
-      daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow,
-                                                                               hpxml.header.sim_calendar_year)
+      daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow)
       daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map { |t| UnitConversions.convert(t, 'F', 'C') }
       daily_mw_fractions = calc_mixed_water_daily_fractions(daily_wh_inlet_temperatures, avg_setpoint_temp, t_mix)
 
@@ -861,23 +860,18 @@ class HotWaterAndAppliances
     return eff_adj, iFrac, plc, locF, fixF
   end
 
-  def self.calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow, year)
-    # Get daily mains temperatures
-    avgOAT = weather.data.AnnualAvgDrybulb
-    maxDiffMonthlyAvgOAT = weather.data.MonthlyAvgDrybulbs.max - weather.data.MonthlyAvgDrybulbs.min
-    tmains_daily = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, weather.header.Latitude, year)[2]
-
-    wh_temps_daily = tmains_daily
+  def self.calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow)
+    wh_temps_daily = weather.data.MainsDailyTemps
     if (not hot_water_distribution.dwhr_efficiency.nil?)
       dwhr_eff_adj, dwhr_iFrac, dwhr_plc, dwhr_locF, dwhr_fixF = get_dwhr_factors(nbeds, hot_water_distribution, fixtures_all_low_flow)
       # Adjust inlet temperatures
       dwhr_inT = 97.0 # F
-      for day in 0..tmains_daily.size - 1
-        dwhr_WHinTadj = dwhr_iFrac * (dwhr_inT - tmains_daily[day]) * hot_water_distribution.dwhr_efficiency * dwhr_eff_adj * dwhr_plc * dwhr_locF * dwhr_fixF
+      for day in 0..wh_temps_daily.size - 1
+        dwhr_WHinTadj = dwhr_iFrac * (dwhr_inT - wh_temps_daily[day]) * hot_water_distribution.dwhr_efficiency * dwhr_eff_adj * dwhr_plc * dwhr_locF * dwhr_fixF
         wh_temps_daily[day] = (wh_temps_daily[day] + dwhr_WHinTadj).round(3)
       end
     else
-      for day in 0..tmains_daily.size - 1
+      for day in 0..wh_temps_daily.size - 1
         wh_temps_daily[day] = (wh_temps_daily[day]).round(3)
       end
     end
