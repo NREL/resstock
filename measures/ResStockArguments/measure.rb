@@ -418,7 +418,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Vintage
-    if args[:vintage].is_initialized && args[:year_built] == Constants.Auto
+    if args[:vintage].is_initialized && args[:year_built].to_s == Constants.Auto
       args[:year_built] = Integer(Float(args[:vintage].get.gsub(/[^0-9]/, ''))) # strip non-numeric
     end
 
@@ -482,11 +482,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:hvac_control_cooling_weekend_setpoint] = weekend_cooling_setpoints.join(', ')
 
     # Seasons
-    if args[:use_auto_heating_season] && args[:hvac_control_heating_season_period] == Constants.Auto
+    if args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].to_s == Constants.Auto
       args[:hvac_control_heating_season_period] = HPXML::BuildingAmerica
     end
 
-    if args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period] == Constants.Auto
+    if args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].to_s == Constants.Auto
       args[:hvac_control_cooling_season_period] = HPXML::BuildingAmerica
     end
 
