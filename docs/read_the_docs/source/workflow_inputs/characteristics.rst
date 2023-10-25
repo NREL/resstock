@@ -16,7 +16,7 @@ The American Housing Survey region that the sample is located.
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -36,7 +36,7 @@ American Indian/Alaska Native/Native Hawaiian Area that the sample is located.
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -61,7 +61,7 @@ Climate zone according to ASHRAE 169 in 2004 and IECC in 2012 that the sample is
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -72,10 +72,11 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - site_iecc_zone
+   * - ``site_ground_conductivity``
+   * - ``site_iecc_zone``
+   * - ``site_type``
 
 .. _ashrae_iecc_climate_zone_2004___2_a_split:
 
@@ -90,7 +91,7 @@ Climate zone according to ASHRAE 169 in 2004 and IECC in 2012 that the sample is
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -115,7 +116,7 @@ Area median income of the household occupying the dwelling unit.
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -146,11 +147,13 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - bathroom_fans_quantity
-   * - bathroom_fans_start_hour
+   * - ``bathroom_fans_flow_rate``
+   * - ``bathroom_fans_hours_in_operation``
+   * - ``bathroom_fans_power``
+   * - ``bathroom_fans_quantity``
+   * - ``bathroom_fans_start_hour``
 
 .. _battery:
 
@@ -176,15 +179,14 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - battery_capacity
-   * - battery_location
-   * - battery_power
-   * - battery_present
-   * - battery_round_trip_efficiency
-   * - battery_usable_capacity
+   * - ``battery_capacity``
+   * - ``battery_location``
+   * - ``battery_power``
+   * - ``battery_present``
+   * - ``battery_round_trip_efficiency``
+   * - ``battery_usable_capacity``
 
 .. _bedrooms:
 
@@ -199,7 +201,7 @@ The number of bedrooms in the dwelling unit.
 Created by
 **********
 
-sources/ahs/ahs2017_2019/tsv_maker.py
+``sources/ahs/ahs2017_2019/tsv_maker.py``
 
 Source
 ******
@@ -215,11 +217,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_unit_num_bathrooms
-   * - geometry_unit_num_bedrooms
+   * - ``geometry_unit_num_bathrooms``
+   * - ``geometry_unit_num_bedrooms``
 
 .. _building_america_climate_zone:
 
@@ -234,7 +235,7 @@ The Building America Climate Zone that the sample is located.
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -254,7 +255,7 @@ The California Energy Commission Climate Zone that the sample is located.
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -295,13 +296,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - ceiling_fan_cooling_setpoint_temp_offset
-   * - ceiling_fan_efficiency
-   * - ceiling_fan_present
-   * - ceiling_fan_quantity
+   * - ``ceiling_fan_cooling_setpoint_temp_offset``
+   * - ``ceiling_fan_efficiency``
+   * - ``ceiling_fan_present``
+   * - ``ceiling_fan_quantity``
 
 .. _census_division:
 
@@ -316,7 +316,7 @@ The U.S. Census Division that the sample is located.
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -336,7 +336,7 @@ Census Division as used in RECS 2015 that the sample is located. RECS 2015 split
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -356,7 +356,7 @@ The U.S. Census Region that the sample is located.
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -376,7 +376,7 @@ The City that the sample is located.
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -401,7 +401,7 @@ The presence, rated efficiency, and fuel type of the clothes dryer in a dwelling
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -417,15 +417,14 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - clothes_dryer_efficiency
-   * - clothes_dryer_efficiency_type
-   * - clothes_dryer_fuel_type
-   * - clothes_dryer_location
-   * - clothes_dryer_present
-   * - clothes_dryer_vented_flow_rate
+   * - ``clothes_dryer_efficiency``
+   * - ``clothes_dryer_efficiency_type``
+   * - ``clothes_dryer_fuel_type``
+   * - ``clothes_dryer_location``
+   * - ``clothes_dryer_present``
+   * - ``clothes_dryer_vented_flow_rate``
 
 .. _clothes_dryer_usage_level:
 
@@ -440,7 +439,7 @@ Clothes dryer energy usage level multiplier.
 Created by
 **********
 
-sources/other/tsv_maker.py
+``sources/other/tsv_maker.py``
 
 Source
 ******
@@ -456,10 +455,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - clothes_dryer_usage_multiplier
+   * - ``clothes_dryer_usage_multiplier``
 
 .. _clothes_washer:
 
@@ -474,7 +472,7 @@ Presence and rated efficiency of the clothes washer.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -490,19 +488,18 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - clothes_washer_capacity
-   * - clothes_washer_efficiency
-   * - clothes_washer_efficiency_type
-   * - clothes_washer_label_annual_gas_cost
-   * - clothes_washer_label_electric_rate
-   * - clothes_washer_label_gas_rate
-   * - clothes_washer_label_usage
-   * - clothes_washer_location
-   * - clothes_washer_present
-   * - clothes_washer_rated_annual_kwh
+   * - ``clothes_washer_capacity``
+   * - ``clothes_washer_efficiency``
+   * - ``clothes_washer_efficiency_type``
+   * - ``clothes_washer_label_annual_gas_cost``
+   * - ``clothes_washer_label_electric_rate``
+   * - ``clothes_washer_label_gas_rate``
+   * - ``clothes_washer_label_usage``
+   * - ``clothes_washer_location``
+   * - ``clothes_washer_present``
+   * - ``clothes_washer_rated_annual_kwh``
 
 .. _clothes_washer_presence:
 
@@ -517,7 +514,7 @@ The presence of a clothes washer in the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -542,7 +539,7 @@ Clothes washer energy usage level multiplier.
 Created by
 **********
 
-sources/other/tsv_maker.py
+``sources/other/tsv_maker.py``
 
 Source
 ******
@@ -558,10 +555,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - clothes_washer_usage_multiplier
+   * - ``clothes_washer_usage_multiplier``
 
 .. _cooking_range:
 
@@ -576,7 +572,7 @@ Presence and fuel type of the cooking range.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -592,13 +588,13 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - cooking_range_oven_fuel_type
-   * - cooking_range_oven_is_induction
-   * - cooking_range_oven_location
-   * - cooking_range_oven_present
+   * - ``cooking_range_oven_fuel_type``
+   * - ``cooking_range_oven_is_convection``
+   * - ``cooking_range_oven_is_induction``
+   * - ``cooking_range_oven_location``
+   * - ``cooking_range_oven_present``
 
 .. _cooking_range_usage_level:
 
@@ -613,7 +609,7 @@ Cooling range energy usage level multiplier.
 Created by
 **********
 
-sources/other/tsv_maker.py
+``sources/other/tsv_maker.py``
 
 Source
 ******
@@ -629,10 +625,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - cooking_range_oven_usage_multiplier
+   * - ``cooking_range_oven_usage_multiplier``
 
 .. _cooling_setpoint:
 
@@ -647,7 +642,7 @@ Baseline cooling setpoint with no offset applied.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -663,12 +658,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - hvac_control_cooling_weekday_setpoint_temp
-   * - hvac_control_cooling_weekend_setpoint_temp
-   * - use_auto_cooling_season
+   * - ``hvac_control_cooling_season_period``
+   * - ``hvac_control_cooling_weekday_setpoint_temp``
+   * - ``hvac_control_cooling_weekend_setpoint_temp``
+   * - ``use_auto_cooling_season``
 
 .. _cooling_setpoint_has_offset:
 
@@ -683,7 +678,7 @@ Presence of a cooling setpoint offset.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -708,7 +703,7 @@ The magnitude of cooling setpoint offset.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -724,11 +719,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - hvac_control_cooling_weekday_setpoint_offset_magnitude
-   * - hvac_control_cooling_weekend_setpoint_offset_magnitude
+   * - ``hvac_control_cooling_weekday_setpoint_offset_magnitude``
+   * - ``hvac_control_cooling_weekend_setpoint_offset_magnitude``
 
 .. _cooling_setpoint_offset_period:
 
@@ -743,7 +737,7 @@ The period and offset for the dwelling unit's cooling setpoint. Default for the 
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -759,11 +753,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - hvac_control_cooling_weekday_setpoint_schedule
-   * - hvac_control_cooling_weekend_setpoint_schedule
+   * - ``hvac_control_cooling_weekday_setpoint_schedule``
+   * - ``hvac_control_cooling_weekend_setpoint_schedule``
 
 .. _corridor:
 
@@ -789,11 +782,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_corridor_position
-   * - geometry_corridor_width
+   * - ``geometry_corridor_position``
+   * - ``geometry_corridor_width``
 
 .. _county:
 
@@ -808,7 +800,7 @@ The U.S. County that the sample is located.
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -819,13 +811,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - simulation_control_daylight_saving_enabled
-   * - site_time_zone_utc_offset
-   * - site_zip_code
-   * - weather_station_epw_filepath
+   * - ``simulation_control_daylight_saving_enabled``
+   * - ``site_time_zone_utc_offset``
+   * - ``site_zip_code``
+   * - ``weather_station_epw_filepath``
 
 .. _county_and_puma:
 
@@ -840,7 +831,7 @@ The GISJOIN identifier for the County and the Public Use Microdata Area that the
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -871,15 +862,14 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - dehumidifier_capacity
-   * - dehumidifier_efficiency
-   * - dehumidifier_efficiency_type
-   * - dehumidifier_fraction_dehumidification_load_served
-   * - dehumidifier_rh_setpoint
-   * - dehumidifier_type
+   * - ``dehumidifier_capacity``
+   * - ``dehumidifier_efficiency``
+   * - ``dehumidifier_efficiency_type``
+   * - ``dehumidifier_fraction_dehumidification_load_served``
+   * - ``dehumidifier_rh_setpoint``
+   * - ``dehumidifier_type``
 
 .. _dishwasher:
 
@@ -894,7 +884,7 @@ The presence and rated efficiency of the dishwasher.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -910,18 +900,17 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - dishwasher_efficiency
-   * - dishwasher_efficiency_type
-   * - dishwasher_label_annual_gas_cost
-   * - dishwasher_label_electric_rate
-   * - dishwasher_label_gas_rate
-   * - dishwasher_label_usage
-   * - dishwasher_location
-   * - dishwasher_place_setting_capacity
-   * - dishwasher_present
+   * - ``dishwasher_efficiency``
+   * - ``dishwasher_efficiency_type``
+   * - ``dishwasher_label_annual_gas_cost``
+   * - ``dishwasher_label_electric_rate``
+   * - ``dishwasher_label_gas_rate``
+   * - ``dishwasher_label_usage``
+   * - ``dishwasher_location``
+   * - ``dishwasher_place_setting_capacity``
+   * - ``dishwasher_present``
 
 .. _dishwasher_usage_level:
 
@@ -936,7 +925,7 @@ Dishwasher energy usage level multiplier.
 Created by
 **********
 
-sources/other/tsv_maker.py
+``sources/other/tsv_maker.py``
 
 Source
 ******
@@ -952,10 +941,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - dishwasher_usage_multiplier
+   * - ``dishwasher_usage_multiplier``
 
 .. _door_area:
 
@@ -981,10 +969,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - door_area
+   * - ``door_area``
 
 .. _doors:
 
@@ -1010,10 +997,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - door_rvalue
+   * - ``door_rvalue``
 
 .. _duct_leakage_and_insulation:
 
@@ -1028,7 +1014,7 @@ Duct insulation and leakage to outside from the portion of ducts in unconditione
 Created by
 **********
 
-sources/other/tsv_maker.py
+``sources/other/tsv_maker.py``
 
 Source
 ******
@@ -1044,14 +1030,15 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - ducts_leakage_units
-   * - ducts_return_insulation_r
-   * - ducts_return_leakage_to_outside_value
-   * - ducts_supply_insulation_r
-   * - ducts_supply_leakage_to_outside_value
+   * - ``ducts_leakage_units``
+   * - ``ducts_return_buried_insulation_level``
+   * - ``ducts_return_insulation_r``
+   * - ``ducts_return_leakage_to_outside_value``
+   * - ``ducts_supply_buried_insulation_level``
+   * - ``ducts_supply_insulation_r``
+   * - ``ducts_supply_leakage_to_outside_value``
 
 .. _duct_location:
 
@@ -1066,7 +1053,7 @@ Location of Duct System
 Created by
 **********
 
-sources/other/tsv_maker.py
+``sources/other/tsv_maker.py``
 
 Source
 ******
@@ -1082,16 +1069,15 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - ducts_number_of_return_registers
-   * - ducts_return_location
-   * - ducts_return_surface_area
-   * - ducts_return_surface_area_fraction
-   * - ducts_supply_location
-   * - ducts_supply_surface_area
-   * - ducts_supply_surface_area_fraction
+   * - ``ducts_number_of_return_registers``
+   * - ``ducts_return_location``
+   * - ``ducts_return_surface_area``
+   * - ``ducts_return_surface_area_fraction``
+   * - ``ducts_supply_location``
+   * - ``ducts_supply_surface_area``
+   * - ``ducts_supply_surface_area_fraction``
 
 .. _eaves:
 
@@ -1117,10 +1103,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_eaves_depth
+   * - ``geometry_eaves_depth``
 
 .. _electric_vehicle:
 
@@ -1146,13 +1131,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - misc_plug_loads_vehicle_2_usage_multiplier
-   * - misc_plug_loads_vehicle_annual_kwh
-   * - misc_plug_loads_vehicle_present
-   * - misc_plug_loads_vehicle_usage_multiplier
+   * - ``misc_plug_loads_vehicle_2_usage_multiplier``
+   * - ``misc_plug_loads_vehicle_annual_kwh``
+   * - ``misc_plug_loads_vehicle_present``
+   * - ``misc_plug_loads_vehicle_usage_multiplier``
 
 .. _energystar_climate_zone_2023:
 
@@ -1167,7 +1151,7 @@ Climate zones for windows, doors, and skylights per EnergyStar guidelines as of 
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -1192,7 +1176,7 @@ Federal poverty level of the household occupying the dwelling unit.
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -1217,7 +1201,7 @@ The generation and carbon emissions assessment region that the sample is located
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -1237,7 +1221,7 @@ The dwelling unit attic type.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -1253,12 +1237,11 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_attic_type
-   * - geometry_roof_pitch
-   * - geometry_roof_type
+   * - ``geometry_attic_type``
+   * - ``geometry_roof_pitch``
+   * - ``geometry_roof_type``
 
 .. _geometry_building_horizontal_location_mf:
 
@@ -1273,7 +1256,7 @@ Location of the single-family attached unit horizontally within the building (le
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+``sources/recs/recs2009/tsv_maker.py``
 
 Source
 ******
@@ -1289,10 +1272,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_unit_horizontal_location
+   * - ``geometry_unit_horizontal_location``
 
 .. _geometry_building_horizontal_location_sfa:
 
@@ -1318,10 +1300,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_unit_horizontal_location
+   * - ``geometry_unit_horizontal_location``
 
 .. _geometry_building_level_mf:
 
@@ -1336,7 +1317,7 @@ Location of the multi-family unit vertically within the building (bottom, middle
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+``sources/recs/recs2009/tsv_maker.py``
 
 Source
 ******
@@ -1352,10 +1333,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_unit_level
+   * - ``geometry_unit_level``
 
 .. _geometry_building_number_units_mf:
 
@@ -1370,7 +1350,7 @@ The number of dwelling units in the multi-family building.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+``sources/recs/recs2009/tsv_maker.py``
 
 Source
 ******
@@ -1386,10 +1366,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_building_num_units
+   * - ``geometry_building_num_units``
 
 .. _geometry_building_number_units_sfa:
 
@@ -1415,10 +1394,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_building_num_units
+   * - ``geometry_building_num_units``
 
 .. _geometry_building_type_acs:
 
@@ -1433,7 +1411,7 @@ The building type classification according to the U.S. Census American Communicy
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -1453,7 +1431,7 @@ The 2009 U.S. Energy Information Administration Residential Energy Consumption S
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+``sources/recs/recs2009/tsv_maker.py``
 
 Source
 ******
@@ -1473,7 +1451,7 @@ The building type classification according to the U.S. Energy Information Admini
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -1484,12 +1462,11 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_average_ceiling_height
-   * - geometry_unit_aspect_ratio
-   * - geometry_unit_type
+   * - ``geometry_average_ceiling_height``
+   * - ``geometry_unit_aspect_ratio``
+   * - ``geometry_unit_type``
 
 .. _geometry_floor_area:
 
@@ -1504,7 +1481,7 @@ The finished floor area of the dwelling unit using bins from 2017-2019 AHS.
 Created by
 **********
 
-sources/ahs/ahs2017_2019/tsv_maker.py
+``sources/ahs/ahs2017_2019/tsv_maker.py``
 
 Source
 ******
@@ -1520,12 +1497,11 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_garage_protrusion
-   * - geometry_unit_cfa
-   * - geometry_unit_cfa_bin
+   * - ``geometry_garage_protrusion``
+   * - ``geometry_unit_cfa``
+   * - ``geometry_unit_cfa_bin``
 
 .. _geometry_floor_area_bin:
 
@@ -1540,7 +1516,7 @@ The finished floor area of the dwelling unit using bins from the U.S. Energy Inf
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -1560,7 +1536,7 @@ The type of foundation.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+``sources/recs/recs2009/tsv_maker.py``
 
 Source
 ******
@@ -1576,13 +1552,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_foundation_height
-   * - geometry_foundation_height_above_grade
-   * - geometry_foundation_type
-   * - geometry_rim_joist_height
+   * - ``geometry_foundation_height``
+   * - ``geometry_foundation_height_above_grade``
+   * - ``geometry_foundation_type``
+   * - ``geometry_rim_joist_height``
 
 .. _geometry_garage:
 
@@ -1597,7 +1572,7 @@ The size of an attached garage.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -1613,12 +1588,11 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_garage_depth
-   * - geometry_garage_position
-   * - geometry_garage_width
+   * - ``geometry_garage_depth``
+   * - ``geometry_garage_position``
+   * - ``geometry_garage_width``
 
 .. _geometry_space_combination:
 
@@ -1633,7 +1607,7 @@ Valid combinations of building type, building level mf, attic, foundation, and g
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -1658,7 +1632,7 @@ The number of building stories.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+``sources/recs/recs2009/tsv_maker.py``
 
 Source
 ******
@@ -1674,10 +1648,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_num_floors_above_grade
+   * - ``geometry_num_floors_above_grade``
 
 .. _geometry_stories_low_rise:
 
@@ -1692,7 +1665,7 @@ Number of building stories for low-rise buildings.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+``sources/recs/recs2009/tsv_maker.py``
 
 Source
 ******
@@ -1712,7 +1685,7 @@ The building has more than 8 or less than 8 stories.
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+``sources/recs/recs2009/tsv_maker.py``
 
 Source
 ******
@@ -1732,7 +1705,7 @@ Wall siding material and color.
 Created by
 **********
 
-sources/lightbox/residential/tsv_maker.py
+``sources/lightbox/residential/tsv_maker.py``
 
 Source
 ******
@@ -1748,12 +1721,11 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - exterior_finish_r
-   * - wall_color
-   * - wall_siding_type
+   * - ``exterior_finish_r``
+   * - ``wall_color``
+   * - ``wall_siding_type``
 
 .. _geometry_wall_type:
 
@@ -1768,7 +1740,7 @@ The wall material used for thermal mass calculations of exterior walls.
 Created by
 **********
 
-sources/lightbox/residential/tsv_maker.py
+``sources/lightbox/residential/tsv_maker.py``
 
 Source
 ******
@@ -1793,7 +1765,7 @@ The presence and efficiency of primary cooling system in the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -1809,14 +1781,20 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - cooling_system_cooling_capacity
-   * - cooling_system_cooling_efficiency
-   * - cooling_system_cooling_efficiency_type
-   * - cooling_system_is_ducted
-   * - cooling_system_type
+   * - ``cooling_system_cooling_capacity``
+   * - ``cooling_system_cooling_compressor_type``
+   * - ``cooling_system_cooling_efficiency``
+   * - ``cooling_system_cooling_efficiency_type``
+   * - ``cooling_system_cooling_sensible_heat_fraction``
+   * - ``cooling_system_crankcase_heater_watts``
+   * - ``cooling_system_integrated_heating_system_capacity``
+   * - ``cooling_system_integrated_heating_system_efficiency_percent``
+   * - ``cooling_system_integrated_heating_system_fraction_heat_load_served``
+   * - ``cooling_system_integrated_heating_system_fuel``
+   * - ``cooling_system_is_ducted``
+   * - ``cooling_system_type``
 
 .. _hvac_cooling_partial_space_conditioning:
 
@@ -1831,7 +1809,7 @@ The fraction of the finished floor area that the cooling system provides cooling
 Created by
 **********
 
-sources/recs/recs2009/tsv_maker.py
+``sources/recs/recs2009/tsv_maker.py``
 
 Source
 ******
@@ -1847,10 +1825,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - cooling_system_fraction_cool_load_served
+   * - ``cooling_system_fraction_cool_load_served``
 
 .. _hvac_cooling_type:
 
@@ -1865,7 +1842,7 @@ The presence and type of primary cooling system in the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -1890,7 +1867,7 @@ The presence of ducts in the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -1915,7 +1892,7 @@ The presence of an HVAC system shared between multiple dwelling units.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -1960,7 +1937,7 @@ The presence and efficiency of the primary heating system in the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -1976,31 +1953,36 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - heat_pump_backup_fuel
-   * - heat_pump_backup_heating_capacity
-   * - heat_pump_backup_heating_efficiency
-   * - heat_pump_backup_type
-   * - heat_pump_cooling_capacity
-   * - heat_pump_cooling_efficiency
-   * - heat_pump_cooling_efficiency_type
-   * - heat_pump_fraction_cool_load_served
-   * - heat_pump_fraction_heat_load_served
-   * - heat_pump_heating_capacity
-   * - heat_pump_heating_capacity_retention_fraction
-   * - heat_pump_heating_capacity_retention_temp
-   * - heat_pump_heating_efficiency
-   * - heat_pump_heating_efficiency_type
-   * - heat_pump_is_ducted
-   * - heat_pump_sizing_methodology
-   * - heat_pump_type
-   * - heating_system_fraction_heat_load_served
-   * - heating_system_has_flue_or_chimney
-   * - heating_system_heating_capacity
-   * - heating_system_heating_efficiency
-   * - heating_system_type
+   * - ``heat_pump_backup_fuel``
+   * - ``heat_pump_backup_heating_capacity``
+   * - ``heat_pump_backup_heating_efficiency``
+   * - ``heat_pump_backup_heating_lockout_temp``
+   * - ``heat_pump_backup_type``
+   * - ``heat_pump_compressor_lockout_temp``
+   * - ``heat_pump_cooling_capacity``
+   * - ``heat_pump_cooling_compressor_type``
+   * - ``heat_pump_cooling_efficiency``
+   * - ``heat_pump_cooling_efficiency_type``
+   * - ``heat_pump_cooling_sensible_heat_fraction``
+   * - ``heat_pump_crankcase_heater_watts``
+   * - ``heat_pump_fraction_cool_load_served``
+   * - ``heat_pump_fraction_heat_load_served``
+   * - ``heat_pump_heating_capacity``
+   * - ``heat_pump_heating_capacity_retention_fraction``
+   * - ``heat_pump_heating_capacity_retention_temp``
+   * - ``heat_pump_heating_efficiency``
+   * - ``heat_pump_heating_efficiency_type``
+   * - ``heat_pump_is_ducted``
+   * - ``heat_pump_sizing_methodology``
+   * - ``heat_pump_type``
+   * - ``heating_system_fraction_heat_load_served``
+   * - ``heating_system_has_flue_or_chimney``
+   * - ``heating_system_heating_capacity``
+   * - ``heating_system_heating_efficiency``
+   * - ``heating_system_pilot_light``
+   * - ``heating_system_type``
 
 .. _hvac_heating_type:
 
@@ -2015,7 +1997,7 @@ The presence and type of the primary heating system in the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -2040,7 +2022,7 @@ The presence, type, and fuel of primary heating system.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -2071,13 +2053,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - heating_system_2_has_flue_or_chimney
-   * - heating_system_2_heating_capacity
-   * - heating_system_2_heating_efficiency
-   * - heating_system_2_type
+   * - ``heating_system_2_has_flue_or_chimney``
+   * - ``heating_system_2_heating_capacity``
+   * - ``heating_system_2_heating_efficiency``
+   * - ``heating_system_2_type``
 
 .. _hvac_secondary_heating_fuel:
 
@@ -2098,10 +2079,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - heating_system_2_fuel
+   * - ``heating_system_2_fuel``
 
 .. _hvac_secondary_heating_partial_space_conditioning:
 
@@ -2122,10 +2102,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - heating_system_2_fraction_heat_load_served
+   * - ``heating_system_2_fraction_heat_load_served``
 
 .. _hvac_shared_efficiencies:
 
@@ -2140,7 +2119,7 @@ The presence and efficiency of the shared HVAC system.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -2156,33 +2135,32 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - cooling_system_cooling_capacity
-   * - cooling_system_cooling_efficiency
-   * - cooling_system_cooling_efficiency_type
-   * - cooling_system_is_ducted
-   * - cooling_system_type
-   * - heat_pump_backup_fuel
-   * - heat_pump_backup_heating_capacity
-   * - heat_pump_backup_heating_efficiency
-   * - heat_pump_backup_type
-   * - heat_pump_cooling_capacity
-   * - heat_pump_cooling_efficiency
-   * - heat_pump_cooling_efficiency_type
-   * - heat_pump_fraction_cool_load_served
-   * - heat_pump_fraction_heat_load_served
-   * - heat_pump_heating_capacity
-   * - heat_pump_heating_efficiency
-   * - heat_pump_heating_efficiency_type
-   * - heat_pump_sizing_methodology
-   * - heat_pump_type
-   * - heating_system_fraction_heat_load_served
-   * - heating_system_has_flue_or_chimney
-   * - heating_system_heating_capacity
-   * - heating_system_heating_efficiency
-   * - heating_system_type
+   * - ``cooling_system_cooling_capacity``
+   * - ``cooling_system_cooling_efficiency``
+   * - ``cooling_system_cooling_efficiency_type``
+   * - ``cooling_system_is_ducted``
+   * - ``cooling_system_type``
+   * - ``heat_pump_backup_fuel``
+   * - ``heat_pump_backup_heating_capacity``
+   * - ``heat_pump_backup_heating_efficiency``
+   * - ``heat_pump_backup_type``
+   * - ``heat_pump_cooling_capacity``
+   * - ``heat_pump_cooling_efficiency``
+   * - ``heat_pump_cooling_efficiency_type``
+   * - ``heat_pump_fraction_cool_load_served``
+   * - ``heat_pump_fraction_heat_load_served``
+   * - ``heat_pump_heating_capacity``
+   * - ``heat_pump_heating_efficiency``
+   * - ``heat_pump_heating_efficiency_type``
+   * - ``heat_pump_sizing_methodology``
+   * - ``heat_pump_type``
+   * - ``heating_system_fraction_heat_load_served``
+   * - ``heating_system_has_flue_or_chimney``
+   * - ``heating_system_heating_capacity``
+   * - ``heating_system_heating_efficiency``
+   * - ``heating_system_type``
 
 .. _hvac_system_is_faulted:
 
@@ -2228,11 +2206,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - cooling_system_actual_cfm_per_ton
-   * - cooling_system_rated_cfm_per_ton
+   * - ``cooling_system_actual_cfm_per_ton``
+   * - ``cooling_system_rated_cfm_per_ton``
 
 .. _hvac_system_single_speed_ac_charge:
 
@@ -2258,10 +2235,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - cooling_system_frac_manufacturer_charge
+   * - ``cooling_system_frac_manufacturer_charge``
 
 .. _hvac_system_single_speed_ashp_airflow:
 
@@ -2287,11 +2263,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - heat_pump_actual_cfm_per_ton
-   * - heat_pump_rated_cfm_per_ton
+   * - ``heat_pump_actual_cfm_per_ton``
+   * - ``heat_pump_rated_cfm_per_ton``
 
 .. _hvac_system_single_speed_ashp_charge:
 
@@ -2317,10 +2292,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - heat_pump_frac_manufacturer_charge
+   * - ``heat_pump_frac_manufacturer_charge``
 
 .. _has_pv:
 
@@ -2335,7 +2309,7 @@ The dwelling unit has a rooftop photovoltaic system.
 Created by
 **********
 
-sources/dpv/tsv_maker.py
+``sources/dpv/tsv_maker.py``
 
 Source
 ******
@@ -2360,7 +2334,7 @@ The primary fuel used for heating the dwelling unit.
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -2376,10 +2350,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - heating_system_fuel
+   * - ``heating_system_fuel``
 
 .. _heating_setpoint:
 
@@ -2394,7 +2367,7 @@ Baseline heating setpoint with no offset applied.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -2410,12 +2383,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - hvac_control_heating_weekday_setpoint_temp
-   * - hvac_control_heating_weekend_setpoint_temp
-   * - use_auto_heating_season
+   * - ``hvac_control_heating_season_period``
+   * - ``hvac_control_heating_weekday_setpoint_temp``
+   * - ``hvac_control_heating_weekend_setpoint_temp``
+   * - ``use_auto_heating_season``
 
 .. _heating_setpoint_has_offset:
 
@@ -2430,7 +2403,7 @@ Presence of a heating setpoint offset.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -2455,7 +2428,7 @@ Magnitude of the heating setpoint offset.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -2471,11 +2444,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - hvac_control_heating_weekday_setpoint_offset_magnitude
-   * - hvac_control_heating_weekend_setpoint_offset_magnitude
+   * - ``hvac_control_heating_weekday_setpoint_offset_magnitude``
+   * - ``hvac_control_heating_weekend_setpoint_offset_magnitude``
 
 .. _heating_setpoint_offset_period:
 
@@ -2490,7 +2462,7 @@ The period and offset for the dwelling unit's heating setpoint. Default for the 
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -2506,11 +2478,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - hvac_control_heating_weekday_setpoint_schedule
-   * - hvac_control_heating_weekend_setpoint_schedule
+   * - ``hvac_control_heating_weekday_setpoint_schedule``
+   * - ``hvac_control_heating_weekend_setpoint_schedule``
 
 .. _holiday_lighting:
 
@@ -2536,11 +2507,11 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - holiday_lighting_daily_kwh
-   * - holiday_lighting_present
+   * - ``holiday_lighting_daily_kwh``
+   * - ``holiday_lighting_period``
+   * - ``holiday_lighting_present``
 
 .. _hot_water_distribution:
 
@@ -2566,19 +2537,18 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - dwhr_efficiency
-   * - dwhr_equal_flow
-   * - dwhr_facilities_connected
-   * - hot_water_distribution_pipe_r
-   * - hot_water_distribution_recirc_branch_piping_length
-   * - hot_water_distribution_recirc_control_type
-   * - hot_water_distribution_recirc_piping_length
-   * - hot_water_distribution_recirc_pump_power
-   * - hot_water_distribution_standard_piping_length
-   * - hot_water_distribution_system_type
+   * - ``dwhr_efficiency``
+   * - ``dwhr_equal_flow``
+   * - ``dwhr_facilities_connected``
+   * - ``hot_water_distribution_pipe_r``
+   * - ``hot_water_distribution_recirc_branch_piping_length``
+   * - ``hot_water_distribution_recirc_control_type``
+   * - ``hot_water_distribution_recirc_piping_length``
+   * - ``hot_water_distribution_recirc_pump_power``
+   * - ``hot_water_distribution_standard_piping_length``
+   * - ``hot_water_distribution_system_type``
 
 .. _hot_water_fixtures:
 
@@ -2604,12 +2574,11 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - water_fixtures_shower_low_flow
-   * - water_fixtures_sink_low_flow
-   * - water_fixtures_usage_multiplier
+   * - ``water_fixtures_shower_low_flow``
+   * - ``water_fixtures_sink_low_flow``
+   * - ``water_fixtures_usage_multiplier``
 
 .. _household_has_tribal_persons:
 
@@ -2624,7 +2593,7 @@ The houshold occupying the dwelling unit has at least one tribal person in the h
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -2649,7 +2618,7 @@ The independent system operator or regional transmission organization region tha
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -2669,7 +2638,7 @@ Income of the household occupying the dwelling unit.
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -2694,7 +2663,7 @@ Income of the household occupying the dwelling unit that are aligned with the 20
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -2719,7 +2688,7 @@ Income of the household occupying the dwelling unit that are aligned with the 20
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -2744,7 +2713,7 @@ Air leakage rates for the living and garage spaces
 Created by
 **********
 
-sources/resdb/tsv_maker.py
+``sources/resdb/tsv_maker.py``
 
 Source
 ******
@@ -2760,14 +2729,13 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - air_leakage_house_pressure
-   * - air_leakage_type
-   * - air_leakage_units
-   * - air_leakage_value
-   * - site_shielding_of_home
+   * - ``air_leakage_house_pressure``
+   * - ``air_leakage_type``
+   * - ``air_leakage_units``
+   * - ``air_leakage_value``
+   * - ``site_shielding_of_home``
 
 .. _insulation_ceiling:
 
@@ -2788,11 +2756,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - ceiling_assembly_r
-   * - ceiling_insulation_r
+   * - ``ceiling_assembly_r``
+   * - ``ceiling_insulation_r``
 
 .. _insulation_floor:
 
@@ -2813,12 +2780,11 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - floor_over_foundation_assembly_r
-   * - floor_over_garage_assembly_r
-   * - floor_type
+   * - ``floor_over_foundation_assembly_r``
+   * - ``floor_over_garage_assembly_r``
+   * - ``floor_type``
 
 .. _insulation_foundation_wall:
 
@@ -2839,15 +2805,15 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - foundation_wall_insulation_distance_to_bottom
-   * - foundation_wall_insulation_distance_to_top
-   * - foundation_wall_insulation_location
-   * - foundation_wall_insulation_r
-   * - foundation_wall_thickness
-   * - foundation_wall_type
+   * - ``foundation_wall_assembly_r``
+   * - ``foundation_wall_insulation_distance_to_bottom``
+   * - ``foundation_wall_insulation_distance_to_top``
+   * - ``foundation_wall_insulation_location``
+   * - ``foundation_wall_insulation_r``
+   * - ``foundation_wall_thickness``
+   * - ``foundation_wall_type``
 
 .. _insulation_rim_joist:
 
@@ -2878,12 +2844,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - rim_joist_assembly_interior_r
-   * - rim_joist_continuous_exterior_r
-   * - rim_joist_continuous_interior_r
+   * - ``rim_joist_assembly_interior_r``
+   * - ``rim_joist_assembly_r``
+   * - ``rim_joist_continuous_exterior_r``
+   * - ``rim_joist_continuous_interior_r``
 
 .. _insulation_roof:
 
@@ -2909,10 +2875,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - roof_assembly_r
+   * - ``roof_assembly_r``
 
 .. _insulation_slab:
 
@@ -2943,16 +2908,15 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - slab_carpet_fraction
-   * - slab_carpet_r
-   * - slab_perimeter_depth
-   * - slab_perimeter_insulation_r
-   * - slab_thickness
-   * - slab_under_insulation_r
-   * - slab_under_width
+   * - ``slab_carpet_fraction``
+   * - ``slab_carpet_r``
+   * - ``slab_perimeter_depth``
+   * - ``slab_perimeter_insulation_r``
+   * - ``slab_thickness``
+   * - ``slab_under_insulation_r``
+   * - ``slab_under_width``
 
 .. _insulation_wall:
 
@@ -2983,11 +2947,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - wall_assembly_r
-   * - wall_type
+   * - ``wall_assembly_r``
+   * - ``wall_type``
 
 .. _interior_shading:
 
@@ -3013,11 +2976,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - window_interior_shading_summer
-   * - window_interior_shading_winter
+   * - ``window_interior_shading_summer``
+   * - ``window_interior_shading_winter``
 
 .. _lighting:
 
@@ -3027,7 +2989,7 @@ Lighting
 Created by
 **********
 
-sources/recs/2015/tsv_maker.py
+``sources/recs/2015/tsv_maker.py``
 
 Source
 ******
@@ -3043,19 +3005,18 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - lighting_exterior_fraction_cfl
-   * - lighting_exterior_fraction_led
-   * - lighting_exterior_fraction_lfl
-   * - lighting_garage_fraction_cfl
-   * - lighting_garage_fraction_led
-   * - lighting_garage_fraction_lfl
-   * - lighting_interior_fraction_cfl
-   * - lighting_interior_fraction_led
-   * - lighting_interior_fraction_lfl
-   * - lighting_present
+   * - ``lighting_exterior_fraction_cfl``
+   * - ``lighting_exterior_fraction_led``
+   * - ``lighting_exterior_fraction_lfl``
+   * - ``lighting_garage_fraction_cfl``
+   * - ``lighting_garage_fraction_led``
+   * - ``lighting_garage_fraction_lfl``
+   * - ``lighting_interior_fraction_cfl``
+   * - ``lighting_interior_fraction_led``
+   * - ``lighting_interior_fraction_lfl``
+   * - ``lighting_present``
 
 .. _lighting_interior_use:
 
@@ -3081,10 +3042,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - lighting_interior_usage_multiplier
+   * - ``lighting_interior_usage_multiplier``
 
 .. _lighting_other_use:
 
@@ -3110,11 +3070,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - lighting_exterior_usage_multiplier
-   * - lighting_garage_usage_multiplier
+   * - ``lighting_exterior_usage_multiplier``
+   * - ``lighting_garage_usage_multiplier``
 
 .. _location_region:
 
@@ -3129,7 +3088,7 @@ A custom ResStock region constructed of RECS 2009 reportable domains that the sa
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -3160,27 +3119,33 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - mech_vent_2_fan_power
-   * - mech_vent_2_fan_type
-   * - mech_vent_2_flow_rate
-   * - mech_vent_2_hours_in_operation
-   * - mech_vent_2_recovery_efficiency_type
-   * - mech_vent_2_sensible_recovery_efficiency
-   * - mech_vent_2_total_recovery_efficiency
-   * - mech_vent_fan_power
-   * - mech_vent_fan_type
-   * - mech_vent_flow_rate
-   * - mech_vent_hours_in_operation
-   * - mech_vent_num_units_served
-   * - mech_vent_recovery_efficiency_type
-   * - mech_vent_sensible_recovery_efficiency
-   * - mech_vent_total_recovery_efficiency
-   * - whole_house_fan_flow_rate
-   * - whole_house_fan_power
-   * - whole_house_fan_present
+   * - ``mech_vent_2_fan_power``
+   * - ``mech_vent_2_fan_type``
+   * - ``mech_vent_2_flow_rate``
+   * - ``mech_vent_2_hours_in_operation``
+   * - ``mech_vent_2_recovery_efficiency_type``
+   * - ``mech_vent_2_sensible_recovery_efficiency``
+   * - ``mech_vent_2_total_recovery_efficiency``
+   * - ``mech_vent_fan_power``
+   * - ``mech_vent_fan_type``
+   * - ``mech_vent_flow_rate``
+   * - ``mech_vent_hours_in_operation``
+   * - ``mech_vent_num_units_served``
+   * - ``mech_vent_recovery_efficiency_type``
+   * - ``mech_vent_sensible_recovery_efficiency``
+   * - ``mech_vent_shared_frac_recirculation``
+   * - ``mech_vent_shared_precooling_efficiency``
+   * - ``mech_vent_shared_precooling_fraction_cool_load_served``
+   * - ``mech_vent_shared_precooling_fuel``
+   * - ``mech_vent_shared_preheating_efficiency``
+   * - ``mech_vent_shared_preheating_fraction_heat_load_served``
+   * - ``mech_vent_shared_preheating_fuel``
+   * - ``mech_vent_total_recovery_efficiency``
+   * - ``whole_house_fan_flow_rate``
+   * - ``whole_house_fan_power``
+   * - ``whole_house_fan_present``
 
 .. _misc_extra_refrigerator:
 
@@ -3195,7 +3160,7 @@ The presence and rated efficiency of the secondary refrigerator.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -3211,13 +3176,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - extra_refrigerator_location
-   * - extra_refrigerator_present
-   * - extra_refrigerator_rated_annual_kwh
-   * - extra_refrigerator_usage_multiplier
+   * - ``extra_refrigerator_location``
+   * - ``extra_refrigerator_present``
+   * - ``extra_refrigerator_rated_annual_kwh``
+   * - ``extra_refrigerator_usage_multiplier``
 
 .. _misc_freezer:
 
@@ -3232,7 +3196,7 @@ The presence and rated efficiency of a standalone freezer.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -3248,13 +3212,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - freezer_location
-   * - freezer_present
-   * - freezer_rated_annual_kwh
-   * - freezer_usage_multiplier
+   * - ``freezer_location``
+   * - ``freezer_present``
+   * - ``freezer_rated_annual_kwh``
+   * - ``freezer_usage_multiplier``
 
 .. _misc_gas_fireplace:
 
@@ -3280,15 +3243,14 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - misc_fuel_loads_fireplace_annual_therm
-   * - misc_fuel_loads_fireplace_frac_latent
-   * - misc_fuel_loads_fireplace_frac_sensible
-   * - misc_fuel_loads_fireplace_fuel_type
-   * - misc_fuel_loads_fireplace_present
-   * - misc_fuel_loads_fireplace_usage_multiplier
+   * - ``misc_fuel_loads_fireplace_annual_therm``
+   * - ``misc_fuel_loads_fireplace_frac_latent``
+   * - ``misc_fuel_loads_fireplace_frac_sensible``
+   * - ``misc_fuel_loads_fireplace_fuel_type``
+   * - ``misc_fuel_loads_fireplace_present``
+   * - ``misc_fuel_loads_fireplace_usage_multiplier``
 
 .. _misc_gas_grill:
 
@@ -3314,13 +3276,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - misc_fuel_loads_grill_annual_therm
-   * - misc_fuel_loads_grill_fuel_type
-   * - misc_fuel_loads_grill_present
-   * - misc_fuel_loads_grill_usage_multiplier
+   * - ``misc_fuel_loads_grill_annual_therm``
+   * - ``misc_fuel_loads_grill_fuel_type``
+   * - ``misc_fuel_loads_grill_present``
+   * - ``misc_fuel_loads_grill_usage_multiplier``
 
 .. _misc_gas_lighting:
 
@@ -3346,13 +3307,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - misc_fuel_loads_lighting_annual_therm
-   * - misc_fuel_loads_lighting_fuel_type
-   * - misc_fuel_loads_lighting_present
-   * - misc_fuel_loads_lighting_usage_multiplier
+   * - ``misc_fuel_loads_lighting_annual_therm``
+   * - ``misc_fuel_loads_lighting_fuel_type``
+   * - ``misc_fuel_loads_lighting_present``
+   * - ``misc_fuel_loads_lighting_usage_multiplier``
 
 .. _misc_hot_tub_spa:
 
@@ -3367,7 +3327,7 @@ The presence and heating fuel of a hot tub/spa at the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -3383,16 +3343,15 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - permanent_spa_heater_annual_kwh
-   * - permanent_spa_heater_annual_therm
-   * - permanent_spa_heater_type
-   * - permanent_spa_heater_usage_multiplier
-   * - permanent_spa_present
-   * - permanent_spa_pump_annual_kwh
-   * - permanent_spa_pump_usage_multiplier
+   * - ``permanent_spa_heater_annual_kwh``
+   * - ``permanent_spa_heater_annual_therm``
+   * - ``permanent_spa_heater_type``
+   * - ``permanent_spa_heater_usage_multiplier``
+   * - ``permanent_spa_present``
+   * - ``permanent_spa_pump_annual_kwh``
+   * - ``permanent_spa_pump_usage_multiplier``
 
 .. _misc_pool:
 
@@ -3407,7 +3366,7 @@ The presence of a pool at the dwelling unit.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -3423,10 +3382,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - pool_present
+   * - ``pool_present``
 
 .. _misc_pool_heater:
 
@@ -3441,7 +3399,7 @@ The heating fuel of the pool heater if there is a pool.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -3452,13 +3410,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - pool_heater_annual_kwh
-   * - pool_heater_annual_therm
-   * - pool_heater_type
-   * - pool_heater_usage_multiplier
+   * - ``pool_heater_annual_kwh``
+   * - ``pool_heater_annual_therm``
+   * - ``pool_heater_type``
+   * - ``pool_heater_usage_multiplier``
 
 .. _misc_pool_pump:
 
@@ -3484,11 +3441,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - pool_pump_annual_kwh
-   * - pool_pump_usage_multiplier
+   * - ``pool_pump_annual_kwh``
+   * - ``pool_pump_usage_multiplier``
 
 .. _misc_well_pump:
 
@@ -3514,13 +3470,12 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - misc_plug_loads_well_pump_2_usage_multiplier
-   * - misc_plug_loads_well_pump_annual_kwh
-   * - misc_plug_loads_well_pump_present
-   * - misc_plug_loads_well_pump_usage_multiplier
+   * - ``misc_plug_loads_well_pump_2_usage_multiplier``
+   * - ``misc_plug_loads_well_pump_annual_kwh``
+   * - ``misc_plug_loads_well_pump_present``
+   * - ``misc_plug_loads_well_pump_usage_multiplier``
 
 .. _natural_ventilation:
 
@@ -3546,10 +3501,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - window_fraction_operable
+   * - ``window_fraction_operable``
 
 .. _neighbors:
 
@@ -3575,17 +3529,16 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - neighbor_back_distance
-   * - neighbor_back_height
-   * - neighbor_front_distance
-   * - neighbor_front_height
-   * - neighbor_left_distance
-   * - neighbor_left_height
-   * - neighbor_right_distance
-   * - neighbor_right_height
+   * - ``neighbor_back_distance``
+   * - ``neighbor_back_height``
+   * - ``neighbor_front_distance``
+   * - ``neighbor_front_height``
+   * - ``neighbor_left_distance``
+   * - ``neighbor_left_height``
+   * - ``neighbor_right_distance``
+   * - ``neighbor_right_height``
 
 .. _occupants:
 
@@ -3600,7 +3553,7 @@ The number of occupants living in the dwelling unit.
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -3616,10 +3569,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_unit_num_occupants
+   * - ``geometry_unit_num_occupants``
 
 .. _orientation:
 
@@ -3645,10 +3597,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - geometry_unit_orientation
+   * - ``geometry_unit_orientation``
 
 .. _overhangs:
 
@@ -3674,21 +3625,20 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - overhangs_back_depth
-   * - overhangs_back_distance_to_bottom_of_window
-   * - overhangs_back_distance_to_top_of_window
-   * - overhangs_front_depth
-   * - overhangs_front_distance_to_bottom_of_window
-   * - overhangs_front_distance_to_top_of_window
-   * - overhangs_left_depth
-   * - overhangs_left_distance_to_bottom_of_window
-   * - overhangs_left_distance_to_top_of_window
-   * - overhangs_right_depth
-   * - overhangs_right_distance_to_bottom_of_window
-   * - overhangs_right_distance_to_top_of_window
+   * - ``overhangs_back_depth``
+   * - ``overhangs_back_distance_to_bottom_of_window``
+   * - ``overhangs_back_distance_to_top_of_window``
+   * - ``overhangs_front_depth``
+   * - ``overhangs_front_distance_to_bottom_of_window``
+   * - ``overhangs_front_distance_to_top_of_window``
+   * - ``overhangs_left_depth``
+   * - ``overhangs_left_distance_to_bottom_of_window``
+   * - ``overhangs_left_distance_to_top_of_window``
+   * - ``overhangs_right_depth``
+   * - ``overhangs_right_distance_to_bottom_of_window``
+   * - ``overhangs_right_distance_to_top_of_window``
 
 .. _puma:
 
@@ -3703,7 +3653,7 @@ The Public Use Microdata Area from 2010 U.S. Census that the sample is located.
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -3723,7 +3673,7 @@ The public use microdata area metropolitan status that the dwelling unit is loca
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -3748,7 +3698,7 @@ The orientation of the photovoltaic system.
 Created by
 **********
 
-sources/dpv/tsv_maker.py
+``sources/dpv/tsv_maker.py``
 
 Source
 ******
@@ -3764,11 +3714,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - pv_system_2_array_azimuth
-   * - pv_system_array_azimuth
+   * - ``pv_system_2_array_azimuth``
+   * - ``pv_system_array_azimuth``
 
 .. _pv_system_size:
 
@@ -3783,7 +3732,7 @@ The size of the photovoltaic system.
 Created by
 **********
 
-sources/dpv/tsv_maker.py
+``sources/dpv/tsv_maker.py``
 
 Source
 ******
@@ -3799,21 +3748,22 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - pv_system_2_array_tilt
-   * - pv_system_2_location
-   * - pv_system_2_max_power_output
-   * - pv_system_2_module_type
-   * - pv_system_2_present
-   * - pv_system_2_tracking
-   * - pv_system_array_tilt
-   * - pv_system_location
-   * - pv_system_max_power_output
-   * - pv_system_module_type
-   * - pv_system_present
-   * - pv_system_tracking
+   * - ``pv_system_2_array_tilt``
+   * - ``pv_system_2_location``
+   * - ``pv_system_2_max_power_output``
+   * - ``pv_system_2_module_type``
+   * - ``pv_system_2_present``
+   * - ``pv_system_2_tracking``
+   * - ``pv_system_array_tilt``
+   * - ``pv_system_inverter_efficiency``
+   * - ``pv_system_location``
+   * - ``pv_system_max_power_output``
+   * - ``pv_system_module_type``
+   * - ``pv_system_present``
+   * - ``pv_system_system_losses_fraction``
+   * - ``pv_system_tracking``
 
 .. _plug_load_diversity:
 
@@ -3839,10 +3789,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - misc_plug_loads_other_2_usage_multiplier
+   * - ``misc_plug_loads_other_2_usage_multiplier``
 
 .. _plug_loads:
 
@@ -3857,7 +3806,7 @@ Plug load usage level which is varied by Census Division RECS and Building Type 
 Created by
 **********
 
-sources/recs/recs2015/tsv_maker.py
+``sources/recs/recs2015/tsv_maker.py``
 
 Source
 ******
@@ -3873,14 +3822,13 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - misc_plug_loads_other_annual_kwh
-   * - misc_plug_loads_other_frac_latent
-   * - misc_plug_loads_other_frac_sensible
-   * - misc_plug_loads_other_usage_multiplier
-   * - misc_plug_loads_television_present
+   * - ``misc_plug_loads_other_annual_kwh``
+   * - ``misc_plug_loads_other_frac_latent``
+   * - ``misc_plug_loads_other_frac_sensible``
+   * - ``misc_plug_loads_other_usage_multiplier``
+   * - ``misc_plug_loads_television_present``
 
 .. _reeds_balancing_area:
 
@@ -3895,7 +3843,7 @@ The Regional Energy Deployment System Model (ReEDS) balancing area that the samp
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -3926,11 +3874,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - roof_radiant_barrier
-   * - roof_radiant_barrier_grade
+   * - ``roof_radiant_barrier``
+   * - ``roof_radiant_barrier_grade``
 
 .. _range_spot_vent_hour:
 
@@ -3956,11 +3903,13 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - kitchen_fans_quantity
-   * - kitchen_fans_start_hour
+   * - ``kitchen_fans_flow_rate``
+   * - ``kitchen_fans_hours_in_operation``
+   * - ``kitchen_fans_power``
+   * - ``kitchen_fans_quantity``
+   * - ``kitchen_fans_start_hour``
 
 .. _refrigerator:
 
@@ -3975,7 +3924,7 @@ The presence and rated efficiency of the primary refrigerator.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -3991,12 +3940,11 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - refrigerator_location
-   * - refrigerator_present
-   * - refrigerator_rated_annual_kwh
+   * - ``refrigerator_location``
+   * - ``refrigerator_present``
+   * - ``refrigerator_rated_annual_kwh``
 
 .. _refrigerator_usage_level:
 
@@ -4011,7 +3959,7 @@ Refrigerator energy usage level multiplier.
 Created by
 **********
 
-sources/other/tsv_maker.py
+``sources/other/tsv_maker.py``
 
 Source
 ******
@@ -4027,10 +3975,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - refrigerator_usage_multiplier
+   * - ``refrigerator_usage_multiplier``
 
 .. _roof_material:
 
@@ -4045,7 +3992,7 @@ Roof material and color.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -4061,11 +4008,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - roof_color
-   * - roof_material_type
+   * - ``roof_color``
+   * - ``roof_material_type``
 
 .. _solar_hot_water:
 
@@ -4091,19 +4037,18 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - solar_thermal_collector_area
-   * - solar_thermal_collector_azimuth
-   * - solar_thermal_collector_loop_type
-   * - solar_thermal_collector_rated_optical_efficiency
-   * - solar_thermal_collector_rated_thermal_losses
-   * - solar_thermal_collector_tilt
-   * - solar_thermal_collector_type
-   * - solar_thermal_solar_fraction
-   * - solar_thermal_storage_volume
-   * - solar_thermal_system_type
+   * - ``solar_thermal_collector_area``
+   * - ``solar_thermal_collector_azimuth``
+   * - ``solar_thermal_collector_loop_type``
+   * - ``solar_thermal_collector_rated_optical_efficiency``
+   * - ``solar_thermal_collector_rated_thermal_losses``
+   * - ``solar_thermal_collector_tilt``
+   * - ``solar_thermal_collector_type``
+   * - ``solar_thermal_solar_fraction``
+   * - ``solar_thermal_storage_volume``
+   * - ``solar_thermal_system_type``
 
 .. _state:
 
@@ -4118,7 +4063,7 @@ The U.S. State the sample is located.
 Created by
 **********
 
-sources/spatial/tsv_maker.py
+``sources/spatial/tsv_maker.py``
 
 Source
 ******
@@ -4129,10 +4074,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - site_state_code
+   * - ``site_state_code``
 
 .. _tenure:
 
@@ -4147,7 +4091,7 @@ The tenancy (owner or renter) of the household occupying the dwelling unit.
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -4192,7 +4136,7 @@ The vacancy status (occupied or vacant) of the dwelling unit.
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -4208,10 +4152,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - schedules_vacancy_period
+   * - ``schedules_vacancy_period``
 
 .. _vintage:
 
@@ -4226,7 +4169,7 @@ Time period in which the building was constructed.
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -4242,10 +4185,10 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - vintage
+   * - ``vintage``
+   * - ``year_built``
 
 .. _vintage_acs:
 
@@ -4260,7 +4203,7 @@ Time period in which the dwelling unit was constructed as defined by the U.S. Ce
 Created by
 **********
 
-sources/pums/pums2019_5yrs/tsv_maker.py
+``sources/pums/pums2019_5yrs/tsv_maker.py``
 
 Source
 ******
@@ -4280,7 +4223,7 @@ The efficiency, type, and heating fuel of water heater.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -4296,21 +4239,24 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - water_heater_efficiency
-   * - water_heater_efficiency_type
-   * - water_heater_fuel_type
-   * - water_heater_has_flue_or_chimney
-   * - water_heater_heating_capacity
-   * - water_heater_jacket_rvalue
-   * - water_heater_num_units_served
-   * - water_heater_recovery_efficiency
-   * - water_heater_setpoint_temperature
-   * - water_heater_standby_loss
-   * - water_heater_tank_volume
-   * - water_heater_type
+   * - ``water_heater_efficiency``
+   * - ``water_heater_efficiency_type``
+   * - ``water_heater_fuel_type``
+   * - ``water_heater_has_flue_or_chimney``
+   * - ``water_heater_heating_capacity``
+   * - ``water_heater_jacket_rvalue``
+   * - ``water_heater_num_units_served``
+   * - ``water_heater_operating_mode``
+   * - ``water_heater_recovery_efficiency``
+   * - ``water_heater_setpoint_temperature``
+   * - ``water_heater_standby_loss``
+   * - ``water_heater_tank_model_type``
+   * - ``water_heater_tank_volume``
+   * - ``water_heater_type``
+   * - ``water_heater_usage_bin``
+   * - ``water_heater_uses_desuperheater``
 
 .. _water_heater_fuel:
 
@@ -4325,7 +4271,7 @@ The water heater fuel type.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -4350,7 +4296,7 @@ Individual water heater present or not present in the dwelling unit that solely 
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -4375,7 +4321,7 @@ location of water heater.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -4391,10 +4337,9 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - water_heater_location
+   * - ``water_heater_location``
 
 .. _window_areas:
 
@@ -4409,7 +4354,7 @@ Window to wall ratios of the front, back, left, and right walls.
 Created by
 **********
 
-sources/rbsa_II/tsv_maker.py
+``sources/rbsa_II/tsv_maker.py``
 
 Source
 ******
@@ -4425,22 +4370,21 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - skylight_area_back
-   * - skylight_area_front
-   * - skylight_area_left
-   * - skylight_area_right
-   * - window_area_back
-   * - window_area_front
-   * - window_area_left
-   * - window_area_right
-   * - window_aspect_ratio
-   * - window_back_wwr
-   * - window_front_wwr
-   * - window_left_wwr
-   * - window_right_wwr
+   * - ``skylight_area_back``
+   * - ``skylight_area_front``
+   * - ``skylight_area_left``
+   * - ``skylight_area_right``
+   * - ``window_area_back``
+   * - ``window_area_front``
+   * - ``window_area_left``
+   * - ``window_area_right``
+   * - ``window_aspect_ratio``
+   * - ``window_back_wwr``
+   * - ``window_front_wwr``
+   * - ``window_left_wwr``
+   * - ``window_right_wwr``
 
 .. _windows:
 
@@ -4455,7 +4399,7 @@ Construction type and efficiency levels of windows.
 Created by
 **********
 
-sources/recs/recs2020/tsv_maker.py
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -4471,11 +4415,15 @@ Arguments
 *********
 
 .. list-table::
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Used in Lookup
-   * - skylight_shgc
-   * - skylight_ufactor
-   * - window_shgc
-   * - window_ufactor
+   * - ``skylight_shgc``
+   * - ``skylight_storm_type``
+   * - ``skylight_ufactor``
+   * - ``window_exterior_shading_summer``
+   * - ``window_exterior_shading_winter``
+   * - ``window_natvent_availability``
+   * - ``window_shading_summer_season``
+   * - ``window_shgc``
+   * - ``window_ufactor``
 
