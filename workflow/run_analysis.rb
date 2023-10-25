@@ -144,6 +144,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
       utility_bills = workflow_args['utility_bills']
       bld_exist_model_args['utility_bill_scenario_names'] = utility_bills.collect { |s| s['scenario_name'] }.join(',')
       bld_exist_model_args['utility_bill_simple_filepaths'] = utility_bills.collect { |s| s['simple_filepath'] }.join(',')
+      bld_exist_model_args['utility_bill_detailed_filepaths'] = utility_bills.collect { |s| s['detailed_filepath'] }.join(',')
       bld_exist_model_args['utility_bill_electricity_fixed_charges'] = utility_bills.collect { |s| s['elec_fixed_charge'] }.join(',')
       bld_exist_model_args['utility_bill_electricity_marginal_rates'] = utility_bills.collect { |s| s['elec_marginal_rate'] }.join(',')
       bld_exist_model_args['utility_bill_natural_gas_fixed_charges'] = utility_bills.collect { |s| s['gas_fixed_charge'] }.join(',')
@@ -182,6 +183,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
       'include_annual_component_loads' => true,
       'include_annual_hot_water_uses' => true,
       'include_annual_hvac_summary' => true,
+      'include_annual_resilience' => true,
       'timeseries_frequency' => 'none',
       'include_timeseries_total_consumptions' => false,
       'include_timeseries_fuel_consumptions' => false,
@@ -197,6 +199,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
       'include_timeseries_zone_temperatures' => false,
       'include_timeseries_airflows' => false,
       'include_timeseries_weather' => false,
+      'include_timeseries_resilience' => false,
       'timeseries_timestamp_convention' => 'end',
       'timeseries_num_decimal_places' => 3,
       'add_timeseries_dst_column' => true,
@@ -281,7 +284,9 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
       },
       {
         'measure_dir_name' => 'ReportUtilityBills',
-        'arguments' => { 'output_format' => 'csv' }
+        'arguments' => { 'output_format' => 'csv',
+                         'include_annual_bills' => true,
+                         'include_monthly_bills' => false }
       },
       {
         'measure_dir_name' => 'UpgradeCosts',
