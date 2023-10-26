@@ -26,17 +26,8 @@ class ResStockArgumentsTest < Minitest::Test
     model = OpenStudio::Model::Model.new
     resstock_arguments = []
     measure.arguments(model).each do |arg|
-      next if arg.name.start_with?('emissions_')
-      next if arg.name.start_with?('utility_bill_')
-      next if arg.name.start_with?('additional_properties')
-      next if arg.name.start_with?('apply_defaults')
-      next if arg.name.start_with?('apply_validation')
-      next if arg.name.start_with?('combine_like_surfaces')
-      next if arg.name.start_with?('schedules_')
-      next if arg.name.start_with?('simulation_control_')
-      next if arg.name.start_with?('air_leakage_has_flue_or_chimney_in_conditioned_space')
-      next if arg.name.start_with?('heating_system_actual_cfm_per_ton')
-      next if arg.name.start_with?('heating_system_rated_cfm_per_ton')
+      next if Constants.build_existing_model_excludes.include? arg.name
+      next if Constants.other_excludes.include? arg.name
 
       resstock_arguments << arg.name
     end

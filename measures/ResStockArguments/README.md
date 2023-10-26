@@ -11,17 +11,6 @@ Passes in all arguments from the options lookup, processes them, and then regist
 ## Arguments
 
 
-**schedules_filepaths**
-
-
-
-- **Name:** ``schedules_filepaths``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
 **schedules_vacancy_period**
 
 
@@ -93,28 +82,6 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 
 - **Name:** ``simulation_control_daylight_saving_enabled``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**simulation_control_daylight_saving_period**
-
-
-
-- **Name:** ``simulation_control_daylight_saving_period``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**simulation_control_temperature_capacitance_multiplier**
-
-
-
-- **Name:** ``simulation_control_temperature_capacitance_multiplier``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -1440,17 +1407,6 @@ Air exchange rate value. For 'EffectiveLeakageArea', provide value in sq. in.
 
 
 - **Name:** ``air_leakage_type``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**air_leakage_has_flue_or_chimney_in_conditioned_space**
-
-
-
-- **Name:** ``air_leakage_has_flue_or_chimney_in_conditioned_space``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -4594,28 +4550,6 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 <br/>
 
-**emissions_electricity_number_of_header_rows**
-
-
-
-- **Name:** ``emissions_electricity_number_of_header_rows``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**emissions_electricity_column_numbers**
-
-
-
-- **Name:** ``emissions_electricity_column_numbers``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
 **emissions_fossil_fuel_units**
 
 
@@ -4660,33 +4594,11 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 <br/>
 
-**emissions_coal_values**
-
-
-
-- **Name:** ``emissions_coal_values``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
 **emissions_wood_values**
 
 
 
 - **Name:** ``emissions_wood_values``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**emissions_wood_pellets_values**
-
-
-
-- **Name:** ``emissions_wood_pellets_values``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -4759,33 +4671,11 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 <br/>
 
-**utility_bill_coal_fixed_charges**
-
-
-
-- **Name:** ``utility_bill_coal_fixed_charges``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
 **utility_bill_wood_fixed_charges**
 
 
 
 - **Name:** ``utility_bill_wood_fixed_charges``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_wood_pellets_fixed_charges**
-
-
-
-- **Name:** ``utility_bill_wood_pellets_fixed_charges``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -4836,33 +4726,11 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 <br/>
 
-**utility_bill_coal_marginal_rates**
-
-
-
-- **Name:** ``utility_bill_coal_marginal_rates``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
 **utility_bill_wood_marginal_rates**
 
 
 
 - **Name:** ``utility_bill_wood_marginal_rates``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_wood_pellets_marginal_rates**
-
-
-
-- **Name:** ``utility_bill_wood_pellets_marginal_rates``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -4946,17 +4814,6 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 <br/>
 
-**combine_like_surfaces**
-
-
-
-- **Name:** ``combine_like_surfaces``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
 **apply_defaults**
 
 
@@ -4973,17 +4830,6 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 
 - **Name:** ``apply_validation``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**Schedules: Column Names**
-
-A comma-separated list of the column names to generate. If not provided, defaults to all columns. Possible column names are: occupants, lighting_interior, lighting_garage, cooking_range, dishwasher, clothes_washer, clothes_dryer, ceiling_fan, plug_loads_other, plug_loads_tv, hot_water_dishwasher, hot_water_clothes_washer, hot_water_fixtures.
-
-- **Name:** ``schedules_column_names``
 - **Type:** ``String``
 
 - **Required:** ``false``
