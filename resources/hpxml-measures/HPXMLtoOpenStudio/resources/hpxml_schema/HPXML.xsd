@@ -101,7 +101,7 @@
 	</xs:complexType>
 	<xs:complexType name="RemoteReference">
 		<xs:annotation>
-			<xs:documentation>Use the id attribute if the element being referenced is available locally in the current xml transaction. Use the Sending/Receiving System Identifiers to identify
+			<xs:documentation>Use the idref attribute if the element being referenced is available locally in the current xml transaction. Use the Sending/Receiving System Identifiers to identify
 				elements in other xml transactions.</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
@@ -4463,7 +4463,7 @@
 											<xs:documentation>[W] Maximum standby power allowed for this size spa under ANSI/APSP/ICC-14</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element name="TotalAnnualPowerConsumptionInStandbyMode" minOccurs="0" type="EnergyAndWaterUseTypeDescription">
+									<xs:element name="TotalAnnualPowerConsumptionInStandbyMode" minOccurs="0" type="RatedAnnualkWh">
 										<xs:annotation>
 											<xs:documentation>[kWh] Total annual power consumption in standby mode, based on test procedure in ANSI/APSP/ICC-14. Typically standby power * 8760. </xs:documentation>
 										</xs:annotation>
@@ -4479,11 +4479,6 @@
 									<xs:element minOccurs="0" name="MonthsPerYearofOperation" type="MonthsPerYear">
 										<xs:annotation>
 											<xs:documentation>Months per year portable spa is in operation.</xs:documentation>
-										</xs:annotation>
-									</xs:element>
-									<xs:element minOccurs="0" name="FilterType" type="PoolFilterType">
-										<xs:annotation>
-											<xs:documentation>Type of filter used, if any.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" ref="extension"/>

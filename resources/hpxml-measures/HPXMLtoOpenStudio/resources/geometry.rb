@@ -257,15 +257,6 @@ class Geometry
           end
         end
       end
-      model.getShadingSurfaceGroups.each do |shading_group|
-        next unless [Constants.ObjectNameSkylightShade, Constants.ObjectNameWindowShade].include? shading_group.name.to_s
-
-        shading_group.shadingSurfaces.each do |window_shade|
-          next unless window_shade.additionalProperties.getFeatureAsString('ParentSurface').get == surface.name.to_s
-
-          shading_surfaces << window_shade
-        end
-      end
 
       # Push out horizontally
       distance = explode_distance
@@ -357,14 +348,17 @@ class Geometry
 
   def self.set_zone_volumes(spaces, hpxml, apply_ashrae140_assumptions)
     # Conditioned space
-    spaces[HPXML::LocationConditionedSpace].thermalZone.get.setVolume(UnitConversions.convert(hpxml.building_construction.conditioned_building_volume, 'ft^3', 'm^3'))
+    volume = UnitConversions.convert(hpxml.building_construction.conditioned_building_volume, 'ft^3', 'm^3')
+    spaces[HPXML::LocationConditionedSpace].thermalZone.get.setVolume(volume)
+    spaces[HPXML::LocationConditionedSpace].setVolume(volume)
 
     # Basement, crawlspace, garage
     spaces.keys.each do |location|
       next unless [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? location
 
-      volume = calculate_zone_volume(hpxml, location)
-      spaces[location].thermalZone.get.setVolume(UnitConversions.convert(volume, 'ft^3', 'm^3'))
+      volume = UnitConversions.convert(calculate_zone_volume(hpxml, location), 'ft^3', 'm^3')
+      spaces[location].thermalZone.get.setVolume(volume)
+      spaces[location].setVolume(volume)
     end
 
     # Attic
@@ -372,12 +366,13 @@ class Geometry
       next unless [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? location
 
       if apply_ashrae140_assumptions
-        volume = 3463 # Hardcode the attic volume to match ASHRAE 140 Table 7-2 specification
+        volume = UnitConversions.convert(3463, 'ft^3', 'm^3') # Hardcode the attic volume to match ASHRAE 140 Table 7-2 specification
       else
-        volume = calculate_zone_volume(hpxml, location)
+        volume = UnitConversions.convert(calculate_zone_volume(hpxml, location), 'ft^3', 'm^3')
       end
 
-      spaces[location].thermalZone.get.setVolume(UnitConversions.convert(volume, 'ft^3', 'm^3'))
+      spaces[location].thermalZone.get.setVolume(volume)
+      spaces[location].setVolume(volume)
     end
   end
 

@@ -700,9 +700,10 @@ class Waterheater
     # Calculate an altitude adjusted rated evaporator wetbulb temperature
     rated_ewb_F = 56.4
     rated_edb_F = 67.5
+    p_atm = UnitConversions.convert(1.0, 'atm', 'psi')
     rated_edb = UnitConversions.convert(rated_edb_F, 'F', 'C')
-    w_rated = Psychrometrics.w_fT_Twb_P(rated_edb_F, rated_ewb_F, 14.7)
-    dp_rated = Psychrometrics.Tdp_fP_w(runner, 14.7, w_rated)
+    w_rated = Psychrometrics.w_fT_Twb_P(rated_edb_F, rated_ewb_F, p_atm)
+    dp_rated = Psychrometrics.Tdp_fP_w(runner, p_atm, w_rated)
     p_atm = Psychrometrics.Pstd_fZ(weather.header.Altitude)
     w_adj = Psychrometrics.w_fT_Twb_P(dp_rated, dp_rated, p_atm)
     twb_adj = Psychrometrics.Twb_fT_w_P(runner, rated_edb_F, w_adj, p_atm)

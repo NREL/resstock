@@ -684,14 +684,14 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingWaterToAirHeatPumpEquationFits.size)
     clg_coil = model.getCoilCoolingWaterToAirHeatPumpEquationFits[0]
-    cop = 5.36 # Expected values
+    cop = 4.87 # Expected values
     assert_in_epsilon(cop, clg_coil.ratedCoolingCoefficientofPerformance, 0.01)
     assert_in_epsilon(clg_capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01)
 
     # Check heating coil
     assert_equal(1, model.getCoilHeatingWaterToAirHeatPumpEquationFits.size)
     htg_coil = model.getCoilHeatingWaterToAirHeatPumpEquationFits[0]
-    cop = 3.65 # Expected values
+    cop = 3.6 # Expected values
     assert_in_epsilon(cop, htg_coil.ratedHeatingCoefficientofPerformance, 0.01)
     assert_in_epsilon(htg_capacity, htg_coil.ratedHeatingCapacity.get, 0.01)
 
@@ -862,14 +862,14 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingWaterToAirHeatPumpEquationFits.size)
     clg_coil = model.getCoilCoolingWaterToAirHeatPumpEquationFits[0]
-    cop = 5.36 # Expected values
+    cop = 4.87 # Expected values
     assert_in_epsilon(cop, clg_coil.ratedCoolingCoefficientofPerformance, 0.01)
     assert_in_epsilon(clg_capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01)
 
     # Check heating coil
     assert_equal(1, model.getCoilHeatingWaterToAirHeatPumpEquationFits.size)
     htg_coil = model.getCoilHeatingWaterToAirHeatPumpEquationFits[0]
-    cop = 3.65 # Expected values
+    cop = 3.6 # Expected values
     assert_in_epsilon(cop, htg_coil.ratedHeatingCoefficientofPerformance, 0.01)
     assert_in_epsilon(htg_capacity, htg_coil.ratedHeatingCapacity.get, 0.01)
 

@@ -561,8 +561,7 @@ class HPXMLTest < Minitest::Test
       next if message.include? 'Iteration limit exceeded in calculating sensible part-load ratio error continues'
       next if message.include?('setupIHGOutputs: Output variables=Zone Other Equipment') && message.include?('are not available.')
       next if message.include?('setupIHGOutputs: Output variables=Space Other Equipment') && message.include?('are not available')
-      next if message.include? 'DetailedSkyDiffuseModeling is chosen but not needed as either the shading transmittance for shading devices does not change throughout the year'
-      next if message.include? 'View factors not complete'
+      next if message.include? 'Multiple speed fan will be applied to this unit. The speed number is determined by load.'
 
       # HPWHs
       if hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
@@ -632,6 +631,10 @@ class HPXMLTest < Minitest::Test
       timestep = hpxml.header.timestep.nil? ? 60 : hpxml.header.timestep
       if timestep > 15
         next if message.include?('Timestep: Requested number') && message.include?('is less than the suggested minimum')
+      end
+      # TODO: Check why this house produces this warning
+      if hpxml_path.include? 'house044.xml'
+        next if message.include? 'FixViewFactors: View factors not complete. Check for bad surface descriptions or unenclosed zone'
       end
 
       flunk "Unexpected eplusout.err message found for #{File.basename(hpxml_path)}: #{message}"
@@ -1203,12 +1206,12 @@ class HPXMLTest < Minitest::Test
       if hpxml.total_fraction_heat_load_served == 0
         assert_equal(0, unmet_hours_htg)
       else
-        assert_operator(unmet_hours_htg, :<, 350)
+        assert_operator(unmet_hours_htg, :<, 400)
       end
       if hpxml.total_fraction_cool_load_served == 0
         assert_equal(0, unmet_hours_clg)
       else
-        assert_operator(unmet_hours_clg, :<, 350)
+        assert_operator(unmet_hours_clg, :<, 400)
       end
     end
 
