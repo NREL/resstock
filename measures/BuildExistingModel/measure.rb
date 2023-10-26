@@ -336,7 +336,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     whole_sfa_mf_building = true
     num_units_modeled = 1
-    unit_multiplier = nil
+    unit_multipliers = []
 
     if whole_sfa_mf_building
       register_value(runner, 'geometry_building_num_units', geometry_building_num_units)
@@ -344,17 +344,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       register_value(runner, 'geometry_building_num_units', 1)
     end
 
-    # optionally calculate unit_multiplier equal to number of units per floor of the building
+    # model units of the building, up to a maximum of 10
     if whole_sfa_mf_building && geometry_building_num_units > 1
-      geometry_num_floors_above_grade = 1
-      resstock_arguments_runner.result.stepValues.each do |step_value|
-        if step_value.name == 'geometry_num_floors_above_grade'
-          geometry_num_floors_above_grade = get_value_from_workflow_step_value(step_value)
-        end
-      end
-      geometry_num_floors_above_grade = [geometry_num_floors_above_grade, geometry_building_num_units].min # for project_testing
-      unit_multiplier = (geometry_building_num_units / Float(geometry_num_floors_above_grade)).floor
-      num_units_modeled = Integer(geometry_num_floors_above_grade)
+      num_units_modeled = [geometry_building_num_units, 10].min
+      unit_multipliers = split_into(geometry_building_num_units, num_units_modeled)
     end
     register_value(runner, 'num_units_modeled', num_units_modeled)
 
@@ -364,7 +357,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
-        next if value == '' || step_value.name == 'geometry_num_floors_above_grade'
+        next if value == ''
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
@@ -374,11 +367,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         measures['BuildResidentialHPXML'][0]['battery_present'] = 'false' # limitation of OS-HPXML
       end
 
-      if !unit_multiplier.nil?
-        if unit_number == num_units_modeled # the final unit gets the remainder
-          unit_multiplier = geometry_building_num_units - ((num_units_modeled - 1) * unit_multiplier)
-        end
-        measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
+      if !unit_multipliers.empty?
+        measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multipliers[unit_number - 1]
         measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
       end
 
@@ -731,6 +721,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     register_logs(runner, resstock_arguments_runner)
 
     return true
+  end
+
+  def split_into(n, p)
+    return [n / p + 1] * (n % p) + [n / p] * (p - n % p)
   end
 end
 
