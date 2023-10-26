@@ -25,14 +25,6 @@ class String
       .tr(' ', '_')
       .downcase
   end
-
-  def intersection(other)
-    str = dup
-    other.split(//).inject(0) do |sum, char|
-      sum += 1 if str.sub!(char, '')
-      sum
-    end
-  end
 end
 
 resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../../../resources'))
