@@ -2929,7 +2929,7 @@ class HPXMLDefaults
       end
 
       # Cooling system
-      next unless not clg_sys.nil?
+      next if clg_sys.nil?
 
       # Cooling capacities
       if clg_sys.cooling_capacity.nil? || ((clg_sys.cooling_capacity - hvac_sizing_values.Cool_Capacity).abs >= 1.0)

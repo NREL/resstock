@@ -1519,27 +1519,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
   def append_sizing_results(results_out, line_break)
     # Summary HVAC capacities
-    htg_cap, clg_cap, hp_backup_cap = 0.0, 0.0, 0.0
-    @hpxml.hvac_systems.each do |hvac_system|
-      if hvac_system.is_a? HPXML::HeatingSystem
-        next if hvac_system.is_heat_pump_backup_system
-
-        htg_cap += hvac_system.heating_capacity.to_f
-      elsif hvac_system.is_a? HPXML::CoolingSystem
-        clg_cap += hvac_system.cooling_capacity.to_f
-        if hvac_system.has_integrated_heating
-          htg_cap += hvac_system.integrated_heating_system_capacity.to_f
-        end
-      elsif hvac_system.is_a? HPXML::HeatPump
-        htg_cap += hvac_system.heating_capacity.to_f
-        clg_cap += hvac_system.cooling_capacity.to_f
-        if hvac_system.backup_type == HPXML::HeatPumpBackupTypeIntegrated
-          hp_backup_cap += hvac_system.backup_heating_capacity.to_f
-        elsif hvac_system.backup_type == HPXML::HeatPumpBackupTypeSeparate
-          hp_backup_cap += hvac_system.backup_system.heating_capacity.to_f
-        end
-      end
-    end
+    htg_cap, clg_cap, hp_backup_cap = Outputs.get_total_hvac_capacities(@hpxml)
     results_out << ['HVAC Capacity: Heating (Btu/h)', htg_cap.round(1)]
     results_out << ['HVAC Capacity: Cooling (Btu/h)', clg_cap.round(1)]
     results_out << ['HVAC Capacity: Heat Pump Backup (Btu/h)', hp_backup_cap.round(1)]
@@ -2671,13 +2651,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         if not is_combi_boiler # Exclude combi boiler, whose heating & dhw energy is handled separately via EMS
           fuel = object.to_BoilerHotWater.get.fuelType
           if not is_heat_pump_backup(sys_id)
-            return { [to_ft[fuel], EUT::Heating] => ["Boiler #{fuel} Energy"] }
+            return { [to_ft[fuel], EUT::Heating] => ["Boiler #{fuel} Energy", "Boiler Ancillary #{fuel} Energy"] }
           else
-            return { [to_ft[fuel], EUT::HeatingHeatPumpBackup] => ["Boiler #{fuel} Energy"] }
+            return { [to_ft[fuel], EUT::HeatingHeatPumpBackup] => ["Boiler #{fuel} Energy", "Boiler Ancillary #{fuel} Energy"] }
           end
         else
           fuel = object.to_BoilerHotWater.get.fuelType
-          return { [to_ft[fuel], EUT::HotWater] => ["Boiler #{fuel} Energy"] }
+          return { [to_ft[fuel], EUT::HotWater] => ["Boiler #{fuel} Energy", "Boiler Ancillary #{fuel} Energy"] }
         end
 
       elsif object.to_CoilCoolingDXSingleSpeed.is_initialized || object.to_CoilCoolingDXMultiSpeed.is_initialized
@@ -2806,9 +2786,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           return { [to_ft[fuel], EUT::HotWater] => [object.name.to_s] }
         elsif object.name.to_s.include? Constants.ObjectNameBatteryLossesAdjustment(nil)
           return { [FT::Elec, EUT::Battery] => [object.name.to_s] }
-        elsif object.name.to_s.include? Constants.ObjectNameBoilerPilotLight(nil)
-          fuel = object.additionalProperties.getFeatureAsString('FuelType').get
-          return { [to_ft[fuel], EUT::Heating] => [object.name.to_s] }
         else
           return { ems: [object.name.to_s] }
         end
