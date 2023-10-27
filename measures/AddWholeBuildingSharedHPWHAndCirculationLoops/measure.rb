@@ -52,6 +52,13 @@ class AddWholeBuildingSharedHPWHAndCirculationLoops < OpenStudio::Measure::Model
     end
 
     # TODO
+    #1 Remove any existing WHs and associated plant loops. Keep WaterUseEquipment objects.
+    #2 Add recirculation loop  piping. Use "Pipe:Indoor" objects, assume ~3 m of pipe per unit in the living zone of each. Each unit also needs a splitter: either to the next unit or this unit's WaterUseEquipment Objects.
+    #3 Add a recirculation pump to the loop. We'll use "AlwaysOn" logic, at least as a starting point. 
+    #5 Add a new WaterHeater:Stratified object to represent the main storage tank. 
+    #6 Add a swing tank in series: Ahead of the main WaterHeater:Stratified, another stratified tank model. This one includes an ER element to make up for loop losses.
+    #7 Add the GAHP(s). Will need to do some test runs when this is in to figure out how many units before we increase the # of HPs
+
 
     puts "spaces: #{model.getSpaces.size}"
     puts "\t#{model.getSpaces[0].name}"
