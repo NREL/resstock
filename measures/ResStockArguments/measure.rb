@@ -736,9 +736,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args_to_delete.delete('heat_pump_backup_use_existing_system')
     end
 
-    # Geometry Num Floors Above Grade
-    args_to_delete.delete(:geometry_num_floors_above_grade)
-
     args.each do |arg_name, arg_value|
       begin
         if arg_value.is_initialized
