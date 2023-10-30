@@ -872,6 +872,15 @@ def read_file(filename, low_memory=True):
 
     return df
 
+def bin_panel_sizes(df_column):
+    df_out = df_column.copy()
+    df_out[df_column < 100] = "<100"
+    df_out[(df_column>100) & (df_column<200)] = "101-199"
+    df_out[df_column>200] = "200+"
+    df_out = df_out.astype(str)
+
+    return df_out
+
 def main(filename: str = None, plot_only=False, sfd_only=False, explode_result=False):
     """ 
     Main execution
@@ -900,7 +909,7 @@ def main(filename: str = None, plot_only=False, sfd_only=False, explode_result=F
         if not output_filename.exists():
             raise FileNotFoundError(f"Cannot create plots, output_filename not found: {output_filename}")
         df = read_file(output_filename, low_memory=False)
-        plot_output(df, output_dir)
+        generate_plots(df, output_dir, sfd_only=sfd_only)
         sys.exit()
         
     df = read_file(filename, low_memory=False)
@@ -950,9 +959,15 @@ def main(filename: str = None, plot_only=False, sfd_only=False, explode_result=F
     print(f"File output to: {output_filename}")
 
     # --- plot ---
+    generate_plots(df, output_dir, sfd_only=sfd_only)
+
+
+def generate_plots(df, output_dir, sfd_only=False):
     plot_output(df, output_dir)
-    plot_output_saturation(df, "std_m_nec_electrical_panel_amp", output_dir, sfd_only=False)
-    plot_output_saturation(df, "opt_m_nec_electrical_panel_amp", output_dir, sfd_only=False)
+    # plot_output_saturation(df, "std_m_nec_electrical_panel_amp", output_dir, sfd_only=sfd_only)
+    # plot_output_saturation(df, "std_m_nec_binned_panel_amp", output_dir, sfd_only=sfd_only)
+    # plot_output_saturation(df, "opt_m_nec_electrical_panel_amp", output_dir, sfd_only=sfd_only)
+    plot_output_saturation(df, "opt_m_nec_binned_panel_amp", output_dir, sfd_only=sfd_only)
 
 
 def apply_standard_method(dfi):
@@ -972,6 +987,7 @@ def apply_standard_method(dfi):
         df["std_m_nec_electrical_panel_amp"] = df["std_m_nec_min_amp"].apply(
             lambda x: min_amperage_main_breaker(x)
         )
+        df["std_m_nec_binned_panel_amp"] = bin_panel_sizes(df["std_m_nec_electrical_panel_amp"])
 
         return df
 
@@ -1014,6 +1030,8 @@ def apply_standard_method_exploded(dfi):
             lambda x: min_amperage_main_breaker(x)
         )
 
+        df["std_m_nec_binned_panel_amp"] = bin_panel_sizes(df["std_m_nec_electrical_panel_amp"])
+
         return df
 
 def apply_optional_method(dfi, new_load_calc=False):
@@ -1029,6 +1047,8 @@ def apply_optional_method(dfi, new_load_calc=False):
 
         df["opt_m_nec_min_amp"] = df["opt_m_demand_load_total_VA"] / 240
         df["opt_m_nec_electrical_panel_amp"] = df["opt_m_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
+
+        df["opt_m_nec_binned_panel_amp"] = bin_panel_sizes(df["opt_m_nec_electrical_panel_amp"])
 
         return df
 

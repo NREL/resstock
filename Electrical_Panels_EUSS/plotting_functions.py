@@ -48,21 +48,30 @@ def plot_output_saturation(df, panel_metric, output_dir, sfd_only=False):
     else:
         print(f"Plotting applies to {len(df.loc[cond])} valid samples only")
 
-    _plot_bar(df, ["build_existing_model.census_region", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
-    _plot_bar(df, ["build_existing_model.federal_poverty_level", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
-    _plot_bar(df, ["build_existing_model.tenure", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
-    _plot_bar(df, ["build_existing_model.geometry_floor_area_bin", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
+    for hc in [
+        "build_existing_model.census_region",
+        "build_existing_model.federal_poverty_level",
+        "build_existing_model.tenure",
+        "build_existing_model.geometry_floor_area_bin",
+        "build_existing_model.geometry_building_type_recs",
+        ]:
 
-    _plot_bar_stacked(df, ["build_existing_model.census_region", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
-    _plot_bar_stacked(df, ["build_existing_model.census_division", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
-    _plot_bar_stacked(df, ["build_existing_model.ashrae_iecc_climate_zone_2004", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
-    _plot_bar_stacked(df, ["build_existing_model.geometry_building_type_recs", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
-    _plot_bar_stacked(df, ["build_existing_model.vintage", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
-    _plot_bar_stacked(df, ["build_existing_model.federal_poverty_level", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
-    _plot_bar_stacked(df, ["build_existing_model.tenure", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
-    _plot_bar_stacked(df, ["build_existing_model.geometry_floor_area_bin", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
-    _plot_bar_stacked(df, ["build_existing_model.geometry_floor_area", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
+        _plot_bar(df, [hc, panel_metric], output_dir=output_dir, sfd_only=sfd_only)
 
+    for hc in [
+        "build_existing_model.census_region",
+        "build_existing_model.census_division",
+        "build_existing_model.ashrae_iecc_climate_zone_2004",
+        "build_existing_model.geometry_building_type_recs",
+        "build_existing_model.state",
+        "build_existing_model.vintage",
+        "build_existing_model.vintage_acs",
+        "build_existing_model.federal_poverty_level",
+        "build_existing_model.tenure",
+        "build_existing_model.geometry_floor_area_bin",
+        "build_existing_model.geometry_floor_area",
+        ]:
+        _plot_bar_stacked(df, [hc, panel_metric], output_dir=output_dir, sfd_only=sfd_only)
 
 def _plot_amperage_histogram(df, metric, title=None, output_dir=None, sfd_only=False):
     if sfd_only:

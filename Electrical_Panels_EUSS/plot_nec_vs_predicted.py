@@ -7,8 +7,8 @@ import pandas as pd
 
 from plotting_functions import _plot_bar
 
-nec_file = Path("/Users/lliu2/Documents/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00_clean__nec_panels.csv")
-pd_file = Path("/Users/lliu2/Documents/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00_clean__predicted_panels_probablistically_assigned.csv")
+nec_file = Path("/Users/lliu2/Documents/Documents_Files/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00_clean__nec_panels.csv")
+pd_file = Path("/Users/lliu2/Documents/Documents_Files/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00_clean__predicted_panels_probablistically_assigned.csv")
 
 df = pd.read_csv(nec_file, low_memory=False)
 dfp = pd.read_csv(pd_file, low_memory=False)
@@ -26,6 +26,13 @@ panel_metric = "std_m_nec_electrical_panel_amp"
 _plot_bar(df, ["predicted_panel_amp", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
 
 panel_metric = "opt_m_nec_electrical_panel_amp"
+_plot_bar(df, ["predicted_panel_amp", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
+
+
+panel_metric = "std_m_nec_binned_panel_amp"
+_plot_bar(df, ["predicted_panel_amp", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
+
+panel_metric = "opt_m_nec_binned_panel_amp"
 _plot_bar(df, ["predicted_panel_amp", panel_metric], output_dir=output_dir, sfd_only=sfd_only)
 
 # flipped axes
