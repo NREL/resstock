@@ -40,6 +40,8 @@ run_names = [
     "medium_run_category_14_20230921",
     "medium_run_category_15_20230920"
 ]
+
+
 wide_chars = [
     'in.area_median_income', 'in.ashrae_iecc_climate_zone_2004', 'in.building_america_climate_zone',
     'in.census_division', 'in.state', 'in.county', 'in.geometry_building_type_recs', 'in.vintage',
