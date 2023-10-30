@@ -1338,11 +1338,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       end
     end
   end
-  if hpxml_file.include? 'install-quality'
-    hpxml.hvac_systems.each do |hvac_system|
-      hvac_system.fan_watts_per_cfm = 0.365
-    end
-  elsif ['base-hvac-setpoints-daily-setbacks.xml'].include? hpxml_file
+  if ['base-hvac-setpoints-daily-setbacks.xml'].include? hpxml_file
     hpxml.hvac_controls[0].heating_setback_temp = 66
     hpxml.hvac_controls[0].heating_setback_hours_per_week = 7 * 7
     hpxml.hvac_controls[0].heating_setback_start_hour = 23 # 11pm
