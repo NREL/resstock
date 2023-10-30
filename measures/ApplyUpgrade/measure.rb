@@ -336,7 +336,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
-        next if value == '' || step_value.name == 'geometry_num_floors_above_grade'
+        next if value == ''
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
@@ -453,6 +453,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       # Utility Bills
       measures['BuildResidentialHPXML'][0]['utility_bill_scenario_names'] = values['utility_bill_scenario_names']
+      measures['BuildResidentialHPXML'][0]['utility_bill_electricity_filepaths'] = values['utility_bill_electricity_filepaths']
       measures['BuildResidentialHPXML'][0]['utility_bill_electricity_fixed_charges'] = values['utility_bill_electricity_fixed_charges']
       measures['BuildResidentialHPXML'][0]['utility_bill_electricity_marginal_rates'] = values['utility_bill_electricity_marginal_rates']
       measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_fixed_charges'] = values['utility_bill_natural_gas_fixed_charges']

@@ -131,6 +131,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Relative paths of simple utility rates. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. Files must contain the name of the Parameter as the column header.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_detailed_filepaths', false)
+    arg.setDisplayName('Utility Bills: Detailed Filepaths')
+    arg.setDescription('Relative paths of detailed utility rates. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. Files must contain the name of the Parameter as the column header.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_electricity_fixed_charges', false)
     arg.setDisplayName('Utility Bills: Electricity Fixed Charges')
     arg.setDescription('Electricity utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
@@ -454,7 +459,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
           emissions_wood_values = args[:emissions_wood_values].get
           measures['BuildResidentialHPXML'][0]['emissions_wood_values'] = emissions_wood_values
-        end
       end
 
       # Utility Bills
@@ -465,6 +469,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         utility_bill_simple_filepaths = args[:utility_bill_simple_filepaths].get.split(',').map(&:strip)
         if utility_bill_simple_filepaths.empty?
           utility_bill_simple_filepaths = [nil] * utility_bill_scenario_names.size
+        end
+
+        utility_bill_detailed_filepaths = args[:utility_bill_detailed_filepaths].get.split(',').map(&:strip)
+        if utility_bill_detailed_filepaths.empty?
+          utility_bill_detailed_filepaths = [nil] * utility_bill_scenario_names.size
         end
 
         utility_bill_electricity_fixed_charges = args[:utility_bill_electricity_fixed_charges].get.split(',').map(&:strip)
@@ -517,7 +526,38 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
           utility_bill_wood_marginal_rates = [nil] * utility_bill_scenario_names.size
         end
 
+        utility_bill_pv_compensation_types = args[:utility_bill_pv_compensation_types].get.split(',').map(&:strip)
+        if utility_bill_pv_compensation_types.empty?
+          utility_bill_pv_compensation_types = [nil] * utility_bill_scenario_names.size
+        end
+
+        utility_bill_pv_net_metering_annual_excess_sellback_rate_types = args[:utility_bill_pv_net_metering_annual_excess_sellback_rate_types].get.split(',').map(&:strip)
+        if utility_bill_pv_net_metering_annual_excess_sellback_rate_types.empty?
+          utility_bill_pv_net_metering_annual_excess_sellback_rate_types = [nil] * utility_bill_scenario_names.size
+        end
+
+        utility_bill_pv_net_metering_annual_excess_sellback_rates = args[:utility_bill_pv_net_metering_annual_excess_sellback_rates].get.split(',').map(&:strip)
+        if utility_bill_pv_net_metering_annual_excess_sellback_rates.empty?
+          utility_bill_pv_net_metering_annual_excess_sellback_rates = [nil] * utility_bill_scenario_names.size
+        end
+
+        utility_bill_pv_feed_in_tariff_rates = args[:utility_bill_pv_feed_in_tariff_rates].get.split(',').map(&:strip)
+        if utility_bill_pv_feed_in_tariff_rates.empty?
+          utility_bill_pv_feed_in_tariff_rates = [nil] * utility_bill_scenario_names.size
+        end
+
+        utility_bill_pv_monthly_grid_connection_fee_units = args[:utility_bill_pv_monthly_grid_connection_fee_units].get.split(',').map(&:strip)
+        if utility_bill_pv_monthly_grid_connection_fee_units.empty?
+          utility_bill_pv_monthly_grid_connection_fee_units = [nil] * utility_bill_scenario_names.size
+        end
+
+        utility_bill_pv_monthly_grid_connection_fees = args[:utility_bill_pv_monthly_grid_connection_fees].get.split(',').map(&:strip)
+        if utility_bill_pv_monthly_grid_connection_fees.empty?
+          utility_bill_pv_monthly_grid_connection_fees = [nil] * utility_bill_scenario_names.size
+        end
+
         utility_bill_scenarios = utility_bill_scenario_names.zip(utility_bill_simple_filepaths,
+                                                                 utility_bill_detailed_filepaths,
                                                                  utility_bill_electricity_fixed_charges,
                                                                  utility_bill_electricity_marginal_rates,
                                                                  utility_bill_natural_gas_fixed_charges,
@@ -527,8 +567,15 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
                                                                  utility_bill_fuel_oil_fixed_charges,
                                                                  utility_bill_fuel_oil_marginal_rates,
                                                                  utility_bill_wood_fixed_charges,
-                                                                 utility_bill_wood_marginal_rates)
+                                                                 utility_bill_wood_marginal_rates,
+                                                                 utility_bill_pv_compensation_types,
+                                                                 utility_bill_pv_net_metering_annual_excess_sellback_rate_types,
+                                                                 utility_bill_pv_net_metering_annual_excess_sellback_rates,
+                                                                 utility_bill_pv_feed_in_tariff_rates,
+                                                                 utility_bill_pv_monthly_grid_connection_fee_units,
+                                                                 utility_bill_pv_monthly_grid_connection_fees)
 
+        utility_bill_electricity_filepaths = []
         utility_bill_electricity_fixed_charges = []
         utility_bill_electricity_marginal_rates = []
         utility_bill_natural_gas_fixed_charges = []
@@ -539,36 +586,31 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         utility_bill_fuel_oil_marginal_rates = []
         utility_bill_wood_fixed_charges = []
         utility_bill_wood_marginal_rates = []
+        utility_bill_pv_compensation_types = []
+        utility_bill_pv_net_metering_annual_excess_sellback_rate_types = []
+        utility_bill_pv_net_metering_annual_excess_sellback_rates = []
+        utility_bill_pv_feed_in_tariff_rates = []
+        utility_bill_pv_monthly_grid_connection_fee_units = []
+        utility_bill_pv_monthly_grid_connection_fees = []
         utility_bill_scenarios.each do |utility_bill_scenario|
-          _name, simple_filepath, electricity_fixed_charge, electricity_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate = utility_bill_scenario
+          _name, simple_filepath, detailed_filepath, elec_fixed_charge, elec_marginal_rate, natural_gas_fixed_charge, natural_gas_marginal_rate, propane_fixed_charge, propane_marginal_rate, fuel_oil_fixed_charge, fuel_oil_marginal_rate, wood_fixed_charge, wood_marginal_rate, pv_compensation_type, pv_net_metering_annual_excess_sellback_rate_type, pv_net_metering_annual_excess_sellback_rate, pv_feed_in_tariff_rate, pv_monthly_grid_connection_fee_units, pv_monthly_grid_connection_fee = utility_bill_scenario
 
-          if !simple_filepath.nil? && !simple_filepath.empty?
-            simple_filepath = File.join(resources_dir, simple_filepath)
-            if !File.exist?(simple_filepath)
-              runner.registerError("Utility bill scenario file '#{simple_filepath}' does not exist.")
-              return false
+          if (!simple_filepath.nil? && !simple_filepath.empty?) || (!detailed_filepath.nil? && !detailed_filepath.empty?)
+
+            if !simple_filepath.nil? && !simple_filepath.empty?
+              simple_filepath = File.join(resources_dir, simple_filepath)
+              utility_rate = get_utility_rate(runner, simple_filepath, bldg_data)
+
+            elsif !detailed_filepath.nil? && !detailed_filepath.empty?
+              detailed_filepath = File.join(resources_dir, detailed_filepath)
+              utility_rate = get_utility_rate(runner, detailed_filepath, bldg_data)
+              utility_rate['elec_filepath'] = File.join(File.dirname(detailed_filepath), utility_rate['elec_filepath']) if !utility_rate['elec_filepath'].nil?
+
             end
 
-            rows = CSV.read(simple_filepath, headers: true, col_sep: "\t")
-            utility_rates = rows.map { |d| d.to_hash }
-            parameter = utility_rates[0].keys[0]
-
-            if !bldg_data.keys.include?(parameter)
-              runner.registerError("Utility bill scenario(s) were specified, but could not find #{parameter}.")
-              return false
-            end
-
-            utility_rates = utility_rates.select { |r| r[parameter] == bldg_data[parameter] }
-
-            if utility_rates.size != 1
-              runner.registerWarning("Could not find #{parameter}=#{bldg_data[parameter]} in #{simple_filepath}.")
-              utility_rate = Hash[rows.headers.map { |x| [x, nil] }]
-            else
-              utility_rate = utility_rates[0]
-            end
-
-            utility_bill_electricity_fixed_charges << utility_rate['electricity_fixed_charge']
-            utility_bill_electricity_marginal_rates << utility_rate['electricity_marginal_rate']
+            utility_bill_electricity_filepaths << utility_rate['elec_filepath']
+            utility_bill_electricity_fixed_charges << utility_rate['elec_fixed_charge']
+            utility_bill_electricity_marginal_rates << utility_rate['elec_marginal_rate']
             utility_bill_natural_gas_fixed_charges << utility_rate['natural_gas_fixed_charge']
             utility_bill_natural_gas_marginal_rates << utility_rate['natural_gas_marginal_rate']
             utility_bill_propane_fixed_charges << utility_rate['propane_fixed_charge']
@@ -577,9 +619,16 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
             utility_bill_fuel_oil_marginal_rates << utility_rate['fuel_oil_marginal_rate']
             utility_bill_wood_fixed_charges << utility_rate['wood_fixed_charge']
             utility_bill_wood_marginal_rates << utility_rate['wood_marginal_rate']
-          else
-            utility_bill_electricity_fixed_charges << electricity_fixed_charge
-            utility_bill_electricity_marginal_rates << electricity_marginal_rate
+            utility_bill_pv_compensation_types << utility_rate['pv_compensation_type']
+            utility_bill_pv_net_metering_annual_excess_sellback_rate_types << utility_rate['pv_net_metering_annual_excess_sellback_rate_type']
+            utility_bill_pv_net_metering_annual_excess_sellback_rates << utility_rate['pv_net_metering_annual_excess_sellback_rate']
+            utility_bill_pv_feed_in_tariff_rates << utility_rate['pv_feed_in_tariff_rate']
+            utility_bill_pv_monthly_grid_connection_fee_units << utility_rate['pv_monthly_grid_connection_fee_units']
+            utility_bill_pv_monthly_grid_connection_fees << utility_rate['pv_monthly_grid_connection_fee']
+          else # if simple or detailed filepath not assigned, use what's populated in the yml
+            utility_bill_electricity_filepaths << nil # support detailed tariff assignment only through the lookup file
+            utility_bill_electricity_fixed_charges << elec_fixed_charge
+            utility_bill_electricity_marginal_rates << elec_marginal_rate
             utility_bill_natural_gas_fixed_charges << natural_gas_fixed_charge
             utility_bill_natural_gas_marginal_rates << natural_gas_marginal_rate
             utility_bill_propane_fixed_charges << propane_fixed_charge
@@ -588,11 +637,21 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
             utility_bill_fuel_oil_marginal_rates << fuel_oil_marginal_rate
             utility_bill_wood_fixed_charges << wood_fixed_charge
             utility_bill_wood_marginal_rates << wood_marginal_rate
+            utility_bill_pv_compensation_types << pv_compensation_type
+            utility_bill_pv_net_metering_annual_excess_sellback_rate_types << pv_net_metering_annual_excess_sellback_rate_type
+            utility_bill_pv_net_metering_annual_excess_sellback_rates << pv_net_metering_annual_excess_sellback_rate
+            utility_bill_pv_feed_in_tariff_rates << pv_feed_in_tariff_rate
+            utility_bill_pv_monthly_grid_connection_fee_units << pv_monthly_grid_connection_fee_units
+            utility_bill_pv_monthly_grid_connection_fees << pv_monthly_grid_connection_fee
           end
         end
 
         utility_bill_scenario_names = utility_bill_scenario_names.join(',')
         measures['BuildResidentialHPXML'][0]['utility_bill_scenario_names'] = utility_bill_scenario_names
+
+        utility_bill_electricity_filepaths = utility_bill_electricity_filepaths.join(',')
+        measures['BuildResidentialHPXML'][0]['utility_bill_electricity_filepaths'] = utility_bill_electricity_filepaths
+        register_value(runner, 'utility_bill_electricity_filepaths', utility_bill_electricity_filepaths)
 
         utility_bill_electricity_fixed_charges = utility_bill_electricity_fixed_charges.join(',')
         measures['BuildResidentialHPXML'][0]['utility_bill_electricity_fixed_charges'] = utility_bill_electricity_fixed_charges
@@ -725,6 +784,32 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
   def split_into(n, p)
     return [n / p + 1] * (n % p) + [n / p] * (p - n % p)
+  end
+
+  def get_utility_rate(runner, filepath, bldg_data)
+    if !File.exist?(filepath)
+      runner.registerError("Utility bill scenario file '#{filepath}' does not exist.")
+      return false
+    end
+
+    rows = CSV.read(filepath, headers: true, col_sep: "\t")
+    utility_rates = rows.map { |d| d.to_hash }
+    parameter = utility_rates[0].keys[0]
+
+    if !bldg_data.keys.include?(parameter)
+      runner.registerError("Utility bill scenario(s) were specified, but could not find #{parameter}.")
+      return false
+    end
+
+    utility_rates = utility_rates.select { |r| r[parameter] == bldg_data[parameter] }
+
+    if utility_rates.size != 1
+      runner.registerWarning("Could not find #{parameter}=#{bldg_data[parameter]} in #{filepath}.")
+      utility_rate = Hash[rows.headers.map { |x| [x, nil] }]
+    else
+      utility_rate = utility_rates[0]
+    end
+    return utility_rate
   end
 end
 

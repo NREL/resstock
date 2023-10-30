@@ -8,6 +8,9 @@ Features
 - options_saturations.csv is added to project_*/resources/ folder ([#1132](https://github.com/NREL/resstock/pull/1132))
 - Update `run_analysis.rb` to map datapoints to run folder names when the `-k` argument is supplied ([#1138](https://github.com/NREL/resstock/pull/1138))
 - Add Water Heater Location and Geometry Space Combination, update Geometry Garage and Geometry Floor Area Bin to RECS2020, update RECS2020 microdata from v2 to v4, auto-generate buildstocks for yml_precomputed tests ([#1125](https://github.com/NREL/resstock/pull/1125))
+- Add ability to request timeseries resilience output from the yml file ([#1113](https://github.com/NREL/resstock/pull/1113))
+- Add ability to calculate detailed utility bills based on a user-specified TSV file of paths to JSON utility rate tariff files ([#1109](https://github.com/NREL/resstock/pull/1109))
+- Update to OpenStudio v3.7.0 ([#1144](https://github.com/NREL/resstock/pull/1144))
 
 Fixes
 - Set standard format for options_lookup ([#962](https://github.com/NREL/resstock/pull/962))
