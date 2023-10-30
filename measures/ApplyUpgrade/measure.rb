@@ -415,6 +415,37 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    # Override/reset W/cfm
+    heating_airflow_cfm = 0.0
+    cooling_airflow_cfm = 0.0
+
+    hpxml.heating_systems.each do |heating_system|
+      next unless heating_system.primary_system
+
+      heating_airflow_cfm = heating_system.heating_airflow_cfm
+    end
+
+    hpxml.cooling_systems.each do |cooling_system|
+      next unless cooling_system.primary_system
+
+      cooling_airflow_cfm = cooling_system.cooling_airflow_cfm
+    end
+
+    hpxml.heat_pumps.each do |heat_pump|
+      heating_airflow_cfm = heat_pump.heating_airflow_cfm
+      cooling_airflow_cfm = heat_pump.cooling_airflow_cfm
+    end
+
+    fan_watts_per_cfm_upgrade = 0.375 # FIXME: get this from measures['ResStockArguments']?
+    v_upgrade = 2624.0 # FIXME: get this from?
+
+    airflow_cfm = [heating_airflow_cfm, cooling_airflow_cfm].max
+    p_int = airflow_cfm * fan_watts_per_cfm_upgrade
+    p_upgrade = p_int * (airflow_cfm / v_upgrade)**3
+    hvac_distribution_fan_watts_per_cfm = p_upgrade / v_upgrade
+
+    measures['BuildResidentialHPXML'][0]['hvac_distribution_fan_watts_per_cfm'] = hvac_distribution_fan_watts_per_cfm
+
     # Emissions
     if values.keys.include?('emissions_electricity_values_or_filepaths')
       measures['BuildResidentialHPXML'][0]['emissions_scenario_names'] = values['emissions_scenario_names']
