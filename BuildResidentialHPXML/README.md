@@ -2293,6 +2293,19 @@ The heat load served fraction of the second heating system. Ignored if this heat
 
 <br/>
 
+**HVAC Distribution: Blower Fan Efficiency**
+
+The blower fan efficiency at maximum fan speed. Applies only to Furnace heating system, central air conditioner and mini-split cooling systems, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``hvac_distribution_fan_watts_per_cfm``
+- **Type:** ``Double``
+
+- **Units:** ``W/CFM``
+
+- **Required:** ``false``
+
+<br/>
+
 **HVAC Control: Heating Weekday Setpoint Schedule**
 
 Specify the constant or 24-hour comma-separated weekday heating setpoint schedule. Required unless a detailed CSV schedule is provided.

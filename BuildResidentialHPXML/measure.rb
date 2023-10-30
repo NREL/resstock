@@ -1390,6 +1390,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.25)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_fan_watts_per_cfm', false)
+    arg.setDisplayName('HVAC Distribution: Blower Fan Efficiency')
+    arg.setDescription("The blower fan efficiency at maximum fan speed. Applies only to #{HPXML::HVACTypeFurnace} heating system, #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner} cooling systems, and #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, and #{HPXML::HVACTypeHeatPumpGroundToAir} heat pumps. If not provided, the OS-HPXML default is used.")
+    arg.setUnits('W/CFM')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_weekday_setpoint', false)
     arg.setDisplayName('HVAC Control: Heating Weekday Setpoint Schedule')
     arg.setDescription('Specify the constant or 24-hour comma-separated weekday heating setpoint schedule. Required unless a detailed CSV schedule is provided.')
@@ -4680,6 +4686,12 @@ class HPXMLFile
       end
     end
 
+    if args[:hvac_distribution_fan_watts_per_cfm].is_initialized
+      if [HPXML::HVACTypeFurnace].include?(heating_system_type)
+        fan_watts_per_cfm = args[:hvac_distribution_fan_watts_per_cfm].get
+      end
+    end
+
     fraction_heat_load_served = args[:heating_system_fraction_heat_load_served]
 
     if heating_system_type.include?('Shared')
@@ -4702,6 +4714,7 @@ class HPXMLFile
                               airflow_defect_ratio: airflow_defect_ratio,
                               pilot_light: pilot_light,
                               pilot_light_btuh: pilot_light_btuh,
+                              fan_watts_per_cfm: fan_watts_per_cfm,
                               is_shared_system: is_shared_system,
                               number_of_units_served: number_of_units_served,
                               primary_system: true)
@@ -4758,6 +4771,12 @@ class HPXMLFile
       end
     end
 
+    if args[:hvac_distribution_fan_watts_per_cfm].is_initialized
+      if [HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypeMiniSplitAirConditioner].include?(cooling_system_type)
+        fan_watts_per_cfm = args[:hvac_distribution_fan_watts_per_cfm].get
+      end
+    end
+
     if [HPXML::HVACTypePTAC, HPXML::HVACTypeRoomAirConditioner].include?(cooling_system_type)
       if args[:cooling_system_integrated_heating_system_fuel].is_initialized
         integrated_heating_system_fuel = args[:cooling_system_integrated_heating_system_fuel].get
@@ -4790,6 +4809,7 @@ class HPXMLFile
                               airflow_defect_ratio: airflow_defect_ratio,
                               charge_defect_ratio: charge_defect_ratio,
                               crankcase_heater_watts: cooling_system_crankcase_heater_watts,
+                              fan_watts_per_cfm: fan_watts_per_cfm,
                               primary_system: true,
                               integrated_heating_system_fuel: integrated_heating_system_fuel,
                               integrated_heating_system_capacity: integrated_heating_system_capacity,
@@ -4897,6 +4917,12 @@ class HPXMLFile
       end
     end
 
+    if args[:hvac_distribution_fan_watts_per_cfm].is_initialized
+      if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type)
+        fan_watts_per_cfm = args[:hvac_distribution_fan_watts_per_cfm].get
+      end
+    end
+
     fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
     fraction_cool_load_served = args[:heat_pump_fraction_cool_load_served]
 
@@ -4941,6 +4967,7 @@ class HPXMLFile
                          airflow_defect_ratio: airflow_defect_ratio,
                          charge_defect_ratio: charge_defect_ratio,
                          crankcase_heater_watts: heat_pump_crankcase_heater_watts,
+                         fan_watts_per_cfm: fan_watts_per_cfm,
                          primary_heating_system: primary_heating_system,
                          primary_cooling_system: primary_cooling_system)
   end
@@ -4975,13 +5002,20 @@ class HPXMLFile
       fraction_heat_load_served = args[:heating_system_2_fraction_heat_load_served]
     end
 
+    if args[:hvac_distribution_fan_watts_per_cfm].is_initialized
+      if [HPXML::HVACTypeFurnace].include?(heating_system_type)
+        fan_watts_per_cfm = args[:hvac_distribution_fan_watts_per_cfm].get
+      end
+    end
+
     hpxml.heating_systems.add(id: "HeatingSystem#{hpxml.heating_systems.size + 1}",
                               heating_system_type: heating_system_type,
                               heating_system_fuel: heating_system_fuel,
                               heating_capacity: heating_capacity,
                               fraction_heat_load_served: fraction_heat_load_served,
                               heating_efficiency_afue: heating_efficiency_afue,
-                              heating_efficiency_percent: heating_efficiency_percent)
+                              heating_efficiency_percent: heating_efficiency_percent,
+                              fan_watts_per_cfm: fan_watts_per_cfm)
   end
 
   def self.set_hvac_distribution(hpxml, args)
