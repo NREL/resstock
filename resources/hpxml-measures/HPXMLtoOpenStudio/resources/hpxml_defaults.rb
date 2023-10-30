@@ -1973,6 +1973,15 @@ class HPXMLDefaults
   def self.apply_water_fixtures(hpxml_bldg, schedules_file)
     return if hpxml_bldg.hot_water_distributions.size == 0
 
+    hpxml_bldg.water_fixtures.each do |wf|
+      next unless [HPXML::WaterFixtureTypeShowerhead, HPXML::WaterFixtureTypeFaucet].include? wf.water_fixture_type
+
+      if wf.low_flow.nil?
+        wf.low_flow = (wf.flow_rate <= 2.0)
+        wf.low_flow_isdefaulted = true
+      end
+    end
+
     if hpxml_bldg.water_heating.water_fixtures_usage_multiplier.nil?
       hpxml_bldg.water_heating.water_fixtures_usage_multiplier = 1.0
       hpxml_bldg.water_heating.water_fixtures_usage_multiplier_isdefaulted = true
@@ -2934,7 +2943,7 @@ class HPXMLDefaults
       end
 
       # Cooling system
-      next unless not clg_sys.nil?
+      next if clg_sys.nil?
 
       # Cooling capacities
       if clg_sys.cooling_capacity.nil? || ((clg_sys.cooling_capacity - hvac_sizing_values.Cool_Capacity).abs >= 1.0)

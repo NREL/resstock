@@ -2651,6 +2651,8 @@ If any water heating systems are provided, a single hot water distribution syste
   In attached/multifamily buildings, only the hot water distribution system serving the dwelling unit should be defined.
   The hot water distribution associated with, e.g., a shared laundry room should not be defined.
 
+Hot water distribution systems are modeled according to the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+
 Standard
 ~~~~~~~~
 
@@ -2734,23 +2736,27 @@ If a drain water heat recovery (DWHR) device is specified, additional informatio
          Use "all" if there is one shower and it's connected to the DWHR or there are two or more showers connected to the DWHR.
   .. [#] EqualFlow should be true if the DWHR supplies pre-heated water to both the fixture cold water piping *and* the hot water heater potable supply piping.
 
+Drain water heat recovery is modeled according to the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+
 HPXML Water Fixtures
 ********************
 
 Each water fixture is entered as a ``/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterFixture``.
 
-  ====================  =======  =====  ===========  ========  ========  ===============================================
-  Element               Type     Units  Constraints  Required  Default   Notes
-  ====================  =======  =====  ===========  ========  ========  ===============================================
-  ``SystemIdentifier``  id                           Yes                 Unique identifier
-  ``WaterFixtureType``  string          See [#]_     Yes                 Bathroom faucet or shower
-  ``LowFlow``           boolean                      Yes                 Whether the fixture is considered low-flow [#]_
-  ====================  =======  =====  ===========  ========  ========  ===============================================
+  ===============================  =================  =====  ===========  ========  ========  ===============================================
+  Element                          Type               Units  Constraints  Required  Default   Notes
+  ===============================  =================  =====  ===========  ========  ========  ===============================================
+  ``SystemIdentifier``             id                                     Yes                 Unique identifier
+  ``WaterFixtureType``             string                    See [#]_     Yes                 Bathroom faucet or shower
+  ``Count``                        integer                   > 0          No        See [#]_  Number of similar water fixtures
+  ``LowFlow`` and/or ``FlowRate``  boolean or double  gpm    > 0          Yes                 Whether the fixture is considered low-flow and/or the flow rate [#]_
+  ===============================  =================  =====  ===========  ========  ========  ===============================================
 
   .. [#] WaterFixtureType choices are "shower head" or "faucet".
          If the shower stall has multiple shower heads that operate simultaneously, combine them as a single entry.
-  .. [#] LowFlow should be true if the fixture's flow rate (gpm) is <= 2.0.
-         Where a shower stall has multiple shower heads that operate simultaneously, the sum of their flows must be <= 2.0.
+  .. [#] A WaterFixture is considered low-flow if the fixture's flow rate (gpm) is <= 2.0.
+         Where a shower stall has multiple shower heads that operate simultaneously, use the sum of their flows.
+  .. [#] If Count not provided for any water fixture, assumes that 60% of all fixtures are faucets and 40% are shower heads.
 
 Additional information can be entered in ``/HPXML/Building/BuildingDetails/Systems/WaterHeating/``.
 
@@ -2765,6 +2771,8 @@ Additional information can be entered in ``/HPXML/Building/BuildingDetails/Syste
 
   .. [#] If WaterFixturesWeekdayScheduleFractions or WaterFixturesWeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figures 9-11 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.012, 0.006, 0.004, 0.005, 0.010, 0.034, 0.078, 0.087, 0.080, 0.067, 0.056, 0.047, 0.040, 0.035, 0.033, 0.031, 0.039, 0.051, 0.060, 0.060, 0.055, 0.048, 0.038, 0.026".
   .. [#] If WaterFixturesMonthlyScheduleMultipliers not provided (and :ref:`detailedschedules` not used), default values are used: "1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0".
+
+Water fixture hot water use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 
 HPXML Solar Thermal
 *******************
@@ -2922,7 +2930,7 @@ If not entered, the simulation will not include batteries.
 
   An unscheduled battery in a home with photovoltaics (PV) will be controlled using a simple control strategy designed to maximize on site consumption of energy. The battery will charge if PV production is greater than the building load and the battery is below its maximum capacity, while the battery will discharge if the building load is greater than PV production and the battery is above its minimum capacity.
 
-  A battery can alternatively be controlled using :ref:`detailedschedules`, where charging and discharging schedules are defined. Positive schedule values control timing and magnitude of charging storage. Negative schedule values control timing and magnitude of discharging storage. Simultaneous charging and discharging of the battery is not allowed. The round trip efficiency affects charging; the reported charging rate will be larger than the schedule value by an amount equal to the losses due to the round trip efficiency.
+  A battery can alternatively be controlled using :ref:`detailedschedules`, where charging and discharging schedules are defined. Positive schedule values control timing and magnitude of charging storage. Negative schedule values control timing and magnitude of discharging storage. Simultaneous charging and discharging of the battery is not allowed. The round trip efficiency affects charging and discharging; the reported charging and discharging rates will be larger than the schedule value by an amount equal to the losses due to the round trip efficiency.
 
   A battery in a home without PV or charging/discharging schedules is assumed to operate as backup and is not modeled.
 

@@ -1782,7 +1782,8 @@
       <sch:assert role='ERROR' test='count(../h:HotWaterDistribution) = 1'>Expected 1 element(s) for xpath: ../HotWaterDistribution</sch:assert> <!-- See [HotWaterDistribution] -->
       <sch:assert role='ERROR' test='count(h:WaterFixtureType) = 1'>Expected 1 element(s) for xpath: WaterFixtureType</sch:assert>
       <sch:assert role='ERROR' test='h:WaterFixtureType[text()="shower head" or text()="faucet"] or not(h:WaterFixtureType)'>Expected WaterFixtureType to be 'shower head' or 'faucet'</sch:assert>
-      <sch:assert role='ERROR' test='count(h:LowFlow) = 1'>Expected 1 element(s) for xpath: LowFlow</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Count) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Count</sch:assert>
+      <sch:assert role='ERROR' test='count(h:LowFlow | h:FlowRate) &gt;= 1'>Expected 1 or more element(s) for xpath: LowFlow | FlowRate</sch:assert>
       <sch:assert role='ERROR' test='count(../h:extension/h:WaterFixturesUsageMultiplier) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ../extension/WaterFixturesUsageMultiplier</sch:assert>
       <sch:assert role='ERROR' test='count(../h:extension/h:WaterFixturesWeekdayScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ../extension/WaterFixturesWeekdayScheduleFractions</sch:assert>
       <sch:assert role='ERROR' test='count(../h:extension/h:WaterFixturesWeekendScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ../extension/WaterFixturesWeekendScheduleFractions</sch:assert>

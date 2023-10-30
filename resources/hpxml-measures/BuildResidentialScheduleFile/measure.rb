@@ -102,17 +102,15 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     end
     args[:hpxml_output_path] = hpxml_output_path
 
-    hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
+    building_id = nil
+    building_id = args[:building_id].get if args[:building_id].is_initialized
+    hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: building_id)
 
     debug = false
     if args[:debug].is_initialized
       debug = args[:debug].get
     end
     args[:debug] = debug
-
-    if hpxml.buildings.size > 1 && !args[:building_id].is_initialized
-      fail "Argument 'building_id' required if there are multiple Building elements in the HPXML file."
-    end
 
     # random seed
     if args[:schedules_random_seed].is_initialized
@@ -127,43 +125,43 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     epw_path = Location.get_epw_path(hpxml.buildings[0], hpxml_path)
     epw_file = OpenStudio::EpwFile.new(epw_path)
 
-    filename, _ = args[:output_csv_path].split('.csv')
+    output_csv_basename, _ = args[:output_csv_path].split('.csv')
 
     doc = XMLHelper.parse_file(hpxml_path)
     hpxml_doc = XMLHelper.get_element(doc, '/HPXML')
-    hpxml.buildings.each_with_index do |hpxml_bldg, i|
-      building_id = hpxml_bldg.building_id
+    doc_buildings = XMLHelper.get_elements(hpxml_doc, 'Building')
+    doc_buildings.each_with_index do |building, i|
+      doc_building_id = XMLHelper.get_attribute_value(XMLHelper.get_element(building, 'BuildingID'), 'id')
 
-      next if hpxml.buildings.size > 1 && args[:building_id].get != 'ALL' && args[:building_id].get != building_id
+      next if doc_buildings.size > 1 && building_id != 'ALL' && building_id != doc_building_id
 
       # deterministically vary schedules across building units
       args[:random_seed] *= (i + 1)
 
+      # get hpxml_bldg
+      hpxml_bldg = hpxml.buildings.find { |hb| hb.building_id == doc_building_id }
+
       # exit if number of occupants is zero
       if hpxml_bldg.building_occupancy.number_of_residents == 0
-        runner.registerInfo("#{building_id}: Number of occupants set to zero; skipping generation of stochastic schedules.")
+        runner.registerInfo("#{doc_building_id}: Number of occupants set to zero; skipping generation of stochastic schedules.")
         next
       end
 
       # output csv path
-      args[:output_csv_path] = "#{filename}.csv"
-      args[:output_csv_path] = "#{filename}_#{i + 1}.csv" if i > 0 && args[:building_id].get == 'ALL'
+      args[:output_csv_path] = "#{output_csv_basename}.csv"
+      args[:output_csv_path] = "#{output_csv_basename}_#{i + 1}.csv" if i > 0 && building_id == 'ALL'
 
       # create the schedules
       success = create_schedules(runner, hpxml, hpxml_bldg, epw_file, args)
       return false if not success
 
-      XMLHelper.get_elements(hpxml_doc, 'Building').each do |building|
-        next if XMLHelper.get_attribute_value(XMLHelper.get_element(building, 'BuildingID'), 'id') != building_id
-
-        # modify the hpxml with the schedules path
-        extension = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'BuildingSummary', 'extension'])
-        schedules_filepaths = XMLHelper.get_values(extension, 'SchedulesFilePath', :string)
-        if !schedules_filepaths.include?(args[:output_csv_path])
-          XMLHelper.add_element(extension, 'SchedulesFilePath', args[:output_csv_path], :string)
-        end
-        write_modified_hpxml(runner, doc, hpxml_path, hpxml_output_path, schedules_filepaths, args)
+      # modify the hpxml with the schedules path
+      extension = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'BuildingSummary', 'extension'])
+      schedules_filepaths = XMLHelper.get_values(extension, 'SchedulesFilePath', :string)
+      if !schedules_filepaths.include?(args[:output_csv_path])
+        XMLHelper.add_element(extension, 'SchedulesFilePath', args[:output_csv_path], :string)
       end
+      write_modified_hpxml(runner, doc, hpxml_path, hpxml_output_path, schedules_filepaths, args)
     end
 
     return true

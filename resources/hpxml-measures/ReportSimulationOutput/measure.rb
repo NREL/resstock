@@ -1558,14 +1558,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
     runner.registerInfo("Wrote annual output results to #{annual_output_path}.")
 
-    values = get_values_from_runner_past_results(runner, 'build_existing_model')
-
     results_out.each do |name, value|
       next if name.nil? || value.nil?
 
       name = OpenStudio::toUnderscoreCase(name).chomp('_')
 
-      value /= values['geometry_building_num_units']
       runner.registerValue(name, value)
       runner.registerInfo("Registering #{value} for #{name}.")
     end
@@ -1575,27 +1572,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     # Summary HVAC capacities
     htg_cap, clg_cap, hp_backup_cap = 0.0, 0.0, 0.0
     @hpxml_bldgs.each do |hpxml_bldg|
-      unit_multiplier = hpxml_bldg.building_construction.number_of_units
-      hpxml_bldg.hvac_systems.each do |hvac_system|
-        if hvac_system.is_a? HPXML::HeatingSystem
-          next if hvac_system.is_heat_pump_backup_system
-
-          htg_cap += hvac_system.heating_capacity.to_f * unit_multiplier
-        elsif hvac_system.is_a? HPXML::CoolingSystem
-          clg_cap += hvac_system.cooling_capacity.to_f * unit_multiplier
-          if hvac_system.has_integrated_heating
-            htg_cap += hvac_system.integrated_heating_system_capacity.to_f * unit_multiplier
-          end
-        elsif hvac_system.is_a? HPXML::HeatPump
-          htg_cap += hvac_system.heating_capacity.to_f * unit_multiplier
-          clg_cap += hvac_system.cooling_capacity.to_f * unit_multiplier
-          if hvac_system.backup_type == HPXML::HeatPumpBackupTypeIntegrated
-            hp_backup_cap += hvac_system.backup_heating_capacity.to_f * unit_multiplier
-          elsif hvac_system.backup_type == HPXML::HeatPumpBackupTypeSeparate
-            hp_backup_cap += hvac_system.backup_system.heating_capacity.to_f * unit_multiplier
-          end
-        end
-      end
+      capacities = Outputs.get_total_hvac_capacities(hpxml_bldg)
+      htg_cap += capacities[0]
+      clg_cap += capacities[1]
+      hp_backup_cap += capacities[2]
     end
     results_out << ['HVAC Capacity: Heating (Btu/h)', htg_cap.round(1)]
     results_out << ['HVAC Capacity: Cooling (Btu/h)', clg_cap.round(1)]
@@ -2712,13 +2692,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         if not is_combi_boiler # Exclude combi boiler, whose heating & dhw energy is handled separately via EMS
           fuel = object.to_BoilerHotWater.get.fuelType
           if object.additionalProperties.getFeatureAsBoolean('IsHeatPumpBackup').is_initialized && object.additionalProperties.getFeatureAsBoolean('IsHeatPumpBackup').get
-            return { [to_ft[fuel], EUT::HeatingHeatPumpBackup] => ["Boiler #{fuel} Energy"] }
+            return { [to_ft[fuel], EUT::HeatingHeatPumpBackup] => ["Boiler #{fuel} Energy", "Boiler Ancillary #{fuel} Energy"] }
           else
-            return { [to_ft[fuel], EUT::Heating] => ["Boiler #{fuel} Energy"] }
+            return { [to_ft[fuel], EUT::Heating] => ["Boiler #{fuel} Energy", "Boiler Ancillary #{fuel} Energy"] }
           end
         else
           fuel = object.to_BoilerHotWater.get.fuelType
-          return { [to_ft[fuel], EUT::HotWater] => ["Boiler #{fuel} Energy"] }
+          return { [to_ft[fuel], EUT::HotWater] => ["Boiler #{fuel} Energy", "Boiler Ancillary #{fuel} Energy"] }
         end
 
       elsif object.to_CoilCoolingDXSingleSpeed.is_initialized || object.to_CoilCoolingDXMultiSpeed.is_initialized
@@ -2840,7 +2820,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                     Constants.ObjectNameMechanicalVentilationPreheating => EUT::MechVentPreheat,
                     Constants.ObjectNameMechanicalVentilationPrecooling => EUT::MechVentPrecool,
                     Constants.ObjectNameWaterHeaterAdjustment => EUT::HotWater,
-                    Constants.ObjectNameBoilerPilotLight => EUT::Heating,
                     Constants.ObjectNameBatteryLossesAdjustment => EUT::Battery }[subcategory]
         if not end_use.nil?
           # Use Output:Meter instead of Output:Variable because they incorporate thermal zone multipliers

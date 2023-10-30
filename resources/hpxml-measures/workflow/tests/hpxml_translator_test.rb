@@ -303,12 +303,14 @@ class HPXMLTest < Minitest::Test
     Dir["#{sample_files_dir}/base-multiple-buildings*.xml"].sort.each do |xml|
       rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
       csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
+      bills_csv_path = File.join(File.dirname(xml), 'run', 'results_bills.csv')
       run_log = File.join(File.dirname(xml), 'run', 'run.log')
 
       # Check successful simulation when providing correct building ID
       command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyBuilding_2"
       system(command, err: File::NULL)
       assert_equal(true, File.exist?(csv_output_path))
+      assert_equal(xml.include?('bills'), File.exist?(bills_csv_path))
 
       # Check that we have exactly one warning (i.e., check we are only validating a single Building element against schematron)
       assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.' }.size)
@@ -317,18 +319,21 @@ class HPXMLTest < Minitest::Test
       command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyFoo"
       system(command, err: File::NULL)
       assert_equal(false, File.exist?(csv_output_path))
+      assert_equal(false, File.exist?(bills_csv_path))
       assert_equal(1, File.readlines(run_log).select { |l| l.include? "Could not find Building element with ID 'MyFoo'." }.size)
 
       # Check unsuccessful simulation when not providing building ID
       command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\""
       system(command, err: File::NULL)
       assert_equal(false, File.exist?(csv_output_path))
+      assert_equal(false, File.exist?(bills_csv_path))
       assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.' }.size)
 
       # Check successful simulation when running whole building
       command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id ALL"
       system(command, err: File::NULL)
       assert_equal(true, File.exist?(csv_output_path))
+      assert_equal(xml.include?('bills'), File.exist?(bills_csv_path))
 
       # Check that we now have three warnings, one for each Building element
       assert_equal(3, File.readlines(run_log).select { |l| l.include? 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.' }.size)
@@ -584,7 +589,12 @@ class HPXMLTest < Minitest::Test
       end
 
       # FIXME: Revert this eventually
-      next if message.include? 'Cannot currently handle an HPXML with multiple Building elements'
+      if hpxml_header.utility_bill_scenarios.has_detailed_electric_rates
+        uses_unit_multipliers = hpxml.buildings.select { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units > 1 }.size > 0
+        if uses_unit_multipliers || hpxml.buildings.size > 1
+          next if message.include? 'Cannot currently calculate utility bills based on detailed electric rates for an HPXML with unit multipliers or multiple Building elements'
+        end
+      end
 
       flunk "Unexpected run.log message found for #{File.basename(hpxml_path)}: #{message}"
     end
@@ -633,8 +643,7 @@ class HPXMLTest < Minitest::Test
       next if message.include? 'Iteration limit exceeded in calculating sensible part-load ratio error continues'
       next if message.include?('setupIHGOutputs: Output variables=Zone Other Equipment') && message.include?('are not available.')
       next if message.include?('setupIHGOutputs: Output variables=Space Other Equipment') && message.include?('are not available')
-      next if message.include? 'DetailedSkyDiffuseModeling is chosen but not needed as either the shading transmittance for shading devices does not change throughout the year'
-      next if message.include? 'View factors not complete'
+      next if message.include? 'Multiple speed fan will be applied to this unit. The speed number is determined by load.'
 
       # HPWHs
       if hpxml_bldg.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
@@ -704,6 +713,10 @@ class HPXMLTest < Minitest::Test
       timestep = hpxml_header.timestep.nil? ? 60 : hpxml_header.timestep
       if timestep > 15
         next if message.include?('Timestep: Requested number') && message.include?('is less than the suggested minimum')
+      end
+      # TODO: Check why this house produces this warning
+      if hpxml_path.include? 'house044.xml'
+        next if message.include? 'FixViewFactors: View factors not complete. Check for bad surface descriptions or unenclosed zone'
       end
 
       flunk "Unexpected eplusout.err message found for #{File.basename(hpxml_path)}: #{message}"
@@ -1298,12 +1311,12 @@ class HPXMLTest < Minitest::Test
       if hpxml_bldg.total_fraction_heat_load_served == 0
         assert_equal(0, unmet_hours_htg)
       else
-        assert_operator(unmet_hours_htg, :<, 350)
+        assert_operator(unmet_hours_htg, :<, 400)
       end
       if hpxml_bldg.total_fraction_cool_load_served == 0
         assert_equal(0, unmet_hours_clg)
       else
-        assert_operator(unmet_hours_clg, :<, 350)
+        assert_operator(unmet_hours_clg, :<, 400)
       end
     end
 

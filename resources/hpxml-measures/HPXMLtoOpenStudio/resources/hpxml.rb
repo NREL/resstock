@@ -54,6 +54,8 @@ class HPXML < Object
   NameSpace = 'http://hpxmlonline.com/2023/09'
 
   # Constants
+  FuelElementNames = ['HeatingSystemFuel', 'CoolingSystemFuel', 'HeatPumpFuel', 'BackupSystemFuel', 'FuelType', 'IntegratedHeatingSystemFuel', 'Heater/Type']
+
   # FUTURE: Move some of these to within child classes (e.g., HPXML::Attic class)
   AirTypeFanCoil = 'fan coil'
   AirTypeGravity = 'gravity'
@@ -500,6 +502,32 @@ class HPXML < Object
         end
       end
     end
+  end
+
+  def has_fuels(fuels_array, hpxml_doc, building_id = nil)
+    # Returns a hash with whether each fuel in fuels_array exists
+    # across all the buildings
+    has_fuels = {}
+    fuels_array.each do |fuel|
+      has_fuels[fuel] = false
+      FuelElementNames.each do |fuel_element_name|
+        if fuel_element_name == 'Heater/Type' && fuel == HPXML::FuelTypeNaturalGas
+          fuel_element_value = HPXML::HeaterTypeGas
+        else
+          fuel_element_value = fuel
+        end
+        search_str = "/HPXML/Building[BuildingID/@id='#{building_id}']//#{fuel_element_name}[text() = '#{fuel_element_value}']"
+        if building_id.nil?
+          search_str = "/HPXML/Building//#{fuel_element_name}[text() = '#{fuel_element_value}']"
+        end
+        if XMLHelper.has_element(hpxml_doc, search_str)
+          has_fuels[fuel] = true
+          break
+        end
+      end
+    end
+
+    return has_fuels
   end
 
   # Class to store additional properties on an HPXML object that are not intended
@@ -1234,27 +1262,7 @@ class HPXML < Object
     def has_fuels(fuels_array, hpxml_doc)
       # Returns a hash with whether each fuel in fuels_array exists
       # in the HPXML Building
-      has_fuels = {}
-      fuels_array.each do |fuel|
-        has_fuels[fuel] = false
-        ['HeatingSystemFuel',
-         'CoolingSystemFuel',
-         'HeatPumpFuel',
-         'BackupSystemFuel',
-         'FuelType',
-         'IntegratedHeatingSystemFuel',
-         'Heater/Type'].each do |fuel_element_name|
-          if fuel_element_name == 'Heater/Type' && fuel == HPXML::FuelTypeNaturalGas
-            fuel_element_value = HPXML::HeaterTypeGas
-          else
-            fuel_element_value = fuel
-          end
-          if XMLHelper.has_element(hpxml_doc, "/HPXML/Building[BuildingID/@id='#{@building_id}']//#{fuel_element_name}[text() = '#{fuel_element_value}']")
-            has_fuels[fuel] = true
-            break
-          end
-        end
-      end
+      has_fuels = @parent_object.has_fuels(fuels_array, hpxml_doc, @building_id)
 
       return has_fuels
     end
@@ -4394,11 +4402,17 @@ class HPXML < Object
     end
 
     def is_dual_fuel
-      if @backup_heating_fuel.nil?
-        return false
-      end
-      if @backup_heating_fuel.to_s == @heat_pump_fuel.to_s
-        return false
+      if backup_system.nil?
+        if @backup_heating_fuel.nil?
+          return false
+        end
+        if @backup_heating_fuel.to_s == @heat_pump_fuel.to_s
+          return false
+        end
+      else
+        if backup_system.heating_system_fuel.to_s == @heat_pump_fuel.to_s
+          return false
+        end
       end
 
       return true
@@ -5594,7 +5608,7 @@ class HPXML < Object
   end
 
   class WaterFixture < BaseElement
-    ATTRS = [:id, :water_fixture_type, :low_flow]
+    ATTRS = [:id, :water_fixture_type, :low_flow, :flow_rate, :count]
     attr_accessor(*ATTRS)
 
     def delete
@@ -5614,7 +5628,9 @@ class HPXML < Object
       sys_id = XMLHelper.add_element(water_fixture, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(water_fixture, 'WaterFixtureType', @water_fixture_type, :string) unless @water_fixture_type.nil?
-      XMLHelper.add_element(water_fixture, 'LowFlow', @low_flow, :boolean) unless @low_flow.nil?
+      XMLHelper.add_element(water_fixture, 'Count', @count, :integer, @count_isdefaulted) unless @count.nil?
+      XMLHelper.add_element(water_fixture, 'FlowRate', @flow_rate, :float, @flow_rate_isdefaulted) unless @flow_rate.nil?
+      XMLHelper.add_element(water_fixture, 'LowFlow', @low_flow, :boolean, @low_flow_isdefaulted) unless @low_flow.nil?
     end
 
     def from_doc(water_fixture)
@@ -5622,6 +5638,8 @@ class HPXML < Object
 
       @id = HPXML::get_id(water_fixture)
       @water_fixture_type = XMLHelper.get_value(water_fixture, 'WaterFixtureType', :string)
+      @count = XMLHelper.get_value(water_fixture, 'Count', :integer)
+      @flow_rate = XMLHelper.get_value(water_fixture, 'FlowRate', :float)
       @low_flow = XMLHelper.get_value(water_fixture, 'LowFlow', :boolean)
     end
   end

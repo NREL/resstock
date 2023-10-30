@@ -576,27 +576,27 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
         sf_winter *= window.exterior_shading_factor_winter unless window.exterior_shading_factor_winter.nil?
 
         # Check shading transmittance for sky beam and sky diffuse
-        os_shading_surface = model.getShadingSurfaces.find { |ss| ss.name.to_s.start_with? window.id }
+        os_subsurface = model.getSubSurfaces.select { |ss| ss.name.to_s.start_with? window.id }[0]
+        os_ism = nil
+        model.getSurfacePropertyIncidentSolarMultipliers.each do |ism|
+          next unless os_subsurface == ism.subSurface
+
+          os_ism = ism
+        end
         if (sf_summer == 1) && (sf_winter == 1)
-          assert_nil(os_shading_surface) # No shading
+          assert_nil(os_ism) # No shading
         else
-          refute_nil(os_shading_surface) # Shading
+          refute_nil(os_ism) # Shading
           if sf_summer == sf_winter
-            summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleConstant.get.value
+            summer_transmittance = os_ism.incidentSolarMultiplierSchedule.get.to_ScheduleConstant.get.value
             winter_transmittance = summer_transmittance
           else
-            summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
-            winter_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
+            summer_transmittance = os_ism.incidentSolarMultiplierSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
+            winter_transmittance = os_ism.incidentSolarMultiplierSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
           end
           assert_equal(sf_summer, summer_transmittance)
           assert_equal(sf_winter, winter_transmittance)
         end
-
-        # Check subsurface view factor to ground
-        subsurface_view_factor = 0.5
-        window_actuator = model.getEnergyManagementSystemActuators.find { |w| w.actuatedComponent.get.name.to_s == window.id }
-        program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'fixedwindow view factor to ground program')
-        assert_equal(subsurface_view_factor, program_values["#{window_actuator.name}"][0])
       end
     end
   end
@@ -640,27 +640,27 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
         sf_winter *= skylight.exterior_shading_factor_winter unless skylight.exterior_shading_factor_winter.nil?
 
         # Check shading transmittance for sky beam and sky diffuse
-        os_shading_surface = model.getShadingSurfaces.find { |ss| ss.name.to_s.start_with? skylight.id }
+        os_subsurface = model.getSubSurfaces.select { |ss| ss.name.to_s.start_with? skylight.id }[0]
+        os_ism = nil
+        model.getSurfacePropertyIncidentSolarMultipliers.each do |ism|
+          next unless os_subsurface == ism.subSurface
+
+          os_ism = ism
+        end
         if (sf_summer == 1) && (sf_winter == 1)
-          assert_nil(os_shading_surface) # No shading
+          assert_nil(os_ism) # No shading
         else
-          refute_nil(os_shading_surface) # Shading
+          refute_nil(os_ism) # Shading
           if sf_summer == sf_winter
-            summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleConstant.get.value
+            summer_transmittance = os_ism.incidentSolarMultiplierSchedule.get.to_ScheduleConstant.get.value
             winter_transmittance = summer_transmittance
           else
-            summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
-            winter_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
+            summer_transmittance = os_ism.incidentSolarMultiplierSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
+            winter_transmittance = os_ism.incidentSolarMultiplierSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
           end
           assert_equal(sf_summer, summer_transmittance)
           assert_equal(sf_winter, winter_transmittance)
         end
-
-        # Check subsurface view factor to ground
-        subsurface_view_factor = 0.05 # 6:12 pitch
-        skylight_actuator = model.getEnergyManagementSystemActuators.find { |w| w.actuatedComponent.get.name.to_s == skylight.id }
-        program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'skylight view factor to ground program')
-        assert_equal(subsurface_view_factor, program_values["#{skylight_actuator.name}"][0])
       end
     end
   end
@@ -767,8 +767,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
       slab_int_adj_tos.each do |int_adj_to, slabs|
         osm_props = []
         model.getSurfacePropertyExposedFoundationPerimeters.each do |osm_prop|
-          surf = model.getSurfaces.find { |s| s.name.to_s == osm_prop.surfaceName }
-          next unless surf.space.get.name.to_s.start_with? int_adj_to
+          next unless osm_prop.surface.space.get.name.to_s.start_with? int_adj_to
 
           osm_props << osm_prop
         end
@@ -783,8 +782,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
       model.getFoundationKivas.each do |foundation|
         osm_exposed_perimeter = 0.0
         model.getSurfacePropertyExposedFoundationPerimeters.each do |osm_prop|
-          surf = model.getSurfaces.find { |s| s.name.to_s == osm_prop.surfaceName }
-          next unless surf.outsideBoundaryCondition == 'Foundation' && surf.adjacentFoundation.get == foundation
+          next unless osm_prop.surface.outsideBoundaryCondition == 'Foundation' && osm_prop.surface.adjacentFoundation.get == foundation
 
           osm_exposed_perimeter += UnitConversions.convert(osm_prop.totalExposedPerimeter.get, 'm', 'ft')
         end
@@ -854,8 +852,8 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
     initial_temps = { 'base.xml' => 68.0, # foundation adjacent to conditioned space, IECC zone 5
                       'base-foundation-conditioned-crawlspace.xml' => 68.0, # foundation adjacent to conditioned space, IECC zone 5
                       'base-foundation-slab.xml' => 68.0, # foundation adjacent to conditioned space, IECC zone 5
-                      'base-foundation-unconditioned-basement.xml' => 41.4, # foundation adjacent to unconditioned basement w/ ceiling insulation
-                      'base-foundation-unconditioned-basement-wall-insulation.xml' => 56.0, # foundation adjacent to unconditioned basement w/ wall insulation
+                      'base-foundation-unconditioned-basement.xml' => 42.3, # foundation adjacent to unconditioned basement w/ ceiling insulation
+                      'base-foundation-unconditioned-basement-wall-insulation.xml' => 56.6, # foundation adjacent to unconditioned basement w/ wall insulation
                       'base-foundation-unvented-crawlspace.xml' => 38.6, # foundation adjacent to unvented crawlspace w/ ceiling insulation
                       'base-foundation-vented-crawlspace.xml' => 36.9, # foundation adjacent to vented crawlspace w/ ceiling insulation
                       'base-location-miami-fl.xml' => 78.0 } # foundation adjacent to conditioned space, IECC zone 1

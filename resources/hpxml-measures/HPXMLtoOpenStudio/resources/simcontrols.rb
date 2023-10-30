@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class SimControls
-  def self.apply(model, hpxml_header, hpxml_bldg)
+  def self.apply(model, hpxml_header)
     sim = model.getSimulationControl
     sim.setRunSimulationforSizingPeriods(false)
 
@@ -14,20 +14,6 @@ class SimControls
     # between speed and accuracy (e.g., sun position, picking up any change in window
     # interior shading transmittance, etc.).
     shad.setShadingCalculationUpdateFrequency(20)
-
-    has_windows_varying_transmittance = false
-    hpxml_bldg.windows.each do |window|
-      sf_summer = window.interior_shading_factor_summer * window.exterior_shading_factor_summer
-      sf_winter = window.interior_shading_factor_winter * window.exterior_shading_factor_winter
-      next if sf_summer == sf_winter
-
-      has_windows_varying_transmittance = true
-    end
-    if has_windows_varying_transmittance
-      # Detailed diffuse algorithm is required for window interior shading with varying
-      # transmittance schedules
-      shad.setSkyDiffuseModelingAlgorithm('DetailedSkyDiffuseModeling')
-    end
 
     outsurf = model.getOutsideSurfaceConvectionAlgorithm
     outsurf.setAlgorithm('DOE-2')

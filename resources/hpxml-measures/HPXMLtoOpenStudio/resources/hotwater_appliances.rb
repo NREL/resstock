@@ -233,11 +233,21 @@ class HotWaterAndAppliances
     end
 
     if not hot_water_distribution.nil?
-      fixtures_all_low_flow = true
-      hpxml_bldg.water_fixtures.each do |water_fixture|
-        next unless [HPXML::WaterFixtureTypeShowerhead, HPXML::WaterFixtureTypeFaucet].include? water_fixture.water_fixture_type
-
-        fixtures_all_low_flow = false if not water_fixture.low_flow
+      fixtures = hpxml_bldg.water_fixtures.select { |wf| [HPXML::WaterFixtureTypeShowerhead, HPXML::WaterFixtureTypeFaucet].include? wf.water_fixture_type }
+      if fixtures.size > 0
+        if fixtures.any? { |wf| wf.count.nil? }
+          showerheads = fixtures.select { |wf| wf.water_fixture_type == HPXML::WaterFixtureTypeShowerhead }
+          frac_low_flow_showerheads = showerheads.select { |wf| wf.low_flow }.size / Float(showerheads.size)
+          faucets = fixtures.select { |wf| wf.water_fixture_type == HPXML::WaterFixtureTypeFaucet }
+          frac_low_flow_faucets = faucets.select { |wf| wf.low_flow }.size / Float(faucets.size)
+          frac_low_flow_fixtures = 0.4 * frac_low_flow_showerheads + 0.6 * frac_low_flow_faucets
+        else
+          num_wfs = fixtures.map { |wf| wf.count }.sum
+          num_low_flow_wfs = fixtures.select { |wf| wf.low_flow }.map { |wf| wf.count }.sum
+          frac_low_flow_fixtures = num_low_flow_wfs / num_wfs
+        end
+      else
+        frac_low_flow_fixtures = 0.0
       end
 
       # Calculate mixed water fractions
@@ -248,8 +258,7 @@ class HotWaterAndAppliances
         wh_setpoint = Waterheater.get_default_hot_water_temperature(eri_version) if wh_setpoint.nil? # using detailed schedules
         avg_setpoint_temp += wh_setpoint * water_heating_system.fraction_dhw_load_served
       end
-      daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow,
-                                                                               hpxml_header.sim_calendar_year)
+      daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, frac_low_flow_fixtures)
       daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map { |t| UnitConversions.convert(t, 'F', 'C') }
       daily_mw_fractions = calc_mixed_water_daily_fractions(daily_wh_inlet_temperatures, avg_setpoint_temp, t_mix)
 
@@ -294,8 +303,8 @@ class HotWaterAndAppliances
       gpd_frac = water_heating_system.fraction_dhw_load_served # Fixtures fraction
       if gpd_frac > 0
 
-        fx_gpd = get_fixtures_gpd(eri_version, nbeds, fixtures_all_low_flow, daily_mw_fractions, fixtures_usage_multiplier)
-        w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, hot_water_distribution, fixtures_all_low_flow, fixtures_usage_multiplier)
+        fx_gpd = get_fixtures_gpd(eri_version, nbeds, frac_low_flow_fixtures, daily_mw_fractions, fixtures_usage_multiplier)
+        w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, hot_water_distribution, frac_low_flow_fixtures, fixtures_usage_multiplier)
 
         fx_peak_flow = nil
         if not schedules_file.nil?
@@ -356,7 +365,7 @@ class HotWaterAndAppliances
       end
 
       # Dishwasher
-      next unless not dishwasher.nil?
+      next if dishwasher.nil?
 
       gpd_frac = nil
       if dishwasher.is_shared_appliance && (not dishwasher.hot_water_distribution.nil?)
@@ -366,7 +375,7 @@ class HotWaterAndAppliances
       elsif not dishwasher.is_shared_appliance
         gpd_frac = water_heating_system.fraction_dhw_load_served
       end
-      next unless not gpd_frac.nil?
+      next if gpd_frac.nil?
 
       # Create schedule
       water_dw_schedule = nil
@@ -834,15 +843,12 @@ class HotWaterAndAppliances
     return wu
   end
 
-  def self.get_dwhr_factors(nbeds, hot_water_distribution, fixtures_all_low_flow)
+  def self.get_dwhr_factors(nbeds, hot_water_distribution, frac_low_flow_fixtures)
     # ANSI/RESNET 301-2014 Addendum A-2015
     # Amendment on Domestic Hot Water (DHW) Systems
     # Eq. 4.2-14
 
-    eff_adj = 1.0
-    if fixtures_all_low_flow
-      eff_adj = 1.082
-    end
+    eff_adj = 1.0 + 0.082 * frac_low_flow_fixtures
 
     iFrac = 0.56 + 0.015 * nbeds - 0.0004 * nbeds**2 # fraction of hot water use impacted by DWHR
 
@@ -870,23 +876,18 @@ class HotWaterAndAppliances
     return eff_adj, iFrac, plc, locF, fixF
   end
 
-  def self.calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow, year)
-    # Get daily mains temperatures
-    avgOAT = weather.data.AnnualAvgDrybulb
-    maxDiffMonthlyAvgOAT = weather.data.MonthlyAvgDrybulbs.max - weather.data.MonthlyAvgDrybulbs.min
-    tmains_daily = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, weather.header.Latitude, year)[2]
-
-    wh_temps_daily = tmains_daily
+  def self.calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, frac_low_flow_fixtures)
+    wh_temps_daily = weather.data.MainsDailyTemps
     if (not hot_water_distribution.dwhr_efficiency.nil?)
-      dwhr_eff_adj, dwhr_iFrac, dwhr_plc, dwhr_locF, dwhr_fixF = get_dwhr_factors(nbeds, hot_water_distribution, fixtures_all_low_flow)
+      dwhr_eff_adj, dwhr_iFrac, dwhr_plc, dwhr_locF, dwhr_fixF = get_dwhr_factors(nbeds, hot_water_distribution, frac_low_flow_fixtures)
       # Adjust inlet temperatures
       dwhr_inT = 97.0 # F
-      for day in 0..tmains_daily.size - 1
-        dwhr_WHinTadj = dwhr_iFrac * (dwhr_inT - tmains_daily[day]) * hot_water_distribution.dwhr_efficiency * dwhr_eff_adj * dwhr_plc * dwhr_locF * dwhr_fixF
+      for day in 0..wh_temps_daily.size - 1
+        dwhr_WHinTadj = dwhr_iFrac * (dwhr_inT - wh_temps_daily[day]) * hot_water_distribution.dwhr_efficiency * dwhr_eff_adj * dwhr_plc * dwhr_locF * dwhr_fixF
         wh_temps_daily[day] = (wh_temps_daily[day] + dwhr_WHinTadj).round(3)
       end
     else
-      for day in 0..tmains_daily.size - 1
+      for day in 0..wh_temps_daily.size - 1
         wh_temps_daily[day] = (wh_temps_daily[day]).round(3)
       end
     end
@@ -948,12 +949,12 @@ class HotWaterAndAppliances
     return dist_pump_annual_kwh
   end
 
-  def self.get_fixtures_effectiveness(fixtures_all_low_flow)
-    f_eff = fixtures_all_low_flow ? 0.95 : 1.0
+  def self.get_fixtures_effectiveness(frac_low_flow_fixtures)
+    f_eff = 1.0 - 0.05 * frac_low_flow_fixtures
     return f_eff
   end
 
-  def self.get_fixtures_gpd(eri_version, nbeds, fixtures_all_low_flow, daily_mw_fractions, fixtures_usage_multiplier = 1.0)
+  def self.get_fixtures_gpd(eri_version, nbeds, frac_low_flow_fixtures, daily_mw_fractions, fixtures_usage_multiplier = 1.0)
     if nbeds < 0.0
       return 0.0
     end
@@ -968,7 +969,7 @@ class HotWaterAndAppliances
     # ANSI/RESNET 301-2014 Addendum A-2015
     # Amendment on Domestic Hot Water (DHW) Systems
     ref_f_gpd = 14.6 + 10.0 * nbeds # Eq. 4.2-2 (refFgpd)
-    f_eff = get_fixtures_effectiveness(fixtures_all_low_flow)
+    f_eff = get_fixtures_effectiveness(frac_low_flow_fixtures)
 
     return f_eff * ref_f_gpd * fixtures_usage_multiplier
   end
@@ -981,7 +982,7 @@ class HotWaterAndAppliances
   end
 
   def self.get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, hot_water_distribution,
-                              fixtures_all_low_flow, fixtures_usage_multiplier = 1.0)
+                              frac_low_flow_fixtures, fixtures_usage_multiplier = 1.0)
     if (Constants.ERIVersions.index(eri_version) <= Constants.ERIVersions.index('2014')) || (nbeds < 0.0)
       return 0.0
     end
@@ -1023,7 +1024,7 @@ class HotWaterAndAppliances
       wd_eff = 1.0
     end
 
-    f_eff = get_fixtures_effectiveness(fixtures_all_low_flow)
+    f_eff = get_fixtures_effectiveness(frac_low_flow_fixtures)
 
     mw_gpd = f_eff * (o_w_gpd + s_w_gpd * wd_eff) # Eq. 4.2-11
 

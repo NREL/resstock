@@ -137,8 +137,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         fail 'Weather station EPW filepath has different values across dwelling units.'
       end
 
-      if building_id == 'ALL'
-        if hpxml.buildings.map { |hpxml_bldg| hpxml_bldg.batteries.size }.sum > 1
+      if (building_id == 'ALL') && (hpxml.buildings.size > 1)
+        if hpxml.buildings.map { |hpxml_bldg| hpxml_bldg.batteries.size }.sum > 0
           # FIXME: Figure out how to allow this. If we allow it, update docs and hpxml_translator_test.rb too.
           # Batteries use "TrackFacilityElectricDemandStoreExcessOnSite"; to support modeling of batteries in whole
           # SFA/MF building simulations, we'd need to create custom meters with electricity usage *for each unit*
@@ -555,7 +555,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   end
 
   def add_simulation_params(model)
-    SimControls.apply(model, @hpxml_header, @hpxml_bldg)
+    SimControls.apply(model, @hpxml_header)
   end
 
   def add_num_occupants(model, runner, spaces)
@@ -1275,12 +1275,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
     @hpxml_bldg.collapse_enclosure_surfaces()
 
-    shading_group = nil
     shading_schedules = {}
-    shading_ems = { sensors: {}, program: nil }
 
     surfaces = []
-    @hpxml_bldg.windows.each_with_index do |window, i|
+    @hpxml_bldg.windows.each do |window|
       window_height = 4.0 # ft, default
 
       overhang_depth = nil
@@ -1328,9 +1326,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         Constructions.apply_window(model, sub_surface, 'WindowConstruction', ufactor, shgc)
 
         # Apply interior/exterior shading (as needed)
-        shading_vertices = Geometry.create_wall_vertices(window_length, window_height, z_origin, window.azimuth)
-        shading_group = Constructions.apply_window_skylight_shading(model, window, i, shading_vertices, surface, sub_surface, shading_group, shading_schedules,
-                                                                    shading_ems, Constants.ObjectNameWindowShade, @hpxml_header, @hpxml_bldg)
+        Constructions.apply_window_skylight_shading(model, window, sub_surface, shading_schedules, @hpxml_header, @hpxml_bldg)
       else
         # Window is on an interior surface, which E+ does not allow. Model
         # as a door instead so that we can get the appropriate conduction
@@ -1369,12 +1365,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
   def add_skylights(model, spaces)
     surfaces = []
-
-    shading_group = nil
     shading_schedules = {}
-    shading_ems = { sensors: {}, program: nil }
 
-    @hpxml_bldg.skylights.each_with_index do |skylight, i|
+    @hpxml_bldg.skylights.each do |skylight|
       tilt = skylight.roof.pitch / 12.0
       width = Math::sqrt(skylight.area)
       length = skylight.area / width
@@ -1406,9 +1399,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       Constructions.apply_skylight(model, sub_surface, 'SkylightConstruction', ufactor, shgc)
 
       # Apply interior/exterior shading (as needed)
-      shading_vertices = Geometry.create_roof_vertices(length, width, z_origin, skylight.azimuth, tilt)
-      shading_group = Constructions.apply_window_skylight_shading(model, skylight, i, shading_vertices, surface, sub_surface, shading_group, shading_schedules,
-                                                                  shading_ems, Constants.ObjectNameSkylightShade, @hpxml_header, @hpxml_bldg)
+      Constructions.apply_window_skylight_shading(model, skylight, sub_surface, shading_schedules, @hpxml_header, @hpxml_bldg)
     end
 
     apply_adiabatic_construction(model, surfaces, 'roof')
@@ -1637,7 +1628,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       elsif [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
 
         airloop_map[sys_id] = HVAC.apply_boiler(model, runner, heating_system, sequential_heat_load_fracs, conditioned_zone,
-                                                @hvac_unavailable_periods, @hpxml_bldg.building_construction.number_of_units)
+                                                @hvac_unavailable_periods)
 
       elsif [HPXML::HVACTypeElectricResistance].include? heating_system.heating_system_type
 
@@ -1704,7 +1695,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
       end
 
-      next unless not heat_pump.backup_system.nil?
+      next if heat_pump.backup_system.nil?
 
       equipment_list = model.getZoneHVACEquipmentLists.find { |el| el.thermalZone == conditioned_zone }
 
@@ -2581,13 +2572,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
           if ['intgains', 'lighting', 'mechvent', 'ducts'].include? loadtype
             s += " - #{sensor.name}"
           elsif sensor.name.to_s.include? 'gain'
-            # Workaround for https://github.com/NREL/EnergyPlus/issues/9934
-            # FUTURE: Remove when the issue is resolved
-            if loadtype == 'infil'
-              s += " - (#{sensor.name} * 3600)"
-            else
-              s += " - #{sensor.name}"
-            end
+            s += " - #{sensor.name}"
           elsif sensor.name.to_s.include? 'loss'
             s += " + #{sensor.name}"
           end

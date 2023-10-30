@@ -707,6 +707,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['emissions_types'] = 'CO2e'
       args['emissions_electricity_units'] = 'kg/MWh'
       args['emissions_electricity_values_or_filepaths'] = '1'
+      args['emissions_fossil_fuel_units'] = 'kg/MBtu'
+      args['emissions_natural_gas_values'] = '2'
       args['utility_bill_scenario_names'] = 'Bills'
     elsif ['base-sfd-header-no-duplicates.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfd-header.xml')

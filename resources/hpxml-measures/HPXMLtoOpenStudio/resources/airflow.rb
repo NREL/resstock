@@ -1334,6 +1334,7 @@ class Airflow
   def self.calc_hrv_erv_effectiveness(vent_mech_fans)
     # Create the mapping between mech vent instance and the effectiveness results
     hrv_erv_effectiveness_map = {}
+    p_atm = UnitConversions.convert(1.0, 'atm', 'psi')
     vent_mech_fans.each do |vent_mech|
       hrv_erv_effectiveness_map[vent_mech] = {}
 
@@ -1347,7 +1348,7 @@ class Airflow
         cp_a = 1006.0
         p_fan = vent_mech.average_unit_fan_power # Watts
 
-        m_fan = UnitConversions.convert(vent_mech_cfm, 'cfm', 'm^3/s') * 16.02 * Psychrometrics.rhoD_fT_w_P(UnitConversions.convert(t_sup_in, 'C', 'F'), w_sup_in, 14.7) # kg/s
+        m_fan = UnitConversions.convert(vent_mech_cfm, 'cfm', 'm^3/s') * UnitConversions.convert(Psychrometrics.rhoD_fT_w_P(UnitConversions.convert(t_sup_in, 'C', 'F'), w_sup_in, p_atm), 'lbm/ft^3', 'kg/m^3') # kg/s
 
         if not vent_mech.sensible_recovery_efficiency.nil?
           # The following is derived from CSA 439, Clause 9.3.3.1, Eq. 12:
@@ -1383,7 +1384,7 @@ class Airflow
           t_exh_in = 24.0
           w_exh_in = 0.0092
 
-          m_fan = UnitConversions.convert(vent_mech_cfm, 'cfm', 'm^3/s') * UnitConversions.convert(Psychrometrics.rhoD_fT_w_P(UnitConversions.convert(t_sup_in, 'C', 'F'), w_sup_in, 14.7), 'lbm/ft^3', 'kg/m^3') # kg/s
+          m_fan = UnitConversions.convert(vent_mech_cfm, 'cfm', 'm^3/s') * UnitConversions.convert(Psychrometrics.rhoD_fT_w_P(UnitConversions.convert(t_sup_in, 'C', 'F'), w_sup_in, p_atm), 'lbm/ft^3', 'kg/m^3') # kg/s
 
           t_sup_out_gross = t_sup_in - vent_mech_sens_eff * (t_sup_in - t_exh_in)
           t_sup_out = t_sup_out_gross + p_fan / (m_fan * cp_a)
@@ -1870,7 +1871,7 @@ class Airflow
       # Based on "Field Validation of Algebraic Equations for Stack and
       # Wind Driven Air Infiltration Calculations" by Walker and Wilson (1998)
 
-      outside_air_density = UnitConversions.convert(weather.header.LocalPressure, 'atm', 'Btu/ft^3') / (Gas.Air.r * (weather.data.AnnualAvgDrybulb + 460.0))
+      outside_air_density = UnitConversions.convert(weather.header.LocalPressure, 'atm', 'Btu/ft^3') / (Gas.Air.r * UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'R'))
 
       n_i = InfilPressureExponent
       conditioned_sla = get_infiltration_SLA_from_ACH50(conditioned_ach50, n_i, @cfa, infil_volume) # Calculate SLA
@@ -1924,7 +1925,7 @@ class Airflow
         f_i = 0.0 # Additive flue function (eq. 12)
       end
       f_s = ((1.0 + n_i * r_i) / (n_i + 1.0)) * (0.5 - 0.5 * m_i**1.2)**(n_i + 1.0) + f_i
-      stack_coef = f_s * (UnitConversions.convert(outside_air_density * Constants.g * infil_height, 'lbm/(ft*s^2)', 'inH2O') / (Constants.AssumedInsideTemp + 460.0))**n_i # inH2O^n/R^n
+      stack_coef = f_s * (UnitConversions.convert(outside_air_density * Constants.g * infil_height, 'lbm/(ft*s^2)', 'inH2O') / UnitConversions.convert(Constants.AssumedInsideTemp, 'F', 'R'))**n_i # inH2O^n/R^n
 
       # Calculate wind coefficient
       if not @spaces[HPXML::LocationCrawlspaceVented].nil?
@@ -1977,7 +1978,7 @@ class Airflow
     f_t_SG = site_ap.site_terrain_multiplier * ((space_height + coord_z) / 32.8)**site_ap.site_terrain_exponent / (site_ap.terrain_multiplier * (site_ap.height / 32.8)**site_ap.terrain_exponent)
     f_s_SG = 2.0 / 3.0 * (1 + hor_lk_frac / 2.0) * (2.0 * neutral_level * (1.0 - neutral_level))**0.5 / (neutral_level**0.5 + (1.0 - neutral_level)**0.5)
     f_w_SG = site_ap.s_g_shielding_coef * (1.0 - hor_lk_frac)**(1.0 / 3.0) * f_t_SG
-    c_s_SG = f_s_SG**2.0 * Constants.g * space_height / (Constants.AssumedInsideTemp + 460.0)
+    c_s_SG = f_s_SG**2.0 * Constants.g * space_height / UnitConversions.convert(Constants.AssumedInsideTemp, 'F', 'R')
     c_w_SG = f_w_SG**2.0
     return c_w_SG, c_s_SG
   end
