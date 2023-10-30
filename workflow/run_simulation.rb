@@ -26,6 +26,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
     args['hpxml_output_path'] = hpxml
     args['output_csv_path'] = File.join(rundir, 'stochastic.csv')
     args['debug'] = debug
+    args['building_id'] = building_id
     update_args_hash(measures, measure_subdir, args)
   end
 
@@ -141,7 +142,7 @@ OptionParser.new do |opts|
     options[:ep_input_format] = t
   end
 
-  opts.on('-b', '--building-id <ID>', 'ID of Building to simulate (required when multiple HPXML Building elements)') do |t|
+  opts.on('-b', '--building-id <ID>', 'ID of Building to simulate (required when multiple HPXML Building elements); use "ALL" to simulate a single whole MF building model') do |t|
     options[:building_id] = t
   end
 

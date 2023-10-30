@@ -13,27 +13,47 @@ The OpenStudio measures used by the workflow are:
 #. ``ReportUtilityBills``: A reporting measure that generates utility bill outputs in CSV/JSON/MessagePack format.
 
 
-Scope (Dwelling Units)
-----------------------
+Building Type Scope
+-------------------
 
-The OpenStudio-HPXML workflow is intended to be used to model individual residential dwelling units -- either a single-family detached (SFD) building, or a single unit of a single-family attached (SFA) or multifamily (MF) building.
-This approach was taken because:
+Dwelling Units
+~~~~~~~~~~~~~~
 
-- It is required/desired for certain projects.
-- It improves runtime speed by being able to simulate individual units in parallel (as opposed to simulating the entire building).
-- It doesn't necessarily preclude the possibility of running a single integrated EnergyPlus simulation.
+The OpenStudio-HPXML workflow was originally developed to model individual residential dwelling units -- either a single-family detached (SFD) building, or a single unit of a single-family attached (SFA) or multifamily (MF) building.
+This approach:
 
-To model units of SFA/MF buildings, current capabilities include:
+- Is required/desired for certain applications (e.g., a Home Energy Score or an Energy Rating Index calculation).
+- Improves runtime speed by being able to simulate individual units in parallel (as opposed to simulating the entire building).
 
-- Defining surfaces adjacent to generic SFA/MF spaces (e.g., "other housing unit" or "other multifamily buffer space").
+When modeling individual units of SFA/MF buildings, current capabilities include:
+
+- Defining surfaces adjacent to generic SFA/MF spaces (e.g., "other housing unit" or "other multifamily buffer space"), in which temperature profiles are assumed.
 - Locating various building components (e.g., ducts, water heaters, appliances) in these SFA/MF spaces.
-- Defining shared systems (HVAC, water heating, mechanical ventilation, etc.) by approximating the energy use attributed to the unit.
+- Defining shared systems (HVAC, water heating, mechanical ventilation, etc.) by approximating their energy use attributed to the unit.
 
 Note that only the energy use attributed to each dwelling unit is calculated.
 Other OpenStudio capabilities should be used to supplement this workflow if the energy use of non-residential dwelling spaces (e.g., gyms, elevators, corridors, etc.) are of interest.
 
-For situations where more complex, integrated modeling is required, it is possible to merge multiple OpenStudio models together into a single model, such that one could merge all residential OSMs together and potentially combine it with a commercial OSM.
-That capability is outside the scope of this project.
+Whole Buildings
+~~~~~~~~~~~~~~~
+
+As of OpenStudio-HPXML v1.7.0, a new capability was added for modeling whole SFA/MF buildings.
+For these simulations:
+
+- The HPXML file must include multiple ``Building`` elements, each of which describes an individual dwelling unit.
+- FIXME: Say something about unconditioned common spaces, basements, attics.
+- Unit multipliers (using the ``NumberofUnits`` element) can be specified to model *unique* dwelling units, rather than *all* dwelling units, reducing simulation runtime.
+
+Some notes/caveats about this approach:
+
+- Some inputs (e.g., EPW location or ground conductivity) cannot vary across ``Building`` elements.
+- Some building features are not currently supported:
+
+  - Batteries
+  - Dehumidifiers (not supported only if the unit multiplier > 1)
+  - Ground source heat pumps (not supported only if the unit multiplier > 1)
+
+- FIXME: Say something about shared systems.
 
 Accuracy vs Speed
 -----------------

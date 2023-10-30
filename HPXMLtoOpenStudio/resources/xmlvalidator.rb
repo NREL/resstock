@@ -55,6 +55,10 @@ class XMLValidator
 
           # Try to retrieve SystemIdentifier
           context_element = hpxml_doc.xpath(current_context.gsub('h:', ''))[current_context_idx]
+          if context_element.nil?
+            fail "Could not find element at xpath '#{current_context}' with index #{current_context_idx}."
+          end
+
           sys_id = XMLHelper.get_attribute_value(XMLHelper.get_element(context_element, 'SystemIdentifier'), 'id')
           if sys_id.nil?
             # Keep checking parent elements
