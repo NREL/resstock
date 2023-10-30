@@ -385,8 +385,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
 
       # to call the AddWholeBuildingSharedHPWHAndCirculationLoops measure
-      # additional_properties << "has_ghpwh=#{bldg_data['Water Heater Efficiency'] == 'Natural Gas Heat Pump'}" # FIXME: this is specific to another project
-      additional_properties << 'has_ghpwh=true' # FIXME: hardset to true for testing AddWholeBuildingSharedHPWHAndCirculationLoops
+      additional_properties << "has_ghpwh=#{bldg_data['Water Heater Efficiency'] == 'Natural Gas Heat Pump'}" # FIXME: this is specific to another project
+      # additional_properties << 'has_ghpwh=true' # FIXME: hardset to true for testing AddWholeBuildingSharedHPWHAndCirculationLoops
 
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
@@ -459,6 +459,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
           emissions_wood_values = args[:emissions_wood_values].get
           measures['BuildResidentialHPXML'][0]['emissions_wood_values'] = emissions_wood_values
+        end
       end
 
       # Utility Bills
