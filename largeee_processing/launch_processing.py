@@ -8,18 +8,17 @@ output_folder = "med_run_output3"
 state_split = False
 electrification_adder = 4000  # USD per dwelling unit, additional cost for electrification
 state_grouping: dict[str, list[str] | None] = {
-    "Mountain & Pacific Northwest": ["MT", "ID", "WY", "NV", "UT", "CO", "AZ", "NM", "OR", "WA"],
+    "West": ["MT", "ID", "WY", "NV", "UT", "CO", "AZ", "NM", "OR", "WA"],
     "California": ["CA"],
+    "Appalachia": ["PA", "OH", "WV", "KY"]
     "Florida & Georgia": ["FL", "GA"],
     "Central Atlantic": ["SC", "NC", "VA", "DC", "MD", "DE"],
-    "Three-Fifths of East North Central": ["MI", "IL", "IN"],
-    "West North Central & Wisconsin": ["ND", "SD", "NE", "KS", "MN", "IA", "MO", "WI"],
+    "Lake Michigan": ["MI", "IL", "IN"],
+    "Great Plains": ["ND", "SD", "NE", "KS", "MN", "IA", "MO", "WI"],
     "New York & New Jersey": ["NY", "NJ"],
-    "PA-OH-WV": ["PA", "OH", "WV"],
+    "Delta": ["TN", "MS", "AL", "OK", "AR", "LA"],
     "Texas": ["TX"],
-    "East South Central": ["KY", "TN", "MS", "AL"],
-    "New England": ["ME", "NH", "VT", "MA", "CT", "RI"],
-    "Northeast West South Central": ["OK", "AR", "LA"]
+    "New England": ["ME", "NH", "VT", "MA", "CT", "RI"]
 }
 
 run_names = [
@@ -45,7 +44,7 @@ run_names = [
 wide_chars = [
     'in.area_median_income', 'in.ashrae_iecc_climate_zone_2004', 'in.building_america_climate_zone',
     'in.census_division', 'in.state', 'in.county', 'in.geometry_building_type_recs', 'in.vintage',
-    'in.geometry_floor_area', 'in.heating_fuel'
+    'in.geometry_floor_area', 'in.heating_fuel', 'in.income'
 ]
 long_chars = [
     'in.clothes_dryer', 'in.cooking_range', 'in.geometry_attic_type', 'in.geometry_building_type_recs',
