@@ -43,7 +43,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Convert optional arguments to string arguments that allow Constants.Auto for defaulting
       if !arg.required
-        args << OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
+        new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
+        new_arg.setDescription(arg.description.to_s)
+        new_arg.setUnits(arg.units.to_s)
+        args << new_arg
       else
         args << arg
       end
@@ -304,41 +307,49 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_rated_cfm_per_ton', false)
     arg.setDisplayName('Heating System: Rated CFM Per Ton')
+    arg.setDescription('The rated cfm per ton of the heating system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_actual_cfm_per_ton', false)
     arg.setDisplayName('Heating System: Actual CFM Per Ton')
+    arg.setDescription('The actual cfm per ton of the heating system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_rated_cfm_per_ton', false)
     arg.setDisplayName('Cooling System: Rated CFM Per Ton')
+    arg.setDescription('The rated cfm per ton of the cooling system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_actual_cfm_per_ton', false)
     arg.setDisplayName('Cooling System: Actual CFM Per Ton')
+    arg.setDescription('The actual cfm per ton of the cooling system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_frac_manufacturer_charge', false)
     arg.setDisplayName('Cooling System: Fraction of Manufacturer Recommended Charge')
+    arg.setDescription('The fraction of manufacturer recommended charge of the cooling system.')
     arg.setUnits('Frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_rated_cfm_per_ton', false)
     arg.setDisplayName('Heat Pump: Rated CFM Per Ton')
+    arg.setDescription('The rated cfm per ton of the heat pump.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_actual_cfm_per_ton', false)
     arg.setDisplayName('Heat Pump: Actual CFM Per Ton')
+    arg.setDescription('The actual cfm per ton of the heat pump.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_frac_manufacturer_charge', false)
     arg.setDisplayName('Heat Pump: Fraction of Manufacturer Recommended Charge')
+    arg.setDescription('The fraction of manufacturer recommended charge of the heat pump.')
     arg.setUnits('Frac')
     args << arg
 

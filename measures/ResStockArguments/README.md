@@ -13,7 +13,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **schedules_vacancy_period**
 
-
+Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).
 
 - **Name:** ``schedules_vacancy_period``
 - **Type:** ``String``
@@ -24,7 +24,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **schedules_power_outage_period**
 
-
+Specifies the power outage period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).
 
 - **Name:** ``schedules_power_outage_period``
 - **Type:** ``String``
@@ -35,7 +35,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **schedules_power_outage_window_natvent_availability**
 
-
+The availability of the natural ventilation schedule during the outage period.
 
 - **Name:** ``schedules_power_outage_window_natvent_availability``
 - **Type:** ``String``
@@ -46,7 +46,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **simulation_control_timestep**
 
-
+Value must be a divisor of 60. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``simulation_control_timestep``
 - **Type:** ``String``
@@ -57,7 +57,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **simulation_control_run_period**
 
-
+Enter a date like "Jan 1 - Dec 31". If not provided, the OS-HPXML default is used.
 
 - **Name:** ``simulation_control_run_period``
 - **Type:** ``String``
@@ -68,7 +68,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **simulation_control_run_period_calendar_year**
 
-
+This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``simulation_control_run_period_calendar_year``
 - **Type:** ``String``
@@ -79,7 +79,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **simulation_control_daylight_saving_enabled**
 
-
+Whether to use daylight saving. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``simulation_control_daylight_saving_enabled``
 - **Type:** ``String``
@@ -90,7 +90,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **site_type**
 
-
+The type of site. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``site_type``
 - **Type:** ``String``
@@ -101,7 +101,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **site_shielding_of_home**
 
-
+Presence of nearby buildings, trees, obstructions for infiltration model. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``site_shielding_of_home``
 - **Type:** ``String``
@@ -112,7 +112,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **site_ground_conductivity**
 
-
+Conductivity of the ground soil. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``site_ground_conductivity``
 - **Type:** ``String``
@@ -123,7 +123,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **site_zip_code**
 
-
+Zip code of the home address.
 
 - **Name:** ``site_zip_code``
 - **Type:** ``String``
@@ -134,7 +134,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **site_iecc_zone**
 
-
+IECC zone of the home address.
 
 - **Name:** ``site_iecc_zone``
 - **Type:** ``String``
@@ -145,7 +145,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **site_state_code**
 
-
+State code of the home address.
 
 - **Name:** ``site_state_code``
 - **Type:** ``String``
@@ -156,7 +156,7 @@ Passes in all arguments from the options lookup, processes them, and then regist
 
 **site_time_zone_utc_offset**
 
-
+Time zone UTC offset of the home address. Must be between -12 and 14.
 
 - **Name:** ``site_time_zone_utc_offset``
 - **Type:** ``String``
@@ -178,7 +178,7 @@ Path of the EPW file.
 
 **year_built**
 
-
+The year the building was built.
 
 - **Name:** ``year_built``
 - **Type:** ``String``
@@ -241,7 +241,7 @@ The number of bedrooms in the unit.
 
 **geometry_unit_num_bathrooms**
 
-
+The number of bathrooms in the unit. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``geometry_unit_num_bathrooms``
 - **Type:** ``String``
@@ -252,7 +252,7 @@ The number of bedrooms in the unit.
 
 **geometry_unit_num_occupants**
 
-
+The number of occupants in the unit. If not provided, an *asset* calculation is performed assuming standard occupancy, in which various end use defaults (e.g., plug loads, appliances, and hot water usage) are calculated based on Number of Bedrooms and Conditioned Floor Area per ANSI/RESNET/ICC 301-2019. If provided, an *operational* calculation is instead performed in which the end use defaults are adjusted using the relationship between Number of Bedrooms and Number of Occupants from RECS 2015.
 
 - **Name:** ``geometry_unit_num_occupants``
 - **Type:** ``String``
@@ -263,7 +263,7 @@ The number of bedrooms in the unit.
 
 **geometry_building_num_units**
 
-
+The number of units in the building. Required for single-family attached and apartment units.
 
 - **Name:** ``geometry_building_num_units``
 - **Type:** ``String``
@@ -378,7 +378,7 @@ The depth above grade of the foundation wall. Only applies to basements/crawlspa
 
 **geometry_rim_joist_height**
 
-
+The height of the rim joists. Only applies to basements/crawlspaces.
 
 - **Name:** ``geometry_rim_joist_height``
 - **Type:** ``String``
@@ -493,7 +493,7 @@ The distance between the unit and the neighboring building to the right (not inc
 
 **neighbor_front_height**
 
-
+The height of the neighboring building to the front. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``neighbor_front_height``
 - **Type:** ``String``
@@ -504,7 +504,7 @@ The distance between the unit and the neighboring building to the right (not inc
 
 **neighbor_back_height**
 
-
+The height of the neighboring building to the back. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``neighbor_back_height``
 - **Type:** ``String``
@@ -515,7 +515,7 @@ The distance between the unit and the neighboring building to the right (not inc
 
 **neighbor_left_height**
 
-
+The height of the neighboring building to the left. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``neighbor_left_height``
 - **Type:** ``String``
@@ -526,7 +526,7 @@ The distance between the unit and the neighboring building to the right (not inc
 
 **neighbor_right_height**
 
-
+The height of the neighboring building to the right. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``neighbor_right_height``
 - **Type:** ``String``
@@ -576,7 +576,7 @@ The type of floors.
 
 **foundation_wall_type**
 
-
+The material type of the foundation wall. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``foundation_wall_type``
 - **Type:** ``String``
@@ -587,7 +587,7 @@ The type of floors.
 
 **foundation_wall_thickness**
 
-
+The thickness of the foundation wall. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``foundation_wall_thickness``
 - **Type:** ``String``
@@ -611,7 +611,7 @@ Nominal R-value for the foundation wall insulation. Only applies to basements/cr
 
 **foundation_wall_insulation_location**
 
-
+Whether the insulation is on the interior or exterior of the foundation wall. Only applies to basements/crawlspaces.
 
 - **Name:** ``foundation_wall_insulation_location``
 - **Type:** ``String``
@@ -622,7 +622,7 @@ Nominal R-value for the foundation wall insulation. Only applies to basements/cr
 
 **foundation_wall_insulation_distance_to_top**
 
-
+The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``foundation_wall_insulation_distance_to_top``
 - **Type:** ``String``
@@ -633,7 +633,7 @@ Nominal R-value for the foundation wall insulation. Only applies to basements/cr
 
 **foundation_wall_insulation_distance_to_bottom**
 
-
+The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``foundation_wall_insulation_distance_to_bottom``
 - **Type:** ``String``
@@ -644,7 +644,7 @@ Nominal R-value for the foundation wall insulation. Only applies to basements/cr
 
 **foundation_wall_assembly_r**
 
-
+Assembly R-value for the foundation walls. Only applies to basements/crawlspaces. If provided, overrides the previous foundation wall insulation inputs. If not provided, it is ignored.
 
 - **Name:** ``foundation_wall_assembly_r``
 - **Type:** ``String``
@@ -655,7 +655,7 @@ Nominal R-value for the foundation wall insulation. Only applies to basements/cr
 
 **rim_joist_assembly_r**
 
-
+Assembly R-value for the rim joists. Only applies to basements/crawlspaces. Required if a rim joist height is provided.
 
 - **Name:** ``rim_joist_assembly_r``
 - **Type:** ``String``
@@ -718,7 +718,7 @@ Width from slab edge inward of horizontal under-slab insulation. Enter 999 to sp
 
 **slab_thickness**
 
-
+The thickness of the slab. Zero can be entered if there is a dirt floor instead of a slab. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``slab_thickness``
 - **Type:** ``String``
@@ -729,7 +729,7 @@ Width from slab edge inward of horizontal under-slab insulation. Enter 999 to sp
 
 **slab_carpet_fraction**
 
-
+Fraction of the slab floor area that is carpeted. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``slab_carpet_fraction``
 - **Type:** ``String``
@@ -740,7 +740,7 @@ Width from slab edge inward of horizontal under-slab insulation. Enter 999 to sp
 
 **slab_carpet_r**
 
-
+R-value of the slab carpet. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``slab_carpet_r``
 - **Type:** ``String``
@@ -764,7 +764,7 @@ Assembly R-value for the ceiling (attic floor).
 
 **roof_material_type**
 
-
+The material type of the roof. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``roof_material_type``
 - **Type:** ``String``
@@ -775,7 +775,7 @@ Assembly R-value for the ceiling (attic floor).
 
 **roof_color**
 
-
+The color of the roof. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``roof_color``
 - **Type:** ``String``
@@ -810,7 +810,7 @@ Presence of a radiant barrier in the attic.
 
 **roof_radiant_barrier_grade**
 
-
+The grade of the radiant barrier. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``roof_radiant_barrier_grade``
 - **Type:** ``String``
@@ -834,7 +834,7 @@ The type of walls.
 
 **wall_siding_type**
 
-
+The siding type of the walls. Also applies to rim joists. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``wall_siding_type``
 - **Type:** ``String``
@@ -845,7 +845,7 @@ The type of walls.
 
 **wall_color**
 
-
+The color of the walls. Also applies to rim joists. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``wall_color``
 - **Type:** ``String``
@@ -986,7 +986,7 @@ Ratio of window height to width.
 
 **window_fraction_operable**
 
-
+Fraction of windows that are operable. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``window_fraction_operable``
 - **Type:** ``String``
@@ -997,7 +997,7 @@ Ratio of window height to width.
 
 **window_natvent_availability**
 
-
+For operable windows, the number of days/week that windows can be opened by occupants for natural ventilation. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``window_natvent_availability``
 - **Type:** ``String``
@@ -1032,7 +1032,7 @@ Full-assembly NFRC solar heat gain coefficient.
 
 **window_interior_shading_winter**
 
-
+Interior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``window_interior_shading_winter``
 - **Type:** ``String``
@@ -1043,7 +1043,7 @@ Full-assembly NFRC solar heat gain coefficient.
 
 **window_interior_shading_summer**
 
-
+Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``window_interior_shading_summer``
 - **Type:** ``String``
@@ -1054,7 +1054,7 @@ Full-assembly NFRC solar heat gain coefficient.
 
 **window_exterior_shading_winter**
 
-
+Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``window_exterior_shading_winter``
 - **Type:** ``String``
@@ -1065,7 +1065,7 @@ Full-assembly NFRC solar heat gain coefficient.
 
 **window_exterior_shading_summer**
 
-
+Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``window_exterior_shading_summer``
 - **Type:** ``String``
@@ -1076,7 +1076,7 @@ Full-assembly NFRC solar heat gain coefficient.
 
 **window_shading_summer_season**
 
-
+Enter a date like "May 1 - Sep 30". Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``window_shading_summer_season``
 - **Type:** ``String``
@@ -1087,7 +1087,7 @@ Full-assembly NFRC solar heat gain coefficient.
 
 **window_storm_type**
 
-
+The type of storm, if present. If not provided, assumes there is no storm.
 
 - **Name:** ``window_storm_type``
 - **Type:** ``String``
@@ -1330,7 +1330,7 @@ Full-assembly NFRC solar heat gain coefficient.
 
 **skylight_storm_type**
 
-
+The type of storm, if present. If not provided, assumes there is no storm.
 
 - **Name:** ``skylight_storm_type``
 - **Type:** ``String``
@@ -1404,7 +1404,7 @@ Air exchange rate value. For 'EffectiveLeakageArea', provide value in sq. in.
 
 **air_leakage_type**
 
-
+Type of air leakage. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.
 
 - **Name:** ``air_leakage_type``
 - **Type:** ``String``
@@ -1454,7 +1454,7 @@ The rated heating efficiency value of the heating system.
 
 **heating_system_heating_capacity**
 
-
+The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default is used.
 
 - **Name:** ``heating_system_heating_capacity``
 - **Type:** ``String``
@@ -1478,7 +1478,7 @@ The heating load served by the heating system.
 
 **heating_system_pilot_light**
 
-
+The fuel usage of the pilot light. Applies only to Furnace, WallFurnace, FloorFurnace, Stove, Boiler, and Fireplace with non-electric fuel type. If not provided, assumes no pilot light.
 
 - **Name:** ``heating_system_pilot_light``
 - **Type:** ``String``
@@ -1526,7 +1526,7 @@ The rated efficiency value of the cooling system. Ignored for evaporative cooler
 
 **cooling_system_cooling_compressor_type**
 
-
+The compressor type of the cooling system. Only applies to central air conditioner. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``cooling_system_cooling_compressor_type``
 - **Type:** ``String``
@@ -1537,7 +1537,7 @@ The rated efficiency value of the cooling system. Ignored for evaporative cooler
 
 **cooling_system_cooling_sensible_heat_fraction**
 
-
+The sensible heat fraction of the cooling system. Ignored for evaporative cooler. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``cooling_system_cooling_sensible_heat_fraction``
 - **Type:** ``String``
@@ -1548,7 +1548,7 @@ The rated efficiency value of the cooling system. Ignored for evaporative cooler
 
 **cooling_system_cooling_capacity**
 
-
+The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default is used.
 
 - **Name:** ``cooling_system_cooling_capacity``
 - **Type:** ``String``
@@ -1572,7 +1572,7 @@ The cooling load served by the cooling system.
 
 **cooling_system_is_ducted**
 
-
+Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.
 
 - **Name:** ``cooling_system_is_ducted``
 - **Type:** ``String``
@@ -1583,7 +1583,7 @@ The cooling load served by the cooling system.
 
 **cooling_system_crankcase_heater_watts**
 
-
+Cooling system crankcase heater power consumption in Watts. Applies only to central air conditioner, mini-split, packaged terminal air conditioner and room air conditioner. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``cooling_system_crankcase_heater_watts``
 - **Type:** ``String``
@@ -1594,7 +1594,7 @@ The cooling load served by the cooling system.
 
 **cooling_system_integrated_heating_system_fuel**
 
-
+The fuel type of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
 
 - **Name:** ``cooling_system_integrated_heating_system_fuel``
 - **Type:** ``String``
@@ -1605,7 +1605,7 @@ The cooling load served by the cooling system.
 
 **cooling_system_integrated_heating_system_efficiency_percent**
 
-
+The rated heating efficiency value of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
 
 - **Name:** ``cooling_system_integrated_heating_system_efficiency_percent``
 - **Type:** ``String``
@@ -1616,7 +1616,7 @@ The cooling load served by the cooling system.
 
 **cooling_system_integrated_heating_system_capacity**
 
-
+The output heating capacity of the heating system integrated into cooling system. If not provided, the OS-HPXML autosized default is used. Only used for packaged terminal air conditioner and room air conditioner.
 
 - **Name:** ``cooling_system_integrated_heating_system_capacity``
 - **Type:** ``String``
@@ -1627,7 +1627,7 @@ The cooling load served by the cooling system.
 
 **cooling_system_integrated_heating_system_fraction_heat_load_served**
 
-
+The heating load served by the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
 
 - **Name:** ``cooling_system_integrated_heating_system_fraction_heat_load_served``
 - **Type:** ``String``
@@ -1699,7 +1699,7 @@ The rated cooling efficiency value of the heat pump.
 
 **heat_pump_cooling_compressor_type**
 
-
+The compressor type of the heat pump. Only applies to air-to-air. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``heat_pump_cooling_compressor_type``
 - **Type:** ``String``
@@ -1710,7 +1710,7 @@ The rated cooling efficiency value of the heat pump.
 
 **heat_pump_cooling_sensible_heat_fraction**
 
-
+The sensible heat fraction of the heat pump. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``heat_pump_cooling_sensible_heat_fraction``
 - **Type:** ``String``
@@ -1721,7 +1721,7 @@ The rated cooling efficiency value of the heat pump.
 
 **heat_pump_heating_capacity**
 
-
+The output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
 
 - **Name:** ``heat_pump_heating_capacity``
 - **Type:** ``String``
@@ -1732,7 +1732,7 @@ The rated cooling efficiency value of the heat pump.
 
 **heat_pump_heating_capacity_retention_fraction**
 
-
+The output heating capacity of the heat pump at a user-specified temperature (e.g., 17F or 5F) divided by the above nominal heating capacity. Applies to all heat pump types except ground-to-air. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``heat_pump_heating_capacity_retention_fraction``
 - **Type:** ``String``
@@ -1743,7 +1743,7 @@ The rated cooling efficiency value of the heat pump.
 
 **heat_pump_heating_capacity_retention_temp**
 
-
+The user-specified temperature (e.g., 17F or 5F) for the above heating capacity retention fraction. Applies to all heat pump types except ground-to-air. Required if the Heating Capacity Retention Fraction is provided.
 
 - **Name:** ``heat_pump_heating_capacity_retention_temp``
 - **Type:** ``String``
@@ -1754,7 +1754,7 @@ The rated cooling efficiency value of the heat pump.
 
 **heat_pump_cooling_capacity**
 
-
+The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
 
 - **Name:** ``heat_pump_cooling_capacity``
 - **Type:** ``String``
@@ -1791,7 +1791,7 @@ The cooling load served by the heat pump.
 
 **heat_pump_compressor_lockout_temp**
 
-
+The temperature below which the heat pump compressor is disabled. If both this and Backup Heating Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies to all heat pump types other than ground-to-air. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``heat_pump_compressor_lockout_temp``
 - **Type:** ``String``
@@ -1839,7 +1839,7 @@ The backup rated efficiency value of the heat pump. Percent for electricity fuel
 
 **heat_pump_backup_heating_capacity**
 
-
+The backup output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used. Only applies if Backup Type is 'integrated'.
 
 - **Name:** ``heat_pump_backup_heating_capacity``
 - **Type:** ``String``
@@ -1850,7 +1850,7 @@ The backup rated efficiency value of the heat pump. Percent for electricity fuel
 
 **heat_pump_backup_heating_lockout_temp**
 
-
+The temperature above which the heat pump backup system is disabled. If both this and Compressor Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies for both Backup Type of 'integrated' and 'separate'. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``heat_pump_backup_heating_lockout_temp``
 - **Type:** ``String``
@@ -1861,7 +1861,7 @@ The backup rated efficiency value of the heat pump. Percent for electricity fuel
 
 **heat_pump_sizing_methodology**
 
-
+The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``heat_pump_sizing_methodology``
 - **Type:** ``String``
@@ -1872,7 +1872,7 @@ The backup rated efficiency value of the heat pump. Percent for electricity fuel
 
 **heat_pump_is_ducted**
 
-
+Whether the heat pump is ducted or not. Only used for mini-split. It's assumed that air-to-air and ground-to-air are ducted, and packaged terminal heat pump and room air conditioner with reverse cycle are not ducted. If not provided, assumes not ducted.
 
 - **Name:** ``heat_pump_is_ducted``
 - **Type:** ``String``
@@ -1883,7 +1883,7 @@ The backup rated efficiency value of the heat pump. Percent for electricity fuel
 
 **heat_pump_crankcase_heater_watts**
 
-
+Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-air, mini-split, packaged terminal heat pump and room air conditioner with reverse cycle. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``heat_pump_crankcase_heater_watts``
 - **Type:** ``String``
@@ -1933,7 +1933,7 @@ The rated heating efficiency value of the second heating system.
 
 **heating_system_2_heating_capacity**
 
-
+The output heating capacity of the second heating system. If not provided, the OS-HPXML autosized default is used.
 
 - **Name:** ``heating_system_2_heating_capacity``
 - **Type:** ``String``
@@ -1957,7 +1957,7 @@ The heat load served fraction of the second heating system. Ignored if this heat
 
 **hvac_control_heating_season_period**
 
-
+Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
 
 - **Name:** ``hvac_control_heating_season_period``
 - **Type:** ``String``
@@ -1968,7 +1968,7 @@ The heat load served fraction of the second heating system. Ignored if this heat
 
 **hvac_control_cooling_season_period**
 
-
+Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
 
 - **Name:** ``hvac_control_cooling_season_period``
 - **Type:** ``String``
@@ -2014,7 +2014,7 @@ The leakage value to outside for the return ducts.
 
 **ducts_supply_location**
 
-
+The location of the supply ducts. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``ducts_supply_location``
 - **Type:** ``String``
@@ -2038,7 +2038,7 @@ The insulation r-value of the supply ducts excluding air films.
 
 **ducts_supply_buried_insulation_level**
 
-
+Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
 
 - **Name:** ``ducts_supply_buried_insulation_level``
 - **Type:** ``String``
@@ -2049,7 +2049,7 @@ The insulation r-value of the supply ducts excluding air films.
 
 **ducts_supply_surface_area**
 
-
+The supply ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
 
 - **Name:** ``ducts_supply_surface_area``
 - **Type:** ``String``
@@ -2060,7 +2060,7 @@ The insulation r-value of the supply ducts excluding air films.
 
 **ducts_supply_surface_area_fraction**
 
-
+The fraction of supply ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
 
 - **Name:** ``ducts_supply_surface_area_fraction``
 - **Type:** ``String``
@@ -2071,7 +2071,7 @@ The insulation r-value of the supply ducts excluding air films.
 
 **ducts_return_location**
 
-
+The location of the return ducts. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``ducts_return_location``
 - **Type:** ``String``
@@ -2095,7 +2095,7 @@ The insulation r-value of the return ducts excluding air films.
 
 **ducts_return_buried_insulation_level**
 
-
+Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
 
 - **Name:** ``ducts_return_buried_insulation_level``
 - **Type:** ``String``
@@ -2106,7 +2106,7 @@ The insulation r-value of the return ducts excluding air films.
 
 **ducts_return_surface_area**
 
-
+The return ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
 
 - **Name:** ``ducts_return_surface_area``
 - **Type:** ``String``
@@ -2117,7 +2117,7 @@ The insulation r-value of the return ducts excluding air films.
 
 **ducts_return_surface_area_fraction**
 
-
+The fraction of return ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
 
 - **Name:** ``ducts_return_surface_area_fraction``
 - **Type:** ``String``
@@ -2128,7 +2128,7 @@ The insulation r-value of the return ducts excluding air films.
 
 **ducts_number_of_return_registers**
 
-
+The number of return registers of the ducts. Only used to calculate default return duct surface area. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``ducts_number_of_return_registers``
 - **Type:** ``String``
@@ -2152,7 +2152,7 @@ The type of the mechanical ventilation. Use 'none' if there is no mechanical ven
 
 **mech_vent_flow_rate**
 
-
+The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``mech_vent_flow_rate``
 - **Type:** ``String``
@@ -2163,7 +2163,7 @@ The type of the mechanical ventilation. Use 'none' if there is no mechanical ven
 
 **mech_vent_hours_in_operation**
 
-
+The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``mech_vent_hours_in_operation``
 - **Type:** ``String``
@@ -2213,7 +2213,7 @@ The Unadjusted or Adjusted sensible recovery efficiency of the mechanical ventil
 
 **mech_vent_fan_power**
 
-
+The fan power of the mechanical ventilation. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``mech_vent_fan_power``
 - **Type:** ``String``
@@ -2237,7 +2237,7 @@ Number of dwelling units served by the mechanical ventilation system. Must be 1 
 
 **mech_vent_shared_frac_recirculation**
 
-
+Fraction of the total supply air that is recirculated, with the remainder assumed to be outdoor air. The value must be 0 for exhaust only systems. Required for a shared mechanical ventilation system.
 
 - **Name:** ``mech_vent_shared_frac_recirculation``
 - **Type:** ``String``
@@ -2248,7 +2248,7 @@ Number of dwelling units served by the mechanical ventilation system. Must be 1 
 
 **mech_vent_shared_preheating_fuel**
 
-
+Fuel type of the preconditioning heating equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no preheating.
 
 - **Name:** ``mech_vent_shared_preheating_fuel``
 - **Type:** ``String``
@@ -2259,7 +2259,7 @@ Number of dwelling units served by the mechanical ventilation system. Must be 1 
 
 **mech_vent_shared_preheating_efficiency**
 
-
+Efficiency of the preconditioning heating equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no preheating.
 
 - **Name:** ``mech_vent_shared_preheating_efficiency``
 - **Type:** ``String``
@@ -2270,7 +2270,7 @@ Number of dwelling units served by the mechanical ventilation system. Must be 1 
 
 **mech_vent_shared_preheating_fraction_heat_load_served**
 
-
+Fraction of heating load introduced by the shared ventilation system that is met by the preconditioning heating equipment. If not provided, assumes no preheating.
 
 - **Name:** ``mech_vent_shared_preheating_fraction_heat_load_served``
 - **Type:** ``String``
@@ -2281,7 +2281,7 @@ Number of dwelling units served by the mechanical ventilation system. Must be 1 
 
 **mech_vent_shared_precooling_fuel**
 
-
+Fuel type of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no precooling.
 
 - **Name:** ``mech_vent_shared_precooling_fuel``
 - **Type:** ``String``
@@ -2292,7 +2292,7 @@ Number of dwelling units served by the mechanical ventilation system. Must be 1 
 
 **mech_vent_shared_precooling_efficiency**
 
-
+Efficiency of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no precooling.
 
 - **Name:** ``mech_vent_shared_precooling_efficiency``
 - **Type:** ``String``
@@ -2303,7 +2303,7 @@ Number of dwelling units served by the mechanical ventilation system. Must be 1 
 
 **mech_vent_shared_precooling_fraction_cool_load_served**
 
-
+Fraction of cooling load introduced by the shared ventilation system that is met by the preconditioning cooling equipment. If not provided, assumes no precooling.
 
 - **Name:** ``mech_vent_shared_precooling_fraction_cool_load_served``
 - **Type:** ``String``
@@ -2405,7 +2405,7 @@ The fan power of the second mechanical ventilation.
 
 **kitchen_fans_quantity**
 
-
+The quantity of the kitchen fans. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``kitchen_fans_quantity``
 - **Type:** ``String``
@@ -2416,7 +2416,7 @@ The fan power of the second mechanical ventilation.
 
 **kitchen_fans_flow_rate**
 
-
+The flow rate of the kitchen fan. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``kitchen_fans_flow_rate``
 - **Type:** ``String``
@@ -2427,7 +2427,7 @@ The fan power of the second mechanical ventilation.
 
 **kitchen_fans_hours_in_operation**
 
-
+The hours in operation of the kitchen fan. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``kitchen_fans_hours_in_operation``
 - **Type:** ``String``
@@ -2438,7 +2438,7 @@ The fan power of the second mechanical ventilation.
 
 **kitchen_fans_power**
 
-
+The fan power of the kitchen fan. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``kitchen_fans_power``
 - **Type:** ``String``
@@ -2449,7 +2449,7 @@ The fan power of the second mechanical ventilation.
 
 **kitchen_fans_start_hour**
 
-
+The start hour of the kitchen fan. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``kitchen_fans_start_hour``
 - **Type:** ``String``
@@ -2460,7 +2460,7 @@ The fan power of the second mechanical ventilation.
 
 **bathroom_fans_quantity**
 
-
+The quantity of the bathroom fans. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``bathroom_fans_quantity``
 - **Type:** ``String``
@@ -2471,7 +2471,7 @@ The fan power of the second mechanical ventilation.
 
 **bathroom_fans_flow_rate**
 
-
+The flow rate of the bathroom fans. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``bathroom_fans_flow_rate``
 - **Type:** ``String``
@@ -2482,7 +2482,7 @@ The fan power of the second mechanical ventilation.
 
 **bathroom_fans_hours_in_operation**
 
-
+The hours in operation of the bathroom fans. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``bathroom_fans_hours_in_operation``
 - **Type:** ``String``
@@ -2493,7 +2493,7 @@ The fan power of the second mechanical ventilation.
 
 **bathroom_fans_power**
 
-
+The fan power of the bathroom fans. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``bathroom_fans_power``
 - **Type:** ``String``
@@ -2504,7 +2504,7 @@ The fan power of the second mechanical ventilation.
 
 **bathroom_fans_start_hour**
 
-
+The start hour of the bathroom fans. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``bathroom_fans_start_hour``
 - **Type:** ``String``
@@ -2526,7 +2526,7 @@ Whether there is a whole house fan.
 
 **whole_house_fan_flow_rate**
 
-
+The flow rate of the whole house fan. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``whole_house_fan_flow_rate``
 - **Type:** ``String``
@@ -2537,7 +2537,7 @@ Whether there is a whole house fan.
 
 **whole_house_fan_power**
 
-
+The fan power of the whole house fan. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``whole_house_fan_power``
 - **Type:** ``String``
@@ -2574,7 +2574,7 @@ The fuel type of water heater. Ignored for heat pump water heater.
 
 **water_heater_location**
 
-
+The location of water heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_location``
 - **Type:** ``String``
@@ -2585,7 +2585,7 @@ The fuel type of water heater. Ignored for heat pump water heater.
 
 **water_heater_tank_volume**
 
-
+Nominal volume of water heater tank. Only applies to storage water heater, heat pump water heater, and space-heating boiler with storage tank. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_tank_volume``
 - **Type:** ``String``
@@ -2620,7 +2620,7 @@ Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating bo
 
 **water_heater_usage_bin**
 
-
+The usage of the water heater. Only applies if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_usage_bin``
 - **Type:** ``String``
@@ -2631,7 +2631,7 @@ Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating bo
 
 **water_heater_recovery_efficiency**
 
-
+Ratio of energy delivered to water heater to the energy content of the fuel consumed by the water heater. Only used for non-electric storage water heaters. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_recovery_efficiency``
 - **Type:** ``String``
@@ -2642,7 +2642,7 @@ Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating bo
 
 **water_heater_heating_capacity**
 
-
+Heating capacity. Only applies to storage water heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_heating_capacity``
 - **Type:** ``String``
@@ -2653,7 +2653,7 @@ Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating bo
 
 **water_heater_standby_loss**
 
-
+The standby loss of water heater. Only applies to space-heating boilers. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_standby_loss``
 - **Type:** ``String``
@@ -2664,7 +2664,7 @@ Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating bo
 
 **water_heater_jacket_rvalue**
 
-
+The jacket R-value of water heater. Doesn't apply to instantaneous water heater or space-heating boiler with tankless coil. If not provided, defaults to no jacket insulation.
 
 - **Name:** ``water_heater_jacket_rvalue``
 - **Type:** ``String``
@@ -2675,7 +2675,7 @@ Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating bo
 
 **water_heater_setpoint_temperature**
 
-
+The setpoint temperature of water heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_setpoint_temperature``
 - **Type:** ``String``
@@ -2699,7 +2699,7 @@ Number of dwelling units served (directly or indirectly) by the water heater. Mu
 
 **water_heater_uses_desuperheater**
 
-
+Requires that the dwelling unit has a air-to-air, mini-split, or ground-to-air heat pump or a central air conditioner or mini-split air conditioner. If not provided, assumes no desuperheater.
 
 - **Name:** ``water_heater_uses_desuperheater``
 - **Type:** ``String``
@@ -2710,7 +2710,7 @@ Number of dwelling units served (directly or indirectly) by the water heater. Mu
 
 **water_heater_tank_model_type**
 
-
+Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time. Applies only to storage water heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_tank_model_type``
 - **Type:** ``String``
@@ -2721,7 +2721,7 @@ Number of dwelling units served (directly or indirectly) by the water heater. Mu
 
 **water_heater_operating_mode**
 
-
+The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'hybrid/auto' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to heat pump water heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_operating_mode``
 - **Type:** ``String``
@@ -2745,7 +2745,7 @@ The type of the hot water distribution system.
 
 **hot_water_distribution_standard_piping_length**
 
-
+If the distribution system is Standard, the length of the piping. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``hot_water_distribution_standard_piping_length``
 - **Type:** ``String``
@@ -2756,7 +2756,7 @@ The type of the hot water distribution system.
 
 **hot_water_distribution_recirc_control_type**
 
-
+If the distribution system is Recirculation, the type of hot water recirculation control, if any.
 
 - **Name:** ``hot_water_distribution_recirc_control_type``
 - **Type:** ``String``
@@ -2767,7 +2767,7 @@ The type of the hot water distribution system.
 
 **hot_water_distribution_recirc_piping_length**
 
-
+If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``hot_water_distribution_recirc_piping_length``
 - **Type:** ``String``
@@ -2778,7 +2778,7 @@ The type of the hot water distribution system.
 
 **hot_water_distribution_recirc_branch_piping_length**
 
-
+If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``hot_water_distribution_recirc_branch_piping_length``
 - **Type:** ``String``
@@ -2789,7 +2789,7 @@ The type of the hot water distribution system.
 
 **hot_water_distribution_recirc_pump_power**
 
-
+If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``hot_water_distribution_recirc_pump_power``
 - **Type:** ``String``
@@ -2800,7 +2800,7 @@ The type of the hot water distribution system.
 
 **hot_water_distribution_pipe_r**
 
-
+Nominal R-value of the pipe insulation. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``hot_water_distribution_pipe_r``
 - **Type:** ``String``
@@ -2824,7 +2824,7 @@ Which facilities are connected for the drain water heat recovery. Use 'none' if 
 
 **dwhr_equal_flow**
 
-
+Whether the drain water heat recovery has equal flow.
 
 - **Name:** ``dwhr_equal_flow``
 - **Type:** ``String``
@@ -2835,7 +2835,7 @@ Which facilities are connected for the drain water heat recovery. Use 'none' if 
 
 **dwhr_efficiency**
 
-
+The efficiency of the drain water heat recovery.
 
 - **Name:** ``dwhr_efficiency``
 - **Type:** ``String``
@@ -2868,7 +2868,7 @@ Whether the sink fixture is low flow.
 
 **water_fixtures_usage_multiplier**
 
-
+Multiplier on the hot water usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_fixtures_usage_multiplier``
 - **Type:** ``String``
@@ -2981,7 +2981,7 @@ The collector rated thermal losses of the solar thermal system.
 
 **solar_thermal_storage_volume**
 
-
+The storage volume of the solar thermal system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``solar_thermal_storage_volume``
 - **Type:** ``String``
@@ -3016,7 +3016,7 @@ Whether there is a PV system present.
 
 **pv_system_module_type**
 
-
+Module type of the PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_module_type``
 - **Type:** ``String``
@@ -3027,7 +3027,7 @@ Whether there is a PV system present.
 
 **pv_system_location**
 
-
+Location of the PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_location``
 - **Type:** ``String``
@@ -3038,7 +3038,7 @@ Whether there is a PV system present.
 
 **pv_system_tracking**
 
-
+Type of tracking for the PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_tracking``
 - **Type:** ``String``
@@ -3086,7 +3086,7 @@ Maximum power output of the PV system. For a shared system, this is the total bu
 
 **pv_system_inverter_efficiency**
 
-
+Inverter efficiency of the PV system. If there are two PV systems, this will apply to both. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_inverter_efficiency``
 - **Type:** ``String``
@@ -3097,7 +3097,7 @@ Maximum power output of the PV system. For a shared system, this is the total bu
 
 **pv_system_system_losses_fraction**
 
-
+System losses fraction of the PV system. If there are two PV systems, this will apply to both. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_system_losses_fraction``
 - **Type:** ``String``
@@ -3119,7 +3119,7 @@ Whether there is a second PV system present.
 
 **pv_system_2_module_type**
 
-
+Module type of the second PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_2_module_type``
 - **Type:** ``String``
@@ -3130,7 +3130,7 @@ Whether there is a second PV system present.
 
 **pv_system_2_location**
 
-
+Location of the second PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_2_location``
 - **Type:** ``String``
@@ -3141,7 +3141,7 @@ Whether there is a second PV system present.
 
 **pv_system_2_tracking**
 
-
+Type of tracking for the second PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_2_tracking``
 - **Type:** ``String``
@@ -3200,7 +3200,7 @@ Whether there is a lithium ion battery present.
 
 **battery_location**
 
-
+The space type for the lithium ion battery location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``battery_location``
 - **Type:** ``String``
@@ -3211,7 +3211,7 @@ Whether there is a lithium ion battery present.
 
 **battery_power**
 
-
+The rated power output of the lithium ion battery. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``battery_power``
 - **Type:** ``String``
@@ -3222,7 +3222,7 @@ Whether there is a lithium ion battery present.
 
 **battery_capacity**
 
-
+The nominal capacity of the lithium ion battery. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``battery_capacity``
 - **Type:** ``String``
@@ -3233,7 +3233,7 @@ Whether there is a lithium ion battery present.
 
 **battery_usable_capacity**
 
-
+The usable capacity of the lithium ion battery. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``battery_usable_capacity``
 - **Type:** ``String``
@@ -3244,7 +3244,7 @@ Whether there is a lithium ion battery present.
 
 **battery_round_trip_efficiency**
 
-
+The round trip efficiency of the lithium ion battery. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``battery_round_trip_efficiency``
 - **Type:** ``String``
@@ -3299,7 +3299,7 @@ Fraction of all lamps (interior) that are light emitting diodes. Lighting not sp
 
 **lighting_interior_usage_multiplier**
 
-
+Multiplier on the lighting energy usage (interior) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``lighting_interior_usage_multiplier``
 - **Type:** ``String``
@@ -3343,7 +3343,7 @@ Fraction of all lamps (exterior) that are light emitting diodes. Lighting not sp
 
 **lighting_exterior_usage_multiplier**
 
-
+Multiplier on the lighting energy usage (exterior) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``lighting_exterior_usage_multiplier``
 - **Type:** ``String``
@@ -3387,7 +3387,7 @@ Fraction of all lamps (garage) that are light emitting diodes. Lighting not spec
 
 **lighting_garage_usage_multiplier**
 
-
+Multiplier on the lighting energy usage (garage) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``lighting_garage_usage_multiplier``
 - **Type:** ``String``
@@ -3409,7 +3409,7 @@ Whether there is holiday lighting.
 
 **holiday_lighting_daily_kwh**
 
-
+The daily energy consumption for holiday lighting (exterior). If not provided, the OS-HPXML default is used.
 
 - **Name:** ``holiday_lighting_daily_kwh``
 - **Type:** ``String``
@@ -3420,7 +3420,7 @@ Whether there is holiday lighting.
 
 **holiday_lighting_period**
 
-
+Enter a date like "Nov 25 - Jan 5". If not provided, the OS-HPXML default is used.
 
 - **Name:** ``holiday_lighting_period``
 - **Type:** ``String``
@@ -3520,7 +3520,7 @@ Whether there is a clothes washer present.
 
 **clothes_washer_location**
 
-
+The space type for the clothes washer location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_washer_location``
 - **Type:** ``String``
@@ -3544,7 +3544,7 @@ The efficiency type of the clothes washer.
 
 **clothes_washer_efficiency**
 
-
+The efficiency of the clothes washer. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_washer_efficiency``
 - **Type:** ``String``
@@ -3555,7 +3555,7 @@ The efficiency type of the clothes washer.
 
 **clothes_washer_rated_annual_kwh**
 
-
+The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_washer_rated_annual_kwh``
 - **Type:** ``String``
@@ -3566,7 +3566,7 @@ The efficiency type of the clothes washer.
 
 **clothes_washer_label_electric_rate**
 
-
+The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_washer_label_electric_rate``
 - **Type:** ``String``
@@ -3577,7 +3577,7 @@ The efficiency type of the clothes washer.
 
 **clothes_washer_label_gas_rate**
 
-
+The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_washer_label_gas_rate``
 - **Type:** ``String``
@@ -3588,7 +3588,7 @@ The efficiency type of the clothes washer.
 
 **clothes_washer_label_annual_gas_cost**
 
-
+The annual cost of using the system under test conditions. Input is obtained from the EnergyGuide label. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_washer_label_annual_gas_cost``
 - **Type:** ``String``
@@ -3599,7 +3599,7 @@ The efficiency type of the clothes washer.
 
 **clothes_washer_label_usage**
 
-
+The clothes washer loads per week. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_washer_label_usage``
 - **Type:** ``String``
@@ -3610,7 +3610,7 @@ The efficiency type of the clothes washer.
 
 **clothes_washer_capacity**
 
-
+Volume of the washer drum. Obtained from the EnergyStar website or the manufacturer's literature. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_washer_capacity``
 - **Type:** ``String``
@@ -3621,7 +3621,7 @@ The efficiency type of the clothes washer.
 
 **clothes_washer_usage_multiplier**
 
-
+Multiplier on the clothes washer energy and hot water usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_washer_usage_multiplier``
 - **Type:** ``String``
@@ -3643,7 +3643,7 @@ Whether there is a clothes dryer present.
 
 **clothes_dryer_location**
 
-
+The space type for the clothes dryer location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_dryer_location``
 - **Type:** ``String``
@@ -3680,7 +3680,7 @@ The efficiency type of the clothes dryer.
 
 **clothes_dryer_efficiency**
 
-
+The efficiency of the clothes dryer. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_dryer_efficiency``
 - **Type:** ``String``
@@ -3691,7 +3691,7 @@ The efficiency type of the clothes dryer.
 
 **clothes_dryer_vented_flow_rate**
 
-
+The exhaust flow rate of the vented clothes dryer. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_dryer_vented_flow_rate``
 - **Type:** ``String``
@@ -3702,7 +3702,7 @@ The efficiency type of the clothes dryer.
 
 **clothes_dryer_usage_multiplier**
 
-
+Multiplier on the clothes dryer energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_dryer_usage_multiplier``
 - **Type:** ``String``
@@ -3724,7 +3724,7 @@ Whether there is a dishwasher present.
 
 **dishwasher_location**
 
-
+The space type for the dishwasher location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``dishwasher_location``
 - **Type:** ``String``
@@ -3748,7 +3748,7 @@ The efficiency type of dishwasher.
 
 **dishwasher_efficiency**
 
-
+The efficiency of the dishwasher. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``dishwasher_efficiency``
 - **Type:** ``String``
@@ -3759,7 +3759,7 @@ The efficiency type of dishwasher.
 
 **dishwasher_label_electric_rate**
 
-
+The label electric rate of the dishwasher. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``dishwasher_label_electric_rate``
 - **Type:** ``String``
@@ -3770,7 +3770,7 @@ The efficiency type of dishwasher.
 
 **dishwasher_label_gas_rate**
 
-
+The label gas rate of the dishwasher. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``dishwasher_label_gas_rate``
 - **Type:** ``String``
@@ -3781,7 +3781,7 @@ The efficiency type of dishwasher.
 
 **dishwasher_label_annual_gas_cost**
 
-
+The label annual gas cost of the dishwasher. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``dishwasher_label_annual_gas_cost``
 - **Type:** ``String``
@@ -3792,7 +3792,7 @@ The efficiency type of dishwasher.
 
 **dishwasher_label_usage**
 
-
+The dishwasher loads per week. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``dishwasher_label_usage``
 - **Type:** ``String``
@@ -3803,7 +3803,7 @@ The efficiency type of dishwasher.
 
 **dishwasher_place_setting_capacity**
 
-
+The number of place settings for the unit. Data obtained from manufacturer's literature. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``dishwasher_place_setting_capacity``
 - **Type:** ``String``
@@ -3814,7 +3814,7 @@ The efficiency type of dishwasher.
 
 **dishwasher_usage_multiplier**
 
-
+Multiplier on the dishwasher energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``dishwasher_usage_multiplier``
 - **Type:** ``String``
@@ -3836,7 +3836,7 @@ Whether there is a refrigerator present.
 
 **refrigerator_location**
 
-
+The space type for the refrigerator location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``refrigerator_location``
 - **Type:** ``String``
@@ -3847,7 +3847,7 @@ Whether there is a refrigerator present.
 
 **refrigerator_rated_annual_kwh**
 
-
+The EnergyGuide rated annual energy consumption for a refrigerator. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``refrigerator_rated_annual_kwh``
 - **Type:** ``String``
@@ -3858,7 +3858,7 @@ Whether there is a refrigerator present.
 
 **refrigerator_usage_multiplier**
 
-
+Multiplier on the refrigerator energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``refrigerator_usage_multiplier``
 - **Type:** ``String``
@@ -3880,7 +3880,7 @@ Whether there is an extra refrigerator present.
 
 **extra_refrigerator_location**
 
-
+The space type for the extra refrigerator location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``extra_refrigerator_location``
 - **Type:** ``String``
@@ -3891,7 +3891,7 @@ Whether there is an extra refrigerator present.
 
 **extra_refrigerator_rated_annual_kwh**
 
-
+The EnergyGuide rated annual energy consumption for an extra rrefrigerator. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``extra_refrigerator_rated_annual_kwh``
 - **Type:** ``String``
@@ -3902,7 +3902,7 @@ Whether there is an extra refrigerator present.
 
 **extra_refrigerator_usage_multiplier**
 
-
+Multiplier on the extra refrigerator energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``extra_refrigerator_usage_multiplier``
 - **Type:** ``String``
@@ -3924,7 +3924,7 @@ Whether there is a freezer present.
 
 **freezer_location**
 
-
+The space type for the freezer location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``freezer_location``
 - **Type:** ``String``
@@ -3935,7 +3935,7 @@ Whether there is a freezer present.
 
 **freezer_rated_annual_kwh**
 
-
+The EnergyGuide rated annual energy consumption for a freezer. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``freezer_rated_annual_kwh``
 - **Type:** ``String``
@@ -3946,7 +3946,7 @@ Whether there is a freezer present.
 
 **freezer_usage_multiplier**
 
-
+Multiplier on the freezer energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``freezer_usage_multiplier``
 - **Type:** ``String``
@@ -3968,7 +3968,7 @@ Whether there is a cooking range/oven present.
 
 **cooking_range_oven_location**
 
-
+The space type for the cooking range/oven location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``cooking_range_oven_location``
 - **Type:** ``String``
@@ -3992,7 +3992,7 @@ Type of fuel used by the cooking range/oven.
 
 **cooking_range_oven_is_induction**
 
-
+Whether the cooking range is induction. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``cooking_range_oven_is_induction``
 - **Type:** ``String``
@@ -4003,7 +4003,7 @@ Type of fuel used by the cooking range/oven.
 
 **cooking_range_oven_is_convection**
 
-
+Whether the oven is convection. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``cooking_range_oven_is_convection``
 - **Type:** ``String``
@@ -4014,7 +4014,7 @@ Type of fuel used by the cooking range/oven.
 
 **cooking_range_oven_usage_multiplier**
 
-
+Multiplier on the cooking range/oven energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``cooking_range_oven_usage_multiplier``
 - **Type:** ``String``
@@ -4036,7 +4036,7 @@ Whether there are any ceiling fans.
 
 **ceiling_fan_efficiency**
 
-
+The efficiency rating of the ceiling fan(s) at medium speed. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``ceiling_fan_efficiency``
 - **Type:** ``String``
@@ -4047,7 +4047,7 @@ Whether there are any ceiling fans.
 
 **ceiling_fan_quantity**
 
-
+Total number of ceiling fans. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``ceiling_fan_quantity``
 - **Type:** ``String``
@@ -4058,7 +4058,7 @@ Whether there are any ceiling fans.
 
 **ceiling_fan_cooling_setpoint_temp_offset**
 
-
+The cooling setpoint temperature offset during months when the ceiling fans are operating. Only applies if ceiling fan quantity is greater than zero. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``ceiling_fan_cooling_setpoint_temp_offset``
 - **Type:** ``String``
@@ -4080,7 +4080,7 @@ Whether there are televisions.
 
 **misc_plug_loads_other_annual_kwh**
 
-
+The annual energy consumption of the other residual plug loads. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_plug_loads_other_annual_kwh``
 - **Type:** ``String``
@@ -4091,7 +4091,7 @@ Whether there are televisions.
 
 **misc_plug_loads_other_frac_sensible**
 
-
+Fraction of other residual plug loads' internal gains that are sensible. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_plug_loads_other_frac_sensible``
 - **Type:** ``String``
@@ -4102,7 +4102,7 @@ Whether there are televisions.
 
 **misc_plug_loads_other_frac_latent**
 
-
+Fraction of other residual plug loads' internal gains that are latent. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_plug_loads_other_frac_latent``
 - **Type:** ``String``
@@ -4113,7 +4113,7 @@ Whether there are televisions.
 
 **misc_plug_loads_other_usage_multiplier**
 
-
+Multiplier on the other energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_plug_loads_other_usage_multiplier``
 - **Type:** ``String``
@@ -4135,7 +4135,7 @@ Whether there is a well pump.
 
 **misc_plug_loads_well_pump_annual_kwh**
 
-
+The annual energy consumption of the well pump plug loads. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_plug_loads_well_pump_annual_kwh``
 - **Type:** ``String``
@@ -4146,7 +4146,7 @@ Whether there is a well pump.
 
 **misc_plug_loads_well_pump_usage_multiplier**
 
-
+Multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_plug_loads_well_pump_usage_multiplier``
 - **Type:** ``String``
@@ -4168,7 +4168,7 @@ Whether there is an electric vehicle.
 
 **misc_plug_loads_vehicle_annual_kwh**
 
-
+The annual energy consumption of the electric vehicle plug loads. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_plug_loads_vehicle_annual_kwh``
 - **Type:** ``String``
@@ -4179,7 +4179,7 @@ Whether there is an electric vehicle.
 
 **misc_plug_loads_vehicle_usage_multiplier**
 
-
+Multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_plug_loads_vehicle_usage_multiplier``
 - **Type:** ``String``
@@ -4214,7 +4214,7 @@ The fuel type of the fuel loads grill.
 
 **misc_fuel_loads_grill_annual_therm**
 
-
+The annual energy consumption of the fuel loads grill. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_fuel_loads_grill_annual_therm``
 - **Type:** ``String``
@@ -4225,7 +4225,7 @@ The fuel type of the fuel loads grill.
 
 **misc_fuel_loads_grill_usage_multiplier**
 
-
+Multiplier on the fuel loads grill energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_fuel_loads_grill_usage_multiplier``
 - **Type:** ``String``
@@ -4260,7 +4260,7 @@ The fuel type of the fuel loads lighting.
 
 **misc_fuel_loads_lighting_annual_therm**
 
-
+The annual energy consumption of the fuel loads lighting. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_fuel_loads_lighting_annual_therm``
 - **Type:** ``String``
@@ -4271,7 +4271,7 @@ The fuel type of the fuel loads lighting.
 
 **misc_fuel_loads_lighting_usage_multiplier**
 
-
+Multiplier on the fuel loads lighting energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_fuel_loads_lighting_usage_multiplier``
 - **Type:** ``String``
@@ -4306,7 +4306,7 @@ The fuel type of the fuel loads fireplace.
 
 **misc_fuel_loads_fireplace_annual_therm**
 
-
+The annual energy consumption of the fuel loads fireplace. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_fuel_loads_fireplace_annual_therm``
 - **Type:** ``String``
@@ -4317,7 +4317,7 @@ The fuel type of the fuel loads fireplace.
 
 **misc_fuel_loads_fireplace_frac_sensible**
 
-
+Fraction of fireplace residual fuel loads' internal gains that are sensible. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_fuel_loads_fireplace_frac_sensible``
 - **Type:** ``String``
@@ -4328,7 +4328,7 @@ The fuel type of the fuel loads fireplace.
 
 **misc_fuel_loads_fireplace_frac_latent**
 
-
+Fraction of fireplace residual fuel loads' internal gains that are latent. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_fuel_loads_fireplace_frac_latent``
 - **Type:** ``String``
@@ -4339,7 +4339,7 @@ The fuel type of the fuel loads fireplace.
 
 **misc_fuel_loads_fireplace_usage_multiplier**
 
-
+Multiplier on the fuel loads fireplace energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``misc_fuel_loads_fireplace_usage_multiplier``
 - **Type:** ``String``
@@ -4361,7 +4361,7 @@ Whether there is a pool.
 
 **pool_pump_annual_kwh**
 
-
+The annual energy consumption of the pool pump. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pool_pump_annual_kwh``
 - **Type:** ``String``
@@ -4372,7 +4372,7 @@ Whether there is a pool.
 
 **pool_pump_usage_multiplier**
 
-
+Multiplier on the pool pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pool_pump_usage_multiplier``
 - **Type:** ``String``
@@ -4396,7 +4396,7 @@ The type of pool heater. Use 'none' if there is no pool heater.
 
 **pool_heater_annual_kwh**
 
-
+The annual energy consumption of the electric resistance pool heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pool_heater_annual_kwh``
 - **Type:** ``String``
@@ -4407,7 +4407,7 @@ The type of pool heater. Use 'none' if there is no pool heater.
 
 **pool_heater_annual_therm**
 
-
+The annual energy consumption of the gas fired pool heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pool_heater_annual_therm``
 - **Type:** ``String``
@@ -4418,7 +4418,7 @@ The type of pool heater. Use 'none' if there is no pool heater.
 
 **pool_heater_usage_multiplier**
 
-
+Multiplier on the pool heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pool_heater_usage_multiplier``
 - **Type:** ``String``
@@ -4440,7 +4440,7 @@ Whether there is a permanent spa.
 
 **permanent_spa_pump_annual_kwh**
 
-
+The annual energy consumption of the permanent spa pump. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``permanent_spa_pump_annual_kwh``
 - **Type:** ``String``
@@ -4451,7 +4451,7 @@ Whether there is a permanent spa.
 
 **permanent_spa_pump_usage_multiplier**
 
-
+Multiplier on the permanent spa pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``permanent_spa_pump_usage_multiplier``
 - **Type:** ``String``
@@ -4475,7 +4475,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **permanent_spa_heater_annual_kwh**
 
-
+The annual energy consumption of the electric resistance permanent spa heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``permanent_spa_heater_annual_kwh``
 - **Type:** ``String``
@@ -4486,7 +4486,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **permanent_spa_heater_annual_therm**
 
-
+The annual energy consumption of the gas fired permanent spa heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``permanent_spa_heater_annual_therm``
 - **Type:** ``String``
@@ -4497,7 +4497,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **permanent_spa_heater_usage_multiplier**
 
-
+Multiplier on the permanent spa heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``permanent_spa_heater_usage_multiplier``
 - **Type:** ``String``
@@ -4508,7 +4508,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **emissions_scenario_names**
 
-
+Names of emissions scenarios. If multiple scenarios, use a comma-separated list. If not provided, no emissions scenarios are calculated.
 
 - **Name:** ``emissions_scenario_names``
 - **Type:** ``String``
@@ -4519,7 +4519,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **emissions_types**
 
-
+Types of emissions (e.g., CO2e, NOx, etc.). If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``emissions_types``
 - **Type:** ``String``
@@ -4530,7 +4530,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **emissions_electricity_units**
 
-
+Electricity emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MWh and kg/MWh are allowed.
 
 - **Name:** ``emissions_electricity_units``
 - **Type:** ``String``
@@ -4541,7 +4541,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **emissions_electricity_values_or_filepaths**
 
-
+Electricity emissions factors values, specified as either an annual factor or an absolute/relative path to a file with hourly factors. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``emissions_electricity_values_or_filepaths``
 - **Type:** ``String``
@@ -4552,7 +4552,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **emissions_fossil_fuel_units**
 
-
+Fossil fuel emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MBtu and kg/MBtu are allowed.
 
 - **Name:** ``emissions_fossil_fuel_units``
 - **Type:** ``String``
@@ -4563,7 +4563,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **emissions_natural_gas_values**
 
-
+Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``emissions_natural_gas_values``
 - **Type:** ``String``
@@ -4574,7 +4574,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **emissions_propane_values**
 
-
+Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``emissions_propane_values``
 - **Type:** ``String``
@@ -4585,7 +4585,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **emissions_fuel_oil_values**
 
-
+Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``emissions_fuel_oil_values``
 - **Type:** ``String``
@@ -4596,7 +4596,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **emissions_wood_values**
 
-
+Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``emissions_wood_values``
 - **Type:** ``String``
@@ -4607,7 +4607,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_scenario_names**
 
-
+Names of utility bill scenarios. If multiple scenarios, use a comma-separated list. If not provided, no utility bills scenarios are calculated.
 
 - **Name:** ``utility_bill_scenario_names``
 - **Type:** ``String``
@@ -4618,7 +4618,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_electricity_filepaths**
 
-
+Electricity tariff file specified as an absolute/relative path to a file with utility rate structure information. Tariff file must be formatted to OpenEI API version 7. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_electricity_filepaths``
 - **Type:** ``String``
@@ -4629,7 +4629,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_electricity_fixed_charges**
 
-
+Electricity utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_electricity_fixed_charges``
 - **Type:** ``String``
@@ -4640,7 +4640,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_natural_gas_fixed_charges**
 
-
+Natural gas utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_natural_gas_fixed_charges``
 - **Type:** ``String``
@@ -4651,7 +4651,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_propane_fixed_charges**
 
-
+Propane utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_propane_fixed_charges``
 - **Type:** ``String``
@@ -4662,7 +4662,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_fuel_oil_fixed_charges**
 
-
+Fuel oil utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_fuel_oil_fixed_charges``
 - **Type:** ``String``
@@ -4673,7 +4673,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_wood_fixed_charges**
 
-
+Wood utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_wood_fixed_charges``
 - **Type:** ``String``
@@ -4684,7 +4684,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_electricity_marginal_rates**
 
-
+Electricity utility bill marginal rates. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_electricity_marginal_rates``
 - **Type:** ``String``
@@ -4695,7 +4695,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_natural_gas_marginal_rates**
 
-
+Natural gas utility bill marginal rates. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_natural_gas_marginal_rates``
 - **Type:** ``String``
@@ -4706,7 +4706,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_propane_marginal_rates**
 
-
+Propane utility bill marginal rates. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_propane_marginal_rates``
 - **Type:** ``String``
@@ -4717,7 +4717,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_fuel_oil_marginal_rates**
 
-
+Fuel oil utility bill marginal rates. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_fuel_oil_marginal_rates``
 - **Type:** ``String``
@@ -4728,7 +4728,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_wood_marginal_rates**
 
-
+Wood utility bill marginal rates. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_wood_marginal_rates``
 - **Type:** ``String``
@@ -4739,7 +4739,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_pv_compensation_types**
 
-
+Utility bill PV compensation types. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_pv_compensation_types``
 - **Type:** ``String``
@@ -4750,7 +4750,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_pv_net_metering_annual_excess_sellback_rate_types**
 
-
+Utility bill PV net metering annual excess sellback rate types. Only applies if the PV compensation type is 'NetMetering'. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_pv_net_metering_annual_excess_sellback_rate_types``
 - **Type:** ``String``
@@ -4761,7 +4761,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_pv_net_metering_annual_excess_sellback_rates**
 
-
+Utility bill PV net metering annual excess sellback rates. Only applies if the PV compensation type is 'NetMetering' and the PV annual excess sellback rate type is 'User-Specified'. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_pv_net_metering_annual_excess_sellback_rates``
 - **Type:** ``String``
@@ -4772,7 +4772,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_pv_feed_in_tariff_rates**
 
-
+Utility bill PV annual full/gross feed-in tariff rates. Only applies if the PV compensation type is 'FeedInTariff'. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_pv_feed_in_tariff_rates``
 - **Type:** ``String``
@@ -4783,7 +4783,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_pv_monthly_grid_connection_fee_units**
 
-
+Utility bill PV monthly grid connection fee units. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_pv_monthly_grid_connection_fee_units``
 - **Type:** ``String``
@@ -4794,7 +4794,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **utility_bill_pv_monthly_grid_connection_fees**
 
-
+Utility bill PV monthly grid connection fees. If multiple scenarios, use a comma-separated list.
 
 - **Name:** ``utility_bill_pv_monthly_grid_connection_fees``
 - **Type:** ``String``
@@ -4805,7 +4805,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **additional_properties**
 
-
+Additional properties specified as key-value pairs (i.e., key=value). If multiple additional properties, use a |-separated list. For example, 'LowIncome=false|Remodeled|Description=2-story home in Denver'. These properties will be stored in the HPXML file under /HPXML/SoftwareInfo/extension/AdditionalProperties.
 
 - **Name:** ``additional_properties``
 - **Type:** ``String``
@@ -4816,7 +4816,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **apply_defaults**
 
-
+If true, applies OS-HPXML default values to the HPXML output file. Setting to true will also force validation of the HPXML output file before applying OS-HPXML default values.
 
 - **Name:** ``apply_defaults``
 - **Type:** ``String``
@@ -4827,7 +4827,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 **apply_validation**
 
-
+If true, validates the HPXML output file. Set to false for faster performance. Note that validation is not needed if the HPXML file will be validated downstream (e.g., via the HPXMLtoOpenStudio measure).
 
 - **Name:** ``apply_validation``
 - **Type:** ``String``
@@ -5274,7 +5274,7 @@ Whether the water heater has a flue or chimney.
 
 **Heating System: Rated CFM Per Ton**
 
-
+The rated cfm per ton of the heating system.
 
 - **Name:** ``heating_system_rated_cfm_per_ton``
 - **Type:** ``Double``
@@ -5287,7 +5287,7 @@ Whether the water heater has a flue or chimney.
 
 **Heating System: Actual CFM Per Ton**
 
-
+The actual cfm per ton of the heating system.
 
 - **Name:** ``heating_system_actual_cfm_per_ton``
 - **Type:** ``Double``
@@ -5300,7 +5300,7 @@ Whether the water heater has a flue or chimney.
 
 **Cooling System: Rated CFM Per Ton**
 
-
+The rated cfm per ton of the cooling system.
 
 - **Name:** ``cooling_system_rated_cfm_per_ton``
 - **Type:** ``Double``
@@ -5313,7 +5313,7 @@ Whether the water heater has a flue or chimney.
 
 **Cooling System: Actual CFM Per Ton**
 
-
+The actual cfm per ton of the cooling system.
 
 - **Name:** ``cooling_system_actual_cfm_per_ton``
 - **Type:** ``Double``
@@ -5326,7 +5326,7 @@ Whether the water heater has a flue or chimney.
 
 **Cooling System: Fraction of Manufacturer Recommended Charge**
 
-
+The fraction of manufacturer recommended charge of the cooling system.
 
 - **Name:** ``cooling_system_frac_manufacturer_charge``
 - **Type:** ``Double``
@@ -5339,7 +5339,7 @@ Whether the water heater has a flue or chimney.
 
 **Heat Pump: Rated CFM Per Ton**
 
-
+The rated cfm per ton of the heat pump.
 
 - **Name:** ``heat_pump_rated_cfm_per_ton``
 - **Type:** ``Double``
@@ -5352,7 +5352,7 @@ Whether the water heater has a flue or chimney.
 
 **Heat Pump: Actual CFM Per Ton**
 
-
+The actual cfm per ton of the heat pump.
 
 - **Name:** ``heat_pump_actual_cfm_per_ton``
 - **Type:** ``Double``
@@ -5365,7 +5365,7 @@ Whether the water heater has a flue or chimney.
 
 **Heat Pump: Fraction of Manufacturer Recommended Charge**
 
-
+The fraction of manufacturer recommended charge of the heat pump.
 
 - **Name:** ``heat_pump_frac_manufacturer_charge``
 - **Type:** ``Double``
