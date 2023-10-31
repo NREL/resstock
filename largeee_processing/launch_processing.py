@@ -4,13 +4,13 @@ import polars.selectors as cs
 from polars.type_aliases import SelectorType
 import os
 
-output_folder = "med_run_output3"
+output_folder = "med_run_output5b"
 state_split = False
 electrification_adder = 4000  # USD per dwelling unit, additional cost for electrification
 state_grouping: dict[str, list[str] | None] = {
     "West": ["MT", "ID", "WY", "NV", "UT", "CO", "AZ", "NM", "OR", "WA"],
     "California": ["CA"],
-    "Appalachia": ["PA", "OH", "WV", "KY"]
+    "Appalachia": ["PA", "OH", "WV", "KY"],
     "Florida & Georgia": ["FL", "GA"],
     "Central Atlantic": ["SC", "NC", "VA", "DC", "MD", "DE"],
     "Lake Michigan": ["MI", "IL", "IN"],
