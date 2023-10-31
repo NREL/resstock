@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>ce5a3b15-cffb-49ca-9360-d73ea4d3c78a</version_id>
-  <version_modified>2023-10-31T16:20:14Z</version_modified>
+  <version_id>43765fd5-71c9-4a06-8cfa-aaeb22675aee</version_id>
+  <version_modified>2023-10-31T16:55:53Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -33,10 +33,28 @@
       <name>schedules_power_outage_window_natvent_availability</name>
       <display_name>schedules_power_outage_window_natvent_availability</display_name>
       <description>The availability of the natural ventilation schedule during the outage period.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>regular schedule</value>
+          <display_name>regular schedule</display_name>
+        </choice>
+        <choice>
+          <value>always available</value>
+          <display_name>always available</display_name>
+        </choice>
+        <choice>
+          <value>always unavailable</value>
+          <display_name>always unavailable</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>simulation_control_timestep</name>
@@ -78,19 +96,55 @@
       <name>site_type</name>
       <display_name>site_type</display_name>
       <description>The type of site. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>suburban</value>
+          <display_name>suburban</display_name>
+        </choice>
+        <choice>
+          <value>urban</value>
+          <display_name>urban</display_name>
+        </choice>
+        <choice>
+          <value>rural</value>
+          <display_name>rural</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>site_shielding_of_home</name>
       <display_name>site_shielding_of_home</display_name>
       <description>Presence of nearby buildings, trees, obstructions for infiltration model. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>exposed</value>
+          <display_name>exposed</display_name>
+        </choice>
+        <choice>
+          <value>normal</value>
+          <display_name>normal</display_name>
+        </choice>
+        <choice>
+          <value>well-shielded</value>
+          <display_name>well-shielded</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>site_ground_conductivity</name>
@@ -114,19 +168,315 @@
       <name>site_iecc_zone</name>
       <display_name>site_iecc_zone</display_name>
       <description>IECC zone of the home address.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>1A</value>
+          <display_name>1A</display_name>
+        </choice>
+        <choice>
+          <value>1B</value>
+          <display_name>1B</display_name>
+        </choice>
+        <choice>
+          <value>1C</value>
+          <display_name>1C</display_name>
+        </choice>
+        <choice>
+          <value>2A</value>
+          <display_name>2A</display_name>
+        </choice>
+        <choice>
+          <value>2B</value>
+          <display_name>2B</display_name>
+        </choice>
+        <choice>
+          <value>2C</value>
+          <display_name>2C</display_name>
+        </choice>
+        <choice>
+          <value>3A</value>
+          <display_name>3A</display_name>
+        </choice>
+        <choice>
+          <value>3B</value>
+          <display_name>3B</display_name>
+        </choice>
+        <choice>
+          <value>3C</value>
+          <display_name>3C</display_name>
+        </choice>
+        <choice>
+          <value>4A</value>
+          <display_name>4A</display_name>
+        </choice>
+        <choice>
+          <value>4B</value>
+          <display_name>4B</display_name>
+        </choice>
+        <choice>
+          <value>4C</value>
+          <display_name>4C</display_name>
+        </choice>
+        <choice>
+          <value>5A</value>
+          <display_name>5A</display_name>
+        </choice>
+        <choice>
+          <value>5B</value>
+          <display_name>5B</display_name>
+        </choice>
+        <choice>
+          <value>5C</value>
+          <display_name>5C</display_name>
+        </choice>
+        <choice>
+          <value>6A</value>
+          <display_name>6A</display_name>
+        </choice>
+        <choice>
+          <value>6B</value>
+          <display_name>6B</display_name>
+        </choice>
+        <choice>
+          <value>6C</value>
+          <display_name>6C</display_name>
+        </choice>
+        <choice>
+          <value>7</value>
+          <display_name>7</display_name>
+        </choice>
+        <choice>
+          <value>8</value>
+          <display_name>8</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>site_state_code</name>
       <display_name>site_state_code</display_name>
       <description>State code of the home address.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>AK</value>
+          <display_name>AK</display_name>
+        </choice>
+        <choice>
+          <value>AL</value>
+          <display_name>AL</display_name>
+        </choice>
+        <choice>
+          <value>AR</value>
+          <display_name>AR</display_name>
+        </choice>
+        <choice>
+          <value>AZ</value>
+          <display_name>AZ</display_name>
+        </choice>
+        <choice>
+          <value>CA</value>
+          <display_name>CA</display_name>
+        </choice>
+        <choice>
+          <value>CO</value>
+          <display_name>CO</display_name>
+        </choice>
+        <choice>
+          <value>CT</value>
+          <display_name>CT</display_name>
+        </choice>
+        <choice>
+          <value>DC</value>
+          <display_name>DC</display_name>
+        </choice>
+        <choice>
+          <value>DE</value>
+          <display_name>DE</display_name>
+        </choice>
+        <choice>
+          <value>FL</value>
+          <display_name>FL</display_name>
+        </choice>
+        <choice>
+          <value>GA</value>
+          <display_name>GA</display_name>
+        </choice>
+        <choice>
+          <value>HI</value>
+          <display_name>HI</display_name>
+        </choice>
+        <choice>
+          <value>IA</value>
+          <display_name>IA</display_name>
+        </choice>
+        <choice>
+          <value>ID</value>
+          <display_name>ID</display_name>
+        </choice>
+        <choice>
+          <value>IL</value>
+          <display_name>IL</display_name>
+        </choice>
+        <choice>
+          <value>IN</value>
+          <display_name>IN</display_name>
+        </choice>
+        <choice>
+          <value>KS</value>
+          <display_name>KS</display_name>
+        </choice>
+        <choice>
+          <value>KY</value>
+          <display_name>KY</display_name>
+        </choice>
+        <choice>
+          <value>LA</value>
+          <display_name>LA</display_name>
+        </choice>
+        <choice>
+          <value>MA</value>
+          <display_name>MA</display_name>
+        </choice>
+        <choice>
+          <value>MD</value>
+          <display_name>MD</display_name>
+        </choice>
+        <choice>
+          <value>ME</value>
+          <display_name>ME</display_name>
+        </choice>
+        <choice>
+          <value>MI</value>
+          <display_name>MI</display_name>
+        </choice>
+        <choice>
+          <value>MN</value>
+          <display_name>MN</display_name>
+        </choice>
+        <choice>
+          <value>MO</value>
+          <display_name>MO</display_name>
+        </choice>
+        <choice>
+          <value>MS</value>
+          <display_name>MS</display_name>
+        </choice>
+        <choice>
+          <value>MT</value>
+          <display_name>MT</display_name>
+        </choice>
+        <choice>
+          <value>NC</value>
+          <display_name>NC</display_name>
+        </choice>
+        <choice>
+          <value>ND</value>
+          <display_name>ND</display_name>
+        </choice>
+        <choice>
+          <value>NE</value>
+          <display_name>NE</display_name>
+        </choice>
+        <choice>
+          <value>NH</value>
+          <display_name>NH</display_name>
+        </choice>
+        <choice>
+          <value>NJ</value>
+          <display_name>NJ</display_name>
+        </choice>
+        <choice>
+          <value>NM</value>
+          <display_name>NM</display_name>
+        </choice>
+        <choice>
+          <value>NV</value>
+          <display_name>NV</display_name>
+        </choice>
+        <choice>
+          <value>NY</value>
+          <display_name>NY</display_name>
+        </choice>
+        <choice>
+          <value>OH</value>
+          <display_name>OH</display_name>
+        </choice>
+        <choice>
+          <value>OK</value>
+          <display_name>OK</display_name>
+        </choice>
+        <choice>
+          <value>OR</value>
+          <display_name>OR</display_name>
+        </choice>
+        <choice>
+          <value>PA</value>
+          <display_name>PA</display_name>
+        </choice>
+        <choice>
+          <value>RI</value>
+          <display_name>RI</display_name>
+        </choice>
+        <choice>
+          <value>SC</value>
+          <display_name>SC</display_name>
+        </choice>
+        <choice>
+          <value>SD</value>
+          <display_name>SD</display_name>
+        </choice>
+        <choice>
+          <value>TN</value>
+          <display_name>TN</display_name>
+        </choice>
+        <choice>
+          <value>TX</value>
+          <display_name>TX</display_name>
+        </choice>
+        <choice>
+          <value>UT</value>
+          <display_name>UT</display_name>
+        </choice>
+        <choice>
+          <value>VA</value>
+          <display_name>VA</display_name>
+        </choice>
+        <choice>
+          <value>VT</value>
+          <display_name>VT</display_name>
+        </choice>
+        <choice>
+          <value>WA</value>
+          <display_name>WA</display_name>
+        </choice>
+        <choice>
+          <value>WI</value>
+          <display_name>WI</display_name>
+        </choice>
+        <choice>
+          <value>WV</value>
+          <display_name>WV</display_name>
+        </choice>
+        <choice>
+          <value>WY</value>
+          <display_name>WY</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>site_time_zone_utc_offset</name>
@@ -624,10 +974,48 @@
       <name>foundation_wall_type</name>
       <display_name>foundation_wall_type</display_name>
       <description>The material type of the foundation wall. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>solid concrete</value>
+          <display_name>solid concrete</display_name>
+        </choice>
+        <choice>
+          <value>concrete block</value>
+          <display_name>concrete block</display_name>
+        </choice>
+        <choice>
+          <value>concrete block foam core</value>
+          <display_name>concrete block foam core</display_name>
+        </choice>
+        <choice>
+          <value>concrete block perlite core</value>
+          <display_name>concrete block perlite core</display_name>
+        </choice>
+        <choice>
+          <value>concrete block vermiculite core</value>
+          <display_name>concrete block vermiculite core</display_name>
+        </choice>
+        <choice>
+          <value>concrete block solid core</value>
+          <display_name>concrete block solid core</display_name>
+        </choice>
+        <choice>
+          <value>double brick</value>
+          <display_name>double brick</display_name>
+        </choice>
+        <choice>
+          <value>wood</value>
+          <display_name>wood</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>foundation_wall_thickness</name>
@@ -652,10 +1040,24 @@
       <name>foundation_wall_insulation_location</name>
       <display_name>foundation_wall_insulation_location</display_name>
       <description>Whether the insulation is on the interior or exterior of the foundation wall. Only applies to basements/crawlspaces.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units>ft</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>interior</value>
+          <display_name>interior</display_name>
+        </choice>
+        <choice>
+          <value>exterior</value>
+          <display_name>exterior</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>foundation_wall_insulation_distance_to_top</name>
@@ -774,19 +1176,87 @@
       <name>roof_material_type</name>
       <display_name>roof_material_type</display_name>
       <description>The material type of the roof. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>asphalt or fiberglass shingles</value>
+          <display_name>asphalt or fiberglass shingles</display_name>
+        </choice>
+        <choice>
+          <value>concrete</value>
+          <display_name>concrete</display_name>
+        </choice>
+        <choice>
+          <value>cool roof</value>
+          <display_name>cool roof</display_name>
+        </choice>
+        <choice>
+          <value>slate or tile shingles</value>
+          <display_name>slate or tile shingles</display_name>
+        </choice>
+        <choice>
+          <value>expanded polystyrene sheathing</value>
+          <display_name>expanded polystyrene sheathing</display_name>
+        </choice>
+        <choice>
+          <value>metal surfacing</value>
+          <display_name>metal surfacing</display_name>
+        </choice>
+        <choice>
+          <value>plastic/rubber/synthetic sheeting</value>
+          <display_name>plastic/rubber/synthetic sheeting</display_name>
+        </choice>
+        <choice>
+          <value>shingles</value>
+          <display_name>shingles</display_name>
+        </choice>
+        <choice>
+          <value>wood shingles or shakes</value>
+          <display_name>wood shingles or shakes</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>roof_color</name>
       <display_name>roof_color</display_name>
       <description>The color of the roof. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>dark</value>
+          <display_name>dark</display_name>
+        </choice>
+        <choice>
+          <value>light</value>
+          <display_name>light</display_name>
+        </choice>
+        <choice>
+          <value>medium</value>
+          <display_name>medium</display_name>
+        </choice>
+        <choice>
+          <value>medium dark</value>
+          <display_name>medium dark</display_name>
+        </choice>
+        <choice>
+          <value>reflective</value>
+          <display_name>reflective</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>roof_assembly_r</name>
@@ -821,10 +1291,28 @@
       <name>roof_radiant_barrier_grade</name>
       <display_name>roof_radiant_barrier_grade</display_name>
       <description>The grade of the radiant barrier. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>1</value>
+          <display_name>1</display_name>
+        </choice>
+        <choice>
+          <value>2</value>
+          <display_name>2</display_name>
+        </choice>
+        <choice>
+          <value>3</value>
+          <display_name>3</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>wall_type</name>
@@ -885,19 +1373,95 @@
       <name>wall_siding_type</name>
       <display_name>wall_siding_type</display_name>
       <description>The siding type of the walls. Also applies to rim joists. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>aluminum siding</value>
+          <display_name>aluminum siding</display_name>
+        </choice>
+        <choice>
+          <value>asbestos siding</value>
+          <display_name>asbestos siding</display_name>
+        </choice>
+        <choice>
+          <value>brick veneer</value>
+          <display_name>brick veneer</display_name>
+        </choice>
+        <choice>
+          <value>composite shingle siding</value>
+          <display_name>composite shingle siding</display_name>
+        </choice>
+        <choice>
+          <value>fiber cement siding</value>
+          <display_name>fiber cement siding</display_name>
+        </choice>
+        <choice>
+          <value>masonite siding</value>
+          <display_name>masonite siding</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>stucco</value>
+          <display_name>stucco</display_name>
+        </choice>
+        <choice>
+          <value>synthetic stucco</value>
+          <display_name>synthetic stucco</display_name>
+        </choice>
+        <choice>
+          <value>vinyl siding</value>
+          <display_name>vinyl siding</display_name>
+        </choice>
+        <choice>
+          <value>wood siding</value>
+          <display_name>wood siding</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>wall_color</name>
       <display_name>wall_color</display_name>
       <description>The color of the walls. Also applies to rim joists. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>dark</value>
+          <display_name>dark</display_name>
+        </choice>
+        <choice>
+          <value>light</value>
+          <display_name>light</display_name>
+        </choice>
+        <choice>
+          <value>medium</value>
+          <display_name>medium</display_name>
+        </choice>
+        <choice>
+          <value>medium dark</value>
+          <display_name>medium dark</display_name>
+        </choice>
+        <choice>
+          <value>reflective</value>
+          <display_name>reflective</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>wall_assembly_r</name>
@@ -1085,10 +1649,24 @@
       <name>window_storm_type</name>
       <display_name>window_storm_type</display_name>
       <description>The type of storm, if present. If not provided, assumes there is no storm.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>clear</value>
+          <display_name>clear</display_name>
+        </choice>
+        <choice>
+          <value>low-e</value>
+          <display_name>low-e</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>overhangs_front_depth</name>
@@ -1273,10 +1851,24 @@
       <name>skylight_storm_type</name>
       <display_name>skylight_storm_type</display_name>
       <description>The type of storm, if present. If not provided, assumes there is no storm.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>clear</value>
+          <display_name>clear</display_name>
+        </choice>
+        <choice>
+          <value>low-e</value>
+          <display_name>low-e</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>door_area</name>
@@ -1352,10 +1944,24 @@
       <name>air_leakage_type</name>
       <display_name>air_leakage_type</display_name>
       <description>Type of air leakage. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>unit total</value>
+          <display_name>unit total</display_name>
+        </choice>
+        <choice>
+          <value>unit exterior only</value>
+          <display_name>unit exterior only</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>heating_system_type</name>
@@ -1564,10 +2170,28 @@
       <name>cooling_system_cooling_compressor_type</name>
       <display_name>cooling_system_cooling_compressor_type</display_name>
       <description>The compressor type of the cooling system. Only applies to central air conditioner. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>single stage</value>
+          <display_name>single stage</display_name>
+        </choice>
+        <choice>
+          <value>two stage</value>
+          <display_name>two stage</display_name>
+        </choice>
+        <choice>
+          <value>variable speed</value>
+          <display_name>variable speed</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>cooling_system_cooling_sensible_heat_fraction</name>
@@ -1619,10 +2243,44 @@
       <name>cooling_system_integrated_heating_system_fuel</name>
       <display_name>cooling_system_integrated_heating_system_fuel</display_name>
       <description>The fuel type of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>electricity</value>
+          <display_name>electricity</display_name>
+        </choice>
+        <choice>
+          <value>natural gas</value>
+          <display_name>natural gas</display_name>
+        </choice>
+        <choice>
+          <value>fuel oil</value>
+          <display_name>fuel oil</display_name>
+        </choice>
+        <choice>
+          <value>propane</value>
+          <display_name>propane</display_name>
+        </choice>
+        <choice>
+          <value>wood</value>
+          <display_name>wood</display_name>
+        </choice>
+        <choice>
+          <value>wood pellets</value>
+          <display_name>wood pellets</display_name>
+        </choice>
+        <choice>
+          <value>coal</value>
+          <display_name>coal</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>cooling_system_integrated_heating_system_efficiency_percent</name>
@@ -1758,10 +2416,28 @@
       <name>heat_pump_cooling_compressor_type</name>
       <display_name>heat_pump_cooling_compressor_type</display_name>
       <description>The compressor type of the heat pump. Only applies to air-to-air. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>single stage</value>
+          <display_name>single stage</display_name>
+        </choice>
+        <choice>
+          <value>two stage</value>
+          <display_name>two stage</display_name>
+        </choice>
+        <choice>
+          <value>variable speed</value>
+          <display_name>variable speed</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>heat_pump_cooling_sensible_heat_fraction</name>
@@ -1918,10 +2594,28 @@
       <name>heat_pump_sizing_methodology</name>
       <display_name>heat_pump_sizing_methodology</display_name>
       <description>The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>ACCA</value>
+          <display_name>ACCA</display_name>
+        </choice>
+        <choice>
+          <value>HERS</value>
+          <display_name>HERS</display_name>
+        </choice>
+        <choice>
+          <value>MaxLoad</value>
+          <display_name>MaxLoad</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>heat_pump_is_ducted</name>
@@ -2119,10 +2813,96 @@
       <name>ducts_supply_location</name>
       <display_name>ducts_supply_location</display_name>
       <description>The location of the supply ducts. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace</value>
+          <display_name>crawlspace</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - vented</value>
+          <display_name>crawlspace - vented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - unvented</value>
+          <display_name>crawlspace - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>attic</value>
+          <display_name>attic</display_name>
+        </choice>
+        <choice>
+          <value>attic - vented</value>
+          <display_name>attic - vented</display_name>
+        </choice>
+        <choice>
+          <value>attic - unvented</value>
+          <display_name>attic - unvented</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>exterior wall</value>
+          <display_name>exterior wall</display_name>
+        </choice>
+        <choice>
+          <value>under slab</value>
+          <display_name>under slab</display_name>
+        </choice>
+        <choice>
+          <value>roof deck</value>
+          <display_name>roof deck</display_name>
+        </choice>
+        <choice>
+          <value>outside</value>
+          <display_name>outside</display_name>
+        </choice>
+        <choice>
+          <value>other housing unit</value>
+          <display_name>other housing unit</display_name>
+        </choice>
+        <choice>
+          <value>other heated space</value>
+          <display_name>other heated space</display_name>
+        </choice>
+        <choice>
+          <value>other multifamily buffer space</value>
+          <display_name>other multifamily buffer space</display_name>
+        </choice>
+        <choice>
+          <value>other non-freezing space</value>
+          <display_name>other non-freezing space</display_name>
+        </choice>
+        <choice>
+          <value>manufactured home belly</value>
+          <display_name>manufactured home belly</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>ducts_supply_insulation_r</name>
@@ -2138,10 +2918,32 @@
       <name>ducts_supply_buried_insulation_level</name>
       <display_name>ducts_supply_buried_insulation_level</display_name>
       <description>Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>not buried</value>
+          <display_name>not buried</display_name>
+        </choice>
+        <choice>
+          <value>partially buried</value>
+          <display_name>partially buried</display_name>
+        </choice>
+        <choice>
+          <value>fully buried</value>
+          <display_name>fully buried</display_name>
+        </choice>
+        <choice>
+          <value>deeply buried</value>
+          <display_name>deeply buried</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>ducts_supply_surface_area</name>
@@ -2165,10 +2967,96 @@
       <name>ducts_return_location</name>
       <display_name>ducts_return_location</display_name>
       <description>The location of the return ducts. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace</value>
+          <display_name>crawlspace</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - vented</value>
+          <display_name>crawlspace - vented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - unvented</value>
+          <display_name>crawlspace - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>attic</value>
+          <display_name>attic</display_name>
+        </choice>
+        <choice>
+          <value>attic - vented</value>
+          <display_name>attic - vented</display_name>
+        </choice>
+        <choice>
+          <value>attic - unvented</value>
+          <display_name>attic - unvented</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>exterior wall</value>
+          <display_name>exterior wall</display_name>
+        </choice>
+        <choice>
+          <value>under slab</value>
+          <display_name>under slab</display_name>
+        </choice>
+        <choice>
+          <value>roof deck</value>
+          <display_name>roof deck</display_name>
+        </choice>
+        <choice>
+          <value>outside</value>
+          <display_name>outside</display_name>
+        </choice>
+        <choice>
+          <value>other housing unit</value>
+          <display_name>other housing unit</display_name>
+        </choice>
+        <choice>
+          <value>other heated space</value>
+          <display_name>other heated space</display_name>
+        </choice>
+        <choice>
+          <value>other multifamily buffer space</value>
+          <display_name>other multifamily buffer space</display_name>
+        </choice>
+        <choice>
+          <value>other non-freezing space</value>
+          <display_name>other non-freezing space</display_name>
+        </choice>
+        <choice>
+          <value>manufactured home belly</value>
+          <display_name>manufactured home belly</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>ducts_return_insulation_r</name>
@@ -2184,10 +3072,32 @@
       <name>ducts_return_buried_insulation_level</name>
       <display_name>ducts_return_buried_insulation_level</display_name>
       <description>Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>not buried</value>
+          <display_name>not buried</display_name>
+        </choice>
+        <choice>
+          <value>partially buried</value>
+          <display_name>partially buried</display_name>
+        </choice>
+        <choice>
+          <value>fully buried</value>
+          <display_name>fully buried</display_name>
+        </choice>
+        <choice>
+          <value>deeply buried</value>
+          <display_name>deeply buried</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>ducts_return_surface_area</name>
@@ -2344,10 +3254,44 @@
       <name>mech_vent_shared_preheating_fuel</name>
       <display_name>mech_vent_shared_preheating_fuel</display_name>
       <description>Fuel type of the preconditioning heating equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no preheating.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>electricity</value>
+          <display_name>electricity</display_name>
+        </choice>
+        <choice>
+          <value>natural gas</value>
+          <display_name>natural gas</display_name>
+        </choice>
+        <choice>
+          <value>fuel oil</value>
+          <display_name>fuel oil</display_name>
+        </choice>
+        <choice>
+          <value>propane</value>
+          <display_name>propane</display_name>
+        </choice>
+        <choice>
+          <value>wood</value>
+          <display_name>wood</display_name>
+        </choice>
+        <choice>
+          <value>wood pellets</value>
+          <display_name>wood pellets</display_name>
+        </choice>
+        <choice>
+          <value>coal</value>
+          <display_name>coal</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>mech_vent_shared_preheating_efficiency</name>
@@ -2371,10 +3315,20 @@
       <name>mech_vent_shared_precooling_fuel</name>
       <display_name>mech_vent_shared_precooling_fuel</display_name>
       <description>Fuel type of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no precooling.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>electricity</value>
+          <display_name>electricity</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>mech_vent_shared_precooling_efficiency</name>
@@ -2699,10 +3653,80 @@
       <name>water_heater_location</name>
       <display_name>water_heater_location</display_name>
       <description>The location of water heater. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>attic</value>
+          <display_name>attic</display_name>
+        </choice>
+        <choice>
+          <value>attic - vented</value>
+          <display_name>attic - vented</display_name>
+        </choice>
+        <choice>
+          <value>attic - unvented</value>
+          <display_name>attic - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace</value>
+          <display_name>crawlspace</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - vented</value>
+          <display_name>crawlspace - vented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - unvented</value>
+          <display_name>crawlspace - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>other exterior</value>
+          <display_name>other exterior</display_name>
+        </choice>
+        <choice>
+          <value>other housing unit</value>
+          <display_name>other housing unit</display_name>
+        </choice>
+        <choice>
+          <value>other heated space</value>
+          <display_name>other heated space</display_name>
+        </choice>
+        <choice>
+          <value>other multifamily buffer space</value>
+          <display_name>other multifamily buffer space</display_name>
+        </choice>
+        <choice>
+          <value>other non-freezing space</value>
+          <display_name>other non-freezing space</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>water_heater_tank_volume</name>
@@ -2745,10 +3769,32 @@
       <name>water_heater_usage_bin</name>
       <display_name>water_heater_usage_bin</display_name>
       <description>The usage of the water heater. Only applies if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>very small</value>
+          <display_name>very small</display_name>
+        </choice>
+        <choice>
+          <value>low</value>
+          <display_name>low</display_name>
+        </choice>
+        <choice>
+          <value>medium</value>
+          <display_name>medium</display_name>
+        </choice>
+        <choice>
+          <value>high</value>
+          <display_name>high</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>water_heater_recovery_efficiency</name>
@@ -2818,19 +3864,47 @@
       <name>water_heater_tank_model_type</name>
       <display_name>water_heater_tank_model_type</display_name>
       <description>Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time. Applies only to storage water heater. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>mixed</value>
+          <display_name>mixed</display_name>
+        </choice>
+        <choice>
+          <value>stratified</value>
+          <display_name>stratified</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>water_heater_operating_mode</name>
       <display_name>water_heater_operating_mode</display_name>
       <description>The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'hybrid/auto' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to heat pump water heater. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>hybrid/auto</value>
+          <display_name>hybrid/auto</display_name>
+        </choice>
+        <choice>
+          <value>heat pump only</value>
+          <display_name>heat pump only</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>hot_water_distribution_system_type</name>
@@ -2864,10 +3938,36 @@
       <name>hot_water_distribution_recirc_control_type</name>
       <display_name>hot_water_distribution_recirc_control_type</display_name>
       <description>If the distribution system is Recirculation, the type of hot water recirculation control, if any.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>no control</value>
+          <display_name>no control</display_name>
+        </choice>
+        <choice>
+          <value>timer</value>
+          <display_name>timer</display_name>
+        </choice>
+        <choice>
+          <value>temperature</value>
+          <display_name>temperature</display_name>
+        </choice>
+        <choice>
+          <value>presence sensor demand control</value>
+          <display_name>presence sensor demand control</display_name>
+        </choice>
+        <choice>
+          <value>manual demand control</value>
+          <display_name>manual demand control</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>hot_water_distribution_recirc_piping_length</name>
@@ -3154,28 +4254,82 @@
       <name>pv_system_module_type</name>
       <display_name>pv_system_module_type</display_name>
       <description>Module type of the PV system. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>standard</value>
+          <display_name>standard</display_name>
+        </choice>
+        <choice>
+          <value>premium</value>
+          <display_name>premium</display_name>
+        </choice>
+        <choice>
+          <value>thin film</value>
+          <display_name>thin film</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>pv_system_location</name>
       <display_name>pv_system_location</display_name>
       <description>Location of the PV system. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>roof</value>
+          <display_name>roof</display_name>
+        </choice>
+        <choice>
+          <value>ground</value>
+          <display_name>ground</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>pv_system_tracking</name>
       <display_name>pv_system_tracking</display_name>
       <description>Type of tracking for the PV system. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>fixed</value>
+          <display_name>fixed</display_name>
+        </choice>
+        <choice>
+          <value>1-axis</value>
+          <display_name>1-axis</display_name>
+        </choice>
+        <choice>
+          <value>1-axis backtracked</value>
+          <display_name>1-axis backtracked</display_name>
+        </choice>
+        <choice>
+          <value>2-axis</value>
+          <display_name>2-axis</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>pv_system_array_azimuth</name>
@@ -3248,28 +4402,82 @@
       <name>pv_system_2_module_type</name>
       <display_name>pv_system_2_module_type</display_name>
       <description>Module type of the second PV system. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>standard</value>
+          <display_name>standard</display_name>
+        </choice>
+        <choice>
+          <value>premium</value>
+          <display_name>premium</display_name>
+        </choice>
+        <choice>
+          <value>thin film</value>
+          <display_name>thin film</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>pv_system_2_location</name>
       <display_name>pv_system_2_location</display_name>
       <description>Location of the second PV system. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>roof</value>
+          <display_name>roof</display_name>
+        </choice>
+        <choice>
+          <value>ground</value>
+          <display_name>ground</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>pv_system_2_tracking</name>
       <display_name>pv_system_2_tracking</display_name>
       <description>Type of tracking for the second PV system. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>fixed</value>
+          <display_name>fixed</display_name>
+        </choice>
+        <choice>
+          <value>1-axis</value>
+          <display_name>1-axis</display_name>
+        </choice>
+        <choice>
+          <value>1-axis backtracked</value>
+          <display_name>1-axis backtracked</display_name>
+        </choice>
+        <choice>
+          <value>2-axis</value>
+          <display_name>2-axis</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>pv_system_2_array_azimuth</name>
@@ -3324,10 +4532,64 @@
       <name>battery_location</name>
       <display_name>battery_location</display_name>
       <description>The space type for the lithium ion battery location. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace</value>
+          <display_name>crawlspace</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - vented</value>
+          <display_name>crawlspace - vented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - unvented</value>
+          <display_name>crawlspace - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>attic</value>
+          <display_name>attic</display_name>
+        </choice>
+        <choice>
+          <value>attic - vented</value>
+          <display_name>attic - vented</display_name>
+        </choice>
+        <choice>
+          <value>attic - unvented</value>
+          <display_name>attic - unvented</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>outside</value>
+          <display_name>outside</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>battery_power</name>
@@ -3634,10 +4896,48 @@
       <name>clothes_washer_location</name>
       <display_name>clothes_washer_location</display_name>
       <description>The space type for the clothes washer location. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>other housing unit</value>
+          <display_name>other housing unit</display_name>
+        </choice>
+        <choice>
+          <value>other heated space</value>
+          <display_name>other heated space</display_name>
+        </choice>
+        <choice>
+          <value>other multifamily buffer space</value>
+          <display_name>other multifamily buffer space</display_name>
+        </choice>
+        <choice>
+          <value>other non-freezing space</value>
+          <display_name>other non-freezing space</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>clothes_washer_efficiency_type</name>
@@ -3753,10 +5053,48 @@
       <name>clothes_dryer_location</name>
       <display_name>clothes_dryer_location</display_name>
       <description>The space type for the clothes dryer location. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>other housing unit</value>
+          <display_name>other housing unit</display_name>
+        </choice>
+        <choice>
+          <value>other heated space</value>
+          <display_name>other heated space</display_name>
+        </choice>
+        <choice>
+          <value>other multifamily buffer space</value>
+          <display_name>other multifamily buffer space</display_name>
+        </choice>
+        <choice>
+          <value>other non-freezing space</value>
+          <display_name>other non-freezing space</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>clothes_dryer_fuel_type</name>
@@ -3862,10 +5200,48 @@
       <name>dishwasher_location</name>
       <display_name>dishwasher_location</display_name>
       <description>The space type for the dishwasher location. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>other housing unit</value>
+          <display_name>other housing unit</display_name>
+        </choice>
+        <choice>
+          <value>other heated space</value>
+          <display_name>other heated space</display_name>
+        </choice>
+        <choice>
+          <value>other multifamily buffer space</value>
+          <display_name>other multifamily buffer space</display_name>
+        </choice>
+        <choice>
+          <value>other non-freezing space</value>
+          <display_name>other non-freezing space</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>dishwasher_efficiency_type</name>
@@ -3972,10 +5348,48 @@
       <name>refrigerator_location</name>
       <display_name>refrigerator_location</display_name>
       <description>The space type for the refrigerator location. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>other housing unit</value>
+          <display_name>other housing unit</display_name>
+        </choice>
+        <choice>
+          <value>other heated space</value>
+          <display_name>other heated space</display_name>
+        </choice>
+        <choice>
+          <value>other multifamily buffer space</value>
+          <display_name>other multifamily buffer space</display_name>
+        </choice>
+        <choice>
+          <value>other non-freezing space</value>
+          <display_name>other non-freezing space</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>refrigerator_rated_annual_kwh</name>
@@ -4018,10 +5432,48 @@
       <name>extra_refrigerator_location</name>
       <display_name>extra_refrigerator_location</display_name>
       <description>The space type for the extra refrigerator location. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>other housing unit</value>
+          <display_name>other housing unit</display_name>
+        </choice>
+        <choice>
+          <value>other heated space</value>
+          <display_name>other heated space</display_name>
+        </choice>
+        <choice>
+          <value>other multifamily buffer space</value>
+          <display_name>other multifamily buffer space</display_name>
+        </choice>
+        <choice>
+          <value>other non-freezing space</value>
+          <display_name>other non-freezing space</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>extra_refrigerator_rated_annual_kwh</name>
@@ -4064,10 +5516,48 @@
       <name>freezer_location</name>
       <display_name>freezer_location</display_name>
       <description>The space type for the freezer location. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>other housing unit</value>
+          <display_name>other housing unit</display_name>
+        </choice>
+        <choice>
+          <value>other heated space</value>
+          <display_name>other heated space</display_name>
+        </choice>
+        <choice>
+          <value>other multifamily buffer space</value>
+          <display_name>other multifamily buffer space</display_name>
+        </choice>
+        <choice>
+          <value>other non-freezing space</value>
+          <display_name>other non-freezing space</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>freezer_rated_annual_kwh</name>
@@ -4110,10 +5600,48 @@
       <name>cooking_range_oven_location</name>
       <display_name>cooking_range_oven_location</display_name>
       <description>The space type for the cooking range/oven location. If not provided, the OS-HPXML default is used.</description>
-      <type>String</type>
+      <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>conditioned space</value>
+          <display_name>conditioned space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>other housing unit</value>
+          <display_name>other housing unit</display_name>
+        </choice>
+        <choice>
+          <value>other heated space</value>
+          <display_name>other heated space</display_name>
+        </choice>
+        <choice>
+          <value>other multifamily buffer space</value>
+          <display_name>other multifamily buffer space</display_name>
+        </choice>
+        <choice>
+          <value>other non-freezing space</value>
+          <display_name>other non-freezing space</display_name>
+        </choice>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>cooking_range_oven_fuel_type</name>
@@ -5539,7 +7067,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>0D4B5BEC</checksum>
+      <checksum>5D08D95B</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -5556,7 +7084,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>E3C996CE</checksum>
+      <checksum>B54A8F49</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>

@@ -37,6 +37,10 @@ resstockarguments_xml = Oga.parse_xml(File.read(File.join(resources_dir, '../mea
 resstockarguments_xml.xpath('//measure/arguments/argument').each do |argument|
   name = argument.at_xpath('name').text
   units = argument.at_xpath('units')
+  choices = []
+  argument.xpath('choices/choice').each do |choice|
+    choices << choice.at_xpath('value').text
+  end
   desc = argument.at_xpath('description')
   if units.nil?
     units = ''
@@ -49,7 +53,7 @@ resstockarguments_xml.xpath('//measure/arguments/argument').each do |argument|
   else
     desc = desc.text
   end
-  resstockarguments[name] = [units, desc]
+  resstockarguments[name] = [units, choices, desc]
 end
 
 f = File.open(File.join(File.dirname(__FILE__), 'characteristics.rst'), 'w')
@@ -98,13 +102,26 @@ source_report.each do |row|
   f.puts
   f.puts('   * - Name')
   f.puts('     - Units')
+  f.puts('     - Choices')
   f.puts('     - Description')
   r_arguments.sort.each do |r_argument|
     f.puts("   * - ``#{r_argument}``")
 
     units = resstockarguments[r_argument][0]
-    desc = resstockarguments[r_argument][1]
+    choices = resstockarguments[r_argument][1]
+    desc = resstockarguments[r_argument][2]
     f.puts("     - #{units}")
+    if !choices.empty?
+      choices.each_with_index do |choice, i|
+        if i == 0
+          f.puts("     - | #{choice}")
+        else
+          f.puts("       | #{choice}")
+        end
+      end
+    else
+      f.puts('     -')
+    end
     f.puts("     - #{desc}")
   end
   f.puts

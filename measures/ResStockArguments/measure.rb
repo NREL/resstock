@@ -43,7 +43,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Convert optional arguments to string arguments that allow Constants.Auto for defaulting
       if !arg.required
-        new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
+        case arg.type.valueName.downcase
+        when 'choice'
+          choices = arg.choiceValues.map(&:to_s)
+          choices << Constants.Auto
+          new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
+        else
+          new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
+        end
         new_arg.setDescription(arg.description.to_s)
         new_arg.setUnits(arg.units.to_s)
         args << new_arg

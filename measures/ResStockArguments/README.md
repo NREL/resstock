@@ -38,9 +38,11 @@ Specifies the power outage period. Enter a date like "Dec 15 - Jan 15". Optional
 The availability of the natural ventilation schedule during the outage period.
 
 - **Name:** ``schedules_power_outage_window_natvent_availability``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `regular schedule`, `always available`, `always unavailable`, `auto`
 
 <br/>
 
@@ -93,9 +95,11 @@ Whether to use daylight saving. If not provided, the OS-HPXML default is used.
 The type of site. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``site_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `suburban`, `urban`, `rural`, `auto`
 
 <br/>
 
@@ -104,9 +108,11 @@ The type of site. If not provided, the OS-HPXML default is used.
 Presence of nearby buildings, trees, obstructions for infiltration model. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``site_shielding_of_home``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `exposed`, `normal`, `well-shielded`, `auto`
 
 <br/>
 
@@ -137,9 +143,11 @@ Zip code of the home address.
 IECC zone of the home address.
 
 - **Name:** ``site_iecc_zone``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `1A`, `1B`, `1C`, `2A`, `2B`, `2C`, `3A`, `3B`, `3C`, `4A`, `4B`, `4C`, `5A`, `5B`, `5C`, `6A`, `6B`, `6C`, `7`, `8`, `auto`
 
 <br/>
 
@@ -148,9 +156,11 @@ IECC zone of the home address.
 State code of the home address.
 
 - **Name:** ``site_state_code``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `AK`, `AL`, `AR`, `AZ`, `CA`, `CO`, `CT`, `DC`, `DE`, `FL`, `GA`, `HI`, `IA`, `ID`, `IL`, `IN`, `KS`, `KY`, `LA`, `MA`, `MD`, `ME`, `MI`, `MN`, `MO`, `MS`, `MT`, `NC`, `ND`, `NE`, `NH`, `NJ`, `NM`, `NV`, `NY`, `OH`, `OK`, `OR`, `PA`, `RI`, `SC`, `SD`, `TN`, `TX`, `UT`, `VA`, `VT`, `WA`, `WI`, `WV`, `WY`, `auto`
 
 <br/>
 
@@ -579,9 +589,11 @@ The type of floors.
 The material type of the foundation wall. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``foundation_wall_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `solid concrete`, `concrete block`, `concrete block foam core`, `concrete block perlite core`, `concrete block vermiculite core`, `concrete block solid core`, `double brick`, `wood`, `auto`
 
 <br/>
 
@@ -614,9 +626,11 @@ Nominal R-value for the foundation wall insulation. Only applies to basements/cr
 Whether the insulation is on the interior or exterior of the foundation wall. Only applies to basements/crawlspaces.
 
 - **Name:** ``foundation_wall_insulation_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `interior`, `exterior`, `auto`
 
 <br/>
 
@@ -767,9 +781,11 @@ Assembly R-value for the ceiling (attic floor).
 The material type of the roof. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``roof_material_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `asphalt or fiberglass shingles`, `concrete`, `cool roof`, `slate or tile shingles`, `expanded polystyrene sheathing`, `metal surfacing`, `plastic/rubber/synthetic sheeting`, `shingles`, `wood shingles or shakes`, `auto`
 
 <br/>
 
@@ -778,9 +794,11 @@ The material type of the roof. If not provided, the OS-HPXML default is used.
 The color of the roof. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``roof_color``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `dark`, `light`, `medium`, `medium dark`, `reflective`, `auto`
 
 <br/>
 
@@ -813,9 +831,11 @@ Presence of a radiant barrier in the attic.
 The grade of the radiant barrier. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``roof_radiant_barrier_grade``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `1`, `2`, `3`, `auto`
 
 <br/>
 
@@ -837,9 +857,11 @@ The type of walls.
 The siding type of the walls. Also applies to rim joists. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``wall_siding_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `aluminum siding`, `asbestos siding`, `brick veneer`, `composite shingle siding`, `fiber cement siding`, `masonite siding`, `none`, `stucco`, `synthetic stucco`, `vinyl siding`, `wood siding`, `auto`
 
 <br/>
 
@@ -848,9 +870,11 @@ The siding type of the walls. Also applies to rim joists. If not provided, the O
 The color of the walls. Also applies to rim joists. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``wall_color``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `dark`, `light`, `medium`, `medium dark`, `reflective`, `auto`
 
 <br/>
 
@@ -1090,9 +1114,11 @@ Enter a date like "May 1 - Sep 30". Defines the summer season for purposes of sh
 The type of storm, if present. If not provided, assumes there is no storm.
 
 - **Name:** ``window_storm_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `clear`, `low-e`, `auto`
 
 <br/>
 
@@ -1333,9 +1359,11 @@ Full-assembly NFRC solar heat gain coefficient.
 The type of storm, if present. If not provided, assumes there is no storm.
 
 - **Name:** ``skylight_storm_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `clear`, `low-e`, `auto`
 
 <br/>
 
@@ -1407,9 +1435,11 @@ Air exchange rate value. For 'EffectiveLeakageArea', provide value in sq. in.
 Type of air leakage. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.
 
 - **Name:** ``air_leakage_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `unit total`, `unit exterior only`, `auto`
 
 <br/>
 
@@ -1529,9 +1559,11 @@ The rated efficiency value of the cooling system. Ignored for evaporative cooler
 The compressor type of the cooling system. Only applies to central air conditioner. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``cooling_system_cooling_compressor_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `single stage`, `two stage`, `variable speed`, `auto`
 
 <br/>
 
@@ -1597,9 +1629,11 @@ Cooling system crankcase heater power consumption in Watts. Applies only to cent
 The fuel type of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
 
 - **Name:** ``cooling_system_integrated_heating_system_fuel``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`, `auto`
 
 <br/>
 
@@ -1702,9 +1736,11 @@ The rated cooling efficiency value of the heat pump.
 The compressor type of the heat pump. Only applies to air-to-air. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``heat_pump_cooling_compressor_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `single stage`, `two stage`, `variable speed`, `auto`
 
 <br/>
 
@@ -1864,9 +1900,11 @@ The temperature above which the heat pump backup system is disabled. If both thi
 The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``heat_pump_sizing_methodology``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `ACCA`, `HERS`, `MaxLoad`, `auto`
 
 <br/>
 
@@ -2017,9 +2055,11 @@ The leakage value to outside for the return ducts.
 The location of the supply ducts. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``ducts_supply_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `attic`, `attic - vented`, `attic - unvented`, `garage`, `exterior wall`, `under slab`, `roof deck`, `outside`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `manufactured home belly`, `auto`
 
 <br/>
 
@@ -2041,9 +2081,11 @@ The insulation r-value of the supply ducts excluding air films.
 Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
 
 - **Name:** ``ducts_supply_buried_insulation_level``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `not buried`, `partially buried`, `fully buried`, `deeply buried`, `auto`
 
 <br/>
 
@@ -2074,9 +2116,11 @@ The fraction of supply ducts surface area in the given location. Only used if Su
 The location of the return ducts. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``ducts_return_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `attic`, `attic - vented`, `attic - unvented`, `garage`, `exterior wall`, `under slab`, `roof deck`, `outside`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `manufactured home belly`, `auto`
 
 <br/>
 
@@ -2098,9 +2142,11 @@ The insulation r-value of the return ducts excluding air films.
 Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
 
 - **Name:** ``ducts_return_buried_insulation_level``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `not buried`, `partially buried`, `fully buried`, `deeply buried`, `auto`
 
 <br/>
 
@@ -2251,9 +2297,11 @@ Fraction of the total supply air that is recirculated, with the remainder assume
 Fuel type of the preconditioning heating equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no preheating.
 
 - **Name:** ``mech_vent_shared_preheating_fuel``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`, `auto`
 
 <br/>
 
@@ -2284,9 +2332,11 @@ Fraction of heating load introduced by the shared ventilation system that is met
 Fuel type of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no precooling.
 
 - **Name:** ``mech_vent_shared_precooling_fuel``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `electricity`, `auto`
 
 <br/>
 
@@ -2577,9 +2627,11 @@ The fuel type of water heater. Ignored for heat pump water heater.
 The location of water heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `attic`, `attic - vented`, `attic - unvented`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `other exterior`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
 
 <br/>
 
@@ -2623,9 +2675,11 @@ Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating bo
 The usage of the water heater. Only applies if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_usage_bin``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `very small`, `low`, `medium`, `high`, `auto`
 
 <br/>
 
@@ -2713,9 +2767,11 @@ Requires that the dwelling unit has a air-to-air, mini-split, or ground-to-air h
 Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time. Applies only to storage water heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_tank_model_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `mixed`, `stratified`, `auto`
 
 <br/>
 
@@ -2724,9 +2780,11 @@ Type of tank model to use. The 'stratified' tank generally provide more accurate
 The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'hybrid/auto' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to heat pump water heater. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``water_heater_operating_mode``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `hybrid/auto`, `heat pump only`, `auto`
 
 <br/>
 
@@ -2759,9 +2817,11 @@ If the distribution system is Standard, the length of the piping. If not provide
 If the distribution system is Recirculation, the type of hot water recirculation control, if any.
 
 - **Name:** ``hot_water_distribution_recirc_control_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `no control`, `timer`, `temperature`, `presence sensor demand control`, `manual demand control`, `auto`
 
 <br/>
 
@@ -3019,9 +3079,11 @@ Whether there is a PV system present.
 Module type of the PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_module_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `standard`, `premium`, `thin film`, `auto`
 
 <br/>
 
@@ -3030,9 +3092,11 @@ Module type of the PV system. If not provided, the OS-HPXML default is used.
 Location of the PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `roof`, `ground`, `auto`
 
 <br/>
 
@@ -3041,9 +3105,11 @@ Location of the PV system. If not provided, the OS-HPXML default is used.
 Type of tracking for the PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_tracking``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `fixed`, `1-axis`, `1-axis backtracked`, `2-axis`, `auto`
 
 <br/>
 
@@ -3122,9 +3188,11 @@ Whether there is a second PV system present.
 Module type of the second PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_2_module_type``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `standard`, `premium`, `thin film`, `auto`
 
 <br/>
 
@@ -3133,9 +3201,11 @@ Module type of the second PV system. If not provided, the OS-HPXML default is us
 Location of the second PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_2_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `roof`, `ground`, `auto`
 
 <br/>
 
@@ -3144,9 +3214,11 @@ Location of the second PV system. If not provided, the OS-HPXML default is used.
 Type of tracking for the second PV system. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``pv_system_2_tracking``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `fixed`, `1-axis`, `1-axis backtracked`, `2-axis`, `auto`
 
 <br/>
 
@@ -3203,9 +3275,11 @@ Whether there is a lithium ion battery present.
 The space type for the lithium ion battery location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``battery_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `attic`, `attic - vented`, `attic - unvented`, `garage`, `outside`, `auto`
 
 <br/>
 
@@ -3523,9 +3597,11 @@ Whether there is a clothes washer present.
 The space type for the clothes washer location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_washer_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
 
 <br/>
 
@@ -3646,9 +3722,11 @@ Whether there is a clothes dryer present.
 The space type for the clothes dryer location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``clothes_dryer_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
 
 <br/>
 
@@ -3727,9 +3805,11 @@ Whether there is a dishwasher present.
 The space type for the dishwasher location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``dishwasher_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
 
 <br/>
 
@@ -3839,9 +3919,11 @@ Whether there is a refrigerator present.
 The space type for the refrigerator location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``refrigerator_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
 
 <br/>
 
@@ -3883,9 +3965,11 @@ Whether there is an extra refrigerator present.
 The space type for the extra refrigerator location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``extra_refrigerator_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
 
 <br/>
 
@@ -3927,9 +4011,11 @@ Whether there is a freezer present.
 The space type for the freezer location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``freezer_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
 
 <br/>
 
@@ -3971,9 +4057,11 @@ Whether there is a cooking range/oven present.
 The space type for the cooking range/oven location. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``cooking_range_oven_location``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
 - **Required:** ``false``
+
+- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
 
 <br/>
 
