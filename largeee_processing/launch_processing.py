@@ -44,7 +44,7 @@ run_names = [
 wide_chars = [
     'in.area_median_income', 'in.ashrae_iecc_climate_zone_2004', 'in.building_america_climate_zone',
     'in.census_division', 'in.state', 'in.county', 'in.geometry_building_type_recs', 'in.vintage',
-    'in.geometry_floor_area', 'in.heating_fuel', 'in.income'
+    'in.geometry_floor_area', 'in.heating_fuel', 'in.income', 'in.hvac_cooling_type'
 ]
 long_chars = [
     'in.clothes_dryer', 'in.cooking_range', 'in.geometry_attic_type', 'in.geometry_building_type_recs',
