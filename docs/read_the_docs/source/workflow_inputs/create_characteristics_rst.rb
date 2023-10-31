@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'csv'
-require "#{File.dirname(__FILE__)}/../../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/hpxml.rb"
+require 'oga'
 
 source_report = CSV.read(File.join(File.dirname(__FILE__), '../../../../project_national/resources/source_report.csv'), headers: true)
 
@@ -32,11 +32,25 @@ resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../../.
 lookup_file = File.join(resources_dir, 'options_lookup.tsv')
 lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
-buildreshpxml_measure = File.join(resources_dir, 'hpxml-measures/BuildResidentialHPXML/measure.rb')
-buildreshpxml_measure = File.readlines(buildreshpxml_measure)
-
-resstockarguments_measure = File.join(resources_dir, '../measures/ResStockArguments/measure.rb')
-resstockarguments_measure = File.readlines(resstockarguments_measure)
+resstockarguments = {}
+resstockarguments_xml = Oga.parse_xml(File.read(File.join(resources_dir, '../measures/ResStockArguments/measure.xml')))
+resstockarguments_xml.xpath('//measure/arguments/argument').each do |argument|
+  name = argument.at_xpath('name').text
+  units = argument.at_xpath('units')
+  desc = argument.at_xpath('description')
+  if units.nil?
+    units = ''
+  else
+    units = units.text
+  end
+  if desc.nil?
+    puts "Warning: argument '#{name}' does not have a description."
+    desc = ''
+  else
+    desc = desc.text
+  end
+  resstockarguments[name] = [units, desc]
+end
 
 f = File.open(File.join(File.dirname(__FILE__), 'characteristics.rst'), 'w')
 f.puts('.. _housing_characteristics:')
@@ -45,7 +59,6 @@ f.puts('Housing Characteristics')
 f.puts('=======================')
 f.puts
 
-set_description = '.setDescription'
 source_report.each do |row|
   parameter = row['Parameter']
 
@@ -83,25 +96,15 @@ source_report.each do |row|
   f.puts('.. list-table::')
   f.puts('   :header-rows: 1')
   f.puts
-  f.puts('   * - Argument')
+  f.puts('   * - Name')
+  f.puts('     - Units')
   f.puts('     - Description')
   r_arguments.sort.each do |r_argument|
     f.puts("   * - ``#{r_argument}``")
 
-    desc = nil
-    [buildreshpxml_measure, resstockarguments_measure].each do |measure|
-      m = measure.each_index.select { |i| /'#{r_argument}'/.match(measure[i]) }
-      if !m.empty?
-        measure[m[0]..m[0] + 5].each do |line|
-          next if !line.include?(set_description)
-
-          desc = eval(line[line.index(set_description) + set_description.size + 1..-3])
-        end
-      end
-      break if !desc.nil?
-    end
-
-    desc = '' if desc.nil?
+    units = resstockarguments[r_argument][0]
+    desc = resstockarguments[r_argument][1]
+    f.puts("     - #{units}")
     f.puts("     - #{desc}")
   end
   f.puts
