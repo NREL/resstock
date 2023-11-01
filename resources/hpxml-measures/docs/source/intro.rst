@@ -16,6 +16,7 @@ The OpenStudio measures used by the workflow are:
 Building Type Scope
 -------------------
 
+<<<<<<< HEAD
 Dwelling Units
 ~~~~~~~~~~~~~~
 
@@ -54,6 +55,9 @@ Some notes/caveats about this approach:
   - Ground source heat pumps (not supported only if the unit multiplier > 1)
 
 - FIXME: Say something about shared systems.
+=======
+See :ref:`bldg_type_scope` for information on the types of buildings/simulations that OpenStudio-HPXML supports.
+>>>>>>> develop
 
 Accuracy vs Speed
 -----------------

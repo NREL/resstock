@@ -493,7 +493,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_infiltration_compartmentalization_test_values(default_hpxml_bldg.air_infiltration_measurements[0], nil)
 
     # Test single-family attached not overridden by defaults
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-attached.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
+>>>>>>> develop
     hpxml_bldg.air_infiltration_measurements[0].infiltration_type = HPXML::InfiltrationTypeUnitTotal
     hpxml_bldg.air_infiltration_measurements[0].a_ext = 0.5
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
@@ -512,7 +516,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_infiltration_compartmentalization_test_values(default_hpxml_bldg.air_infiltration_measurements[0], 0.817)
 
     # Test multifamily not overridden by defaults
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-multifamily.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit.xml')
+>>>>>>> develop
     hpxml_bldg.air_infiltration_measurements[0].infiltration_type = HPXML::InfiltrationTypeUnitTotal
     hpxml_bldg.air_infiltration_measurements[0].a_ext = 0.5
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
@@ -1351,7 +1359,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_boiler_values(default_hpxml_bldg.heating_systems[0], 170.0, nil, true, 500)
 
     # Test inputs not overridden by defaults (shared boiler)
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-multifamily-shared-boiler-only-baseboard.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-boiler-only-baseboard.xml')
+>>>>>>> develop
     hpxml_bldg.heating_systems[0].shared_loop_watts = nil
     hpxml_bldg.heating_systems[0].electric_auxiliary_energy = 99.9
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
@@ -1899,7 +1911,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
                               expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues)
 
     # Test defaults w/ building/unit adjacent to other housing unit
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-adjacent-to-other-housing-unit.xml')
+>>>>>>> develop
     hpxml_bldg.hvac_distributions[0].conditioned_floor_area_served = 900.0
     hpxml_bldg.hvac_distributions[0].number_of_return_registers = 1
     hpxml_bldg.hvac_distributions[0].ducts.each do |duct|
@@ -2065,7 +2081,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def test_mech_ventilation_fans
     # Test inputs not overridden by defaults w/ shared exhaust system
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-attached.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
+>>>>>>> develop
     hpxml_bldg.ventilation_fans.add(id: 'MechanicalVentilation',
                                     fan_type: HPXML::MechVentTypeExhaust,
                                     used_for_whole_building_ventilation: true,
@@ -2125,7 +2145,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_mech_vent_values(default_hpxml_bldg, false, 24.0, 27.1, 77.3)
 
     # Test defaults w/ SFA building, compartmentalization test
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-attached.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
+>>>>>>> develop
     hpxml_bldg.air_infiltration_measurements[0].infiltration_type = HPXML::InfiltrationTypeUnitTotal
     hpxml_bldg.ventilation_fans.add(id: 'MechanicalVentilation',
                                     fan_type: HPXML::MechVentTypeExhaust,
@@ -2141,7 +2165,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_mech_vent_values(default_hpxml_bldg, false, 24.0, 27.2, 77.3)
 
     # Test defaults w/ MF building, compartmentalization test
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-multifamily.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit.xml')
+>>>>>>> develop
     hpxml_bldg.air_infiltration_measurements[0].infiltration_type = HPXML::InfiltrationTypeUnitTotal
     hpxml_bldg.ventilation_fans.add(id: 'MechanicalVentilation',
                                     fan_type: HPXML::MechVentTypeExhaust,
@@ -2309,7 +2337,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def test_storage_water_heaters
     # Test inputs not overridden by defaults
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-attached.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
+>>>>>>> develop
     hpxml_bldg.water_heating_systems.each do |wh|
       wh.is_shared_system = true
       wh.number_of_units_served = 2
@@ -2486,7 +2518,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_recirc_distribution_values(default_hpxml_bldg.hot_water_distributions[0], 50.0, 50.0, 65.0, 2.5)
 
     # Test inputs not overridden by defaults -- shared recirculation
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-multifamily-shared-water-heater-recirc.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-water-heater-recirc.xml')
+>>>>>>> develop
     hpxml_bldg.hot_water_distributions[0].shared_recirculation_pump_power = 333.0
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
@@ -2547,7 +2583,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_recirc_distribution_values(default_hpxml_bldg.hot_water_distributions[0], 186.96, 10.0, 50.0, 0.0)
 
     # Test defaults w/ shared recirculation
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-multifamily-shared-water-heater-recirc.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-water-heater-recirc.xml')
+>>>>>>> develop
     hpxml_bldg.hot_water_distributions[0].shared_recirculation_pump_power = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
@@ -2556,7 +2596,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def test_water_fixtures
     # Test inputs not overridden by defaults
+<<<<<<< HEAD
     hpxml_bldg = _create_hpxml('base.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+>>>>>>> develop
     hpxml_bldg.water_heating.water_fixtures_usage_multiplier = 2.0
     hpxml_bldg.water_heating.water_fixtures_weekday_fractions = ConstantDaySchedule
     hpxml_bldg.water_heating.water_fixtures_weekend_fractions = ConstantDaySchedule
@@ -2567,8 +2611,13 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.water_fixtures[1].flow_rate = 99
     hpxml_bldg.water_fixtures[1].count = 8
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+<<<<<<< HEAD
     hpxml_default = _test_measure()
     _test_default_water_fixture_values(hpxml_default, 2.0, ConstantDaySchedule, ConstantDaySchedule, ConstantMonthSchedule, false, false)
+=======
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_water_fixture_values(default_hpxml_bldg, 2.0, ConstantDaySchedule, ConstantDaySchedule, ConstantMonthSchedule, false, false)
+>>>>>>> develop
 
     # Test defaults
     hpxml_bldg.water_heating.water_fixtures_usage_multiplier = nil
@@ -2578,8 +2627,13 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.water_fixtures[0].low_flow = true
     hpxml_bldg.water_fixtures[1].flow_rate = 2
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+<<<<<<< HEAD
     hpxml_default = _test_measure()
     _test_default_water_fixture_values(hpxml_default, 1.0, Schedule.FixturesWeekdayFractions, Schedule.FixturesWeekendFractions, Schedule.FixturesMonthlyMultipliers, true, true)
+=======
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_water_fixture_values(default_hpxml_bldg, 1.0, Schedule.FixturesWeekdayFractions, Schedule.FixturesWeekendFractions, Schedule.FixturesMonthlyMultipliers, true, true)
+>>>>>>> develop
   end
 
   def test_solar_thermal_systems
@@ -2609,7 +2663,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def test_pv_systems
     # Test inputs not overridden by defaults
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-attached.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
+>>>>>>> develop
     hpxml_bldg.pv_systems.add(id: 'PVSystem',
                               is_shared_system: true,
                               number_of_bedrooms_served: 20,
@@ -2753,7 +2811,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def test_generators
     # Test inputs not overridden by defaults
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-attached.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
+>>>>>>> develop
     hpxml_bldg.generators.add(id: 'Generator',
                               is_shared_system: true,
                               number_of_bedrooms_served: 20,
@@ -2774,7 +2836,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def test_clothes_washers
     # Test inputs not overridden by defaults
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-attached.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
+>>>>>>> develop
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
     hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
     hpxml_bldg.clothes_washers[0].location = HPXML::LocationBasementConditioned
@@ -2829,7 +2895,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def test_clothes_dryers
     # Test inputs not overridden by defaults
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-attached.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
+>>>>>>> develop
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
     hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
     hpxml_bldg.clothes_dryers[0].location = HPXML::LocationBasementConditioned
@@ -2902,7 +2972,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def test_dishwashers
     # Test inputs not overridden by defaults
+<<<<<<< HEAD
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-attached.xml')
+=======
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
+>>>>>>> develop
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
     hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
     hpxml_bldg.dishwashers[0].location = HPXML::LocationBasementConditioned
@@ -4429,8 +4503,13 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     else
       assert_equal(monthly_mults, hpxml_bldg.water_heating.water_fixtures_monthly_multipliers)
     end
+<<<<<<< HEAD
     assert_equal(low_flow1, hpxml.water_fixtures[0].low_flow)
     assert_equal(low_flow2, hpxml.water_fixtures[1].low_flow)
+=======
+    assert_equal(low_flow1, hpxml_bldg.water_fixtures[0].low_flow)
+    assert_equal(low_flow2, hpxml_bldg.water_fixtures[1].low_flow)
+>>>>>>> develop
   end
 
   def _test_default_solar_thermal_values(solar_thermal_system, storage_volume, azimuth)

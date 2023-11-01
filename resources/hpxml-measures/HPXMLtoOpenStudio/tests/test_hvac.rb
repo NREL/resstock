@@ -9,15 +9,25 @@ require_relative '../resources/util.rb'
 require_relative 'util.rb'
 
 class HPXMLtoOpenStudioHVACTest < Minitest::Test
-  def sample_files_dir
-    return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
+  def setup
+    @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
+    @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')
+    @tmp_hpxml_path = File.join(@sample_files_path, 'tmp.xml')
+  end
+
+  def teardown
+    File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
   end
 
   def test_central_air_conditioner_1_speed
     ['base-hvac-central-ac-only-1-speed.xml',
      'base-hvac-central-ac-only-1-speed-seer2.xml'].each do |hpxml_path|
       args_hash = {}
+<<<<<<< HEAD
       args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, hpxml_path))
+=======
+      args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, hpxml_path))
+>>>>>>> develop
       model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
       # Get HPXML values
@@ -41,7 +51,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_central_air_conditioner_2_speed
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-central-ac-only-2-speed.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-central-ac-only-2-speed.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -66,7 +80,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_central_air_conditioner_var_speed
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-central-ac-only-var-speed.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-central-ac-only-var-speed.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -91,7 +109,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_room_air_conditioner
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-room-ac-only.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-room-ac-only.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -110,7 +132,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_room_air_conditioner_ceer
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-room-ac-only-ceer.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-room-ac-only-ceer.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -128,7 +154,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_room_ac_with_heating
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-room-ac-with-heating.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-room-ac-with-heating.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -158,7 +188,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_ptac
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-ptac.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-ptac.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -178,7 +212,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_ptac_with_heating_electricity
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-ptac-with-heating-electricity.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-ptac-with-heating-electricity.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -208,7 +246,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_ptac_with_heating_gas
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-ptac-with-heating-electricity.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-ptac-with-heating-electricity.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -238,7 +280,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_pthp
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-pthp.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-pthp.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -273,7 +319,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_room_heat_pump
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-room-ac-with-reverse-cycle.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-room-ac-with-reverse-cycle.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -310,7 +360,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_furnace_gas
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-furnace-gas-only.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-furnace-gas-only.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -329,7 +383,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_furnace_electric
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-furnace-elec-only.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-furnace-elec-only.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -346,7 +404,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_boiler_gas
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-boiler-gas-only.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-boiler-gas-only.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -365,7 +427,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_boiler_coal
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-boiler-coal-only.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-boiler-coal-only.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -384,7 +450,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_boiler_electric
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-boiler-elec-only.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-boiler-elec-only.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -403,7 +473,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_electric_resistance
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-elec-resistance-only.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-elec-resistance-only.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -420,7 +494,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_stove_oil
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-stove-oil-only.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-stove-oil-only.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -441,7 +519,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     ['base-hvac-air-to-air-heat-pump-1-speed.xml',
      'base-hvac-air-to-air-heat-pump-1-speed-seer2-hspf2.xml'].each do |hpxml_path|
       args_hash = {}
+<<<<<<< HEAD
       args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, hpxml_path))
+=======
+      args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, hpxml_path))
+>>>>>>> develop
       model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
       # Get HPXML values
@@ -487,7 +569,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
      'base-hvac-mini-split-heat-pump-ductless.xml',
      'base-hvac-mini-split-heat-pump-ductless-backup-baseboard.xml'].each do |hpxml_name|
       args_hash = {}
+<<<<<<< HEAD
       args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, hpxml_name))
+=======
+      args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, hpxml_name))
+>>>>>>> develop
       model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
       # Get HPXML values
@@ -522,7 +608,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_air_to_air_heat_pump_2_speed
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-air-to-air-heat-pump-2-speed.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-2-speed.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -565,7 +655,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_air_to_air_heat_pump_var_speed
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-air-to-air-heat-pump-var-speed.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-var-speed.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -608,7 +702,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_mini_split_heat_pump
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-mini-split-heat-pump-ductless.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-mini-split-heat-pump-ductless.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -646,7 +744,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_mini_split_air_conditioner
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-mini-split-air-conditioner-only-ductless.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-mini-split-air-conditioner-only-ductless.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -671,7 +773,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_ground_to_air_heat_pump
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-ground-to-air-heat-pump.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-ground-to-air-heat-pump.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -710,7 +816,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_shared_chiller_baseboard
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-chiller-only-baseboard.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-shared-chiller-only-baseboard.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -727,7 +837,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_shared_chiller_fan_coil
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-chiller-only-fan-coil.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-shared-chiller-only-fan-coil.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -744,7 +858,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_shared_chiller_water_loop_heat_pump
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-chiller-only-water-loop-heat-pump.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-shared-chiller-only-water-loop-heat-pump.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -761,7 +879,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_shared_cooling_tower_water_loop_heat_pump
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-cooling-tower-only-water-loop-heat-pump.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-shared-cooling-tower-only-water-loop-heat-pump.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -778,7 +900,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_shared_boiler_baseboard
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-boiler-only-baseboard.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-shared-boiler-only-baseboard.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -797,7 +923,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_shared_boiler_fan_coil
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-boiler-only-fan-coil.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-shared-boiler-only-fan-coil.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -816,7 +946,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_shared_boiler_water_loop_heat_pump
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-boiler-only-water-loop-heat-pump.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-shared-boiler-only-water-loop-heat-pump.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -849,7 +983,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_shared_ground_loop_ground_to_air_heat_pump
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-ground-loop-ground-to-air-heat-pump.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-shared-ground-loop-ground-to-air-heat-pump.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -882,7 +1020,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_install_quality_air_to_air_heat_pump_1_speed_ratio
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-install-quality-air-to-air-heat-pump-1-speed.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-install-quality-air-to-air-heat-pump-1-speed.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -922,7 +1064,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_install_quality_air_to_air_heat_pump_2_speed_ratio
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-install-quality-air-to-air-heat-pump-2-speed.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-install-quality-air-to-air-heat-pump-2-speed.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -932,7 +1078,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_install_quality_air_to_air_heat_pump_var_speed_ratio
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-install-quality-air-to-air-heat-pump-var-speed.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-install-quality-air-to-air-heat-pump-var-speed.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -942,7 +1092,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_install_quality_furnace_central_air_conditioner_1_speed_ratio
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-install-quality-furnace-gas-central-ac-1-speed.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-install-quality-furnace-gas-central-ac-1-speed.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -980,7 +1134,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_install_quality_furnace_central_air_conditioner_2_speed_ratio
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-install-quality-furnace-gas-central-ac-2-speed.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-install-quality-furnace-gas-central-ac-2-speed.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -990,7 +1148,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_install_quality_furnace_central_air_conditioner_var_speed_ratio
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-install-quality-furnace-gas-central-ac-var-speed.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-install-quality-furnace-gas-central-ac-var-speed.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -1000,7 +1162,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_install_quality_furnace_gas_ratio
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-install-quality-furnace-gas-only.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-install-quality-furnace-gas-only.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -1017,7 +1183,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_install_quality_ground_to_air_heat_pump_ratio
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-install-quality-ground-to-air-heat-pump.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-install-quality-ground-to-air-heat-pump.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -1057,7 +1227,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_install_quality_mini_split_air_conditioner_ratio
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-install-quality-mini-split-air-conditioner-only-ducted.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-install-quality-mini-split-air-conditioner-only-ducted.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -1067,7 +1241,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_install_quality_mini_split_heat_pump_ratio
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-install-quality-mini-split-heat-pump-ducted.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-install-quality-mini-split-heat-pump-ducted.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -1077,7 +1255,11 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_custom_seasons
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-seasons.xml'))
+=======
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-seasons.xml'))
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -1133,7 +1315,14 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_crankcase_heater_watts
     args_hash = {}
+<<<<<<< HEAD
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-crankcase-heater-40w.xml'))
+=======
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.cooling_systems[0].crankcase_heater_watts = 40.0
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+>>>>>>> develop
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -1227,5 +1416,10 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
       htg_speed_cfms = htg_ratios.map { |ratio| heating_cfm * ratio }
       assert_in_epsilon(program_values['FF_AF_htg'].sum, htg_speed_cfms.zip(rated_airflow_cfm_htg).map { |cfm, rated_cfm| cfm / rated_cfm }.sum, 0.01)
     end
+  end
+
+  def _create_hpxml(hpxml_name)
+    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, hpxml_name))
+    return hpxml, hpxml.buildings[0]
   end
 end

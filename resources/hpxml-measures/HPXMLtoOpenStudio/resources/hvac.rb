@@ -230,7 +230,12 @@ class HVAC
                                          unit_multiplier)
 
     if unit_multiplier > 1
+<<<<<<< HEAD
       # FIXME: Figure out how to allow this. If we allow it, update docs and hpxml_translator_test.rb too.
+=======
+      # FUTURE: Figure out how to allow this. If we allow it, update docs and hpxml_translator_test.rb too.
+      # https://github.com/NREL/OpenStudio-HPXML/issues/1499
+>>>>>>> develop
       fail 'NumberofUnits greater than 1 is not supported for ground-to-air heat pumps.'
     end
 
@@ -730,7 +735,12 @@ class HVAC
     end
 
     if unit_multiplier > 1
+<<<<<<< HEAD
       # FIXME: Figure out how to allow this. If we allow it, update docs and hpxml_translator_test.rb too.
+=======
+      # FUTURE: Figure out how to allow this. If we allow it, update docs and hpxml_translator_test.rb too.
+      # https://github.com/NREL/OpenStudio-HPXML/issues/1499
+>>>>>>> develop
       fail 'NumberofUnits greater than 1 is not supported for dehumidifiers.'
     end
 

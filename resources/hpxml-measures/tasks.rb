@@ -53,6 +53,7 @@ def create_hpxmls
     model = OpenStudio::Model::Model.new
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
+<<<<<<< HEAD
     num_apply_measures = hpxml_path.include?('base-multiple-buildings') ? 3 : 1
 
     for i in 1..num_apply_measures
@@ -87,6 +88,51 @@ def create_hpxmls
       end
     end
 
+=======
+    num_apply_measures = 1
+    if hpxml_path.include?('base-multiple-sfd-buildings')
+      num_apply_measures = 3
+    elsif hpxml_path.include?('base-multiple-mf-units')
+      num_apply_measures = 6
+    end
+
+    for i in 1..num_apply_measures
+      measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path if i > 1
+      if hpxml_path.include?('base-multiple-sfd-buildings') || hpxml_path.include?('base-multiple-mf-units')
+        suffix = "_#{i}" if i > 1
+        measures['BuildResidentialHPXML'][0]['schedules_filepaths'] = "../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic#{suffix}.csv"
+      end
+      if hpxml_path.include?('base-multiple-mf-units')
+        measures['BuildResidentialHPXML'][0]['geometry_foundation_type'] = (i <= 1 ? 'UnconditionedBasement' : 'AboveApartment')
+        measures['BuildResidentialHPXML'][0]['geometry_attic_type'] = (i >= 5 ? 'VentedAttic' : 'BelowApartment')
+      end
+
+      # Re-generate stochastic schedule CSV?
+      csv_path = json_input['schedules_filepaths'].to_s.split(',').map(&:strip).find { |fp| fp.include? 'occupancy-stochastic' }
+      if (not csv_path.nil?) && (not schedules_regenerated.include? csv_path)
+        sch_args = { 'hpxml_path' => hpxml_path,
+                     'output_csv_path' => csv_path,
+                     'hpxml_output_path' => hpxml_path,
+                     'building_id' => "MyBuilding#{suffix}" }
+        measures['BuildResidentialScheduleFile'] = [sch_args]
+        schedules_regenerated << csv_path
+      end
+
+      # Apply measure
+      success = apply_measures(measures_dir, measures, runner, model)
+
+      # Report errors
+      runner.result.stepErrors.each do |s|
+        puts "Error: #{s}"
+      end
+
+      if not success
+        puts "\nError: Did not successfully generate #{hpxml_filename}."
+        exit!
+      end
+    end
+
+>>>>>>> develop
     hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
     if hpxml_path.include? 'ASHRAE_Standard_140'
       apply_hpxml_modification_ashrae_140(hpxml)
@@ -100,7 +146,9 @@ def create_hpxmls
     errors, _warnings = XMLValidator.validate_against_schema(hpxml_path, schema_validator)
     next unless errors.size > 0
 
-    puts errors.to_s
+    errors.each do |s|
+      puts "Error: #{s}"
+    end
     puts "\nError: Did not successfully validate #{hpxml_filename}."
     exit!
   end
@@ -266,7 +314,10 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     # Logic that can only be applied based on the file name
     if ['base-schedules-simple.xml',
         'base-schedules-simple-vacancy.xml',
+<<<<<<< HEAD
         'base-schedules-simple-vacancy-year-round.xml',
+=======
+>>>>>>> develop
         'base-schedules-simple-power-outage.xml',
         'base-misc-loads-large-uncommon.xml',
         'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
@@ -294,7 +345,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.building_construction.conditioned_floor_area -= 400 * 2
       hpxml_bldg.building_construction.conditioned_building_volume -= 400 * 2 * 8
       hpxml_bldg.air_infiltration_measurements[0].infiltration_volume = hpxml_bldg.building_construction.conditioned_building_volume
+<<<<<<< HEAD
     elsif ['base-bldgtype-multifamily-infil-compartmentalization-test.xml'].include? hpxml_file
+=======
+    elsif ['base-bldgtype-mf-unit-infil-compartmentalization-test.xml'].include? hpxml_file
+>>>>>>> develop
       hpxml_bldg.air_infiltration_measurements[0].a_ext = 0.2
     end
 
@@ -354,6 +409,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     end
 
     # Logic that can only be applied based on the file name
+<<<<<<< HEAD
     if ['base-bldgtype-multifamily-adjacent-to-multifamily-buffer-space.xml',
         'base-bldgtype-multifamily-adjacent-to-non-freezing-space.xml',
         'base-bldgtype-multifamily-adjacent-to-other-heated-space.xml',
@@ -365,6 +421,19 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       elsif hpxml_file == 'base-bldgtype-multifamily-adjacent-to-other-heated-space.xml'
         adjacent_to = HPXML::LocationOtherHeatedSpace
       elsif hpxml_file == 'base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml'
+=======
+    if ['base-bldgtype-mf-unit-adjacent-to-multifamily-buffer-space.xml',
+        'base-bldgtype-mf-unit-adjacent-to-non-freezing-space.xml',
+        'base-bldgtype-mf-unit-adjacent-to-other-heated-space.xml',
+        'base-bldgtype-mf-unit-adjacent-to-other-housing-unit.xml'].include? hpxml_file
+      if hpxml_file == 'base-bldgtype-mf-unit-adjacent-to-multifamily-buffer-space.xml'
+        adjacent_to = HPXML::LocationOtherMultifamilyBufferSpace
+      elsif hpxml_file == 'base-bldgtype-mf-unit-adjacent-to-non-freezing-space.xml'
+        adjacent_to = HPXML::LocationOtherNonFreezingSpace
+      elsif hpxml_file == 'base-bldgtype-mf-unit-adjacent-to-other-heated-space.xml'
+        adjacent_to = HPXML::LocationOtherHeatedSpace
+      elsif hpxml_file == 'base-bldgtype-mf-unit-adjacent-to-other-housing-unit.xml'
+>>>>>>> develop
         adjacent_to = HPXML::LocationOtherHousingUnit
       end
       wall = hpxml_bldg.walls.select { |w|
@@ -374,7 +443,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       wall.exterior_adjacent_to = adjacent_to
       hpxml_bldg.floors[0].exterior_adjacent_to = adjacent_to
       hpxml_bldg.floors[1].exterior_adjacent_to = adjacent_to
+<<<<<<< HEAD
       if hpxml_file != 'base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml'
+=======
+      if hpxml_file != 'base-bldgtype-mf-unit-adjacent-to-other-housing-unit.xml'
+>>>>>>> develop
         wall.insulation_assembly_r_value = 23
         hpxml_bldg.floors[0].insulation_assembly_r_value = 18.7
         hpxml_bldg.floors[1].insulation_assembly_r_value = 18.7
@@ -395,7 +468,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.dishwashers[0].location = adjacent_to
       hpxml_bldg.refrigerators[0].location = adjacent_to
       hpxml_bldg.cooking_ranges[0].location = adjacent_to
+<<<<<<< HEAD
     elsif ['base-bldgtype-multifamily-adjacent-to-multiple.xml'].include? hpxml_file
+=======
+    elsif ['base-bldgtype-mf-unit-adjacent-to-multiple.xml'].include? hpxml_file
+>>>>>>> develop
       wall = hpxml_bldg.walls.select { |w|
                w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
                  w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
@@ -1610,7 +1687,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                 primary_cooling_system: true,
                                 primary_heating_system: true)
     elsif ['base-mechvent-multiple.xml',
+<<<<<<< HEAD
            'base-bldgtype-multifamily-shared-mechvent-multiple.xml'].include? hpxml_file
+=======
+           'base-bldgtype-mf-unit-shared-mechvent-multiple.xml'].include? hpxml_file
+>>>>>>> develop
       hpxml_bldg.hvac_distributions.add(id: "HVACDistribution#{hpxml_bldg.hvac_distributions.size + 1}",
                                         distribution_system_type: HPXML::HVACDistributionTypeAir,
                                         air_type: HPXML::AirTypeRegularVelocity)
@@ -1634,7 +1715,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.cooling_systems[1].id = "CoolingSystem#{hpxml_bldg.cooling_systems.size}"
       hpxml_bldg.cooling_systems[1].distribution_system_idref = hpxml_bldg.hvac_distributions[1].id
       hpxml_bldg.cooling_systems[1].primary_system = true
+<<<<<<< HEAD
     elsif ['base-bldgtype-multifamily-adjacent-to-multiple.xml'].include? hpxml_file
+=======
+    elsif ['base-bldgtype-mf-unit-adjacent-to-multiple.xml'].include? hpxml_file
+>>>>>>> develop
       hpxml_bldg.hvac_distributions[0].ducts[1].duct_location = HPXML::LocationOtherHousingUnit
       hpxml_bldg.hvac_distributions[0].ducts.add(id: "Ducts#{hpxml_bldg.hvac_distributions[0].ducts.size + 1}",
                                                  duct_type: HPXML::DuctTypeSupply,
@@ -1677,11 +1762,14 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.heat_pumps[0].heating_capacity_17F = hpxml_bldg.heat_pumps[0].heating_capacity * hpxml_bldg.heat_pumps[0].heating_capacity_retention_fraction
       hpxml_bldg.heat_pumps[0].heating_capacity_retention_fraction = nil
       hpxml_bldg.heat_pumps[0].heating_capacity_retention_temp = nil
+<<<<<<< HEAD
     end
     if hpxml_file.include? 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler-switchover-temperature2.xml'
       hpxml_bldg.heat_pumps[0].compressor_lockout_temp = hpxml_bldg.heat_pumps[0].backup_heating_switchover_temp
       hpxml_bldg.heat_pumps[0].backup_heating_lockout_temp = hpxml_bldg.heat_pumps[0].backup_heating_switchover_temp
       hpxml_bldg.heat_pumps[0].backup_heating_switchover_temp = nil
+=======
+>>>>>>> develop
     end
 
     # ------------------ #
@@ -1691,20 +1779,32 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     # Logic that can only be applied based on the file name
     if ['base-schedules-simple.xml',
         'base-schedules-simple-vacancy.xml',
+<<<<<<< HEAD
         'base-schedules-simple-vacancy-year-round.xml',
+=======
+>>>>>>> develop
         'base-schedules-simple-power-outage.xml',
         'base-misc-loads-large-uncommon.xml',
         'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
       hpxml_bldg.water_heating.water_fixtures_weekday_fractions = '0.012, 0.006, 0.004, 0.005, 0.010, 0.034, 0.078, 0.087, 0.080, 0.067, 0.056, 0.047, 0.040, 0.035, 0.033, 0.031, 0.039, 0.051, 0.060, 0.060, 0.055, 0.048, 0.038, 0.026'
       hpxml_bldg.water_heating.water_fixtures_weekend_fractions = '0.012, 0.006, 0.004, 0.005, 0.010, 0.034, 0.078, 0.087, 0.080, 0.067, 0.056, 0.047, 0.040, 0.035, 0.033, 0.031, 0.039, 0.051, 0.060, 0.060, 0.055, 0.048, 0.038, 0.026'
       hpxml_bldg.water_heating.water_fixtures_monthly_multipliers = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+<<<<<<< HEAD
     elsif ['base-bldgtype-multifamily-shared-water-heater-recirc.xml'].include? hpxml_file
+=======
+    elsif ['base-bldgtype-mf-unit-shared-water-heater-recirc.xml'].include? hpxml_file
+>>>>>>> develop
       hpxml_bldg.hot_water_distributions[0].has_shared_recirculation = true
       hpxml_bldg.hot_water_distributions[0].shared_recirculation_number_of_units_served = 6
       hpxml_bldg.hot_water_distributions[0].shared_recirculation_pump_power = 220
       hpxml_bldg.hot_water_distributions[0].shared_recirculation_control_type = HPXML::DHWRecirControlTypeTimer
+<<<<<<< HEAD
     elsif ['base-bldgtype-multifamily-shared-laundry-room.xml',
            'base-bldgtype-multifamily-shared-laundry-room-multiple-water-heaters.xml'].include? hpxml_file
+=======
+    elsif ['base-bldgtype-mf-unit-shared-laundry-room.xml',
+           'base-bldgtype-mf-unit-shared-laundry-room-multiple-water-heaters.xml'].include? hpxml_file
+>>>>>>> develop
       hpxml_bldg.water_heating_systems.reverse_each do |water_heating_system|
         water_heating_system.delete
       end
@@ -1720,7 +1820,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                            energy_factor: 0.59,
                                            recovery_efficiency: 0.76,
                                            temperature: 125.0)
+<<<<<<< HEAD
       if hpxml_file == 'base-bldgtype-multifamily-shared-laundry-room-multiple-water-heaters.xml'
+=======
+      if hpxml_file == 'base-bldgtype-mf-unit-shared-laundry-room-multiple-water-heaters.xml'
+>>>>>>> develop
         hpxml_bldg.water_heating_systems[0].fraction_dhw_load_served /= 2.0
         hpxml_bldg.water_heating_systems[0].tank_volume /= 2.0
         hpxml_bldg.water_heating_systems[0].number_of_units_served /= 2.0
@@ -1790,7 +1894,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     # -------------------- #
 
     # Logic that can only be applied based on the file name
+<<<<<<< HEAD
     if ['base-bldgtype-multifamily-shared-mechvent-multiple.xml'].include? hpxml_file
+=======
+    if ['base-bldgtype-mf-unit-shared-mechvent-multiple.xml'].include? hpxml_file
+>>>>>>> develop
       hpxml_bldg.ventilation_fans.add(id: "VentilationFan#{hpxml_bldg.ventilation_fans.size + 1}",
                                       fan_type: HPXML::MechVentTypeSupply,
                                       is_shared_system: true,
@@ -1993,7 +2101,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                 fuel_type: HPXML::FuelTypeOil,
                                 annual_consumption_kbtu: 8500,
                                 annual_output_kwh: 1200)
+<<<<<<< HEAD
     elsif ['base-bldgtype-multifamily-shared-generator.xml'].include? hpxml_file
+=======
+    elsif ['base-bldgtype-mf-unit-shared-generator.xml'].include? hpxml_file
+>>>>>>> develop
       hpxml_bldg.generators.add(id: "Generator#{hpxml_bldg.generators.size + 1}",
                                 is_shared_system: true,
                                 fuel_type: HPXML::FuelTypePropane,
@@ -2024,7 +2136,10 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     # Logic that can only be applied based on the file name
     if ['base-schedules-simple.xml',
         'base-schedules-simple-vacancy.xml',
+<<<<<<< HEAD
         'base-schedules-simple-vacancy-year-round.xml',
+=======
+>>>>>>> develop
         'base-schedules-simple-power-outage.xml',
         'base-misc-loads-large-uncommon.xml',
         'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
@@ -2078,18 +2193,30 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.permanent_spas[0].heater_weekend_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
       hpxml_bldg.permanent_spas[0].heater_monthly_multipliers = '0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921'
     end
+<<<<<<< HEAD
     if ['base-bldgtype-multifamily-shared-laundry-room.xml',
         'base-bldgtype-multifamily-shared-laundry-room-multiple-water-heaters.xml'].include? hpxml_file
+=======
+    if ['base-bldgtype-mf-unit-shared-laundry-room.xml',
+        'base-bldgtype-mf-unit-shared-laundry-room-multiple-water-heaters.xml'].include? hpxml_file
+>>>>>>> develop
       hpxml_bldg.clothes_washers[0].is_shared_appliance = true
       hpxml_bldg.clothes_washers[0].location = HPXML::LocationOtherHeatedSpace
       hpxml_bldg.clothes_dryers[0].location = HPXML::LocationOtherHeatedSpace
       hpxml_bldg.clothes_dryers[0].is_shared_appliance = true
       hpxml_bldg.dishwashers[0].is_shared_appliance = true
       hpxml_bldg.dishwashers[0].location = HPXML::LocationOtherHeatedSpace
+<<<<<<< HEAD
       if hpxml_file == 'base-bldgtype-multifamily-shared-laundry-room.xml'
         hpxml_bldg.clothes_washers[0].water_heating_system_idref = hpxml_bldg.water_heating_systems[0].id
         hpxml_bldg.dishwashers[0].water_heating_system_idref = hpxml_bldg.water_heating_systems[0].id
       elsif hpxml_file == 'base-bldgtype-multifamily-shared-laundry-room-multiple-water-heaters.xml'
+=======
+      if hpxml_file == 'base-bldgtype-mf-unit-shared-laundry-room.xml'
+        hpxml_bldg.clothes_washers[0].water_heating_system_idref = hpxml_bldg.water_heating_systems[0].id
+        hpxml_bldg.dishwashers[0].water_heating_system_idref = hpxml_bldg.water_heating_systems[0].id
+      elsif hpxml_file == 'base-bldgtype-mf-unit-shared-laundry-room-multiple-water-heaters.xml'
+>>>>>>> develop
         hpxml_bldg.clothes_washers[0].hot_water_distribution_idref = hpxml_bldg.hot_water_distributions[0].id
         hpxml_bldg.dishwashers[0].hot_water_distribution_idref = hpxml_bldg.hot_water_distributions[0].id
       end
@@ -2111,7 +2238,10 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.lighting.holiday_weekend_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
     elsif ['base-schedules-simple.xml',
            'base-schedules-simple-vacancy.xml',
+<<<<<<< HEAD
            'base-schedules-simple-vacancy-year-round.xml',
+=======
+>>>>>>> develop
            'base-schedules-simple-power-outage.xml',
            'base-misc-loads-large-uncommon.xml',
            'base-misc-loads-large-uncommon2.xml'].include? hpxml_file
@@ -2162,7 +2292,10 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     # Logic that can only be applied based on the file name
     if ['base-schedules-simple.xml',
         'base-schedules-simple-vacancy.xml',
+<<<<<<< HEAD
         'base-schedules-simple-vacancy-year-round.xml',
+=======
+>>>>>>> develop
         'base-schedules-simple-power-outage.xml',
         'base-misc-loads-large-uncommon.xml',
         'base-misc-loads-large-uncommon2.xml'].include? hpxml_file

@@ -866,7 +866,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     @hpxml_bldgs.each do |hpxml_bldg|
       # Apply Heating/Cooling DSEs
+<<<<<<< HEAD
       # FIXME: Check whether this handles units with different DSEs
+=======
+>>>>>>> develop
       (hpxml_bldg.heating_systems + hpxml_bldg.heat_pumps).each do |htg_system|
         next unless (htg_system.is_a?(HPXML::HeatingSystem) && htg_system.is_heat_pump_backup_system) || htg_system.fraction_heat_load_served > 0
         next if htg_system.distribution_system_idref.nil?
@@ -878,10 +881,16 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           [EUT::Heating, EUT::HeatingHeatPumpBackup, EUT::HeatingFanPump, EUT::HeatingHeatPumpBackupFanPump].each do |end_use_type|
             end_use = @end_uses[[fuel_type, end_use_type]]
             next if end_use.nil?
+<<<<<<< HEAD
 
             if not end_use.annual_output_by_system[htg_system.id].nil?
               apply_multiplier_to_output(end_use, fuel, htg_system.id, 1.0 / dse)
             end
+=======
+            next if end_use.annual_output_by_system[htg_system.id].nil?
+
+            apply_multiplier_to_output(end_use, fuel, htg_system.id, 1.0 / dse)
+>>>>>>> develop
           end
         end
       end
@@ -904,7 +913,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
 
       # Apply solar fraction to load for simple solar water heating systems
+<<<<<<< HEAD
       # FIXME: Check whether this handles units with different solar fractions
+=======
+>>>>>>> develop
       hpxml_bldg.solar_thermal_systems.each do |solar_system|
         next if solar_system.solar_fraction.nil?
 

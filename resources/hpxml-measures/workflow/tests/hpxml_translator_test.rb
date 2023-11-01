@@ -29,8 +29,13 @@ class HPXMLTest < Minitest::Test
     sample_files_dirs.each do |sample_files_dir|
       Dir["#{sample_files_dir}/*.xml"].sort.each do |xml|
         next if xml.end_with? '-10x.xml'
+<<<<<<< HEAD
         next if xml.include? 'base-multiple-buildings' # Tested by test_multiple_buildings()
         next if xml.include? 'base-bldgtype-multifamily-shared-mechvent-multiple' # FIXME: Won't work w/ unit multipliers until https://github.com/NREL/EnergyPlus/pull/10131 is available in E+
+=======
+        next if xml.include? 'base-multiple-sfd-buildings' # Tested by test_multiple_buildings()
+        next if xml.include? 'base-multiple-mf-units' # Tested by test_multiple_buildings()
+>>>>>>> develop
 
         xmls << File.absolute_path(xml)
       end
@@ -44,6 +49,10 @@ class HPXMLTest < Minitest::Test
       xml_name = File.basename(xml)
       results = _run_xml(xml, Parallel.worker_number)
       all_results[xml_name], all_bill_results[xml_name], timeseries_results = results
+<<<<<<< HEAD
+=======
+      next if xml.include? 'real_homes'
+>>>>>>> develop
 
       # Also run with a 10x unit multiplier (2 identical dwelling units each with a 5x
       # unit multiplier) and check how the results compare to the original run
@@ -299,6 +308,7 @@ class HPXMLTest < Minitest::Test
   end
 
   def test_multiple_buildings
+<<<<<<< HEAD
     sample_files_dir = File.join(File.dirname(__FILE__), '..', 'sample_files')
     Dir["#{sample_files_dir}/base-multiple-buildings*.xml"].sort.each do |xml|
       rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
@@ -311,10 +321,24 @@ class HPXMLTest < Minitest::Test
       system(command, err: File::NULL)
       assert_equal(true, File.exist?(csv_output_path))
       assert_equal(xml.include?('bills'), File.exist?(bills_csv_path))
+=======
+    xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base-multiple-sfd-buildings.xml')
+    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
+    bills_csv_path = File.join(File.dirname(xml), 'run', 'results_bills.csv')
+    run_log = File.join(File.dirname(xml), 'run', 'run.log')
+
+    # Check successful simulation when providing correct building ID
+    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyBuilding_2"
+    system(command, err: File::NULL)
+    assert_equal(true, File.exist?(csv_output_path))
+    assert_equal(true, File.exist?(bills_csv_path))
+>>>>>>> develop
 
       # Check that we have exactly one warning (i.e., check we are only validating a single Building element against schematron)
       assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.' }.size)
 
+<<<<<<< HEAD
       # Check unsuccessful simulation when providing incorrect building ID
       command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyFoo"
       system(command, err: File::NULL)
@@ -338,6 +362,30 @@ class HPXMLTest < Minitest::Test
       # Check that we now have three warnings, one for each Building element
       assert_equal(3, File.readlines(run_log).select { |l| l.include? 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.' }.size)
     end
+=======
+    # Check unsuccessful simulation when providing incorrect building ID
+    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyFoo"
+    system(command, err: File::NULL)
+    assert_equal(false, File.exist?(csv_output_path))
+    assert_equal(false, File.exist?(bills_csv_path))
+    assert_equal(1, File.readlines(run_log).select { |l| l.include? "Could not find Building element with ID 'MyFoo'." }.size)
+
+    # Check unsuccessful simulation when not providing building ID
+    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\""
+    system(command, err: File::NULL)
+    assert_equal(false, File.exist?(csv_output_path))
+    assert_equal(false, File.exist?(bills_csv_path))
+    assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.' }.size)
+
+    # Check successful simulation when running whole building
+    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id ALL"
+    system(command, err: File::NULL)
+    assert_equal(true, File.exist?(csv_output_path))
+    assert_equal(true, File.exist?(bills_csv_path))
+
+    # Check that we now have three warnings, one for each Building element
+    assert_equal(3, File.readlines(run_log).select { |l| l.include? 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.' }.size)
+>>>>>>> develop
   end
 
   def test_release_zips
@@ -387,11 +435,22 @@ class HPXMLTest < Minitest::Test
       for i in 0..n_bldgs - 1
         hpxml_bldg = hpxml.buildings[i]
         if hpxml_bldg.dehumidifiers.size > 0
+<<<<<<< HEAD
           # FIXME: Dehumidifiers currently don't give good results w/ unit multipliers
         elsif hpxml_bldg.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
           # FIXME: GSHPs currently don't give good results w/ unit multipliers
         elsif hpxml_bldg.batteries.size > 0
           # FIXME: Batteries currently don't work with whole SFA/MF buildings
+=======
+          # FUTURE: Dehumidifiers currently don't give desired results w/ unit multipliers
+          # https://github.com/NREL/OpenStudio-HPXML/issues/1499
+        elsif hpxml_bldg.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
+          # FUTURE: GSHPs currently don't give desired results w/ unit multipliers
+          # https://github.com/NREL/OpenStudio-HPXML/issues/1499
+        elsif hpxml_bldg.batteries.size > 0
+          # FUTURE: Batteries currently don't work with whole SFA/MF buildings
+          # https://github.com/NREL/OpenStudio-HPXML/issues/1499
+>>>>>>> develop
           return
         else
           hpxml_bldg.building_construction.number_of_units *= 5
@@ -588,7 +647,12 @@ class HPXMLTest < Minitest::Test
         next if message.include? 'NumberofUnits is greater than 1, indicating that the HPXML Building represents multiple dwelling units; simulation outputs will reflect this unit multiplier.'
       end
 
+<<<<<<< HEAD
       # FIXME: Revert this eventually
+=======
+      # FUTURE: Revert this eventually
+      # https://github.com/NREL/OpenStudio-HPXML/issues/1499
+>>>>>>> develop
       if hpxml_header.utility_bill_scenarios.has_detailed_electric_rates
         uses_unit_multipliers = hpxml.buildings.select { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units > 1 }.size > 0
         if uses_unit_multipliers || hpxml.buildings.size > 1
@@ -1331,7 +1395,10 @@ class HPXMLTest < Minitest::Test
     # Check that results_10x are expected compared to results_1x
 
     def get_tolerances(key)
+<<<<<<< HEAD
       # FIXME: Tighten these tolerances
+=======
+>>>>>>> develop
       if key.include?('(MBtu)') || key.include?('(kBtu)') || key.include?('(kWh)')
         # Check that the energy difference is less than 0.5 MBtu or less than 5%
         abs_delta_tol = 0.5 # MBtu
@@ -1342,6 +1409,7 @@ class HPXMLTest < Minitest::Test
           abs_delta_tol = UnitConversions.convert(abs_delta_tol, 'MBtu', 'kWh')
         end
       elsif key.include?('Peak Electricity:')
+<<<<<<< HEAD
         # Check that the peak electricity difference is less than 1000 W or less than 10%
         # Wider tolerances than others because a small change in when an event (like the
         # water heating firing) occurs can significantly impact the peak.
@@ -1350,6 +1418,16 @@ class HPXMLTest < Minitest::Test
       elsif key.include?('Peak Load:')
         # Check that the peak load difference is less than 0.5 kBtu/hr or less than 5%
         abs_delta_tol = 0.5
+=======
+        # Check that the peak electricity difference is less than 500 W or less than 2%
+        # Wider tolerances than others because a small change in when an event (like the
+        # water heating firing) occurs can significantly impact the peak.
+        abs_delta_tol = 500.0
+        abs_frac_tol = 0.02
+      elsif key.include?('Peak Load:')
+        # Check that the peak load difference is less than 0.2 kBtu/hr or less than 5%
+        abs_delta_tol = 0.2
+>>>>>>> develop
         abs_frac_tol = 0.05
       elsif key.include?('Hot Water:')
         # Check that the hot water usage difference is less than 10 gal/yr or less than 2%
@@ -1359,6 +1437,7 @@ class HPXMLTest < Minitest::Test
         # Check that the battery resilience difference is less than 1 hr or less than 1%
         abs_delta_tol = 1.0
         abs_frac_tol = 0.01
+<<<<<<< HEAD
       elsif key.include?('HVAC Capacity:') || key.include?('HVAC Design Load:')
         # Check that the HVAC capacity/design load difference is less than 500 Btu/h or less than 1%
         abs_delta_tol = 500.0
@@ -1372,6 +1451,17 @@ class HPXMLTest < Minitest::Test
         abs_delta_tol = 20
         abs_frac_tol = nil
       elsif key.include?('HVAC Design Temperature:') || key.include?('Weather:')
+=======
+      elsif key.include?('Airflow:')
+        # Check that airflow rate difference is less than 0.1 cfm or less than 0.5%
+        abs_delta_tol = 0.1
+        abs_frac_tol = 0.005
+      elsif key.include?('Unmet Hours:')
+        # Check that the unmet hours difference is less than 10 hrs
+        abs_delta_tol = 10
+        abs_frac_tol = nil
+      elsif key.include?('HVAC Capacity:') || key.include?('HVAC Design Load:') || key.include?('HVAC Design Temperature:') || key.include?('Weather:')
+>>>>>>> develop
         # Check that there is no difference
         abs_delta_tol = 0
         abs_frac_tol = nil
@@ -1420,7 +1510,11 @@ class HPXMLTest < Minitest::Test
             abs_val_frac = abs_val_delta / avg_val
           end
 
+<<<<<<< HEAD
           # FIXME: Address these
+=======
+          # FUTURE: Address these
+>>>>>>> develop
           if hpxml_bldg.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
             next if key.include?('Airflow:')
             next if key.include?('Peak')

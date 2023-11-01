@@ -101,6 +101,12 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
     return { success: success, runner: runner }
   end
 
+  if not model.getWeatherFile.path.is_initialized
+    print "#{print_prefix}Creating input unsuccessful.\n"
+    print "#{print_prefix}See #{File.join(rundir, 'run.log')} for details.\n"
+    return { success: false, runner: runner }
+  end
+
   # Run simulation
   print "#{print_prefix}Running simulation...\n" unless suppress_print
   ep_path = File.absolute_path(File.join(OpenStudio.getOpenStudioCLI.to_s, '..', '..', 'EnergyPlus', 'energyplus')) # getEnergyPlusDirectory can be unreliable, using getOpenStudioCLI instead
