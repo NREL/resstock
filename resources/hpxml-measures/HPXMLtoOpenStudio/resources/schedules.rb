@@ -3,15 +3,8 @@
 # Annual constant schedule
 class ScheduleConstant
   def initialize(model, sch_name, val = 1.0, schedule_type_limits_name = nil, unavailable_periods: [])
-    @model = model
-    @year = model.getYearDescription.assumedYear
-    @sch_name = sch_name
-    @val = val
-    @schedule = nil
-    @schedule_type_limits_name = schedule_type_limits_name
-    @unavailable_periods = unavailable_periods
-
-    @schedule = create_schedule()
+    year = model.getYearDescription.assumedYear
+    @schedule = create_schedule(model, sch_name, val, year, schedule_type_limits_name, unavailable_periods)
   end
 
   def schedule
@@ -20,31 +13,31 @@ class ScheduleConstant
 
   private
 
-  def create_schedule()
-    if @unavailable_periods.empty?
-      if @val == 1.0 && (@schedule_type_limits_name.nil? || @schedule_type_limits_name == Constants.ScheduleTypeLimitsOnOff)
-        schedule = @model.alwaysOnDiscreteSchedule
-      elsif @val == 0.0 && (@schedule_type_limits_name.nil? || @schedule_type_limits_name == Constants.ScheduleTypeLimitsOnOff)
-        schedule = @model.alwaysOffDiscreteSchedule
+  def create_schedule(model, sch_name, val, year, schedule_type_limits_name, unavailable_periods)
+    if unavailable_periods.empty?
+      if val == 1.0 && (schedule_type_limits_name.nil? || schedule_type_limits_name == Constants.ScheduleTypeLimitsOnOff)
+        schedule = model.alwaysOnDiscreteSchedule
+      elsif val == 0.0 && (schedule_type_limits_name.nil? || schedule_type_limits_name == Constants.ScheduleTypeLimitsOnOff)
+        schedule = model.alwaysOffDiscreteSchedule
       else
-        schedule = OpenStudio::Model::ScheduleConstant.new(@model)
-        schedule.setName(@sch_name)
-        schedule.setValue(@val)
+        schedule = OpenStudio::Model::ScheduleConstant.new(model)
+        schedule.setName(sch_name)
+        schedule.setValue(val)
 
-        Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
+        Schedule.set_schedule_type_limits(model, schedule, schedule_type_limits_name)
       end
     else
-      schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
-      schedule.setName(@sch_name)
-      schedule.defaultDaySchedule.setName(@sch_name + ' default day')
+      schedule = OpenStudio::Model::ScheduleRuleset.new(model)
+      schedule.setName(sch_name)
+      schedule.defaultDaySchedule.setName(sch_name + ' default day')
 
       default_day_sch = schedule.defaultDaySchedule
       default_day_sch.clearValues
-      default_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), @val)
+      default_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), val)
 
-      Schedule.set_unavailable_periods(schedule, @sch_name, @unavailable_periods, @year)
+      Schedule.set_unavailable_periods(schedule, sch_name, unavailable_periods, year)
 
-      Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
+      Schedule.set_schedule_type_limits(model, schedule, schedule_type_limits_name)
     end
 
     return schedule
@@ -57,21 +50,15 @@ class HourlyByMonthSchedule
   # weekend_month_by_hour_values must be a 12-element array of 24-element arrays of numbers.
   def initialize(model, sch_name, weekday_month_by_hour_values, weekend_month_by_hour_values,
                  schedule_type_limits_name = nil, normalize_values = true, unavailable_periods: nil)
-    @model = model
-    @year = model.getYearDescription.assumedYear
-    @sch_name = sch_name
-    @schedule = nil
+    year = model.getYearDescription.assumedYear
     @weekday_month_by_hour_values = validate_values(weekday_month_by_hour_values, 12, 24)
     @weekend_month_by_hour_values = validate_values(weekend_month_by_hour_values, 12, 24)
-    @schedule_type_limits_name = schedule_type_limits_name
-    @unavailable_periods = unavailable_periods
-
     if normalize_values
       @maxval = calc_max_val()
     else
       @maxval = 1.0
     end
-    @schedule = create_schedule()
+    @schedule = create_schedule(model, sch_name, year, schedule_type_limits_name, unavailable_periods)
   end
 
   def calc_design_level(val)
@@ -121,26 +108,26 @@ class HourlyByMonthSchedule
     return maxval
   end
 
-  def create_schedule()
-    day_startm = Schedule.day_start_months(@year)
-    day_endm = Schedule.day_end_months(@year)
+  def create_schedule(model, sch_name, year, schedule_type_limits_name, unavailable_periods)
+    day_startm = Schedule.day_start_months(year)
+    day_endm = Schedule.day_end_months(year)
 
     time = []
     for h in 1..24
       time[h] = OpenStudio::Time.new(0, h, 0, 0)
     end
 
-    schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
-    schedule.setName(@sch_name)
-    schedule.defaultDaySchedule.setName(@sch_name + ' default day')
+    schedule = OpenStudio::Model::ScheduleRuleset.new(model)
+    schedule.setName(sch_name)
+    schedule.defaultDaySchedule.setName(sch_name + ' default day')
 
     prev_wkdy_vals = nil
     prev_wkdy_rule = nil
     prev_wknd_vals = nil
     prev_wknd_rule = nil
     for m in 1..12
-      date_s = OpenStudio::Date::fromDayOfYear(day_startm[m - 1], @year)
-      date_e = OpenStudio::Date::fromDayOfYear(day_endm[m - 1], @year)
+      date_s = OpenStudio::Date::fromDayOfYear(day_startm[m - 1], year)
+      date_e = OpenStudio::Date::fromDayOfYear(day_endm[m - 1], year)
 
       wkdy_vals = []
       wknd_vals = []
@@ -156,9 +143,9 @@ class HourlyByMonthSchedule
       elsif wkdy_vals == wknd_vals
         # Alldays
         wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wkdy_rule.setName(@sch_name + " #{Schedule.allday_name} ruleset#{m}")
+        wkdy_rule.setName(sch_name + " #{Schedule.allday_name} ruleset#{m}")
         wkdy = wkdy_rule.daySchedule
-        wkdy.setName(@sch_name + " #{Schedule.allday_name}#{m}")
+        wkdy.setName(sch_name + " #{Schedule.allday_name}#{m}")
         previous_value = wkdy_vals[1]
         for h in 1..24
           next if (h != 24) && (wkdy_vals[h + 1] == previous_value)
@@ -175,9 +162,9 @@ class HourlyByMonthSchedule
       else
         # Weekdays
         wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wkdy_rule.setName(@sch_name + " #{Schedule.weekday_name} ruleset#{m}")
+        wkdy_rule.setName(sch_name + " #{Schedule.weekday_name} ruleset#{m}")
         wkdy = wkdy_rule.daySchedule
-        wkdy.setName(@sch_name + " #{Schedule.weekday_name}#{m}")
+        wkdy.setName(sch_name + " #{Schedule.weekday_name}#{m}")
         previous_value = wkdy_vals[1]
         for h in 1..24
           next if (h != 24) && (wkdy_vals[h + 1] == previous_value)
@@ -192,9 +179,9 @@ class HourlyByMonthSchedule
 
         # Weekends
         wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wknd_rule.setName(@sch_name + " #{Schedule.weekend_name} ruleset#{m}")
+        wknd_rule.setName(sch_name + " #{Schedule.weekend_name} ruleset#{m}")
         wknd = wknd_rule.daySchedule
-        wknd.setName(@sch_name + " #{Schedule.weekend_name}#{m}")
+        wknd.setName(sch_name + " #{Schedule.weekend_name}#{m}")
         previous_value = wknd_vals[1]
         for h in 1..24
           next if (h != 24) && (wknd_vals[h + 1] == previous_value)
@@ -212,9 +199,9 @@ class HourlyByMonthSchedule
       prev_wknd_vals = wknd_vals
     end
 
-    Schedule.set_unavailable_periods(schedule, @sch_name, @unavailable_periods, @year)
+    Schedule.set_unavailable_periods(schedule, sch_name, unavailable_periods, year)
 
-    Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
+    Schedule.set_schedule_type_limits(model, schedule, schedule_type_limits_name)
 
     return schedule
   end
@@ -226,22 +213,16 @@ class HourlyByDaySchedule
   # weekend_day_by_hour_values must be a 365-element array of 24-element arrays of numbers.
   def initialize(model, sch_name, weekday_day_by_hour_values, weekend_day_by_hour_values,
                  schedule_type_limits_name = nil, normalize_values = true, unavailable_periods: nil)
-    @model = model
-    @year = model.getYearDescription.assumedYear
-    @sch_name = sch_name
-    @schedule = nil
-    @num_days = Constants.NumDaysInYear(@year)
-    @weekday_day_by_hour_values = validate_values(weekday_day_by_hour_values, @num_days, 24)
-    @weekend_day_by_hour_values = validate_values(weekend_day_by_hour_values, @num_days, 24)
-    @schedule_type_limits_name = schedule_type_limits_name
-    @unavailable_periods = unavailable_periods
-
+    year = model.getYearDescription.assumedYear
+    num_days = Constants.NumDaysInYear(year)
+    @weekday_day_by_hour_values = validate_values(weekday_day_by_hour_values, num_days, 24)
+    @weekend_day_by_hour_values = validate_values(weekend_day_by_hour_values, num_days, 24)
     if normalize_values
       @maxval = calc_max_val()
     else
       @maxval = 1.0
     end
-    @schedule = create_schedule()
+    @schedule = create_schedule(model, sch_name, year, num_days, schedule_type_limits_name, unavailable_periods)
   end
 
   def calc_design_level(val)
@@ -291,23 +272,23 @@ class HourlyByDaySchedule
     return maxval
   end
 
-  def create_schedule()
+  def create_schedule(model, sch_name, year, num_days, schedule_type_limits_name, unavailable_periods)
     time = []
     for h in 1..24
       time[h] = OpenStudio::Time.new(0, h, 0, 0)
     end
 
-    schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
-    schedule.setName(@sch_name)
-    schedule.defaultDaySchedule.setName(@sch_name + ' default day')
+    schedule = OpenStudio::Model::ScheduleRuleset.new(model)
+    schedule.setName(sch_name)
+    schedule.defaultDaySchedule.setName(sch_name + ' default day')
 
     prev_wkdy_vals = nil
     prev_wkdy_rule = nil
     prev_wknd_vals = nil
     prev_wknd_rule = nil
-    for d in 1..@num_days
-      date_s = OpenStudio::Date::fromDayOfYear(d, @year)
-      date_e = OpenStudio::Date::fromDayOfYear(d, @year)
+    for d in 1..num_days
+      date_s = OpenStudio::Date::fromDayOfYear(d, year)
+      date_e = OpenStudio::Date::fromDayOfYear(d, year)
 
       wkdy_vals = []
       wknd_vals = []
@@ -323,9 +304,9 @@ class HourlyByDaySchedule
       elsif wkdy_vals == wknd_vals
         # Alldays
         wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wkdy_rule.setName(@sch_name + " #{Schedule.allday_name} ruleset#{d}")
+        wkdy_rule.setName(sch_name + " #{Schedule.allday_name} ruleset#{d}")
         wkdy = wkdy_rule.daySchedule
-        wkdy.setName(@sch_name + " #{Schedule.allday_name}#{d}")
+        wkdy.setName(sch_name + " #{Schedule.allday_name}#{d}")
         previous_value = wkdy_vals[1]
         for h in 1..24
           next if (h != 24) && (wkdy_vals[h + 1] == previous_value)
@@ -342,9 +323,9 @@ class HourlyByDaySchedule
       else
         # Weekdays
         wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wkdy_rule.setName(@sch_name + " #{Schedule.weekday_name} ruleset#{d}")
+        wkdy_rule.setName(sch_name + " #{Schedule.weekday_name} ruleset#{d}")
         wkdy = wkdy_rule.daySchedule
-        wkdy.setName(@sch_name + " #{Schedule.weekday_name}#{d}")
+        wkdy.setName(sch_name + " #{Schedule.weekday_name}#{d}")
         previous_value = wkdy_vals[1]
         for h in 1..24
           next if (h != 24) && (wkdy_vals[h + 1] == previous_value)
@@ -359,9 +340,9 @@ class HourlyByDaySchedule
 
         # Weekends
         wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wknd_rule.setName(@sch_name + " #{Schedule.weekend_name} ruleset#{d}")
+        wknd_rule.setName(sch_name + " #{Schedule.weekend_name} ruleset#{d}")
         wknd = wknd_rule.daySchedule
-        wknd.setName(@sch_name + " #{Schedule.weekend_name}#{d}")
+        wknd.setName(sch_name + " #{Schedule.weekend_name}#{d}")
         previous_value = wknd_vals[1]
         for h in 1..24
           next if (h != 24) && (wknd_vals[h + 1] == previous_value)
@@ -379,9 +360,9 @@ class HourlyByDaySchedule
       prev_wknd_vals = wknd_vals
     end
 
-    Schedule.set_unavailable_periods(schedule, @sch_name, @unavailable_periods, @year)
+    Schedule.set_unavailable_periods(schedule, sch_name, unavailable_periods, year)
 
-    Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
+    Schedule.set_schedule_type_limits(model, schedule, schedule_type_limits_name)
 
     return schedule
   end
@@ -395,20 +376,10 @@ class MonthWeekdayWeekendSchedule
   def initialize(model, sch_name, weekday_hourly_values, weekend_hourly_values, monthly_values,
                  schedule_type_limits_name = nil, normalize_values = true, begin_month = 1,
                  begin_day = 1, end_month = 12, end_day = 31, unavailable_periods: nil)
-    @model = model
-    @year = model.getYearDescription.assumedYear
-    @sch_name = sch_name
-    @schedule = nil
+    year = model.getYearDescription.assumedYear
     @weekday_hourly_values = Schedule.validate_values(weekday_hourly_values, 24, 'weekday')
     @weekend_hourly_values = Schedule.validate_values(weekend_hourly_values, 24, 'weekend')
     @monthly_values = Schedule.validate_values(monthly_values, 12, 'monthly')
-    @schedule_type_limits_name = schedule_type_limits_name
-    @begin_month = begin_month
-    @begin_day = begin_day
-    @end_month = end_month
-    @end_day = end_day
-    @unavailable_periods = unavailable_periods
-
     if normalize_values
       @weekday_hourly_values = normalize_sum_to_one(@weekday_hourly_values)
       @weekend_hourly_values = normalize_sum_to_one(@weekend_hourly_values)
@@ -419,7 +390,8 @@ class MonthWeekdayWeekendSchedule
       @maxval = 1.0
       @schadjust = 1.0
     end
-    @schedule = create_schedule()
+    @schedule = create_schedule(model, sch_name, year, begin_month, begin_day, end_month, end_day,
+                                schedule_type_limits_name, unavailable_periods)
   end
 
   def calc_design_level_from_daily_kwh(daily_kwh)
@@ -489,39 +461,40 @@ class MonthWeekdayWeekendSchedule
     return 1 / sum_wkdy
   end
 
-  def create_schedule()
-    month_num_days = Constants.NumDaysInMonths(@year)
-    month_num_days[@end_month - 1] = @end_day
+  def create_schedule(model, sch_name, year, begin_month, begin_day, end_month, end_day,
+                      schedule_type_limits_name, unavailable_periods)
+    month_num_days = Constants.NumDaysInMonths(year)
+    month_num_days[end_month - 1] = end_day
 
-    day_startm = Schedule.day_start_months(@year)
-    day_startm[@begin_month - 1] += @begin_day - 1
-    day_endm = [Schedule.day_start_months(@year), month_num_days].transpose.map { |i| i.reduce(:+) - 1 }
+    day_startm = Schedule.day_start_months(year)
+    day_startm[begin_month - 1] += begin_day - 1
+    day_endm = [Schedule.day_start_months(year), month_num_days].transpose.map { |i| i.reduce(:+) - 1 }
 
     time = []
     for h in 1..24
       time[h] = OpenStudio::Time.new(0, h, 0, 0)
     end
 
-    schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
-    schedule.setName(@sch_name)
-    schedule.defaultDaySchedule.setName(@sch_name + ' default day')
+    schedule = OpenStudio::Model::ScheduleRuleset.new(model)
+    schedule.setName(sch_name)
+    schedule.defaultDaySchedule.setName(sch_name + ' default day')
 
     prev_wkdy_vals = nil
     prev_wkdy_rule = nil
     prev_wknd_vals = nil
     prev_wknd_rule = nil
     periods = []
-    if @begin_month <= @end_month # contiguous period
-      periods << [@begin_month, @end_month]
+    if begin_month <= end_month # contiguous period
+      periods << [begin_month, end_month]
     else # non-contiguous period
-      periods << [1, @end_month]
-      periods << [@begin_month, 12]
+      periods << [1, end_month]
+      periods << [begin_month, 12]
     end
 
     periods.each do |period|
       for m in period[0]..period[1]
-        date_s = OpenStudio::Date::fromDayOfYear(day_startm[m - 1], @year)
-        date_e = OpenStudio::Date::fromDayOfYear(day_endm[m - 1], @year)
+        date_s = OpenStudio::Date::fromDayOfYear(day_startm[m - 1], year)
+        date_e = OpenStudio::Date::fromDayOfYear(day_endm[m - 1], year)
 
         wkdy_vals = []
         wknd_vals = []
@@ -537,9 +510,9 @@ class MonthWeekdayWeekendSchedule
         elsif wkdy_vals == wknd_vals
           # Alldays
           wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-          wkdy_rule.setName(@sch_name + " #{Schedule.allday_name} ruleset#{m}")
+          wkdy_rule.setName(sch_name + " #{Schedule.allday_name} ruleset#{m}")
           wkdy = wkdy_rule.daySchedule
-          wkdy.setName(@sch_name + " #{Schedule.allday_name}#{m}")
+          wkdy.setName(sch_name + " #{Schedule.allday_name}#{m}")
           previous_value = wkdy_vals[1]
           for h in 1..24
             next if (h != 24) && (wkdy_vals[h + 1] == previous_value)
@@ -556,9 +529,9 @@ class MonthWeekdayWeekendSchedule
         else
           # Weekdays
           wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-          wkdy_rule.setName(@sch_name + " #{Schedule.weekday_name} ruleset#{m}")
+          wkdy_rule.setName(sch_name + " #{Schedule.weekday_name} ruleset#{m}")
           wkdy = wkdy_rule.daySchedule
-          wkdy.setName(@sch_name + " #{Schedule.weekday_name}#{m}")
+          wkdy.setName(sch_name + " #{Schedule.weekday_name}#{m}")
           previous_value = wkdy_vals[1]
           for h in 1..24
             next if (h != 24) && (wkdy_vals[h + 1] == previous_value)
@@ -573,9 +546,9 @@ class MonthWeekdayWeekendSchedule
 
           # Weekends
           wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-          wknd_rule.setName(@sch_name + " #{Schedule.weekend_name} ruleset#{m}")
+          wknd_rule.setName(sch_name + " #{Schedule.weekend_name} ruleset#{m}")
           wknd = wknd_rule.daySchedule
-          wknd.setName(@sch_name + " #{Schedule.weekend_name}#{m}")
+          wknd.setName(sch_name + " #{Schedule.weekend_name}#{m}")
           previous_value = wknd_vals[1]
           for h in 1..24
             next if (h != 24) && (wknd_vals[h + 1] == previous_value)
@@ -594,9 +567,9 @@ class MonthWeekdayWeekendSchedule
       end
     end
 
-    Schedule.set_unavailable_periods(schedule, @sch_name, @unavailable_periods, @year)
+    Schedule.set_unavailable_periods(schedule, sch_name, unavailable_periods, year)
 
-    Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
+    Schedule.set_schedule_type_limits(model, schedule, schedule_type_limits_name)
 
     return schedule
   end
@@ -750,6 +723,9 @@ class Schedule
     # Add off rule(s), will override previous rules
     unavailable_periods.each_with_index do |period, i|
       # Special Values
+      # FUTURE: Assign an object type to the schedules and use that to determine what
+      # kind of schedule each is, rather than looking at object names. That would
+      # be more robust. See https://github.com/NREL/OpenStudio-HPXML/issues/1450.
       if sch_name.include? Constants.ObjectNameWaterHeaterSetpoint
         # Water heater setpoint
         # Temperature of tank < 2C indicates of possibility of freeze.
@@ -1375,23 +1351,18 @@ class SchedulesFile
   ColumnWholeHouseFan = 'whole_house_fan'
 
   def initialize(runner: nil,
-                 model: nil,
                  schedules_paths:,
                  year:,
                  unavailable_periods: [],
                  output_path:)
     return if schedules_paths.empty?
 
-    @runner = runner
-    @model = model
-    @schedules_paths = schedules_paths
     @year = year
-
-    import()
+    import(schedules_paths)
     battery_schedules
     expand_schedules
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
-    set_unavailable_periods(unavailable_periods)
+    set_unavailable_periods(runner, unavailable_periods)
     convert_setpoints
     @output_schedules_path = output_path
     export()
@@ -1413,10 +1384,10 @@ class SchedulesFile
     return false
   end
 
-  def import()
+  def import(schedules_paths)
     num_hrs_in_year = Constants.NumHoursInYear(@year)
     @schedules = {}
-    @schedules_paths.each do |schedules_path|
+    schedules_paths.each do |schedules_path|
       columns = CSV.read(schedules_path).transpose
       columns.each do |col|
         col_name = col[0]
@@ -1497,10 +1468,9 @@ class SchedulesFile
     return col_num
   end
 
-  def create_schedule_file(col_name:,
-                           rows_to_skip: 1,
+  def create_schedule_file(model, col_name:, rows_to_skip: 1,
                            schedule_type_limits_name: nil)
-    @model.getScheduleFiles.each do |schedule_file|
+    model.getScheduleFiles.each do |schedule_file|
       next if schedule_file.name.to_s != col_name
 
       return schedule_file
@@ -1515,14 +1485,14 @@ class SchedulesFile
     schedule_length = @schedules[col_name].length
     min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
 
-    schedule_file = OpenStudio::Model::ScheduleFile.new(@model, @output_schedules_path)
+    schedule_file = OpenStudio::Model::ScheduleFile.new(model, @output_schedules_path)
     schedule_file.setName(col_name)
     schedule_file.setColumnNumber(col_index + 1)
     schedule_file.setRowstoSkipatTop(rows_to_skip)
     schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)
     schedule_file.setMinutesperItem(min_per_item.to_i)
 
-    Schedule.set_schedule_type_limits(@model, schedule_file, schedule_type_limits_name)
+    Schedule.set_schedule_type_limits(model, schedule_file, schedule_type_limits_name)
 
     return schedule_file
   end
@@ -1652,7 +1622,7 @@ class SchedulesFile
     end
   end
 
-  def set_unavailable_periods(unavailable_periods)
+  def set_unavailable_periods(runner, unavailable_periods)
     if @unavailable_periods_csv_data.nil?
       @unavailable_periods_csv_data = Schedule.get_unavailable_periods_csv_data
     end
@@ -1678,7 +1648,7 @@ class SchedulesFile
         end
 
         # Skip those unaffected
-        next unless Schedule.unavailable_period_applies(@runner, schedule_name2, column_name)
+        next unless Schedule.unavailable_period_applies(runner, schedule_name2, column_name)
 
         @tmp_schedules[column_name].each_with_index do |_ts, i|
           if schedule_name == ColumnWaterHeaterSetpoint
