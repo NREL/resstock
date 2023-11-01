@@ -104,7 +104,9 @@ source_report.each do |row|
   f.puts('     - Units')
   f.puts('     - Choices')
   f.puts('     - Description')
-  r_arguments.sort.each do |r_argument|
+
+  r_arguments = r_arguments.sort_by &resstockarguments.keys.method(:index)
+  r_arguments.each do |r_argument|
     f.puts("   * - ``#{r_argument}``")
 
     units = resstockarguments[r_argument][0]

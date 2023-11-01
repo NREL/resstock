@@ -78,6 +78,10 @@ Arguments
      - Units
      - Choices
      - Description
+   * - ``site_type``
+     - 
+     - "suburban", "urban", "rural", "auto"
+     - The type of site. If not provided, the OS-HPXML default is used.
    * - ``site_ground_conductivity``
      - Btu/hr-ft-F
      -
@@ -86,10 +90,6 @@ Arguments
      - 
      - "1A", "1B", "1C", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "5A", "5B", "5C", "6A", "6B", "6C", "7", "8", "auto"
      - IECC zone of the home address.
-   * - ``site_type``
-     - 
-     - "suburban", "urban", "rural", "auto"
-     - The type of site. If not provided, the OS-HPXML default is used.
 
 .. _ashrae_iecc_climate_zone_2004___2_a_split:
 
@@ -166,6 +166,10 @@ Arguments
      - Units
      - Choices
      - Description
+   * - ``bathroom_fans_quantity``
+     - #
+     -
+     - The quantity of the bathroom fans. If not provided, the OS-HPXML default is used.
    * - ``bathroom_fans_flow_rate``
      - CFM
      -
@@ -178,10 +182,6 @@ Arguments
      - W
      -
      - The fan power of the bathroom fans. If not provided, the OS-HPXML default is used.
-   * - ``bathroom_fans_quantity``
-     - #
-     -
-     - The quantity of the bathroom fans. If not provided, the OS-HPXML default is used.
    * - ``bathroom_fans_start_hour``
      - hr
      -
@@ -217,10 +217,10 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``battery_capacity``
-     - kWh
-     -
-     - The nominal capacity of the lithium ion battery. If not provided, the OS-HPXML default is used.
+   * - ``battery_present``
+     - 
+     - "true", "false"
+     - Whether there is a lithium ion battery present.
    * - ``battery_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "outside", "auto"
@@ -229,18 +229,18 @@ Arguments
      - W
      -
      - The rated power output of the lithium ion battery. If not provided, the OS-HPXML default is used.
-   * - ``battery_present``
-     - 
-     - "true", "false"
-     - Whether there is a lithium ion battery present.
-   * - ``battery_round_trip_efficiency``
-     - Frac
+   * - ``battery_capacity``
+     - kWh
      -
-     - The round trip efficiency of the lithium ion battery. If not provided, the OS-HPXML default is used.
+     - The nominal capacity of the lithium ion battery. If not provided, the OS-HPXML default is used.
    * - ``battery_usable_capacity``
      - kWh
      -
      - The usable capacity of the lithium ion battery. If not provided, the OS-HPXML default is used.
+   * - ``battery_round_trip_efficiency``
+     - Frac
+     -
+     - The round trip efficiency of the lithium ion battery. If not provided, the OS-HPXML default is used.
 
 .. _bedrooms:
 
@@ -277,14 +277,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``geometry_unit_num_bathrooms``
-     - #
-     -
-     - The number of bathrooms in the unit. If not provided, the OS-HPXML default is used.
    * - ``geometry_unit_num_bedrooms``
      - #
      -
      - The number of bedrooms in the unit.
+   * - ``geometry_unit_num_bathrooms``
+     - #
+     -
+     - The number of bathrooms in the unit. If not provided, the OS-HPXML default is used.
 
 .. _building_america_climate_zone:
 
@@ -366,22 +366,22 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``ceiling_fan_cooling_setpoint_temp_offset``
-     - deg-F
-     -
-     - The cooling setpoint temperature offset during months when the ceiling fans are operating. Only applies if ceiling fan quantity is greater than zero. If not provided, the OS-HPXML default is used.
-   * - ``ceiling_fan_efficiency``
-     - CFM/W
-     -
-     - The efficiency rating of the ceiling fan(s) at medium speed. If not provided, the OS-HPXML default is used.
    * - ``ceiling_fan_present``
      - 
      - "true", "false"
      - Whether there are any ceiling fans.
+   * - ``ceiling_fan_efficiency``
+     - CFM/W
+     -
+     - The efficiency rating of the ceiling fan(s) at medium speed. If not provided, the OS-HPXML default is used.
    * - ``ceiling_fan_quantity``
      - #
      -
      - Total number of ceiling fans. If not provided, the OS-HPXML default is used.
+   * - ``ceiling_fan_cooling_setpoint_temp_offset``
+     - deg-F
+     -
+     - The cooling setpoint temperature offset during months when the ceiling fans are operating. Only applies if ceiling fan quantity is greater than zero. If not provided, the OS-HPXML default is used.
 
 .. _census_division:
 
@@ -503,26 +503,26 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``clothes_dryer_efficiency``
-     - lb/kWh
-     -
-     - The efficiency of the clothes dryer. If not provided, the OS-HPXML default is used.
-   * - ``clothes_dryer_efficiency_type``
-     - 
-     - "EnergyFactor", "CombinedEnergyFactor"
-     - The efficiency type of the clothes dryer.
-   * - ``clothes_dryer_fuel_type``
-     - 
-     - "electricity", "natural gas", "fuel oil", "propane", "wood", "coal"
-     - Type of fuel used by the clothes dryer.
-   * - ``clothes_dryer_location``
-     - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the clothes dryer location. If not provided, the OS-HPXML default is used.
    * - ``clothes_dryer_present``
      - 
      - "true", "false"
      - Whether there is a clothes dryer present.
+   * - ``clothes_dryer_location``
+     - 
+     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - The space type for the clothes dryer location. If not provided, the OS-HPXML default is used.
+   * - ``clothes_dryer_fuel_type``
+     - 
+     - "electricity", "natural gas", "fuel oil", "propane", "wood", "coal"
+     - Type of fuel used by the clothes dryer.
+   * - ``clothes_dryer_efficiency_type``
+     - 
+     - "EnergyFactor", "CombinedEnergyFactor"
+     - The efficiency type of the clothes dryer.
+   * - ``clothes_dryer_efficiency``
+     - lb/kWh
+     -
+     - The efficiency of the clothes dryer. If not provided, the OS-HPXML default is used.
    * - ``clothes_dryer_vented_flow_rate``
      - CFM
      -
@@ -603,22 +603,22 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``clothes_washer_capacity``
-     - ft^3
-     -
-     - Volume of the washer drum. Obtained from the EnergyStar website or the manufacturer's literature. If not provided, the OS-HPXML default is used.
-   * - ``clothes_washer_efficiency``
-     - ft^3/kWh-cyc
-     -
-     - The efficiency of the clothes washer. If not provided, the OS-HPXML default is used.
+   * - ``clothes_washer_location``
+     - 
+     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - The space type for the clothes washer location. If not provided, the OS-HPXML default is used.
    * - ``clothes_washer_efficiency_type``
      - 
      - "ModifiedEnergyFactor", "IntegratedModifiedEnergyFactor"
      - The efficiency type of the clothes washer.
-   * - ``clothes_washer_label_annual_gas_cost``
-     - $
+   * - ``clothes_washer_efficiency``
+     - ft^3/kWh-cyc
      -
-     - The annual cost of using the system under test conditions. Input is obtained from the EnergyGuide label. If not provided, the OS-HPXML default is used.
+     - The efficiency of the clothes washer. If not provided, the OS-HPXML default is used.
+   * - ``clothes_washer_rated_annual_kwh``
+     - kWh/yr
+     -
+     - The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default is used.
    * - ``clothes_washer_label_electric_rate``
      - $/kWh
      -
@@ -627,22 +627,18 @@ Arguments
      - $/therm
      -
      - The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default is used.
+   * - ``clothes_washer_label_annual_gas_cost``
+     - $
+     -
+     - The annual cost of using the system under test conditions. Input is obtained from the EnergyGuide label. If not provided, the OS-HPXML default is used.
    * - ``clothes_washer_label_usage``
      - cyc/wk
      -
      - The clothes washer loads per week. If not provided, the OS-HPXML default is used.
-   * - ``clothes_washer_location``
-     - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the clothes washer location. If not provided, the OS-HPXML default is used.
-   * - ``clothes_washer_present``
-     - 
-     - "true", "false"
-     - Whether there is a clothes washer present.
-   * - ``clothes_washer_rated_annual_kwh``
-     - kWh/yr
+   * - ``clothes_washer_capacity``
+     - ft^3
      -
-     - The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default is used.
+     - Volume of the washer drum. Obtained from the EnergyStar website or the manufacturer's literature. If not provided, the OS-HPXML default is used.
 
 .. _clothes_washer_presence:
 
@@ -668,6 +664,21 @@ Assumption
 **********
 
 Due to low sample count, the tsv is constructed by downscaling a dwelling unit sub-tsv with a household sub-tsv. The sub-tsvs have the following dependencies:; Dwelling unit sub-tsv : deps=['Geometry Building Type RECS', 'State', 'Heating Fuel', 'Vintage'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Vintage coarsened to every 20 years before 2000 and every 10 years subsequently; [5] Vintage homes built before 1960 coarsened to pre1960; [6] Vintage homes built after 2000 coarsened to 2000-20; [7] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [8] Census Division RECS to Census Region; [9] Census Region to National; Household sub-tsv : deps=['Geometry Building Type RECS', 'State' 'Tenure', 'Federal Poverty Level'] with the following fallback coarsening order; [1] State coarsened to Census Division RECS with AK/HI separate; [2] Geometry Building Type RECS coarsened to SF/MF/MH; [3] Geometry Building Type RECS coarsened to SF and MH/MF; [4] Federal Poverty Level coarsened every 100 percent; [5] Federal Poverty Level coarsened every 200 percent; [6] Census Division RECS with AK/HI separate coarsened to Census Division RECS; [7] Census Division RECS to Census Region; [8] Census Region to National; In combining the dwelling unit sub-tsv and household sub-tsv, the conditional relationships are ignored across (['Geometry Building Type RECS', 'Vintage'], ['Tenure', 'Federal Poverty Level']).
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Units
+     - Choices
+     - Description
+   * - ``clothes_washer_present``
+     - 
+     - "true", "false"
+     - Whether there is a clothes washer present.
 
 .. _clothes_washer_usage_level:
 
@@ -744,26 +755,26 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``cooking_range_oven_fuel_type``
-     - 
-     - "electricity", "natural gas", "fuel oil", "propane", "wood", "coal"
-     - Type of fuel used by the cooking range/oven.
-   * - ``cooking_range_oven_is_convection``
-     - 
-     -
-     - Whether the oven is convection. If not provided, the OS-HPXML default is used.
-   * - ``cooking_range_oven_is_induction``
-     - 
-     -
-     - Whether the cooking range is induction. If not provided, the OS-HPXML default is used.
-   * - ``cooking_range_oven_location``
-     - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the cooking range/oven location. If not provided, the OS-HPXML default is used.
    * - ``cooking_range_oven_present``
      - 
      - "true", "false"
      - Whether there is a cooking range/oven present.
+   * - ``cooking_range_oven_location``
+     - 
+     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - The space type for the cooking range/oven location. If not provided, the OS-HPXML default is used.
+   * - ``cooking_range_oven_fuel_type``
+     - 
+     - "electricity", "natural gas", "fuel oil", "propane", "wood", "coal"
+     - Type of fuel used by the cooking range/oven.
+   * - ``cooking_range_oven_is_induction``
+     - 
+     -
+     - Whether the cooking range is induction. If not provided, the OS-HPXML default is used.
+   * - ``cooking_range_oven_is_convection``
+     - 
+     -
+     - Whether the oven is convection. If not provided, the OS-HPXML default is used.
 
 .. _cooking_range_usage_level:
 
@@ -1043,14 +1054,14 @@ Arguments
      - 
      -
      - Whether to use daylight saving. If not provided, the OS-HPXML default is used.
-   * - ``site_time_zone_utc_offset``
-     - hr
-     -
-     - Time zone UTC offset of the home address. Must be between -12 and 14.
    * - ``site_zip_code``
      - 
      -
      - Zip code of the home address.
+   * - ``site_time_zone_utc_offset``
+     - hr
+     -
+     - Time zone UTC offset of the home address. Must be between -12 and 14.
    * - ``weather_station_epw_filepath``
      - 
      -
@@ -1106,30 +1117,30 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``dehumidifier_capacity``
-     - pint/day
-     -
-     - The capacity (water removal rate) of the dehumidifier.
-   * - ``dehumidifier_efficiency``
-     - liters/kWh
-     -
-     - The efficiency of the dehumidifier.
-   * - ``dehumidifier_efficiency_type``
-     - 
-     - "EnergyFactor", "IntegratedEnergyFactor"
-     - The efficiency type of dehumidifier.
-   * - ``dehumidifier_fraction_dehumidification_load_served``
-     - Frac
-     -
-     - The dehumidification load served fraction of the dehumidifier.
-   * - ``dehumidifier_rh_setpoint``
-     - Frac
-     -
-     - The relative humidity setpoint of the dehumidifier.
    * - ``dehumidifier_type``
      - 
      - "none", "portable", "whole-home"
      - The type of dehumidifier.
+   * - ``dehumidifier_efficiency_type``
+     - 
+     - "EnergyFactor", "IntegratedEnergyFactor"
+     - The efficiency type of dehumidifier.
+   * - ``dehumidifier_efficiency``
+     - liters/kWh
+     -
+     - The efficiency of the dehumidifier.
+   * - ``dehumidifier_capacity``
+     - pint/day
+     -
+     - The capacity (water removal rate) of the dehumidifier.
+   * - ``dehumidifier_rh_setpoint``
+     - Frac
+     -
+     - The relative humidity setpoint of the dehumidifier.
+   * - ``dehumidifier_fraction_dehumidification_load_served``
+     - Frac
+     -
+     - The dehumidification load served fraction of the dehumidifier.
 
 .. _dishwasher:
 
@@ -1166,18 +1177,22 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``dishwasher_efficiency``
-     - RatedAnnualkWh or EnergyFactor
-     -
-     - The efficiency of the dishwasher. If not provided, the OS-HPXML default is used.
+   * - ``dishwasher_present``
+     - 
+     - "true", "false"
+     - Whether there is a dishwasher present.
+   * - ``dishwasher_location``
+     - 
+     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - The space type for the dishwasher location. If not provided, the OS-HPXML default is used.
    * - ``dishwasher_efficiency_type``
      - 
      - "RatedAnnualkWh", "EnergyFactor"
      - The efficiency type of dishwasher.
-   * - ``dishwasher_label_annual_gas_cost``
-     - $
+   * - ``dishwasher_efficiency``
+     - RatedAnnualkWh or EnergyFactor
      -
-     - The label annual gas cost of the dishwasher. If not provided, the OS-HPXML default is used.
+     - The efficiency of the dishwasher. If not provided, the OS-HPXML default is used.
    * - ``dishwasher_label_electric_rate``
      - $/kWh
      -
@@ -1186,22 +1201,18 @@ Arguments
      - $/therm
      -
      - The label gas rate of the dishwasher. If not provided, the OS-HPXML default is used.
+   * - ``dishwasher_label_annual_gas_cost``
+     - $
+     -
+     - The label annual gas cost of the dishwasher. If not provided, the OS-HPXML default is used.
    * - ``dishwasher_label_usage``
      - cyc/wk
      -
      - The dishwasher loads per week. If not provided, the OS-HPXML default is used.
-   * - ``dishwasher_location``
-     - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the dishwasher location. If not provided, the OS-HPXML default is used.
    * - ``dishwasher_place_setting_capacity``
      - #
      -
      - The number of place settings for the unit. Data obtained from manufacturer's literature. If not provided, the OS-HPXML default is used.
-   * - ``dishwasher_present``
-     - 
-     - "true", "false"
-     - Whether there is a dishwasher present.
 
 .. _dishwasher_usage_level:
 
@@ -1352,30 +1363,30 @@ Arguments
      - 
      - "CFM25", "CFM50", "Percent"
      - The leakage units of the ducts.
-   * - ``ducts_return_buried_insulation_level``
-     - 
-     - "not buried", "partially buried", "fully buried", "deeply buried", "auto"
-     - Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
-   * - ``ducts_return_insulation_r``
-     - h-ft^2-R/Btu
-     -
-     - The insulation r-value of the return ducts excluding air films.
-   * - ``ducts_return_leakage_to_outside_value``
-     - 
-     -
-     - The leakage value to outside for the return ducts.
-   * - ``ducts_supply_buried_insulation_level``
-     - 
-     - "not buried", "partially buried", "fully buried", "deeply buried", "auto"
-     - Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
-   * - ``ducts_supply_insulation_r``
-     - h-ft^2-R/Btu
-     -
-     - The insulation r-value of the supply ducts excluding air films.
    * - ``ducts_supply_leakage_to_outside_value``
      - 
      -
      - The leakage value to outside for the supply ducts.
+   * - ``ducts_return_leakage_to_outside_value``
+     - 
+     -
+     - The leakage value to outside for the return ducts.
+   * - ``ducts_supply_insulation_r``
+     - h-ft^2-R/Btu
+     -
+     - The insulation r-value of the supply ducts excluding air films.
+   * - ``ducts_supply_buried_insulation_level``
+     - 
+     - "not buried", "partially buried", "fully buried", "deeply buried", "auto"
+     - Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+   * - ``ducts_return_insulation_r``
+     - h-ft^2-R/Btu
+     -
+     - The insulation r-value of the return ducts excluding air films.
+   * - ``ducts_return_buried_insulation_level``
+     - 
+     - "not buried", "partially buried", "fully buried", "deeply buried", "auto"
+     - Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
 
 .. _duct_location:
 
@@ -1412,22 +1423,6 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``ducts_number_of_return_registers``
-     - #
-     -
-     - The number of return registers of the ducts. Only used to calculate default return duct surface area. If not provided, the OS-HPXML default is used.
-   * - ``ducts_return_location``
-     - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "exterior wall", "under slab", "roof deck", "outside", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "manufactured home belly", "auto"
-     - The location of the return ducts. If not provided, the OS-HPXML default is used.
-   * - ``ducts_return_surface_area``
-     - ft^2
-     -
-     - The return ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
-   * - ``ducts_return_surface_area_fraction``
-     - frac
-     -
-     - The fraction of return ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
    * - ``ducts_supply_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "exterior wall", "under slab", "roof deck", "outside", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "manufactured home belly", "auto"
@@ -1440,6 +1435,22 @@ Arguments
      - frac
      -
      - The fraction of supply ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
+   * - ``ducts_return_location``
+     - 
+     - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "exterior wall", "under slab", "roof deck", "outside", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "manufactured home belly", "auto"
+     - The location of the return ducts. If not provided, the OS-HPXML default is used.
+   * - ``ducts_return_surface_area``
+     - ft^2
+     -
+     - The return ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
+   * - ``ducts_return_surface_area_fraction``
+     - frac
+     -
+     - The fraction of return ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
+   * - ``ducts_number_of_return_registers``
+     - #
+     -
+     - The number of return registers of the ducts. Only used to calculate default return duct surface area. If not provided, the OS-HPXML default is used.
 
 .. _eaves:
 
@@ -1506,22 +1517,22 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``misc_plug_loads_vehicle_2_usage_multiplier``
-     - 
-     -
-     - Additional multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants.
-   * - ``misc_plug_loads_vehicle_annual_kwh``
-     - kWh/yr
-     -
-     - The annual energy consumption of the electric vehicle plug loads. If not provided, the OS-HPXML default is used.
    * - ``misc_plug_loads_vehicle_present``
      - 
      - "true", "false"
      - Whether there is an electric vehicle.
+   * - ``misc_plug_loads_vehicle_annual_kwh``
+     - kWh/yr
+     -
+     - The annual energy consumption of the electric vehicle plug loads. If not provided, the OS-HPXML default is used.
    * - ``misc_plug_loads_vehicle_usage_multiplier``
      - 
      -
      - Multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+   * - ``misc_plug_loads_vehicle_2_usage_multiplier``
+     - 
+     -
+     - Additional multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants.
 
 .. _energystar_climate_zone_2023:
 
@@ -1632,14 +1643,14 @@ Arguments
      - 
      - "FlatRoof", "VentedAttic", "UnventedAttic", "ConditionedAttic", "BelowApartment"
      - The attic type of the building. Attic type ConditionedAttic is not allowed for apartment units.
-   * - ``geometry_roof_pitch``
-     - 
-     - "1:12", "2:12", "3:12", "4:12", "5:12", "6:12", "7:12", "8:12", "9:12", "10:12", "11:12", "12:12"
-     - The roof pitch of the attic. Ignored if the building has a flat roof.
    * - ``geometry_roof_type``
      - 
      - "gable", "hip"
      - The roof type of the building. Ignored if the building has a flat roof.
+   * - ``geometry_roof_pitch``
+     - 
+     - "1:12", "2:12", "3:12", "4:12", "5:12", "6:12", "7:12", "8:12", "9:12", "10:12", "11:12", "12:12"
+     - The roof pitch of the attic. Ignored if the building has a flat roof.
 
 .. _geometry_building_horizontal_location_mf:
 
@@ -1901,18 +1912,18 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``geometry_average_ceiling_height``
-     - ft
-     -
-     - Average distance from the floor to the ceiling.
-   * - ``geometry_unit_aspect_ratio``
-     - Frac
-     -
-     - The ratio of front/back wall length to left/right wall length for the unit, excluding any protruding garage wall area.
    * - ``geometry_unit_type``
      - 
      - "single-family detached", "single-family attached", "apartment unit", "manufactured home"
      - The type of dwelling unit. Use single-family attached for a dwelling unit with 1 or more stories, attached units to one or both sides, and no units above/below. Use apartment unit for a dwelling unit with 1 story, attached units to one, two, or three sides, and units above and/or below.
+   * - ``geometry_unit_aspect_ratio``
+     - Frac
+     -
+     - The ratio of front/back wall length to left/right wall length for the unit, excluding any protruding garage wall area.
+   * - ``geometry_average_ceiling_height``
+     - ft
+     -
+     - Average distance from the floor to the ceiling.
 
 .. _geometry_floor_area:
 
@@ -1953,14 +1964,14 @@ Arguments
      - Frac
      -
      - The fraction of the garage that is protruding from the conditioned space. Only applies to single-family detached units.
-   * - ``geometry_unit_cfa``
-     - sqft
-     -
-     - E.g., '2000' or 'auto'.
    * - ``geometry_unit_cfa_bin``
      - 
      -
      - E.g., '2000-2499'.
+   * - ``geometry_unit_cfa``
+     - sqft
+     -
+     - E.g., '2000' or 'auto'.
 
 .. _geometry_floor_area_bin:
 
@@ -2017,6 +2028,10 @@ Arguments
      - Units
      - Choices
      - Description
+   * - ``geometry_foundation_type``
+     - 
+     - "SlabOnGrade", "VentedCrawlspace", "UnventedCrawlspace", "ConditionedCrawlspace", "UnconditionedBasement", "ConditionedBasement", "Ambient", "AboveApartment", "BellyAndWingWithSkirt", "BellyAndWingNoSkirt"
+     - The foundation type of the building. Foundation types ConditionedBasement and ConditionedCrawlspace are not allowed for apartment units.
    * - ``geometry_foundation_height``
      - ft
      -
@@ -2025,10 +2040,6 @@ Arguments
      - ft
      -
      - The depth above grade of the foundation wall. Only applies to basements/crawlspaces.
-   * - ``geometry_foundation_type``
-     - 
-     - "SlabOnGrade", "VentedCrawlspace", "UnventedCrawlspace", "ConditionedCrawlspace", "UnconditionedBasement", "ConditionedBasement", "Ambient", "AboveApartment", "BellyAndWingWithSkirt", "BellyAndWingNoSkirt"
-     - The foundation type of the building. Foundation types ConditionedBasement and ConditionedCrawlspace are not allowed for apartment units.
    * - ``geometry_rim_joist_height``
      - in
      -
@@ -2069,6 +2080,10 @@ Arguments
      - Units
      - Choices
      - Description
+   * - ``geometry_garage_width``
+     - ft
+     -
+     - The width of the garage. Enter zero for no garage. Only applies to single-family detached units.
    * - ``geometry_garage_depth``
      - ft
      -
@@ -2077,10 +2092,6 @@ Arguments
      - 
      - "Right", "Left"
      - The position of the garage. Only applies to single-family detached units.
-   * - ``geometry_garage_width``
-     - ft
-     -
-     - The width of the garage. Enter zero for no garage. Only applies to single-family detached units.
 
 .. _geometry_space_combination:
 
@@ -2222,18 +2233,18 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``exterior_finish_r``
-     - h-ft^2-R/Btu
-     -
-     - R-value of the exterior finish.
-   * - ``wall_color``
-     - 
-     - "dark", "light", "medium", "medium dark", "reflective", "auto"
-     - The color of the walls. Also applies to rim joists. If not provided, the OS-HPXML default is used.
    * - ``wall_siding_type``
      - 
      - "aluminum siding", "asbestos siding", "brick veneer", "composite shingle siding", "fiber cement siding", "masonite siding", "none", "stucco", "synthetic stucco", "vinyl siding", "wood siding", "auto"
      - The siding type of the walls. Also applies to rim joists. If not provided, the OS-HPXML default is used.
+   * - ``wall_color``
+     - 
+     - "dark", "light", "medium", "medium dark", "reflective", "auto"
+     - The color of the walls. Also applies to rim joists. If not provided, the OS-HPXML default is used.
+   * - ``exterior_finish_r``
+     - h-ft^2-R/Btu
+     -
+     - R-value of the exterior finish.
 
 .. _geometry_wall_type:
 
@@ -2295,54 +2306,54 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``cooling_system_cooling_capacity``
-     - Btu/hr
-     -
-     - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default is used.
-   * - ``cooling_system_cooling_compressor_type``
-     - 
-     - "single stage", "two stage", "variable speed", "auto"
-     - The compressor type of the cooling system. Only applies to central air conditioner. If not provided, the OS-HPXML default is used.
-   * - ``cooling_system_cooling_efficiency``
-     - 
-     -
-     - The rated efficiency value of the cooling system. Ignored for evaporative cooler.
-   * - ``cooling_system_cooling_efficiency_type``
-     - 
-     - "SEER", "SEER2", "EER", "CEER"
-     - The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER or SEER2. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.
-   * - ``cooling_system_cooling_sensible_heat_fraction``
-     - Frac
-     -
-     - The sensible heat fraction of the cooling system. Ignored for evaporative cooler. If not provided, the OS-HPXML default is used.
-   * - ``cooling_system_crankcase_heater_watts``
-     - W
-     -
-     - Cooling system crankcase heater power consumption in Watts. Applies only to central air conditioner, mini-split, packaged terminal air conditioner and room air conditioner. If not provided, the OS-HPXML default is used.
-   * - ``cooling_system_integrated_heating_system_capacity``
-     - Btu/hr
-     -
-     - The output heating capacity of the heating system integrated into cooling system. If not provided, the OS-HPXML autosized default is used. Only used for packaged terminal air conditioner and room air conditioner.
-   * - ``cooling_system_integrated_heating_system_efficiency_percent``
-     - Frac
-     -
-     - The rated heating efficiency value of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
-   * - ``cooling_system_integrated_heating_system_fraction_heat_load_served``
-     - Frac
-     -
-     - The heating load served by the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
-   * - ``cooling_system_integrated_heating_system_fuel``
-     - 
-     - "electricity", "natural gas", "fuel oil", "propane", "wood", "wood pellets", "coal", "auto"
-     - The fuel type of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
-   * - ``cooling_system_is_ducted``
-     - 
-     -
-     - Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.
    * - ``cooling_system_type``
      - 
      - "none", "central air conditioner", "room air conditioner", "evaporative cooler", "mini-split", "packaged terminal air conditioner"
      - The type of cooling system. Use 'none' if there is no cooling system or if there is a heat pump serving a cooling load.
+   * - ``cooling_system_cooling_efficiency_type``
+     - 
+     - "SEER", "SEER2", "EER", "CEER"
+     - The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER or SEER2. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.
+   * - ``cooling_system_cooling_efficiency``
+     - 
+     -
+     - The rated efficiency value of the cooling system. Ignored for evaporative cooler.
+   * - ``cooling_system_cooling_compressor_type``
+     - 
+     - "single stage", "two stage", "variable speed", "auto"
+     - The compressor type of the cooling system. Only applies to central air conditioner. If not provided, the OS-HPXML default is used.
+   * - ``cooling_system_cooling_sensible_heat_fraction``
+     - Frac
+     -
+     - The sensible heat fraction of the cooling system. Ignored for evaporative cooler. If not provided, the OS-HPXML default is used.
+   * - ``cooling_system_cooling_capacity``
+     - Btu/hr
+     -
+     - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default is used.
+   * - ``cooling_system_is_ducted``
+     - 
+     -
+     - Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.
+   * - ``cooling_system_crankcase_heater_watts``
+     - W
+     -
+     - Cooling system crankcase heater power consumption in Watts. Applies only to central air conditioner, mini-split, packaged terminal air conditioner and room air conditioner. If not provided, the OS-HPXML default is used.
+   * - ``cooling_system_integrated_heating_system_fuel``
+     - 
+     - "electricity", "natural gas", "fuel oil", "propane", "wood", "wood pellets", "coal", "auto"
+     - The fuel type of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
+   * - ``cooling_system_integrated_heating_system_efficiency_percent``
+     - Frac
+     -
+     - The rated heating efficiency value of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
+   * - ``cooling_system_integrated_heating_system_capacity``
+     - Btu/hr
+     -
+     - The output heating capacity of the heating system integrated into cooling system. If not provided, the OS-HPXML autosized default is used. Only used for packaged terminal air conditioner and room air conditioner.
+   * - ``cooling_system_integrated_heating_system_fraction_heat_load_served``
+     - Frac
+     -
+     - The heating load served by the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
 
 .. _hvac_cooling_partial_space_conditioning:
 
@@ -2514,62 +2525,54 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``heat_pump_backup_fuel``
+   * - ``heating_system_type``
      - 
-     - "electricity", "natural gas", "fuel oil", "propane"
-     - The backup fuel type of the heat pump. Only applies if Backup Type is 'integrated'.
-   * - ``heat_pump_backup_heating_capacity``
+     - "none", "Furnace", "WallFurnace", "FloorFurnace", "Boiler", "ElectricResistance", "Stove", "SpaceHeater", "Fireplace", "Shared Boiler w/ Baseboard", "Shared Boiler w/ Ductless Fan Coil"
+     - The type of heating system. Use 'none' if there is no heating system or if there is a heat pump serving a heating load.
+   * - ``heating_system_heating_efficiency``
+     - Frac
+     -
+     - The rated heating efficiency value of the heating system.
+   * - ``heating_system_heating_capacity``
      - Btu/hr
      -
-     - The backup output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used. Only applies if Backup Type is 'integrated'.
-   * - ``heat_pump_backup_heating_efficiency``
+     - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default is used.
+   * - ``heating_system_fraction_heat_load_served``
+     - Frac
+     -
+     - The heating load served by the heating system.
+   * - ``heating_system_pilot_light``
+     - Btuh
+     -
+     - The fuel usage of the pilot light. Applies only to Furnace, WallFurnace, FloorFurnace, Stove, Boiler, and Fireplace with non-electric fuel type. If not provided, assumes no pilot light.
+   * - ``heat_pump_type``
+     - 
+     - "none", "air-to-air", "mini-split", "ground-to-air", "packaged terminal heat pump", "room air conditioner with reverse cycle"
+     - The type of heat pump. Use 'none' if there is no heat pump.
+   * - ``heat_pump_heating_efficiency_type``
+     - 
+     - "HSPF", "HSPF2", "COP"
+     - The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use COP.
+   * - ``heat_pump_heating_efficiency``
      - 
      -
-     - The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise. Only applies if Backup Type is 'integrated'.
-   * - ``heat_pump_backup_heating_lockout_temp``
-     - deg-F
-     -
-     - The temperature above which the heat pump backup system is disabled. If both this and Compressor Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies for both Backup Type of 'integrated' and 'separate'. If not provided, the OS-HPXML default is used.
-   * - ``heat_pump_backup_type``
-     - 
-     - "none", "integrated", "separate"
-     - The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.
-   * - ``heat_pump_compressor_lockout_temp``
-     - deg-F
-     -
-     - The temperature below which the heat pump compressor is disabled. If both this and Backup Heating Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies to all heat pump types other than ground-to-air. If not provided, the OS-HPXML default is used.
-   * - ``heat_pump_cooling_capacity``
-     - Btu/hr
-     -
-     - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
-   * - ``heat_pump_cooling_compressor_type``
-     - 
-     - "single stage", "two stage", "variable speed", "auto"
-     - The compressor type of the heat pump. Only applies to air-to-air. If not provided, the OS-HPXML default is used.
-   * - ``heat_pump_cooling_efficiency``
-     - 
-     -
-     - The rated cooling efficiency value of the heat pump.
+     - The rated heating efficiency value of the heat pump.
    * - ``heat_pump_cooling_efficiency_type``
      - 
      - "SEER", "SEER2", "EER", "CEER"
      - The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER or SEER2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use EER.
+   * - ``heat_pump_cooling_efficiency``
+     - 
+     -
+     - The rated cooling efficiency value of the heat pump.
+   * - ``heat_pump_cooling_compressor_type``
+     - 
+     - "single stage", "two stage", "variable speed", "auto"
+     - The compressor type of the heat pump. Only applies to air-to-air. If not provided, the OS-HPXML default is used.
    * - ``heat_pump_cooling_sensible_heat_fraction``
      - Frac
      -
      - The sensible heat fraction of the heat pump. If not provided, the OS-HPXML default is used.
-   * - ``heat_pump_crankcase_heater_watts``
-     - W
-     -
-     - Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-air, mini-split, packaged terminal heat pump and room air conditioner with reverse cycle. If not provided, the OS-HPXML default is used.
-   * - ``heat_pump_fraction_cool_load_served``
-     - Frac
-     -
-     - The cooling load served by the heat pump.
-   * - ``heat_pump_fraction_heat_load_served``
-     - Frac
-     -
-     - The heating load served by the heat pump.
    * - ``heat_pump_heating_capacity``
      - Btu/hr
      -
@@ -2582,50 +2585,58 @@ Arguments
      - deg-F
      -
      - The user-specified temperature (e.g., 17F or 5F) for the above heating capacity retention fraction. Applies to all heat pump types except ground-to-air. Required if the Heating Capacity Retention Fraction is provided.
-   * - ``heat_pump_heating_efficiency``
+   * - ``heat_pump_cooling_capacity``
+     - Btu/hr
+     -
+     - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
+   * - ``heat_pump_fraction_heat_load_served``
+     - Frac
+     -
+     - The heating load served by the heat pump.
+   * - ``heat_pump_fraction_cool_load_served``
+     - Frac
+     -
+     - The cooling load served by the heat pump.
+   * - ``heat_pump_compressor_lockout_temp``
+     - deg-F
+     -
+     - The temperature below which the heat pump compressor is disabled. If both this and Backup Heating Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies to all heat pump types other than ground-to-air. If not provided, the OS-HPXML default is used.
+   * - ``heat_pump_backup_type``
+     - 
+     - "none", "integrated", "separate"
+     - The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.
+   * - ``heat_pump_backup_fuel``
+     - 
+     - "electricity", "natural gas", "fuel oil", "propane"
+     - The backup fuel type of the heat pump. Only applies if Backup Type is 'integrated'.
+   * - ``heat_pump_backup_heating_efficiency``
      - 
      -
-     - The rated heating efficiency value of the heat pump.
-   * - ``heat_pump_heating_efficiency_type``
-     - 
-     - "HSPF", "HSPF2", "COP"
-     - The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use COP.
-   * - ``heat_pump_is_ducted``
-     - 
+     - The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise. Only applies if Backup Type is 'integrated'.
+   * - ``heat_pump_backup_heating_capacity``
+     - Btu/hr
      -
-     - Whether the heat pump is ducted or not. Only used for mini-split. It's assumed that air-to-air and ground-to-air are ducted, and packaged terminal heat pump and room air conditioner with reverse cycle are not ducted. If not provided, assumes not ducted.
+     - The backup output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used. Only applies if Backup Type is 'integrated'.
+   * - ``heat_pump_backup_heating_lockout_temp``
+     - deg-F
+     -
+     - The temperature above which the heat pump backup system is disabled. If both this and Compressor Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies for both Backup Type of 'integrated' and 'separate'. If not provided, the OS-HPXML default is used.
    * - ``heat_pump_sizing_methodology``
      - 
      - "ACCA", "HERS", "MaxLoad", "auto"
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default is used.
-   * - ``heat_pump_type``
+   * - ``heat_pump_is_ducted``
      - 
-     - "none", "air-to-air", "mini-split", "ground-to-air", "packaged terminal heat pump", "room air conditioner with reverse cycle"
-     - The type of heat pump. Use 'none' if there is no heat pump.
-   * - ``heating_system_fraction_heat_load_served``
-     - Frac
      -
-     - The heating load served by the heating system.
+     - Whether the heat pump is ducted or not. Only used for mini-split. It's assumed that air-to-air and ground-to-air are ducted, and packaged terminal heat pump and room air conditioner with reverse cycle are not ducted. If not provided, assumes not ducted.
+   * - ``heat_pump_crankcase_heater_watts``
+     - W
+     -
+     - Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-air, mini-split, packaged terminal heat pump and room air conditioner with reverse cycle. If not provided, the OS-HPXML default is used.
    * - ``heating_system_has_flue_or_chimney``
      - 
      -
      - Whether the heating system has a flue or chimney.
-   * - ``heating_system_heating_capacity``
-     - Btu/hr
-     -
-     - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default is used.
-   * - ``heating_system_heating_efficiency``
-     - Frac
-     -
-     - The rated heating efficiency value of the heating system.
-   * - ``heating_system_pilot_light``
-     - Btuh
-     -
-     - The fuel usage of the pilot light. Applies only to Furnace, WallFurnace, FloorFurnace, Stove, Boiler, and Fireplace with non-electric fuel type. If not provided, assumes no pilot light.
-   * - ``heating_system_type``
-     - 
-     - "none", "Furnace", "WallFurnace", "FloorFurnace", "Boiler", "ElectricResistance", "Stove", "SpaceHeater", "Fireplace", "Shared Boiler w/ Baseboard", "Shared Boiler w/ Ductless Fan Coil"
-     - The type of heating system. Use 'none' if there is no heating system or if there is a heat pump serving a heating load.
 
 .. _hvac_heating_type:
 
@@ -2702,22 +2713,22 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``heating_system_2_has_flue_or_chimney``
-     - 
-     -
-     - Whether the second heating system has a flue or chimney.
-   * - ``heating_system_2_heating_capacity``
-     - Btu/hr
-     -
-     - The output heating capacity of the second heating system. If not provided, the OS-HPXML autosized default is used.
-   * - ``heating_system_2_heating_efficiency``
-     - Frac
-     -
-     - The rated heating efficiency value of the second heating system.
    * - ``heating_system_2_type``
      - 
      - "none", "Furnace", "WallFurnace", "FloorFurnace", "Boiler", "ElectricResistance", "Stove", "SpaceHeater", "Fireplace"
      - The type of the second heating system.
+   * - ``heating_system_2_heating_efficiency``
+     - Frac
+     -
+     - The rated heating efficiency value of the second heating system.
+   * - ``heating_system_2_heating_capacity``
+     - Btu/hr
+     -
+     - The output heating capacity of the second heating system. If not provided, the OS-HPXML autosized default is used.
+   * - ``heating_system_2_has_flue_or_chimney``
+     - 
+     -
+     - Whether the second heating system has a flue or chimney.
 
 .. _hvac_secondary_heating_fuel:
 
@@ -2814,102 +2825,102 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``cooling_system_cooling_capacity``
-     - Btu/hr
-     -
-     - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default is used.
-   * - ``cooling_system_cooling_efficiency``
-     - 
-     -
-     - The rated efficiency value of the cooling system. Ignored for evaporative cooler.
-   * - ``cooling_system_cooling_efficiency_type``
-     - 
-     - "SEER", "SEER2", "EER", "CEER"
-     - The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER or SEER2. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.
-   * - ``cooling_system_is_ducted``
-     - 
-     -
-     - Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.
-   * - ``cooling_system_type``
-     - 
-     - "none", "central air conditioner", "room air conditioner", "evaporative cooler", "mini-split", "packaged terminal air conditioner"
-     - The type of cooling system. Use 'none' if there is no cooling system or if there is a heat pump serving a cooling load.
-   * - ``heat_pump_backup_fuel``
-     - 
-     - "electricity", "natural gas", "fuel oil", "propane"
-     - The backup fuel type of the heat pump. Only applies if Backup Type is 'integrated'.
-   * - ``heat_pump_backup_heating_capacity``
-     - Btu/hr
-     -
-     - The backup output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used. Only applies if Backup Type is 'integrated'.
-   * - ``heat_pump_backup_heating_efficiency``
-     - 
-     -
-     - The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise. Only applies if Backup Type is 'integrated'.
-   * - ``heat_pump_backup_type``
-     - 
-     - "none", "integrated", "separate"
-     - The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.
-   * - ``heat_pump_cooling_capacity``
-     - Btu/hr
-     -
-     - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
-   * - ``heat_pump_cooling_efficiency``
-     - 
-     -
-     - The rated cooling efficiency value of the heat pump.
-   * - ``heat_pump_cooling_efficiency_type``
-     - 
-     - "SEER", "SEER2", "EER", "CEER"
-     - The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER or SEER2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use EER.
-   * - ``heat_pump_fraction_cool_load_served``
-     - Frac
-     -
-     - The cooling load served by the heat pump.
-   * - ``heat_pump_fraction_heat_load_served``
-     - Frac
-     -
-     - The heating load served by the heat pump.
-   * - ``heat_pump_heating_capacity``
-     - Btu/hr
-     -
-     - The output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
-   * - ``heat_pump_heating_efficiency``
-     - 
-     -
-     - The rated heating efficiency value of the heat pump.
-   * - ``heat_pump_heating_efficiency_type``
-     - 
-     - "HSPF", "HSPF2", "COP"
-     - The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use COP.
-   * - ``heat_pump_sizing_methodology``
-     - 
-     - "ACCA", "HERS", "MaxLoad", "auto"
-     - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default is used.
-   * - ``heat_pump_type``
-     - 
-     - "none", "air-to-air", "mini-split", "ground-to-air", "packaged terminal heat pump", "room air conditioner with reverse cycle"
-     - The type of heat pump. Use 'none' if there is no heat pump.
-   * - ``heating_system_fraction_heat_load_served``
-     - Frac
-     -
-     - The heating load served by the heating system.
-   * - ``heating_system_has_flue_or_chimney``
-     - 
-     -
-     - Whether the heating system has a flue or chimney.
-   * - ``heating_system_heating_capacity``
-     - Btu/hr
-     -
-     - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default is used.
-   * - ``heating_system_heating_efficiency``
-     - Frac
-     -
-     - The rated heating efficiency value of the heating system.
    * - ``heating_system_type``
      - 
      - "none", "Furnace", "WallFurnace", "FloorFurnace", "Boiler", "ElectricResistance", "Stove", "SpaceHeater", "Fireplace", "Shared Boiler w/ Baseboard", "Shared Boiler w/ Ductless Fan Coil"
      - The type of heating system. Use 'none' if there is no heating system or if there is a heat pump serving a heating load.
+   * - ``heating_system_heating_efficiency``
+     - Frac
+     -
+     - The rated heating efficiency value of the heating system.
+   * - ``heating_system_heating_capacity``
+     - Btu/hr
+     -
+     - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default is used.
+   * - ``heating_system_fraction_heat_load_served``
+     - Frac
+     -
+     - The heating load served by the heating system.
+   * - ``cooling_system_type``
+     - 
+     - "none", "central air conditioner", "room air conditioner", "evaporative cooler", "mini-split", "packaged terminal air conditioner"
+     - The type of cooling system. Use 'none' if there is no cooling system or if there is a heat pump serving a cooling load.
+   * - ``cooling_system_cooling_efficiency_type``
+     - 
+     - "SEER", "SEER2", "EER", "CEER"
+     - The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER or SEER2. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.
+   * - ``cooling_system_cooling_efficiency``
+     - 
+     -
+     - The rated efficiency value of the cooling system. Ignored for evaporative cooler.
+   * - ``cooling_system_cooling_capacity``
+     - Btu/hr
+     -
+     - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default is used.
+   * - ``cooling_system_is_ducted``
+     - 
+     -
+     - Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.
+   * - ``heat_pump_type``
+     - 
+     - "none", "air-to-air", "mini-split", "ground-to-air", "packaged terminal heat pump", "room air conditioner with reverse cycle"
+     - The type of heat pump. Use 'none' if there is no heat pump.
+   * - ``heat_pump_heating_efficiency_type``
+     - 
+     - "HSPF", "HSPF2", "COP"
+     - The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use COP.
+   * - ``heat_pump_heating_efficiency``
+     - 
+     -
+     - The rated heating efficiency value of the heat pump.
+   * - ``heat_pump_cooling_efficiency_type``
+     - 
+     - "SEER", "SEER2", "EER", "CEER"
+     - The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER or SEER2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use EER.
+   * - ``heat_pump_cooling_efficiency``
+     - 
+     -
+     - The rated cooling efficiency value of the heat pump.
+   * - ``heat_pump_heating_capacity``
+     - Btu/hr
+     -
+     - The output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
+   * - ``heat_pump_cooling_capacity``
+     - Btu/hr
+     -
+     - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
+   * - ``heat_pump_fraction_heat_load_served``
+     - Frac
+     -
+     - The heating load served by the heat pump.
+   * - ``heat_pump_fraction_cool_load_served``
+     - Frac
+     -
+     - The cooling load served by the heat pump.
+   * - ``heat_pump_backup_type``
+     - 
+     - "none", "integrated", "separate"
+     - The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.
+   * - ``heat_pump_backup_fuel``
+     - 
+     - "electricity", "natural gas", "fuel oil", "propane"
+     - The backup fuel type of the heat pump. Only applies if Backup Type is 'integrated'.
+   * - ``heat_pump_backup_heating_efficiency``
+     - 
+     -
+     - The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise. Only applies if Backup Type is 'integrated'.
+   * - ``heat_pump_backup_heating_capacity``
+     - Btu/hr
+     -
+     - The backup output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used. Only applies if Backup Type is 'integrated'.
+   * - ``heat_pump_sizing_methodology``
+     - 
+     - "ACCA", "HERS", "MaxLoad", "auto"
+     - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default is used.
+   * - ``heating_system_has_flue_or_chimney``
+     - 
+     -
+     - Whether the heating system has a flue or chimney.
 
 .. _hvac_system_is_faulted:
 
@@ -2961,14 +2972,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``cooling_system_actual_cfm_per_ton``
-     - cfm/ton
-     -
-     - The actual cfm per ton of the cooling system.
    * - ``cooling_system_rated_cfm_per_ton``
      - cfm/ton
      -
      - The rated cfm per ton of the cooling system.
+   * - ``cooling_system_actual_cfm_per_ton``
+     - cfm/ton
+     -
+     - The actual cfm per ton of the cooling system.
 
 .. _hvac_system_single_speed_ac_charge:
 
@@ -3035,14 +3046,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``heat_pump_actual_cfm_per_ton``
-     - cfm/ton
-     -
-     - The actual cfm per ton of the heat pump.
    * - ``heat_pump_rated_cfm_per_ton``
      - cfm/ton
      -
      - The rated cfm per ton of the heat pump.
+   * - ``heat_pump_actual_cfm_per_ton``
+     - cfm/ton
+     -
+     - The actual cfm per ton of the heat pump.
 
 .. _hvac_system_single_speed_ashp_charge:
 
@@ -3339,6 +3350,10 @@ Arguments
      - Units
      - Choices
      - Description
+   * - ``holiday_lighting_present``
+     - 
+     - "true", "false"
+     - Whether there is holiday lighting.
    * - ``holiday_lighting_daily_kwh``
      - kWh/day
      -
@@ -3347,10 +3362,6 @@ Arguments
      - 
      -
      - Enter a date like "Nov 25 - Jan 5". If not provided, the OS-HPXML default is used.
-   * - ``holiday_lighting_present``
-     - 
-     - "true", "false"
-     - Whether there is holiday lighting.
 
 .. _hot_water_distribution:
 
@@ -3382,26 +3393,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``dwhr_efficiency``
-     - Frac
-     -
-     - The efficiency of the drain water heat recovery.
-   * - ``dwhr_equal_flow``
+   * - ``hot_water_distribution_system_type``
      - 
-     -
-     - Whether the drain water heat recovery has equal flow.
-   * - ``dwhr_facilities_connected``
-     - 
-     - "none", "one", "all"
-     - Which facilities are connected for the drain water heat recovery. Use 'none' if there is no drain water heat recovery system.
-   * - ``hot_water_distribution_pipe_r``
-     - h-ft^2-R/Btu
-     -
-     - Nominal R-value of the pipe insulation. If not provided, the OS-HPXML default is used.
-   * - ``hot_water_distribution_recirc_branch_piping_length``
+     - "Standard", "Recirculation"
+     - The type of the hot water distribution system.
+   * - ``hot_water_distribution_standard_piping_length``
      - ft
      -
-     - If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default is used.
+     - If the distribution system is Standard, the length of the piping. If not provided, the OS-HPXML default is used.
    * - ``hot_water_distribution_recirc_control_type``
      - 
      - "no control", "timer", "temperature", "presence sensor demand control", "manual demand control", "auto"
@@ -3410,18 +3409,30 @@ Arguments
      - ft
      -
      - If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default is used.
+   * - ``hot_water_distribution_recirc_branch_piping_length``
+     - ft
+     -
+     - If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default is used.
    * - ``hot_water_distribution_recirc_pump_power``
      - W
      -
      - If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default is used.
-   * - ``hot_water_distribution_standard_piping_length``
-     - ft
+   * - ``hot_water_distribution_pipe_r``
+     - h-ft^2-R/Btu
      -
-     - If the distribution system is Standard, the length of the piping. If not provided, the OS-HPXML default is used.
-   * - ``hot_water_distribution_system_type``
+     - Nominal R-value of the pipe insulation. If not provided, the OS-HPXML default is used.
+   * - ``dwhr_facilities_connected``
      - 
-     - "Standard", "Recirculation"
-     - The type of the hot water distribution system.
+     - "none", "one", "all"
+     - Which facilities are connected for the drain water heat recovery. Use 'none' if there is no drain water heat recovery system.
+   * - ``dwhr_equal_flow``
+     - 
+     -
+     - Whether the drain water heat recovery has equal flow.
+   * - ``dwhr_efficiency``
+     - Frac
+     -
+     - The efficiency of the drain water heat recovery.
 
 .. _hot_water_fixtures:
 
@@ -3621,26 +3632,26 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``air_leakage_house_pressure``
-     - Pa
-     -
-     - The house pressure relative to outside. Required when units are ACH or CFM.
-   * - ``air_leakage_type``
-     - 
-     - "unit total", "unit exterior only", "auto"
-     - Type of air leakage. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.
-   * - ``air_leakage_units``
-     - 
-     - "ACH", "CFM", "ACHnatural", "CFMnatural", "EffectiveLeakageArea"
-     - The unit of measure for the air leakage.
-   * - ``air_leakage_value``
-     - 
-     -
-     - Air exchange rate value. For 'EffectiveLeakageArea', provide value in sq. in.
    * - ``site_shielding_of_home``
      - 
      - "exposed", "normal", "well-shielded", "auto"
      - Presence of nearby buildings, trees, obstructions for infiltration model. If not provided, the OS-HPXML default is used.
+   * - ``air_leakage_units``
+     - 
+     - "ACH", "CFM", "ACHnatural", "CFMnatural", "EffectiveLeakageArea"
+     - The unit of measure for the air leakage.
+   * - ``air_leakage_house_pressure``
+     - Pa
+     -
+     - The house pressure relative to outside. Required when units are ACH or CFM.
+   * - ``air_leakage_value``
+     - 
+     -
+     - Air exchange rate value. For 'EffectiveLeakageArea', provide value in sq. in.
+   * - ``air_leakage_type``
+     - 
+     - "unit total", "unit exterior only", "auto"
+     - Type of air leakage. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.
 
 .. _insulation_ceiling:
 
@@ -3739,34 +3750,34 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``foundation_wall_assembly_r``
-     - h-ft^2-R/Btu
-     -
-     - Assembly R-value for the foundation walls. Only applies to basements/crawlspaces. If provided, overrides the previous foundation wall insulation inputs. If not provided, it is ignored.
-   * - ``foundation_wall_insulation_distance_to_bottom``
-     - ft
-     -
-     - The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces. If not provided, the OS-HPXML default is used.
-   * - ``foundation_wall_insulation_distance_to_top``
-     - ft
-     -
-     - The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces. If not provided, the OS-HPXML default is used.
-   * - ``foundation_wall_insulation_location``
-     - ft
-     - "interior", "exterior", "auto"
-     - Whether the insulation is on the interior or exterior of the foundation wall. Only applies to basements/crawlspaces.
-   * - ``foundation_wall_insulation_r``
-     - h-ft^2-R/Btu
-     -
-     - Nominal R-value for the foundation wall insulation. Only applies to basements/crawlspaces.
-   * - ``foundation_wall_thickness``
-     - in
-     -
-     - The thickness of the foundation wall. If not provided, the OS-HPXML default is used.
    * - ``foundation_wall_type``
      - 
      - "solid concrete", "concrete block", "concrete block foam core", "concrete block perlite core", "concrete block vermiculite core", "concrete block solid core", "double brick", "wood", "auto"
      - The material type of the foundation wall. If not provided, the OS-HPXML default is used.
+   * - ``foundation_wall_thickness``
+     - in
+     -
+     - The thickness of the foundation wall. If not provided, the OS-HPXML default is used.
+   * - ``foundation_wall_insulation_r``
+     - h-ft^2-R/Btu
+     -
+     - Nominal R-value for the foundation wall insulation. Only applies to basements/crawlspaces.
+   * - ``foundation_wall_insulation_location``
+     - ft
+     - "interior", "exterior", "auto"
+     - Whether the insulation is on the interior or exterior of the foundation wall. Only applies to basements/crawlspaces.
+   * - ``foundation_wall_insulation_distance_to_top``
+     - ft
+     -
+     - The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces. If not provided, the OS-HPXML default is used.
+   * - ``foundation_wall_insulation_distance_to_bottom``
+     - ft
+     -
+     - The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces. If not provided, the OS-HPXML default is used.
+   * - ``foundation_wall_assembly_r``
+     - h-ft^2-R/Btu
+     -
+     - Assembly R-value for the foundation walls. Only applies to basements/crawlspaces. If provided, overrides the previous foundation wall insulation inputs. If not provided, it is ignored.
 
 .. _insulation_rim_joist:
 
@@ -3803,10 +3814,6 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``rim_joist_assembly_interior_r``
-     - h-ft^2-R/Btu
-     -
-     - Assembly R-value for the rim joist assembly interior insulation that runs perpendicular to floor joists. Only applies to basements/crawlspaces.
    * - ``rim_joist_assembly_r``
      - h-ft^2-R/Btu
      -
@@ -3819,6 +3826,10 @@ Arguments
      - h-ft^2-R/Btu
      -
      - Nominal R-value for the rim joist continuous interior insulation that runs parallel to floor joists. Only applies to basements/crawlspaces.
+   * - ``rim_joist_assembly_interior_r``
+     - h-ft^2-R/Btu
+     -
+     - Assembly R-value for the rim joist assembly interior insulation that runs perpendicular to floor joists. Only applies to basements/crawlspaces.
 
 .. _insulation_roof:
 
@@ -3890,26 +3901,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``slab_carpet_fraction``
-     - Frac
-     -
-     - Fraction of the slab floor area that is carpeted. If not provided, the OS-HPXML default is used.
-   * - ``slab_carpet_r``
-     - h-ft^2-R/Btu
-     -
-     - R-value of the slab carpet. If not provided, the OS-HPXML default is used.
-   * - ``slab_perimeter_depth``
-     - ft
-     -
-     - Depth from grade to bottom of vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
    * - ``slab_perimeter_insulation_r``
      - h-ft^2-R/Btu
      -
      - Nominal R-value of the vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
-   * - ``slab_thickness``
-     - in
+   * - ``slab_perimeter_depth``
+     - ft
      -
-     - The thickness of the slab. Zero can be entered if there is a dirt floor instead of a slab. If not provided, the OS-HPXML default is used.
+     - Depth from grade to bottom of vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
    * - ``slab_under_insulation_r``
      - h-ft^2-R/Btu
      -
@@ -3918,6 +3917,18 @@ Arguments
      - ft
      -
      - Width from slab edge inward of horizontal under-slab insulation. Enter 999 to specify that the under slab insulation spans the entire slab. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_thickness``
+     - in
+     -
+     - The thickness of the slab. Zero can be entered if there is a dirt floor instead of a slab. If not provided, the OS-HPXML default is used.
+   * - ``slab_carpet_fraction``
+     - Frac
+     -
+     - Fraction of the slab floor area that is carpeted. If not provided, the OS-HPXML default is used.
+   * - ``slab_carpet_r``
+     - h-ft^2-R/Btu
+     -
+     - R-value of the slab carpet. If not provided, the OS-HPXML default is used.
 
 .. _insulation_wall:
 
@@ -3954,14 +3965,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``wall_assembly_r``
-     - h-ft^2-R/Btu
-     -
-     - Assembly R-value of the walls.
    * - ``wall_type``
      - 
      - "WoodStud", "ConcreteMasonryUnit", "DoubleWoodStud", "InsulatedConcreteForms", "LogWall", "StructuralInsulatedPanel", "SolidConcrete", "SteelFrame", "Stone", "StrawBale", "StructuralBrick"
      - The type of walls.
+   * - ``wall_assembly_r``
+     - h-ft^2-R/Btu
+     -
+     - Assembly R-value of the walls.
 
 .. _interior_shading:
 
@@ -3993,14 +4004,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``window_interior_shading_summer``
-     - Frac
-     -
-     - Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
    * - ``window_interior_shading_winter``
      - Frac
      -
      - Interior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
+   * - ``window_interior_shading_summer``
+     - Frac
+     -
+     - Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
 
 .. _lighting:
 
@@ -4032,46 +4043,46 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``lighting_exterior_fraction_cfl``
-     - 
-     -
-     - Fraction of all lamps (exterior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
-   * - ``lighting_exterior_fraction_led``
-     - 
-     -
-     - Fraction of all lamps (exterior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
-   * - ``lighting_exterior_fraction_lfl``
-     - 
-     -
-     - Fraction of all lamps (exterior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
-   * - ``lighting_garage_fraction_cfl``
-     - 
-     -
-     - Fraction of all lamps (garage) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
-   * - ``lighting_garage_fraction_led``
-     - 
-     -
-     - Fraction of all lamps (garage) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
-   * - ``lighting_garage_fraction_lfl``
-     - 
-     -
-     - Fraction of all lamps (garage) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
-   * - ``lighting_interior_fraction_cfl``
-     - 
-     -
-     - Fraction of all lamps (interior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
-   * - ``lighting_interior_fraction_led``
-     - 
-     -
-     - Fraction of all lamps (interior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
-   * - ``lighting_interior_fraction_lfl``
-     - 
-     -
-     - Fraction of all lamps (interior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
    * - ``lighting_present``
      - 
      - "true", "false"
      - Whether there is lighting energy use.
+   * - ``lighting_interior_fraction_cfl``
+     - 
+     -
+     - Fraction of all lamps (interior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
+   * - ``lighting_interior_fraction_lfl``
+     - 
+     -
+     - Fraction of all lamps (interior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
+   * - ``lighting_interior_fraction_led``
+     - 
+     -
+     - Fraction of all lamps (interior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
+   * - ``lighting_exterior_fraction_cfl``
+     - 
+     -
+     - Fraction of all lamps (exterior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
+   * - ``lighting_exterior_fraction_lfl``
+     - 
+     -
+     - Fraction of all lamps (exterior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
+   * - ``lighting_exterior_fraction_led``
+     - 
+     -
+     - Fraction of all lamps (exterior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
+   * - ``lighting_garage_fraction_cfl``
+     - 
+     -
+     - Fraction of all lamps (garage) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
+   * - ``lighting_garage_fraction_lfl``
+     - 
+     -
+     - Fraction of all lamps (garage) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
+   * - ``lighting_garage_fraction_led``
+     - 
+     -
+     - Fraction of all lamps (garage) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 .. _lighting_interior_use:
 
@@ -4197,10 +4208,66 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``mech_vent_2_fan_power``
+   * - ``mech_vent_fan_type``
+     - 
+     - "none", "exhaust only", "supply only", "energy recovery ventilator", "heat recovery ventilator", "balanced", "central fan integrated supply"
+     - The type of the mechanical ventilation. Use 'none' if there is no mechanical ventilation system.
+   * - ``mech_vent_flow_rate``
+     - CFM
+     -
+     - The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default is used.
+   * - ``mech_vent_hours_in_operation``
+     - hrs/day
+     -
+     - The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default is used.
+   * - ``mech_vent_recovery_efficiency_type``
+     - 
+     - "Unadjusted", "Adjusted"
+     - The total recovery efficiency type of the mechanical ventilation.
+   * - ``mech_vent_total_recovery_efficiency``
+     - Frac
+     -
+     - The Unadjusted or Adjusted total recovery efficiency of the mechanical ventilation. Applies to energy recovery ventilator.
+   * - ``mech_vent_sensible_recovery_efficiency``
+     - Frac
+     -
+     - The Unadjusted or Adjusted sensible recovery efficiency of the mechanical ventilation. Applies to energy recovery ventilator and heat recovery ventilator.
+   * - ``mech_vent_fan_power``
      - W
      -
-     - The fan power of the second mechanical ventilation.
+     - The fan power of the mechanical ventilation. If not provided, the OS-HPXML default is used.
+   * - ``mech_vent_num_units_served``
+     - #
+     -
+     - Number of dwelling units served by the mechanical ventilation system. Must be 1 if single-family detached. Used to apportion flow rate and fan power to the unit.
+   * - ``mech_vent_shared_frac_recirculation``
+     - Frac
+     -
+     - Fraction of the total supply air that is recirculated, with the remainder assumed to be outdoor air. The value must be 0 for exhaust only systems. Required for a shared mechanical ventilation system.
+   * - ``mech_vent_shared_preheating_fuel``
+     - 
+     - "electricity", "natural gas", "fuel oil", "propane", "wood", "wood pellets", "coal", "auto"
+     - Fuel type of the preconditioning heating equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no preheating.
+   * - ``mech_vent_shared_preheating_efficiency``
+     - COP
+     -
+     - Efficiency of the preconditioning heating equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no preheating.
+   * - ``mech_vent_shared_preheating_fraction_heat_load_served``
+     - Frac
+     -
+     - Fraction of heating load introduced by the shared ventilation system that is met by the preconditioning heating equipment. If not provided, assumes no preheating.
+   * - ``mech_vent_shared_precooling_fuel``
+     - 
+     - "electricity", "auto"
+     - Fuel type of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no precooling.
+   * - ``mech_vent_shared_precooling_efficiency``
+     - COP
+     -
+     - Efficiency of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no precooling.
+   * - ``mech_vent_shared_precooling_fraction_cool_load_served``
+     - Frac
+     -
+     - Fraction of cooling load introduced by the shared ventilation system that is met by the preconditioning cooling equipment. If not provided, assumes no precooling.
    * - ``mech_vent_2_fan_type``
      - 
      - "none", "exhaust only", "supply only", "energy recovery ventilator", "heat recovery ventilator", "balanced"
@@ -4217,74 +4284,22 @@ Arguments
      - 
      - "Unadjusted", "Adjusted"
      - The total recovery efficiency type of the second mechanical ventilation.
-   * - ``mech_vent_2_sensible_recovery_efficiency``
-     - Frac
-     -
-     - The Unadjusted or Adjusted sensible recovery efficiency of the second mechanical ventilation. Applies to energy recovery ventilator and heat recovery ventilator.
    * - ``mech_vent_2_total_recovery_efficiency``
      - Frac
      -
      - The Unadjusted or Adjusted total recovery efficiency of the second mechanical ventilation. Applies to energy recovery ventilator.
-   * - ``mech_vent_fan_power``
+   * - ``mech_vent_2_sensible_recovery_efficiency``
+     - Frac
+     -
+     - The Unadjusted or Adjusted sensible recovery efficiency of the second mechanical ventilation. Applies to energy recovery ventilator and heat recovery ventilator.
+   * - ``mech_vent_2_fan_power``
      - W
      -
-     - The fan power of the mechanical ventilation. If not provided, the OS-HPXML default is used.
-   * - ``mech_vent_fan_type``
+     - The fan power of the second mechanical ventilation.
+   * - ``whole_house_fan_present``
      - 
-     - "none", "exhaust only", "supply only", "energy recovery ventilator", "heat recovery ventilator", "balanced", "central fan integrated supply"
-     - The type of the mechanical ventilation. Use 'none' if there is no mechanical ventilation system.
-   * - ``mech_vent_flow_rate``
-     - CFM
-     -
-     - The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default is used.
-   * - ``mech_vent_hours_in_operation``
-     - hrs/day
-     -
-     - The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default is used.
-   * - ``mech_vent_num_units_served``
-     - #
-     -
-     - Number of dwelling units served by the mechanical ventilation system. Must be 1 if single-family detached. Used to apportion flow rate and fan power to the unit.
-   * - ``mech_vent_recovery_efficiency_type``
-     - 
-     - "Unadjusted", "Adjusted"
-     - The total recovery efficiency type of the mechanical ventilation.
-   * - ``mech_vent_sensible_recovery_efficiency``
-     - Frac
-     -
-     - The Unadjusted or Adjusted sensible recovery efficiency of the mechanical ventilation. Applies to energy recovery ventilator and heat recovery ventilator.
-   * - ``mech_vent_shared_frac_recirculation``
-     - Frac
-     -
-     - Fraction of the total supply air that is recirculated, with the remainder assumed to be outdoor air. The value must be 0 for exhaust only systems. Required for a shared mechanical ventilation system.
-   * - ``mech_vent_shared_precooling_efficiency``
-     - COP
-     -
-     - Efficiency of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no precooling.
-   * - ``mech_vent_shared_precooling_fraction_cool_load_served``
-     - Frac
-     -
-     - Fraction of cooling load introduced by the shared ventilation system that is met by the preconditioning cooling equipment. If not provided, assumes no precooling.
-   * - ``mech_vent_shared_precooling_fuel``
-     - 
-     - "electricity", "auto"
-     - Fuel type of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no precooling.
-   * - ``mech_vent_shared_preheating_efficiency``
-     - COP
-     -
-     - Efficiency of the preconditioning heating equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no preheating.
-   * - ``mech_vent_shared_preheating_fraction_heat_load_served``
-     - Frac
-     -
-     - Fraction of heating load introduced by the shared ventilation system that is met by the preconditioning heating equipment. If not provided, assumes no preheating.
-   * - ``mech_vent_shared_preheating_fuel``
-     - 
-     - "electricity", "natural gas", "fuel oil", "propane", "wood", "wood pellets", "coal", "auto"
-     - Fuel type of the preconditioning heating equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no preheating.
-   * - ``mech_vent_total_recovery_efficiency``
-     - Frac
-     -
-     - The Unadjusted or Adjusted total recovery efficiency of the mechanical ventilation. Applies to energy recovery ventilator.
+     - "true", "false"
+     - Whether there is a whole house fan.
    * - ``whole_house_fan_flow_rate``
      - CFM
      -
@@ -4293,10 +4308,6 @@ Arguments
      - W
      -
      - The fan power of the whole house fan. If not provided, the OS-HPXML default is used.
-   * - ``whole_house_fan_present``
-     - 
-     - "true", "false"
-     - Whether there is a whole house fan.
 
 .. _misc_extra_refrigerator:
 
@@ -4333,14 +4344,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``extra_refrigerator_location``
-     - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the extra refrigerator location. If not provided, the OS-HPXML default is used.
    * - ``extra_refrigerator_present``
      - 
      - "true", "false"
      - Whether there is an extra refrigerator present.
+   * - ``extra_refrigerator_location``
+     - 
+     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - The space type for the extra refrigerator location. If not provided, the OS-HPXML default is used.
    * - ``extra_refrigerator_rated_annual_kwh``
      - kWh/yr
      -
@@ -4385,14 +4396,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``freezer_location``
-     - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the freezer location. If not provided, the OS-HPXML default is used.
    * - ``freezer_present``
      - 
      - "true", "false"
      - Whether there is a freezer present.
+   * - ``freezer_location``
+     - 
+     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - The space type for the freezer location. If not provided, the OS-HPXML default is used.
    * - ``freezer_rated_annual_kwh``
      - kWh/yr
      -
@@ -4432,26 +4443,26 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``misc_fuel_loads_fireplace_annual_therm``
-     - therm/yr
-     -
-     - The annual energy consumption of the fuel loads fireplace. If not provided, the OS-HPXML default is used.
-   * - ``misc_fuel_loads_fireplace_frac_latent``
-     - Frac
-     -
-     - Fraction of fireplace residual fuel loads' internal gains that are latent. If not provided, the OS-HPXML default is used.
-   * - ``misc_fuel_loads_fireplace_frac_sensible``
-     - Frac
-     -
-     - Fraction of fireplace residual fuel loads' internal gains that are sensible. If not provided, the OS-HPXML default is used.
-   * - ``misc_fuel_loads_fireplace_fuel_type``
-     - 
-     - "natural gas", "fuel oil", "propane", "wood", "wood pellets"
-     - The fuel type of the fuel loads fireplace.
    * - ``misc_fuel_loads_fireplace_present``
      - 
      - "true", "false"
      - Whether there is fuel loads fireplace.
+   * - ``misc_fuel_loads_fireplace_fuel_type``
+     - 
+     - "natural gas", "fuel oil", "propane", "wood", "wood pellets"
+     - The fuel type of the fuel loads fireplace.
+   * - ``misc_fuel_loads_fireplace_annual_therm``
+     - therm/yr
+     -
+     - The annual energy consumption of the fuel loads fireplace. If not provided, the OS-HPXML default is used.
+   * - ``misc_fuel_loads_fireplace_frac_sensible``
+     - Frac
+     -
+     - Fraction of fireplace residual fuel loads' internal gains that are sensible. If not provided, the OS-HPXML default is used.
+   * - ``misc_fuel_loads_fireplace_frac_latent``
+     - Frac
+     -
+     - Fraction of fireplace residual fuel loads' internal gains that are latent. If not provided, the OS-HPXML default is used.
    * - ``misc_fuel_loads_fireplace_usage_multiplier``
      - 
      -
@@ -4487,18 +4498,18 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``misc_fuel_loads_grill_annual_therm``
-     - therm/yr
-     -
-     - The annual energy consumption of the fuel loads grill. If not provided, the OS-HPXML default is used.
-   * - ``misc_fuel_loads_grill_fuel_type``
-     - 
-     - "natural gas", "fuel oil", "propane", "wood", "wood pellets"
-     - The fuel type of the fuel loads grill.
    * - ``misc_fuel_loads_grill_present``
      - 
      - "true", "false"
      - Whether there is a fuel loads grill.
+   * - ``misc_fuel_loads_grill_fuel_type``
+     - 
+     - "natural gas", "fuel oil", "propane", "wood", "wood pellets"
+     - The fuel type of the fuel loads grill.
+   * - ``misc_fuel_loads_grill_annual_therm``
+     - therm/yr
+     -
+     - The annual energy consumption of the fuel loads grill. If not provided, the OS-HPXML default is used.
    * - ``misc_fuel_loads_grill_usage_multiplier``
      - 
      -
@@ -4534,18 +4545,18 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``misc_fuel_loads_lighting_annual_therm``
-     - therm/yr
-     -
-     - The annual energy consumption of the fuel loads lighting. If not provided, the OS-HPXML default is used.
-   * - ``misc_fuel_loads_lighting_fuel_type``
-     - 
-     - "natural gas", "fuel oil", "propane", "wood", "wood pellets"
-     - The fuel type of the fuel loads lighting.
    * - ``misc_fuel_loads_lighting_present``
      - 
      - "true", "false"
      - Whether there is fuel loads lighting.
+   * - ``misc_fuel_loads_lighting_fuel_type``
+     - 
+     - "natural gas", "fuel oil", "propane", "wood", "wood pellets"
+     - The fuel type of the fuel loads lighting.
+   * - ``misc_fuel_loads_lighting_annual_therm``
+     - therm/yr
+     -
+     - The annual energy consumption of the fuel loads lighting. If not provided, the OS-HPXML default is used.
    * - ``misc_fuel_loads_lighting_usage_multiplier``
      - 
      -
@@ -4586,22 +4597,6 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``permanent_spa_heater_annual_kwh``
-     - kWh/yr
-     -
-     - The annual energy consumption of the electric resistance permanent spa heater. If not provided, the OS-HPXML default is used.
-   * - ``permanent_spa_heater_annual_therm``
-     - therm/yr
-     -
-     - The annual energy consumption of the gas fired permanent spa heater. If not provided, the OS-HPXML default is used.
-   * - ``permanent_spa_heater_type``
-     - 
-     - "none", "electric resistance", "gas fired", "heat pump"
-     - The type of permanent spa heater. Use 'none' if there is no permanent spa heater.
-   * - ``permanent_spa_heater_usage_multiplier``
-     - 
-     -
-     - Multiplier on the permanent spa heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
    * - ``permanent_spa_present``
      - 
      - "true", "false"
@@ -4614,6 +4609,22 @@ Arguments
      - 
      -
      - Multiplier on the permanent spa pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+   * - ``permanent_spa_heater_type``
+     - 
+     - "none", "electric resistance", "gas fired", "heat pump"
+     - The type of permanent spa heater. Use 'none' if there is no permanent spa heater.
+   * - ``permanent_spa_heater_annual_kwh``
+     - kWh/yr
+     -
+     - The annual energy consumption of the electric resistance permanent spa heater. If not provided, the OS-HPXML default is used.
+   * - ``permanent_spa_heater_annual_therm``
+     - therm/yr
+     -
+     - The annual energy consumption of the gas fired permanent spa heater. If not provided, the OS-HPXML default is used.
+   * - ``permanent_spa_heater_usage_multiplier``
+     - 
+     -
+     - Multiplier on the permanent spa heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 .. _misc_pool:
 
@@ -4685,6 +4696,10 @@ Arguments
      - Units
      - Choices
      - Description
+   * - ``pool_heater_type``
+     - 
+     - "none", "electric resistance", "gas fired", "heat pump"
+     - The type of pool heater. Use 'none' if there is no pool heater.
    * - ``pool_heater_annual_kwh``
      - kWh/yr
      -
@@ -4693,10 +4708,6 @@ Arguments
      - therm/yr
      -
      - The annual energy consumption of the gas fired pool heater. If not provided, the OS-HPXML default is used.
-   * - ``pool_heater_type``
-     - 
-     - "none", "electric resistance", "gas fired", "heat pump"
-     - The type of pool heater. Use 'none' if there is no pool heater.
    * - ``pool_heater_usage_multiplier``
      - 
      -
@@ -4771,22 +4782,22 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``misc_plug_loads_well_pump_2_usage_multiplier``
-     - 
-     -
-     - Additional multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants.
-   * - ``misc_plug_loads_well_pump_annual_kwh``
-     - kWh/yr
-     -
-     - The annual energy consumption of the well pump plug loads. If not provided, the OS-HPXML default is used.
    * - ``misc_plug_loads_well_pump_present``
      - 
      - "true", "false"
      - Whether there is a well pump.
+   * - ``misc_plug_loads_well_pump_annual_kwh``
+     - kWh/yr
+     -
+     - The annual energy consumption of the well pump plug loads. If not provided, the OS-HPXML default is used.
    * - ``misc_plug_loads_well_pump_usage_multiplier``
      - 
      -
      - Multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+   * - ``misc_plug_loads_well_pump_2_usage_multiplier``
+     - 
+     -
+     - Additional multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants.
 
 .. _natural_ventilation:
 
@@ -4853,34 +4864,34 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``neighbor_back_distance``
-     - ft
-     -
-     - The distance between the unit and the neighboring building to the back (not including eaves). A value of zero indicates no neighbors. Used for shading.
-   * - ``neighbor_back_height``
-     - ft
-     -
-     - The height of the neighboring building to the back. If not provided, the OS-HPXML default is used.
    * - ``neighbor_front_distance``
      - ft
      -
      - The distance between the unit and the neighboring building to the front (not including eaves). A value of zero indicates no neighbors. Used for shading.
-   * - ``neighbor_front_height``
+   * - ``neighbor_back_distance``
      - ft
      -
-     - The height of the neighboring building to the front. If not provided, the OS-HPXML default is used.
+     - The distance between the unit and the neighboring building to the back (not including eaves). A value of zero indicates no neighbors. Used for shading.
    * - ``neighbor_left_distance``
      - ft
      -
      - The distance between the unit and the neighboring building to the left (not including eaves). A value of zero indicates no neighbors. Used for shading.
-   * - ``neighbor_left_height``
-     - ft
-     -
-     - The height of the neighboring building to the left. If not provided, the OS-HPXML default is used.
    * - ``neighbor_right_distance``
      - ft
      -
      - The distance between the unit and the neighboring building to the right (not including eaves). A value of zero indicates no neighbors. Used for shading.
+   * - ``neighbor_front_height``
+     - ft
+     -
+     - The height of the neighboring building to the front. If not provided, the OS-HPXML default is used.
+   * - ``neighbor_back_height``
+     - ft
+     -
+     - The height of the neighboring building to the back. If not provided, the OS-HPXML default is used.
+   * - ``neighbor_left_height``
+     - ft
+     -
+     - The height of the neighboring building to the left. If not provided, the OS-HPXML default is used.
    * - ``neighbor_right_height``
      - ft
      -
@@ -4991,54 +5002,54 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``overhangs_back_depth``
-     - ft
-     -
-     - The depth of overhangs for windows for the back facade.
-   * - ``overhangs_back_distance_to_bottom_of_window``
-     - ft
-     -
-     - The overhangs distance to the bottom of window for the back facade.
-   * - ``overhangs_back_distance_to_top_of_window``
-     - ft
-     -
-     - The overhangs distance to the top of window for the back facade.
    * - ``overhangs_front_depth``
      - ft
      -
      - The depth of overhangs for windows for the front facade.
-   * - ``overhangs_front_distance_to_bottom_of_window``
-     - ft
-     -
-     - The overhangs distance to the bottom of window for the front facade.
    * - ``overhangs_front_distance_to_top_of_window``
      - ft
      -
      - The overhangs distance to the top of window for the front facade.
+   * - ``overhangs_front_distance_to_bottom_of_window``
+     - ft
+     -
+     - The overhangs distance to the bottom of window for the front facade.
+   * - ``overhangs_back_depth``
+     - ft
+     -
+     - The depth of overhangs for windows for the back facade.
+   * - ``overhangs_back_distance_to_top_of_window``
+     - ft
+     -
+     - The overhangs distance to the top of window for the back facade.
+   * - ``overhangs_back_distance_to_bottom_of_window``
+     - ft
+     -
+     - The overhangs distance to the bottom of window for the back facade.
    * - ``overhangs_left_depth``
      - ft
      -
      - The depth of overhangs for windows for the left facade.
-   * - ``overhangs_left_distance_to_bottom_of_window``
-     - ft
-     -
-     - The overhangs distance to the bottom of window for the left facade.
    * - ``overhangs_left_distance_to_top_of_window``
      - ft
      -
      - The overhangs distance to the top of window for the left facade.
+   * - ``overhangs_left_distance_to_bottom_of_window``
+     - ft
+     -
+     - The overhangs distance to the bottom of window for the left facade.
    * - ``overhangs_right_depth``
      - ft
      -
      - The depth of overhangs for windows for the right facade.
-   * - ``overhangs_right_distance_to_bottom_of_window``
-     - ft
-     -
-     - The overhangs distance to the bottom of window for the right facade.
    * - ``overhangs_right_distance_to_top_of_window``
      - ft
      -
      - The overhangs distance to the top of window for the right facade.
+   * - ``overhangs_right_distance_to_bottom_of_window``
+     - ft
+     -
+     - The overhangs distance to the bottom of window for the right facade.
 
 .. _puma:
 
@@ -5120,14 +5131,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``pv_system_2_array_azimuth``
-     - degrees
-     -
-     - Array azimuth of the second PV system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
    * - ``pv_system_array_azimuth``
      - degrees
      -
      - Array azimuth of the PV system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
+   * - ``pv_system_2_array_azimuth``
+     - degrees
+     -
+     - Array azimuth of the second PV system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
 
 .. _pv_system_size:
 
@@ -5164,62 +5175,62 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``pv_system_2_array_tilt``
-     - degrees
-     -
-     - Array tilt of the second PV system. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.
-   * - ``pv_system_2_location``
-     - 
-     - "roof", "ground", "auto"
-     - Location of the second PV system. If not provided, the OS-HPXML default is used.
-   * - ``pv_system_2_max_power_output``
-     - W
-     -
-     - Maximum power output of the second PV system. For a shared system, this is the total building maximum power output.
-   * - ``pv_system_2_module_type``
-     - 
-     - "standard", "premium", "thin film", "auto"
-     - Module type of the second PV system. If not provided, the OS-HPXML default is used.
-   * - ``pv_system_2_present``
-     - 
-     - "true", "false"
-     - Whether there is a second PV system present.
-   * - ``pv_system_2_tracking``
-     - 
-     - "fixed", "1-axis", "1-axis backtracked", "2-axis", "auto"
-     - Type of tracking for the second PV system. If not provided, the OS-HPXML default is used.
-   * - ``pv_system_array_tilt``
-     - degrees
-     -
-     - Array tilt of the PV system. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.
-   * - ``pv_system_inverter_efficiency``
-     - Frac
-     -
-     - Inverter efficiency of the PV system. If there are two PV systems, this will apply to both. If not provided, the OS-HPXML default is used.
-   * - ``pv_system_location``
-     - 
-     - "roof", "ground", "auto"
-     - Location of the PV system. If not provided, the OS-HPXML default is used.
-   * - ``pv_system_max_power_output``
-     - W
-     -
-     - Maximum power output of the PV system. For a shared system, this is the total building maximum power output.
-   * - ``pv_system_module_type``
-     - 
-     - "standard", "premium", "thin film", "auto"
-     - Module type of the PV system. If not provided, the OS-HPXML default is used.
    * - ``pv_system_present``
      - 
      - "true", "false"
      - Whether there is a PV system present.
-   * - ``pv_system_system_losses_fraction``
-     - Frac
-     -
-     - System losses fraction of the PV system. If there are two PV systems, this will apply to both. If not provided, the OS-HPXML default is used.
+   * - ``pv_system_module_type``
+     - 
+     - "standard", "premium", "thin film", "auto"
+     - Module type of the PV system. If not provided, the OS-HPXML default is used.
+   * - ``pv_system_location``
+     - 
+     - "roof", "ground", "auto"
+     - Location of the PV system. If not provided, the OS-HPXML default is used.
    * - ``pv_system_tracking``
      - 
      - "fixed", "1-axis", "1-axis backtracked", "2-axis", "auto"
      - Type of tracking for the PV system. If not provided, the OS-HPXML default is used.
+   * - ``pv_system_array_tilt``
+     - degrees
+     -
+     - Array tilt of the PV system. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.
+   * - ``pv_system_max_power_output``
+     - W
+     -
+     - Maximum power output of the PV system. For a shared system, this is the total building maximum power output.
+   * - ``pv_system_inverter_efficiency``
+     - Frac
+     -
+     - Inverter efficiency of the PV system. If there are two PV systems, this will apply to both. If not provided, the OS-HPXML default is used.
+   * - ``pv_system_system_losses_fraction``
+     - Frac
+     -
+     - System losses fraction of the PV system. If there are two PV systems, this will apply to both. If not provided, the OS-HPXML default is used.
+   * - ``pv_system_2_present``
+     - 
+     - "true", "false"
+     - Whether there is a second PV system present.
+   * - ``pv_system_2_module_type``
+     - 
+     - "standard", "premium", "thin film", "auto"
+     - Module type of the second PV system. If not provided, the OS-HPXML default is used.
+   * - ``pv_system_2_location``
+     - 
+     - "roof", "ground", "auto"
+     - Location of the second PV system. If not provided, the OS-HPXML default is used.
+   * - ``pv_system_2_tracking``
+     - 
+     - "fixed", "1-axis", "1-axis backtracked", "2-axis", "auto"
+     - Type of tracking for the second PV system. If not provided, the OS-HPXML default is used.
+   * - ``pv_system_2_array_tilt``
+     - degrees
+     -
+     - Array tilt of the second PV system. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.
+   * - ``pv_system_2_max_power_output``
+     - W
+     -
+     - Maximum power output of the second PV system. For a shared system, this is the total building maximum power output.
 
 .. _plug_load_diversity:
 
@@ -5291,26 +5302,26 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``misc_plug_loads_other_annual_kwh``
-     - kWh/yr
-     -
-     - The annual energy consumption of the other residual plug loads. If not provided, the OS-HPXML default is used.
-   * - ``misc_plug_loads_other_frac_latent``
-     - Frac
-     -
-     - Fraction of other residual plug loads' internal gains that are latent. If not provided, the OS-HPXML default is used.
-   * - ``misc_plug_loads_other_frac_sensible``
-     - Frac
-     -
-     - Fraction of other residual plug loads' internal gains that are sensible. If not provided, the OS-HPXML default is used.
-   * - ``misc_plug_loads_other_usage_multiplier``
-     - 
-     -
-     - Multiplier on the other energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
    * - ``misc_plug_loads_television_present``
      - 
      - "true", "false"
      - Whether there are televisions.
+   * - ``misc_plug_loads_other_annual_kwh``
+     - kWh/yr
+     -
+     - The annual energy consumption of the other residual plug loads. If not provided, the OS-HPXML default is used.
+   * - ``misc_plug_loads_other_frac_sensible``
+     - Frac
+     -
+     - Fraction of other residual plug loads' internal gains that are sensible. If not provided, the OS-HPXML default is used.
+   * - ``misc_plug_loads_other_frac_latent``
+     - Frac
+     -
+     - Fraction of other residual plug loads' internal gains that are latent. If not provided, the OS-HPXML default is used.
+   * - ``misc_plug_loads_other_usage_multiplier``
+     - 
+     -
+     - Multiplier on the other energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
 
 .. _reeds_balancing_area:
 
@@ -5401,6 +5412,10 @@ Arguments
      - Units
      - Choices
      - Description
+   * - ``kitchen_fans_quantity``
+     - #
+     -
+     - The quantity of the kitchen fans. If not provided, the OS-HPXML default is used.
    * - ``kitchen_fans_flow_rate``
      - CFM
      -
@@ -5413,10 +5428,6 @@ Arguments
      - W
      -
      - The fan power of the kitchen fan. If not provided, the OS-HPXML default is used.
-   * - ``kitchen_fans_quantity``
-     - #
-     -
-     - The quantity of the kitchen fans. If not provided, the OS-HPXML default is used.
    * - ``kitchen_fans_start_hour``
      - hr
      -
@@ -5457,14 +5468,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``refrigerator_location``
-     - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the refrigerator location. If not provided, the OS-HPXML default is used.
    * - ``refrigerator_present``
      - 
      - "true", "false"
      - Whether there is a refrigerator present.
+   * - ``refrigerator_location``
+     - 
+     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - The space type for the refrigerator location. If not provided, the OS-HPXML default is used.
    * - ``refrigerator_rated_annual_kwh``
      - kWh/yr
      -
@@ -5545,14 +5556,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``roof_color``
-     - 
-     - "dark", "light", "medium", "medium dark", "reflective", "auto"
-     - The color of the roof. If not provided, the OS-HPXML default is used.
    * - ``roof_material_type``
      - 
      - "asphalt or fiberglass shingles", "concrete", "cool roof", "slate or tile shingles", "expanded polystyrene sheathing", "metal surfacing", "plastic/rubber/synthetic sheeting", "shingles", "wood shingles or shakes", "auto"
      - The material type of the roof. If not provided, the OS-HPXML default is used.
+   * - ``roof_color``
+     - 
+     - "dark", "light", "medium", "medium dark", "reflective", "auto"
+     - The color of the roof. If not provided, the OS-HPXML default is used.
 
 .. _solar_hot_water:
 
@@ -5584,18 +5595,30 @@ Arguments
      - Units
      - Choices
      - Description
+   * - ``solar_thermal_system_type``
+     - 
+     - "none", "hot water"
+     - The type of solar thermal system. Use 'none' if there is no solar thermal system.
    * - ``solar_thermal_collector_area``
      - ft^2
      -
      - The collector area of the solar thermal system.
-   * - ``solar_thermal_collector_azimuth``
-     - degrees
-     -
-     - The collector azimuth of the solar thermal system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
    * - ``solar_thermal_collector_loop_type``
      - 
      - "liquid direct", "liquid indirect", "passive thermosyphon"
      - The collector loop type of the solar thermal system.
+   * - ``solar_thermal_collector_type``
+     - 
+     - "evacuated tube", "single glazing black", "double glazing black", "integrated collector storage"
+     - The collector type of the solar thermal system.
+   * - ``solar_thermal_collector_azimuth``
+     - degrees
+     -
+     - The collector azimuth of the solar thermal system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
+   * - ``solar_thermal_collector_tilt``
+     - degrees
+     -
+     - The collector tilt of the solar thermal system. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.
    * - ``solar_thermal_collector_rated_optical_efficiency``
      - Frac
      -
@@ -5604,26 +5627,14 @@ Arguments
      - Btu/hr-ft^2-R
      -
      - The collector rated thermal losses of the solar thermal system.
-   * - ``solar_thermal_collector_tilt``
-     - degrees
-     -
-     - The collector tilt of the solar thermal system. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.
-   * - ``solar_thermal_collector_type``
-     - 
-     - "evacuated tube", "single glazing black", "double glazing black", "integrated collector storage"
-     - The collector type of the solar thermal system.
-   * - ``solar_thermal_solar_fraction``
-     - Frac
-     -
-     - The solar fraction of the solar thermal system. If provided, overrides all other solar thermal inputs.
    * - ``solar_thermal_storage_volume``
      - gal
      -
      - The storage volume of the solar thermal system. If not provided, the OS-HPXML default is used.
-   * - ``solar_thermal_system_type``
-     - 
-     - "none", "hot water"
-     - The type of solar thermal system. Use 'none' if there is no solar thermal system.
+   * - ``solar_thermal_solar_fraction``
+     - Frac
+     -
+     - The solar fraction of the solar thermal system. If provided, overrides all other solar thermal inputs.
 
 .. _state:
 
@@ -5780,14 +5791,14 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``vintage``
-     - 
-     -
-     - The building vintage, used for informational purposes only.
    * - ``year_built``
      - 
      -
      - The year the building was built.
+   * - ``vintage``
+     - 
+     -
+     - The building vintage, used for informational purposes only.
 
 .. _vintage_acs:
 
@@ -5844,70 +5855,70 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``water_heater_efficiency``
-     - 
-     -
-     - Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating boilers.
-   * - ``water_heater_efficiency_type``
-     - 
-     - "EnergyFactor", "UniformEnergyFactor"
-     - The efficiency type of water heater. Does not apply to space-heating boilers.
-   * - ``water_heater_fuel_type``
-     - 
-     - "electricity", "natural gas", "fuel oil", "propane", "wood", "coal"
-     - The fuel type of water heater. Ignored for heat pump water heater.
-   * - ``water_heater_has_flue_or_chimney``
-     - 
-     -
-     - Whether the water heater has a flue or chimney.
-   * - ``water_heater_heating_capacity``
-     - Btu/hr
-     -
-     - Heating capacity. Only applies to storage water heater. If not provided, the OS-HPXML default is used.
-   * - ``water_heater_jacket_rvalue``
-     - h-ft^2-R/Btu
-     -
-     - The jacket R-value of water heater. Doesn't apply to instantaneous water heater or space-heating boiler with tankless coil. If not provided, defaults to no jacket insulation.
-   * - ``water_heater_num_units_served``
-     - #
-     -
-     - Number of dwelling units served (directly or indirectly) by the water heater. Must be 1 if single-family detached. Used to apportion water heater tank losses to the unit.
-   * - ``water_heater_operating_mode``
-     - 
-     - "hybrid/auto", "heat pump only", "auto"
-     - The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'hybrid/auto' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to heat pump water heater. If not provided, the OS-HPXML default is used.
-   * - ``water_heater_recovery_efficiency``
-     - Frac
-     -
-     - Ratio of energy delivered to water heater to the energy content of the fuel consumed by the water heater. Only used for non-electric storage water heaters. If not provided, the OS-HPXML default is used.
-   * - ``water_heater_setpoint_temperature``
-     - deg-F
-     -
-     - The setpoint temperature of water heater. If not provided, the OS-HPXML default is used.
-   * - ``water_heater_standby_loss``
-     - deg-F/hr
-     -
-     - The standby loss of water heater. Only applies to space-heating boilers. If not provided, the OS-HPXML default is used.
-   * - ``water_heater_tank_model_type``
-     - 
-     - "mixed", "stratified", "auto"
-     - Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time. Applies only to storage water heater. If not provided, the OS-HPXML default is used.
-   * - ``water_heater_tank_volume``
-     - gal
-     -
-     - Nominal volume of water heater tank. Only applies to storage water heater, heat pump water heater, and space-heating boiler with storage tank. If not provided, the OS-HPXML default is used.
    * - ``water_heater_type``
      - 
      - "none", "storage water heater", "instantaneous water heater", "heat pump water heater", "space-heating boiler with storage tank", "space-heating boiler with tankless coil"
      - The type of water heater. Use 'none' if there is no water heater.
+   * - ``water_heater_fuel_type``
+     - 
+     - "electricity", "natural gas", "fuel oil", "propane", "wood", "coal"
+     - The fuel type of water heater. Ignored for heat pump water heater.
+   * - ``water_heater_tank_volume``
+     - gal
+     -
+     - Nominal volume of water heater tank. Only applies to storage water heater, heat pump water heater, and space-heating boiler with storage tank. If not provided, the OS-HPXML default is used.
+   * - ``water_heater_efficiency_type``
+     - 
+     - "EnergyFactor", "UniformEnergyFactor"
+     - The efficiency type of water heater. Does not apply to space-heating boilers.
+   * - ``water_heater_efficiency``
+     - 
+     -
+     - Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating boilers.
    * - ``water_heater_usage_bin``
      - 
      - "very small", "low", "medium", "high", "auto"
      - The usage of the water heater. Only applies if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers. If not provided, the OS-HPXML default is used.
+   * - ``water_heater_recovery_efficiency``
+     - Frac
+     -
+     - Ratio of energy delivered to water heater to the energy content of the fuel consumed by the water heater. Only used for non-electric storage water heaters. If not provided, the OS-HPXML default is used.
+   * - ``water_heater_heating_capacity``
+     - Btu/hr
+     -
+     - Heating capacity. Only applies to storage water heater. If not provided, the OS-HPXML default is used.
+   * - ``water_heater_standby_loss``
+     - deg-F/hr
+     -
+     - The standby loss of water heater. Only applies to space-heating boilers. If not provided, the OS-HPXML default is used.
+   * - ``water_heater_jacket_rvalue``
+     - h-ft^2-R/Btu
+     -
+     - The jacket R-value of water heater. Doesn't apply to instantaneous water heater or space-heating boiler with tankless coil. If not provided, defaults to no jacket insulation.
+   * - ``water_heater_setpoint_temperature``
+     - deg-F
+     -
+     - The setpoint temperature of water heater. If not provided, the OS-HPXML default is used.
+   * - ``water_heater_num_units_served``
+     - #
+     -
+     - Number of dwelling units served (directly or indirectly) by the water heater. Must be 1 if single-family detached. Used to apportion water heater tank losses to the unit.
    * - ``water_heater_uses_desuperheater``
      - 
      -
      - Requires that the dwelling unit has a air-to-air, mini-split, or ground-to-air heat pump or a central air conditioner or mini-split air conditioner. If not provided, assumes no desuperheater.
+   * - ``water_heater_tank_model_type``
+     - 
+     - "mixed", "stratified", "auto"
+     - Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time. Applies only to storage water heater. If not provided, the OS-HPXML default is used.
+   * - ``water_heater_operating_mode``
+     - 
+     - "hybrid/auto", "heat pump only", "auto"
+     - The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'hybrid/auto' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to heat pump water heater. If not provided, the OS-HPXML default is used.
+   * - ``water_heater_has_flue_or_chimney``
+     - 
+     -
+     - Whether the water heater has a flue or chimney.
 
 .. _water_heater_fuel:
 
@@ -6034,30 +6045,30 @@ Arguments
      - Units
      - Choices
      - Description
-   * - ``skylight_area_back``
-     - ft^2
+   * - ``window_front_wwr``
+     - Frac
      -
-     - The amount of skylight area on the unit's back conditioned roof facade.
-   * - ``skylight_area_front``
-     - ft^2
+     - The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.
+   * - ``window_back_wwr``
+     - Frac
      -
-     - The amount of skylight area on the unit's front conditioned roof facade.
-   * - ``skylight_area_left``
-     - ft^2
+     - The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.
+   * - ``window_left_wwr``
+     - Frac
      -
-     - The amount of skylight area on the unit's left conditioned roof facade (when viewed from the front).
-   * - ``skylight_area_right``
-     - ft^2
+     - The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.
+   * - ``window_right_wwr``
+     - Frac
      -
-     - The amount of skylight area on the unit's right conditioned roof facade (when viewed from the front).
-   * - ``window_area_back``
-     - ft^2
-     -
-     - The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.
+     - The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.
    * - ``window_area_front``
      - ft^2
      -
      - The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.
+   * - ``window_area_back``
+     - ft^2
+     -
+     - The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.
    * - ``window_area_left``
      - ft^2
      -
@@ -6070,22 +6081,22 @@ Arguments
      - Frac
      -
      - Ratio of window height to width.
-   * - ``window_back_wwr``
-     - Frac
+   * - ``skylight_area_front``
+     - ft^2
      -
-     - The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.
-   * - ``window_front_wwr``
-     - Frac
+     - The amount of skylight area on the unit's front conditioned roof facade.
+   * - ``skylight_area_back``
+     - ft^2
      -
-     - The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.
-   * - ``window_left_wwr``
-     - Frac
+     - The amount of skylight area on the unit's back conditioned roof facade.
+   * - ``skylight_area_left``
+     - ft^2
      -
-     - The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.
-   * - ``window_right_wwr``
-     - Frac
+     - The amount of skylight area on the unit's left conditioned roof facade (when viewed from the front).
+   * - ``skylight_area_right``
+     - ft^2
      -
-     - The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.
+     - The amount of skylight area on the unit's right conditioned roof facade (when viewed from the front).
 
 .. _windows:
 
@@ -6122,6 +6133,34 @@ Arguments
      - Units
      - Choices
      - Description
+   * - ``window_natvent_availability``
+     - Days/week
+     -
+     - For operable windows, the number of days/week that windows can be opened by occupants for natural ventilation. If not provided, the OS-HPXML default is used.
+   * - ``window_ufactor``
+     - Btu/hr-ft^2-R
+     -
+     - Full-assembly NFRC U-factor.
+   * - ``window_shgc``
+     - 
+     -
+     - Full-assembly NFRC solar heat gain coefficient.
+   * - ``window_exterior_shading_winter``
+     - Frac
+     -
+     - Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
+   * - ``window_exterior_shading_summer``
+     - Frac
+     -
+     - Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
+   * - ``window_shading_summer_season``
+     - 
+     -
+     - Enter a date like "May 1 - Sep 30". Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default is used.
+   * - ``skylight_ufactor``
+     - Btu/hr-ft^2-R
+     -
+     - Full-assembly NFRC U-factor.
    * - ``skylight_shgc``
      - 
      -
@@ -6130,32 +6169,4 @@ Arguments
      - 
      - "clear", "low-e", "auto"
      - The type of storm, if present. If not provided, assumes there is no storm.
-   * - ``skylight_ufactor``
-     - Btu/hr-ft^2-R
-     -
-     - Full-assembly NFRC U-factor.
-   * - ``window_exterior_shading_summer``
-     - Frac
-     -
-     - Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
-   * - ``window_exterior_shading_winter``
-     - Frac
-     -
-     - Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
-   * - ``window_natvent_availability``
-     - Days/week
-     -
-     - For operable windows, the number of days/week that windows can be opened by occupants for natural ventilation. If not provided, the OS-HPXML default is used.
-   * - ``window_shading_summer_season``
-     - 
-     -
-     - Enter a date like "May 1 - Sep 30". Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default is used.
-   * - ``window_shgc``
-     - 
-     -
-     - Full-assembly NFRC solar heat gain coefficient.
-   * - ``window_ufactor``
-     - Btu/hr-ft^2-R
-     -
-     - Full-assembly NFRC U-factor.
 
