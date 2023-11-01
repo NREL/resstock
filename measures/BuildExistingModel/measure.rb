@@ -339,7 +339,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    whole_sfa_mf_building = true
+    whole_sfa_mf_building = false
+    if geometry_building_num_units < 5
+      whole_sfa_mf_building = true
+    end
+
     num_units_modeled = 1
     unit_multipliers = []
 
