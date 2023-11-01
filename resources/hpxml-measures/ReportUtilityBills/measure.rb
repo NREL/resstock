@@ -165,7 +165,6 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     building_id = @model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
 
-    # FIXME: Relax this constraint (using a new building_id measure argument?)
     @hpxml_header = hpxml.header
     @hpxml_buildings = hpxml.buildings
     if @hpxml_header.utility_bill_scenarios.has_detailed_electric_rates
@@ -245,7 +244,6 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     building_id = @model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
 
-    # FIXME: Relax this constraint (using a new building_id measure argument?)
     @hpxml_header = hpxml.header
     @hpxml_buildings = hpxml.buildings
     if @hpxml_header.utility_bill_scenarios.has_detailed_electric_rates

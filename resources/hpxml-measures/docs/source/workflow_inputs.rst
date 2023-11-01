@@ -29,12 +29,54 @@ HPXML files submitted to OpenStudio-HPXML undergo a two step validation process:
 
 OpenStudio-HPXML **automatically validates** the HPXML file against both the XSD and Schematron documents and reports any validation errors, but software developers may find it beneficial to also integrate validation into their software.
 
-.. important::
+.. _bldg_type_scope:
 
-  Usage of both validation approaches (XSD and Schematron) is recommended for developers actively working on creating HPXML files for EnergyPlus simulations:
+Building Type Scope
+*******************
 
-  - Validation against XSD for general correctness and usage of HPXML
-  - Validation against Schematron for understanding XML document requirements specific to running EnergyPlus
+OpenStudio-HPXML can be used to model either individual residential dwelling units or whole residential buildings.
+
+.. _bldg_type_units:
+
+Dwelling Units
+~~~~~~~~~~~~~~
+
+The OpenStudio-HPXML workflow was originally developed to model individual residential dwelling units -- either a single-family detached (SFD) building, or a single unit of a single-family attached (SFA) or multifamily (MF) building.
+This approach:
+
+- Is required/desired for certain applications (e.g., a Home Energy Score or an Energy Rating Index calculation).
+- Improves runtime speed by being able to simulate individual units in parallel (as opposed to simulating the entire building).
+
+When modeling individual units of SFA/MF buildings, current capabilities include:
+
+- Defining surfaces adjacent to generic SFA/MF spaces (e.g., "other housing unit" or "other multifamily buffer space"), in which temperature profiles will be assumed (see :ref:`hpxmllocations`).
+- Locating various building components (e.g., ducts, water heaters, appliances) in these SFA/MF spaces.
+- Defining shared systems (HVAC, water heating, mechanical ventilation, etc.), in which individual systems are modeled with adjustments to approximate their energy use attributed to the unit.
+
+Note that only the energy use attributed to each dwelling unit is calculated.
+
+.. _bldg_type_bldgs:
+
+Whole SFA/MF Buildings
+~~~~~~~~~~~~~~~~~~~~~~
+
+As of OpenStudio-HPXML v1.7.0, a new capability was added for modeling whole SFA/MF buildings in a single combined simulation.
+
+For these simulations:
+
+- Each dwelling unit is described by a separate ``Building`` element in the HPXML file.
+- To run the single combined simulation, specify the Building ID as 'ALL' in the run_simulation.rb script or OpenStudio workflow.
+- Unit multipliers (using the ``NumberofUnits`` element) can be specified to model *unique* dwelling units, rather than *all* dwelling units, reducing simulation runtime.
+- Adjacent SFA/MF common spaces are still modeled using assumed temperature profiles, not as separate thermal zones.
+- Shared systems are still modeled as individual systems, not shared systems connected to multiple dwelling unit.
+
+Notes/caveats about this approach:
+
+- Some inputs (e.g., EPW location or ground conductivity) cannot vary across ``Building`` elements.
+- Batteries are not currently supported. Dehumidifiers and ground-source heat pumps are only supported if ``NumberofUnits`` is 1.
+- Utility bill calculations using detailed rates are not supported.
+
+Note that only the energy use for the entire building is calculated.
 
 Input Defaults
 **************
@@ -217,10 +259,11 @@ For simple utility rate structures, inputs can be entered using a fixed charge a
   Element                           Type      Units    Constraints  Required  Default   Notes
   ================================  ========  =======  ===========  ========  ========  ====================
   ``FuelType``                      string             electricity  Yes                 Fuel type
-  ``FixedCharge``                   double    $/month               No        12.0      Monthly fixed charge
+  ``FixedCharge``                   double    $/month               No        12.0      Monthly fixed charge [#]_
   ``MarginalRate``                  double    $/kWh                 No        See [#]_  Marginal flat rate
   ================================  ========  =======  ===========  ========  ========  ====================
 
+  .. [#] If running :ref:`bldg_type_bldgs`, the fixed charge will apply to every dwelling unit in the building.
   .. [#] If MarginalRate not provided, defaults to state, regional, or national average based on 2022 EIA data that can be found at ``ReportUtilityBills/resources/Data/UtilityRates/Average_retail_price_of_electricity.csv``.
 
 **Detailed**
@@ -452,7 +495,7 @@ Building construction is entered in ``/HPXML/Building/BuildingDetails/BuildingSu
   .. [#] ResidentialFacilityType choices are "single-family detached", "single-family attached", "apartment unit", or "manufactured home".
   .. [#] NumberofUnits defines the number of similar dwelling units represented by the HPXML ``Building`` element.
          EnergyPlus simulation results will be multiplied by this value.
-         For example, when modeling a whole SFA/MF building, this allows modeling *unique* dwelling units, rather than *all* dwelling units, to reduce simulation runtime.
+         For example, when modeling :ref:`bldg_type_bldgs`, this allows modeling *unique* dwelling units, rather than *all* dwelling units, to reduce simulation runtime.
   .. [#] If NumberofBathrooms not provided, calculated as NumberofBedrooms/2 + 0.5 based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
   .. [#] If neither ConditionedBuildingVolume nor AverageCeilingHeight provided, AverageCeilingHeight defaults to the lesser of 8.0 and InfiltrationVolume / ConditionedFloorArea.
          If needed, additional defaulting is performed using the following relationship: ConditionedBuildingVolume = ConditionedFloorArea * AverageCeilingHeight + ConditionedCrawlspaceVolume.
@@ -2252,9 +2295,10 @@ Distribution System Efficiency (DSE)
 .. warning::
 
   A simplified DSE model is provided for flexibility, but it is **strongly** recommended to use one of the other detailed distribution system types for better accuracy.
-  Also note that when specifying a DSE system, its effect is reflected in the :ref:`workflow_outputs` but is **not** reflected in the raw EnergyPlus simulation outputs.
+  The DSE input is simply applied to heating/cooling energy use for every hour of the year.
+  Note that when specifying a DSE, its effect is reflected in the :ref:`workflow_outputs` but is **not** reflected in the raw EnergyPlus simulation outputs.
 
-To define a DSE system, additional information is entered in ``HVACDistribution``.
+To define a DSE, additional information is entered in ``HVACDistribution``.
 
   =============================================  =======  =======  ===========  ========  =========  ===================================================
   Element                                        Type     Units    Constraints  Required  Default    Notes
@@ -2263,7 +2307,7 @@ To define a DSE system, additional information is entered in ``HVACDistribution`
   ``AnnualCoolingDistributionSystemEfficiency``  double   frac     0 - 1        Yes                  Seasonal distribution system efficiency for cooling
   =============================================  =======  =======  ===========  ========  =========  ===================================================
 
-  DSE values can be calculated from `ASHRAE Standard 152 <https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet>`_.
+  DSE values can be calculated using, e.g., `ASHRAE Standard 152 <https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet>`_.
 
 HPXML Ventilation Fan
 *********************

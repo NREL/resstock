@@ -726,7 +726,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
       'base-foundation-walkout-basement.xml' => 2,                    # 1 basement foundation with 1 effective below-grade depth + additional no-wall exposed perimeter
       'base-foundation-multiple.xml' => 2,                            # 1 basement foundation + 1 crawlspace foundation
       'base-foundation-complex.xml' => 6,                             # 2 basement foundations, each with 1 effective below-grade depth + additional no-wall exposed perimeter
-      'base-bldgtype-attached-2stories.xml' => 1,                     # 1 basement foundation
+      'base-bldgtype-sfa-unit-2stories.xml' => 1,                     # 1 basement foundation
       'base-enclosure-2stories-garage.xml' => 2,                      # 1 basement foundation + 1 garage slab
     }
 
@@ -983,7 +983,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
 
   def test_aspect_ratios
     # Test single-family attached
-    _hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-attached.xml')
+    _hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     wall_outside = hpxml_bldg.walls.find { |w| w.exterior_adjacent_to == HPXML::LocationOutside && w.interior_adjacent_to == HPXML::LocationConditionedSpace }
     wall_other_housing_unit = hpxml_bldg.walls.find { |w| w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit && w.interior_adjacent_to == HPXML::LocationConditionedSpace }
 
@@ -993,7 +993,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
     assert_in_delta(0.6667, front_back_wall_length / left_right_wall_length, 0.01)
 
     # Test multifamily
-    _hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-multifamily.xml')
+    _hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit.xml')
     wall_outside = hpxml_bldg.walls.find { |w| w.exterior_adjacent_to == HPXML::LocationOutside && w.interior_adjacent_to == HPXML::LocationConditionedSpace }
     wall_other_housing_unit = hpxml_bldg.walls.find { |w| w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit && w.interior_adjacent_to == HPXML::LocationConditionedSpace }
 

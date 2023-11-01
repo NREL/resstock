@@ -237,9 +237,17 @@ class HotWaterAndAppliances
       if fixtures.size > 0
         if fixtures.any? { |wf| wf.count.nil? }
           showerheads = fixtures.select { |wf| wf.water_fixture_type == HPXML::WaterFixtureTypeShowerhead }
-          frac_low_flow_showerheads = showerheads.select { |wf| wf.low_flow }.size / Float(showerheads.size)
+          if showerheads.size > 0
+            frac_low_flow_showerheads = showerheads.select { |wf| wf.low_flow }.size / Float(showerheads.size)
+          else
+            frac_low_flow_showerheads = 0.0
+          end
           faucets = fixtures.select { |wf| wf.water_fixture_type == HPXML::WaterFixtureTypeFaucet }
-          frac_low_flow_faucets = faucets.select { |wf| wf.low_flow }.size / Float(faucets.size)
+          if faucets.size > 0
+            frac_low_flow_faucets = faucets.select { |wf| wf.low_flow }.size / Float(faucets.size)
+          else
+            frac_low_flow_faucets = 0.0
+          end
           frac_low_flow_fixtures = 0.4 * frac_low_flow_showerheads + 0.6 * frac_low_flow_faucets
         else
           num_wfs = fixtures.map { |wf| wf.count }.sum
@@ -877,7 +885,7 @@ class HotWaterAndAppliances
   end
 
   def self.calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, frac_low_flow_fixtures)
-    wh_temps_daily = weather.data.MainsDailyTemps
+    wh_temps_daily = weather.data.MainsDailyTemps.dup
     if (not hot_water_distribution.dwhr_efficiency.nil?)
       dwhr_eff_adj, dwhr_iFrac, dwhr_plc, dwhr_locF, dwhr_fixF = get_dwhr_factors(nbeds, hot_water_distribution, frac_low_flow_fixtures)
       # Adjust inlet temperatures

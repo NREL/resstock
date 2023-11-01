@@ -292,7 +292,8 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
 
     # Test air conditioner + furnace
-    hpxml, hpxml_bldg = _create_hpxml('base-hvac-undersized-allow-increased-fixed-capacities.xml')
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-undersized.xml')
+    hpxml_bldg.header.allow_increased_fixed_capacities = true
     htg_cap = hpxml_bldg.heating_systems[0].heating_capacity
     clg_cap = hpxml_bldg.cooling_systems[0].cooling_capacity
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)

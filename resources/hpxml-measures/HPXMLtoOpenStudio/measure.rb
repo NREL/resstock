@@ -138,11 +138,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
 
       if (building_id == 'ALL') && (hpxml.buildings.size > 1)
-        if hpxml.buildings.map { |hpxml_bldg| hpxml_bldg.batteries.size }.sum > 1
-          # FIXME: Figure out how to allow this. If we allow it, update docs and hpxml_translator_test.rb too.
+        if hpxml.buildings.map { |hpxml_bldg| hpxml_bldg.batteries.size }.sum > 0
+          # FUTURE: Figure out how to allow this. If we allow it, update docs and hpxml_translator_test.rb too.
           # Batteries use "TrackFacilityElectricDemandStoreExcessOnSite"; to support modeling of batteries in whole
           # SFA/MF building simulations, we'd need to create custom meters with electricity usage *for each unit*
           # and switch to "TrackMeterDemandStoreExcessOnSite".
+          # https://github.com/NREL/OpenStudio-HPXML/issues/1499
           fail 'Modeling batteries for whole SFA/MF buildings is not currently supported.'
         end
       end
@@ -290,7 +291,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
   def shift_geometry(unit_model, unit_number)
     # Shift units so they aren't right on top and shade each other
-    # FIXME: Need to determine the value below based on the model
     y_shift = 200.0 * unit_number # meters
 
     # shift the unit so it's not right on top of the previous one
@@ -2215,8 +2215,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       program.addLine("If #{clg_cond_load_sensors[unit].name} > 0")
       program.addLine("  Set loads_clg_tot = loads_clg_tot + (#{clg_cond_load_sensors[unit].name} - #{htg_cond_load_sensors[unit].name}) * #{total_cool_load_serveds[unit]}")
       for i in 0..clg_duct_load_sensors[unit].size - 1
-        # FIXME: Seems like the duct load shouldn't be multiplied by total_cool_load_serveds? Need to check.
-        # Code below mirrors what we do on the master branch.
         program.addLine("  Set loads_clg_tot = loads_clg_tot + (#{clg_duct_load_sensors[unit][i].name} - #{htg_duct_load_sensors[unit][i].name}) * #{total_cool_load_serveds[unit]}")
       end
       if not dehumidifier_sensors[unit].nil?

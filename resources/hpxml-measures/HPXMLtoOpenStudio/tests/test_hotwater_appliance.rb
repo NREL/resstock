@@ -233,7 +233,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
 
   def test_dhw_shared_water_heater_recirc
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-water-heater-recirc.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-mf-unit-shared-water-heater-recirc.xml'))
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # water use equipment peak flows
@@ -301,7 +301,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
 
   def test_dhw_shared_laundry
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-mf-unit-shared-laundry-room.xml'))
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # water use equipment peak flows

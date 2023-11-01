@@ -42,7 +42,7 @@ class HPXMLtoOpenStudioGeneratorTest < Minitest::Test
 
   def test_generator_shared
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-generator.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-mf-unit-shared-generator.xml'))
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     hpxml_bldg.generators.each do |hpxml_generator|

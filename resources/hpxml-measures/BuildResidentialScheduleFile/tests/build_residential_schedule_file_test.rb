@@ -277,7 +277,10 @@ class BuildResidentialScheduleFileTest < Minitest::Test
   end
 
   def test_multiple_buildings
-    hpxml = _create_hpxml('base-multiple-buildings.xml')
+    hpxml = _create_hpxml('base-multiple-sfd-buildings.xml')
+    hpxml.buildings.each do |hpxml_bldg|
+      hpxml_bldg.header.schedules_filepaths = nil
+    end
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
 
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-stochastic.csv'))
@@ -353,7 +356,10 @@ class BuildResidentialScheduleFileTest < Minitest::Test
   end
 
   def test_multiple_buildings_id
-    hpxml = _create_hpxml('base-multiple-buildings.xml')
+    hpxml = _create_hpxml('base-multiple-sfd-buildings.xml')
+    hpxml.buildings.each do |hpxml_bldg|
+      hpxml_bldg.header.schedules_filepaths = nil
+    end
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
 
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-stochastic_2.csv'))

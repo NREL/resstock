@@ -133,7 +133,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_multifamily
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-multifamily.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit.xml'))
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
@@ -145,7 +145,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_multifamily_compartmentalization
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-multifamily-infil-compartmentalization-test.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-infil-compartmentalization-test.xml'))
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
@@ -497,7 +497,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_shared_mechvent_multiple
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-mechvent-multiple.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-shared-mechvent-multiple.xml'))
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -664,7 +664,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_delta(3900, total_area, 1.0)
 
     # Test multifamily
-    _hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-multifamily.xml')
+    _hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit.xml')
     total_area, exterior_area = hpxml_bldg.compartmentalization_boundary_areas
     assert_in_delta(686, exterior_area, 1.0)
     assert_in_delta(2780, total_area, 1.0)

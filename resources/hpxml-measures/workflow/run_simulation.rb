@@ -133,7 +133,7 @@ OptionParser.new do |opts|
   end
 
   options[:timeseries_output_variables] = []
-  opts.on('--add-timeseries-output-variable NAME', 'Add timeseries output variable; can be called multiple times') do |t|
+  opts.on('-t', '--add-timeseries-output-variable NAME', 'Add timeseries output variable; can be called multiple times') do |t|
     options[:timeseries_output_variables] << t
   end
 
@@ -142,7 +142,7 @@ OptionParser.new do |opts|
     options[:ep_input_format] = t
   end
 
-  opts.on('-b', '--building-id <ID>', 'ID of Building to simulate (required when multiple HPXML Building elements); use "ALL" to simulate a single whole MF building model') do |t|
+  opts.on('-b', '--building-id ID', 'ID of Building to simulate (required when multiple HPXML Building elements); use "ALL" to simulate a single whole MF building') do |t|
     options[:building_id] = t
   end
 

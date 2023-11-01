@@ -723,11 +723,14 @@ class Schedule
     # Add off rule(s), will override previous rules
     unavailable_periods.each_with_index do |period, i|
       # Special Values
-      if sch_name.include? Constants.ObjectNameWaterHeaterSetpoint # FIXME: Update
+      # FUTURE: Assign an object type to the schedules and use that to determine what
+      # kind of schedule each is, rather than looking at object names. That would
+      # be more robust. See https://github.com/NREL/OpenStudio-HPXML/issues/1450.
+      if sch_name.include? Constants.ObjectNameWaterHeaterSetpoint
         # Water heater setpoint
         # Temperature of tank < 2C indicates of possibility of freeze.
         value = 2.0
-      elsif sch_name.include? Constants.ObjectNameNaturalVentilation # FIXME: Update
+      elsif sch_name.include? Constants.ObjectNameNaturalVentilation
         if period.natvent_availability == HPXML::ScheduleRegular
           next # don't change the natural ventilation availability schedule
         elsif period.natvent_availability == HPXML::ScheduleAvailable

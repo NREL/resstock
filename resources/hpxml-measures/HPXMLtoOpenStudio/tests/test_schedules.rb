@@ -114,7 +114,14 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
 
   def test_simple_vacancy_year_round_schedules
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-simple-vacancy-year-round.xml'))
+    hpxml_path = File.absolute_path(File.join(sample_files_dir, 'base-schedules-simple-vacancy.xml'))
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    hpxml.header.unavailable_periods[0].begin_month = 1
+    hpxml.header.unavailable_periods[0].begin_day = 1
+    hpxml.header.unavailable_periods[0].end_month = 12
+    hpxml.header.unavailable_periods[0].end_day = 31
+    XMLHelper.write_file(hpxml.to_doc(), @tmp_hpxml_path)
+    args_hash['hpxml_path'] = @tmp_hpxml_path
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     vacancy_hrs = 8760.0
@@ -276,7 +283,14 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
 
   def test_stochastic_vacancy_year_round_schedules
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-vacancy-year-round.xml'))
+    hpxml_path = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-vacancy.xml'))
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    hpxml.header.unavailable_periods[0].begin_month = 1
+    hpxml.header.unavailable_periods[0].begin_day = 1
+    hpxml.header.unavailable_periods[0].end_month = 12
+    hpxml.header.unavailable_periods[0].end_day = 31
+    XMLHelper.write_file(hpxml.to_doc(), @tmp_hpxml_path)
+    args_hash['hpxml_path'] = @tmp_hpxml_path
     model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
     schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|

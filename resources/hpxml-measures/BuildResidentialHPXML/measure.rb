@@ -3994,6 +3994,7 @@ class HPXMLFile
     end
 
     hpxml.buildings.add(building_id: 'MyBuilding',
+                        site_id: 'SiteID',
                         event_type: 'proposed workscope',
                         zip_code: zip_code,
                         state_code: state_code,

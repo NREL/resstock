@@ -238,7 +238,8 @@ class ReportUtilityBillsTest < Minitest::Test
 
   def test_workflow_no_bill_scenarios
     @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
-    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-bills-none.xml'))
+    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+    hpxml.header.utility_bill_scenarios.clear
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     actual_bills, _actual_monthly_bills = _test_measure(hpxml: hpxml)
     assert_nil(actual_bills)
@@ -294,7 +295,9 @@ class ReportUtilityBillsTest < Minitest::Test
 
   def test_warning_region
     @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
-    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-appliances-oil-location-miami-fl.xml'))
+    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-appliances-oil.xml'))
+    hpxml.buildings[0].state_code = 'FL'
+    hpxml.buildings[0].climate_and_risk_zones.weather_station_epw_filepath = 'USA_FL_Miami.Intl.AP.722020_TMY3.epw'
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     expected_warnings = ['Could not find state average fuel oil rate based on Florida; using region (PADD 1C) average.']
     actual_bills, _actual_monthly_bills = _test_measure(expected_warnings: expected_warnings)
@@ -303,7 +306,9 @@ class ReportUtilityBillsTest < Minitest::Test
 
   def test_warning_national
     @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
-    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-appliances-propane-location-portland-or.xml'))
+    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-appliances-propane.xml'))
+    hpxml.buildings[0].state_code = 'OR'
+    hpxml.buildings[0].climate_and_risk_zones.weather_station_epw_filepath = 'USA_OR_Portland.Intl.AP.726980_TMY3.epw'
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     expected_warnings = ['Could not find state average propane rate based on Oregon; using national average.']
     actual_bills, _actual_monthly_bills = _test_measure(expected_warnings: expected_warnings)

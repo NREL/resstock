@@ -203,7 +203,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if !upgraded_hpxml.nil?
         air_leakage_value = { existing_hpxml => [], upgraded_hpxml => [] }
         [existing_hpxml, upgraded_hpxml].each do |hpxml_obj|
-          hpxml_obj.buildings[0].air_infiltration_measurements.each do |air_infiltration_measurement| # FIXME
+          hpxml_obj.buildings[0].air_infiltration_measurements.each do |air_infiltration_measurement|
             air_leakage_value[hpxml_obj] << air_infiltration_measurement.air_leakage unless air_infiltration_measurement.air_leakage.nil?
           end
         end
@@ -225,7 +225,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if !upgraded_hpxml.nil?
         ceiling_assembly_r = { existing_hpxml => [], upgraded_hpxml => [] }
         [existing_hpxml, upgraded_hpxml].each do |hpxml_obj|
-          hpxml_obj.buildings[0].floors.each do |floor| # FIXME
+          hpxml_obj.buildings[0].floors.each do |floor|
             next unless floor.is_thermal_boundary
             next unless floor.is_interior
             next unless floor.is_ceiling

@@ -7,14 +7,21 @@ __New Features__
   - Replaces "living space" with "conditioned space", which better represents what is modeled.
   - Replaces `HotTubs/HotTub` with `Spas/PermanentSpa`.
   - Replaces `PortableHeater` and `FixedHeater` with `SpaceHeater`.
-- Allows simulating whole multifamily (MF) buildings, where each dwelling unit is described by a separate `Building` element.
-  - Allows `NumberofUnits` to be used as a multiplier on dwelling unit simulation results to reduce simulation runtime.
-  - **Breaking change**: Multiple elements move from `SoftwareInfo/extension` to `BuildingDetails/BuildingSummary/extension` to allow variation across MF dwelling units:
+- Allows simulating whole multifamily (MF) buildings in a single combined simulation:
+  - **Breaking change**: Multiple elements move from `SoftwareInfo/extension` to `BuildingDetails/BuildingSummary/extension` to allow variation across units:
     - `HVACSizingControl`
     - `ShadingControl`
     - `SchedulesFilePath`
     - `NaturalVentilationAvailabilityDaysperWeek`
-  - Note: Batteries are not currently supported. Dehumidifiers and ground-source heat pumps are only supported if `NumberofUnits` is 1.
+  - Allows `NumberofUnits` to be used as a multiplier on dwelling unit simulation results to reduce simulation runtime.
+  - Notes:
+    - Each dwelling unit is described by a separate `Building` element in the HPXML file.
+    - To run the single simulation, specify the Building ID as 'ALL' in the run_simulation.rb script or OpenStudio workflow.
+    - Adjacent SFA/MF common spaces are still modeled using assumed temperature profiles, not as separate thermal zones, as described in the documentation.
+    - Shared systems are still modeled as individual systems, not shared systems connected to multiple dwelling unit, as described in the documentation.
+    - Batteries are not currently supported. Dehumidifiers and ground-source heat pumps are only supported if `NumberofUnits` is 1.
+    - Utility bill calculations using detailed rates are not supported.
+    - Simulation results will be for the entire building; results for individual dwelling units are not available.
 - Adds manufactured home belly as a foundation type and allows modeling ducts in a manufactured home belly.
 - Output updates:
   - **Breaking change**: "Hot Tub" outputs renamed to "Permanent Spa".

@@ -1074,14 +1074,19 @@ class HPXML < Object
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
       XMLHelper.add_attribute(building_building_id, 'id', @building_id)
-      building_site = XMLHelper.add_element(building, 'Site')
-      building_site_id = XMLHelper.add_element(building_site, 'SiteID')
-      if @site_id.nil?
-        XMLHelper.add_attribute(building_site_id, 'id', 'SiteID')
-      else
-        XMLHelper.add_attribute(building_site_id, 'id', @site_id)
-      end
       if (not @state_code.nil?) || (not @zip_code.nil?) || (not @time_zone_utc_offset.nil?) || (not @egrid_region.nil?) || (not @egrid_subregion.nil?) || (not @cambium_region_gea.nil?) || (not @dst_enabled.nil?) || (not @dst_begin_month.nil?) || (not @dst_begin_day.nil?) || (not @dst_end_month.nil?) || (not @dst_end_day.nil?)
+        building_site = XMLHelper.add_element(building, 'Site')
+        building_site_id = XMLHelper.add_element(building_site, 'SiteID')
+        if @site_id.nil?
+          bldg_idx = XMLHelper.get_elements(hpxml, 'Building').size
+          if bldg_idx > 1
+            XMLHelper.add_attribute(building_site_id, 'id', "SiteID_#{bldg_idx}")
+          else
+            XMLHelper.add_attribute(building_site_id, 'id', 'SiteID')
+          end
+        else
+          XMLHelper.add_attribute(building_site_id, 'id', @site_id)
+        end
         if (not @state_code.nil?) || (not @zip_code.nil?)
           address = XMLHelper.add_element(building_site, 'Address')
           XMLHelper.add_element(address, 'StateCode', @state_code, :string, @state_code_isdefaulted) unless @state_code.nil?
