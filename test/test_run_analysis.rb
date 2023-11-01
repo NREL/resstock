@@ -8,6 +8,10 @@ require 'openstudio'
 class TestRunAnalysis < Minitest::Test
   def before_setup
     cli_path = OpenStudio.getOpenStudioCLI
+    puts cli_path
+    cli_path = 'openstudio'
+    cli_path = ENV['OPENSTUDIO_EXE'] if ENV.keys.include?('OPENSTUDIO_EXE')
+    puts cli_path
     @command = "\"#{cli_path}\" workflow/run_analysis.rb"
 
     buildstock_directory = File.join(File.dirname(__FILE__), '..')
