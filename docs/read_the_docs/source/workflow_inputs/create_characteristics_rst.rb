@@ -111,16 +111,10 @@ source_report.each do |row|
     choices = resstockarguments[r_argument][1]
     desc = resstockarguments[r_argument][2]
     f.puts("     - #{units}")
-    if !choices.empty?
-      choices.each_with_index do |choice, i|
-        if i == 0
-          f.puts("     - | #{choice}")
-        else
-          f.puts("       | #{choice}")
-        end
-      end
-    else
+    if choices.empty?
       f.puts('     -')
+    else
+      f.puts("     - \"#{choices.join('", "')}\"")
     end
     f.puts("     - #{desc}")
   end
