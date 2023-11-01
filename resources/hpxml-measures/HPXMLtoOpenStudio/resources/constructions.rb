@@ -1132,9 +1132,9 @@ class Constructions
       next if furnAreaFraction.nil?
       next if furnAreaFraction <= 0
 
-      mat_obj_name_space = "#{Constants.ObjectNameFurniture} material #{space.name}"
-      constr_obj_name_space = "#{Constants.ObjectNameFurniture} construction #{space.name}"
-      mass_obj_name_space = "#{Constants.ObjectNameFurniture} mass #{space.name}"
+      mat_obj_name_space = "furniture material #{space.name}"
+      constr_obj_name_space = "furniture construction #{space.name}"
+      mass_obj_name_space = "furniture mass #{space.name}"
 
       furnThickness = UnitConversions.convert(furnMass / (furnDensity * furnAreaFraction), 'ft', 'in')
 
@@ -1617,7 +1617,7 @@ class Constructions
     constr.create_and_assign_constructions([subsurface], model)
   end
 
-  def self.apply_window_skylight_shading(model, window_or_skylight, sub_surface, shading_schedules, hpxml)
+  def self.apply_window_skylight_shading(model, window_or_skylight, sub_surface, shading_schedules, hpxml_header, hpxml_bldg)
     sf_summer = window_or_skylight.interior_shading_factor_summer * window_or_skylight.exterior_shading_factor_summer
     sf_winter = window_or_skylight.interior_shading_factor_winter * window_or_skylight.exterior_shading_factor_winter
     if (sf_summer < 1.0) || (sf_winter < 1.0)
@@ -1625,14 +1625,14 @@ class Constructions
 
       # Determine transmittance values throughout the year
       sf_values = []
-      num_days_in_year = Constants.NumDaysInYear(hpxml.header.sim_calendar_year)
-      if not hpxml.header.shading_summer_begin_month.nil?
-        summer_start_day_num = Schedule.get_day_num_from_month_day(hpxml.header.sim_calendar_year,
-                                                                   hpxml.header.shading_summer_begin_month,
-                                                                   hpxml.header.shading_summer_begin_day)
-        summer_end_day_num = Schedule.get_day_num_from_month_day(hpxml.header.sim_calendar_year,
-                                                                 hpxml.header.shading_summer_end_month,
-                                                                 hpxml.header.shading_summer_end_day)
+      num_days_in_year = Constants.NumDaysInYear(hpxml_header.sim_calendar_year)
+      if not hpxml_bldg.header.shading_summer_begin_month.nil?
+        summer_start_day_num = Schedule.get_day_num_from_month_day(hpxml_header.sim_calendar_year,
+                                                                   hpxml_bldg.header.shading_summer_begin_month,
+                                                                   hpxml_bldg.header.shading_summer_begin_day)
+        summer_end_day_num = Schedule.get_day_num_from_month_day(hpxml_header.sim_calendar_year,
+                                                                 hpxml_bldg.header.shading_summer_end_month,
+                                                                 hpxml_bldg.header.shading_summer_end_day)
         for i in 0..(num_days_in_year - 1)
           day_num = i + 1
           if summer_end_day_num >= summer_start_day_num

@@ -29,12 +29,54 @@ HPXML files submitted to OpenStudio-HPXML undergo a two step validation process:
 
 OpenStudio-HPXML **automatically validates** the HPXML file against both the XSD and Schematron documents and reports any validation errors, but software developers may find it beneficial to also integrate validation into their software.
 
-.. important::
+.. _bldg_type_scope:
 
-  Usage of both validation approaches (XSD and Schematron) is recommended for developers actively working on creating HPXML files for EnergyPlus simulations:
+Building Type Scope
+*******************
 
-  - Validation against XSD for general correctness and usage of HPXML
-  - Validation against Schematron for understanding XML document requirements specific to running EnergyPlus
+OpenStudio-HPXML can be used to model either individual residential dwelling units or whole residential buildings.
+
+.. _bldg_type_units:
+
+Dwelling Units
+~~~~~~~~~~~~~~
+
+The OpenStudio-HPXML workflow was originally developed to model individual residential dwelling units -- either a single-family detached (SFD) building, or a single unit of a single-family attached (SFA) or multifamily (MF) building.
+This approach:
+
+- Is required/desired for certain applications (e.g., a Home Energy Score or an Energy Rating Index calculation).
+- Improves runtime speed by being able to simulate individual units in parallel (as opposed to simulating the entire building).
+
+When modeling individual units of SFA/MF buildings, current capabilities include:
+
+- Defining surfaces adjacent to generic SFA/MF spaces (e.g., "other housing unit" or "other multifamily buffer space"), in which temperature profiles will be assumed (see :ref:`hpxmllocations`).
+- Locating various building components (e.g., ducts, water heaters, appliances) in these SFA/MF spaces.
+- Defining shared systems (HVAC, water heating, mechanical ventilation, etc.), in which individual systems are modeled with adjustments to approximate their energy use attributed to the unit.
+
+Note that only the energy use attributed to each dwelling unit is calculated.
+
+.. _bldg_type_bldgs:
+
+Whole SFA/MF Buildings
+~~~~~~~~~~~~~~~~~~~~~~
+
+As of OpenStudio-HPXML v1.7.0, a new capability was added for modeling whole SFA/MF buildings in a single combined simulation.
+
+For these simulations:
+
+- Each dwelling unit is described by a separate ``Building`` element in the HPXML file.
+- To run the single combined simulation, specify the Building ID as 'ALL' in the run_simulation.rb script or OpenStudio workflow.
+- Unit multipliers (using the ``NumberofUnits`` element) can be specified to model *unique* dwelling units, rather than *all* dwelling units, reducing simulation runtime.
+- Adjacent SFA/MF common spaces are still modeled using assumed temperature profiles, not as separate thermal zones.
+- Shared systems are still modeled as individual systems, not shared systems connected to multiple dwelling unit.
+
+Notes/caveats about this approach:
+
+- Some inputs (e.g., EPW location or ground conductivity) cannot vary across ``Building`` elements.
+- Batteries are not currently supported. Dehumidifiers and ground-source heat pumps are only supported if ``NumberofUnits`` is 1.
+- Utility bill calculations using detailed rates are not supported.
+
+Note that only the energy use for the entire building is calculated.
 
 Input Defaults
 **************
@@ -105,157 +147,6 @@ EnergyPlus simulation controls are entered in ``/HPXML/SoftwareInfo/extension/Si
   .. [#] TemperatureCapacitanceMultiplier affects the transient calculation of indoor air temperatures.
          Values greater than 1.0 have the effect of smoothing or damping the rate of change in the indoor air temperature from timestep to timestep.
          This heat capacitance effect is modeled on top of any other individual mass inputs (e.g., furniture mass, partition wall mass, interior drywall, etc.) in the HPXML.
-
-.. _hvac_sizing_control:
-
-HPXML HVAC Sizing Control
-*************************
-
-HVAC equipment sizing controls are entered in ``/HPXML/SoftwareInfo/extension/HVACSizingControl``.
-
-  =================================  ========  =====  ===========  ========  ========  ============================================
-  Element                            Type      Units  Constraints  Required  Default   Description
-  =================================  ========  =====  ===========  ========  ========  ============================================
-  ``AllowIncreasedFixedCapacities``  boolean                       No        false     Logic for fixed capacity HVAC equipment [#]_
-  ``HeatPumpSizingMethodology``      string           See [#]_     No        HERS      Logic for autosized heat pumps [#]_
-  =================================  ========  =====  ===========  ========  ========  ============================================
-
-  .. [#] If AllowIncreasedFixedCapacities is true, the larger of user-specified fixed capacity and design load will be used (to reduce potential for unmet loads); otherwise user-specified fixed capacity is used.
-  .. [#] HeatPumpSizingMethodology choices are 'ACCA', 'HERS', or 'MaxLoad'.
-  .. [#] If HeatPumpSizingMethodology is 'ACCA', autosized heat pumps have their nominal capacity sized per ACCA Manual J/S based on cooling design loads, with some oversizing allowances for larger heating design loads.
-         If HeatPumpSizingMethodology is 'HERS', autosized heat pumps have their nominal capacity sized equal to the larger of heating/cooling design loads.
-         If HeatPumpSizingMethodology is 'MaxLoad', autosized heat pumps have their nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's reduced capacity at the design temperature.
-
-If any HVAC equipment is being autosized (i.e., capacities are not provided), additional inputs for ACCA Manual J can be entered in ``/HPXML/SoftwareInfo/extension/HVACSizingControl/ManualJInputs``.
-
-  =================================  ========  ======  ===========  ========  ============  ============================================
-  Element                            Type      Units   Constraints  Required  Default       Description
-  =================================  ========  ======  ===========  ========  ============  ============================================
-  ``HeatingDesignTemperature``       double    F                    No        See [#]_      Heating design temperature
-  ``CoolingDesignTemperature``       double    F                    No        See [#]_      Cooling design temperature
-  ``HeatingSetpoint``                double    F                    No        70            Conditioned space heating setpoint [#]_
-  ``CoolingSetpoint``                double    F                    No        75            Conditioned space cooling setpoint [#]_
-  ``HumiditySetpoint``               double    frac    0 - 1        No        See [#]_      Conditioned space relative humidity
-  ``InternalLoadsSensible``          double    Btu/hr               No        See [#]_      Sensible internal loads for cooling design load
-  ``InternalLoadsLatent``            double    Btu/hr               No        0             Latent internal loads for cooling design load
-  ``NumberofOccupants``              integer                        No        #Beds+1 [#]_  Number of occupants for cooling design load
-  =================================  ========  ======  ===========  ========  ============  ============================================
-
-  .. [#] If HeatingDesignTemperature not provided, the 99% heating design temperature is obtained from the DESIGN CONDITIONS header section inside the EPW weather file.
-         If not available in the EPW header, it is calculated from the 8760 hourly temperatures in the EPW.
-  .. [#] If CoolingDesignTemperature not provided, the 1% cooling design temperature is obtained from the DESIGN CONDITIONS header section inside the EPW weather file.
-         If not available in the EPW header, it is calculated from the 8760 hourly temperatures in the EPW.
-  .. [#] Any heating setpoint other than 70F is not in compliance with Manual J.
-  .. [#] Any cooling setpoint other than 75F is not in compliance with Manual J.
-  .. [#] If HumiditySetpoint not provided, defaults to 0.5 unless there is a dehumidifier with a lower setpoint, in which case that value is used.
-  .. [#] If InternalLoadsSensible not provided, defaults to 2400 Btu/hr if there is one refrigerator and no freezer, or 3600 Btu/hr if two refrigerators or a freezer.
-         This default represents loads that normally occur during the early evening in mid-summer.
-         Additional adjustments or custom internal loads can instead be specified here.
-  .. [#] If NumberofOccupants not provided, defaults to the number of bedrooms plus one per Manual J.
-         Each occupant produces an additional 230 Btu/hr sensible load and 200 Btu/hr latent load.
-
-.. _shadingcontrol:
-
-HPXML Shading Control
-*********************
-
-Shading controls for window and skylight summer/winter shading coefficients are entered in ``/HPXML/SoftwareInfo/extension/ShadingControl``.
-If not provided, summer will be default based on the cooling season defined in the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_, using monthly average temperatures.
-The remainder of the year is winter.
-
-  ====================================  ========  =======  =============  ========  =======  =====================================
-  Element                               Type      Units    Constraints    Required  Default  Description
-  ====================================  ========  =======  =============  ========  =======  =====================================
-  ``SummerBeginMonth``                  integer            1 - 12         Yes                Summer shading start date
-  ``SummerBeginDayOfMonth``             integer            1 - 31         Yes                Summer shading start date
-  ``SummerEndMonth``                    integer            1 - 12         Yes                Summer shading end date
-  ``SummerEndDayOfMonth``               integer            1 - 31         Yes                Summer shading end date
-  ====================================  ========  =======  =============  ========  =======  =====================================
-
-HPXML Schedules
-***************
-
-Schedules for a variety of building features can be 1) specified via simple inputs, 2) specified via detailed inputs, or 3) defaulted.
-It is allowed to use simple, detailed, and defaulted values in the same HPXML run.
-
-Simple Schedule Inputs
-~~~~~~~~~~~~~~~~~~~~~~
-
-Simple schedule inputs are available as weekday/weekend fractions and monthly multipliers for a variety of building characteristics.
-For example, see the ``WeekdayScheduleFractions``, ``WeekendScheduleFractions``, and ``MonthlyScheduleMultipliers`` inputs for :ref:`buildingoccupancy`.
-
-.. _detailedschedules:
-
-Detailed Schedule Inputs
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Detailed schedule inputs allow schedule values for every hour or timestep of the simulation.
-They can be used to reflect real-world or stochastic occupancy.
-
-Detailed schedule inputs are provided via one or more CSV file that should be referenced in the HPXML file as ``/HPXML/SoftwareInfo/extension/SchedulesFilePath`` elements.
-The column names available in the schedule CSV files are:
-
-  ===============================  =====  =================================================================================  ===============================
-  Column Name                      Units  Description                                                                        Can Be Stochastically Generated
-  ===============================  =====  =================================================================================  ===============================
-  ``occupants``                    frac   Occupant heat gain schedule.                                                       Yes
-  ``lighting_interior``            frac   Interior lighting energy use schedule.                                             Yes
-  ``lighting_exterior``            frac   Exterior lighting energy use schedule.                                             No
-  ``lighting_garage``              frac   Garage lighting energy use schedule.                                               Yes
-  ``lighting_exterior_holiday``    frac   Exterior holiday lighting energy use schedule.                                     No
-  ``cooking_range``                frac   Cooking range & oven energy use schedule.                                          Yes
-  ``refrigerator``                 frac   Primary refrigerator energy use schedule.                                          No
-  ``extra_refrigerator``           frac   Non-primary refrigerator energy use schedule.                                      No
-  ``freezer``                      frac   Freezer energy use schedule.                                                       No
-  ``dishwasher``                   frac   Dishwasher energy use schedule.                                                    Yes
-  ``clothes_washer``               frac   Clothes washer energy use schedule.                                                Yes
-  ``clothes_dryer``                frac   Clothes dryer energy use schedule.                                                 Yes
-  ``ceiling_fan``                  frac   Ceiling fan energy use schedule.                                                   Yes
-  ``plug_loads_other``             frac   Other plug load energy use schedule.                                               Yes
-  ``plug_loads_tv``                frac   Television plug load energy use schedule.                                          Yes
-  ``plug_loads_vehicle``           frac   Electric vehicle plug load energy use schedule.                                    No
-  ``plug_loads_well_pump``         frac   Well pump plug load energy use schedule.                                           No
-  ``fuel_loads_grill``             frac   Grill fuel load energy use schedule.                                               No
-  ``fuel_loads_lighting``          frac   Lighting fuel load energy use schedule.                                            No
-  ``fuel_loads_fireplace``         frac   Fireplace fuel load energy use schedule.                                           No
-  ``pool_pump``                    frac   Pool pump energy use schedule.                                                     No
-  ``pool_heater``                  frac   Pool heater energy use schedule.                                                   No
-  ``permanent_spa_pump``           frac   Permanent spa pump energy use schedule.                                            No
-  ``permanent_spa_heater``         frac   Permanent spa heater energy use schedule.                                          No
-  ``hot_water_dishwasher``         frac   Dishwasher hot water use schedule.                                                 Yes
-  ``hot_water_clothes_washer``     frac   Clothes washer hot water use schedule.                                             Yes
-  ``hot_water_fixtures``           frac   Fixtures (sinks, showers, baths) hot water use schedule.                           Yes
-  ``heating_setpoint``             F      Thermostat heating setpoint schedule.                                              No
-  ``cooling_setpoint``             F      Thermostat cooling setpoint schedule.                                              No
-  ``water_heater_setpoint``        F      Water heater setpoint schedule.                                                    No
-  ``water_heater_operating_mode``  0/1    Heat pump water heater operating mode schedule. 0=hyrbid/auto, 1=heat pump only.   No
-  ``battery``                      frac   Battery schedule. Positive for charging, negative for discharging.                 No
-  ``vacancy``                      0/1    Vacancy schedule. 0=occupied, 1=vacant. Automatically overrides other columns.     N/A
-  ``outage``                       0/1    Power outage schedule. 0=power. 1=nopower. Automatically overrides other columns.  N/A
-  ===============================  =====  =================================================================================  ===============================
-
-Columns with units of `frac` must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
-In other words, the amount of energy or hot water used in each simulation timestep is essentially the schedule value divided by the sum of all schedule values in the column, multiplied by the annual energy or hot water use.
-Example schedule CSV files are provided in the ``HPXMLtoOpenStudio/resources/schedule_files`` directory.
-
-The schedule file must have a full year of data even if the simulation is not an entire year.
-Frequency of schedule values do not need to match the simulation timestep.
-For example, hourly schedules can be used with a 10-minute simulation timestep, or 10-minute schedules can be used with an hourly simulation timestep.
-
-A detailed stochastic occupancy schedule CSV file can also be automatically generated for you (see "Can Be Stochastically Generated" above for applicable columns); see the :ref:`usage_instructions` for the commands.
-Inputs for the stochastic schedule generator are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
-See :ref:`buildingoccupancy` and :ref:`buildingsite` for more information.
-
-.. warning::
-
-  For simulations with daylight saving enabled (which is the default), EnergyPlus will skip forward an hour in the CSV on the "spring forward" day and repeat an hour on the "fall back" day.
-
-Default Schedules
-~~~~~~~~~~~~~~~~~
-
-If neither simple nor detailed inputs are provided, then schedules are defaulted.
-Default schedules are typically smooth, averaged schedules.
-These default schedules are described elsewhere in the documentation (e.g., see :ref:`buildingoccupancy` for the default occupant heat gain schedule).
 
 HPXML Emissions Scenarios
 *************************
@@ -368,10 +259,11 @@ For simple utility rate structures, inputs can be entered using a fixed charge a
   Element                           Type      Units    Constraints  Required  Default   Notes
   ================================  ========  =======  ===========  ========  ========  ====================
   ``FuelType``                      string             electricity  Yes                 Fuel type
-  ``FixedCharge``                   double    $/month               No        12.0      Monthly fixed charge
+  ``FixedCharge``                   double    $/month               No        12.0      Monthly fixed charge [#]_
   ``MarginalRate``                  double    $/kWh                 No        See [#]_  Marginal flat rate
   ================================  ========  =======  ===========  ========  ========  ====================
 
+  .. [#] If running :ref:`bldg_type_bldgs`, the fixed charge will apply to every dwelling unit in the building.
   .. [#] If MarginalRate not provided, defaults to state, regional, or national average based on 2022 EIA data that can be found at ``ReportUtilityBills/resources/Data/UtilityRates/Average_retail_price_of_electricity.csv``.
 
 **Detailed**
@@ -591,6 +483,7 @@ Building construction is entered in ``/HPXML/Building/BuildingDetails/BuildingSu
   Element                                                    Type      Units      Constraints                        Required  Default   Notes
   =========================================================  ========  =========  =================================  ========  ========  =======================================================================
   ``ResidentialFacilityType``                                string               See [#]_                           Yes                 Type of dwelling unit
+  ``NumberofUnits``                                          integer              >= 1                               No        1         Unit multiplier [#]_
   ``NumberofConditionedFloors``                              double               > 0                                Yes                 Number of conditioned floors (including a conditioned basement; excluding a conditioned crawlspace)
   ``NumberofConditionedFloorsAboveGrade``                    double               > 0, <= NumberofConditionedFloors  Yes                 Number of conditioned floors above grade (including a walkout basement)
   ``NumberofBedrooms``                                       integer              >= 0                               Yes                 Number of bedrooms
@@ -600,9 +493,163 @@ Building construction is entered in ``/HPXML/Building/BuildingDetails/BuildingSu
   =========================================================  ========  =========  =================================  ========  ========  =======================================================================
 
   .. [#] ResidentialFacilityType choices are "single-family detached", "single-family attached", "apartment unit", or "manufactured home".
+  .. [#] NumberofUnits defines the number of similar dwelling units represented by the HPXML ``Building`` element.
+         EnergyPlus simulation results will be multiplied by this value.
+         For example, when modeling :ref:`bldg_type_bldgs`, this allows modeling *unique* dwelling units, rather than *all* dwelling units, to reduce simulation runtime.
   .. [#] If NumberofBathrooms not provided, calculated as NumberofBedrooms/2 + 0.5 based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
   .. [#] If neither ConditionedBuildingVolume nor AverageCeilingHeight provided, AverageCeilingHeight defaults to the lesser of 8.0 and InfiltrationVolume / ConditionedFloorArea.
          If needed, additional defaulting is performed using the following relationship: ConditionedBuildingVolume = ConditionedFloorArea * AverageCeilingHeight + ConditionedCrawlspaceVolume.
+
+HPXML Schedules
+***************
+
+Schedules for a variety of building features can be 1) specified via simple inputs, 2) specified via detailed inputs, or 3) defaulted.
+It is allowed to use simple, detailed, and defaulted values in the same HPXML run.
+
+Simple Schedule Inputs
+~~~~~~~~~~~~~~~~~~~~~~
+
+Simple schedule inputs are available as weekday/weekend fractions and monthly multipliers for a variety of building characteristics.
+For example, see the ``WeekdayScheduleFractions``, ``WeekendScheduleFractions``, and ``MonthlyScheduleMultipliers`` inputs for :ref:`buildingoccupancy`.
+
+.. _detailedschedules:
+
+Detailed Schedule Inputs
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Detailed schedule inputs allow schedule values for every hour or timestep of the simulation.
+They can be used to reflect real-world or stochastic occupancy.
+
+Detailed schedule inputs are provided via one or more CSV file that should be referenced in the HPXML file as ``/HPXML/Building/BuildingDetails/BuildingSummary/extension/SchedulesFilePath`` elements.
+The column names available in the schedule CSV files are:
+
+  ===============================  =====  =================================================================================  ===============================
+  Column Name                      Units  Description                                                                        Can Be Stochastically Generated
+  ===============================  =====  =================================================================================  ===============================
+  ``occupants``                    frac   Occupant heat gain schedule.                                                       Yes
+  ``lighting_interior``            frac   Interior lighting energy use schedule.                                             Yes
+  ``lighting_exterior``            frac   Exterior lighting energy use schedule.                                             No
+  ``lighting_garage``              frac   Garage lighting energy use schedule.                                               Yes
+  ``lighting_exterior_holiday``    frac   Exterior holiday lighting energy use schedule.                                     No
+  ``cooking_range``                frac   Cooking range & oven energy use schedule.                                          Yes
+  ``refrigerator``                 frac   Primary refrigerator energy use schedule.                                          No
+  ``extra_refrigerator``           frac   Non-primary refrigerator energy use schedule.                                      No
+  ``freezer``                      frac   Freezer energy use schedule.                                                       No
+  ``dishwasher``                   frac   Dishwasher energy use schedule.                                                    Yes
+  ``clothes_washer``               frac   Clothes washer energy use schedule.                                                Yes
+  ``clothes_dryer``                frac   Clothes dryer energy use schedule.                                                 Yes
+  ``ceiling_fan``                  frac   Ceiling fan energy use schedule.                                                   Yes
+  ``plug_loads_other``             frac   Other plug load energy use schedule.                                               Yes
+  ``plug_loads_tv``                frac   Television plug load energy use schedule.                                          Yes
+  ``plug_loads_vehicle``           frac   Electric vehicle plug load energy use schedule.                                    No
+  ``plug_loads_well_pump``         frac   Well pump plug load energy use schedule.                                           No
+  ``fuel_loads_grill``             frac   Grill fuel load energy use schedule.                                               No
+  ``fuel_loads_lighting``          frac   Lighting fuel load energy use schedule.                                            No
+  ``fuel_loads_fireplace``         frac   Fireplace fuel load energy use schedule.                                           No
+  ``pool_pump``                    frac   Pool pump energy use schedule.                                                     No
+  ``pool_heater``                  frac   Pool heater energy use schedule.                                                   No
+  ``permanent_spa_pump``           frac   Permanent spa pump energy use schedule.                                            No
+  ``permanent_spa_heater``         frac   Permanent spa heater energy use schedule.                                          No
+  ``hot_water_dishwasher``         frac   Dishwasher hot water use schedule.                                                 Yes
+  ``hot_water_clothes_washer``     frac   Clothes washer hot water use schedule.                                             Yes
+  ``hot_water_fixtures``           frac   Fixtures (sinks, showers, baths) hot water use schedule.                           Yes
+  ``heating_setpoint``             F      Thermostat heating setpoint schedule.                                              No
+  ``cooling_setpoint``             F      Thermostat cooling setpoint schedule.                                              No
+  ``water_heater_setpoint``        F      Water heater setpoint schedule.                                                    No
+  ``water_heater_operating_mode``  0/1    Heat pump water heater operating mode schedule. 0=hyrbid/auto, 1=heat pump only.   No
+  ``battery``                      frac   Battery schedule. Positive for charging, negative for discharging.                 No
+  ``vacancy``                      0/1    Vacancy schedule. 0=occupied, 1=vacant. Automatically overrides other columns.     N/A
+  ``outage``                       0/1    Power outage schedule. 0=power. 1=nopower. Automatically overrides other columns.  N/A
+  ===============================  =====  =================================================================================  ===============================
+
+Columns with units of `frac` must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
+In other words, the amount of energy or hot water used in each simulation timestep is essentially the schedule value divided by the sum of all schedule values in the column, multiplied by the annual energy or hot water use.
+Example schedule CSV files are provided in the ``HPXMLtoOpenStudio/resources/schedule_files`` directory.
+
+The schedule file must have a full year of data even if the simulation is not an entire year.
+Frequency of schedule values do not need to match the simulation timestep.
+For example, hourly schedules can be used with a 10-minute simulation timestep, or 10-minute schedules can be used with an hourly simulation timestep.
+
+A detailed stochastic occupancy schedule CSV file can also be automatically generated for you (see "Can Be Stochastically Generated" above for applicable columns); see the :ref:`usage_instructions` for the commands.
+Inputs for the stochastic schedule generator are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
+See :ref:`buildingoccupancy` and :ref:`buildingsite` for more information.
+
+.. warning::
+
+  For simulations with daylight saving enabled (which is the default), EnergyPlus will skip forward an hour in the CSV on the "spring forward" day and repeat an hour on the "fall back" day.
+
+Default Schedules
+~~~~~~~~~~~~~~~~~
+
+If neither simple nor detailed inputs are provided, then schedules are defaulted.
+Default schedules are typically smooth, averaged schedules.
+These default schedules are described elsewhere in the documentation (e.g., see :ref:`buildingoccupancy` for the default occupant heat gain schedule).
+
+.. _hvac_sizing_control:
+
+HPXML HVAC Sizing Control
+*************************
+
+HVAC equipment sizing controls are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/extension/HVACSizingControl``.
+
+  =================================  ========  =====  ===========  ========  ========  ============================================
+  Element                            Type      Units  Constraints  Required  Default   Description
+  =================================  ========  =====  ===========  ========  ========  ============================================
+  ``AllowIncreasedFixedCapacities``  boolean                       No        false     Logic for fixed capacity HVAC equipment [#]_
+  ``HeatPumpSizingMethodology``      string           See [#]_     No        HERS      Logic for autosized heat pumps [#]_
+  =================================  ========  =====  ===========  ========  ========  ============================================
+
+  .. [#] If AllowIncreasedFixedCapacities is true, the larger of user-specified fixed capacity and design load will be used (to reduce potential for unmet loads); otherwise user-specified fixed capacity is used.
+  .. [#] HeatPumpSizingMethodology choices are 'ACCA', 'HERS', or 'MaxLoad'.
+  .. [#] If HeatPumpSizingMethodology is 'ACCA', autosized heat pumps have their nominal capacity sized per ACCA Manual J/S based on cooling design loads, with some oversizing allowances for larger heating design loads.
+         If HeatPumpSizingMethodology is 'HERS', autosized heat pumps have their nominal capacity sized equal to the larger of heating/cooling design loads.
+         If HeatPumpSizingMethodology is 'MaxLoad', autosized heat pumps have their nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's reduced capacity at the design temperature.
+
+If any HVAC equipment is being autosized (i.e., capacities are not provided), additional inputs for ACCA Manual J can be entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/extension/HVACSizingControl/ManualJInputs``.
+
+  =================================  ========  ======  ===========  ========  ============  ============================================
+  Element                            Type      Units   Constraints  Required  Default       Description
+  =================================  ========  ======  ===========  ========  ============  ============================================
+  ``HeatingDesignTemperature``       double    F                    No        See [#]_      Heating design temperature
+  ``CoolingDesignTemperature``       double    F                    No        See [#]_      Cooling design temperature
+  ``HeatingSetpoint``                double    F                    No        70            Conditioned space heating setpoint [#]_
+  ``CoolingSetpoint``                double    F                    No        75            Conditioned space cooling setpoint [#]_
+  ``HumiditySetpoint``               double    frac    0 - 1        No        See [#]_      Conditioned space relative humidity
+  ``InternalLoadsSensible``          double    Btu/hr               No        See [#]_      Sensible internal loads for cooling design load
+  ``InternalLoadsLatent``            double    Btu/hr               No        0             Latent internal loads for cooling design load
+  ``NumberofOccupants``              integer                        No        #Beds+1 [#]_  Number of occupants for cooling design load
+  =================================  ========  ======  ===========  ========  ============  ============================================
+
+  .. [#] If HeatingDesignTemperature not provided, the 99% heating design temperature is obtained from the DESIGN CONDITIONS header section inside the EPW weather file.
+         If not available in the EPW header, it is calculated from the 8760 hourly temperatures in the EPW.
+  .. [#] If CoolingDesignTemperature not provided, the 1% cooling design temperature is obtained from the DESIGN CONDITIONS header section inside the EPW weather file.
+         If not available in the EPW header, it is calculated from the 8760 hourly temperatures in the EPW.
+  .. [#] Any heating setpoint other than 70F is not in compliance with Manual J.
+  .. [#] Any cooling setpoint other than 75F is not in compliance with Manual J.
+  .. [#] If HumiditySetpoint not provided, defaults to 0.5 unless there is a dehumidifier with a lower setpoint, in which case that value is used.
+  .. [#] If InternalLoadsSensible not provided, defaults to 2400 Btu/hr if there is one refrigerator and no freezer, or 3600 Btu/hr if two refrigerators or a freezer.
+         This default represents loads that normally occur during the early evening in mid-summer.
+         Additional adjustments or custom internal loads can instead be specified here.
+  .. [#] If NumberofOccupants not provided, defaults to the number of bedrooms plus one per Manual J.
+         Each occupant produces an additional 230 Btu/hr sensible load and 200 Btu/hr latent load.
+
+.. _shadingcontrol:
+
+HPXML Shading Control
+*********************
+
+Shading controls for window and skylight summer/winter shading coefficients are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/extension/ShadingControl``.
+If not provided, summer will be default based on the cooling season defined in the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_, using monthly average temperatures.
+The remainder of the year is winter.
+
+  ====================================  ========  =======  =============  ========  =======  =====================================
+  Element                               Type      Units    Constraints    Required  Default  Description
+  ====================================  ========  =======  =============  ========  =======  =====================================
+  ``SummerBeginMonth``                  integer            1 - 12         Yes                Summer shading start date
+  ``SummerBeginDayOfMonth``             integer            1 - 31         Yes                Summer shading start date
+  ``SummerEndMonth``                    integer            1 - 12         Yes                Summer shading end date
+  ``SummerEndDayOfMonth``               integer            1 - 31         Yes                Summer shading end date
+  ====================================  ========  =======  =============  ========  =======  =====================================
 
 HPXML Climate Zones
 -------------------
@@ -1107,7 +1154,7 @@ Each window or glass door area is entered as an ``/HPXML/Building/BuildingDetail
          The total open window area for natural ventilation is calculated using A) the operable fraction, B) the assumption that 50% of the area of operable windows can be open, and C) the assumption that 20% of that openable area is actually opened by occupants whenever outdoor conditions are favorable for cooling.
   .. [#] AttachedToWall must reference a ``Wall`` or ``FoundationWall``.
 
-If operable windows are defined, the availability of natural ventilation is entered in ``/HPXML/SoftwareInfo/extension``.
+If operable windows are defined, the availability of natural ventilation is entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/extension``.
 
   =============================================  ========  =========  ===========  ========  ========  ========================================================
   Element                                        Type      Units      Constraints  Required  Default   Notes
@@ -2248,9 +2295,10 @@ Distribution System Efficiency (DSE)
 .. warning::
 
   A simplified DSE model is provided for flexibility, but it is **strongly** recommended to use one of the other detailed distribution system types for better accuracy.
-  Also note that when specifying a DSE system, its effect is reflected in the :ref:`workflow_outputs` but is **not** reflected in the raw EnergyPlus simulation outputs.
+  The DSE input is simply applied to heating/cooling energy use for every hour of the year.
+  Note that when specifying a DSE, its effect is reflected in the :ref:`workflow_outputs` but is **not** reflected in the raw EnergyPlus simulation outputs.
 
-To define a DSE system, additional information is entered in ``HVACDistribution``.
+To define a DSE, additional information is entered in ``HVACDistribution``.
 
   =============================================  =======  =======  ===========  ========  =========  ===================================================
   Element                                        Type     Units    Constraints  Required  Default    Notes
@@ -2259,7 +2307,7 @@ To define a DSE system, additional information is entered in ``HVACDistribution`
   ``AnnualCoolingDistributionSystemEfficiency``  double   frac     0 - 1        Yes                  Seasonal distribution system efficiency for cooling
   =============================================  =======  =======  ===========  ========  =========  ===================================================
 
-  DSE values can be calculated from `ASHRAE Standard 152 <https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet>`_.
+  DSE values can be calculated using, e.g., `ASHRAE Standard 152 <https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet>`_.
 
 HPXML Ventilation Fan
 *********************
@@ -2647,6 +2695,8 @@ If any water heating systems are provided, a single hot water distribution syste
   In attached/multifamily buildings, only the hot water distribution system serving the dwelling unit should be defined.
   The hot water distribution associated with, e.g., a shared laundry room should not be defined.
 
+Hot water distribution systems are modeled according to the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+
 Standard
 ~~~~~~~~
 
@@ -2730,23 +2780,27 @@ If a drain water heat recovery (DWHR) device is specified, additional informatio
          Use "all" if there is one shower and it's connected to the DWHR or there are two or more showers connected to the DWHR.
   .. [#] EqualFlow should be true if the DWHR supplies pre-heated water to both the fixture cold water piping *and* the hot water heater potable supply piping.
 
+Drain water heat recovery is modeled according to the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+
 HPXML Water Fixtures
 ********************
 
 Each water fixture is entered as a ``/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterFixture``.
 
-  ====================  =======  =====  ===========  ========  ========  ===============================================
-  Element               Type     Units  Constraints  Required  Default   Notes
-  ====================  =======  =====  ===========  ========  ========  ===============================================
-  ``SystemIdentifier``  id                           Yes                 Unique identifier
-  ``WaterFixtureType``  string          See [#]_     Yes                 Bathroom faucet or shower
-  ``LowFlow``           boolean                      Yes                 Whether the fixture is considered low-flow [#]_
-  ====================  =======  =====  ===========  ========  ========  ===============================================
+  ===============================  =================  =====  ===========  ========  ========  ===============================================
+  Element                          Type               Units  Constraints  Required  Default   Notes
+  ===============================  =================  =====  ===========  ========  ========  ===============================================
+  ``SystemIdentifier``             id                                     Yes                 Unique identifier
+  ``WaterFixtureType``             string                    See [#]_     Yes                 Bathroom faucet or shower
+  ``Count``                        integer                   > 0          No        See [#]_  Number of similar water fixtures
+  ``LowFlow`` and/or ``FlowRate``  boolean or double  gpm    > 0          Yes                 Whether the fixture is considered low-flow and/or the flow rate [#]_
+  ===============================  =================  =====  ===========  ========  ========  ===============================================
 
   .. [#] WaterFixtureType choices are "shower head" or "faucet".
          If the shower stall has multiple shower heads that operate simultaneously, combine them as a single entry.
-  .. [#] LowFlow should be true if the fixture's flow rate (gpm) is <= 2.0.
-         Where a shower stall has multiple shower heads that operate simultaneously, the sum of their flows must be <= 2.0.
+  .. [#] A WaterFixture is considered low-flow if the fixture's flow rate (gpm) is <= 2.0.
+         Where a shower stall has multiple shower heads that operate simultaneously, use the sum of their flows.
+  .. [#] If Count not provided for any water fixture, assumes that 60% of all fixtures are faucets and 40% are shower heads.
 
 Additional information can be entered in ``/HPXML/Building/BuildingDetails/Systems/WaterHeating/``.
 
@@ -2761,6 +2815,8 @@ Additional information can be entered in ``/HPXML/Building/BuildingDetails/Syste
 
   .. [#] If WaterFixturesWeekdayScheduleFractions or WaterFixturesWeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figures 9-11 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.012, 0.006, 0.004, 0.005, 0.010, 0.034, 0.078, 0.087, 0.080, 0.067, 0.056, 0.047, 0.040, 0.035, 0.033, 0.031, 0.039, 0.051, 0.060, 0.060, 0.055, 0.048, 0.038, 0.026".
   .. [#] If WaterFixturesMonthlyScheduleMultipliers not provided (and :ref:`detailedschedules` not used), default values are used: "1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0".
+
+Water fixture hot water use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 
 HPXML Solar Thermal
 *******************

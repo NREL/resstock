@@ -79,6 +79,17 @@ Applicable when schedules type is stochastic. If true: Write extra state column(
 
 <br/>
 
+**BuildingID**
+
+The ID of the HPXML Building. Only required if there are multiple Building elements in the HPXML file. Use 'ALL' to apply schedules to all the HPXML Buildings (dwelling units) of a multifamily building.
+
+- **Name:** ``building_id``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
 
 
 
