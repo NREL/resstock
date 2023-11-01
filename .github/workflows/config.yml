@@ -28,7 +28,7 @@ jobs:
           name: options_lookup
 
   unit-tests:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     needs: [format-files]
     container:
       image: docker://nrel/openstudio:develop
@@ -72,7 +72,7 @@ jobs:
           name: coverage
 
   analysis-tests:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     needs: [unit-tests]
     container:
       image: docker://nrel/openstudio:develop
