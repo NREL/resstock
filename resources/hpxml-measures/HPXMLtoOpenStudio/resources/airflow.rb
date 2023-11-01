@@ -1128,7 +1128,6 @@ class Airflow
         add_cfis_duct_losses = (vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeAirHandler)
         if add_cfis_duct_losses
           # Calculate additional CFIS duct losses during fan-only mode
-          # FIXME: Need to update for unit multiplier
           duct_program.addLine("If #{@cfis_f_damper_extra_open_var[cfis_id].name} > 0")
           duct_program.addLine("  Set cfis_m3s = (#{@fan_mfr_max_var[object].name} * #{vent_mech.cfis_vent_mode_airflow_fraction} / 1.16097654)") # Density of 1.16097654 was back calculated using E+ results
           duct_program.addLine("  Set #{@fan_rtf_var[object].name} = #{@cfis_f_damper_extra_open_var[cfis_id].name}") # Need to use global vars to sync duct_program and infiltration program of different calling points
