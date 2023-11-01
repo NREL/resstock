@@ -86,24 +86,12 @@ class Constants
             '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8']
   end
 
-  def self.IsDuctLoadForReport
-    return __method__.to_s
-  end
-
-  def self.ObjectNameAirflow
-    return 'airflow'
-  end
-
   def self.ObjectNameAirSourceHeatPump
     return 'air source heat pump'
   end
 
-  def self.ObjectNameBackupHeatingCoil
-    return 'backup htg coil'
-  end
-
-  def self.ObjectNameBatteryLossesAdjustment(battery_name)
-    return "#{battery_name} losses adjustment"
+  def self.ObjectNameBatteryLossesAdjustment
+    return 'battery losses adjustment'
   end
 
   def self.ObjectNameBoiler
@@ -130,10 +118,6 @@ class Constants
     return 'clothes dryer'
   end
 
-  def self.ObjectNameClothesDryerExhaust
-    return 'clothes dryer exhaust'
-  end
-
   def self.ObjectNameComponentLoadsProgram
     return 'component loads program'
   end
@@ -142,20 +126,8 @@ class Constants
     return 'cooking range'
   end
 
-  def self.ObjectNameCoolingSeason
-    return 'cooling season'
-  end
-
-  def self.ObjectNameCoolingSetpoint
-    return 'cooling setpoint'
-  end
-
   def self.ObjectNameDehumidifier
     return 'dehumidifier'
-  end
-
-  def self.ObjectNameDesuperheater(water_heater_name)
-    return "#{water_heater_name} Desuperheater"
   end
 
   def self.ObjectNameDishwasher
@@ -166,36 +138,28 @@ class Constants
     return 'dhw distribution waste'
   end
 
-  def self.ObjectNameDucts
-    return 'ducts'
+  def self.ObjectNameDuctLoad
+    return 'duct load'
   end
 
   def self.ObjectNameElectricBaseboard
-    return 'baseboard'
-  end
-
-  def self.ObjectNameERVHRV
-    return 'erv or hrv'
+    return 'electric baseboard'
   end
 
   def self.ObjectNameEvaporativeCooler
     return 'evap cooler'
   end
 
-  def self.ObjectNameExteriorLighting
-    return 'exterior lighting'
+  def self.ObjectNameFanPumpDisaggregateCool
+    return 'disaggregate clg'
   end
 
-  def self.ObjectNameFanPumpDisaggregateCool(fan_or_pump_name = '')
-    return "#{fan_or_pump_name} clg disaggregate"
+  def self.ObjectNameFanPumpDisaggregatePrimaryHeat
+    return 'disaggregate htg primary'
   end
 
-  def self.ObjectNameFanPumpDisaggregatePrimaryHeat(fan_or_pump_name = '')
-    return "#{fan_or_pump_name} htg primary disaggregate"
-  end
-
-  def self.ObjectNameFanPumpDisaggregateBackupHeat(fan_or_pump_name = '')
-    return "#{fan_or_pump_name} htg backup disaggregate"
+  def self.ObjectNameFanPumpDisaggregateBackupHeat
+    return 'disaggregate htg backup'
   end
 
   def self.ObjectNameFixtures
@@ -210,40 +174,20 @@ class Constants
     return 'furnace'
   end
 
-  def self.ObjectNamePTACHeating
-    return 'ptac heating'
-  end
-
-  def self.ObjectNameRoomACHeating
-    return 'room ac heating'
-  end
-
-  def self.ObjectNameFurniture
-    return 'furniture'
-  end
-
-  def self.ObjectNameGarageLighting
-    return 'garage lighting'
-  end
-
   def self.ObjectNameGroundSourceHeatPump
     return 'ground source heat pump'
   end
 
-  def self.ObjectNameGSHPSharedPump()
+  def self.ObjectNameGSHPSharedPump
     return 'gshp shared loop pump'
-  end
-
-  def self.ObjectNameHeatingSeason
-    return 'heating season'
-  end
-
-  def self.ObjectNameHeatingSetpoint
-    return 'heating setpoint'
   end
 
   def self.ObjectNameHotWaterRecircPump
     return 'dhw recirc pump'
+  end
+
+  def self.ObjectNameHVACAvailabilitySensor
+    return 'hvac availability sensor'
   end
 
   def self.ObjectNameIdealAirSystem
@@ -254,12 +198,20 @@ class Constants
     return 'infil'
   end
 
-  def self.ObjectNameInteriorLighting
-    return 'interior lighting'
+  def self.ObjectNameLightingExterior
+    return 'exterior lighting'
   end
 
   def self.ObjectNameLightingExteriorHoliday
     return 'exterior holiday lighting'
+  end
+
+  def self.ObjectNameLightingGarage
+    return 'garage lighting'
+  end
+
+  def self.ObjectNameLightingInterior
+    return 'interior lighting'
   end
 
   def self.ObjectNameMechanicalVentilation
@@ -370,24 +322,8 @@ class Constants
     return 'occupants'
   end
 
-  def self.ObjectNameOverhangs
-    return 'overhangs'
-  end
-
-  def self.ObjectNamePlantLoopDHW
-    return 'dhw loop'
-  end
-
-  def self.ObjectNamePlantLoopSHW
-    return 'solar hot water loop'
-  end
-
   def self.ObjectNameRefrigerator
     return 'fridge'
-  end
-
-  def self.ObjectNameRelativeHumiditySetpoint
-    return 'rh setpoint'
   end
 
   def self.ObjectNameRoomAirConditioner
@@ -396,10 +332,6 @@ class Constants
 
   def self.ObjectNameSolarHotWater
     return 'solar hot water'
-  end
-
-  def self.ObjectNameTankHX
-    return 'dhw source hx'
   end
 
   def self.ObjectNameTotalLoadsProgram
@@ -430,8 +362,8 @@ class Constants
     return 'water sensible'
   end
 
-  def self.ObjectNameWaterHeaterAdjustment(water_heater_name)
-    return "#{water_heater_name} EC adjustment"
+  def self.ObjectNameWaterHeaterAdjustment
+    return 'water heater energy adjustment'
   end
 
   def self.ObjectNameWaterLoopHeatPump
