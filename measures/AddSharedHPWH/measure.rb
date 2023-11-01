@@ -89,6 +89,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     schedule = OpenStudio::Model::ScheduleConstant.new(model)
     schedule.setValue(UnitConversions.convert(125.0, 'F', 'C'))
+
     manager = OpenStudio::Model::SetpointManagerScheduled.new(model, schedule)
     manager.setName('Recirculation Loop Setpoint Manager')
     manager.addToNode(recirculation_loop.supplyOutletNode)
@@ -99,31 +100,56 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # swing_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     # swing_tank.setName('Swing Tank')
 
-    hx = OpenStudio::Model::HeatExchangerFluidToFluid.new(model)
-    hx.setName('Heat Exchanger')
-    recirculation_loop.addSupplyBranchForComponent(hx)
-
     recirculation_loop.addSupplyBranchForComponent(storage_tank)
     # swing_tank.addToNode(recirculation_loop.supplyInletNode)
     pump.addToNode(recirculation_loop.supplyInletNode)
 
-    condenser_loop = OpenStudio::Model::PlantLoop.new(model)
-    condenser_loop.setName('Condenser Loop')
-    manager = OpenStudio::Model::SetpointManagerScheduled.new(model, schedule)
-    manager.setName('Condenser Loop Setpoint Manager')
-    manager.addToNode(condenser_loop.supplyOutletNode)
+    heat_pump_loop = OpenStudio::Model::PlantLoop.new(model)
+    heat_pump_loop.setName('Heat Pump Loop')
+
+    pipe_supply_bypass = OpenStudio::Model::PipeAdiabatic.new(model)
+    pipe_supply_outlet = OpenStudio::Model::PipeAdiabatic.new(model)
+    pipe_demand_bypass = OpenStudio::Model::PipeAdiabatic.new(model)
+    pipe_demand_inlet = OpenStudio::Model::PipeAdiabatic.new(model)
+    pipe_demand_outlet = OpenStudio::Model::PipeAdiabatic.new(model)
+
+    dhw_setpoint_manager = nil
+    recirculation_loop.supplyOutletNode.setpointManagers.each do |setpoint_manager|
+      if setpoint_manager.to_SetpointManagerScheduled.is_initialized
+        dhw_setpoint_manager = setpoint_manager.to_SetpointManagerScheduled.get
+      end
+    end
+
+    manager = OpenStudio::Model::SetpointManagerScheduled.new(model, dhw_setpoint_manager.schedule)
+    manager.setName('Heat Pump Loop Setpoint Manager')
+    manager.setControlVariable('Temperature')
+    manager.addToNode(heat_pump_loop.supplyOutletNode)
 
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
-    pump.addToNode(condenser_loop.supplyInletNode)
-    condenser_loop.addDemandBranchForComponent(hx)
+    pump.addToNode(heat_pump_loop.supplyInletNode)
+
+    heat_pump_loop.addSupplyBranchForComponent(pipe_supply_bypass)
+    pipe_supply_outlet.addToNode(heat_pump_loop.supplyOutletNode)
+    heat_pump_loop.addDemandBranchForComponent(pipe_demand_bypass)
+    pipe_demand_inlet.addToNode(heat_pump_loop.demandInletNode)
+    pipe_demand_outlet.addToNode(heat_pump_loop.demandOutletNode)
+
+    heat_pump_loop.addDemandBranchForComponent(storage_tank)
 
     fuel_fired_heating = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
-    fuel_fired_heating.setEndUseSubcategory('fuel_fired_heating')
-    condenser_loop.addSupplyBranchForComponent(fuel_fired_heating)
+    fuel_fired_heating.setEndUseSubcategory('HP 1')
+    heat_pump_loop.addSupplyBranchForComponent(fuel_fired_heating)
 
-    fuel_fired_heating = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
-    fuel_fired_heating.setEndUseSubcategory('fuel_fired_heating_2')
-    condenser_loop.addSupplyBranchForComponent(fuel_fired_heating)
+    # fuel_fired_heating = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
+    # fuel_fired_heating.setEndUseSubcategory('HP 2')
+    # heat_pump_loop.addSupplyBranchForComponent(fuel_fired_heating)
+
+    availability_manager = OpenStudio::Model::AvailabilityManagerDifferentialThermostat.new(model)
+    availability_manager.setHotNode(fuel_fired_heating.outletModelObject.get.to_Node.get)
+    availability_manager.setColdNode(storage_tank.demandOutletModelObject.get.to_Node.get)
+    availability_manager.setTemperatureDifferenceOnLimit(0)
+    availability_manager.setTemperatureDifferenceOffLimit(0)
+    heat_pump_loop.addAvailabilityManager(availability_manager)
 
     model.getWaterUseConnectionss.each do |wuc|
       recirculation_loop.addDemandBranchForComponent(wuc)
