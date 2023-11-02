@@ -16,27 +16,57 @@ This folder contains python scripts to process largeee run result and generate c
    
    `pip install -r requirements.txt`
 
-6. Open `launch_processing.py` with your favorite code editor and modify the following variables near the top of the files.
-   
-   `output_folder`: Modify this to change the name of the output folder.
+6. Open `config.yaml` with your favorite code editor and modify the variables as needed.
 
-   `state_split`: Change it to False if you want single group with all states. Change it to True if you want to split based on various state-based grouping.
 
-   `state_grouping`: If __state_split__ is True, split the output files based on this grouping. You can modify this if you want a different grouping.
+## Output
 
-   `run_names`: This is the list of run names uploaded to Athena. __The first run is assumed to be baseline run__. Modify this to process new runs.
+There are several kinds of output you can generate.
 
-   `wide_chars`: These are the housing characteristics what will be exported in the wide-format characteristics file. You can add/remove as needed. Wide format includes 'weight' column by default.
+### __A. Quick Look Report__
+Quick look output gives the average energy consumption per dwelling unit grouped by state and upgrades for select end use columns, emission and cost output. This is the fastest way to verify no catastrophic mistake has been made.
 
-   `long_chars`: These are the housing characteristics what will be exported in the long-format characteristics file. You can add/remove as needed.
+__Steps to produce Quick Look Report__
 
-7. Start the processing.
-   
-   `python launch_processing.py`
+1. Make sure `config.yaml` contains correct run_names, db_name and other settings.
+2. Run the `get_quick_look_report.py` from the terminal
+
+   `python get_quick_look_report.py`
+
+Once this script completes (It can take 10-20 minutes), you will be able to find a file named `file_prefix_quick_look.csv` inside the output folder which contains the average values for the various quick look columns configured in the `confg.yaml`. You can open this file in Tableau or Excel to see if the results are as expected.
+
+__Bonus: Quick Look report plot__
+
+There is additional script to quickly visualize the values in `file_prefix_quick_look.csv`. 
+
+1. To run the script, start it with:
+
+   `python get_quick_look_plots.py`
+
+The script will ask for the full path to the `file_prefix_quick_look.csv` file. Provide the full path. You can even pass multiple files (perhaps generated from two different set of runs - such as medium and full runs) by separating them with a comma and it will show the result in a nice side-by-side bar graph for easy eyeballing! Enjoy.
+
+__Quick Look report plot output__
+
+The output from the quick plot can be found inside output_folder/quick_plots
+
+
+
+
+### __B. Full Report (To be viewed in Tableau)__
+
+The full report generates a set of processed files that can be imported in Tableau to generate the detailed dashboard.
+
+__Steps to generate full report.__
+
+1. Make sure `config.yaml` contains correct run_names, db_name and other settings.
+2. Run the `get_full_report.py`
+
+   `python get_full_report.py`
 
    Depending upon run size and internet speed, it can take some time. In the full size largee run, about 65 GB of data needs to be downloaded before the processing can start. Make sure you have at least about 80 GB of space in your laptop. For medium run, 5 - 10 GB should be sufficient.
 
-## Output
+__Full report output__
+
 Once the processing completes, you should be able to find various csv files in the output folder. There will be two top level folders in the output_folder.
    
    `full`: This contains the full dataset.

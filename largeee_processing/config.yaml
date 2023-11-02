@@ -1,0 +1,119 @@
+# Name of the output folder
+output_folder: med_run_output5b
+
+# All files will include this prefix. Replace with '' to have no prefix.
+file_prefix: medium_run_
+
+# Change state_split to False if you want single group with all states.
+# Change it to True if you want to split based on various state-based grouping define in state_grouping
+state_split: True
+
+# If state_split is True, split the output files based on this grouping.
+# You can modify this if you want a different grouping.
+# The key is the name of the grouping and the value is a list of states.
+state_grouping:  
+    "West": ["MT", "ID", "WY", "NV", "UT", "CO", "AZ", "NM", "OR", "WA"]
+    "California": ["CA"]
+    "Appalachia": ["PA", "OH", "WV", "KY"]
+    "Florida & Georgia": ["FL", "GA"]
+    "Central Atlantic": ["SC", "NC", "VA", "DC", "MD", "DE"]
+    "Lake Michigan": ["MI", "IL", "IN"]
+    "Great Plains": ["ND", "SD", "NE", "KS", "MN", "IA", "MO", "WI"]
+    "New York & New Jersey": ["NY", "NJ"]
+    "Delta": ["TN", "MS", "AL", "OK", "AR", "LA"]
+    "Texas": ["TX"]
+    "New England": ["ME", "NH", "VT", "MA", "CT", "RI"]
+
+# Athena DB name of where the runs are stored
+db_name: largeee_test_runs
+
+# Name of the baseline run. 
+baseline_run: medium_run_baseline_20230810
+
+# List of upgrade runs
+upgrade_runs:
+  - medium_run_category_1_20230925
+  - medium_run_category_2_20230920
+  - medium_run_category_3_20230925
+  - medium_run_category_4_20230926
+  - medium_run_category_5_20230920
+  - medium_run_category_6_20230920
+  - medium_run_category_7_20230824
+  - medium_run_category_8_20230824
+  - medium_run_category_9_20230824
+  - medium_run_category_10_20230825
+  - medium_run_category_11_20230920
+  - medium_run_category_12_20230825
+  - medium_run_category_13_20230920
+  - medium_run_category_14_20230921
+  - medium_run_category_15_20230920
+
+# These are the housing characteristics what will be exported in the wide-format characteristics file.
+# You can add/remove as needed. Wide format includes 'weight' column by default.
+wide_chars:
+  - in.area_median_income
+  - in.ashrae_iecc_climate_zone_2004
+  - in.building_america_climate_zone
+  - in.census_division
+  - in.state
+  - in.county
+  - in.geometry_building_type_recs
+  - in.vintage
+  - in.geometry_floor_area
+  - in.heating_fuel
+  - in.income
+  - in.hvac_cooling_type
+
+# These are the housing characteristics what will be exported in the long-format characteristics file.
+# You can add/remove as needed.
+long_chars:
+  - in.clothes_dryer
+  - in.cooking_range
+  - in.geometry_attic_type
+  - in.geometry_building_type_recs
+  - in.vintage
+  - in.area_median_income
+  - in.geometry_floor_area
+  - in.geometry_foundation_type
+  - in.geometry_wall_type
+  - in.heating_fuel
+  - in.hvac_cooling_type
+  - in.hvac_heating_efficiency
+  - in.income
+  - in.infiltration
+  - in.insulation_ceiling
+  - in.insulation_wall
+  - in.tenure
+  - in.water_heater_fuel
+  - in.windows
+  - in.misc_pool_heater
+  - in.misc_hot_tub_spa
+  - in.hvac_cooling_efficiency
+  - in.hvac_secondary_heating_fuel
+
+# This is the additional cost for electrification which is applied when certain enduses are upgraded
+# to electric version. Change this to use different adder
+electrification_adder: 4000  # USD per dwelling unit
+
+# These are the columns that will be in the quick look output file produced by calling get_quick_look_report.py
+quick_look_columns:
+  - report_simulation_output.fuel_use_natural_gas_total_m_btu
+  - report_simulation_output.fuel_use_electricity_total_m_btu
+  - report_simulation_output.fuel_use_fuel_oil_total_m_btu
+  - report_simulation_output.fuel_use_propane_total_m_btu
+  - report_simulation_output.end_use_electricity_heating_m_btu
+  - report_simulation_output.end_use_electricity_cooling_m_btu
+  - report_simulation_output.end_use_natural_gas_heating_m_btu
+  - report_simulation_output.end_use_fuel_oil_heating_m_btu
+  - report_simulation_output.end_use_propane_heating_m_btu
+# This is a calculated column. It is not in the database. It is the sum of the columns inside.
+  - total_heating_m_btu:
+      - report_simulation_output.end_use_electricity_heating_m_btu
+      - report_simulation_output.end_use_natural_gas_heating_m_btu
+      - report_simulation_output.end_use_fuel_oil_heating_m_btu
+      - report_simulation_output.end_use_propane_heating_m_btu
+      - report_simulation_output.end_use_wood_cord_heating_m_btu
+      - report_simulation_output.end_use_wood_pellets_heating_m_btu
+  - report_simulation_output.emissions_co_2_e_lrmer_mid_case_2030_boxavg_total_lb
+  - upgrade_costs.upgrade_cost_usd
+  - report_utility_bills.utility_rates_fixed_variable_total_usd

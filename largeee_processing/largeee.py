@@ -11,9 +11,8 @@ class LARGEEE:
     def __init__(self, run_names: list[str],
                  db_name: str = "largeee_test_runs",
                  workgroup: str = "largeee",
-                 state_split: bool = False) -> None:
-        if "baseline" not in run_names[0]:
-            raise ValueError("First run name must be baseline")
+                 state_split: bool = False,
+                 skip_parquet_download: bool = False) -> None:
 
         self.run_names = run_names.copy()
         self.db_name = db_name
@@ -22,10 +21,11 @@ class LARGEEE:
         self.run_objs: dict[int, BuildStockQuery] = {}
         self.processed_bs_df, self.processed_all_up_df, self.combined_report_df = None, None, None
         self._get_run_objs()
-        self.parquet_paths = self._download_parquets()
-        self.outcols = get_outcols(list(set(self.parquet_paths.values())))
-        if state_split:
-            self.add_state_to_parquets()
+        if not skip_parquet_download:
+            self.parquet_paths = self._download_parquets()
+            self.outcols = get_outcols(list(set(self.parquet_paths.values())))
+            if state_split:
+                self.add_state_to_parquets()
 
     def _add_electrification_adder(self, bs_df: pl.DataFrame, up_df: pl.DataFrame):
         bs_chars = ["in.heating_fuel", "in.hvac_cooling_efficiency", "in.hvac_heating_efficiency",
@@ -155,18 +155,20 @@ class LARGEEE:
         return final_bs_df, processed_all_up_df
 
     def get_upgrade_names(self):
-        upgrade_name_dict = defaultdict(list)
-        for upgrade_num, path in self.parquet_paths.items():
-            if upgrade_num.endswith(".00"):  # skip baseline for each run
-                continue
-            upgrade_name = (pl.scan_parquet(path)
-                            .filter(pl.col("completed_status") == "Success")
-                            .select("apply_upgrade.upgrade_name")
-                            .first().collect().row(0)[0]
-                            )
-            upgrade_name_dict['upgrade'].append(upgrade_num)
-            upgrade_name_dict['upgrade_name'].append(upgrade_name)
-        return pl.from_dict(upgrade_name_dict)
+        up_name_dfs = [pl.DataFrame({"upgrade": ["1.00"], "upgrade_name": ["Baseline"]})]
+        for cat in range(1, len(self.run_names)):
+            upgrade_table = self.run_objs[cat].up_table
+            query = f"""
+                Select cast(upgrade as integer) as upgrade, arbitrary("apply_upgrade.upgrade_name") as upgrade_name
+                from {upgrade_table}
+                where completed_status = 'Success' group by 1 order by 1
+            """
+            up_name_df = self.run_objs[cat].execute(query)
+            up_name_df['upgrade'] = up_name_df['upgrade'].map(lambda x: f"{cat}.{int(x):02}")
+            up_name_dfs.append(pl.from_pandas(up_name_df, include_index=False))
+            self.run_objs[cat].save_cache()
+            print(f"Got name for {cat=}")
+        return pl.concat(up_name_dfs, how='diagonal')
 
     def get_combined_upgrade_report(self) -> pl.DataFrame:
         report_dfs = []
@@ -177,9 +179,7 @@ class LARGEEE:
             report_df = report_df.with_columns(pl.concat_str(pl.lit(f"{cat}."),
                                                              pl.col('upgrade').cast(str).str.zfill(2)).alias("upgrade"))
             report_dfs.append(report_df)
-        # _, up_df = self.get_bs_up_df()
         combined_report_df = pl.concat(report_dfs, how='diagonal')
         name_df = self.get_upgrade_names()
-        # name_df = up_df.select("upgrade", "out.params.upgrade_name").unique(maintain_order=True).collect()
         combined_report_df = combined_report_df.join(name_df, on="upgrade", how="left")
         return combined_report_df
