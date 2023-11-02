@@ -23,8 +23,8 @@ def write_df(df: pl.DataFrame, id_vars: tuple[str, ...], col_selector: SelectorT
     print(f"Writing {config['output_folder']}/.../{group_name}/{filename}")
     os.makedirs(f"{config['output_folder']}/head/{group_name}", exist_ok=True)
     os.makedirs(f"{config['output_folder']}/full/{group_name}", exist_ok=True)
-    final_df.write_csv(f"{config['output_folder']}/full/{group_name}/{filename}.csv")
-    final_df.head(1000).write_csv(f"{config['output_folder']}/head/{group_name}/{filename}.csv")
+    final_df.write_csv(f"{config['output_folder']}/full/{group_name}/{config['file_prefix']}{filename}.csv")
+    final_df.head(1000).write_csv(f"{config['output_folder']}/head/{group_name}/{config['file_prefix']}{filename}.csv")
 
 
 def write_group(largee_run: LARGEEE, group_name: str, filter_states: list[str] | None = None):
@@ -109,7 +109,7 @@ def write_all():
     for group_name, states in config['state_grouping'].items():
         write_group(largee_run, group_name, states)
     upgrade_report_df = largee_run.get_combined_upgrade_report()
-    upgrade_report_df.write_csv(f"{config['output_folder']}/upgrade_report.csv")
+    upgrade_report_df.write_csv(f"{config['output_folder']}/{config['file_prefix']}upgrade_report.csv")
 
 
 if __name__ == "__main__":
