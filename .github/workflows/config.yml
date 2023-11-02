@@ -81,9 +81,11 @@ jobs:
 
       - name: Download and Install OpenStudio
         run: |
-          curl -s https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.dmg
-          mv OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.dmg $(brew --cache)
-          brew install OpenStudio
+          pwd
+          curl -LO https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.tar.gz
+          tar xvzf OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.tar.gz
+          echo '\nexport PATH="./OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64/bin:$PATH' >> ~/.zshrc
+          source ~/.zshrc
           openstudio openstudio_version
           which openstudio
 
@@ -144,9 +146,10 @@ jobs:
 
       - name: Download and Install OpenStudio
         run: |
-          curl -s https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.tar.gz
-          mv OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.tar.gz $(brew --cache)
-          brew install OpenStudio
+          curl -LO https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.tar.gz
+          tar xvzf OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.tar.gz
+          echo '\nexport PATH="/usr/local/openstudio/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64/bin:$PATH' >> ~/.zshrc
+          source ~/.zshrc
           openstudio openstudio_version
           which openstudio
 
