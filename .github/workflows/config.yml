@@ -79,15 +79,13 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-
       - name: Download and Install OpenStudio
         run: |
-          pwd
-          curl -LO https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
-          tar xvzf OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.tar.gz
-          echo 'export PATH="./OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64/bin:$PATH"' >> ~/.zshrc
+          cd ~
+          wget https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
+          tar xzf OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
+          rm OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
+          echo "export PATH=$HOME/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64/bin:\$PATH" >> ~/.zshrc
           source ~/.zshrc
           openstudio openstudio_version
           which openstudio
@@ -147,14 +145,13 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-
       - name: Download and Install OpenStudio
         run: |
-          curl -LO https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.tar.gz
-          tar xvzf OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.tar.gz
-          echo 'export PATH="/usr/local/openstudio/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64/bin:$PATH"' >> ~/.zshrc
+          cd ~
+          wget https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
+          tar xzf OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
+          rm OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
+          echo "export PATH=$HOME/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64/bin:\$PATH" >> ~/.zshrc
           source ~/.zshrc
           openstudio openstudio_version
           which openstudio
