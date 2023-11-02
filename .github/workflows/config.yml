@@ -7,6 +7,11 @@ on:
     types: [ synchronize, opened ]
   workflow_dispatch:
 
+env:
+  OPENSTUDIO_VER: "3.7.0-rc1"
+  OPENSTUDIO_SHA: "211bb633b0"
+  OPENSTUDIO_PLATFORM: "Darwin-x86_64"
+
 jobs:
   format-files:
     runs-on: ubuntu-latest
@@ -79,16 +84,18 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Download and Install OpenStudio
+      - &install-openstudio
+        name: Download and Install OpenStudio
         run: |
           cd ~
-          wget https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
-          tar xzf OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
-          rm OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
-          echo "export PATH=$HOME/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64/bin:\$PATH" >> ~/.zshrc
+          export OS_TARFILE="OpenStudio-$OPENSTUDIO_VER+$OPENSTUDIO_SHA-$OPENSTUDIO_PLATFORM"
+          wget https://github.com/NREL/OpenStudio/releases/download/v$OPENSTUDIO_VER/$OS_TARFILE
+          tar xzf $OS_TARFILE.tar.gz
+          rm $OS_TARFILE.tar.gz
+          echo "export PATH=$HOME/$OS_TARFILE/bin:\$PATH" >> ~/.zshrc
           source ~/.zshrc
-          openstudio openstudio_version
           which openstudio
+          openstudio openstudio_version
 
       - name: Install gems
         run: |
@@ -145,16 +152,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Download and Install OpenStudio
-        run: |
-          cd ~
-          wget https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
-          tar xzf OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
-          rm OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64.tar.gz
-          echo "export PATH=$HOME/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-x86_64/bin:\$PATH" >> ~/.zshrc
-          source ~/.zshrc
-          openstudio openstudio_version
-          which openstudio
+      - *install-openstudio
 
       - name: Download formatted options_lookup
         uses: actions/download-artifact@v3
