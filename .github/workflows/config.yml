@@ -144,6 +144,9 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+
       - name: Download and Install OpenStudio
         run: |
           curl -LO https://github.com/NREL/OpenStudio/releases/download/v3.7.0-rc1/OpenStudio-3.7.0-rc1+211bb633b0-Darwin-arm64.tar.gz
