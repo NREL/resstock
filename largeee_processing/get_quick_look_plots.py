@@ -2,10 +2,11 @@ import plotly.express as px
 from InquirerPy import inquirer
 import plotly.subplots as sp
 import plotly.graph_objects as go
-import polars as pl
 import pandas as pd
 import yaml
 import os
+# import colors
+
 
 with open("config.yaml") as f:
     config = yaml.safe_load(f)
@@ -15,7 +16,7 @@ os.makedirs(f"{config['output_folder']}/quick_plots", exist_ok=True)
 def get_plot(report_df, column):
     fig = sp.make_subplots(rows=len(report_df['upgrade'].unique()), cols=1,
                            subplot_titles=report_df['full_name'].unique(), vertical_spacing=0.002)
-
+    colors = px.colors.qualitative.Plotly
     for i, upgrade in enumerate(report_df['upgrade'].unique()):
         for j, report_name in enumerate(report_df['report_name'].unique()):
             trace = go.Bar(
@@ -25,6 +26,7 @@ def get_plot(report_df, column):
                             (report_df['report_name'] == report_name)][column],
                 name=f'{report_name}',
                 legendgroup=report_name,
+                marker=dict(color=colors[j]),
                 showlegend=True if i == 0 else False,
             )
             fig.append_trace(trace, row=i+1, col=1)
@@ -57,7 +59,7 @@ def main():
         return
     all_report_dfs = []
     for report_name, report_path in zip(report_name, report_paths):
-        report_df = pd.read_csv(report_path)
+        report_df = pd.read_csv(report_path, dtype={'upgrade': str})
         report_df["report_name"] = report_name
         all_report_dfs.append(report_df)
     all_report_df = pd.concat(all_report_dfs)
