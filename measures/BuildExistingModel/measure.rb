@@ -388,9 +388,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         additional_properties << "#{arg_name}=#{arg_value}"
       end
 
-      # to call the AddWholeBuildingSharedHPWHAndCirculationLoops measure
-      # additional_properties << "has_ghpwh=#{bldg_data['Water Heater Efficiency'] == 'Natural Gas Heat Pump'}" # FIXME: this is specific to another project
-      additional_properties << 'has_ghpwh=true' # FIXME: hardset to true for testing AddSharedHPWH
+      # AddSharedHPWH measure
+      # shared_hpwh = 'none'
+      # shared_hpwh = HPXML::FuelTypeElectricity
+      shared_hpwh = HPXML::FuelTypeNaturalGas
+      additional_properties << "SharedHPWH=#{shared_hpwh}"
 
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 

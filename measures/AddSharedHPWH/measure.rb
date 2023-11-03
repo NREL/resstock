@@ -25,8 +25,6 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
   def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    # TODO: add fuel type (electric, gas, etc.)
-
     return args
   end
 
@@ -48,8 +46,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       return true
     end
 
-    if hpxml.buildings[0].header.extension_properties['has_ghpwh'] == 'false'
-      runner.registerAsNotApplicable('Building does not have gHPWH. Skipping AddSharedHPWH measure ...')
+    shared_hpwh = hpxml.buildings[0].header.extension_properties['SharedHPWH']
+    if shared_hpwh == 'none'
+      runner.registerAsNotApplicable('Building does not have shared HPWH. Skipping AddSharedHPWH measure ...')
       return true
     end
 
@@ -87,7 +86,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     out_pipe.addToNode(recirculation_loop.supplyOutletNode)
 
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
-    pump.setName('Recirulation Pump')
+    pump.setName('Recirculation Loop Pump')
 
     schedule = OpenStudio::Model::ScheduleConstant.new(model)
     schedule.setValue(UnitConversions.convert(125.0, 'F', 'C'))
@@ -99,13 +98,13 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     storage_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     storage_tank.setName('Main Storage Tank')
 
-    # swing_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     # TODO: this would be in series with main storage, downstream of it
     # this does not go on the demand side of the heat pump loop, like the main storage tank does
-    # swing_tank.setName('Swing Tank')
+    swing_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
+    swing_tank.setName('Swing Tank')
+    swing_tank.addToNode(recirculation_loop.supplyOutletNode)
 
     recirculation_loop.addSupplyBranchForComponent(storage_tank)
-    # swing_tank.addToNode(recirculation_loop.supplyInletNode)
     pump.addToNode(recirculation_loop.supplyInletNode)
 
     heat_pump_loop = OpenStudio::Model::PlantLoop.new(model)
@@ -130,6 +129,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     manager.addToNode(heat_pump_loop.supplyOutletNode)
 
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
+    pump.setName('Heat Pump Loop Pump')
     pump.addToNode(heat_pump_loop.supplyInletNode)
 
     heat_pump_loop.addSupplyBranchForComponent(pipe_supply_bypass)
@@ -140,17 +140,18 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     heat_pump_loop.addDemandBranchForComponent(storage_tank)
 
-    fuel_fired_heating = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
-    fuel_fired_heating.setEndUseSubcategory('HP 1')
-    heat_pump_loop.addSupplyBranchForComponent(fuel_fired_heating)
-    # TODO: update defaulted setters
-
-    # fuel_fired_heating = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
-    # fuel_fired_heating.setEndUseSubcategory('HP 2')
-    # heat_pump_loop.addSupplyBranchForComponent(fuel_fired_heating)
+    if shared_hpwh == HPXML::FuelTypeElectricity
+      # heat_pump = OpenStudio::Model::HeatPumpPlantLoopEIRHeating.new(model)
+      # heat_pump.setEndUseSubcategory('EHP 1')
+    elsif shared_hpwh == HPXML::FuelTypeNaturalGas
+      heat_pump = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
+      heat_pump.setEndUseSubcategory('GHP 1')
+      # TODO: update defaulted setters
+    end
+    heat_pump_loop.addSupplyBranchForComponent(heat_pump)
 
     availability_manager = OpenStudio::Model::AvailabilityManagerDifferentialThermostat.new(model)
-    availability_manager.setHotNode(fuel_fired_heating.outletModelObject.get.to_Node.get)
+    availability_manager.setHotNode(heat_pump.outletModelObject.get.to_Node.get)
     availability_manager.setColdNode(storage_tank.demandOutletModelObject.get.to_Node.get)
     availability_manager.setTemperatureDifferenceOnLimit(0)
     availability_manager.setTemperatureDifferenceOffLimit(0)
