@@ -25,6 +25,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
   def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    # TODO: add fuel type (electric, gas, etc.)
+
     return args
   end
 
@@ -70,9 +72,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # pipe_const.insertLayer(0, pipe_mat)
 
     # bypass_pipe = OpenStudio::Model::PipeIndoor.new(model)
-    # bypass_pipe.setAmbientTemperatureZone(zone)
-    # bypass_pipe.setConstruction(pipe_const)
-    # bypass_pipe.setPipeLength(3)
+    # bypass_pipe.setAmbientTemperatureZone(zone) # TODO: jeff?
+    # bypass_pipe.setConstruction(pipe_const) # TODO: jeff?
+    # bypass_pipe.setPipeLength(3) # TODO: jeff?
     bypass_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
 
     # out_pipe = OpenStudio::Model::PipeIndoor.new(model)
@@ -98,6 +100,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     storage_tank.setName('Main Storage Tank')
 
     # swing_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
+    # TODO: this would be in series with main storage, downstream of it
+    # this does not go on the demand side of the heat pump loop, like the main storage tank does
     # swing_tank.setName('Swing Tank')
 
     recirculation_loop.addSupplyBranchForComponent(storage_tank)
@@ -139,6 +143,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     fuel_fired_heating = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
     fuel_fired_heating.setEndUseSubcategory('HP 1')
     heat_pump_loop.addSupplyBranchForComponent(fuel_fired_heating)
+    # TODO: update defaulted setters
 
     # fuel_fired_heating = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
     # fuel_fired_heating.setEndUseSubcategory('HP 2')
@@ -161,6 +166,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       plant_loop.remove
     end
 
+    # placeholder to get things to simulate, otherwise orphaned objects
+    # TODO: jeff to look into EC_adj
     model.getEnergyManagementSystemProgramCallingManagers.each do |ems_pcm|
       next unless ems_pcm.name.to_s.include?('EC_adj')
 
