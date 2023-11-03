@@ -203,7 +203,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if !upgraded_hpxml.nil?
         air_leakage_value = { existing_hpxml => [], upgraded_hpxml => [] }
         [existing_hpxml, upgraded_hpxml].each do |hpxml_obj|
-          hpxml_obj.air_infiltration_measurements.each do |air_infiltration_measurement|
+          hpxml_obj.buildings[0].air_infiltration_measurements.each do |air_infiltration_measurement|
             air_leakage_value[hpxml_obj] << air_infiltration_measurement.air_leakage unless air_infiltration_measurement.air_leakage.nil?
           end
         end
@@ -225,7 +225,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if !upgraded_hpxml.nil?
         ceiling_assembly_r = { existing_hpxml => [], upgraded_hpxml => [] }
         [existing_hpxml, upgraded_hpxml].each do |hpxml_obj|
-          hpxml_obj.floors.each do |floor|
+          hpxml_obj.buildings[0].floors.each do |floor|
             next unless floor.is_thermal_boundary
             next unless floor.is_interior
             next unless floor.is_ceiling
@@ -238,8 +238,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
         fail 'Found multiple ceiling assembly R-values.' if ceiling_assembly_r[existing_hpxml].uniq.size > 1 || ceiling_assembly_r[upgraded_hpxml].uniq.size > 1
 
         if !ceiling_assembly_r[existing_hpxml].empty? && !ceiling_assembly_r[upgraded_hpxml].empty?
-          ceiling_insulation_r_upgraded = upgraded_hpxml.header.extension_properties['ceiling_insulation_r'].to_f
-          ceiling_insulation_r_existing = existing_hpxml.header.extension_properties['ceiling_insulation_r'].to_f
+          ceiling_insulation_r_upgraded = upgraded_hpxml.buildings[0].header.extension_properties['ceiling_insulation_r'].to_f
+          ceiling_insulation_r_existing = existing_hpxml.buildings[0].header.extension_properties['ceiling_insulation_r'].to_f
           ceiling_assembly_r_increase = ceiling_insulation_r_upgraded - ceiling_insulation_r_existing
           cost_mult += ceiling_assembly_r_increase * hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
         end
