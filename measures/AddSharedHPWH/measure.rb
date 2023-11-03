@@ -13,12 +13,12 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'TODO'
+    return 'Replace in-unit water heaters with shared heat pump water heater.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return 'TODO'
+    return 'Remove all existing domestic/solar hot water loops and associated EMS objects. Add new recirculation loop with main storage and swing tanks on the supply side, and existing water use connections on the demand side. Add new heat pump loop with main storage tank on the demand side, and heat pump water heater on the supply side.'
   end
 
   # define the arguments that the user will input
@@ -61,10 +61,76 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # 6 Add a swing tank in series: Ahead of the main WaterHeater:Stratified, another stratified tank model.
     #  This one includes an ER element to make up for loop losses.
     # 7 Add the GAHP(s). Will need to do some test runs when this is in to figure out how many units before we increase the # of HPs
-    #  HeatExchangerFluidToFluid
 
-    recirculation_loop = OpenStudio::Model::PlantLoop.new(model)
-    recirculation_loop.setName('Recirculation Loop')
+    # Setpoint Schedule
+    schedule = OpenStudio::Model::ScheduleConstant.new(model)
+    schedule.setValue(UnitConversions.convert(125.0, 'F', 'C'))
+
+    # Add Loops
+    recirculation_loop = add_loop(model, 'Recirculation Loop')
+    heat_pump_loop = add_loop(model, 'Heat Pump Loop')
+
+    # Add Pipes
+    add_pipes(model, recirculation_loop, true, false)
+    add_pipes(model, heat_pump_loop, true, true)
+
+    # Add Pumps
+    add_pump(model, recirculation_loop, 'Recirculation Loop Pump')
+    add_pump(model, heat_pump_loop, 'Heat Pump Loop Pump')
+
+    # Add Setpoint Managers
+    add_setpoint_manager(model, recirculation_loop, schedule, 'Recirculation Loop Setpoint Manager')
+    add_setpoint_manager(model, heat_pump_loop, schedule, 'Heat Pump Loop Setpoint Manager', 'Temperature')
+
+    # Add Tanks
+    storage_tank = add_storage_tank(model, recirculation_loop, heat_pump_loop, 'Main Storage Tank')
+    add_swing_tank(model, recirculation_loop, 'Swing Tank')
+
+    # Add Heat Pump
+    heat_pump = add_heat_pump(model, shared_hpwh, heat_pump_loop, name)
+
+    # Add Availability Manager
+    hot_node = heat_pump.outletModelObject.get.to_Node.get
+    cold_node = storage_tank.demandOutletModelObject.get.to_Node.get
+    add_availability_manager(model, heat_pump_loop, hot_node, cold_node)
+
+    # Re-connect WaterUseConections
+    model.getWaterUseConnectionss.each do |wuc|
+      recirculation_loop.addDemandBranchForComponent(wuc)
+    end
+
+    # Remove Existing
+    remove_loops(model)
+    remove_ems(model)
+
+    return true
+  end
+
+  def add_loop(model, name)
+    loop = OpenStudio::Model::PlantLoop.new(model)
+    loop.setName(name)
+
+    return loop
+  end
+
+  def add_pipes(model, loop, supply = false, demand = false)
+    if supply
+      supply_bypass = OpenStudio::Model::PipeAdiabatic.new(model)
+      supply_outlet = OpenStudio::Model::PipeAdiabatic.new(model)
+
+      loop.addSupplyBranchForComponent(supply_bypass)
+      supply_outlet.addToNode(loop.supplyOutletNode)
+    end
+
+    if demand
+      demand_bypass = OpenStudio::Model::PipeAdiabatic.new(model)
+      demand_inlet = OpenStudio::Model::PipeAdiabatic.new(model)
+      demand_outlet = OpenStudio::Model::PipeAdiabatic.new(model)
+
+      loop.addDemandBranchForComponent(demand_bypass)
+      demand_inlet.addToNode(loop.demandInletNode)
+      demand_outlet.addToNode(loop.demandOutletNode)
+    end
 
     # pipe_mat = OpenStudio::Model::StandardOpaqueMaterial.new(model, 'Smooth', 3.00E-03, 45.31, 7833.0, 500.0)
     # pipe_const = OpenStudio::Model::Construction.new(model)
@@ -74,103 +140,76 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # bypass_pipe.setAmbientTemperatureZone(zone) # TODO: jeff?
     # bypass_pipe.setConstruction(pipe_const) # TODO: jeff?
     # bypass_pipe.setPipeLength(3) # TODO: jeff?
-    bypass_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
+  end
 
-    # out_pipe = OpenStudio::Model::PipeIndoor.new(model)
-    # out_pipe.setAmbientTemperatureZone(zone)
-    # out_pipe.setConstruction(pipe_const)
-    # out_pipe.setPipeLength(3)
-    out_pipe = OpenStudio::Model::PipeAdiabatic.new(model)
-
-    recirculation_loop.addSupplyBranchForComponent(bypass_pipe)
-    out_pipe.addToNode(recirculation_loop.supplyOutletNode)
-
+  def add_pump(model, loop, name)
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
-    pump.setName('Recirculation Loop Pump')
+    pump.setName(name)
+    pump.addToNode(loop.supplyInletNode)
+  end
 
-    schedule = OpenStudio::Model::ScheduleConstant.new(model)
-    schedule.setValue(UnitConversions.convert(125.0, 'F', 'C'))
-
+  def add_setpoint_manager(model, loop, schedule, name, control_variable = nil)
     manager = OpenStudio::Model::SetpointManagerScheduled.new(model, schedule)
-    manager.setName('Recirculation Loop Setpoint Manager')
-    manager.addToNode(recirculation_loop.supplyOutletNode)
+    manager.setName(name)
+    manager.setControlVariable(control_variable) if !control_variable.nil?
+    manager.addToNode(loop.supplyOutletNode)
+  end
 
+  def add_storage_tank(model, recirculation_loop, heat_pump_loop, name)
     storage_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
-    storage_tank.setName('Main Storage Tank')
+    storage_tank.setName(name)
 
+    recirculation_loop.addSupplyBranchForComponent(storage_tank)
+    heat_pump_loop.addDemandBranchForComponent(storage_tank)
+
+    return storage_tank
+  end
+
+  def add_swing_tank(model, loop, name)
     # TODO: this would be in series with main storage, downstream of it
     # this does not go on the demand side of the heat pump loop, like the main storage tank does
     swing_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
-    swing_tank.setName('Swing Tank')
-    swing_tank.addToNode(recirculation_loop.supplyOutletNode)
+    swing_tank.setName(name)
+    swing_tank.addToNode(loop.supplyOutletNode)
+  end
 
-    recirculation_loop.addSupplyBranchForComponent(storage_tank)
-    pump.addToNode(recirculation_loop.supplyInletNode)
-
-    heat_pump_loop = OpenStudio::Model::PlantLoop.new(model)
-    heat_pump_loop.setName('Heat Pump Loop')
-
-    pipe_supply_bypass = OpenStudio::Model::PipeAdiabatic.new(model)
-    pipe_supply_outlet = OpenStudio::Model::PipeAdiabatic.new(model)
-    pipe_demand_bypass = OpenStudio::Model::PipeAdiabatic.new(model)
-    pipe_demand_inlet = OpenStudio::Model::PipeAdiabatic.new(model)
-    pipe_demand_outlet = OpenStudio::Model::PipeAdiabatic.new(model)
-
-    dhw_setpoint_manager = nil
-    recirculation_loop.supplyOutletNode.setpointManagers.each do |setpoint_manager|
-      if setpoint_manager.to_SetpointManagerScheduled.is_initialized
-        dhw_setpoint_manager = setpoint_manager.to_SetpointManagerScheduled.get
-      end
-    end
-
-    manager = OpenStudio::Model::SetpointManagerScheduled.new(model, dhw_setpoint_manager.schedule)
-    manager.setName('Heat Pump Loop Setpoint Manager')
-    manager.setControlVariable('Temperature')
-    manager.addToNode(heat_pump_loop.supplyOutletNode)
-
-    pump = OpenStudio::Model::PumpConstantSpeed.new(model)
-    pump.setName('Heat Pump Loop Pump')
-    pump.addToNode(heat_pump_loop.supplyInletNode)
-
-    heat_pump_loop.addSupplyBranchForComponent(pipe_supply_bypass)
-    pipe_supply_outlet.addToNode(heat_pump_loop.supplyOutletNode)
-    heat_pump_loop.addDemandBranchForComponent(pipe_demand_bypass)
-    pipe_demand_inlet.addToNode(heat_pump_loop.demandInletNode)
-    pipe_demand_outlet.addToNode(heat_pump_loop.demandOutletNode)
-
-    heat_pump_loop.addDemandBranchForComponent(storage_tank)
-
-    if shared_hpwh == HPXML::FuelTypeElectricity
-      # heat_pump = OpenStudio::Model::HeatPumpPlantLoopEIRHeating.new(model)
+  def add_heat_pump(model, fuel_type, loop, name)
+    if fuel_type == HPXML::FuelTypeElectricity
+      heat_pump = OpenStudio::Model::WaterHeaterHeatPump.new(model)
       # heat_pump.setEndUseSubcategory('EHP 1')
-    elsif shared_hpwh == HPXML::FuelTypeNaturalGas
+    elsif fuel_type == HPXML::FuelTypeNaturalGas
       heat_pump = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
       heat_pump.setEndUseSubcategory('GHP 1')
       # TODO: update defaulted setters
     end
-    heat_pump_loop.addSupplyBranchForComponent(heat_pump)
+    heat_pump.setName(name)
+    loop.addSupplyBranchForComponent(heat_pump)
 
+    return heat_pump
+  end
+
+  def add_availability_manager(model, loop, hot_node, cold_node)
     availability_manager = OpenStudio::Model::AvailabilityManagerDifferentialThermostat.new(model)
-    availability_manager.setHotNode(heat_pump.outletModelObject.get.to_Node.get)
-    availability_manager.setColdNode(storage_tank.demandOutletModelObject.get.to_Node.get)
+    availability_manager.setHotNode(hot_node)
+    availability_manager.setColdNode(cold_node)
     availability_manager.setTemperatureDifferenceOnLimit(0)
     availability_manager.setTemperatureDifferenceOffLimit(0)
-    heat_pump_loop.addAvailabilityManager(availability_manager)
+    loop.addAvailabilityManager(availability_manager)
+  end
 
-    model.getWaterUseConnectionss.each do |wuc|
-      recirculation_loop.addDemandBranchForComponent(wuc)
-    end
-
+  def remove_loops(model)
     model.getPlantLoops.each do |plant_loop|
-      next unless plant_loop.name.to_s.include?('dhw_loop')
-
-      plant_loop.remove
+      plant_loop.remove if plant_loop.name.to_s.include?('dhw_loop')
+      plant_loop.remove if plant_loop.name.to_s.include?('solar_hot_water_loop')
     end
+  end
 
-    # placeholder to get things to simulate, otherwise orphaned objects
+  def remove_ems(model)
     # TODO: jeff to look into EC_adj
     model.getEnergyManagementSystemProgramCallingManagers.each do |ems_pcm|
-      next unless ems_pcm.name.to_s.include?('EC_adj')
+      if !ems_pcm.name.to_s.include?('EC_adj') && !ems_pcm.name.to_s.include?('solar_hot_water') && !ems_pcm.name.to_s.include?('water_heater')
+        next
+      end
 
       ems_pcm.programs.each do |program|
         program.remove
@@ -179,20 +218,12 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     model.getEnergyManagementSystemSensors.each do |ems_sensor|
-      next unless ems_sensor.name.to_s.include?('water_heater')
+      if !ems_sensor.name.to_s.include?('water_heater') && !ems_sensor.name.to_s.include?('solar_hot_water')
+        next
+      end
 
       ems_sensor.remove
     end
-
-    puts "getPlantLoops #{model.getPlantLoops.collect { |o| o.name.to_s }}"
-    puts "getWaterHeaterMixeds #{model.getWaterHeaterMixeds.collect { |o| o.name.to_s }}"
-    puts "getWaterHeaterStratifieds #{model.getWaterHeaterStratifieds.collect { |o| o.name.to_s }}"
-    puts "getPumpVariableSpeeds #{model.getPumpVariableSpeeds.collect { |o| o.name.to_s }}"
-    puts "getPumpConstantSpeeds #{model.getPumpConstantSpeeds.collect { |o| o.name.to_s }}"
-    puts "getWaterUseConnectionss #{model.getWaterUseConnectionss.collect { |o| o.name.to_s }}"
-    puts "getWaterUseEquipments #{model.getWaterUseEquipments.collect { |o| o.name.to_s }}"
-
-    return true
   end
 end
 

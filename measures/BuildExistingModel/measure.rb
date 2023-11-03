@@ -339,6 +339,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    # AddSharedHPWH measure
+    # shared_hpwh = 'none'
+    # shared_hpwh = HPXML::FuelTypeElectricity
+    shared_hpwh = HPXML::FuelTypeNaturalGas
+
     whole_sfa_mf_building = false
     if geometry_building_num_units < 5
       whole_sfa_mf_building = true
@@ -387,13 +392,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"
       end
-
-      # AddSharedHPWH measure
-      # shared_hpwh = 'none'
-      # shared_hpwh = HPXML::FuelTypeElectricity
-      shared_hpwh = HPXML::FuelTypeNaturalGas
       additional_properties << "SharedHPWH=#{shared_hpwh}"
-
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       # Get software program used and version
