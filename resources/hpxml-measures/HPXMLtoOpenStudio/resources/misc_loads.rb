@@ -22,7 +22,7 @@ class MiscLoads
     end
     if not schedules_file.nil?
       space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: kwh)
-      sch = schedules_file.create_schedule_file(col_name: col_name)
+      sch = schedules_file.create_schedule_file(model, col_name: col_name)
     end
     if sch.nil?
       col_unavailable_periods = Schedule.get_unavailable_periods(runner, col_name, unavailable_periods)
@@ -76,7 +76,7 @@ class MiscLoads
       end
       if not schedules_file.nil?
         space_design_level = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: therm)
-        sch = schedules_file.create_schedule_file(col_name: col_name)
+        sch = schedules_file.create_schedule_file(model, col_name: col_name)
       end
       if sch.nil?
         col_unavailable_periods = Schedule.get_unavailable_periods(runner, col_name, unavailable_periods)
@@ -120,7 +120,7 @@ class MiscLoads
     heater_sch = nil
     col_name = (obj_name.include?('pool') ? 'pool_heater' : 'permanent_spa_heater')
     if not schedules_file.nil?
-      heater_sch = schedules_file.create_schedule_file(col_name: col_name)
+      heater_sch = schedules_file.create_schedule_file(model, col_name: col_name)
     end
     if heater_sch.nil?
       col_unavailable_periods = Schedule.get_unavailable_periods(runner, col_name, unavailable_periods)
@@ -190,7 +190,7 @@ class MiscLoads
     pump_sch = nil
     col_name = (obj_name.include?('pool') ? 'pool_pump' : 'permanent_spa_pump')
     if not schedules_file.nil?
-      pump_sch = schedules_file.create_schedule_file(col_name: col_name)
+      pump_sch = schedules_file.create_schedule_file(model, col_name: col_name)
     end
     if pump_sch.nil?
       col_unavailable_periods = Schedule.get_unavailable_periods(runner, col_name, unavailable_periods)
