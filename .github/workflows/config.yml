@@ -84,8 +84,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - &install-openstudio
-        name: Download and Install OpenStudio
+      - name: Download and Install OpenStudio
         run: |
           cd ~
           export OS_TARFILE="OpenStudio-$OPENSTUDIO_VER+$OPENSTUDIO_SHA-$OPENSTUDIO_PLATFORM"
@@ -152,7 +151,17 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - *install-openstudio
+      - name: Download and Install OpenStudio
+        run: |
+          cd ~
+          export OS_TARFILE="OpenStudio-$OPENSTUDIO_VER+$OPENSTUDIO_SHA-$OPENSTUDIO_PLATFORM"
+          wget https://github.com/NREL/OpenStudio/releases/download/v$OPENSTUDIO_VER/$OS_TARFILE
+          tar xzf $OS_TARFILE.tar.gz
+          rm $OS_TARFILE.tar.gz
+          echo "export PATH=$HOME/$OS_TARFILE/bin:\$PATH" >> ~/.zshrc
+          source ~/.zshrc
+          which openstudio
+          openstudio openstudio_version  
 
       - name: Download formatted options_lookup
         uses: actions/download-artifact@v3
