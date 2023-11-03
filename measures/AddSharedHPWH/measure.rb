@@ -159,6 +159,10 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     storage_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     storage_tank.setName(name)
 
+    capacity = 0
+    storage_tank.setHeater1Capacity(capacity)
+    storage_tank.setHeater2Capacity(capacity)
+
     recirculation_loop.addSupplyBranchForComponent(storage_tank)
     heat_pump_loop.addDemandBranchForComponent(storage_tank)
 
@@ -170,17 +174,23 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # this does not go on the demand side of the heat pump loop, like the main storage tank does
     swing_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     swing_tank.setName(name)
+
+    capacity = 0
+    swing_tank.setHeater1Capacity(capacity)
+    swing_tank.setHeater2Capacity(capacity)
+
     swing_tank.addToNode(loop.supplyOutletNode)
   end
 
   def add_heat_pump(model, fuel_type, loop, name)
     if fuel_type == HPXML::FuelTypeElectricity
       heat_pump = OpenStudio::Model::WaterHeaterHeatPump.new(model)
-      # heat_pump.setEndUseSubcategory('EHP 1')
     elsif fuel_type == HPXML::FuelTypeNaturalGas
       heat_pump = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
+      heat_pump.setFuelType(EPlus.fuel_type(fuel_type))
       heat_pump.setEndUseSubcategory('GHP 1')
-      # TODO: update defaulted setters
+      heat_pump.setNominalAuxiliaryElectricPower(0)
+      heat_pump.setStandbyElectricPower(0)
     end
     heat_pump.setName(name)
     loop.addSupplyBranchForComponent(heat_pump)
