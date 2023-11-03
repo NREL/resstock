@@ -161,7 +161,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
     debug = runner.getBoolArgumentValue('debug', user_arguments)
 
     if debug
-      in_osm = in_idf = pre_process_idf = eplusout_audit = eplusout_bnd = eplusout_eio = eplusout_end = eplusout_err = eplusout_eso = eplusout_mdd = eplusout_mtd = eplusout_rdd = eplusout_shd = eplusout_msgpack = stdout_energyplus = stdout_expandobject = schedules_csv = true
+      in_osm = in_idf = pre_process_idf = eplusout_audit = eplusout_bnd = eplusout_eio = eplusout_end = eplusout_err = eplusout_eso = eplusout_mdd = eplusout_mtd = eplusout_rdd = eplusout_shd = eplusout_msgpack = eplustbl_htm = stdout_energyplus = stdout_expandobject = schedules_csv = true
     end
 
     Dir.glob('./../in.osm').each do |f|
