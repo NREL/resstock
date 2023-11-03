@@ -11,6 +11,7 @@ env:
   OPENSTUDIO_VER: "3.7.0-rc1"
   OPENSTUDIO_SHA: "211bb633b0"
   OPENSTUDIO_PLATFORM: "Darwin-x86_64"
+  OPENSTUDIO_EXT: "tar.gz"
 
 jobs:
   format-files:
@@ -88,9 +89,9 @@ jobs:
         run: |
           cd ~
           export OS_TARFILE="OpenStudio-$OPENSTUDIO_VER+$OPENSTUDIO_SHA-$OPENSTUDIO_PLATFORM"
-          wget https://github.com/NREL/OpenStudio/releases/download/v$OPENSTUDIO_VER/$OS_TARFILE
-          tar xzf $OS_TARFILE.tar.gz
-          rm $OS_TARFILE.tar.gz
+          wget https://github.com/NREL/OpenStudio/releases/download/v$OPENSTUDIO_VER/$OS_TARFILE.$OPENSTUDIO_EXT
+          tar xzf $OS_TARFILE.$OPENSTUDIO_EXT
+          rm $OS_TARFILE.$OPENSTUDIO_EXT
           echo "export PATH=$HOME/$OS_TARFILE/bin:\$PATH" >> ~/.zshrc
           source ~/.zshrc
           which openstudio
@@ -155,9 +156,9 @@ jobs:
         run: |
           cd ~
           export OS_TARFILE="OpenStudio-$OPENSTUDIO_VER+$OPENSTUDIO_SHA-$OPENSTUDIO_PLATFORM"
-          wget https://github.com/NREL/OpenStudio/releases/download/v$OPENSTUDIO_VER/$OS_TARFILE
-          tar xzf $OS_TARFILE.tar.gz
-          rm $OS_TARFILE.tar.gz
+          wget https://github.com/NREL/OpenStudio/releases/download/v$OPENSTUDIO_VER/$OS_TARFILE.$OPENSTUDIO_EXT
+          tar xzf $OS_TARFILE.$OPENSTUDIO_EXT
+          rm $OS_TARFILE.$OPENSTUDIO_EXT
           echo "export PATH=$HOME/$OS_TARFILE/bin:\$PATH" >> ~/.zshrc
           source ~/.zshrc
           which openstudio
