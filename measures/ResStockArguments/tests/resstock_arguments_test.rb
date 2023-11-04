@@ -33,7 +33,7 @@ class ResStockArgumentsTest < Minitest::Test
     end
 
     resstock_arguments_extras = resstock_arguments - lookup_arguments
-    puts resstock_arguments_extras.sort
+    puts "resstock_arguments - lookup_arguments: #{resstock_arguments_extras.sort}" if !resstock_arguments_extras.empty?
     assert_equal(0, resstock_arguments_extras.size)
   end
 end

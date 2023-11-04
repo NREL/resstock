@@ -4,9 +4,11 @@ class Constants
   def self.build_residential_hpxml_excludes
     # don't make these BuildResidentialHPXML arguments into ResStockArguments arguments
     return ['hpxml_path',
+            'existing_hpxml_path',
             'software_info_program_used',
             'software_info_program_version',
             'schedules_filepaths',
+            'unit_multiplier',
             'geometry_unit_left_wall_is_adiabatic',
             'geometry_unit_right_wall_is_adiabatic',
             'geometry_unit_front_wall_is_adiabatic',
@@ -46,7 +48,8 @@ class Constants
             'schedules_column_names',
             'output_csv_path',
             'hpxml_output_path',
-            'debug']
+            'debug',
+            'building_id']
   end
 
   def self.build_existing_model_excludes
