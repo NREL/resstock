@@ -1314,27 +1314,25 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.cooling_systems.reverse_each do |cooling_system|
         cooling_system.delete
       end
-      hpxml_bldg.heat_pumps.add(id: "HeatPump#{hpxml_bldg.heat_pumps.size + 1}",
-                                distribution_system_idref: hpxml_bldg.hvac_distributions[-1].id,
-                                heat_pump_type: HPXML::HVACTypeHeatPumpGroundToAir,
-                                heat_pump_fuel: HPXML::FuelTypeElectricity,
-                                backup_type: HPXML::HeatPumpBackupTypeIntegrated,
-                                backup_heating_fuel: HPXML::FuelTypeElectricity,
-                                is_shared_system: true,
-                                number_of_units_served: 6,
-                                backup_heating_efficiency_percent: 1.0,
-                                fraction_heat_load_served: 1,
-                                fraction_cool_load_served: 1,
-                                heating_efficiency_cop: 3.6,
-                                cooling_efficiency_eer: 16.6,
-                                heating_capacity: 12000,
-                                cooling_capacity: 12000,
-                                backup_heating_capacity: 12000,
-                                cooling_shr: 0.73,
-                                primary_heating_system: true,
-                                primary_cooling_system: true,
-                                pump_watts_per_ton: 0.0)
-
+      hpxml_bldg.heat_pumps[0].distribution_system_idref = hpxml_bldg.hvac_distributions[-1].id
+      hpxml_bldg.heat_pumps[0].heat_pump_type = HPXML::HVACTypeHeatPumpGroundToAir
+      hpxml_bldg.heat_pumps[0].heat_pump_fuel = HPXML::FuelTypeElectricity
+      hpxml_bldg.heat_pumps[0].backup_type = HPXML::HeatPumpBackupTypeIntegrated
+      hpxml_bldg.heat_pumps[0].backup_heating_fuel = HPXML::FuelTypeElectricity
+      hpxml_bldg.heat_pumps[0].is_shared_system = true
+      hpxml_bldg.heat_pumps[0].number_of_units_served = 6
+      hpxml_bldg.heat_pumps[0].backup_heating_efficiency_percent = 1.0
+      hpxml_bldg.heat_pumps[0].fraction_heat_load_served = 1
+      hpxml_bldg.heat_pumps[0].fraction_cool_load_served = 1
+      hpxml_bldg.heat_pumps[0].heating_efficiency_cop = 3.6
+      hpxml_bldg.heat_pumps[0].cooling_efficiency_eer = 16.6
+      hpxml_bldg.heat_pumps[0].heating_capacity = 12000
+      hpxml_bldg.heat_pumps[0].cooling_capacity = 12000
+      hpxml_bldg.heat_pumps[0].backup_heating_capacity = 12000
+      hpxml_bldg.heat_pumps[0].cooling_shr = 0.73
+      hpxml_bldg.heat_pumps[0].primary_heating_system = true
+      hpxml_bldg.heat_pumps[0].primary_cooling_system = true
+      hpxml_bldg.heat_pumps[0].pump_watts_per_ton = 0.0
     end
     if hpxml_file.include? 'eae'
       hpxml_bldg.heating_systems[0].electric_auxiliary_energy = 500.0
@@ -1687,6 +1685,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.heat_pumps[0].heating_capacity_17F = hpxml_bldg.heat_pumps[0].heating_capacity * hpxml_bldg.heat_pumps[0].heating_capacity_retention_fraction
       hpxml_bldg.heat_pumps[0].heating_capacity_retention_fraction = nil
       hpxml_bldg.heat_pumps[0].heating_capacity_retention_temp = nil
+    end
+    if hpxml_file.include? 'base-hvac-geothermal-loop.xml'
+      hpxml_bldg.geothermal_loops[0].shank_spacing = 2.5
     end
 
     # ------------------ #
@@ -2228,7 +2229,38 @@ def download_utility_rates
   exit!
 end
 
-command_list = [:update_measures, :update_hpxmls, :create_release_zips, :download_utility_rates]
+def download_g_functions
+  require_relative 'HPXMLtoOpenStudio/resources/g_functions/util'
+
+  g_functions_dir = File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio/resources/g_functions')
+  FileUtils.mkdir(g_functions_dir) if !File.exist?(g_functions_dir)
+  filepath = File.join(g_functions_dir, 'g-function_library_1.0')
+
+  if !File.exist?(filepath) # presence of 'g-function_library_1.0' folder will skip re-downloading
+    require 'tempfile'
+    tmpfile = Tempfile.new('functions')
+
+    UrlResolver.fetch('https://gdr.openei.org/files/1325/g-function_library_1.0.zip', tmpfile)
+
+    puts 'Extracting g-functions...'
+    require 'zip'
+    Zip::File.open(tmpfile.path.to_s) do |zipfile|
+      zipfile.each do |file|
+        fpath = File.join(g_functions_dir, file.name)
+        FileUtils.mkdir_p(File.dirname(fpath))
+        zipfile.extract(file, fpath) unless File.exist?(fpath)
+      end
+    end
+  end
+
+  num_configs_actual = process_g_functions(filepath)
+
+  puts "#{num_configs_actual} config files are available in #{g_functions_dir}."
+  puts 'Completed.'
+  exit!
+end
+
+command_list = [:update_measures, :update_hpxmls, :create_release_zips, :download_utility_rates, :download_g_functions]
 
 def display_usage(command_list)
   puts "Usage: openstudio #{File.basename(__FILE__)} [COMMAND]\nCommands:\n  " + command_list.join("\n  ")
@@ -2349,6 +2381,10 @@ if ARGV[0].to_sym == :download_utility_rates
   download_utility_rates
 end
 
+if ARGV[0].to_sym == :download_g_functions
+  download_g_functions
+end
+
 if ARGV[0].to_sym == :create_release_zips
   if ENV['CI']
     # CI doesn't have git, so default to everything
@@ -2366,21 +2402,21 @@ if ARGV[0].to_sym == :create_release_zips
 
   files = ['Changelog.md',
            'LICENSE.md',
-           'BuildResidentialHPXML/measure.*',
+           'BuildResidentialHPXML/*.*',
            'BuildResidentialHPXML/resources/**/*.*',
-           'BuildResidentialScheduleFile/measure.*',
+           'BuildResidentialScheduleFile/*.*',
            'BuildResidentialScheduleFile/resources/**/*.*',
-           'HPXMLtoOpenStudio/measure.*',
+           'HPXMLtoOpenStudio/*.*',
            'HPXMLtoOpenStudio/resources/**/*.*',
-           'ReportSimulationOutput/measure.*',
+           'ReportSimulationOutput/*.*',
            'ReportSimulationOutput/resources/**/*.*',
-           'ReportUtilityBills/measure.*',
+           'ReportUtilityBills/*.*',
            'ReportUtilityBills/resources/**/*.*',
            'weather/*.*',
            'workflow/*.*',
            'workflow/real_homes/*.xml',
            'workflow/sample_files/*.xml',
-           'workflow/tests/*test*.rb',
+           'workflow/tests/*.rb',
            'workflow/tests/**/*.xml',
            'workflow/tests/**/*.csv',
            'documentation/index.html',

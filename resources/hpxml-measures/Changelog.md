@@ -34,12 +34,19 @@ __New Features__
   - Allow duct locations to be provided while defaulting duct areas (i.e., without providing duct area/fraction inputs).
   - Add generic "attic" and "crawlspace" location choices for supply/return ducts, water heater, and battery.
   - Always validate the HPXML file before applying defaults and only optionally validate the final HPXML file.
+  - Add soil and moisture type arguments for determining ground conductivity and diffusivity.
 - Battery losses now split between charging and discharging.
 - Interior/exterior window shading multipliers are now modeled using the EnergyPlus incident solar multiplier.
-- Updates ground temperatures using a correlation based on L. Xing's simplified design model (2014).
+- Updates deep ground temperatures (used for modeling ground-source heat pumps) using L. Xing's simplified design model (2014).
 - Improvements to HERS & MaxLoad heat pump sizing methodologies.
 - Allows `WaterFixture/FlowRate` as an alternative to `LowFlow`; hot water credit is now calculated based on fraction of low flow fixtures.
 - Added README.md documentation for all OpenStudio measures.
+- Ground source heat pump enhancements:
+  - Connect to `HVACPlant/GeothermalLoop` and `BuildingSummary/Site/Soil` HPXML elements.
+  - Allow optional inputs related to geothermal loop: loop flow, borehole count/length/spacing/diameter/configuration, grout conductivity, pipe conductivity/diameter/shank spacing.
+  - Allow optional ground diffusivity input for site soil.
+  - Connect to the [G-Function Library](https://gdr.openei.org/submissions/1325) (in the Geothermal Data Repository) for using precalculated g-function values with GSHP modeling.
+  - **Breaking change**: Replaces `BuildingSummary/Site/extension/GroundConductivity` with `BuildingSummary/Site/Soil/Conductivity`.
 
 __Bugfixes__
 - Fixes battery resilience output to properly incorporate battery losses.
@@ -53,6 +60,7 @@ __Bugfixes__
 - Fixes ReportSimulationOutput outputs for the Parametric Analysis Tool (PAT).
 - Fixes missing radiation exchange between window and sky when an interior/exterior window shading multiplier less than 1 exists.
 - Fixes AC/HP cooling bug when applying cooling equipment adjustment.
+- Fixes monthly shallow ground temperatures (used primarily in HVAC autosizing) for the southern hemisphere.
 - BuildResidentialHPXML measure: Fixes air distribution CFA served when there is not a central system that meets 100% of the load.
 
 ## OpenStudio-HPXML v1.6.0

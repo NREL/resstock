@@ -412,35 +412,35 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
 
     # Base case
-    hpxml = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
-    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
-    _model, hpxml = _test_measure(args_hash)
-    assert_equal(3, hpxml.geothermal_loops[0].num_bore_holes)
-    assert_in_epsilon(878.0 / 3 + 5.0, hpxml.geothermal_loops[0].bore_length, 0.01)
+    hpxml, _hpxml_bldg = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _model, _test_hpxml, test_hpxml_bldg = _test_measure(args_hash)
+    assert_equal(3, test_hpxml_bldg.geothermal_loops[0].num_bore_holes)
+    assert_in_epsilon(776.7 / 3 + 5.0, test_hpxml_bldg.geothermal_loops[0].bore_length, 0.01)
 
     # Bore depth greater than the max -> increase number of boreholes
-    hpxml = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
-    hpxml.site.ground_conductivity = 0.2
-    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
-    _model, hpxml = _test_measure(args_hash)
-    assert_equal(5, hpxml.geothermal_loops[0].num_bore_holes)
-    assert_in_epsilon(2433.0 / 5 + 5, hpxml.geothermal_loops[0].bore_length, 0.01)
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
+    hpxml_bldg.site.ground_conductivity = 0.2
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _model, _test_hpxml, test_hpxml_bldg = _test_measure(args_hash)
+    assert_equal(5, test_hpxml_bldg.geothermal_loops[0].num_bore_holes)
+    assert_in_epsilon(2151.1 / 5 + 5, test_hpxml_bldg.geothermal_loops[0].bore_length, 0.01)
 
     # Bore depth greater than the max -> increase number of boreholes until the max, set depth to the max, and issue warning
-    hpxml = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
-    hpxml.site.ground_conductivity = 0.08
-    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
-    _model, hpxml = _test_measure(args_hash)
-    assert_equal(10, hpxml.geothermal_loops[0].num_bore_holes)
-    assert_in_epsilon(500.0, hpxml.geothermal_loops[0].bore_length, 0.01)
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
+    hpxml_bldg.site.ground_conductivity = 0.07
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _model, _test_hpxml, test_hpxml_bldg = _test_measure(args_hash)
+    assert_equal(10, test_hpxml_bldg.geothermal_loops[0].num_bore_holes)
+    assert_in_epsilon(500.0, test_hpxml_bldg.geothermal_loops[0].bore_length, 0.01)
 
     # Boreholes greater than the max -> decrease the number of boreholes until the max
-    hpxml = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
-    hpxml.heat_pumps[0].cooling_capacity *= 5
-    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
-    _model, hpxml = _test_measure(args_hash)
-    assert_equal(10, hpxml.geothermal_loops[0].num_bore_holes)
-    assert_in_epsilon(3450.0 / 10 + 5, hpxml.geothermal_loops[0].bore_length, 0.01)
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
+    hpxml_bldg.heat_pumps[0].cooling_capacity *= 5
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _model, _test_hpxml, test_hpxml_bldg = _test_measure(args_hash)
+    assert_equal(10, test_hpxml_bldg.geothermal_loops[0].num_bore_holes)
+    assert_in_epsilon(3761.5 / 10 + 5, test_hpxml_bldg.geothermal_loops[0].bore_length, 0.01)
   end
 
   def _test_measure(args_hash)

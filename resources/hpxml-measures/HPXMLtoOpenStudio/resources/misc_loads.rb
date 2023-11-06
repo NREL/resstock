@@ -61,36 +61,35 @@ class MiscLoads
 
   def self.apply_fuel(model, runner, fuel_load, obj_name, conditioned_space, schedules_file, unavailable_periods)
     therm = 0
-
     if not fuel_load.nil?
       therm = fuel_load.therm_per_year * fuel_load.usage_multiplier
-
-      # Create schedule
-      sch = nil
-      if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
-        col_name = SchedulesFile::ColumnFuelLoadsGrill
-      elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
-        col_name = SchedulesFile::ColumnFuelLoadsLighting
-      elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
-        col_name = SchedulesFile::ColumnFuelLoadsFireplace
-      end
-      if not schedules_file.nil?
-        space_design_level = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: therm)
-        sch = schedules_file.create_schedule_file(model, col_name: col_name)
-      end
-      if sch.nil?
-        col_unavailable_periods = Schedule.get_unavailable_periods(runner, col_name, unavailable_periods)
-        sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', fuel_load.weekday_fractions, fuel_load.weekend_fractions, fuel_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction, unavailable_periods: col_unavailable_periods)
-        space_design_level = sch.calc_design_level_from_daily_therm(therm / 365.0)
-        sch = sch.schedule
-      else
-        runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !fuel_load.weekday_fractions.nil?
-        runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !fuel_load.weekend_fractions.nil?
-        runner.registerWarning("Both '#{col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !fuel_load.monthly_multipliers.nil?
-      end
     end
 
     return if therm <= 0
+
+    # Create schedule
+    sch = nil
+    if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
+      col_name = SchedulesFile::ColumnFuelLoadsGrill
+    elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
+      col_name = SchedulesFile::ColumnFuelLoadsLighting
+    elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
+      col_name = SchedulesFile::ColumnFuelLoadsFireplace
+    end
+    if not schedules_file.nil?
+      space_design_level = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: therm)
+      sch = schedules_file.create_schedule_file(model, col_name: col_name)
+    end
+    if sch.nil?
+      col_unavailable_periods = Schedule.get_unavailable_periods(runner, col_name, unavailable_periods)
+      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', fuel_load.weekday_fractions, fuel_load.weekend_fractions, fuel_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction, unavailable_periods: col_unavailable_periods)
+      space_design_level = sch.calc_design_level_from_daily_therm(therm / 365.0)
+      sch = sch.schedule
+    else
+      runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !fuel_load.weekday_fractions.nil?
+      runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !fuel_load.weekend_fractions.nil?
+      runner.registerWarning("Both '#{col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !fuel_load.monthly_multipliers.nil?
+    end
 
     sens_frac = fuel_load.frac_sensible
     lat_frac = fuel_load.frac_latent
@@ -110,15 +109,28 @@ class MiscLoads
     mfl.setSchedule(sch)
   end
 
-  def self.apply_pool_or_permanent_spa_heater(runner, model, pool_or_spa, obj_name, conditioned_space, schedules_file, unavailable_periods)
+  def self.apply_pool_or_permanent_spa_heater(runner, model, pool_or_spa, conditioned_space, schedules_file, unavailable_periods)
     return if pool_or_spa.heater_type == HPXML::TypeNone
 
     heater_kwh = 0
     heater_therm = 0
+    if pool_or_spa.heater_load_units == HPXML::UnitsKwhPerYear
+      heater_kwh = pool_or_spa.heater_load_value * pool_or_spa.heater_usage_multiplier
+    elsif pool_or_spa.heater_load_units == HPXML::UnitsThermPerYear
+      heater_therm = pool_or_spa.heater_load_value * pool_or_spa.heater_usage_multiplier
+    end
+
+    return if (heater_kwh <= 0) && (heater_therm <= 0)
 
     # Create schedule
     heater_sch = nil
-    col_name = (obj_name.include?('pool') ? 'pool_heater' : 'permanent_spa_heater')
+    if pool_or_spa.is_a? HPXML::Pool
+      obj_name = Constants.ObjectNameMiscPoolHeater
+      col_name = 'pool_heater'
+    else
+      obj_name = Constants.ObjectNameMiscPermanentSpaHeater
+      col_name = 'permanent_spa_heater'
+    end
     if not schedules_file.nil?
       heater_sch = schedules_file.create_schedule_file(model, col_name: col_name)
     end
@@ -129,12 +141,6 @@ class MiscLoads
       runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !pool_or_spa.heater_weekday_fractions.nil?
       runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !pool_or_spa.heater_weekend_fractions.nil?
       runner.registerWarning("Both '#{col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !pool_or_spa.heater_monthly_multipliers.nil?
-    end
-
-    if pool_or_spa.heater_load_units == HPXML::UnitsKwhPerYear
-      heater_kwh = pool_or_spa.heater_load_value * pool_or_spa.heater_usage_multiplier
-    elsif pool_or_spa.heater_load_units == HPXML::UnitsThermPerYear
-      heater_therm = pool_or_spa.heater_load_value * pool_or_spa.heater_usage_multiplier
     end
 
     if heater_kwh > 0
@@ -183,12 +189,23 @@ class MiscLoads
     end
   end
 
-  def self.apply_pool_or_permanent_spa_pump(runner, model, pool_or_spa, obj_name, conditioned_space, schedules_file, unavailable_periods)
+  def self.apply_pool_or_permanent_spa_pump(runner, model, pool_or_spa, conditioned_space, schedules_file, unavailable_periods)
     pump_kwh = 0
+    if not pool_or_spa.pump_kwh_per_year.nil?
+      pump_kwh = pool_or_spa.pump_kwh_per_year * pool_or_spa.pump_usage_multiplier
+    end
+
+    return if pump_kwh <= 0
 
     # Create schedule
     pump_sch = nil
-    col_name = (obj_name.include?('pool') ? 'pool_pump' : 'permanent_spa_pump')
+    if pool_or_spa.is_a? HPXML::Pool
+      obj_name = Constants.ObjectNameMiscPoolPump
+      col_name = 'pool_pump'
+    else
+      obj_name = Constants.ObjectNameMiscPermanentSpaPump
+      col_name = 'permanent_spa_pump'
+    end
     if not schedules_file.nil?
       pump_sch = schedules_file.create_schedule_file(model, col_name: col_name)
     end
@@ -201,31 +218,25 @@ class MiscLoads
       runner.registerWarning("Both '#{col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !pool_or_spa.pump_monthly_multipliers.nil?
     end
 
-    if not pool_or_spa.pump_kwh_per_year.nil?
-      pump_kwh = pool_or_spa.pump_kwh_per_year * pool_or_spa.pump_usage_multiplier
+    if not schedules_file.nil?
+      space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: pump_kwh)
+    end
+    if space_design_level.nil?
+      space_design_level = pump_sch.calc_design_level_from_daily_kwh(pump_kwh / 365.0)
+      pump_sch = pump_sch.schedule
     end
 
-    if pump_kwh > 0
-      if not schedules_file.nil?
-        space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: pump_kwh)
-      end
-      if space_design_level.nil?
-        space_design_level = pump_sch.calc_design_level_from_daily_kwh(pump_kwh / 365.0)
-        pump_sch = pump_sch.schedule
-      end
-
-      mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-      mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
-      mel.setName(obj_name)
-      mel.setEndUseSubcategory(obj_name)
-      mel.setSpace(conditioned_space) # no heat gain, so assign the equipment to an arbitrary space
-      mel_def.setName(obj_name)
-      mel_def.setDesignLevel(space_design_level)
-      mel_def.setFractionRadiant(0)
-      mel_def.setFractionLatent(0)
-      mel_def.setFractionLost(1)
-      mel.setSchedule(pump_sch)
-    end
+    mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+    mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
+    mel.setName(obj_name)
+    mel.setEndUseSubcategory(obj_name)
+    mel.setSpace(conditioned_space) # no heat gain, so assign the equipment to an arbitrary space
+    mel_def.setName(obj_name)
+    mel_def.setDesignLevel(space_design_level)
+    mel_def.setFractionRadiant(0)
+    mel_def.setFractionLatent(0)
+    mel_def.setFractionLost(1)
+    mel.setSchedule(pump_sch)
   end
 
   private
