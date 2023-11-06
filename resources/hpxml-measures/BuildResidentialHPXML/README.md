@@ -22,6 +22,17 @@ Absolute/relative path of the HPXML file.
 
 <br/>
 
+**Existing HPXML File Path**
+
+Absolute/relative path of the existing HPXML file. If not provided, a new HPXML file with one Building element is created. If provided, a new Building element will be appended to this HPXML file (e.g., to create a multifamily HPXML file describing multiple dwelling units).
+
+- **Name:** ``existing_hpxml_path``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
 **Software Info: Program Used**
 
 The name of the software program used.
@@ -265,6 +276,17 @@ Path of the EPW file.
 The year the building was built.
 
 - **Name:** ``year_built``
+- **Type:** ``Integer``
+
+- **Required:** ``false``
+
+<br/>
+
+**Building Construction: Unit Multiplier**
+
+The number of similar dwelling units. EnergyPlus simulation results will be multiplied this value. If not provided, defaults to 1.
+
+- **Name:** ``unit_multiplier``
 - **Type:** ``Integer``
 
 - **Required:** ``false``
