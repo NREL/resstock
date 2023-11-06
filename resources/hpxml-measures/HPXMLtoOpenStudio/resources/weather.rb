@@ -10,8 +10,9 @@ end
 class WeatherData
   def initialize
   end
-  ATTRS ||= [:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :MonthlyAvgDrybulbs, :GroundAnnualTemp, :GroundMonthlyTemps, :WSF,
-             :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs, :MainsAnnualTemp, :MainsDailyTemps, :MainsMonthlyTemps]
+  ATTRS ||= [:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :MonthlyAvgDrybulbs, :ShallowGroundAnnualTemp, :ShallowGroundMonthlyTemps,
+             :DeepGroundAnnualTemp, :DeepGroundSurfTempAmp1, :DeepGroundSurfTempAmp2, :DeepGroundPhaseShiftTempAmp1, :DeepGroundPhaseShiftTempAmp2,
+             :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs, :MainsAnnualTemp, :MainsDailyTemps, :MainsMonthlyTemps]
   attr_accessor(*ATTRS)
 end
 
@@ -23,7 +24,7 @@ class WeatherDesign
 end
 
 class WeatherProcess
-  def initialize(epw_path:, runner:)
+  def initialize(epw_path:, runner:, hpxml: nil)
     @header = WeatherHeader.new
     @data = WeatherData.new
     @design = WeatherDesign.new
@@ -34,14 +35,14 @@ class WeatherProcess
 
     epw_file = OpenStudio::EpwFile.new(epw_path, true)
 
-    process_epw(runner, epw_file)
+    process_epw(runner, epw_file, hpxml)
   end
 
   attr_accessor(:header, :data, :design)
 
   private
 
-  def process_epw(runner, epw_file)
+  def process_epw(runner, epw_file, hpxml)
     # Header info:
     header.City = epw_file.city
     header.State = epw_file.stateProvinceRegion
@@ -123,7 +124,8 @@ class WeatherProcess
 
     calc_heat_cool_degree_days(dailydbs)
     calc_avg_monthly_highs_lows(dailyhighdbs, dailylowdbs)
-    calc_ground_temperatures
+    calc_shallow_ground_temperatures
+    calc_deep_ground_temperatures(hpxml)
     calc_mains_temperatures(dailydbs.size)
     data.WSF = calc_ashrae_622_wsf(rowdata)
 
@@ -292,10 +294,9 @@ class WeatherProcess
     design.HeatingDrybulb = UnitConversions.convert(heat99per_db, 'C', 'F')
   end
 
-  def calc_ground_temperatures
-    # Return monthly ground temperatures.
-    # This correlation is the same that is used in DOE-2's src\WTH.f file, subroutine GTEMP,
-    # except that we have replaced the annual average ground temperature using Xing's model.
+  def calc_shallow_ground_temperatures
+    # Return shallow monthly/annual ground temperatures.
+    # This correlation is the same that is used in DOE-2's src\WTH.f file, subroutine GTEMP
 
     amon = [15.0, 46.0, 74.0, 95.0, 135.0, 166.0, 196.0, 227.0, 258.0, 288.0, 319.0, 349.0]
     po = 0.6
@@ -312,14 +313,58 @@ class WeatherProcess
     phi = Math::atan(z)
     bo = (data.MonthlyAvgDrybulbs.max - data.MonthlyAvgDrybulbs.min) * 0.5
 
-    # The regression coefficients are from L. Xing's simplified design model ground temperatures (Appendix A-3) and the nearest TMY3 station's annual dry bulb.
-    data.GroundAnnualTemp = UnitConversions.convert(0.91 * UnitConversions.convert(data.AnnualAvgDrybulb, 'F', 'C') + 1.82, 'C', 'F')
-
-    data.GroundMonthlyTemps = []
+    data.ShallowGroundMonthlyTemps = []
     for i in 0..11
       theta = amon[i] * 24.0
-      data.GroundMonthlyTemps << data.GroundAnnualTemp - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm
+      data.ShallowGroundMonthlyTemps << UnitConversions.convert(data.AnnualAvgDrybulb - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0, 'R', 'F')
     end
+    data.ShallowGroundAnnualTemp = data.AnnualAvgDrybulb
+
+    if header.Latitude < 0
+      # Southern hemisphere
+      data.ShallowGroundMonthlyTemps.rotate!(6)
+    end
+  end
+
+  def calc_deep_ground_temperatures(hpxml)
+    # Return deep annual ground temperature.
+    # Annual average ground temperature using Xing's model.
+
+    # Avoid this lookup/calculation if there's no GSHP since there is a (small) runtime penalty.
+    if !hpxml.nil?
+      has_gshp = false
+      hpxml.buildings.each do |hpxml_bldg|
+        has_gshp = true if hpxml_bldg.heat_pumps.select { |h| h.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
+      end
+      return if !has_gshp
+    end
+
+    deep_ground_temperatures = File.join(File.dirname(__FILE__), 'data', 'Xing_okstate_0664D_13659_Table_A-3.csv')
+    if not File.exist?(deep_ground_temperatures)
+      fail 'Could not find Xing_okstate_0664D_13659_Table_A-3.csv'
+    end
+
+    require 'csv'
+    require 'matrix'
+
+    # Minimize distance to Station
+    v1 = Vector[header.Latitude, header.Longitude]
+    dist = 1 / Constants.small
+    temperatures_amplitudes = nil
+    CSV.foreach(deep_ground_temperatures) do |row|
+      v2 = Vector[row[3].to_f, row[4].to_f]
+      new_dist = (v1 - v2).magnitude
+      if new_dist < dist
+        temperatures_amplitudes = row[5..9].map(&:to_f)
+        dist = new_dist
+      end
+    end
+
+    data.DeepGroundAnnualTemp = UnitConversions.convert(temperatures_amplitudes[0], 'C', 'F')
+    data.DeepGroundSurfTempAmp1 = UnitConversions.convert(temperatures_amplitudes[1], 'deltac', 'deltaf')
+    data.DeepGroundSurfTempAmp2 = UnitConversions.convert(temperatures_amplitudes[2], 'deltac', 'deltaf')
+    data.DeepGroundPhaseShiftTempAmp1 = temperatures_amplitudes[3] # days
+    data.DeepGroundPhaseShiftTempAmp2 = temperatures_amplitudes[4] # days
   end
 
   def calc_mains_temperatures(n_days)

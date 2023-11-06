@@ -60,7 +60,7 @@ jobs:
           name: documentation
           path: docs/_build/html/
 
-  run-workflow-tests:
+  run-workflow1-tests:
     runs-on: ubuntu-latest
     container:
       image: docker://nrel/openstudio:3.7.0-rc1
@@ -75,7 +75,30 @@ jobs:
 
       - name: Run workflow tests
         run: |
-          bundle exec rake test_workflow
+          bundle exec rake test_workflow1
+
+      - name: Store results
+        uses: actions/upload-artifact@v3
+        with:
+          path: workflow/tests/results
+          name: results
+
+  run-workflow2-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://nrel/openstudio:3.7.0-rc1
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install software
+        run: |
+          rm -f Gemfile.lock && bundle install
+
+      - name: Run workflow tests
+        run: |
+          bundle exec rake test_workflow2
 
       - name: Store results
         uses: actions/upload-artifact@v3
@@ -101,7 +124,7 @@ jobs:
   compare-results:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: [run-workflow-tests, run-unit-tests]
+    needs: [run-workflow1-tests, run-workflow2-tests, run-unit-tests]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -153,7 +176,7 @@ jobs:
 
   update-results:
     runs-on: ubuntu-latest
-    needs: [run-workflow-tests, run-unit-tests]
+    needs: [run-workflow1-tests, run-workflow2-tests, run-unit-tests]
     steps:
       - uses: actions/checkout@v3
         with:

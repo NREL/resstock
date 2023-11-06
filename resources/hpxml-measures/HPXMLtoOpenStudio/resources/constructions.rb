@@ -1535,7 +1535,7 @@ class Constructions
       initial_temp = indoor_temp
     else
       # Space temperature assumptions from ASHRAE 152 - Duct Efficiency Calculations.xls, Zone temperatures
-      ground_temp = weather.data.GroundMonthlyTemps[sim_begin_month - 1]
+      ground_temp = weather.data.ShallowGroundMonthlyTemps[sim_begin_month - 1]
       if slab.interior_adjacent_to == HPXML::LocationBasementUnconditioned
         if foundation_ceiling_insulated
           # Insulated ceiling: 75% ground, 25% outdoor, 0% indoor
