@@ -70,13 +70,16 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     recirculation_loop = add_loop(model, 'Recirculation Loop')
     heat_pump_loop = add_loop(model, 'Heat Pump Loop')
 
-    # Add Pipes
-    add_pipes(model, recirculation_loop, true, false)
-    add_pipes(model, heat_pump_loop, true, true)
+    # Add Adiabatic Pipes
+    add_adiabatic_pipes(model, recirculation_loop)
+    add_adiabatic_pipes(model, heat_pump_loop)
 
     # Add Pumps
     add_pump(model, recirculation_loop, 'Recirculation Loop Pump')
     add_pump(model, heat_pump_loop, 'Heat Pump Loop Pump')
+
+    # Add Indoor Pipes
+    add_indoor_pipes(model, recirculation_loop)
 
     # Add Setpoint Managers
     add_setpoint_manager(model, recirculation_loop, schedule, 'Recirculation Loop Setpoint Manager')
@@ -87,7 +90,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     add_swing_tank(model, recirculation_loop, 'Swing Tank')
 
     # Add Heat Pump
-    heat_pump = add_heat_pump(model, shared_hpwh, heat_pump_loop, name)
+    heat_pump = add_heat_pump(model, shared_hpwh, heat_pump_loop, 'Heat Pump Water Heater')
 
     # Add Availability Manager
     hot_node = heat_pump.outletModelObject.get.to_Node.get
@@ -113,33 +116,53 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     return loop
   end
 
-  def add_pipes(model, loop, supply = false, demand = false)
-    if supply
-      supply_bypass = OpenStudio::Model::PipeAdiabatic.new(model)
-      supply_outlet = OpenStudio::Model::PipeAdiabatic.new(model)
+  def add_adiabatic_pipes(model, loop)
+    supply_bypass = OpenStudio::Model::PipeAdiabatic.new(model)
+    supply_outlet = OpenStudio::Model::PipeAdiabatic.new(model)
 
-      loop.addSupplyBranchForComponent(supply_bypass)
-      supply_outlet.addToNode(loop.supplyOutletNode)
+    loop.addSupplyBranchForComponent(supply_bypass)
+    supply_outlet.addToNode(loop.supplyOutletNode)
+
+    demand_bypass = OpenStudio::Model::PipeAdiabatic.new(model)
+    demand_inlet = OpenStudio::Model::PipeAdiabatic.new(model)
+    demand_outlet = OpenStudio::Model::PipeAdiabatic.new(model)
+
+    loop.addDemandBranchForComponent(demand_bypass)
+    demand_inlet.addToNode(loop.demandInletNode)
+    demand_outlet.addToNode(loop.demandOutletNode)
+  end
+
+  def add_indoor_pipes(model, loop)
+    materials = []
+
+    supply_pipe_insulation_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, 'VeryRough', 0.0306179506914235, 0.05193, 63.66, 1297.66)
+    supply_pipe_insulation_material.setName('Supply Pipe Insulation')
+    supply_pipe_insulation_material.setThermalAbsorptance(0.9)
+    supply_pipe_insulation_material.setSolarAbsorptance(0.5)
+    supply_pipe_insulation_material.setVisibleAbsorptance(0.5)
+    materials << supply_pipe_insulation_material
+
+    supply_pipe_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, 'Smooth', 0.003, 401, 8940, 390)
+    supply_pipe_material.setName('Supply Pipe')
+    supply_pipe_material.setThermalAbsorptance(0.9)
+    supply_pipe_material.setSolarAbsorptance(0.5)
+    supply_pipe_material.setVisibleAbsorptance(0.5)
+    materials << supply_pipe_material
+
+    insulated_supply_pipe_construction = OpenStudio::Model::Construction.new(model)
+    insulated_supply_pipe_construction.setName('Insulated Supply Pipe')
+    insulated_supply_pipe_construction.setLayers(materials)
+
+    model.getThermalZones.each do |thermal_zone|
+      dhw_recirc_supply_pipe = OpenStudio::Model::PipeIndoor.new(model)
+      dhw_recirc_supply_pipe.setName("DHW Recirc Supply Pipe - #{thermal_zone.name}")
+      dhw_recirc_supply_pipe.setAmbientTemperatureZone(thermal_zone)
+      dhw_recirc_supply_pipe.setConstruction(insulated_supply_pipe_construction)
+      dhw_recirc_supply_pipe.setPipeInsideDiameter(0.0508)
+      dhw_recirc_supply_pipe.setPipeLength(3)
+
+      dhw_recirc_supply_pipe.addToNode(loop.demandInletNode)
     end
-
-    if demand
-      demand_bypass = OpenStudio::Model::PipeAdiabatic.new(model)
-      demand_inlet = OpenStudio::Model::PipeAdiabatic.new(model)
-      demand_outlet = OpenStudio::Model::PipeAdiabatic.new(model)
-
-      loop.addDemandBranchForComponent(demand_bypass)
-      demand_inlet.addToNode(loop.demandInletNode)
-      demand_outlet.addToNode(loop.demandOutletNode)
-    end
-
-    # pipe_mat = OpenStudio::Model::StandardOpaqueMaterial.new(model, 'Smooth', 3.00E-03, 45.31, 7833.0, 500.0)
-    # pipe_const = OpenStudio::Model::Construction.new(model)
-    # pipe_const.insertLayer(0, pipe_mat)
-
-    # bypass_pipe = OpenStudio::Model::PipeIndoor.new(model)
-    # bypass_pipe.setAmbientTemperatureZone(zone) # TODO: jeff?
-    # bypass_pipe.setConstruction(pipe_const) # TODO: jeff?
-    # bypass_pipe.setPipeLength(3) # TODO: jeff?
   end
 
   def add_pump(model, loop, name)
@@ -216,8 +239,14 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
   def remove_ems(model)
     # TODO: jeff to look into EC_adj
+    ems_pcm_to_remove = [
+      'EC_adj',
+      'solar hot water',
+      'water_heater',
+      'solar_hot_water'
+    ]
     model.getEnergyManagementSystemProgramCallingManagers.each do |ems_pcm|
-      if !ems_pcm.name.to_s.include?('EC_adj') && !ems_pcm.name.to_s.include?('solar_hot_water') && !ems_pcm.name.to_s.include?('water_heater')
+      if ems_pcm_to_remove.select { |e| ems_pcm.name.to_s.include?(e) }.size == 0
         next
       end
 
@@ -227,8 +256,12 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       ems_pcm.remove
     end
 
+    ems_sensor_to_remove = [
+      'water_heater',
+      'solar_hot_water'
+    ]
     model.getEnergyManagementSystemSensors.each do |ems_sensor|
-      if !ems_sensor.name.to_s.include?('water_heater') && !ems_sensor.name.to_s.include?('solar_hot_water')
+      if ems_sensor_to_remove.select { |e| ems_sensor.name.to_s.include?(e) }.size == 0
         next
       end
 

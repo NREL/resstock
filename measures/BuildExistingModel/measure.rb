@@ -340,9 +340,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # AddSharedHPWH measure
-    # shared_hpwh = 'none'
+    shared_hpwh = 'none'
     # shared_hpwh = HPXML::FuelTypeElectricity
-    shared_hpwh = HPXML::FuelTypeNaturalGas
+    # shared_hpwh = HPXML::FuelTypeNaturalGas
 
     whole_sfa_mf_building = false
     if geometry_building_num_units < 5
