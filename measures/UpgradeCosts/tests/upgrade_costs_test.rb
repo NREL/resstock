@@ -310,7 +310,7 @@ class UpgradeCostsTest < Minitest::Test
       'Slab Perimeter, Exposed, Conditioned (ft)' => 140.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 126.6,
       'Number, Geothermal Loop Boreholes (count)' => 5.0,
-      'Depth, Geothermal Loop Boreholes (ft)' => 297.0,
+      'Depth, Geothermal Loop Boreholes (ft)' => 263.0,
       'Flow Rate, Geothermal Loop (gpm)' => 15.0
     }
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_GSHP_ElecTanklessWH.osw', cost_multipliers)
@@ -827,11 +827,11 @@ class UpgradeCostsTest < Minitest::Test
         elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
           hpxml['systems_mechanical_ventilation_flow_rate_cfm'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Systems: Mechanical Ventilation Flow Rate')
         elsif cost_mult_type == 'Number, Geothermal Loop Boreholes (count)'
-          hpxml['systems_geothermal_loop_number_boreholes_count'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Systems: Geothermal Loop Number Boreholes')
+          hpxml['systems_geothermal_loop_number_boreholes_count'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Systems: Geothermal Loop Number Boreholes')
         elsif cost_mult_type == 'Depth, Geothermal Loop Boreholes (ft)'
-          hpxml['systems_geothermal_loop_boreholes_depth_ft'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Systems: Geothermal Loop Boreholes Depth')
+          hpxml['systems_geothermal_loop_boreholes_depth_ft'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Systems: Geothermal Loop Boreholes Depth')
         elsif cost_mult_type == 'Flow Rate, Geothermal Loop (gpm)'
-          hpxml['systems_geothermal_loop_flow_rate_gpm'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Systems: Geothermal Loop Flow Rate')
+          hpxml['systems_geothermal_loop_flow_rate_gpm'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Systems: Geothermal Loop Flow Rate')
         end
       end
 
