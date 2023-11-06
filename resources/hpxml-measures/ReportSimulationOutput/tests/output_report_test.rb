@@ -846,49 +846,46 @@ class ReportSimulationOutputTest < Minitest::Test
   end
 
   def test_timeseries_hourly_enduses_power_outage_natvent_availability
-    energy_use_total_col = "Energy Use: #{TE::Total}"
-    temperature_conditioned_space_col = 'Temperature: Conditioned Space'
+    hpxml_path = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage.xml')
+    natvent_cfm_col = "Airflow: #{AFT::NaturalVentilation}"
 
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage.xml'),
+    args_hash = { 'hpxml_path' => hpxml_path,
                   'skip_validation' => true,
                   'timeseries_frequency' => 'hourly',
-                  'include_timeseries_total_consumptions' => true,
-                  'include_timeseries_zone_temperatures' => true }
+                  'include_timeseries_airflows' => true }
     _annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(timeseries_csv))
-    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_conditioned_space_col])
-    schedule_regular_total = values[energy_use_total_col].sum(0.0)
-    schedule_regular_temp = values[temperature_conditioned_space_col].sum(0.0) / values[temperature_conditioned_space_col].size
+    values = _get_values(timeseries_csv, [natvent_cfm_col])
+    schedule_regular_airflow = values[natvent_cfm_col].sum(0.0) / values[natvent_cfm_col].size
 
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage-natvent-available.xml'),
+    # Run w/ natural ventilation always available
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    hpxml.header.unavailable_periods[0].natvent_availability = HPXML::ScheduleAvailable
+    XMLHelper.write_file(hpxml.to_doc(), @tmp_hpxml_path)
+    args_hash = { 'hpxml_path' => @tmp_hpxml_path,
                   'skip_validation' => true,
                   'timeseries_frequency' => 'hourly',
-                  'include_timeseries_total_consumptions' => true,
-                  'include_timeseries_zone_temperatures' => true }
+                  'include_timeseries_airflows' => true }
     _annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(timeseries_csv))
-    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_conditioned_space_col])
-    schedule_available_total = values[energy_use_total_col].sum(0.0)
-    schedule_available_temp = values[temperature_conditioned_space_col].sum(0.0) / values[temperature_conditioned_space_col].size
+    values = _get_values(timeseries_csv, [natvent_cfm_col])
+    schedule_available_airflow = values[natvent_cfm_col].sum(0.0) / values[natvent_cfm_col].size
 
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-schedules-simple-power-outage-natvent-unavailable.xml'),
+    # Run w/ natural ventilation always unavailable
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    hpxml.header.unavailable_periods[0].natvent_availability = HPXML::ScheduleUnavailable
+    XMLHelper.write_file(hpxml.to_doc(), @tmp_hpxml_path)
+    args_hash = { 'hpxml_path' => @tmp_hpxml_path,
                   'skip_validation' => true,
                   'timeseries_frequency' => 'hourly',
-                  'include_timeseries_total_consumptions' => true,
-                  'include_timeseries_zone_temperatures' => true }
+                  'include_timeseries_airflows' => true }
     _annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(timeseries_csv))
-    values = _get_values(timeseries_csv, [energy_use_total_col, temperature_conditioned_space_col])
-    schedule_unavailable_total = values[energy_use_total_col].sum(0.0)
-    schedule_unavailable_temp = values[temperature_conditioned_space_col].sum(0.0) / values[temperature_conditioned_space_col].size
+    values = _get_values(timeseries_csv, [natvent_cfm_col])
+    schedule_unavailable_airflow = values[natvent_cfm_col].sum(0.0) / values[natvent_cfm_col].size
 
-    assert_operator(schedule_regular_total, :>, schedule_available_total)
-    assert_operator(schedule_available_total, :<, schedule_unavailable_total)
-    assert_operator(schedule_unavailable_total, :<, schedule_regular_total)
-
-    assert_operator(schedule_regular_temp, :>, schedule_available_temp)
-    assert_operator(schedule_available_temp, :<, schedule_unavailable_temp)
-    assert_operator(schedule_unavailable_temp, :>, schedule_regular_temp)
+    assert_operator(schedule_available_airflow, :>, schedule_regular_airflow)
+    assert_operator(schedule_unavailable_airflow, :<, schedule_regular_airflow)
   end
 
   def test_timeseries_hourly_system_uses
@@ -1022,7 +1019,7 @@ class ReportSimulationOutputTest < Minitest::Test
   end
 
   def test_timeseries_hourly_zone_temperatures_mf_space
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-bldgtype-multifamily-adjacent-to-multiple.xml'),
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-bldgtype-mf-unit-adjacent-to-multiple.xml'),
                   'skip_validation' => true,
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_zone_temperatures' => true }
@@ -1529,8 +1526,8 @@ class ReportSimulationOutputTest < Minitest::Test
     # Create HPXML w/ AFUE=0 to generate Infinity result
     hpxml_path = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml')
     hpxml = HPXML.new(hpxml_path: hpxml_path)
-    hpxml.heating_systems[0].heating_efficiency_afue = 10.0**-315
-    XMLHelper.write_file(hpxml.to_oga(), @tmp_hpxml_path)
+    hpxml.buildings[0].heating_systems[0].heating_efficiency_afue = 10.0**-315
+    XMLHelper.write_file(hpxml.to_doc(), @tmp_hpxml_path)
 
     args_hash = { 'hpxml_path' => @tmp_hpxml_path,
                   'skip_validation' => true, }

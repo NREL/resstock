@@ -731,11 +731,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
-    # Heat Pump Backup
-    if args[:heat_pump_backup_use_existing_system].is_initialized
-      args_to_delete.delete('heat_pump_backup_use_existing_system')
-    end
-
     args.each do |arg_name, arg_value|
       begin
         if arg_value.is_initialized
