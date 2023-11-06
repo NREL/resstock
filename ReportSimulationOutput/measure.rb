@@ -1351,6 +1351,21 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
+    # Check sum of system use outputs match end use outputs
+    system_use_sums = {}
+    @system_uses.each do |key, system_use|
+      _sys_id, eu_key = key
+      system_use_sums[eu_key] = 0 if system_use_sums[eu_key].nil?
+      system_use_sums[eu_key] += system_use.annual_output
+    end
+    system_use_sums.each do |eu_key, systems_sum|
+      end_use_total = @end_uses[eu_key].annual_output.to_f
+      next unless (systems_sum - end_use_total).abs > tol
+
+      runner.registerError("System uses (#{systems_sum.round(3)}) do not sum to total (#{end_use_total.round(3)}) for End Use: #{eu_key.join(': ')}.")
+      return false
+    end
+
     # Check sum of timeseries outputs match annual outputs
     { @totals => 'Total',
       @end_uses => 'End Use',
@@ -2774,25 +2789,32 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       elsif object.to_ElectricEquipment.is_initialized
         object = object.to_ElectricEquipment.get
         subcategory = object.endUseSubcategory
-        end_use = { Constants.ObjectNameHotWaterRecircPump => EUT::HotWaterRecircPump,
-                    Constants.ObjectNameGSHPSharedPump => 'TempGSHPSharedPump',
-                    Constants.ObjectNameClothesWasher => EUT::ClothesWasher,
-                    Constants.ObjectNameClothesDryer => EUT::ClothesDryer,
-                    Constants.ObjectNameDishwasher => EUT::Dishwasher,
-                    Constants.ObjectNameRefrigerator => EUT::Refrigerator,
-                    Constants.ObjectNameFreezer => EUT::Freezer,
-                    Constants.ObjectNameCookingRange => EUT::RangeOven,
-                    Constants.ObjectNameCeilingFan => EUT::CeilingFan,
-                    Constants.ObjectNameWholeHouseFan => EUT::WholeHouseFan,
-                    Constants.ObjectNameMechanicalVentilation => EUT::MechVent,
-                    Constants.ObjectNameMiscPlugLoads => EUT::PlugLoads,
-                    Constants.ObjectNameMiscTelevision => EUT::Television,
-                    Constants.ObjectNameMiscPoolHeater => EUT::PoolHeater,
-                    Constants.ObjectNameMiscPoolPump => EUT::PoolPump,
-                    Constants.ObjectNameMiscPermanentSpaHeater => EUT::PermanentSpaHeater,
-                    Constants.ObjectNameMiscPermanentSpaPump => EUT::PermanentSpaPump,
-                    Constants.ObjectNameMiscElectricVehicleCharging => EUT::Vehicle,
-                    Constants.ObjectNameMiscWellPump => EUT::WellPump }[subcategory]
+        end_use = nil
+        { Constants.ObjectNameHotWaterRecircPump => EUT::HotWaterRecircPump,
+          Constants.ObjectNameGSHPSharedPump => 'TempGSHPSharedPump',
+          Constants.ObjectNameClothesWasher => EUT::ClothesWasher,
+          Constants.ObjectNameClothesDryer => EUT::ClothesDryer,
+          Constants.ObjectNameDishwasher => EUT::Dishwasher,
+          Constants.ObjectNameRefrigerator => EUT::Refrigerator,
+          Constants.ObjectNameFreezer => EUT::Freezer,
+          Constants.ObjectNameCookingRange => EUT::RangeOven,
+          Constants.ObjectNameCeilingFan => EUT::CeilingFan,
+          Constants.ObjectNameWholeHouseFan => EUT::WholeHouseFan,
+          Constants.ObjectNameMechanicalVentilation => EUT::MechVent,
+          Constants.ObjectNameMiscPlugLoads => EUT::PlugLoads,
+          Constants.ObjectNameMiscTelevision => EUT::Television,
+          Constants.ObjectNameMiscPoolHeater => EUT::PoolHeater,
+          Constants.ObjectNameMiscPoolPump => EUT::PoolPump,
+          Constants.ObjectNameMiscPermanentSpaHeater => EUT::PermanentSpaHeater,
+          Constants.ObjectNameMiscPermanentSpaPump => EUT::PermanentSpaPump,
+          Constants.ObjectNameMiscElectricVehicleCharging => EUT::Vehicle,
+          Constants.ObjectNameMiscWellPump => EUT::WellPump }.each do |obj_name, eut|
+          next unless subcategory.start_with? obj_name
+          fail 'Unepected error: multiple matches.' unless end_use.nil?
+
+          end_use = eut
+        end
+
         if not end_use.nil?
           # Use Output:Meter instead of Output:Variable because they incorporate thermal zone multipliers
           if object.space.is_initialized
@@ -2807,17 +2829,24 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         object = object.to_OtherEquipment.get
         subcategory = object.endUseSubcategory
         fuel = object.fuelType
-        end_use = { Constants.ObjectNameClothesDryer => EUT::ClothesDryer,
-                    Constants.ObjectNameCookingRange => EUT::RangeOven,
-                    Constants.ObjectNameMiscGrill => EUT::Grill,
-                    Constants.ObjectNameMiscLighting => EUT::Lighting,
-                    Constants.ObjectNameMiscFireplace => EUT::Fireplace,
-                    Constants.ObjectNameMiscPoolHeater => EUT::PoolHeater,
-                    Constants.ObjectNameMiscPermanentSpaHeater => EUT::PermanentSpaHeater,
-                    Constants.ObjectNameMechanicalVentilationPreheating => EUT::MechVentPreheat,
-                    Constants.ObjectNameMechanicalVentilationPrecooling => EUT::MechVentPrecool,
-                    Constants.ObjectNameWaterHeaterAdjustment => EUT::HotWater,
-                    Constants.ObjectNameBatteryLossesAdjustment => EUT::Battery }[subcategory]
+        end_use = nil
+        { Constants.ObjectNameClothesDryer => EUT::ClothesDryer,
+          Constants.ObjectNameCookingRange => EUT::RangeOven,
+          Constants.ObjectNameMiscGrill => EUT::Grill,
+          Constants.ObjectNameMiscLighting => EUT::Lighting,
+          Constants.ObjectNameMiscFireplace => EUT::Fireplace,
+          Constants.ObjectNameMiscPoolHeater => EUT::PoolHeater,
+          Constants.ObjectNameMiscPermanentSpaHeater => EUT::PermanentSpaHeater,
+          Constants.ObjectNameMechanicalVentilationPreheating => EUT::MechVentPreheat,
+          Constants.ObjectNameMechanicalVentilationPrecooling => EUT::MechVentPrecool,
+          Constants.ObjectNameWaterHeaterAdjustment => EUT::HotWater,
+          Constants.ObjectNameBatteryLossesAdjustment => EUT::Battery }.each do |obj_name, eut|
+          next unless subcategory.start_with? obj_name
+          fail 'Unepected error: multiple matches.' unless end_use.nil?
+
+          end_use = eut
+        end
+
         if not end_use.nil?
           # Use Output:Meter instead of Output:Variable because they incorporate thermal zone multipliers
           if object.space.is_initialized
