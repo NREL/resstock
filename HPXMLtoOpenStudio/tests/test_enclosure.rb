@@ -852,8 +852,8 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
     initial_temps = { 'base.xml' => 68.0, # foundation adjacent to conditioned space, IECC zone 5
                       'base-foundation-conditioned-crawlspace.xml' => 68.0, # foundation adjacent to conditioned space, IECC zone 5
                       'base-foundation-slab.xml' => 68.0, # foundation adjacent to conditioned space, IECC zone 5
-                      'base-foundation-unconditioned-basement.xml' => 42.3, # foundation adjacent to unconditioned basement w/ ceiling insulation
-                      'base-foundation-unconditioned-basement-wall-insulation.xml' => 56.6, # foundation adjacent to unconditioned basement w/ wall insulation
+                      'base-foundation-unconditioned-basement.xml' => 41.4, # foundation adjacent to unconditioned basement w/ ceiling insulation
+                      'base-foundation-unconditioned-basement-wall-insulation.xml' => 56.0, # foundation adjacent to unconditioned basement w/ wall insulation
                       'base-foundation-unvented-crawlspace.xml' => 38.6, # foundation adjacent to unvented crawlspace w/ ceiling insulation
                       'base-foundation-vented-crawlspace.xml' => 36.9, # foundation adjacent to vented crawlspace w/ ceiling insulation
                       'base-location-miami-fl.xml' => 78.0 } # foundation adjacent to conditioned space, IECC zone 1
