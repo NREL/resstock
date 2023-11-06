@@ -323,17 +323,19 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Get the absolute paths relative to this meta measure in the run directory
-    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
-    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
-      register_logs(runner, new_runner)
+    resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
+    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+      register_logs(runner, resstock_arguments_runner)
       return false
     end
 
-    # Set BuildResidentialHPXML arguments
+    # Initialize measure keys with hpxml_path arguments
     hpxml_path = File.expand_path('../existing.xml')
+
+    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
 
-    new_runner.result.stepValues.each do |step_value|
+    resstock_arguments_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
 
@@ -721,7 +723,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       return true
     end
 
-    epw_path = Location.get_epw_path(hpxml, hpxml_path)
+    hpxml_bldg = hpxml.buildings[0]
+    epw_path = Location.get_epw_path(hpxml_bldg, hpxml_path)
     epw_file = OpenStudio::EpwFile.new(epw_path)
     register_value(runner, 'weather_file_city', epw_file.city)
     register_value(runner, 'weather_file_latitude', epw_file.latitude)

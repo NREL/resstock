@@ -297,15 +297,17 @@ class ApplyUpgradeTest < Minitest::Test
     # Create instance of the measure
     measure = ApplyUpgrade.new
 
-    # Check for correct capacity values
-    system_upgrades = measure.get_system_upgrades(hpxml, [], args_hash)
-    actual_capacities = measure.get_system_capacities(hpxml, system_upgrades)
+    hpxml.buildings.each do |hpxml_bldg|
+      # Check for correct capacity values
+      system_upgrades = measure.get_system_upgrades(hpxml_bldg, [], args_hash)
+      actual_capacities = measure.get_system_capacities(hpxml_bldg, system_upgrades)
 
-    expected_capacities.each do |str, val|
-      if val.nil?
-        assert_nil(actual_capacities[str])
-      else
-        assert_equal(val, actual_capacities[str])
+      expected_capacities.each do |str, val|
+        if val.nil?
+          assert_nil(actual_capacities[str])
+        else
+          assert_equal(val, actual_capacities[str])
+        end
       end
     end
   end
@@ -318,24 +320,26 @@ class ApplyUpgradeTest < Minitest::Test
     # Create instance of the measure
     measure = ApplyUpgrade.new
 
-    heating_system = measure.get_heating_system(hpxml)
-    if heating_system.nil?
-      assert_nil(expected_values['heat_pump_backup_type'])
-      puts "\thpxml.heating_systems.size=#{hpxml.heating_systems.size}..."
-      return
-    end
+    hpxml.buildings.each do |hpxml_bldg|
+      heating_system = measure.get_heating_system(hpxml_bldg)
+      if heating_system.nil?
+        assert_nil(expected_values['heat_pump_backup_type'])
+        puts "\thpxml.heating_systems.size=#{hpxml_bldg.heating_systems.size}..."
+        return
+      end
 
-    puts "\theat_pump_type='#{heat_pump_type}', heat_pump_is_ducted='#{heat_pump_is_ducted}'..."
+      puts "\theat_pump_type='#{heat_pump_type}', heat_pump_is_ducted='#{heat_pump_is_ducted}'..."
 
-    heat_pump_backup_type = measure.get_heat_pump_backup_type(heating_system, heat_pump_type, heat_pump_is_ducted)
-    actual_values = measure.get_heat_pump_backup_values(heating_system)
-    actual_values['heat_pump_backup_type'] = heat_pump_backup_type
+      heat_pump_backup_type = measure.get_heat_pump_backup_type(heating_system, heat_pump_type, heat_pump_is_ducted)
+      actual_values = measure.get_heat_pump_backup_values(heating_system)
+      actual_values['heat_pump_backup_type'] = heat_pump_backup_type
 
-    expected_values.each do |str, val|
-      if val.nil?
-        assert_nil(actual_values[str])
-      else
-        assert_equal(val, actual_values[str])
+      expected_values.each do |str, val|
+        if val.nil?
+          assert_nil(actual_values[str])
+        else
+          assert_equal(val, actual_values[str])
+        end
       end
     end
   end

@@ -1,16 +1,17 @@
 # frozen_string_literal: true
 
 class PV
-  def self.apply(model, nbeds, pv_system)
+  def self.apply(model, nbeds, pv_system, unit_multiplier)
     obj_name = pv_system.id
 
-    if not pv_system.is_shared_system
-      max_power = pv_system.max_power_output
-    else
+    # Apply unit multiplier
+    max_power = pv_system.max_power_output * unit_multiplier
+
+    if pv_system.is_shared_system
       # Apportion to single dwelling unit by # bedrooms
       fail if pv_system.number_of_bedrooms_served.to_f <= nbeds.to_f # EPvalidator.xml should prevent this
 
-      max_power = pv_system.max_power_output * nbeds.to_f / pv_system.number_of_bedrooms_served.to_f
+      max_power = max_power * nbeds.to_f / pv_system.number_of_bedrooms_served.to_f
     end
 
     elcds = model.getElectricLoadCenterDistributions

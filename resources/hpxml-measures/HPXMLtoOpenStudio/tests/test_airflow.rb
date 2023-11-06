@@ -9,8 +9,9 @@ require_relative '../resources/util.rb'
 require_relative 'util.rb'
 
 class HPXMLtoOpenStudioAirflowTest < Minitest::Test
-  def sample_files_dir
-    return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
+  def setup
+    @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
+    @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')
   end
 
   def get_eed_for_ventilation(model, ee_name)
@@ -36,8 +37,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_ach50
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -48,8 +49,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_ach_house_pressure
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-ach-house-pressure.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-infil-ach-house-pressure.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -60,8 +61,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_ach50_flue
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-flue.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-infil-flue.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -72,8 +73,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_cfm50
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-cfm50.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-infil-cfm50.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -84,8 +85,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_cfm_house_pressure
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-cfm-house-pressure.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-infil-cfm-house-pressure.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -96,8 +97,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_natural_ach
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-natural-ach.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-infil-natural-ach.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -108,8 +109,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_natural_cfm
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-natural-cfm.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-infil-natural-cfm.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -120,8 +121,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_natural_ela
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-ela.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-infil-ela.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -132,8 +133,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_multifamily
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -144,8 +145,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_multifamily_compartmentalization
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-infil-compartmentalization-test.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-infil-compartmentalization-test.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -156,8 +157,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_natural_ventilation
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check natural ventilation/whole house fan program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameNaturalVentilation} program")
@@ -173,8 +174,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_natural_ventilation_7_days_per_week
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-windows-natural-ventilation-availability.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-windows-natural-ventilation-availability.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check natural ventilation/whole house fan program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameNaturalVentilation} program")
@@ -190,8 +191,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_mechanical_ventilation_none
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -208,11 +209,11 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_mechanical_ventilation_supply
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-mechvent-supply.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-mechvent-supply.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    vent_fan = hpxml.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
+    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
     vent_fan_cfm = vent_fan.average_total_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
 
@@ -232,11 +233,11 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_mechanical_ventilation_exhaust
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-mechvent-exhaust.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-mechvent-exhaust.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    vent_fan = hpxml.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
+    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
     vent_fan_cfm = vent_fan.average_total_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
 
@@ -256,11 +257,11 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_mechanical_ventilation_balanced
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-mechvent-balanced.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-mechvent-balanced.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    vent_fan = hpxml.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
+    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
     vent_fan_cfm = vent_fan.average_total_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
 
@@ -280,11 +281,11 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_mechanical_ventilation_erv
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-mechvent-erv.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-mechvent-erv.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    vent_fan = hpxml.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
+    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
     vent_fan_cfm = vent_fan.average_total_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
 
@@ -304,11 +305,11 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_mechanical_ventilation_hrv
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-mechvent-hrv.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-mechvent-hrv.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    vent_fan = hpxml.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
+    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
     vent_fan_cfm = vent_fan.average_total_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
 
@@ -328,11 +329,11 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_mechanical_ventilation_cfis
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-mechvent-cfis.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-mechvent-cfis.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    vent_fan = hpxml.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
+    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
     vent_fan_cfm = vent_fan.oa_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
     vent_fan_mins = vent_fan.hours_in_operation / 24.0 * 60.0
@@ -353,11 +354,11 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_mechanical_ventilation_cfis_with_supplemental_fan
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-mechvent-cfis-supplemental-fan-exhaust.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-mechvent-cfis-supplemental-fan-exhaust.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    vent_fan = hpxml.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
+    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
     vent_fan_cfm = vent_fan.oa_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
     vent_fan_mins = vent_fan.hours_in_operation / 24.0 * 60.0
@@ -382,14 +383,14 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_ventilation_bath_kitchen_fans
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-mechvent-bath-kitchen-fans.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-mechvent-bath-kitchen-fans.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    bath_fan = hpxml.ventilation_fans.find { |f| f.used_for_local_ventilation && f.fan_location == HPXML::LocationBath }
+    bath_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_local_ventilation && f.fan_location == HPXML::LocationBath }
     bath_fan_cfm = bath_fan.flow_rate * bath_fan.count
     bath_fan_power = bath_fan.fan_power * bath_fan.count
-    kitchen_fan = hpxml.ventilation_fans.find { |f| f.used_for_local_ventilation && f.fan_location == HPXML::LocationKitchen }
+    kitchen_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_local_ventilation && f.fan_location == HPXML::LocationKitchen }
     kitchen_fan_cfm = kitchen_fan.flow_rate * (kitchen_fan.count.nil? ? 1 : kitchen_fan.count)
     kitchen_fan_power = kitchen_fan.fan_power * (kitchen_fan.count.nil? ? 1 : kitchen_fan.count)
 
@@ -414,8 +415,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_clothes_dryer_exhaust
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -424,11 +425,11 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_multiple_mechvent
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-mechvent-multiple.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-mechvent-multiple.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    vent_fans = hpxml.ventilation_fans.select { |f| !f.is_cfis_supplemental_fan? }
+    vent_fans = hpxml_bldg.ventilation_fans.select { |f| !f.is_cfis_supplemental_fan? }
     vent_fans.each do |vent_fan|
       vent_fan.hours_in_operation = 24.0 if vent_fan.hours_in_operation.nil?
     end
@@ -496,17 +497,17 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_shared_mechvent_multiple
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-mechvent-multiple.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-shared-mechvent-multiple.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    vent_fans_preheat = hpxml.ventilation_fans.select { |f| (not f.preheating_fuel.nil?) }
-    vent_fans_precool = hpxml.ventilation_fans.select { |f| (not f.precooling_fuel.nil?) }
-    vent_fans_tot_pow_noncfis = hpxml.ventilation_fans.select { |f| f.fan_type != HPXML::MechVentTypeCFIS }.map { |f| f.average_unit_fan_power }.sum(0.0)
+    vent_fans_preheat = hpxml_bldg.ventilation_fans.select { |f| (not f.preheating_fuel.nil?) }
+    vent_fans_precool = hpxml_bldg.ventilation_fans.select { |f| (not f.precooling_fuel.nil?) }
+    vent_fans_tot_pow_noncfis = hpxml_bldg.ventilation_fans.select { |f| f.fan_type != HPXML::MechVentTypeCFIS }.map { |f| f.average_unit_fan_power }.sum(0.0)
     # total cfms
-    vent_fans_cfm_tot_sup = hpxml.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeSupply }.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
-    vent_fans_cfm_tot_exh = hpxml.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeExhaust }.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
-    vent_fans_cfm_tot_ervhrvbal = hpxml.ventilation_fans.select { |f| [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV, HPXML::MechVentTypeBalanced].include? f.fan_type }.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
+    vent_fans_cfm_tot_sup = hpxml_bldg.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeSupply }.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
+    vent_fans_cfm_tot_exh = hpxml_bldg.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeExhaust }.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
+    vent_fans_cfm_tot_ervhrvbal = hpxml_bldg.ventilation_fans.select { |f| [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV, HPXML::MechVentTypeBalanced].include? f.fan_type }.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
     # preconditioned mech vent oa cfms
     vent_fans_cfm_oa_preheat_sup = vent_fans_preheat.select { |f| f.fan_type == HPXML::MechVentTypeSupply }.map { |f| f.average_oa_unit_flow_rate }.sum(0.0)
     vent_fans_cfm_oa_precool_sup = vent_fans_precool.select { |f| f.fan_type == HPXML::MechVentTypeSupply }.map { |f| f.average_oa_unit_flow_rate }.sum(0.0)
@@ -515,9 +516,9 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     vent_fans_cfm_oa_preheat_ervhrv = vent_fans_preheat.select { |f| [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include? f.fan_type }.map { |f| f.average_oa_unit_flow_rate }.sum(0.0)
     vent_fans_cfm_oa_precool_ervhrv = vent_fans_precool.select { |f| [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include? f.fan_type }.map { |f| f.average_oa_unit_flow_rate }.sum(0.0)
     # CFIS
-    vent_fans_cfm_oa_cfis = hpxml.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeCFIS }.map { |f| f.oa_unit_flow_rate }.sum(0.0)
-    vent_fans_pow_cfis = hpxml.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeCFIS }.map { |f| f.unit_fan_power }.sum(0.0)
-    vent_fans_mins_cfis = hpxml.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeCFIS }.map { |f| f.hours_in_operation / 24.0 * 60.0 }.sum(0.0)
+    vent_fans_cfm_oa_cfis = hpxml_bldg.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeCFIS }.map { |f| f.oa_unit_flow_rate }.sum(0.0)
+    vent_fans_pow_cfis = hpxml_bldg.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeCFIS }.map { |f| f.unit_fan_power }.sum(0.0)
+    vent_fans_mins_cfis = hpxml_bldg.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeCFIS }.map { |f| f.hours_in_operation / 24.0 * 60.0 }.sum(0.0)
 
     # Load and energy eed
     assert_equal(1, get_oed_for_ventilation(model, "#{Constants.ObjectNameMechanicalVentilationHouseFan} sensible load").size)
@@ -544,12 +545,12 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_ducts_leakage_cfm25
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    supply_leakage = hpxml.hvac_distributions[0].duct_leakage_measurements.find { |m| m.duct_type == HPXML::DuctTypeSupply }
-    return_leakage = hpxml.hvac_distributions[0].duct_leakage_measurements.find { |m| m.duct_type == HPXML::DuctTypeReturn }
+    supply_leakage = hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.find { |m| m.duct_type == HPXML::DuctTypeSupply }
+    return_leakage = hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.find { |m| m.duct_type == HPXML::DuctTypeReturn }
     supply_leakage_cfm25 = supply_leakage.duct_leakage_value
     return_leakage_cfm25 = return_leakage.duct_leakage_value
 
@@ -561,12 +562,12 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_ducts_leakage_cfm50
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-ducts-leakage-cfm50.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-ducts-leakage-cfm50.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    supply_leakage = hpxml.hvac_distributions[0].duct_leakage_measurements.find { |m| m.duct_type == HPXML::DuctTypeSupply }
-    return_leakage = hpxml.hvac_distributions[0].duct_leakage_measurements.find { |m| m.duct_type == HPXML::DuctTypeReturn }
+    supply_leakage = hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.find { |m| m.duct_type == HPXML::DuctTypeSupply }
+    return_leakage = hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.find { |m| m.duct_type == HPXML::DuctTypeReturn }
     supply_leakage_cfm50 = supply_leakage.duct_leakage_value
     return_leakage_cfm50 = return_leakage.duct_leakage_value
 
@@ -578,12 +579,12 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_ducts_leakage_percent
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-ducts-leakage-percent.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-ducts-leakage-percent.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    supply_leakage = hpxml.hvac_distributions[0].duct_leakage_measurements.select { |m| m.duct_type == HPXML::DuctTypeSupply }[0]
-    return_leakage = hpxml.hvac_distributions[0].duct_leakage_measurements.select { |m| m.duct_type == HPXML::DuctTypeReturn }[0]
+    supply_leakage = hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.select { |m| m.duct_type == HPXML::DuctTypeSupply }[0]
+    return_leakage = hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.select { |m| m.duct_type == HPXML::DuctTypeReturn }[0]
     supply_leakage_frac = supply_leakage.duct_leakage_value
     return_leakage_frac = return_leakage.duct_leakage_value
 
@@ -598,12 +599,12 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
      'base-hvac-ducts-area-multipliers.xml',
      'base-hvac-ducts-effective-rvalue.xml'].each do |hpxml_name|
       args_hash = {}
-      args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, hpxml_name))
-      model, hpxml = _test_measure(args_hash)
+      args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, hpxml_name))
+      model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
       # Get HPXML values
-      supply_area_multiplier = hpxml.hvac_distributions[0].ducts[0].duct_surface_area_multiplier
-      return_area_multiplier = hpxml.hvac_distributions[0].ducts[1].duct_surface_area_multiplier
+      supply_area_multiplier = hpxml_bldg.hvac_distributions[0].ducts[0].duct_surface_area_multiplier
+      return_area_multiplier = hpxml_bldg.hvac_distributions[0].ducts[1].duct_surface_area_multiplier
       supply_area_multiplier = 1.0 if supply_area_multiplier.nil?
       return_area_multiplier = 1.0 if return_area_multiplier.nil?
 
@@ -616,8 +617,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_ducts_ua_buried
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-ducts-buried.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-ducts-buried.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check ducts program
     program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
@@ -627,77 +628,77 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
   def test_infiltration_compartmentalization_area
     # Base
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base.xml')))
-    total_area, exterior_area = hpxml.compartmentalization_boundary_areas
+    _hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    total_area, exterior_area = hpxml_bldg.compartmentalization_boundary_areas
     assert_in_delta(5216, exterior_area, 1.0)
     assert_in_delta(5216, total_area, 1.0)
 
     # Test adjacent garage
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-enclosure-garage.xml')))
-    total_area, exterior_area = hpxml.compartmentalization_boundary_areas
+    _hpxml, hpxml_bldg = _create_hpxml('base-enclosure-garage.xml')
+    total_area, exterior_area = hpxml_bldg.compartmentalization_boundary_areas
     assert_in_delta(4976, exterior_area, 1.0)
     assert_in_delta(5216, total_area, 1.0)
 
     # Test unvented attic/crawlspace within infiltration volume
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-unvented-crawlspace.xml')))
-    hpxml.attics.each do |attic|
+    _hpxml, hpxml_bldg = _create_hpxml('base-foundation-unvented-crawlspace.xml')
+    hpxml_bldg.attics.each do |attic|
       attic.within_infiltration_volume = true
     end
-    hpxml.foundations.each do |foundation|
+    hpxml_bldg.foundations.each do |foundation|
       foundation.within_infiltration_volume = true
     end
-    total_area, exterior_area = hpxml.compartmentalization_boundary_areas
+    total_area, exterior_area = hpxml_bldg.compartmentalization_boundary_areas
     assert_in_delta(5000, exterior_area, 1.0)
     assert_in_delta(5000, total_area, 1.0)
 
     # Test unvented attic/crawlspace not within infiltration volume
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-unvented-crawlspace.xml')))
-    hpxml.attics.each do |attic|
+    _hpxml, hpxml_bldg = _create_hpxml('base-foundation-unvented-crawlspace.xml')
+    hpxml_bldg.attics.each do |attic|
       attic.within_infiltration_volume = false
     end
-    hpxml.foundations.each do |foundation|
+    hpxml_bldg.foundations.each do |foundation|
       foundation.within_infiltration_volume = false
     end
-    total_area, exterior_area = hpxml.compartmentalization_boundary_areas
+    total_area, exterior_area = hpxml_bldg.compartmentalization_boundary_areas
     assert_in_delta(3900, exterior_area, 1.0)
     assert_in_delta(3900, total_area, 1.0)
 
     # Test multifamily
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily.xml')))
-    total_area, exterior_area = hpxml.compartmentalization_boundary_areas
+    _hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit.xml')
+    total_area, exterior_area = hpxml_bldg.compartmentalization_boundary_areas
     assert_in_delta(686, exterior_area, 1.0)
     assert_in_delta(2780, total_area, 1.0)
   end
 
   def test_infiltration_assumed_height
     # Base
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base.xml')))
-    infil_volume = hpxml.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
-    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+    _hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    infil_volume = hpxml_bldg.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_height = hpxml_bldg.inferred_infiltration_height(infil_volume)
     assert_equal(9.75, infil_height)
 
     # Test w/o conditioned basement
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-unconditioned-basement.xml')))
-    infil_volume = hpxml.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
-    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+    _hpxml, hpxml_bldg = _create_hpxml('base-foundation-unconditioned-basement.xml')
+    infil_volume = hpxml_bldg.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_height = hpxml_bldg.inferred_infiltration_height(infil_volume)
     assert_equal(8, infil_height)
 
     # Test w/ walkout basement
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-walkout-basement.xml')))
-    infil_volume = hpxml.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
-    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+    _hpxml, hpxml_bldg = _create_hpxml('base-foundation-walkout-basement.xml')
+    infil_volume = hpxml_bldg.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_height = hpxml_bldg.inferred_infiltration_height(infil_volume)
     assert_equal(16, infil_height)
 
     # Test 2 story building
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-enclosure-2stories.xml')))
-    infil_volume = hpxml.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
-    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+    _hpxml, hpxml_bldg = _create_hpxml('base-enclosure-2stories.xml')
+    infil_volume = hpxml_bldg.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_height = hpxml_bldg.inferred_infiltration_height(infil_volume)
     assert_equal(17.75, infil_height)
 
     # Test w/ cathedral ceiling
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-atticroof-cathedral.xml')))
-    infil_volume = hpxml.air_infiltration_measurements.find { |m| !m.infiltration_volume.nil? }.infiltration_volume
-    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+    _hpxml, hpxml_bldg = _create_hpxml('base-atticroof-cathedral.xml')
+    infil_volume = hpxml_bldg.air_infiltration_measurements.find { |m| !m.infiltration_volume.nil? }.infiltration_volume
+    infil_height = hpxml_bldg.inferred_infiltration_height(infil_volume)
     assert_equal(13.75, infil_height)
   end
 
@@ -736,6 +737,11 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
     File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
-    return model, hpxml
+    return model, hpxml, hpxml.buildings[0]
+  end
+
+  def _create_hpxml(hpxml_name)
+    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, hpxml_name))
+    return hpxml, hpxml.buildings[0]
   end
 end
