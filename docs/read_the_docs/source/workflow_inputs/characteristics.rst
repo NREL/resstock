@@ -3,6 +3,25 @@
 Housing Characteristics
 =======================
 
+Each parameter sampled by the national project is listed alphabetically below.
+For each, the following (if applicable) are reported based on the contents of `source_report.csv <https://github.com/NREL/resstock/blob/develop/project_national/resources/source_report.csv>`_:
+
+- ``Description``
+- ``Created by``
+- ``Source``
+
+Additionally for each parameter, an ``Arguments`` table is populated (if applicable) based on the contents of `ResStockArguments's measure.xml file <https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments/measure.xml>`_:
+
+- ``Name``
+- ``Units``
+- ``Choices``
+- ``Description``
+
+Each argument name is assigned using defined options found in the `options_lookup.tsv <https://github.com/NREL/resstock/blob/develop/resources/options_lookup.tsv>`_.
+Furthermore, all *optional* arguments include "auto" as one of the possible ``Choices``.
+Assigning "auto" means that downstream OS-HPXML default values will be used.
+The ``Description`` field may include link(s) to applicable `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing default values that are used.
+
 .. _ahs_region:
 
 AHS Region
