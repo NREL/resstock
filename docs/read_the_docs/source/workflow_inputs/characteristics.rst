@@ -1072,7 +1072,7 @@ Arguments
    * - ``simulation_control_daylight_saving_enabled``
      - 
      -
-     - Whether to use daylight saving. If not provided, the OS-HPXML default (see `HPXML Building Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-building-site>`_) is used.
+     - Whether to use daylight saving. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``site_zip_code``
      - 
      -
@@ -1445,31 +1445,31 @@ Arguments
    * - ``ducts_supply_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "exterior wall", "under slab", "roof deck", "outside", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "manufactured home belly", "auto"
-     - The location of the supply ducts. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
+     - The location of the supply ducts. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distributionl>`_) is used.
    * - ``ducts_supply_surface_area``
      - ft^2
      -
-     - The supply ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
+     - The supply ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distributionl>`_) is used.
    * - ``ducts_supply_surface_area_fraction``
      - frac
      -
-     - The fraction of supply ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
+     - The fraction of supply ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distributionl>`_) is used.
    * - ``ducts_return_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "exterior wall", "under slab", "roof deck", "outside", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "manufactured home belly", "auto"
-     - The location of the return ducts. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
+     - The location of the return ducts. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distributionl>`_) is used.
    * - ``ducts_return_surface_area``
      - ft^2
      -
-     - The return ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
+     - The return ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distributionl>`_) is used.
    * - ``ducts_return_surface_area_fraction``
      - frac
      -
-     - The fraction of return ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
+     - The fraction of return ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distributionl>`_) is used.
    * - ``ducts_number_of_return_registers``
      - #
      -
-     - The number of return registers of the ducts. Only used to calculate default return duct surface area. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
+     - The number of return registers of the ducts. Only used to calculate default return duct surface area. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distributionl>`_) is used.
 
 .. _eaves:
 

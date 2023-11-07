@@ -28,12 +28,14 @@ class String
   end
 end
 
-def md_to_rst(str)
-  if str.include?('OS-HPXML default') || str.include?('OS-HPXML autosized default')
-    str = str.gsub('(see [', '(see `')
-    str = str.gsub('), [', '>`_, `')
-    str = str.gsub('](', ' <')
-    str = str.gsub('))', '>`_)')
+def href_to_rst(str)
+  urls_names = str.scan(/<a href='(.+?)'>(.+?)<\/a>/)
+  return str if urls_names.empty?
+
+  urls_names.each do |url_name|
+    url, name = url_name
+
+    str = str.gsub("<a href='#{url}'>#{name}</a>", "`#{name} <#{url}>`_")
   end
   return str
 end
@@ -61,7 +63,7 @@ resstockarguments_xml.xpath('//measure/arguments/argument').each do |argument|
     puts "Warning: argument '#{name}' does not have a description."
     desc = ''
   else
-    desc = md_to_rst(desc.text)
+    desc = href_to_rst(desc.text)
   end
   resstockarguments[name] = [units, choices, desc]
 end
