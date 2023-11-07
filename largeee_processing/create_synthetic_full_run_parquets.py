@@ -1,6 +1,6 @@
 import polars as pl
 from largeee import LARGEEE
-from launch_processing import run_names
+from get_full_report import run_names
 
 largee_run = LARGEEE(
     run_names=run_names

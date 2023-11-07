@@ -16,14 +16,14 @@ def verify_single_application_per_param(param2cols, up_df):
     """
     multi_application_cols = []
     for param, cols in param2cols.items():
-        # For each paramn count how many of the columns have non-null values. If more than one
+        # For each param count how many of the columns have non-null values. If more than one
         # (which is an error) it will have a value 1 otherwise 0. Save this in a new column named
         # param. Later we will sum all these columns to see if any building has more than one
         # non-null column for any parameter
         multi_application_cols.append(
             pl.sum_horizontal(pl.col(cols).is_not_null()).alias(param) > 1
         )
-    assert up_df.select(pl.sum_horizontal(multi_application_cols)).sum().collect()['sum'].to_list() == [0]
+    assert up_df.select(pl.sum_horizontal(multi_application_cols).alias('sum')).sum().collect()['sum'].to_list() == [0]
 
 
 def add_upgrade_option_cols(up_df):
@@ -33,10 +33,11 @@ def add_upgrade_option_cols(up_df):
     Sometimes same parameter (HVAC Cooling Type) is spread accross multiple columns, but one column
     always have only one type of parameter.
     """
-    # Find out which paramter each of the option_<num>_name columns represent
+    # Find out which parameter each of the option_<num>_name columns represent
     col2param = up_df.select(pl.col(r"^out.params.option_(\d*)_name$")
                              .backward_fill().str.split("|").list.first()).first().collect().to_dicts()[0]
-    # Group all columns we need to look at for each parameter
+    # Create a mapping from paramter to list of upgrade column names that needs to be looked at
+    # to find the value for the parameter
     param2cols = defaultdict(list)
     for col, param in col2param.items():
         if param is None:
