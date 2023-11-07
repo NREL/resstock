@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-# see the URL below for information on how to write OpenStudio measures
-# http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
+Dir["#{File.dirname(__FILE__)}/resources/*.rb"].each do |resource_file|
+  require resource_file
+end
 
 # start the measure
 class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
@@ -143,16 +144,28 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
   def add_indoor_pipes(model, demand_inlet, demand_bypass)
     # Copper Pipe
-    copper_pipe_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, 'Smooth', 0.003, 401, 8940, 390)
+    roughness = 'Smooth'
+    thickness = 0.003
+    conductivity = 401
+    density = 8940
+    specific_heat = 390
+
+    copper_pipe_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, roughness, thickness, conductivity, density, specific_heat)
     copper_pipe_material.setName('Return Pipe')
     copper_pipe_material.setThermalAbsorptance(0.9)
     copper_pipe_material.setSolarAbsorptance(0.5)
     copper_pipe_material.setVisibleAbsorptance(0.5)
 
     # Supply
+    roughness = 'VeryRough'
+    thickness = 0.0306179506914235
+    conductivity = 0.05193
+    density = 63.66
+    specific_heat = 1297.66
+
     supply_pipe_materials = []
 
-    supply_pipe_insulation_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, 'VeryRough', 0.0306179506914235, 0.05193, 63.66, 1297.66) # R-6
+    supply_pipe_insulation_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, roughness, thickness, conductivity, density, specific_heat) # R-6
     supply_pipe_insulation_material.setName('Supply Pipe Insulation')
     supply_pipe_insulation_material.setThermalAbsorptance(0.9)
     supply_pipe_insulation_material.setSolarAbsorptance(0.5)
@@ -166,9 +179,11 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     insulated_supply_pipe_construction.setLayers(supply_pipe_materials)
 
     # Return
+    thickness = 0.0185723604087555
+
     return_pipe_materials = []
 
-    return_pipe_insulation_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, 'VeryRough', 0.0306179506914235, 0.05193, 63.66, 1297.66) # FIXME - R-4
+    return_pipe_insulation_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, roughness, thickness, conductivity, density, specific_heat) # R-4
     return_pipe_insulation_material.setName('Return Pipe Insulation')
     return_pipe_insulation_material.setThermalAbsorptance(0.9)
     return_pipe_insulation_material.setSolarAbsorptance(0.5)
@@ -181,6 +196,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     insulated_return_pipe_construction.setName('Insulated Return Pipe')
     insulated_return_pipe_construction.setLayers(return_pipe_materials)
 
+    # Pipe Length
+    pipe_length = 3 # FIXME
+
     # Thermal Zones
     model.getThermalZones.each do |thermal_zone|
       # Supply
@@ -188,8 +206,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       dhw_recirc_supply_pipe.setName("Recirculation Supply Pipe - #{thermal_zone.name}")
       dhw_recirc_supply_pipe.setAmbientTemperatureZone(thermal_zone)
       dhw_recirc_supply_pipe.setConstruction(insulated_supply_pipe_construction)
-      dhw_recirc_supply_pipe.setPipeInsideDiameter(0.0508) # 2 in
-      dhw_recirc_supply_pipe.setPipeLength(3)
+      dhw_recirc_supply_pipe.setPipeInsideDiameter(UnitConversions.convert(2.0, 'in', 'm'))
+      dhw_recirc_supply_pipe.setPipeLength(pipe_length)
 
       dhw_recirc_supply_pipe.addToNode(demand_inlet.outletModelObject.get.to_Node.get)
 
@@ -198,8 +216,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       dhw_recirc_return_pipe.setName("Recirculation Return Pipe - #{thermal_zone.name}")
       dhw_recirc_return_pipe.setAmbientTemperatureZone(thermal_zone)
       dhw_recirc_return_pipe.setConstruction(insulated_return_pipe_construction)
-      dhw_recirc_return_pipe.setPipeInsideDiameter(0.01905) # 0.75 in
-      dhw_recirc_return_pipe.setPipeLength(3)
+      dhw_recirc_return_pipe.setPipeInsideDiameter(UnitConversions.convert(0.75, 'in', 'm'))
+      dhw_recirc_return_pipe.setPipeLength(pipe_length)
 
       dhw_recirc_return_pipe.addToNode(demand_bypass.outletModelObject.get.to_Node.get)
     end
@@ -209,6 +227,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
     pump.setName(name)
     pump.addToNode(loop.supplyInletNode)
+    pump.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedHotWater) # Used by reporting measure
   end
 
   def add_setpoint_manager(model, loop, schedule, name, control_variable = nil)

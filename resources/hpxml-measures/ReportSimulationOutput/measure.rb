@@ -2737,8 +2737,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       elsif object.to_PumpConstantSpeed.is_initialized
         if object_type == Constants.ObjectNameSolarHotWater
           return { [FT::Elec, EUT::HotWaterSolarThermalPump] => ["Pump #{EPlus::FuelTypeElectricity} Energy"] }
-        else
-          return { [FT::Elec, EUT::HotWaterRecircPump] => ["Pump #{EPlus::FuelTypeElectricity} Energy"] } # FIXME: what EUT should this be?
+        elsif object_type == Constants.ObjectNameSharedHotWater
+          return { [FT::Elec, EUT::HotWater] => ["Pump #{EPlus::FuelTypeElectricity} Energy"] }
         end
 
       elsif object.to_WaterHeaterMixed.is_initialized
