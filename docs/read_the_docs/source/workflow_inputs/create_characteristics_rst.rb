@@ -28,6 +28,16 @@ class String
   end
 end
 
+def md_to_rst(str)
+  if str.include?('OS-HPXML default') || str.include?('OS-HPXML autosized default')
+    str = str.gsub('(see [', '(see `')
+    str = str.gsub('), [', '>`_, `')
+    str = str.gsub('](', ' <')
+    str = str.gsub('))', '>`_)')
+  end
+  return str
+end
+
 resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../../../resources'))
 lookup_file = File.join(resources_dir, 'options_lookup.tsv')
 lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
@@ -51,7 +61,7 @@ resstockarguments_xml.xpath('//measure/arguments/argument').each do |argument|
     puts "Warning: argument '#{name}' does not have a description."
     desc = ''
   else
-    desc = desc.text
+    desc = md_to_rst(desc.text)
   end
   resstockarguments[name] = [units, choices, desc]
 end

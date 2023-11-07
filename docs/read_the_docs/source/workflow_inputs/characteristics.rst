@@ -81,11 +81,11 @@ Arguments
    * - ``site_type``
      - 
      - "suburban", "urban", "rural", "auto"
-     - The type of site. If not provided, the OS-HPXML default is used.
+     - The type of site. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``site_ground_conductivity``
      - Btu/hr-ft-F
      -
-     - Conductivity of the ground soil. If not provided, the OS-HPXML default is used.
+     - Conductivity of the ground soil. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``site_iecc_zone``
      - 
      - "1A", "1B", "1C", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "5A", "5B", "5C", "6A", "6B", "6C", "7", "8", "auto"
@@ -169,23 +169,23 @@ Arguments
    * - ``bathroom_fans_quantity``
      - #
      -
-     - The quantity of the bathroom fans. If not provided, the OS-HPXML default is used.
+     - The quantity of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
    * - ``bathroom_fans_flow_rate``
      - CFM
      -
-     - The flow rate of the bathroom fans. If not provided, the OS-HPXML default is used.
+     - The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
    * - ``bathroom_fans_hours_in_operation``
      - hrs/day
      -
-     - The hours in operation of the bathroom fans. If not provided, the OS-HPXML default is used.
+     - The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
    * - ``bathroom_fans_power``
      - W
      -
-     - The fan power of the bathroom fans. If not provided, the OS-HPXML default is used.
+     - The fan power of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
    * - ``bathroom_fans_start_hour``
      - hr
      -
-     - The start hour of the bathroom fans. If not provided, the OS-HPXML default is used.
+     - The start hour of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
 
 .. _battery:
 
@@ -224,23 +224,23 @@ Arguments
    * - ``battery_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "outside", "auto"
-     - The space type for the lithium ion battery location. If not provided, the OS-HPXML default is used.
+     - The space type for the lithium ion battery location. If not provided, the OS-HPXML default (see `HPXML Batteries <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-batteries>`_) is used.
    * - ``battery_power``
      - W
      -
-     - The rated power output of the lithium ion battery. If not provided, the OS-HPXML default is used.
+     - The rated power output of the lithium ion battery. If not provided, the OS-HPXML default (see `HPXML Batteries <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-batteries>`_) is used.
    * - ``battery_capacity``
      - kWh
      -
-     - The nominal capacity of the lithium ion battery. If not provided, the OS-HPXML default is used.
+     - The nominal capacity of the lithium ion battery. If not provided, the OS-HPXML default (see `HPXML Batteries <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-batteries>`_) is used.
    * - ``battery_usable_capacity``
      - kWh
      -
-     - The usable capacity of the lithium ion battery. If not provided, the OS-HPXML default is used.
+     - The usable capacity of the lithium ion battery. If not provided, the OS-HPXML default (see `HPXML Batteries <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-batteries>`_) is used.
    * - ``battery_round_trip_efficiency``
      - Frac
      -
-     - The round trip efficiency of the lithium ion battery. If not provided, the OS-HPXML default is used.
+     - The round trip efficiency of the lithium ion battery. If not provided, the OS-HPXML default (see `HPXML Batteries <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-batteries>`_) is used.
 
 .. _bedrooms:
 
@@ -284,7 +284,7 @@ Arguments
    * - ``geometry_unit_num_bathrooms``
      - #
      -
-     - The number of bathrooms in the unit. If not provided, the OS-HPXML default is used.
+     - The number of bathrooms in the unit. If not provided, the OS-HPXML default (see `HPXML Building Construction <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-building-construction>`_) is used.
 
 .. _building_america_climate_zone:
 
@@ -373,15 +373,15 @@ Arguments
    * - ``ceiling_fan_efficiency``
      - CFM/W
      -
-     - The efficiency rating of the ceiling fan(s) at medium speed. If not provided, the OS-HPXML default is used.
+     - The efficiency rating of the ceiling fan(s) at medium speed. If not provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
    * - ``ceiling_fan_quantity``
      - #
      -
-     - Total number of ceiling fans. If not provided, the OS-HPXML default is used.
+     - Total number of ceiling fans. If not provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
    * - ``ceiling_fan_cooling_setpoint_temp_offset``
      - deg-F
      -
-     - The cooling setpoint temperature offset during months when the ceiling fans are operating. Only applies if ceiling fan quantity is greater than zero. If not provided, the OS-HPXML default is used.
+     - The cooling setpoint temperature offset during months when the ceiling fans are operating. Only applies if ceiling fan quantity is greater than zero. If not provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
 
 .. _census_division:
 
@@ -510,7 +510,7 @@ Arguments
    * - ``clothes_dryer_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the clothes dryer location. If not provided, the OS-HPXML default is used.
+     - The space type for the clothes dryer location. If not provided, the OS-HPXML default (see `HPXML Clothes Dryer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-dryer>`_) is used.
    * - ``clothes_dryer_fuel_type``
      - 
      - "electricity", "natural gas", "fuel oil", "propane", "wood", "coal"
@@ -522,11 +522,11 @@ Arguments
    * - ``clothes_dryer_efficiency``
      - lb/kWh
      -
-     - The efficiency of the clothes dryer. If not provided, the OS-HPXML default is used.
+     - The efficiency of the clothes dryer. If not provided, the OS-HPXML default (see `HPXML Clothes Dryer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-dryer>`_) is used.
    * - ``clothes_dryer_vented_flow_rate``
      - CFM
      -
-     - The exhaust flow rate of the vented clothes dryer. If not provided, the OS-HPXML default is used.
+     - The exhaust flow rate of the vented clothes dryer. If not provided, the OS-HPXML default (see `HPXML Clothes Dryer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-dryer>`_) is used.
 
 .. _clothes_dryer_usage_level:
 
@@ -566,7 +566,7 @@ Arguments
    * - ``clothes_dryer_usage_multiplier``
      - 
      -
-     - Multiplier on the clothes dryer energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the clothes dryer energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Clothes Dryer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-dryer>`_) is used.
 
 .. _clothes_washer:
 
@@ -606,7 +606,7 @@ Arguments
    * - ``clothes_washer_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the clothes washer location. If not provided, the OS-HPXML default is used.
+     - The space type for the clothes washer location. If not provided, the OS-HPXML default (see `HPXML Clothes Washer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-washer>`_) is used.
    * - ``clothes_washer_efficiency_type``
      - 
      - "ModifiedEnergyFactor", "IntegratedModifiedEnergyFactor"
@@ -614,31 +614,31 @@ Arguments
    * - ``clothes_washer_efficiency``
      - ft^3/kWh-cyc
      -
-     - The efficiency of the clothes washer. If not provided, the OS-HPXML default is used.
+     - The efficiency of the clothes washer. If not provided, the OS-HPXML default (see `HPXML Clothes Washer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-washer>`_) is used.
    * - ``clothes_washer_rated_annual_kwh``
      - kWh/yr
      -
-     - The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default is used.
+     - The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default (see `HPXML Clothes Washer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-washer>`_) is used.
    * - ``clothes_washer_label_electric_rate``
      - $/kWh
      -
-     - The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default is used.
+     - The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default (see `HPXML Clothes Washer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-washer>`_) is used.
    * - ``clothes_washer_label_gas_rate``
      - $/therm
      -
-     - The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default is used.
+     - The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating. If not provided, the OS-HPXML default (see `HPXML Clothes Washer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-washer>`_) is used.
    * - ``clothes_washer_label_annual_gas_cost``
      - $
      -
-     - The annual cost of using the system under test conditions. Input is obtained from the EnergyGuide label. If not provided, the OS-HPXML default is used.
+     - The annual cost of using the system under test conditions. Input is obtained from the EnergyGuide label. If not provided, the OS-HPXML default (see `HPXML Clothes Washer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-washer>`_) is used.
    * - ``clothes_washer_label_usage``
      - cyc/wk
      -
-     - The clothes washer loads per week. If not provided, the OS-HPXML default is used.
+     - The clothes washer loads per week. If not provided, the OS-HPXML default (see `HPXML Clothes Washer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-washer>`_) is used.
    * - ``clothes_washer_capacity``
      - ft^3
      -
-     - Volume of the washer drum. Obtained from the EnergyStar website or the manufacturer's literature. If not provided, the OS-HPXML default is used.
+     - Volume of the washer drum. Obtained from the EnergyStar website or the manufacturer's literature. If not provided, the OS-HPXML default (see `HPXML Clothes Washer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-washer>`_) is used.
 
 .. _clothes_washer_presence:
 
@@ -718,7 +718,7 @@ Arguments
    * - ``clothes_washer_usage_multiplier``
      - 
      -
-     - Multiplier on the clothes washer energy and hot water usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the clothes washer energy and hot water usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Clothes Washer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-washer>`_) is used.
 
 .. _cooking_range:
 
@@ -762,7 +762,7 @@ Arguments
    * - ``cooking_range_oven_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the cooking range/oven location. If not provided, the OS-HPXML default is used.
+     - The space type for the cooking range/oven location. If not provided, the OS-HPXML default (see `HPXML Cooking Range/Oven <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooking-range-oven>`_) is used.
    * - ``cooking_range_oven_fuel_type``
      - 
      - "electricity", "natural gas", "fuel oil", "propane", "wood", "coal"
@@ -770,11 +770,11 @@ Arguments
    * - ``cooking_range_oven_is_induction``
      - 
      -
-     - Whether the cooking range is induction. If not provided, the OS-HPXML default is used.
+     - Whether the cooking range is induction. If not provided, the OS-HPXML default (see `HPXML Cooking Range/Oven <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooking-range-oven>`_) is used.
    * - ``cooking_range_oven_is_convection``
      - 
      -
-     - Whether the oven is convection. If not provided, the OS-HPXML default is used.
+     - Whether the oven is convection. If not provided, the OS-HPXML default (see `HPXML Cooking Range/Oven <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooking-range-oven>`_) is used.
 
 .. _cooking_range_usage_level:
 
@@ -814,7 +814,7 @@ Arguments
    * - ``cooking_range_oven_usage_multiplier``
      - 
      -
-     - Multiplier on the cooking range/oven energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the cooking range/oven energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Cooking Range/Oven <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooking-range-oven>`_) is used.
 
 .. _cooling_setpoint:
 
@@ -854,7 +854,7 @@ Arguments
    * - ``hvac_control_cooling_season_period``
      - 
      -
-     - Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
+     - Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
    * - ``hvac_control_cooling_weekday_setpoint_temp``
      - deg-F
      -
@@ -1053,7 +1053,7 @@ Arguments
    * - ``simulation_control_daylight_saving_enabled``
      - 
      -
-     - Whether to use daylight saving. If not provided, the OS-HPXML default is used.
+     - Whether to use daylight saving. If not provided, the OS-HPXML default (see `HPXML Building Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-building-site>`_) is used.
    * - ``site_zip_code``
      - 
      -
@@ -1184,7 +1184,7 @@ Arguments
    * - ``dishwasher_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the dishwasher location. If not provided, the OS-HPXML default is used.
+     - The space type for the dishwasher location. If not provided, the OS-HPXML default (see `HPXML Dishwasher <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-dishwasher>`_) is used.
    * - ``dishwasher_efficiency_type``
      - 
      - "RatedAnnualkWh", "EnergyFactor"
@@ -1192,27 +1192,27 @@ Arguments
    * - ``dishwasher_efficiency``
      - RatedAnnualkWh or EnergyFactor
      -
-     - The efficiency of the dishwasher. If not provided, the OS-HPXML default is used.
+     - The efficiency of the dishwasher. If not provided, the OS-HPXML default (see `HPXML Dishwasher <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-dishwasher>`_) is used.
    * - ``dishwasher_label_electric_rate``
      - $/kWh
      -
-     - The label electric rate of the dishwasher. If not provided, the OS-HPXML default is used.
+     - The label electric rate of the dishwasher. If not provided, the OS-HPXML default (see `HPXML Dishwasher <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-dishwasher>`_) is used.
    * - ``dishwasher_label_gas_rate``
      - $/therm
      -
-     - The label gas rate of the dishwasher. If not provided, the OS-HPXML default is used.
+     - The label gas rate of the dishwasher. If not provided, the OS-HPXML default (see `HPXML Dishwasher <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-dishwasher>`_) is used.
    * - ``dishwasher_label_annual_gas_cost``
      - $
      -
-     - The label annual gas cost of the dishwasher. If not provided, the OS-HPXML default is used.
+     - The label annual gas cost of the dishwasher. If not provided, the OS-HPXML default (see `HPXML Dishwasher <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-dishwasher>`_) is used.
    * - ``dishwasher_label_usage``
      - cyc/wk
      -
-     - The dishwasher loads per week. If not provided, the OS-HPXML default is used.
+     - The dishwasher loads per week. If not provided, the OS-HPXML default (see `HPXML Dishwasher <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-dishwasher>`_) is used.
    * - ``dishwasher_place_setting_capacity``
      - #
      -
-     - The number of place settings for the unit. Data obtained from manufacturer's literature. If not provided, the OS-HPXML default is used.
+     - The number of place settings for the unit. Data obtained from manufacturer's literature. If not provided, the OS-HPXML default (see `HPXML Dishwasher <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-dishwasher>`_) is used.
 
 .. _dishwasher_usage_level:
 
@@ -1252,7 +1252,7 @@ Arguments
    * - ``dishwasher_usage_multiplier``
      - 
      -
-     - Multiplier on the dishwasher energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the dishwasher energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Dishwasher <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-dishwasher>`_) is used.
 
 .. _door_area:
 
@@ -1426,31 +1426,31 @@ Arguments
    * - ``ducts_supply_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "exterior wall", "under slab", "roof deck", "outside", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "manufactured home belly", "auto"
-     - The location of the supply ducts. If not provided, the OS-HPXML default is used.
+     - The location of the supply ducts. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
    * - ``ducts_supply_surface_area``
      - ft^2
      -
-     - The supply ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
+     - The supply ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
    * - ``ducts_supply_surface_area_fraction``
      - frac
      -
-     - The fraction of supply ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
+     - The fraction of supply ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
    * - ``ducts_return_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "exterior wall", "under slab", "roof deck", "outside", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "manufactured home belly", "auto"
-     - The location of the return ducts. If not provided, the OS-HPXML default is used.
+     - The location of the return ducts. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
    * - ``ducts_return_surface_area``
      - ft^2
      -
-     - The return ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
+     - The return ducts surface area in the given location. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
    * - ``ducts_return_surface_area_fraction``
      - frac
      -
-     - The fraction of return ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default is used.
+     - The fraction of return ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
    * - ``ducts_number_of_return_registers``
      - #
      -
-     - The number of return registers of the ducts. Only used to calculate default return duct surface area. If not provided, the OS-HPXML default is used.
+     - The number of return registers of the ducts. Only used to calculate default return duct surface area. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
 
 .. _eaves:
 
@@ -1524,11 +1524,11 @@ Arguments
    * - ``misc_plug_loads_vehicle_annual_kwh``
      - kWh/yr
      -
-     - The annual energy consumption of the electric vehicle plug loads. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the electric vehicle plug loads. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
    * - ``misc_plug_loads_vehicle_usage_multiplier``
      - 
      -
-     - Multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
    * - ``misc_plug_loads_vehicle_2_usage_multiplier``
      - 
      -
@@ -2236,11 +2236,11 @@ Arguments
    * - ``wall_siding_type``
      - 
      - "aluminum siding", "asbestos siding", "brick veneer", "composite shingle siding", "fiber cement siding", "masonite siding", "none", "stucco", "synthetic stucco", "vinyl siding", "wood siding", "auto"
-     - The siding type of the walls. Also applies to rim joists. If not provided, the OS-HPXML default is used.
+     - The siding type of the walls. Also applies to rim joists. If not provided, the OS-HPXML default (see `HPXML Walls <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-walls>`_) is used.
    * - ``wall_color``
      - 
      - "dark", "light", "medium", "medium dark", "reflective", "auto"
-     - The color of the walls. Also applies to rim joists. If not provided, the OS-HPXML default is used.
+     - The color of the walls. Also applies to rim joists. If not provided, the OS-HPXML default (see `HPXML Walls <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-walls>`_) is used.
    * - ``exterior_finish_r``
      - h-ft^2-R/Btu
      -
@@ -2321,15 +2321,15 @@ Arguments
    * - ``cooling_system_cooling_compressor_type``
      - 
      - "single stage", "two stage", "variable speed", "auto"
-     - The compressor type of the cooling system. Only applies to central air conditioner. If not provided, the OS-HPXML default is used.
+     - The compressor type of the cooling system. Only applies to central air conditioner. If not provided, the OS-HPXML default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_) is used.
    * - ``cooling_system_cooling_sensible_heat_fraction``
      - Frac
      -
-     - The sensible heat fraction of the cooling system. Ignored for evaporative cooler. If not provided, the OS-HPXML default is used.
+     - The sensible heat fraction of the cooling system. Ignored for evaporative cooler. If not provided, the OS-HPXML default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
    * - ``cooling_system_cooling_capacity``
      - Btu/hr
      -
-     - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default is used.
+     - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_, `Evaporative Cooler <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#evaporative-cooler>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
    * - ``cooling_system_is_ducted``
      - 
      -
@@ -2337,7 +2337,7 @@ Arguments
    * - ``cooling_system_crankcase_heater_watts``
      - W
      -
-     - Cooling system crankcase heater power consumption in Watts. Applies only to central air conditioner, mini-split, packaged terminal air conditioner and room air conditioner. If not provided, the OS-HPXML default is used.
+     - Cooling system crankcase heater power consumption in Watts. Applies only to central air conditioner, room air conditioner, packaged terminal air conditioner and mini-split. If not provided, the OS-HPXML default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
    * - ``cooling_system_integrated_heating_system_fuel``
      - 
      - "electricity", "natural gas", "fuel oil", "propane", "wood", "wood pellets", "coal", "auto"
@@ -2349,7 +2349,7 @@ Arguments
    * - ``cooling_system_integrated_heating_system_capacity``
      - Btu/hr
      -
-     - The output heating capacity of the heating system integrated into cooling system. If not provided, the OS-HPXML autosized default is used. Only used for packaged terminal air conditioner and room air conditioner.
+     - The output heating capacity of the heating system integrated into cooling system. If not provided, the OS-HPXML autosized default (see `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_) is used. Only used for room air conditioner and packaged terminal air conditioner.
    * - ``cooling_system_integrated_heating_system_fraction_heat_load_served``
      - Frac
      -
@@ -2536,7 +2536,7 @@ Arguments
    * - ``heating_system_heating_capacity``
      - Btu/hr
      -
-     - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default is used.
+     - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems>`_) is used.
    * - ``heating_system_fraction_heat_load_served``
      - Frac
      -
@@ -2568,19 +2568,19 @@ Arguments
    * - ``heat_pump_cooling_compressor_type``
      - 
      - "single stage", "two stage", "variable speed", "auto"
-     - The compressor type of the heat pump. Only applies to air-to-air. If not provided, the OS-HPXML default is used.
+     - The compressor type of the heat pump. Only applies to air-to-air. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_) is used.
    * - ``heat_pump_cooling_sensible_heat_fraction``
      - Frac
      -
-     - The sensible heat fraction of the heat pump. If not provided, the OS-HPXML default is used.
+     - The sensible heat fraction of the heat pump. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
    * - ``heat_pump_heating_capacity``
      - Btu/hr
      -
-     - The output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
+     - The output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
    * - ``heat_pump_heating_capacity_retention_fraction``
      - Frac
      -
-     - The output heating capacity of the heat pump at a user-specified temperature (e.g., 17F or 5F) divided by the above nominal heating capacity. Applies to all heat pump types except ground-to-air. If not provided, the OS-HPXML default is used.
+     - The output heating capacity of the heat pump at a user-specified temperature (e.g., 17F or 5F) divided by the above nominal heating capacity. Applies to all heat pump types except ground-to-air. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_) is used.
    * - ``heat_pump_heating_capacity_retention_temp``
      - deg-F
      -
@@ -2588,7 +2588,7 @@ Arguments
    * - ``heat_pump_cooling_capacity``
      - Btu/hr
      -
-     - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
+     - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
    * - ``heat_pump_fraction_heat_load_served``
      - Frac
      -
@@ -2600,7 +2600,7 @@ Arguments
    * - ``heat_pump_compressor_lockout_temp``
      - deg-F
      -
-     - The temperature below which the heat pump compressor is disabled. If both this and Backup Heating Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies to all heat pump types other than ground-to-air. If not provided, the OS-HPXML default is used.
+     - The temperature below which the heat pump compressor is disabled. If both this and Backup Heating Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies to all heat pump types other than ground-to-air. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_) is used.
    * - ``heat_pump_backup_type``
      - 
      - "none", "integrated", "separate"
@@ -2616,15 +2616,15 @@ Arguments
    * - ``heat_pump_backup_heating_capacity``
      - Btu/hr
      -
-     - The backup output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used. Only applies if Backup Type is 'integrated'.
+     - The backup output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Backup <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#backup>`_) is used. Only applies if Backup Type is 'integrated'.
    * - ``heat_pump_backup_heating_lockout_temp``
      - deg-F
      -
-     - The temperature above which the heat pump backup system is disabled. If both this and Compressor Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies for both Backup Type of 'integrated' and 'separate'. If not provided, the OS-HPXML default is used.
+     - The temperature above which the heat pump backup system is disabled. If both this and Compressor Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies for both Backup Type of 'integrated' and 'separate'. If not provided, the OS-HPXML default (see `Backup <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#backup>`_) is used.
    * - ``heat_pump_sizing_methodology``
      - 
      - "ACCA", "HERS", "MaxLoad", "auto"
-     - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default is used.
+     - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``heat_pump_is_ducted``
      - 
      -
@@ -2632,7 +2632,7 @@ Arguments
    * - ``heat_pump_crankcase_heater_watts``
      - W
      -
-     - Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-air, mini-split, packaged terminal heat pump and room air conditioner with reverse cycle. If not provided, the OS-HPXML default is used.
+     - Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-air, mini-split, packaged terminal heat pump and room air conditioner with reverse cycle. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_) is used.
    * - ``heating_system_has_flue_or_chimney``
      - 
      -
@@ -2724,7 +2724,7 @@ Arguments
    * - ``heating_system_2_heating_capacity``
      - Btu/hr
      -
-     - The output heating capacity of the second heating system. If not provided, the OS-HPXML autosized default is used.
+     - The output heating capacity of the second heating system. If not provided, the OS-HPXML autosized default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems>`_) is used.
    * - ``heating_system_2_has_flue_or_chimney``
      - 
      -
@@ -2836,7 +2836,7 @@ Arguments
    * - ``heating_system_heating_capacity``
      - Btu/hr
      -
-     - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default is used.
+     - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems>`_) is used.
    * - ``heating_system_fraction_heat_load_served``
      - Frac
      -
@@ -2856,7 +2856,7 @@ Arguments
    * - ``cooling_system_cooling_capacity``
      - Btu/hr
      -
-     - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default is used.
+     - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_, `Evaporative Cooler <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#evaporative-cooler>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
    * - ``cooling_system_is_ducted``
      - 
      -
@@ -2884,11 +2884,11 @@ Arguments
    * - ``heat_pump_heating_capacity``
      - Btu/hr
      -
-     - The output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
+     - The output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
    * - ``heat_pump_cooling_capacity``
      - Btu/hr
      -
-     - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default is used.
+     - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
    * - ``heat_pump_fraction_heat_load_served``
      - Frac
      -
@@ -2912,11 +2912,11 @@ Arguments
    * - ``heat_pump_backup_heating_capacity``
      - Btu/hr
      -
-     - The backup output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default is used. Only applies if Backup Type is 'integrated'.
+     - The backup output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Backup <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#backup>`_) is used. Only applies if Backup Type is 'integrated'.
    * - ``heat_pump_sizing_methodology``
      - 
      - "ACCA", "HERS", "MaxLoad", "auto"
-     - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default is used.
+     - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``heating_system_has_flue_or_chimney``
      - 
      -
@@ -3193,7 +3193,7 @@ Arguments
    * - ``hvac_control_heating_season_period``
      - 
      -
-     - Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
+     - Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
    * - ``hvac_control_heating_weekday_setpoint_temp``
      - deg-F
      -
@@ -3357,11 +3357,11 @@ Arguments
    * - ``holiday_lighting_daily_kwh``
      - kWh/day
      -
-     - The daily energy consumption for holiday lighting (exterior). If not provided, the OS-HPXML default is used.
+     - The daily energy consumption for holiday lighting (exterior). If not provided, the OS-HPXML default (see `HPXML Lighting <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-lighting>`_) is used.
    * - ``holiday_lighting_period``
      - 
      -
-     - Enter a date like "Nov 25 - Jan 5". If not provided, the OS-HPXML default is used.
+     - Enter a date like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see `HPXML Lighting <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-lighting>`_) is used.
 
 .. _hot_water_distribution:
 
@@ -3400,7 +3400,7 @@ Arguments
    * - ``hot_water_distribution_standard_piping_length``
      - ft
      -
-     - If the distribution system is Standard, the length of the piping. If not provided, the OS-HPXML default is used.
+     - If the distribution system is Standard, the length of the piping. If not provided, the OS-HPXML default (see `Standard <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#standard>`_) is used.
    * - ``hot_water_distribution_recirc_control_type``
      - 
      - "no control", "timer", "temperature", "presence sensor demand control", "manual demand control", "auto"
@@ -3408,19 +3408,19 @@ Arguments
    * - ``hot_water_distribution_recirc_piping_length``
      - ft
      -
-     - If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default is used.
+     - If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
    * - ``hot_water_distribution_recirc_branch_piping_length``
      - ft
      -
-     - If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default is used.
+     - If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
    * - ``hot_water_distribution_recirc_pump_power``
      - W
      -
-     - If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default is used.
+     - If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
    * - ``hot_water_distribution_pipe_r``
      - h-ft^2-R/Btu
      -
-     - Nominal R-value of the pipe insulation. If not provided, the OS-HPXML default is used.
+     - Nominal R-value of the pipe insulation. If not provided, the OS-HPXML default (see `HPXML Hot Water Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hot-water-distribution>`_) is used.
    * - ``dwhr_facilities_connected``
      - 
      - "none", "one", "all"
@@ -3475,7 +3475,7 @@ Arguments
    * - ``water_fixtures_usage_multiplier``
      - 
      -
-     - Multiplier on the hot water usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the hot water usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Water Fixtures <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-water-fixtures>`_) is used.
 
 .. _household_has_tribal_persons:
 
@@ -3635,7 +3635,7 @@ Arguments
    * - ``site_shielding_of_home``
      - 
      - "exposed", "normal", "well-shielded", "auto"
-     - Presence of nearby buildings, trees, obstructions for infiltration model. If not provided, the OS-HPXML default is used.
+     - Presence of nearby buildings, trees, obstructions for infiltration model. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``air_leakage_units``
      - 
      - "ACH", "CFM", "ACHnatural", "CFMnatural", "EffectiveLeakageArea"
@@ -3753,11 +3753,11 @@ Arguments
    * - ``foundation_wall_type``
      - 
      - "solid concrete", "concrete block", "concrete block foam core", "concrete block perlite core", "concrete block vermiculite core", "concrete block solid core", "double brick", "wood", "auto"
-     - The material type of the foundation wall. If not provided, the OS-HPXML default is used.
+     - The material type of the foundation wall. If not provided, the OS-HPXML default (see `HPXML Foundation Walls <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-foundation-walls>`_) is used.
    * - ``foundation_wall_thickness``
      - in
      -
-     - The thickness of the foundation wall. If not provided, the OS-HPXML default is used.
+     - The thickness of the foundation wall. If not provided, the OS-HPXML default (see `HPXML Foundation Walls <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-foundation-walls>`_) is used.
    * - ``foundation_wall_insulation_r``
      - h-ft^2-R/Btu
      -
@@ -3769,11 +3769,11 @@ Arguments
    * - ``foundation_wall_insulation_distance_to_top``
      - ft
      -
-     - The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces. If not provided, the OS-HPXML default is used.
+     - The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces. If not provided, the OS-HPXML default (see `HPXML Foundation Walls <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-foundation-walls>`_) is used.
    * - ``foundation_wall_insulation_distance_to_bottom``
      - ft
      -
-     - The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces. If not provided, the OS-HPXML default is used.
+     - The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces. If not provided, the OS-HPXML default (see `HPXML Foundation Walls <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-foundation-walls>`_) is used.
    * - ``foundation_wall_assembly_r``
      - h-ft^2-R/Btu
      -
@@ -3920,15 +3920,15 @@ Arguments
    * - ``slab_thickness``
      - in
      -
-     - The thickness of the slab. Zero can be entered if there is a dirt floor instead of a slab. If not provided, the OS-HPXML default is used.
+     - The thickness of the slab. Zero can be entered if there is a dirt floor instead of a slab. If not provided, the OS-HPXML default (see `HPXML Slabs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-slabs>`_) is used.
    * - ``slab_carpet_fraction``
      - Frac
      -
-     - Fraction of the slab floor area that is carpeted. If not provided, the OS-HPXML default is used.
+     - Fraction of the slab floor area that is carpeted. If not provided, the OS-HPXML default (see `HPXML Slabs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-slabs>`_) is used.
    * - ``slab_carpet_r``
      - h-ft^2-R/Btu
      -
-     - R-value of the slab carpet. If not provided, the OS-HPXML default is used.
+     - R-value of the slab carpet. If not provided, the OS-HPXML default (see `HPXML Slabs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-slabs>`_) is used.
 
 .. _insulation_wall:
 
@@ -4007,11 +4007,11 @@ Arguments
    * - ``window_interior_shading_winter``
      - Frac
      -
-     - Interior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
+     - Interior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-windows>`_) is used.
    * - ``window_interior_shading_summer``
      - Frac
      -
-     - Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
+     - Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-windows>`_) is used.
 
 .. _lighting:
 
@@ -4117,7 +4117,7 @@ Arguments
    * - ``lighting_interior_usage_multiplier``
      - 
      -
-     - Multiplier on the lighting energy usage (interior) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the lighting energy usage (interior) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Lighting <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-lighting>`_) is used.
 
 .. _lighting_other_use:
 
@@ -4152,11 +4152,11 @@ Arguments
    * - ``lighting_exterior_usage_multiplier``
      - 
      -
-     - Multiplier on the lighting energy usage (exterior) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the lighting energy usage (exterior) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Lighting <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-lighting>`_) is used.
    * - ``lighting_garage_usage_multiplier``
      - 
      -
-     - Multiplier on the lighting energy usage (garage) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the lighting energy usage (garage) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Lighting <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-lighting>`_) is used.
 
 .. _location_region:
 
@@ -4215,11 +4215,11 @@ Arguments
    * - ``mech_vent_flow_rate``
      - CFM
      -
-     - The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default is used.
+     - The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
    * - ``mech_vent_hours_in_operation``
      - hrs/day
      -
-     - The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default is used.
+     - The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
    * - ``mech_vent_recovery_efficiency_type``
      - 
      - "Unadjusted", "Adjusted"
@@ -4235,7 +4235,7 @@ Arguments
    * - ``mech_vent_fan_power``
      - W
      -
-     - The fan power of the mechanical ventilation. If not provided, the OS-HPXML default is used.
+     - The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
    * - ``mech_vent_num_units_served``
      - #
      -
@@ -4303,11 +4303,11 @@ Arguments
    * - ``whole_house_fan_flow_rate``
      - CFM
      -
-     - The flow rate of the whole house fan. If not provided, the OS-HPXML default is used.
+     - The flow rate of the whole house fan. If not provided, the OS-HPXML default (see `Whole House Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-house-fan>`_) is used.
    * - ``whole_house_fan_power``
      - W
      -
-     - The fan power of the whole house fan. If not provided, the OS-HPXML default is used.
+     - The fan power of the whole house fan. If not provided, the OS-HPXML default (see `Whole House Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-house-fan>`_) is used.
 
 .. _misc_extra_refrigerator:
 
@@ -4351,15 +4351,15 @@ Arguments
    * - ``extra_refrigerator_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the extra refrigerator location. If not provided, the OS-HPXML default is used.
+     - The space type for the extra refrigerator location. If not provided, the OS-HPXML default (see `HPXML Refrigerators <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-refrigerators>`_) is used.
    * - ``extra_refrigerator_rated_annual_kwh``
      - kWh/yr
      -
-     - The EnergyGuide rated annual energy consumption for an extra rrefrigerator. If not provided, the OS-HPXML default is used.
+     - The EnergyGuide rated annual energy consumption for an extra rrefrigerator. If not provided, the OS-HPXML default (see `HPXML Refrigerators <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-refrigerators>`_) is used.
    * - ``extra_refrigerator_usage_multiplier``
      - 
      -
-     - Multiplier on the extra refrigerator energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the extra refrigerator energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Refrigerators <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-refrigerators>`_) is used.
 
 .. _misc_freezer:
 
@@ -4403,15 +4403,15 @@ Arguments
    * - ``freezer_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the freezer location. If not provided, the OS-HPXML default is used.
+     - The space type for the freezer location. If not provided, the OS-HPXML default (see `HPXML Freezers <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-freezers>`_) is used.
    * - ``freezer_rated_annual_kwh``
      - kWh/yr
      -
-     - The EnergyGuide rated annual energy consumption for a freezer. If not provided, the OS-HPXML default is used.
+     - The EnergyGuide rated annual energy consumption for a freezer. If not provided, the OS-HPXML default (see `HPXML Freezers <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-freezers>`_) is used.
    * - ``freezer_usage_multiplier``
      - 
      -
-     - Multiplier on the freezer energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the freezer energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Freezers <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-freezers>`_) is used.
 
 .. _misc_gas_fireplace:
 
@@ -4454,19 +4454,19 @@ Arguments
    * - ``misc_fuel_loads_fireplace_annual_therm``
      - therm/yr
      -
-     - The annual energy consumption of the fuel loads fireplace. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the fuel loads fireplace. If not provided, the OS-HPXML default (see `HPXML Fuel Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-fuel-loads>`_) is used.
    * - ``misc_fuel_loads_fireplace_frac_sensible``
      - Frac
      -
-     - Fraction of fireplace residual fuel loads' internal gains that are sensible. If not provided, the OS-HPXML default is used.
+     - Fraction of fireplace residual fuel loads' internal gains that are sensible. If not provided, the OS-HPXML default (see `HPXML Fuel Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-fuel-loads>`_) is used.
    * - ``misc_fuel_loads_fireplace_frac_latent``
      - Frac
      -
-     - Fraction of fireplace residual fuel loads' internal gains that are latent. If not provided, the OS-HPXML default is used.
+     - Fraction of fireplace residual fuel loads' internal gains that are latent. If not provided, the OS-HPXML default (see `HPXML Fuel Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-fuel-loads>`_) is used.
    * - ``misc_fuel_loads_fireplace_usage_multiplier``
      - 
      -
-     - Multiplier on the fuel loads fireplace energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the fuel loads fireplace energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Fuel Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-fuel-loads>`_) is used.
 
 .. _misc_gas_grill:
 
@@ -4509,11 +4509,11 @@ Arguments
    * - ``misc_fuel_loads_grill_annual_therm``
      - therm/yr
      -
-     - The annual energy consumption of the fuel loads grill. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the fuel loads grill. If not provided, the OS-HPXML default (see `HPXML Fuel Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-fuel-loads>`_) is used.
    * - ``misc_fuel_loads_grill_usage_multiplier``
      - 
      -
-     - Multiplier on the fuel loads grill energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the fuel loads grill energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Fuel Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-fuel-loads>`_) is used.
 
 .. _misc_gas_lighting:
 
@@ -4556,11 +4556,11 @@ Arguments
    * - ``misc_fuel_loads_lighting_annual_therm``
      - therm/yr
      -
-     - The annual energy consumption of the fuel loads lighting. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the fuel loads lighting. If not provided, the OS-HPXML default (see `HPXML Fuel Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-fuel-loads>`_)is used.
    * - ``misc_fuel_loads_lighting_usage_multiplier``
      - 
      -
-     - Multiplier on the fuel loads lighting energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the fuel loads lighting energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Fuel Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-fuel-loads>`_) is used.
 
 .. _misc_hot_tub_spa:
 
@@ -4604,11 +4604,11 @@ Arguments
    * - ``permanent_spa_pump_annual_kwh``
      - kWh/yr
      -
-     - The annual energy consumption of the permanent spa pump. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the permanent spa pump. If not provided, the OS-HPXML default (see `Permanent Spa Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#permanent-spa-pump>`_) is used.
    * - ``permanent_spa_pump_usage_multiplier``
      - 
      -
-     - Multiplier on the permanent spa pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the permanent spa pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `Permanent Spa Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#permanent-spa-pump>`_) is used.
    * - ``permanent_spa_heater_type``
      - 
      - "none", "electric resistance", "gas fired", "heat pump"
@@ -4616,15 +4616,15 @@ Arguments
    * - ``permanent_spa_heater_annual_kwh``
      - kWh/yr
      -
-     - The annual energy consumption of the electric resistance permanent spa heater. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the electric resistance permanent spa heater. If not provided, the OS-HPXML default (see `Permanent Spa Heater <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#permanent-spa-heater>`_) is used.
    * - ``permanent_spa_heater_annual_therm``
      - therm/yr
      -
-     - The annual energy consumption of the gas fired permanent spa heater. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the gas fired permanent spa heater. If not provided, the OS-HPXML default (see `Permanent Spa Heater <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#permanent-spa-heater>`_) is used.
    * - ``permanent_spa_heater_usage_multiplier``
      - 
      -
-     - Multiplier on the permanent spa heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the permanent spa heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `Permanent Spa Heater <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#permanent-spa-heater>`_) is used.
 
 .. _misc_pool:
 
@@ -4703,15 +4703,15 @@ Arguments
    * - ``pool_heater_annual_kwh``
      - kWh/yr
      -
-     - The annual energy consumption of the electric resistance pool heater. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the electric resistance pool heater. If not provided, the OS-HPXML default (see `Pool Heater <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#pool-heater>`_) is used.
    * - ``pool_heater_annual_therm``
      - therm/yr
      -
-     - The annual energy consumption of the gas fired pool heater. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the gas fired pool heater. If not provided, the OS-HPXML default (see `Pool Heater <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#pool-heater>`_) is used.
    * - ``pool_heater_usage_multiplier``
      - 
      -
-     - Multiplier on the pool heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the pool heater energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `Pool Heater <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#pool-heater>`_) is used.
 
 .. _misc_pool_pump:
 
@@ -4746,11 +4746,11 @@ Arguments
    * - ``pool_pump_annual_kwh``
      - kWh/yr
      -
-     - The annual energy consumption of the pool pump. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the pool pump. If not provided, the OS-HPXML default (see `Pool Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#pool-pump>`_) is used.
    * - ``pool_pump_usage_multiplier``
      - 
      -
-     - Multiplier on the pool pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the pool pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `Pool Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#pool-pump>`_) is used.
 
 .. _misc_well_pump:
 
@@ -4789,11 +4789,11 @@ Arguments
    * - ``misc_plug_loads_well_pump_annual_kwh``
      - kWh/yr
      -
-     - The annual energy consumption of the well pump plug loads. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the well pump plug loads. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
    * - ``misc_plug_loads_well_pump_usage_multiplier``
      - 
      -
-     - Multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
    * - ``misc_plug_loads_well_pump_2_usage_multiplier``
      - 
      -
@@ -4832,7 +4832,7 @@ Arguments
    * - ``window_fraction_operable``
      - Frac
      -
-     - Fraction of windows that are operable. If not provided, the OS-HPXML default is used.
+     - Fraction of windows that are operable. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-windows>`_) is used.
 
 .. _neighbors:
 
@@ -4883,19 +4883,19 @@ Arguments
    * - ``neighbor_front_height``
      - ft
      -
-     - The height of the neighboring building to the front. If not provided, the OS-HPXML default is used.
+     - The height of the neighboring building to the front. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``neighbor_back_height``
      - ft
      -
-     - The height of the neighboring building to the back. If not provided, the OS-HPXML default is used.
+     - The height of the neighboring building to the back. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``neighbor_left_height``
      - ft
      -
-     - The height of the neighboring building to the left. If not provided, the OS-HPXML default is used.
+     - The height of the neighboring building to the left. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``neighbor_right_height``
      - ft
      -
-     - The height of the neighboring building to the right. If not provided, the OS-HPXML default is used.
+     - The height of the neighboring building to the right. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
 
 .. _occupants:
 
@@ -5182,15 +5182,15 @@ Arguments
    * - ``pv_system_module_type``
      - 
      - "standard", "premium", "thin film", "auto"
-     - Module type of the PV system. If not provided, the OS-HPXML default is used.
+     - Module type of the PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_location``
      - 
      - "roof", "ground", "auto"
-     - Location of the PV system. If not provided, the OS-HPXML default is used.
+     - Location of the PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_tracking``
      - 
      - "fixed", "1-axis", "1-axis backtracked", "2-axis", "auto"
-     - Type of tracking for the PV system. If not provided, the OS-HPXML default is used.
+     - Type of tracking for the PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_array_tilt``
      - degrees
      -
@@ -5202,11 +5202,11 @@ Arguments
    * - ``pv_system_inverter_efficiency``
      - Frac
      -
-     - Inverter efficiency of the PV system. If there are two PV systems, this will apply to both. If not provided, the OS-HPXML default is used.
+     - Inverter efficiency of the PV system. If there are two PV systems, this will apply to both. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_system_losses_fraction``
      - Frac
      -
-     - System losses fraction of the PV system. If there are two PV systems, this will apply to both. If not provided, the OS-HPXML default is used.
+     - System losses fraction of the PV system. If there are two PV systems, this will apply to both. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_2_present``
      - 
      - "true", "false"
@@ -5214,15 +5214,15 @@ Arguments
    * - ``pv_system_2_module_type``
      - 
      - "standard", "premium", "thin film", "auto"
-     - Module type of the second PV system. If not provided, the OS-HPXML default is used.
+     - Module type of the second PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_2_location``
      - 
      - "roof", "ground", "auto"
-     - Location of the second PV system. If not provided, the OS-HPXML default is used.
+     - Location of the second PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_2_tracking``
      - 
      - "fixed", "1-axis", "1-axis backtracked", "2-axis", "auto"
-     - Type of tracking for the second PV system. If not provided, the OS-HPXML default is used.
+     - Type of tracking for the second PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_2_array_tilt``
      - degrees
      -
@@ -5309,19 +5309,19 @@ Arguments
    * - ``misc_plug_loads_other_annual_kwh``
      - kWh/yr
      -
-     - The annual energy consumption of the other residual plug loads. If not provided, the OS-HPXML default is used.
+     - The annual energy consumption of the other residual plug loads. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
    * - ``misc_plug_loads_other_frac_sensible``
      - Frac
      -
-     - Fraction of other residual plug loads' internal gains that are sensible. If not provided, the OS-HPXML default is used.
+     - Fraction of other residual plug loads' internal gains that are sensible. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
    * - ``misc_plug_loads_other_frac_latent``
      - Frac
      -
-     - Fraction of other residual plug loads' internal gains that are latent. If not provided, the OS-HPXML default is used.
+     - Fraction of other residual plug loads' internal gains that are latent. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
    * - ``misc_plug_loads_other_usage_multiplier``
      - 
      -
-     - Multiplier on the other energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the other energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
 
 .. _reeds_balancing_area:
 
@@ -5380,7 +5380,7 @@ Arguments
    * - ``roof_radiant_barrier_grade``
      - 
      - "1", "2", "3", "auto"
-     - The grade of the radiant barrier. If not provided, the OS-HPXML default is used.
+     - The grade of the radiant barrier. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
 
 .. _range_spot_vent_hour:
 
@@ -5415,23 +5415,23 @@ Arguments
    * - ``kitchen_fans_quantity``
      - #
      -
-     - The quantity of the kitchen fans. If not provided, the OS-HPXML default is used.
+     - The quantity of the kitchen fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
    * - ``kitchen_fans_flow_rate``
      - CFM
      -
-     - The flow rate of the kitchen fan. If not provided, the OS-HPXML default is used.
+     - The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
    * - ``kitchen_fans_hours_in_operation``
      - hrs/day
      -
-     - The hours in operation of the kitchen fan. If not provided, the OS-HPXML default is used.
+     - The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
    * - ``kitchen_fans_power``
      - W
      -
-     - The fan power of the kitchen fan. If not provided, the OS-HPXML default is used.
+     - The fan power of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
    * - ``kitchen_fans_start_hour``
      - hr
      -
-     - The start hour of the kitchen fan. If not provided, the OS-HPXML default is used.
+     - The start hour of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
 
 .. _refrigerator:
 
@@ -5475,11 +5475,11 @@ Arguments
    * - ``refrigerator_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The space type for the refrigerator location. If not provided, the OS-HPXML default is used.
+     - The space type for the refrigerator location. If not provided, the OS-HPXML default (see `HPXML Refrigerators <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-refrigerators>`_) is used.
    * - ``refrigerator_rated_annual_kwh``
      - kWh/yr
      -
-     - The EnergyGuide rated annual energy consumption for a refrigerator. If not provided, the OS-HPXML default is used.
+     - The EnergyGuide rated annual energy consumption for a refrigerator. If not provided, the OS-HPXML default (see `HPXML Refrigerators <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-refrigerators>`_) is used.
 
 .. _refrigerator_usage_level:
 
@@ -5519,7 +5519,7 @@ Arguments
    * - ``refrigerator_usage_multiplier``
      - 
      -
-     - Multiplier on the refrigerator energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default is used.
+     - Multiplier on the refrigerator energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Refrigerators <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-refrigerators>`_) is used.
 
 .. _roof_material:
 
@@ -5559,11 +5559,11 @@ Arguments
    * - ``roof_material_type``
      - 
      - "asphalt or fiberglass shingles", "concrete", "cool roof", "slate or tile shingles", "expanded polystyrene sheathing", "metal surfacing", "plastic/rubber/synthetic sheeting", "shingles", "wood shingles or shakes", "auto"
-     - The material type of the roof. If not provided, the OS-HPXML default is used.
+     - The material type of the roof. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
    * - ``roof_color``
      - 
      - "dark", "light", "medium", "medium dark", "reflective", "auto"
-     - The color of the roof. If not provided, the OS-HPXML default is used.
+     - The color of the roof. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
 
 .. _solar_hot_water:
 
@@ -5630,7 +5630,7 @@ Arguments
    * - ``solar_thermal_storage_volume``
      - gal
      -
-     - The storage volume of the solar thermal system. If not provided, the OS-HPXML default is used.
+     - The storage volume of the solar thermal system. If not provided, the OS-HPXML default (see `Detailed Inputs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#detailed-inputs>`_) is used.
    * - ``solar_thermal_solar_fraction``
      - Frac
      -
@@ -5866,7 +5866,7 @@ Arguments
    * - ``water_heater_tank_volume``
      - gal
      -
-     - Nominal volume of water heater tank. Only applies to storage water heater, heat pump water heater, and space-heating boiler with storage tank. If not provided, the OS-HPXML default is used.
+     - Nominal volume of water heater tank. Only applies to storage water heater, heat pump water heater, and space-heating boiler with storage tank. If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#conventional-storage>`_, `Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#heat-pump>`_, `Combi Boiler w/ Storage <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#combi-boiler-w-storage>`_) is used.
    * - ``water_heater_efficiency_type``
      - 
      - "EnergyFactor", "UniformEnergyFactor"
@@ -5878,19 +5878,19 @@ Arguments
    * - ``water_heater_usage_bin``
      - 
      - "very small", "low", "medium", "high", "auto"
-     - The usage of the water heater. Only applies if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers. If not provided, the OS-HPXML default is used.
+     - The usage of the water heater. Only applies if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers. If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#conventional-storage>`_, `Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#heat-pump>`_) is used.
    * - ``water_heater_recovery_efficiency``
      - Frac
      -
-     - Ratio of energy delivered to water heater to the energy content of the fuel consumed by the water heater. Only used for non-electric storage water heaters. If not provided, the OS-HPXML default is used.
+     - Ratio of energy delivered to water heater to the energy content of the fuel consumed by the water heater. Only used for non-electric storage water heaters. If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#conventional-storage>`_) is used.
    * - ``water_heater_heating_capacity``
      - Btu/hr
      -
-     - Heating capacity. Only applies to storage water heater. If not provided, the OS-HPXML default is used.
+     - Heating capacity. Only applies to storage water heater. If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#conventional-storage>`_) is used.
    * - ``water_heater_standby_loss``
      - deg-F/hr
      -
-     - The standby loss of water heater. Only applies to space-heating boilers. If not provided, the OS-HPXML default is used.
+     - The standby loss of water heater. Only applies to space-heating boilers. If not provided, the OS-HPXML default (see `Combi Boiler w/ Storage <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#combi-boiler-w-storage>`_) is used.
    * - ``water_heater_jacket_rvalue``
      - h-ft^2-R/Btu
      -
@@ -5898,7 +5898,7 @@ Arguments
    * - ``water_heater_setpoint_temperature``
      - deg-F
      -
-     - The setpoint temperature of water heater. If not provided, the OS-HPXML default is used.
+     - The setpoint temperature of water heater. If not provided, the OS-HPXML default (see `HPXML Water Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-water-heating-systems>`_) is used.
    * - ``water_heater_num_units_served``
      - #
      -
@@ -5910,11 +5910,11 @@ Arguments
    * - ``water_heater_tank_model_type``
      - 
      - "mixed", "stratified", "auto"
-     - Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time. Applies only to storage water heater. If not provided, the OS-HPXML default is used.
+     - Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time. Applies only to storage water heater. If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#conventional-storage>`_) is used.
    * - ``water_heater_operating_mode``
      - 
      - "hybrid/auto", "heat pump only", "auto"
-     - The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'hybrid/auto' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to heat pump water heater. If not provided, the OS-HPXML default is used.
+     - The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'hybrid/auto' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to heat pump water heater. If not provided, the OS-HPXML default (see `Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#heat-pump>`_) is used.
    * - ``water_heater_has_flue_or_chimney``
      - 
      -
@@ -6008,7 +6008,7 @@ Arguments
    * - ``water_heater_location``
      - 
      - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "attic", "attic - vented", "attic - unvented", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
-     - The location of water heater. If not provided, the OS-HPXML default is used.
+     - The location of water heater. If not provided, the OS-HPXML default (see `HPXML Water Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-water-heating-systems>`_) is used.
 
 .. _window_areas:
 
@@ -6136,7 +6136,7 @@ Arguments
    * - ``window_natvent_availability``
      - Days/week
      -
-     - For operable windows, the number of days/week that windows can be opened by occupants for natural ventilation. If not provided, the OS-HPXML default is used.
+     - For operable windows, the number of days/week that windows can be opened by occupants for natural ventilation. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-windows>`_) is used.
    * - ``window_ufactor``
      - Btu/hr-ft^2-R
      -
@@ -6148,15 +6148,15 @@ Arguments
    * - ``window_exterior_shading_winter``
      - Frac
      -
-     - Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
+     - Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-windows>`_) is used.
    * - ``window_exterior_shading_summer``
      - Frac
      -
-     - Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default is used.
+     - Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-windows>`_) is used.
    * - ``window_shading_summer_season``
      - 
      -
-     - Enter a date like "May 1 - Sep 30". Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default is used.
+     - Enter a date like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-windows>`_) is used.
    * - ``skylight_ufactor``
      - Btu/hr-ft^2-R
      -
