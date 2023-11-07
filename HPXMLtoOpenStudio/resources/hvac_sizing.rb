@@ -148,8 +148,8 @@ class HVACSizing
       if [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
           HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab,
           HPXML::LocationManufacturedHomeBelly].include? location
-        @cool_design_temps[location] = calculate_scheduled_space_design_temps(location, @cool_setpoint, @hpxml_bldg.header.manualj_cooling_design_temp, weather.data.GroundMonthlyTemps.max)
-        @heat_design_temps[location] = calculate_scheduled_space_design_temps(location, @heat_setpoint, @hpxml_bldg.header.manualj_heating_design_temp, weather.data.GroundMonthlyTemps.min)
+        @cool_design_temps[location] = calculate_scheduled_space_design_temps(location, @cool_setpoint, @hpxml_bldg.header.manualj_cooling_design_temp, weather.data.ShallowGroundMonthlyTemps.max)
+        @heat_design_temps[location] = calculate_scheduled_space_design_temps(location, @heat_setpoint, @hpxml_bldg.header.manualj_heating_design_temp, weather.data.ShallowGroundMonthlyTemps.min)
       elsif [HPXML::LocationOutside, HPXML::LocationRoofDeck, HPXML::LocationManufacturedHomeUnderBelly].include? location
         @cool_design_temps[location] = @hpxml_bldg.header.manualj_cooling_design_temp
         @heat_design_temps[location] = @hpxml_bldg.header.manualj_heating_design_temp
@@ -184,14 +184,14 @@ class HVACSizing
         if location == HPXML::LocationAtticVented
           heat_temp = @hpxml_bldg.header.manualj_heating_design_temp
         else
-          heat_temp = calculate_space_design_temps(location, weather, @heat_setpoint, @hpxml_bldg.header.manualj_heating_design_temp, weather.data.GroundMonthlyTemps.min)
+          heat_temp = calculate_space_design_temps(location, weather, @heat_setpoint, @hpxml_bldg.header.manualj_heating_design_temp, weather.data.ShallowGroundMonthlyTemps.min)
         end
       else
         heat_temp = @hpxml_bldg.header.manualj_heating_design_temp
       end
 
     elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? location
-      heat_temp = calculate_space_design_temps(location, weather, @heat_setpoint, @hpxml_bldg.header.manualj_heating_design_temp, weather.data.GroundMonthlyTemps.min)
+      heat_temp = calculate_space_design_temps(location, weather, @heat_setpoint, @hpxml_bldg.header.manualj_heating_design_temp, weather.data.ShallowGroundMonthlyTemps.min)
 
     end
 
@@ -255,7 +255,7 @@ class HVACSizing
         if location == HPXML::LocationAtticVented
           cool_temp = @hpxml_bldg.header.manualj_cooling_design_temp + 40.0 # This is the number from a California study with dark shingle roof and similar ventilation.
         else
-          cool_temp = calculate_space_design_temps(location, weather, @cool_setpoint, @hpxml_bldg.header.manualj_cooling_design_temp, weather.data.GroundMonthlyTemps.max, true)
+          cool_temp = calculate_space_design_temps(location, weather, @cool_setpoint, @hpxml_bldg.header.manualj_cooling_design_temp, weather.data.ShallowGroundMonthlyTemps.max, true)
         end
 
       else
@@ -339,7 +339,7 @@ class HVACSizing
       end
 
     elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? location
-      cool_temp = calculate_space_design_temps(location, weather, @cool_setpoint, @hpxml_bldg.header.manualj_cooling_design_temp, weather.data.GroundMonthlyTemps.max)
+      cool_temp = calculate_space_design_temps(location, weather, @cool_setpoint, @hpxml_bldg.header.manualj_cooling_design_temp, weather.data.ShallowGroundMonthlyTemps.max)
 
     end
 
@@ -2710,8 +2710,8 @@ class HVACSizing
     rtf_DesignMon_Heat = [0.25, (71.0 - weather.data.MonthlyAvgDrybulbs[heating_month]) / @htd].max
     rtf_DesignMon_Cool = [0.25, (weather.data.MonthlyAvgDrybulbs[cooling_month] - 76.0) / @ctd].max
 
-    nom_length_heat = (1.0 - hvac_cooling_ap.heat_rated_eirs[0]) * (r_value_bore + r_value_ground * rtf_DesignMon_Heat) / (weather.data.GroundAnnualTemp - (2.0 * hvac_cooling_ap.design_hw - hvac_cooling_ap.design_delta_t) / 2.0) * UnitConversions.convert(1.0, 'ton', 'Btu/hr')
-    nom_length_cool = (1.0 + hvac_cooling_ap.cool_rated_eirs[0]) * (r_value_bore + r_value_ground * rtf_DesignMon_Cool) / ((2.0 * hvac_cooling_ap.design_chw + hvac_cooling_ap.design_delta_t) / 2.0 - weather.data.GroundAnnualTemp) * UnitConversions.convert(1.0, 'ton', 'Btu/hr')
+    nom_length_heat = (1.0 - hvac_cooling_ap.heat_rated_eirs[0]) * (r_value_bore + r_value_ground * rtf_DesignMon_Heat) / (weather.data.DeepGroundAnnualTemp - (2.0 * hvac_cooling_ap.design_hw - hvac_cooling_ap.design_delta_t) / 2.0) * UnitConversions.convert(1.0, 'ton', 'Btu/hr')
+    nom_length_cool = (1.0 + hvac_cooling_ap.cool_rated_eirs[0]) * (r_value_bore + r_value_ground * rtf_DesignMon_Cool) / ((2.0 * hvac_cooling_ap.design_chw + hvac_cooling_ap.design_delta_t) / 2.0 - weather.data.DeepGroundAnnualTemp) * UnitConversions.convert(1.0, 'ton', 'Btu/hr')
 
     return nom_length_heat, nom_length_cool
   end
@@ -3160,7 +3160,7 @@ class HVACSizing
         u_effective << 1.0 / r_air_to_air
       end
 
-      f_values << u_effective.inject(0, :+) # sum array
+      f_values << u_effective.sum
     end
 
     return f_values.sum() / f_values.size
