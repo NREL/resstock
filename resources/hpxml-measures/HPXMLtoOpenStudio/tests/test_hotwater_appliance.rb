@@ -15,7 +15,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
   def get_ee_kwh_per_year(model, name)
     kwh_yr = 0.0
     model.getElectricEquipments.each do |ee|
-      next unless ee.endUseSubcategory == name
+      next unless ee.endUseSubcategory.start_with? name
 
       hrs = Schedule.annual_equivalent_full_load_hrs(model.yearDescription.get.assumedYear, ee.schedule.get)
       kwh_yr += UnitConversions.convert(hrs * ee.designLevel.get * ee.multiplier * ee.space.get.multiplier, 'Wh', 'kWh')
@@ -27,7 +27,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
     sens_frac = []
     lat_frac = []
     model.getElectricEquipments.each do |ee|
-      next unless ee.endUseSubcategory == name
+      next unless ee.endUseSubcategory.start_with? name
 
       sens_frac << 1.0 - ee.electricEquipmentDefinition.fractionLost - ee.electricEquipmentDefinition.fractionLatent
       lat_frac << ee.electricEquipmentDefinition.fractionLatent
@@ -42,7 +42,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
   def get_oe_kwh(model, name)
     kwh_yr = []
     model.getOtherEquipments.each do |oe|
-      next unless oe.endUseSubcategory == name
+      next unless oe.endUseSubcategory.start_with? name
 
       hrs = Schedule.annual_equivalent_full_load_hrs(model.yearDescription.get.assumedYear, oe.schedule.get)
       kwh_yr << UnitConversions.convert(hrs * oe.otherEquipmentDefinition.designLevel.get * oe.multiplier * oe.space.get.multiplier, 'Wh', 'kWh')
@@ -57,7 +57,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
   def get_oe_fuel(model, name)
     fuel = []
     model.getOtherEquipments.each do |oe|
-      next unless oe.endUseSubcategory == name
+      next unless oe.endUseSubcategory.start_with? name
 
       fuel << oe.fuelType
     end
@@ -74,7 +74,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
     sens_frac = []
     lat_frac = []
     model.getOtherEquipments.each do |oe|
-      next unless oe.endUseSubcategory == name
+      next unless oe.endUseSubcategory.start_with? name
 
       sens_frac << 1.0 - oe.otherEquipmentDefinition.fractionLost - oe.otherEquipmentDefinition.fractionLatent
       lat_frac << oe.otherEquipmentDefinition.fractionLatent
@@ -89,7 +89,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
   def get_wu_gpd(model, name)
     gpd = []
     model.getWaterUseEquipments.each do |wue|
-      next unless wue.waterUseEquipmentDefinition.endUseSubcategory == name
+      next unless wue.waterUseEquipmentDefinition.endUseSubcategory.start_with? name
 
       full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.yearDescription.get.assumedYear, wue.flowRateFractionSchedule.get)
       gpd << UnitConversions.convert(full_load_hrs * wue.waterUseEquipmentDefinition.peakFlowRate * wue.multiplier, 'm^3/s', 'gal/min') * 60.0 / 365.0
