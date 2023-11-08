@@ -1246,7 +1246,7 @@ class SavingsExtraction:
         oil_month_fix = cost.iat[41, 3]  # $/month
 
         # fuel order: [electricity, NG, fuel oil, propane]
-        fixed_annum = [ele_month_fix, gas_month_fix, oil_month_fix, propane_month_fix]*12
+        fixed_annum = [ele_month_fix*12, gas_month_fix*12, oil_month_fix*12, propane_month_fix*12]
         # $/kWh, $/therm, $/mmbtu, $/mmbtu
         var_rates = [ele_price, gas_price, oil_price/FUEL_OIL_HEAT_CONTENT, propane_price/PROPANE_HEAT_CONTENT]
         return fixed_annum, var_rates
