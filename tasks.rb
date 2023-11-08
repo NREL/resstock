@@ -1357,11 +1357,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
         end
       end
     end
-    if hpxml_file.include? 'install-quality'
-      hpxml_bldg.hvac_systems.each do |hvac_system|
-        hvac_system.fan_watts_per_cfm = 0.365
-      end
-    elsif ['base-hvac-setpoints-daily-setbacks.xml'].include? hpxml_file
+    if ['base-hvac-setpoints-daily-setbacks.xml'].include? hpxml_file
       hpxml_bldg.hvac_controls[0].heating_setback_temp = 66
       hpxml_bldg.hvac_controls[0].heating_setback_hours_per_week = 7 * 7
       hpxml_bldg.hvac_controls[0].heating_setback_start_hour = 23 # 11pm
@@ -2366,21 +2362,21 @@ if ARGV[0].to_sym == :create_release_zips
 
   files = ['Changelog.md',
            'LICENSE.md',
-           'BuildResidentialHPXML/measure.*',
+           'BuildResidentialHPXML/*.*',
            'BuildResidentialHPXML/resources/**/*.*',
-           'BuildResidentialScheduleFile/measure.*',
+           'BuildResidentialScheduleFile/*.*',
            'BuildResidentialScheduleFile/resources/**/*.*',
-           'HPXMLtoOpenStudio/measure.*',
+           'HPXMLtoOpenStudio/*.*',
            'HPXMLtoOpenStudio/resources/**/*.*',
-           'ReportSimulationOutput/measure.*',
+           'ReportSimulationOutput/*.*',
            'ReportSimulationOutput/resources/**/*.*',
-           'ReportUtilityBills/measure.*',
+           'ReportUtilityBills/*.*',
            'ReportUtilityBills/resources/**/*.*',
            'weather/*.*',
            'workflow/*.*',
            'workflow/real_homes/*.xml',
            'workflow/sample_files/*.xml',
-           'workflow/tests/*test*.rb',
+           'workflow/tests/*.rb',
            'workflow/tests/**/*.xml',
            'workflow/tests/**/*.csv',
            'documentation/index.html',
