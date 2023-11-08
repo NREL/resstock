@@ -46,7 +46,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         case arg.type.valueName.downcase
         when 'choice'
           choices = arg.choiceValues.map(&:to_s)
-          choices << Constants.Auto
+          choices.unshift(Constants.Auto)
           new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
         else
           new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)

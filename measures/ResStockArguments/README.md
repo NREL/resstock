@@ -42,40 +42,7 @@ The availability of the natural ventilation schedule during the outage period.
 
 - **Required:** ``false``
 
-- **Choices:** `regular schedule`, `always available`, `always unavailable`, `auto`
-
-<br/>
-
-**simulation_control_timestep**
-
-Value must be a divisor of 60. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-simulation-control'>HPXML Simulation Control</a>) is used.
-
-- **Name:** ``simulation_control_timestep``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**simulation_control_run_period**
-
-Enter a date like 'Jan 1 - Dec 31'. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-simulation-control'>HPXML Simulation Control</a>) is used.
-
-- **Name:** ``simulation_control_run_period``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**simulation_control_run_period_calendar_year**
-
-This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-simulation-control'>HPXML Simulation Control</a>) is used.
-
-- **Name:** ``simulation_control_run_period_calendar_year``
-- **Type:** ``String``
-
-- **Required:** ``false``
+- **Choices:** `auto`, `regular schedule`, `always available`, `always unavailable`
 
 <br/>
 
@@ -99,7 +66,7 @@ The type of site. If not provided, the OS-HPXML default (see <a href='https://op
 
 - **Required:** ``false``
 
-- **Choices:** `suburban`, `urban`, `rural`, `auto`
+- **Choices:** `auto`, `suburban`, `urban`, `rural`
 
 <br/>
 
@@ -112,7 +79,7 @@ Presence of nearby buildings, trees, obstructions for infiltration model. If not
 
 - **Required:** ``false``
 
-- **Choices:** `exposed`, `normal`, `well-shielded`, `auto`
+- **Choices:** `auto`, `exposed`, `normal`, `well-shielded`
 
 <br/>
 
@@ -147,7 +114,7 @@ IECC zone of the home address.
 
 - **Required:** ``false``
 
-- **Choices:** `1A`, `1B`, `1C`, `2A`, `2B`, `2C`, `3A`, `3B`, `3C`, `4A`, `4B`, `4C`, `5A`, `5B`, `5C`, `6A`, `6B`, `6C`, `7`, `8`, `auto`
+- **Choices:** `auto`, `1A`, `1B`, `1C`, `2A`, `2B`, `2C`, `3A`, `3B`, `3C`, `4A`, `4B`, `4C`, `5A`, `5B`, `5C`, `6A`, `6B`, `6C`, `7`, `8`
 
 <br/>
 
@@ -160,7 +127,7 @@ State code of the home address.
 
 - **Required:** ``false``
 
-- **Choices:** `AK`, `AL`, `AR`, `AZ`, `CA`, `CO`, `CT`, `DC`, `DE`, `FL`, `GA`, `HI`, `IA`, `ID`, `IL`, `IN`, `KS`, `KY`, `LA`, `MA`, `MD`, `ME`, `MI`, `MN`, `MO`, `MS`, `MT`, `NC`, `ND`, `NE`, `NH`, `NJ`, `NM`, `NV`, `NY`, `OH`, `OK`, `OR`, `PA`, `RI`, `SC`, `SD`, `TN`, `TX`, `UT`, `VA`, `VT`, `WA`, `WI`, `WV`, `WY`, `auto`
+- **Choices:** `auto`, `AK`, `AL`, `AR`, `AZ`, `CA`, `CO`, `CT`, `DC`, `DE`, `FL`, `GA`, `HI`, `IA`, `ID`, `IL`, `IN`, `KS`, `KY`, `LA`, `MA`, `MD`, `ME`, `MI`, `MN`, `MO`, `MS`, `MT`, `NC`, `ND`, `NE`, `NH`, `NJ`, `NM`, `NV`, `NY`, `OH`, `OK`, `OR`, `PA`, `RI`, `SC`, `SD`, `TN`, `TX`, `UT`, `VA`, `VT`, `WA`, `WI`, `WV`, `WY`
 
 <br/>
 
@@ -593,7 +560,7 @@ The material type of the foundation wall. If not provided, the OS-HPXML default 
 
 - **Required:** ``false``
 
-- **Choices:** `solid concrete`, `concrete block`, `concrete block foam core`, `concrete block perlite core`, `concrete block vermiculite core`, `concrete block solid core`, `double brick`, `wood`, `auto`
+- **Choices:** `auto`, `solid concrete`, `concrete block`, `concrete block foam core`, `concrete block perlite core`, `concrete block vermiculite core`, `concrete block solid core`, `double brick`, `wood`
 
 <br/>
 
@@ -630,7 +597,7 @@ Whether the insulation is on the interior or exterior of the foundation wall. On
 
 - **Required:** ``false``
 
-- **Choices:** `interior`, `exterior`, `auto`
+- **Choices:** `auto`, `interior`, `exterior`
 
 <br/>
 
@@ -785,7 +752,7 @@ The material type of the roof. If not provided, the OS-HPXML default (see <a hre
 
 - **Required:** ``false``
 
-- **Choices:** `asphalt or fiberglass shingles`, `concrete`, `cool roof`, `slate or tile shingles`, `expanded polystyrene sheathing`, `metal surfacing`, `plastic/rubber/synthetic sheeting`, `shingles`, `wood shingles or shakes`, `auto`
+- **Choices:** `auto`, `asphalt or fiberglass shingles`, `concrete`, `cool roof`, `slate or tile shingles`, `expanded polystyrene sheathing`, `metal surfacing`, `plastic/rubber/synthetic sheeting`, `shingles`, `wood shingles or shakes`
 
 <br/>
 
@@ -798,7 +765,7 @@ The color of the roof. If not provided, the OS-HPXML default (see <a href='https
 
 - **Required:** ``false``
 
-- **Choices:** `dark`, `light`, `medium`, `medium dark`, `reflective`, `auto`
+- **Choices:** `auto`, `dark`, `light`, `medium`, `medium dark`, `reflective`
 
 <br/>
 
@@ -835,7 +802,7 @@ The grade of the radiant barrier. If not provided, the OS-HPXML default (see <a 
 
 - **Required:** ``false``
 
-- **Choices:** `1`, `2`, `3`, `auto`
+- **Choices:** `auto`, `1`, `2`, `3`
 
 <br/>
 
@@ -861,7 +828,7 @@ The siding type of the walls. Also applies to rim joists. If not provided, the O
 
 - **Required:** ``false``
 
-- **Choices:** `aluminum siding`, `asbestos siding`, `brick veneer`, `composite shingle siding`, `fiber cement siding`, `masonite siding`, `none`, `stucco`, `synthetic stucco`, `vinyl siding`, `wood siding`, `auto`
+- **Choices:** `auto`, `aluminum siding`, `asbestos siding`, `brick veneer`, `composite shingle siding`, `fiber cement siding`, `masonite siding`, `none`, `stucco`, `synthetic stucco`, `vinyl siding`, `wood siding`
 
 <br/>
 
@@ -874,7 +841,7 @@ The color of the walls. Also applies to rim joists. If not provided, the OS-HPXM
 
 - **Required:** ``false``
 
-- **Choices:** `dark`, `light`, `medium`, `medium dark`, `reflective`, `auto`
+- **Choices:** `auto`, `dark`, `light`, `medium`, `medium dark`, `reflective`
 
 <br/>
 
@@ -1118,7 +1085,7 @@ The type of storm, if present. If not provided, assumes there is no storm.
 
 - **Required:** ``false``
 
-- **Choices:** `clear`, `low-e`, `auto`
+- **Choices:** `auto`, `clear`, `low-e`
 
 <br/>
 
@@ -1363,7 +1330,7 @@ The type of storm, if present. If not provided, assumes there is no storm.
 
 - **Required:** ``false``
 
-- **Choices:** `clear`, `low-e`, `auto`
+- **Choices:** `auto`, `clear`, `low-e`
 
 <br/>
 
@@ -1439,7 +1406,7 @@ Type of air leakage. If 'unit total', represents the total infiltration to the u
 
 - **Required:** ``false``
 
-- **Choices:** `unit total`, `unit exterior only`, `auto`
+- **Choices:** `auto`, `unit total`, `unit exterior only`
 
 <br/>
 
@@ -1563,7 +1530,7 @@ The compressor type of the cooling system. Only applies to central air condition
 
 - **Required:** ``false``
 
-- **Choices:** `single stage`, `two stage`, `variable speed`, `auto`
+- **Choices:** `auto`, `single stage`, `two stage`, `variable speed`
 
 <br/>
 
@@ -1633,7 +1600,7 @@ The fuel type of the heating system integrated into cooling system. Only used fo
 
 - **Required:** ``false``
 
-- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`, `auto`
+- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
 
 <br/>
 
@@ -1740,7 +1707,7 @@ The compressor type of the heat pump. Only applies to air-to-air. If not provide
 
 - **Required:** ``false``
 
-- **Choices:** `single stage`, `two stage`, `variable speed`, `auto`
+- **Choices:** `auto`, `single stage`, `two stage`, `variable speed`
 
 <br/>
 
@@ -1904,7 +1871,7 @@ The auto-sizing methodology to use when the heat pump capacity is not provided. 
 
 - **Required:** ``false``
 
-- **Choices:** `ACCA`, `HERS`, `MaxLoad`, `auto`
+- **Choices:** `auto`, `ACCA`, `HERS`, `MaxLoad`
 
 <br/>
 
@@ -2059,7 +2026,7 @@ The location of the supply ducts. If not provided, the OS-HPXML default (see <a 
 
 - **Required:** ``false``
 
-- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `attic`, `attic - vented`, `attic - unvented`, `garage`, `exterior wall`, `under slab`, `roof deck`, `outside`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `manufactured home belly`, `auto`
+- **Choices:** `auto`, `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `attic`, `attic - vented`, `attic - unvented`, `garage`, `exterior wall`, `under slab`, `roof deck`, `outside`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `manufactured home belly`
 
 <br/>
 
@@ -2085,7 +2052,7 @@ Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Parti
 
 - **Required:** ``false``
 
-- **Choices:** `not buried`, `partially buried`, `fully buried`, `deeply buried`, `auto`
+- **Choices:** `auto`, `not buried`, `partially buried`, `fully buried`, `deeply buried`
 
 <br/>
 
@@ -2120,7 +2087,7 @@ The location of the return ducts. If not provided, the OS-HPXML default (see <a 
 
 - **Required:** ``false``
 
-- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `attic`, `attic - vented`, `attic - unvented`, `garage`, `exterior wall`, `under slab`, `roof deck`, `outside`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `manufactured home belly`, `auto`
+- **Choices:** `auto`, `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `attic`, `attic - vented`, `attic - unvented`, `garage`, `exterior wall`, `under slab`, `roof deck`, `outside`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `manufactured home belly`
 
 <br/>
 
@@ -2146,7 +2113,7 @@ Whether the return ducts are buried in, e.g., attic loose-fill insulation. Parti
 
 - **Required:** ``false``
 
-- **Choices:** `not buried`, `partially buried`, `fully buried`, `deeply buried`, `auto`
+- **Choices:** `auto`, `not buried`, `partially buried`, `fully buried`, `deeply buried`
 
 <br/>
 
@@ -2301,7 +2268,7 @@ Fuel type of the preconditioning heating equipment. Only used for a shared mecha
 
 - **Required:** ``false``
 
-- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`, `auto`
+- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
 
 <br/>
 
@@ -2336,7 +2303,7 @@ Fuel type of the preconditioning cooling equipment. Only used for a shared mecha
 
 - **Required:** ``false``
 
-- **Choices:** `electricity`, `auto`
+- **Choices:** `auto`, `electricity`
 
 <br/>
 
@@ -2631,7 +2598,7 @@ The location of water heater. If not provided, the OS-HPXML default (see <a href
 
 - **Required:** ``false``
 
-- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `attic`, `attic - vented`, `attic - unvented`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `other exterior`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
+- **Choices:** `auto`, `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `attic`, `attic - vented`, `attic - unvented`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `other exterior`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`
 
 <br/>
 
@@ -2679,7 +2646,7 @@ The usage of the water heater. Only applies if Efficiency Type is UniformEnergyF
 
 - **Required:** ``false``
 
-- **Choices:** `very small`, `low`, `medium`, `high`, `auto`
+- **Choices:** `auto`, `very small`, `low`, `medium`, `high`
 
 <br/>
 
@@ -2771,7 +2738,7 @@ Type of tank model to use. The 'stratified' tank generally provide more accurate
 
 - **Required:** ``false``
 
-- **Choices:** `mixed`, `stratified`, `auto`
+- **Choices:** `auto`, `mixed`, `stratified`
 
 <br/>
 
@@ -2784,7 +2751,7 @@ The water heater operating mode. The 'heat pump only' option only uses the heat 
 
 - **Required:** ``false``
 
-- **Choices:** `hybrid/auto`, `heat pump only`, `auto`
+- **Choices:** `auto`, `hybrid/auto`, `heat pump only`
 
 <br/>
 
@@ -2821,7 +2788,7 @@ If the distribution system is Recirculation, the type of hot water recirculation
 
 - **Required:** ``false``
 
-- **Choices:** `no control`, `timer`, `temperature`, `presence sensor demand control`, `manual demand control`, `auto`
+- **Choices:** `auto`, `no control`, `timer`, `temperature`, `presence sensor demand control`, `manual demand control`
 
 <br/>
 
@@ -3083,7 +3050,7 @@ Module type of the PV system. If not provided, the OS-HPXML default (see <a href
 
 - **Required:** ``false``
 
-- **Choices:** `standard`, `premium`, `thin film`, `auto`
+- **Choices:** `auto`, `standard`, `premium`, `thin film`
 
 <br/>
 
@@ -3096,7 +3063,7 @@ Location of the PV system. If not provided, the OS-HPXML default (see <a href='h
 
 - **Required:** ``false``
 
-- **Choices:** `roof`, `ground`, `auto`
+- **Choices:** `auto`, `roof`, `ground`
 
 <br/>
 
@@ -3109,7 +3076,7 @@ Type of tracking for the PV system. If not provided, the OS-HPXML default (see <
 
 - **Required:** ``false``
 
-- **Choices:** `fixed`, `1-axis`, `1-axis backtracked`, `2-axis`, `auto`
+- **Choices:** `auto`, `fixed`, `1-axis`, `1-axis backtracked`, `2-axis`
 
 <br/>
 
@@ -3192,7 +3159,7 @@ Module type of the second PV system. If not provided, the OS-HPXML default (see 
 
 - **Required:** ``false``
 
-- **Choices:** `standard`, `premium`, `thin film`, `auto`
+- **Choices:** `auto`, `standard`, `premium`, `thin film`
 
 <br/>
 
@@ -3205,7 +3172,7 @@ Location of the second PV system. If not provided, the OS-HPXML default (see <a 
 
 - **Required:** ``false``
 
-- **Choices:** `roof`, `ground`, `auto`
+- **Choices:** `auto`, `roof`, `ground`
 
 <br/>
 
@@ -3218,7 +3185,7 @@ Type of tracking for the second PV system. If not provided, the OS-HPXML default
 
 - **Required:** ``false``
 
-- **Choices:** `fixed`, `1-axis`, `1-axis backtracked`, `2-axis`, `auto`
+- **Choices:** `auto`, `fixed`, `1-axis`, `1-axis backtracked`, `2-axis`
 
 <br/>
 
@@ -3279,7 +3246,7 @@ The space type for the lithium ion battery location. If not provided, the OS-HPX
 
 - **Required:** ``false``
 
-- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `attic`, `attic - vented`, `attic - unvented`, `garage`, `outside`, `auto`
+- **Choices:** `auto`, `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `crawlspace`, `crawlspace - vented`, `crawlspace - unvented`, `crawlspace - conditioned`, `attic`, `attic - vented`, `attic - unvented`, `garage`, `outside`
 
 <br/>
 
@@ -3601,7 +3568,7 @@ The space type for the clothes washer location. If not provided, the OS-HPXML de
 
 - **Required:** ``false``
 
-- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
+- **Choices:** `auto`, `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`
 
 <br/>
 
@@ -3726,7 +3693,7 @@ The space type for the clothes dryer location. If not provided, the OS-HPXML def
 
 - **Required:** ``false``
 
-- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
+- **Choices:** `auto`, `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`
 
 <br/>
 
@@ -3809,7 +3776,7 @@ The space type for the dishwasher location. If not provided, the OS-HPXML defaul
 
 - **Required:** ``false``
 
-- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
+- **Choices:** `auto`, `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`
 
 <br/>
 
@@ -3923,7 +3890,7 @@ The space type for the refrigerator location. If not provided, the OS-HPXML defa
 
 - **Required:** ``false``
 
-- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
+- **Choices:** `auto`, `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`
 
 <br/>
 
@@ -3969,7 +3936,7 @@ The space type for the extra refrigerator location. If not provided, the OS-HPXM
 
 - **Required:** ``false``
 
-- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
+- **Choices:** `auto`, `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`
 
 <br/>
 
@@ -4015,7 +3982,7 @@ The space type for the freezer location. If not provided, the OS-HPXML default (
 
 - **Required:** ``false``
 
-- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
+- **Choices:** `auto`, `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`
 
 <br/>
 
@@ -4061,7 +4028,7 @@ The space type for the cooking range/oven location. If not provided, the OS-HPXM
 
 - **Required:** ``false``
 
-- **Choices:** `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`, `auto`
+- **Choices:** `auto`, `conditioned space`, `basement - conditioned`, `basement - unconditioned`, `garage`, `other housing unit`, `other heated space`, `other multifamily buffer space`, `other non-freezing space`
 
 <br/>
 
@@ -4589,349 +4556,6 @@ Multiplier on the permanent spa heater energy usage that can reflect, e.g., high
 
 - **Name:** ``permanent_spa_heater_usage_multiplier``
 - **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**emissions_scenario_names**
-
-Names of emissions scenarios. If multiple scenarios, use a comma-separated list. If not provided, no emissions scenarios are calculated.
-
-- **Name:** ``emissions_scenario_names``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**emissions_types**
-
-Types of emissions (e.g., CO2e, NOx, etc.). If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``emissions_types``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**emissions_electricity_units**
-
-Electricity emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MWh and kg/MWh are allowed.
-
-- **Name:** ``emissions_electricity_units``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**emissions_electricity_values_or_filepaths**
-
-Electricity emissions factors values, specified as either an annual factor or an absolute/relative path to a file with hourly factors. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``emissions_electricity_values_or_filepaths``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**emissions_fossil_fuel_units**
-
-Fossil fuel emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MBtu and kg/MBtu are allowed.
-
-- **Name:** ``emissions_fossil_fuel_units``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**emissions_natural_gas_values**
-
-Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``emissions_natural_gas_values``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**emissions_propane_values**
-
-Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``emissions_propane_values``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**emissions_fuel_oil_values**
-
-Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``emissions_fuel_oil_values``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**emissions_wood_values**
-
-Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``emissions_wood_values``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_scenario_names**
-
-Names of utility bill scenarios. If multiple scenarios, use a comma-separated list. If not provided, no utility bills scenarios are calculated.
-
-- **Name:** ``utility_bill_scenario_names``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_electricity_filepaths**
-
-Electricity tariff file specified as an absolute/relative path to a file with utility rate structure information. Tariff file must be formatted to OpenEI API version 7. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_electricity_filepaths``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_electricity_fixed_charges**
-
-Electricity utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_electricity_fixed_charges``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_natural_gas_fixed_charges**
-
-Natural gas utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_natural_gas_fixed_charges``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_propane_fixed_charges**
-
-Propane utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_propane_fixed_charges``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_fuel_oil_fixed_charges**
-
-Fuel oil utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_fuel_oil_fixed_charges``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_wood_fixed_charges**
-
-Wood utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_wood_fixed_charges``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_electricity_marginal_rates**
-
-Electricity utility bill marginal rates. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_electricity_marginal_rates``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_natural_gas_marginal_rates**
-
-Natural gas utility bill marginal rates. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_natural_gas_marginal_rates``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_propane_marginal_rates**
-
-Propane utility bill marginal rates. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_propane_marginal_rates``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_fuel_oil_marginal_rates**
-
-Fuel oil utility bill marginal rates. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_fuel_oil_marginal_rates``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_wood_marginal_rates**
-
-Wood utility bill marginal rates. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_wood_marginal_rates``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_pv_compensation_types**
-
-Utility bill PV compensation types. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_pv_compensation_types``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_pv_net_metering_annual_excess_sellback_rate_types**
-
-Utility bill PV net metering annual excess sellback rate types. Only applies if the PV compensation type is 'NetMetering'. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_pv_net_metering_annual_excess_sellback_rate_types``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_pv_net_metering_annual_excess_sellback_rates**
-
-Utility bill PV net metering annual excess sellback rates. Only applies if the PV compensation type is 'NetMetering' and the PV annual excess sellback rate type is 'User-Specified'. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_pv_net_metering_annual_excess_sellback_rates``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_pv_feed_in_tariff_rates**
-
-Utility bill PV annual full/gross feed-in tariff rates. Only applies if the PV compensation type is 'FeedInTariff'. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_pv_feed_in_tariff_rates``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_pv_monthly_grid_connection_fee_units**
-
-Utility bill PV monthly grid connection fee units. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_pv_monthly_grid_connection_fee_units``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**utility_bill_pv_monthly_grid_connection_fees**
-
-Utility bill PV monthly grid connection fees. If multiple scenarios, use a comma-separated list.
-
-- **Name:** ``utility_bill_pv_monthly_grid_connection_fees``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**additional_properties**
-
-Additional properties specified as key-value pairs (i.e., key=value). If multiple additional properties, use a |-separated list. For example, 'LowIncome=false|Remodeled|Description=2-story home in Denver'. These properties will be stored in the HPXML file under /HPXML/SoftwareInfo/extension/AdditionalProperties.
-
-- **Name:** ``additional_properties``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**apply_defaults**
-
-If true, applies OS-HPXML default values to the HPXML output file. Setting to true will also force validation of the HPXML output file before applying OS-HPXML default values.
-
-- **Name:** ``apply_defaults``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**apply_validation**
-
-If true, validates the HPXML output file. Set to false for faster performance. Note that validation is not needed if the HPXML file will be validated downstream (e.g., via the HPXMLtoOpenStudio measure).
-
-- **Name:** ``apply_validation``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**Schedules: Random Seed**
-
-This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.
-
-- **Name:** ``schedules_random_seed``
-- **Type:** ``Integer``
-
-- **Units:** ``#``
 
 - **Required:** ``false``
 

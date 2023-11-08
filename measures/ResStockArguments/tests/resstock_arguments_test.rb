@@ -26,7 +26,6 @@ class ResStockArgumentsTest < Minitest::Test
     model = OpenStudio::Model::Model.new
     resstock_arguments = []
     measure.arguments(model).each do |arg|
-      next if Constants.build_existing_model_excludes.include? arg.name
       next if Constants.other_excludes.include? arg.name
 
       resstock_arguments << arg.name

@@ -6,21 +6,22 @@ Housing Characteristics
 Each parameter sampled by the national project is listed alphabetically below.
 For each, the following (if applicable) are reported based on the contents of `source_report.csv <https://github.com/NREL/resstock/blob/develop/project_national/resources/source_report.csv>`_:
 
-- ``Description``
-- ``Created by``
-- ``Source``
+- **Description**
+- **Created by**
+- **Source**
 
-Additionally for each parameter, an ``Arguments`` table is populated (if applicable) based on the contents of `ResStockArguments's measure.xml file <https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments/measure.xml>`_:
+Additionally for each parameter, an **Arguments** table is populated (if applicable) based on the contents of `ResStockArguments's measure.xml file <https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments/measure.xml>`_:
 
-- ``Name``
-- ``Units``
-- ``Choices``
-- ``Description``
+- **Name**
+- **Units**
+- **Choices**
+- **Description**
 
 Each argument name is assigned using defined options found in the `options_lookup.tsv <https://github.com/NREL/resstock/blob/develop/resources/options_lookup.tsv>`_.
-Furthermore, all *optional* arguments include "auto" as one of the possible ``Choices``.
-Assigning "auto" means that downstream OS-HPXML default values will be used.
-The ``Description`` field may include link(s) to applicable `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing default values that are used.
+Furthermore, all *optional* choice arguments include "auto" as one of the possible **Choices**.
+Some *optional* double/integer/string/bool arguments can also be assigned a value of "auto" (e.g., ``site_ground_conductivity``).
+Assigning "auto" means that downstream OS-HPXML default values (if applicable) will be used.
+The **Description** field may include link(s) to applicable `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.
 
 .. _ahs_region:
 
@@ -99,7 +100,7 @@ Arguments
      - Description
    * - ``site_type``
      - 
-     - "suburban", "urban", "rural", "auto"
+     - "auto", "suburban", "urban", "rural"
      - The type of site. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``site_ground_conductivity``
      - Btu/hr-ft-F
@@ -107,7 +108,7 @@ Arguments
      - Conductivity of the ground soil. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``site_iecc_zone``
      - 
-     - "1A", "1B", "1C", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "5A", "5B", "5C", "6A", "6B", "6C", "7", "8", "auto"
+     - "auto", "1A", "1B", "1C", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "5A", "5B", "5C", "6A", "6B", "6C", "7", "8"
      - IECC zone of the home address.
 
 .. _ashrae_iecc_climate_zone_2004___2_a_split:
@@ -242,7 +243,7 @@ Arguments
      - Whether there is a lithium ion battery present.
    * - ``battery_location``
      - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "outside", "auto"
+     - "auto", "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "outside"
      - The space type for the lithium ion battery location. If not provided, the OS-HPXML default (see `HPXML Batteries <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-batteries>`_) is used.
    * - ``battery_power``
      - W
@@ -528,7 +529,7 @@ Arguments
      - Whether there is a clothes dryer present.
    * - ``clothes_dryer_location``
      - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - "auto", "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space"
      - The space type for the clothes dryer location. If not provided, the OS-HPXML default (see `HPXML Clothes Dryer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-dryer>`_) is used.
    * - ``clothes_dryer_fuel_type``
      - 
@@ -624,7 +625,7 @@ Arguments
      - Description
    * - ``clothes_washer_location``
      - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - "auto", "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space"
      - The space type for the clothes washer location. If not provided, the OS-HPXML default (see `HPXML Clothes Washer <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-clothes-washer>`_) is used.
    * - ``clothes_washer_efficiency_type``
      - 
@@ -780,7 +781,7 @@ Arguments
      - Whether there is a cooking range/oven present.
    * - ``cooking_range_oven_location``
      - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - "auto", "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space"
      - The space type for the cooking range/oven location. If not provided, the OS-HPXML default (see `HPXML Cooking Range/Oven <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooking-range-oven>`_) is used.
    * - ``cooking_range_oven_fuel_type``
      - 
@@ -1202,7 +1203,7 @@ Arguments
      - Whether there is a dishwasher present.
    * - ``dishwasher_location``
      - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - "auto", "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space"
      - The space type for the dishwasher location. If not provided, the OS-HPXML default (see `HPXML Dishwasher <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-dishwasher>`_) is used.
    * - ``dishwasher_efficiency_type``
      - 
@@ -1396,7 +1397,7 @@ Arguments
      - The insulation r-value of the supply ducts excluding air films.
    * - ``ducts_supply_buried_insulation_level``
      - 
-     - "not buried", "partially buried", "fully buried", "deeply buried", "auto"
+     - "auto", "not buried", "partially buried", "fully buried", "deeply buried"
      - Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
    * - ``ducts_return_insulation_r``
      - h-ft^2-R/Btu
@@ -1404,7 +1405,7 @@ Arguments
      - The insulation r-value of the return ducts excluding air films.
    * - ``ducts_return_buried_insulation_level``
      - 
-     - "not buried", "partially buried", "fully buried", "deeply buried", "auto"
+     - "auto", "not buried", "partially buried", "fully buried", "deeply buried"
      - Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
 
 .. _duct_location:
@@ -1444,7 +1445,7 @@ Arguments
      - Description
    * - ``ducts_supply_location``
      - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "exterior wall", "under slab", "roof deck", "outside", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "manufactured home belly", "auto"
+     - "auto", "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "exterior wall", "under slab", "roof deck", "outside", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "manufactured home belly"
      - The location of the supply ducts. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
    * - ``ducts_supply_surface_area``
      - ft^2
@@ -1456,7 +1457,7 @@ Arguments
      - The fraction of supply ducts surface area in the given location. Only used if Surface Area is not provided. If the fraction is less than 1, the remaining duct area is assumed to be in conditioned space. If neither Surface Area nor Area Fraction provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
    * - ``ducts_return_location``
      - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "exterior wall", "under slab", "roof deck", "outside", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "manufactured home belly", "auto"
+     - "auto", "conditioned space", "basement - conditioned", "basement - unconditioned", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic", "attic - vented", "attic - unvented", "garage", "exterior wall", "under slab", "roof deck", "outside", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "manufactured home belly"
      - The location of the return ducts. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
    * - ``ducts_return_surface_area``
      - ft^2
@@ -2254,11 +2255,11 @@ Arguments
      - Description
    * - ``wall_siding_type``
      - 
-     - "aluminum siding", "asbestos siding", "brick veneer", "composite shingle siding", "fiber cement siding", "masonite siding", "none", "stucco", "synthetic stucco", "vinyl siding", "wood siding", "auto"
+     - "auto", "aluminum siding", "asbestos siding", "brick veneer", "composite shingle siding", "fiber cement siding", "masonite siding", "none", "stucco", "synthetic stucco", "vinyl siding", "wood siding"
      - The siding type of the walls. Also applies to rim joists. If not provided, the OS-HPXML default (see `HPXML Walls <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-walls>`_) is used.
    * - ``wall_color``
      - 
-     - "dark", "light", "medium", "medium dark", "reflective", "auto"
+     - "auto", "dark", "light", "medium", "medium dark", "reflective"
      - The color of the walls. Also applies to rim joists. If not provided, the OS-HPXML default (see `HPXML Walls <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-walls>`_) is used.
    * - ``exterior_finish_r``
      - h-ft^2-R/Btu
@@ -2339,7 +2340,7 @@ Arguments
      - The rated efficiency value of the cooling system. Ignored for evaporative cooler.
    * - ``cooling_system_cooling_compressor_type``
      - 
-     - "single stage", "two stage", "variable speed", "auto"
+     - "auto", "single stage", "two stage", "variable speed"
      - The compressor type of the cooling system. Only applies to central air conditioner. If not provided, the OS-HPXML default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_) is used.
    * - ``cooling_system_cooling_sensible_heat_fraction``
      - Frac
@@ -2359,7 +2360,7 @@ Arguments
      - Cooling system crankcase heater power consumption in Watts. Applies only to central air conditioner, room air conditioner, packaged terminal air conditioner and mini-split. If not provided, the OS-HPXML default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
    * - ``cooling_system_integrated_heating_system_fuel``
      - 
-     - "electricity", "natural gas", "fuel oil", "propane", "wood", "wood pellets", "coal", "auto"
+     - "auto", "electricity", "natural gas", "fuel oil", "propane", "wood", "wood pellets", "coal"
      - The fuel type of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
    * - ``cooling_system_integrated_heating_system_efficiency_percent``
      - Frac
@@ -2586,7 +2587,7 @@ Arguments
      - The rated cooling efficiency value of the heat pump.
    * - ``heat_pump_cooling_compressor_type``
      - 
-     - "single stage", "two stage", "variable speed", "auto"
+     - "auto", "single stage", "two stage", "variable speed"
      - The compressor type of the heat pump. Only applies to air-to-air. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_) is used.
    * - ``heat_pump_cooling_sensible_heat_fraction``
      - Frac
@@ -2642,7 +2643,7 @@ Arguments
      - The temperature above which the heat pump backup system is disabled. If both this and Compressor Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies for both Backup Type of 'integrated' and 'separate'. If not provided, the OS-HPXML default (see `Backup <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#backup>`_) is used.
    * - ``heat_pump_sizing_methodology``
      - 
-     - "ACCA", "HERS", "MaxLoad", "auto"
+     - "auto", "ACCA", "HERS", "MaxLoad"
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``heat_pump_is_ducted``
      - 
@@ -2934,7 +2935,7 @@ Arguments
      - The backup output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Backup <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#backup>`_) is used. Only applies if Backup Type is 'integrated'.
    * - ``heat_pump_sizing_methodology``
      - 
-     - "ACCA", "HERS", "MaxLoad", "auto"
+     - "auto", "ACCA", "HERS", "MaxLoad"
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``heating_system_has_flue_or_chimney``
      - 
@@ -3422,7 +3423,7 @@ Arguments
      - If the distribution system is Standard, the length of the piping. If not provided, the OS-HPXML default (see `Standard <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#standard>`_) is used.
    * - ``hot_water_distribution_recirc_control_type``
      - 
-     - "no control", "timer", "temperature", "presence sensor demand control", "manual demand control", "auto"
+     - "auto", "no control", "timer", "temperature", "presence sensor demand control", "manual demand control"
      - If the distribution system is Recirculation, the type of hot water recirculation control, if any.
    * - ``hot_water_distribution_recirc_piping_length``
      - ft
@@ -3653,7 +3654,7 @@ Arguments
      - Description
    * - ``site_shielding_of_home``
      - 
-     - "exposed", "normal", "well-shielded", "auto"
+     - "auto", "exposed", "normal", "well-shielded"
      - Presence of nearby buildings, trees, obstructions for infiltration model. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``air_leakage_units``
      - 
@@ -3669,7 +3670,7 @@ Arguments
      - Air exchange rate value. For 'EffectiveLeakageArea', provide value in sq. in.
    * - ``air_leakage_type``
      - 
-     - "unit total", "unit exterior only", "auto"
+     - "auto", "unit total", "unit exterior only"
      - Type of air leakage. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.
 
 .. _insulation_ceiling:
@@ -3771,7 +3772,7 @@ Arguments
      - Description
    * - ``foundation_wall_type``
      - 
-     - "solid concrete", "concrete block", "concrete block foam core", "concrete block perlite core", "concrete block vermiculite core", "concrete block solid core", "double brick", "wood", "auto"
+     - "auto", "solid concrete", "concrete block", "concrete block foam core", "concrete block perlite core", "concrete block vermiculite core", "concrete block solid core", "double brick", "wood"
      - The material type of the foundation wall. If not provided, the OS-HPXML default (see `HPXML Foundation Walls <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-foundation-walls>`_) is used.
    * - ``foundation_wall_thickness``
      - in
@@ -3783,7 +3784,7 @@ Arguments
      - Nominal R-value for the foundation wall insulation. Only applies to basements/crawlspaces.
    * - ``foundation_wall_insulation_location``
      - ft
-     - "interior", "exterior", "auto"
+     - "auto", "interior", "exterior"
      - Whether the insulation is on the interior or exterior of the foundation wall. Only applies to basements/crawlspaces.
    * - ``foundation_wall_insulation_distance_to_top``
      - ft
@@ -4265,7 +4266,7 @@ Arguments
      - Fraction of the total supply air that is recirculated, with the remainder assumed to be outdoor air. The value must be 0 for exhaust only systems. Required for a shared mechanical ventilation system.
    * - ``mech_vent_shared_preheating_fuel``
      - 
-     - "electricity", "natural gas", "fuel oil", "propane", "wood", "wood pellets", "coal", "auto"
+     - "auto", "electricity", "natural gas", "fuel oil", "propane", "wood", "wood pellets", "coal"
      - Fuel type of the preconditioning heating equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no preheating.
    * - ``mech_vent_shared_preheating_efficiency``
      - COP
@@ -4277,7 +4278,7 @@ Arguments
      - Fraction of heating load introduced by the shared ventilation system that is met by the preconditioning heating equipment. If not provided, assumes no preheating.
    * - ``mech_vent_shared_precooling_fuel``
      - 
-     - "electricity", "auto"
+     - "auto", "electricity"
      - Fuel type of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no precooling.
    * - ``mech_vent_shared_precooling_efficiency``
      - COP
@@ -4369,7 +4370,7 @@ Arguments
      - Whether there is an extra refrigerator present.
    * - ``extra_refrigerator_location``
      - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - "auto", "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space"
      - The space type for the extra refrigerator location. If not provided, the OS-HPXML default (see `HPXML Refrigerators <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-refrigerators>`_) is used.
    * - ``extra_refrigerator_rated_annual_kwh``
      - kWh/yr
@@ -4421,7 +4422,7 @@ Arguments
      - Whether there is a freezer present.
    * - ``freezer_location``
      - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - "auto", "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space"
      - The space type for the freezer location. If not provided, the OS-HPXML default (see `HPXML Freezers <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-freezers>`_) is used.
    * - ``freezer_rated_annual_kwh``
      - kWh/yr
@@ -5200,15 +5201,15 @@ Arguments
      - Whether there is a PV system present.
    * - ``pv_system_module_type``
      - 
-     - "standard", "premium", "thin film", "auto"
+     - "auto", "standard", "premium", "thin film"
      - Module type of the PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_location``
      - 
-     - "roof", "ground", "auto"
+     - "auto", "roof", "ground"
      - Location of the PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_tracking``
      - 
-     - "fixed", "1-axis", "1-axis backtracked", "2-axis", "auto"
+     - "auto", "fixed", "1-axis", "1-axis backtracked", "2-axis"
      - Type of tracking for the PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_array_tilt``
      - degrees
@@ -5232,15 +5233,15 @@ Arguments
      - Whether there is a second PV system present.
    * - ``pv_system_2_module_type``
      - 
-     - "standard", "premium", "thin film", "auto"
+     - "auto", "standard", "premium", "thin film"
      - Module type of the second PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_2_location``
      - 
-     - "roof", "ground", "auto"
+     - "auto", "roof", "ground"
      - Location of the second PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_2_tracking``
      - 
-     - "fixed", "1-axis", "1-axis backtracked", "2-axis", "auto"
+     - "auto", "fixed", "1-axis", "1-axis backtracked", "2-axis"
      - Type of tracking for the second PV system. If not provided, the OS-HPXML default (see `HPXML Photovoltaics <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-photovoltaics>`_) is used.
    * - ``pv_system_2_array_tilt``
      - degrees
@@ -5398,7 +5399,7 @@ Arguments
      - Presence of a radiant barrier in the attic.
    * - ``roof_radiant_barrier_grade``
      - 
-     - "1", "2", "3", "auto"
+     - "auto", "1", "2", "3"
      - The grade of the radiant barrier. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
 
 .. _range_spot_vent_hour:
@@ -5493,7 +5494,7 @@ Arguments
      - Whether there is a refrigerator present.
    * - ``refrigerator_location``
      - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - "auto", "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space"
      - The space type for the refrigerator location. If not provided, the OS-HPXML default (see `HPXML Refrigerators <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-refrigerators>`_) is used.
    * - ``refrigerator_rated_annual_kwh``
      - kWh/yr
@@ -5577,11 +5578,11 @@ Arguments
      - Description
    * - ``roof_material_type``
      - 
-     - "asphalt or fiberglass shingles", "concrete", "cool roof", "slate or tile shingles", "expanded polystyrene sheathing", "metal surfacing", "plastic/rubber/synthetic sheeting", "shingles", "wood shingles or shakes", "auto"
+     - "auto", "asphalt or fiberglass shingles", "concrete", "cool roof", "slate or tile shingles", "expanded polystyrene sheathing", "metal surfacing", "plastic/rubber/synthetic sheeting", "shingles", "wood shingles or shakes"
      - The material type of the roof. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
    * - ``roof_color``
      - 
-     - "dark", "light", "medium", "medium dark", "reflective", "auto"
+     - "auto", "dark", "light", "medium", "medium dark", "reflective"
      - The color of the roof. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
 
 .. _solar_hot_water:
@@ -5687,7 +5688,7 @@ Arguments
      - Description
    * - ``site_state_code``
      - 
-     - "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY", "auto"
+     - "auto", "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"
      - State code of the home address.
 
 .. _tenure:
@@ -5896,7 +5897,7 @@ Arguments
      - Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating boilers.
    * - ``water_heater_usage_bin``
      - 
-     - "very small", "low", "medium", "high", "auto"
+     - "auto", "very small", "low", "medium", "high"
      - The usage of the water heater. Only applies if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers. If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#conventional-storage>`_, `Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#heat-pump>`_) is used.
    * - ``water_heater_recovery_efficiency``
      - Frac
@@ -5928,11 +5929,11 @@ Arguments
      - Requires that the dwelling unit has a air-to-air, mini-split, or ground-to-air heat pump or a central air conditioner or mini-split air conditioner. If not provided, assumes no desuperheater.
    * - ``water_heater_tank_model_type``
      - 
-     - "mixed", "stratified", "auto"
+     - "auto", "mixed", "stratified"
      - Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time. Applies only to storage water heater. If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#conventional-storage>`_) is used.
    * - ``water_heater_operating_mode``
      - 
-     - "hybrid/auto", "heat pump only", "auto"
+     - "auto", "hybrid/auto", "heat pump only"
      - The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'hybrid/auto' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to heat pump water heater. If not provided, the OS-HPXML default (see `Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#heat-pump>`_) is used.
    * - ``water_heater_has_flue_or_chimney``
      - 
@@ -6026,7 +6027,7 @@ Arguments
      - Description
    * - ``water_heater_location``
      - 
-     - "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "attic", "attic - vented", "attic - unvented", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "auto"
+     - "auto", "conditioned space", "basement - conditioned", "basement - unconditioned", "garage", "attic", "attic - vented", "attic - unvented", "crawlspace", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space"
      - The location of water heater. If not provided, the OS-HPXML default (see `HPXML Water Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-water-heating-systems>`_) is used.
 
 .. _window_areas:
@@ -6186,6 +6187,6 @@ Arguments
      - Full-assembly NFRC solar heat gain coefficient.
    * - ``skylight_storm_type``
      - 
-     - "clear", "low-e", "auto"
+     - "auto", "clear", "low-e"
      - The type of storm, if present. If not provided, assumes there is no storm.
 
