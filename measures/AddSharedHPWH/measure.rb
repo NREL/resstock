@@ -47,7 +47,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       return true
     end
 
-    shared_hpwh = hpxml.buildings[0].header.extension_properties['SharedHPWH']
+    # Extension properties
+    hpxml_bldg = hpxml.buildings[0]
+    shared_hpwh = hpxml_bldg.header.extension_properties['shared_hpwh']
     if shared_hpwh == 'none'
       runner.registerAsNotApplicable('Building does not have shared HPWH. Skipping AddSharedHPWH measure ...')
       return true
@@ -75,12 +77,20 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     recirculation_loop_demand_inlet, recirculation_loop_demand_bypass = add_adiabatic_pipes(model, recirculation_loop)
     _heat_pump_loop_demand_inlet, _heat_pump_loop_demand_bypass = add_adiabatic_pipes(model, heat_pump_loop)
 
+    # Pipe Lengths
+    supply_length, return_length = calc_recirc_supply_return_lengths(hpxml_bldg)
+
     # Add Indoor Pipes
-    add_indoor_pipes(model, recirculation_loop_demand_inlet, recirculation_loop_demand_bypass)
+    supply_pipe_ins_r_value = 6.0
+    return_pipe_ins_r_value = 4.0
+    add_indoor_pipes(model, hpxml_bldg, recirculation_loop_demand_inlet, recirculation_loop_demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value)
+
+    # Recirculation Flow Rate
+    pump_gpm = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value)
 
     # Add Pumps
-    add_pump(model, recirculation_loop, 'Recirculation Loop Pump')
-    add_pump(model, heat_pump_loop, 'Heat Pump Loop Pump')
+    add_pump(model, recirculation_loop, 'Recirculation Loop Pump', pump_gpm)
+    add_pump(model, heat_pump_loop, 'Heat Pump Loop Pump', pump_gpm)
 
     # Add Setpoint Managers
     add_setpoint_manager(model, recirculation_loop, schedule, 'Recirculation Loop Setpoint Manager')
@@ -142,7 +152,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     return demand_inlet, demand_bypass
   end
 
-  def add_indoor_pipes(model, demand_inlet, demand_bypass)
+  def add_indoor_pipes(model, hpxml_bldg, demand_inlet, demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value)
     # Copper Pipe
     roughness = 'Smooth'
     thickness = 0.003
@@ -156,16 +166,24 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     copper_pipe_material.setSolarAbsorptance(0.5)
     copper_pipe_material.setVisibleAbsorptance(0.5)
 
-    # Supply
+    # Pipe Diameters
+    supply_diameter, return_diameter = calc_recirc_supply_return_diameters(hpxml_bldg)
+
+    # Pipe Insulation
     roughness = 'VeryRough'
-    thickness = 0.0306179506914235
-    conductivity = 0.05193
+    conductivity = 0.021
     density = 63.66
     specific_heat = 1297.66
 
+    supply_thickness, return_thickness = calc_recirc_pipe_ins_thicknesses(supply_pipe_ins_r_value, return_pipe_ins_r_value, supply_diameter, return_diameter, conductivity)
+
+    pipe_ins_r_value_derate = 0.3
+    effective_pipe_ins_conductivity = conductivity / (1.0 - pipe_ins_r_value_derate)
+
+    # Supply
     supply_pipe_materials = []
 
-    supply_pipe_insulation_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, roughness, thickness, conductivity, density, specific_heat) # R-6
+    supply_pipe_insulation_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, roughness, supply_thickness, effective_pipe_ins_conductivity, density, specific_heat) # R-6
     supply_pipe_insulation_material.setName('Supply Pipe Insulation')
     supply_pipe_insulation_material.setThermalAbsorptance(0.9)
     supply_pipe_insulation_material.setSolarAbsorptance(0.5)
@@ -179,11 +197,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     insulated_supply_pipe_construction.setLayers(supply_pipe_materials)
 
     # Return
-    thickness = 0.0185723604087555
-
     return_pipe_materials = []
 
-    return_pipe_insulation_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, roughness, thickness, conductivity, density, specific_heat) # R-4
+    return_pipe_insulation_material = OpenStudio::Model::StandardOpaqueMaterial.new(model, roughness, return_thickness, effective_pipe_ins_conductivity, density, specific_heat) # R-4
     return_pipe_insulation_material.setName('Return Pipe Insulation')
     return_pipe_insulation_material.setThermalAbsorptance(0.9)
     return_pipe_insulation_material.setSolarAbsorptance(0.5)
@@ -196,9 +212,6 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     insulated_return_pipe_construction.setName('Insulated Return Pipe')
     insulated_return_pipe_construction.setLayers(return_pipe_materials)
 
-    # Pipe Length
-    pipe_length = 3 # FIXME
-
     # Thermal Zones
     model.getThermalZones.each do |thermal_zone|
       # Supply
@@ -206,8 +219,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       dhw_recirc_supply_pipe.setName("Recirculation Supply Pipe - #{thermal_zone.name}")
       dhw_recirc_supply_pipe.setAmbientTemperatureZone(thermal_zone)
       dhw_recirc_supply_pipe.setConstruction(insulated_supply_pipe_construction)
-      dhw_recirc_supply_pipe.setPipeInsideDiameter(UnitConversions.convert(2.0, 'in', 'm'))
-      dhw_recirc_supply_pipe.setPipeLength(pipe_length)
+      dhw_recirc_supply_pipe.setPipeInsideDiameter(UnitConversions.convert(supply_diameter, 'in', 'm'))
+      dhw_recirc_supply_pipe.setPipeLength(UnitConversions.convert(supply_length, 'ft', 'm'))
 
       dhw_recirc_supply_pipe.addToNode(demand_inlet.outletModelObject.get.to_Node.get)
 
@@ -216,16 +229,92 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       dhw_recirc_return_pipe.setName("Recirculation Return Pipe - #{thermal_zone.name}")
       dhw_recirc_return_pipe.setAmbientTemperatureZone(thermal_zone)
       dhw_recirc_return_pipe.setConstruction(insulated_return_pipe_construction)
-      dhw_recirc_return_pipe.setPipeInsideDiameter(UnitConversions.convert(0.75, 'in', 'm'))
-      dhw_recirc_return_pipe.setPipeLength(pipe_length)
+      dhw_recirc_return_pipe.setPipeInsideDiameter(UnitConversions.convert(return_diameter, 'in', 'm'))
+      dhw_recirc_return_pipe.setPipeLength(UnitConversions.convert(return_length, 'ft', 'm'))
 
       dhw_recirc_return_pipe.addToNode(demand_bypass.outletModelObject.get.to_Node.get)
     end
   end
 
-  def add_pump(model, loop, name)
+  def calc_recirc_supply_return_lengths(hpxml_bldg)
+    l_mech = 8 # ft, Horizontal pipe length in mech room (Per T-24 ACM: 2013 Residential Alternative Calculation Method Reference Manual, June 2013, CEC-400-2013-003-CMF-REV)
+    n_stories = hpxml_bldg.header.extension_properties['geometry_num_floors_above_grade'].to_f
+    h_floor = hpxml_bldg.building_construction.average_ceiling_height
+    l_bldg = 50 # FIXME: how to calculate this?
+    has_double_loaded_corridor = hpxml_bldg.header.extension_properties['geometry_corridor_position']
+    n_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f # FIXME: should this be hpxml.buildings.size?
+
+    l_bldg *= 2 if has_double_loaded_corridor
+
+    supply_length = (l_mech + h_floor * (n_stories / 2.0).ceil + l_bldg) # ft
+
+    if has_double_loaded_corridor
+      return_length = (l_mech + h_floor * (n_stories / 2.0).ceil) # ft
+    else
+      return_length = supply_length
+    end
+
+    supply_length /= n_units
+    return_length /= n_units
+
+    return supply_length, return_length
+  end
+
+  def calc_recirc_supply_return_diameters(hpxml_bldg)
+    n_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f # FIXME: should this be hpxml.buildings.size?
+
+    supply_diameter = ((-7.525e-9 * n_units**4 + 2.82e-6 * n_units**3 + -4.207e-4 * n_units**2 + 0.04378 * n_units + 1.232) / 0.5 + 1).round * 0.5 # in    Diameter of supply recirc pipe (Per T-24 ACM* which is based on 2009 UPC pipe sizing)
+    # supply_diameter = 2.0 # in
+    return_diameter = 0.75 # in
+
+    return supply_diameter, return_diameter
+  end
+
+  def calc_recirc_pipe_ins_thicknesses(supply_pipe_ins_r_value, return_pipe_ins_r_value, supply_diameter, return_diameter, conductivity)
+    # Calculate thickness (in.) from nominal R-value, pipe outer diamter (in.), and insulation conductivity
+
+    r1 = supply_diameter
+    t_eq = supply_pipe_ins_r_value * conductivity * 12 # (hr-ft2-F / Btu) *  (Btu/ht-ft-F) * (in/ft)
+    supply_thickness = r1 * (Math.exp(lambert(t_eq / r1)) - 1) # http://www.wolframalpha.com/input/?i=solve+%28r%2Bt%29*ln%28%28r%2Bt%29%2Fr%29%3DL+for+t%2C+L%3E0%2C+t%3E0%2C+r%3E0
+
+    r1 = return_diameter
+    t_eq = return_pipe_ins_r_value * conductivity * 12 # (hr-ft2-F / Btu) *  (Btu/ht-ft-F) * (in/ft)
+    return_thickness = r1 * (Math.exp(lambert(t_eq / r1)) - 1) # http://www.wolframalpha.com/input/?i=solve+%28r%2Bt%29*ln%28%28r%2Bt%29%2Fr%29%3DL+for+t%2C+L%3E0%2C+t%3E0%2C+r%3E0
+
+    return UnitConversions.convert(supply_thickness, 'in', 'm'), UnitConversions.convert(return_thickness, 'in', 'm')
+  end
+
+  def calc_recirc_flow_rate(hpxml_buildings, supply_length, supply_pipe_ins_r_value)
+    # ASHRAE calculation of the recirculation loop flow rate
+    # Based on Equation 9 on p50.7 in 2011 ASHRAE Handbook--HVAC Applications
+
+    avg_num_bath = 0
+    avg_ffa = 0
+    len_ins = 0
+    len_unins = 0
+    hpxml_buildings.each do |hpxml_bldg|
+      avg_num_bath += hpxml_bldg.building_construction.number_of_bathrooms / hpxml_buildings.size # FIXME: hpxml.buildings.size or total units?
+      avg_ffa += hpxml_bldg.building_construction.conditioned_floor_area / hpxml_buildings.size
+    end
+
+    if supply_pipe_ins_r_value > 0
+      len_ins += supply_length
+    else
+      len_unins += supply_length
+    end
+
+    q_loss = 30 * len_ins + 60 * len_unins
+
+    # Assume a 5 degree temperature drop is acceptable
+    delta_T = 5 # degrees F
+
+    return q_loss / (60 * 8.25 * delta_T)
+  end
+
+  def add_pump(model, loop, name, pump_gpm)
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
     pump.setName(name)
+    pump.setRatedFlowRate(UnitConversions.convert(pump_gpm, 'gal/min', 'm^3/s')) # FIXME: correct setter?
     pump.addToNode(loop.supplyInletNode)
     pump.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedHotWater) # Used by reporting measure
   end
@@ -299,11 +388,12 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
   def remove_ems(model)
     # TODO: jeff to look into EC_adj
     ems_pcm_to_remove = [
-      'EC_adj',
-      'solar hot water',
-      'water_heater',
-      'solar_hot_water'
+      'water heater EC_adj ProgramManager',
+      'water heater ProgramManager',
+      'water heater hpwh EC_adj ProgramManager',
+      'solar hot water Control'
     ]
+    ems_pcm_to_remove += ems_pcm_to_remove.map { |e| e.gsub(' ', '_') }
     model.getEnergyManagementSystemProgramCallingManagers.each do |ems_pcm|
       if ems_pcm_to_remove.select { |e| ems_pcm.name.to_s.include?(e) }.size == 0
         next
@@ -316,9 +406,20 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     ems_sensor_to_remove = [
-      'water_heater',
-      'solar_hot_water'
+      'water heater energy',
+      'water heater fan',
+      'water heater off cycle',
+      'water heater on cycle',
+      'water heater tank',
+      'water heater lat',
+      'water heater sens',
+      'water heater coil',
+      'water heater tl',
+      'water heater hpwh',
+      'solar hot water Collector',
+      'solar hot water Tank'
     ]
+    ems_sensor_to_remove += ems_sensor_to_remove.map { |e| e.gsub(' ', '_') }
     model.getEnergyManagementSystemSensors.each do |ems_sensor|
       if ems_sensor_to_remove.select { |e| ems_sensor.name.to_s.include?(e) }.size == 0
         next
@@ -326,6 +427,20 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
       ems_sensor.remove
     end
+  end
+
+  def lambert(x)
+    # Lambert W function using Newton's method
+    eps = 0.00000001 # max error allowed
+    w = x
+    while true
+      ew = Math.exp(w)
+      wNew = w - (w * ew - x) / (w * ew + ew)
+      break if (w - wNew).abs <= eps
+
+      w = wNew
+    end
+    return x
   end
 end
 

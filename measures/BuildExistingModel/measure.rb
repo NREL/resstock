@@ -338,6 +338,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         geometry_building_num_units = Integer(get_value_from_workflow_step_value(step_value))
       end
     end
+    geometry_num_floors_above_grade = bldg_data['Geometry Stories']
+    geometry_corridor_position = bldg_data['Corridor']
 
     # AddSharedHPWH measure
     # shared_hpwh = 'none'
@@ -392,7 +394,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"
       end
-      additional_properties << "SharedHPWH=#{shared_hpwh}"
+      additional_properties << "geometry_building_num_units=#{geometry_building_num_units}"
+      additional_properties << "geometry_num_floors_above_grade=#{geometry_num_floors_above_grade}"
+      additional_properties << "geometry_corridor_position=#{['Double-Loaded Interior', 'Double Exterior'].include?(geometry_corridor_position)}"
+      additional_properties << "shared_hpwh=#{shared_hpwh}"
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       # Get software program used and version
