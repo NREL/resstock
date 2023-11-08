@@ -345,6 +345,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"
       end
+      heating_airflow_cfm, cooling_airflow_cfm = get_heating_cooling_airflow_cfm(hpxml_bldg)
+      additional_properties << "heating_airflow_cfm=#{heating_airflow_cfm}"
+      additional_properties << "cooling_airflow_cfm=#{cooling_airflow_cfm}"
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       # Retain HVAC capacities
@@ -642,6 +645,30 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     return capacities
+  end
+
+  def get_heating_cooling_airflow_cfm(hpxml_bldg)
+    heating_airflow_cfm = 0.0
+    cooling_airflow_cfm = 0.0
+
+    hpxml_bldg.heating_systems.each do |heating_system|
+      next unless heating_system.primary_system
+
+      heating_airflow_cfm = heating_system.heating_airflow_cfm
+    end
+
+    hpxml_bldg.cooling_systems.each do |cooling_system|
+      next unless cooling_system.primary_system
+
+      cooling_airflow_cfm = cooling_system.cooling_airflow_cfm
+    end
+
+    hpxml_bldg.heat_pumps.each do |heat_pump|
+      heating_airflow_cfm = heat_pump.heating_airflow_cfm
+      cooling_airflow_cfm = heat_pump.cooling_airflow_cfm
+    end
+
+    return heating_airflow_cfm, cooling_airflow_cfm
   end
 end
 
