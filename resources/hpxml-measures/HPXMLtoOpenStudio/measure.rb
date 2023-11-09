@@ -128,7 +128,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
       # Process weather once upfront
       epw_path = Location.get_epw_path(hpxml.buildings[0], hpxml_path)
-      weather = WeatherProcess.new(epw_path: epw_path, runner: runner)
+      weather = WeatherProcess.new(epw_path: epw_path, runner: runner, hpxml: hpxml)
       epw_file = OpenStudio::EpwFile.new(epw_path)
       hpxml.buildings.each_with_index do |hpxml_bldg, i|
         next if i == 0
@@ -1839,25 +1839,14 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   end
 
   def add_pools_and_permanent_spas(runner, model, spaces)
-    @hpxml_bldg.pools.each do |pool|
-      next if pool.type == HPXML::TypeNone
+    (@hpxml_bldg.pools + @hpxml_bldg.permanent_spas).each do |pool_or_spa|
+      next if pool_or_spa.type == HPXML::TypeNone
 
-      MiscLoads.apply_pool_or_permanent_spa_heater(runner, model, pool, Constants.ObjectNameMiscPoolHeater, spaces[HPXML::LocationConditionedSpace],
+      MiscLoads.apply_pool_or_permanent_spa_heater(runner, model, pool_or_spa, spaces[HPXML::LocationConditionedSpace],
                                                    @schedules_file, @hpxml_header.unavailable_periods)
-      next if pool.pump_type == HPXML::TypeNone
+      next if pool_or_spa.pump_type == HPXML::TypeNone
 
-      MiscLoads.apply_pool_or_permanent_spa_pump(runner, model, pool, Constants.ObjectNameMiscPoolPump, spaces[HPXML::LocationConditionedSpace],
-                                                 @schedules_file, @hpxml_header.unavailable_periods)
-    end
-
-    @hpxml_bldg.permanent_spas.each do |spa|
-      next if spa.type == HPXML::TypeNone
-
-      MiscLoads.apply_pool_or_permanent_spa_heater(runner, model, spa, Constants.ObjectNameMiscPermanentSpaHeater, spaces[HPXML::LocationConditionedSpace],
-                                                   @schedules_file, @hpxml_header.unavailable_periods)
-      next if spa.pump_type == HPXML::TypeNone
-
-      MiscLoads.apply_pool_or_permanent_spa_pump(runner, model, spa, Constants.ObjectNameMiscPermanentSpaPump, spaces[HPXML::LocationConditionedSpace],
+      MiscLoads.apply_pool_or_permanent_spa_pump(runner, model, pool_or_spa, spaces[HPXML::LocationConditionedSpace],
                                                  @schedules_file, @hpxml_header.unavailable_periods)
     end
   end
