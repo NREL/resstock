@@ -581,8 +581,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     if File.exist? msgpack_timeseries_path
       @msgpackDataTimeseries = MessagePack.unpack(File.read(msgpack_timeseries_path, mode: 'rb'))
     end
-    if (not @emissions.empty?) || ((not @resilience[RT::Battery].variables.empty?) && (args[:timeseries_frequency] != 'timestep'))
-      @msgpackDataHourly = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout_hourly.msgpack'), mode: 'rb'))
+    if args[:timeseries_frequency] != 'hourly'
+      msgpack_hourly_path = File.join(output_dir, 'eplusout_hourly.msgpack')
+      if File.exist? msgpack_hourly_path
+        @msgpackDataHourly = MessagePack.unpack(File.read(msgpack_hourly_path, mode: 'rb'))
+      end
     end
 
     # Set paths

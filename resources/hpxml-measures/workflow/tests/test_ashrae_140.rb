@@ -15,8 +15,12 @@ class WorkflowASHRAE140Test < Minitest::Test
     results_out = File.join(results_dir, 'results_ashrae_140.csv')
     File.delete(results_out) if File.exist? results_out
 
-    hpxml_files_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'ASHRAE_Standard_140'))
-    all_results, _ = run_simulation_tests(hpxml_files_dir)
+    xmls = []
+    ashrae140_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'ASHRAE_Standard_140'))
+    Dir["#{ashrae140_dir}/*.xml"].sort.each do |xml|
+      xmls << File.absolute_path(xml)
+    end
+    all_results, _ = run_simulation_tests(xmls)
 
     _write_ashrae_140_results(all_results.sort_by { |k, _v| k.downcase }.to_h, results_out)
   end
