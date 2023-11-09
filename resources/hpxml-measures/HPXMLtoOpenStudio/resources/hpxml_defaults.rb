@@ -224,6 +224,11 @@ class HPXMLDefaults
       hpxml_bldg.header.allow_increased_fixed_capacities_isdefaulted = true
     end
 
+    if hpxml_bldg.header.use_maximum_airflow_rates.nil?
+      hpxml_bldg.header.use_maximum_airflow_rates = false
+      hpxml_bldg.header.use_maximum_airflow_rates_isdefaulted = true
+    end
+
     if hpxml_bldg.header.shading_summer_begin_month.nil? || hpxml_bldg.header.shading_summer_begin_day.nil? || hpxml_bldg.header.shading_summer_end_month.nil? || hpxml_bldg.header.shading_summer_end_day.nil?
       if not weather.nil?
         # Default based on Building America seasons
