@@ -345,9 +345,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"
       end
-      heating_airflow_cfm, cooling_airflow_cfm = get_heating_cooling_airflow_cfm(hpxml_bldg)
-      additional_properties << "heating_airflow_cfm=#{heating_airflow_cfm}"
-      additional_properties << "cooling_airflow_cfm=#{cooling_airflow_cfm}"
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       # Retain HVAC capacities
@@ -358,6 +355,19 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = capacities['heat_pump_heating_capacity']
       measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = capacities['heat_pump_cooling_capacity']
       measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = capacities['heat_pump_backup_heating_capacity']
+
+      # Retain HVAC airflows
+      airflows = get_airflows(hpxml_bldg)
+      if !airflows['heating_airflow_cfm'].nil? && !airflows['cooling_airflow_cfm'].nil?
+        airflow_max = [airflows['heating_airflow_cfm'], airflows['cooling_airflow_cfm']].max
+      elsif !airflows['heating_airflow_cfm'].nil?
+        airflow_max = airflows['heating_airflow_cfm']
+      elsif !airflows['cooling_airflow_cfm'].nil?
+        airflow_max = airflows['cooling_airflow_cfm']
+      end
+
+      measures['BuildResidentialHPXML'][0]['hvac_distribution_heating_airflow_cfm'] = airflow_max
+      measures['BuildResidentialHPXML'][0]['hvac_distribution_cooling_airflow_cfm'] = airflow_max
 
       # Retain Existing Heating System as Heat Pump Backup
       heat_pump_backup_use_existing_system = measures['ResStockArguments'][0]['heat_pump_backup_use_existing_system']
@@ -647,28 +657,30 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     return capacities
   end
 
-  def get_heating_cooling_airflow_cfm(hpxml_bldg)
-    heating_airflow_cfm = 0.0
-    cooling_airflow_cfm = 0.0
+  def get_airflows(hpxml_bldg)
+    airflows = {
+      'heating_airflow_cfm' => nil,
+      'cooling_airflow_cfm' => nil
+    }
 
     hpxml_bldg.heating_systems.each do |heating_system|
       next unless heating_system.primary_system
 
-      heating_airflow_cfm = heating_system.heating_airflow_cfm unless heating_system.heating_airflow_cfm.nil?
+      airflows['heating_airflow_cfm'] = heating_system.heating_airflow_cfm
     end
 
     hpxml_bldg.cooling_systems.each do |cooling_system|
       next unless cooling_system.primary_system
 
-      cooling_airflow_cfm = cooling_system.cooling_airflow_cfm unless cooling_system.cooling_airflow_cfm.nil?
+      airflows['cooling_airflow_cfm'] = cooling_system.cooling_airflow_cfm
     end
 
     hpxml_bldg.heat_pumps.each do |heat_pump|
-      heating_airflow_cfm = heat_pump.heating_airflow_cfm unless heat_pump.heating_airflow_cfm.nil?
-      cooling_airflow_cfm = heat_pump.cooling_airflow_cfm unless heat_pump.cooling_airflow_cfm.nil?
+      airflows['heating_airflow_cfm'] = heat_pump.heating_airflow_cfm
+      airflows['cooling_airflow_cfm'] = heat_pump.cooling_airflow_cfm
     end
 
-    return heating_airflow_cfm, cooling_airflow_cfm
+    return airflows
   end
 end
 
