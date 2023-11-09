@@ -2896,11 +2896,12 @@ class HPXMLDefaults
       clg_sys = hvac_system[:cooling]
 
       # Fan W/cfm adjustment
-      if !htg_sys.heating_airflow_cfm.nil? && !clg_sys.cooling_airflow_cfm.nil? # FIXME: we probably want a better flag here, right?
+      airflow_max = get_airflow_max(htg_sys, clg_sys)
+      if !airflow_max.nil? # FIXME: we probably want a better flag here, right?
         hpxml_bldg.heat_pumps.each do |heat_pump|
           next unless [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump.heat_pump_type # FIXME: to what type(s), or when, should this apply?
 
-          v_baseline = [htg_sys.heating_airflow_cfm, clg_sys.cooling_airflow_cfm].max
+          v_baseline = airflow_max
           v_upgrade = [hvac_sizing_values.Heat_Airflow.round, hvac_sizing_values.Cool_Airflow.round].max
 
           p_int = v_baseline * heat_pump.fan_watts_per_cfm
@@ -2990,6 +2991,23 @@ class HPXMLDefaults
         clg_sys.cooling_airflow_cfm_isdefaulted = true
       end
     end
+  end
+
+  def self.get_airflow_max(htg_sys, clg_sys)
+    if !htg_sys.nil? && !clg_sys.nil?
+      if !htg_sys.heating_airflow_cfm.nil? && !clg_sys.cooling_airflow_cfm.nil?
+        return [htg_sys.heating_airflow_cfm, clg_sys.cooling_airflow_cfm].max
+      elsif !htg_sys.heating_airflow_cfm.nil?
+        return htg_sys.heating_airflow_cfm
+      elsif !clg_sys.cooling_airflow_cfm.nil?
+        return clg_sys.cooling_airflow_cfm
+      end
+    elsif !htg_sys.nil?
+      return htg_sys.heating_airflow_cfm
+    elsif !clg_sys.nil?
+      return clg_sys.cooling_airflow_cfm
+    end
+    return
   end
 
   def self.get_azimuth_from_orientation(orientation)
