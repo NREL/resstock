@@ -358,16 +358,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       # Retain HVAC airflows
       airflows = get_airflows(hpxml_bldg)
-      if !airflows['heating_airflow_cfm'].nil? && !airflows['cooling_airflow_cfm'].nil?
-        airflow_max = [airflows['heating_airflow_cfm'], airflows['cooling_airflow_cfm']].max
-      elsif !airflows['heating_airflow_cfm'].nil?
-        airflow_max = airflows['heating_airflow_cfm']
-      elsif !airflows['cooling_airflow_cfm'].nil?
-        airflow_max = airflows['cooling_airflow_cfm']
-      end
-
-      measures['BuildResidentialHPXML'][0]['hvac_distribution_heating_airflow_cfm'] = airflow_max
-      measures['BuildResidentialHPXML'][0]['hvac_distribution_cooling_airflow_cfm'] = airflow_max
+      measures['BuildResidentialHPXML'][0]['hvac_distribution_heating_airflow_cfm'] = airflows['heating_airflow_cfm']
+      measures['BuildResidentialHPXML'][0]['hvac_distribution_cooling_airflow_cfm'] = airflows['cooling_airflow_cfm']
 
       # Retain Existing Heating System as Heat Pump Backup
       heat_pump_backup_use_existing_system = measures['ResStockArguments'][0]['heat_pump_backup_use_existing_system']
