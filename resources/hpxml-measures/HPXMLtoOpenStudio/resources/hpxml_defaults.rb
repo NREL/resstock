@@ -1371,6 +1371,7 @@ class HPXMLDefaults
         # Depends on airflow rate, so defaulted in hvac_sizing.rb
       end
     end
+
     hpxml_bldg.heat_pumps.each do |heat_pump|
       next unless heat_pump.fan_watts_per_cfm.nil?
 
@@ -2964,6 +2965,26 @@ class HPXMLDefaults
       # Cooling airflow
       clg_sys.cooling_airflow_cfm = hvac_sizing_values.Cool_Airflow.round
       clg_sys.cooling_airflow_cfm_isdefaulted = true
+
+      # Fan W/cfm adjustment
+      heating_airflow_cfm = hpxml_bldg.header.extension_properties['heating_airflow_cfm']
+      cooling_airflow_cfm = hpxml_bldg.header.extension_properties['cooling_airflow_cfm']
+
+      next unless !heating_airflow_cfm.nil? && !cooling_airflow_cfm.nil?
+
+      heating_airflow_cfm = heating_airflow_cfm.to_f
+      cooling_airflow_cfm = cooling_airflow_cfm.to_f
+
+      hpxml_bldg.heat_pumps.each do |heat_pump|
+        next unless [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump.heat_pump_type
+
+        v_baseline = [heating_airflow_cfm, cooling_airflow_cfm].max
+        v_upgrade = [htg_sys.heating_airflow_cfm, clg_sys.cooling_airflow_cfm].max
+
+        p_int = v_baseline * heat_pump.fan_watts_per_cfm
+        p_upgrade = p_int * (v_baseline / v_upgrade)**3
+        heat_pump.fan_watts_per_cfm = p_upgrade / v_upgrade
+      end
     end
   end
 
