@@ -654,18 +654,18 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     hpxml_bldg.heating_systems.each do |heating_system|
       next unless heating_system.primary_system
 
-      heating_airflow_cfm = heating_system.heating_airflow_cfm
+      heating_airflow_cfm = heating_system.heating_airflow_cfm unless heating_system.heating_airflow_cfm.nil?
     end
 
     hpxml_bldg.cooling_systems.each do |cooling_system|
       next unless cooling_system.primary_system
 
-      cooling_airflow_cfm = cooling_system.cooling_airflow_cfm
+      cooling_airflow_cfm = cooling_system.cooling_airflow_cfm unless cooling_system.cooling_airflow_cfm.nil?
     end
 
     hpxml_bldg.heat_pumps.each do |heat_pump|
-      heating_airflow_cfm = heat_pump.heating_airflow_cfm
-      cooling_airflow_cfm = heat_pump.cooling_airflow_cfm
+      heating_airflow_cfm = heat_pump.heating_airflow_cfm unless heat_pump.heating_airflow_cfm.nil?
+      cooling_airflow_cfm = heat_pump.cooling_airflow_cfm unless heat_pump.cooling_airflow_cfm.nil?
     end
 
     return heating_airflow_cfm, cooling_airflow_cfm
