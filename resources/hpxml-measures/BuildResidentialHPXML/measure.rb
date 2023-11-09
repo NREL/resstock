@@ -1215,7 +1215,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heat_pump_sizing_choices << HPXML::HeatPumpSizingACCA
     heat_pump_sizing_choices << HPXML::HeatPumpSizingHERS
     heat_pump_sizing_choices << HPXML::HeatPumpSizingMaxLoad
-    heat_pump_sizing_choices << HPXML::HeatPumpSizingMaxAirflow
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_type', heat_pump_type_choices, true)
     arg.setDisplayName('Heat Pump: Type')
@@ -1409,15 +1408,20 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('W/CFM')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('hvac_distribution_use_maximum_airflow_rates', false)
+    arg.setDisplayName('HVAC Distribution: Use Maximum Airflow Rates')
+    arg.setDescription('Whether to use specified heating/cooling airflow rates as the maximum allowed.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_heating_airflow_cfm', false)
     arg.setDisplayName('HVAC Distribution: Heating Airflow Rate')
-    arg.setDescription("The heating airflow rate. When heat pump sizing methodology is #{HPXML::HeatPumpSizingMaxAirflow}, this is the maximum allowable rate. Applies only to #{HPXML::HVACTypeFurnace} heating system, and #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, and #{HPXML::HVACTypeHeatPumpGroundToAir} heat pumps. If not provided, the OS-HPXML default is used.")
+    arg.setDescription("The heating airflow rate. When enabled, this is the maximum allowable rate. Applies only to #{HPXML::HVACTypeFurnace} heating system, and #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, and #{HPXML::HVACTypeHeatPumpGroundToAir} heat pumps. If not provided, the OS-HPXML default is used.")
     arg.setUnits('CFM')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_cooling_airflow_cfm', false)
     arg.setDisplayName('HVAC Distribution: Cooling Airflow Rate')
-    arg.setDescription("The cooling airflow rate. When heat pump sizing methodology is #{HPXML::HeatPumpSizingMaxAirflow}, this is the maximum allowable rate. Applies only to #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner} cooling systems, and #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, and #{HPXML::HVACTypeHeatPumpGroundToAir} heat pumps. If not provided, the OS-HPXML default is used.")
+    arg.setDescription("The cooling airflow rate. When enabled, this is the maximum allowable rate. Applies only to #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner} cooling systems, and #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, and #{HPXML::HVACTypeHeatPumpGroundToAir} heat pumps. If not provided, the OS-HPXML default is used.")
     arg.setUnits('CFM')
     args << arg
 
@@ -4145,6 +4149,10 @@ class HPXMLFile
 
     if args[:heat_pump_sizing_methodology].is_initialized
       hpxml_bldg.header.heat_pump_sizing_methodology = args[:heat_pump_sizing_methodology].get
+    end
+
+    if args[:hvac_distribution_use_maximum_airflow_rates].is_initialized
+      hpxml_bldg.header.use_maximum_airflow_rates = args[:hvac_distribution_use_maximum_airflow_rates].get
     end
 
     if args[:window_natvent_availability].is_initialized

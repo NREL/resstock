@@ -2196,7 +2196,7 @@ The auto-sizing methodology to use when the heat pump capacity is not provided. 
 
 - **Required:** ``false``
 
-- **Choices:** `ACCA`, `HERS`, `MaxLoad`, `MaxAirflow`
+- **Choices:** `ACCA`, `HERS`, `MaxLoad`
 
 <br/>
 
@@ -2328,9 +2328,20 @@ The blower fan efficiency at maximum fan speed. Applies only to Furnace heating 
 
 <br/>
 
+**HVAC Distribution: Use Maximum Airflow Rates**
+
+Whether to use specified heating/cooling airflow rates as the maximum allowed.
+
+- **Name:** ``hvac_distribution_use_maximum_airflow_rates``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
 **HVAC Distribution: Heating Airflow Rate**
 
-The heating airflow rate. When heat pump sizing methodology is MaxAirflow, this is the maximum allowable rate. Applies only to Furnace heating system, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default is used.
+The heating airflow rate. When enabled, this is the maximum allowable rate. Applies only to Furnace heating system, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``hvac_distribution_heating_airflow_cfm``
 - **Type:** ``Double``
@@ -2343,7 +2354,7 @@ The heating airflow rate. When heat pump sizing methodology is MaxAirflow, this 
 
 **HVAC Distribution: Cooling Airflow Rate**
 
-The cooling airflow rate. When heat pump sizing methodology is MaxAirflow, this is the maximum allowable rate. Applies only to central air conditioner and mini-split cooling systems, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default is used.
+The cooling airflow rate. When enabled, this is the maximum allowable rate. Applies only to central air conditioner and mini-split cooling systems, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``hvac_distribution_cooling_airflow_cfm``
 - **Type:** ``Double``

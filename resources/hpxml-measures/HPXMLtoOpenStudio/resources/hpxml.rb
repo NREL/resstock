@@ -159,7 +159,6 @@ class HPXML < Object
   HeatPumpSizingACCA = 'ACCA'
   HeatPumpSizingHERS = 'HERS'
   HeatPumpSizingMaxLoad = 'MaxLoad'
-  HeatPumpSizingMaxAirflow = 'MaxAirflow'
   HVACCompressorTypeSingleStage = 'single stage'
   HVACCompressorTypeTwoStage = 'two stage'
   HVACCompressorTypeVariableSpeed = 'variable speed'
@@ -1872,7 +1871,7 @@ class HPXML < Object
 
   class BuildingHeader < BaseElement
     ATTRS = [:schedules_filepaths, :extension_properties, :natvent_days_per_week,
-             :heat_pump_sizing_methodology, :allow_increased_fixed_capacities,
+             :heat_pump_sizing_methodology, :allow_increased_fixed_capacities, :use_maximum_airflow_rates,
              :shading_summer_begin_month, :shading_summer_begin_day, :shading_summer_end_month,
              :shading_summer_end_day, :manualj_heating_design_temp, :manualj_cooling_design_temp,
              :manualj_heating_setpoint, :manualj_cooling_setpoint, :manualj_humidity_setpoint,
@@ -1889,10 +1888,11 @@ class HPXML < Object
       return if nil?
 
       building_summary = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'BuildingSummary'])
-      if (not @heat_pump_sizing_methodology.nil?) || (not @allow_increased_fixed_capacities.nil?)
+      if (not @heat_pump_sizing_methodology.nil?) || (not @allow_increased_fixed_capacities.nil?) || (not @use_maximum_airflow_rates.nil?)
         hvac_sizing_control = XMLHelper.create_elements_as_needed(building_summary, ['extension', 'HVACSizingControl'])
         XMLHelper.add_element(hvac_sizing_control, 'HeatPumpSizingMethodology', @heat_pump_sizing_methodology, :string, @heat_pump_sizing_methodology_isdefaulted) unless @heat_pump_sizing_methodology.nil?
         XMLHelper.add_element(hvac_sizing_control, 'AllowIncreasedFixedCapacities', @allow_increased_fixed_capacities, :boolean, @allow_increased_fixed_capacities_isdefaulted) unless @allow_increased_fixed_capacities.nil?
+        XMLHelper.add_element(hvac_sizing_control, 'UseMaximumAirflowRates', @use_maximum_airflow_rates, :boolean, @use_maximum_airflow_rates_isdefaulted) unless @use_maximum_airflow_rates.nil?
       end
       if (not @manualj_heating_design_temp.nil?) || (not @manualj_cooling_design_temp.nil?) || (not @manualj_heating_setpoint.nil?) || (not @manualj_cooling_setpoint.nil?) || (not @manualj_humidity_setpoint.nil?) || (not @manualj_internal_loads_sensible.nil?) || (not @manualj_internal_loads_latent.nil?) || (not @manualj_num_occupants.nil?)
         manualj_sizing_inputs = XMLHelper.create_elements_as_needed(building_summary, ['extension', 'HVACSizingControl', 'ManualJInputs'])
@@ -1937,6 +1937,7 @@ class HPXML < Object
       @shading_summer_end_day = XMLHelper.get_value(building, 'BuildingDetails/BuildingSummary/extension/ShadingControl/SummerEndDayOfMonth', :integer)
       @heat_pump_sizing_methodology = XMLHelper.get_value(building, 'BuildingDetails/BuildingSummary/extension/HVACSizingControl/HeatPumpSizingMethodology', :string)
       @allow_increased_fixed_capacities = XMLHelper.get_value(building, 'BuildingDetails/BuildingSummary/extension/HVACSizingControl/AllowIncreasedFixedCapacities', :boolean)
+      @use_maximum_airflow_rates = XMLHelper.get_value(building, 'BuildingDetails/BuildingSummary/extension/HVACSizingControl/UseMaximumAirflowRates', :boolean)
       @manualj_heating_design_temp = XMLHelper.get_value(building, 'BuildingDetails/BuildingSummary/extension/HVACSizingControl/ManualJInputs/HeatingDesignTemperature', :float)
       @manualj_cooling_design_temp = XMLHelper.get_value(building, 'BuildingDetails/BuildingSummary/extension/HVACSizingControl/ManualJInputs/CoolingDesignTemperature', :float)
       @manualj_heating_setpoint = XMLHelper.get_value(building, 'BuildingDetails/BuildingSummary/extension/HVACSizingControl/ManualJInputs/HeatingSetpoint', :float)
