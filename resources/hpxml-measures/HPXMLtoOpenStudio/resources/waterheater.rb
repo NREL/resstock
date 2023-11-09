@@ -1363,7 +1363,9 @@ class Waterheater
     end
 
     # Add an other equipment object for water heating that will get actuated, has a small initial load but gets overwritten by EMS
-    ec_adj_object = HotWaterAndAppliances.add_other_equipment(model, Constants.ObjectNameWaterHeaterAdjustment, loc_space, 0.01, 0, 0, model.alwaysOnDiscreteSchedule, fuel_type)
+    cnt = model.getOtherEquipments.select { |e| e.endUseSubcategory.start_with? Constants.ObjectNameWaterHeaterAdjustment }.size # Ensure unique meter for each water heater
+    ec_adj_object = HotWaterAndAppliances.add_other_equipment(model, "#{Constants.ObjectNameWaterHeaterAdjustment}#{cnt + 1}", loc_space, 0.01, 0, 0, model.alwaysOnDiscreteSchedule, fuel_type)
+    ec_adj_object.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
 
     # EMS for calculating the EC_adj
 

@@ -5,7 +5,7 @@ class Location
     apply_year(model, hpxml_header, epw_file)
     apply_site(model, epw_file)
     apply_dst(model, hpxml_bldg)
-    apply_ground_temps(model, weather)
+    apply_ground_temps(model, weather, hpxml_bldg)
   end
 
   private
@@ -43,16 +43,18 @@ class Location
     run_period_control_daylight_saving_time.setEndDate(dst_end_date)
   end
 
-  def self.apply_ground_temps(model, weather)
+  def self.apply_ground_temps(model, weather, hpxml_bldg)
     # Shallow ground temperatures only currently used for ducts located under slab
     sgts = model.getSiteGroundTemperatureShallow
     sgts.resetAllMonths
-    sgts.setAllMonthlyTemperatures(weather.data.GroundMonthlyTemps.map { |t| UnitConversions.convert(t, 'F', 'C') })
+    sgts.setAllMonthlyTemperatures(weather.data.ShallowGroundMonthlyTemps.map { |t| UnitConversions.convert(t, 'F', 'C') })
 
-    # Deep ground temperatures used by GSHP setpoint manager
-    dgts = model.getSiteGroundTemperatureDeep
-    dgts.resetAllMonths
-    dgts.setAllMonthlyTemperatures([UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'C')] * 12)
+    if hpxml_bldg.heat_pumps.select { |h| h.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
+      # Deep ground temperatures used by GSHP setpoint manager
+      dgts = model.getSiteGroundTemperatureDeep
+      dgts.resetAllMonths
+      dgts.setAllMonthlyTemperatures([UnitConversions.convert(weather.data.DeepGroundAnnualTemp, 'F', 'C')] * 12)
+    end
   end
 
   def self.get_climate_zones
