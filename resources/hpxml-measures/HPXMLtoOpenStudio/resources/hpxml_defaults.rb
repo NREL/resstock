@@ -1371,7 +1371,6 @@ class HPXMLDefaults
         # Depends on airflow rate, so defaulted in hvac_sizing.rb
       end
     end
-
     hpxml_bldg.heat_pumps.each do |heat_pump|
       next unless heat_pump.fan_watts_per_cfm.nil?
 
@@ -2896,6 +2895,23 @@ class HPXMLDefaults
       htg_sys = hvac_system[:heating]
       clg_sys = hvac_system[:cooling]
 
+      # Fan W/cfm adjustment
+      if !htg_sys.heating_airflow_cfm.nil? && !clg_sys.cooling_airflow_cfm.nil? # FIXME: we probably want a better flag here, right?
+        hpxml_bldg.heat_pumps.each do |heat_pump|
+          next unless [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump.heat_pump_type # FIXME: to what type(s), or when, should this apply?
+
+          v_baseline = [htg_sys.heating_airflow_cfm, clg_sys.cooling_airflow_cfm].max
+          v_upgrade = [hvac_sizing_values.Heat_Airflow.round, hvac_sizing_values.Cool_Airflow.round].max
+
+          p_int = v_baseline * heat_pump.fan_watts_per_cfm
+          p_upgrade = p_int * (v_baseline / v_upgrade)**3
+          fan_watts_per_cfm_adjusted = p_upgrade / v_upgrade
+
+          heat_pump.fan_watts_per_cfm = fan_watts_per_cfm_adjusted
+          heat_pump.fan_watts_per_cfm_isdefaulted = true
+        end
+      end
+
       # Heating system
       if not htg_sys.nil?
 
@@ -2930,8 +2946,12 @@ class HPXMLDefaults
         if not (htg_sys.is_a?(HPXML::HeatingSystem) &&
                 [HPXML::HVACTypeBoiler,
                  HPXML::HVACTypeElectricResistance].include?(htg_sys.heating_system_type))
-          htg_sys.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow.round
-          htg_sys.heating_airflow_cfm_isdefaulted = true
+          if !htg_sys.heating_airflow_cfm.nil? && (hpxml_bldg.header.heat_pump_sizing_methodology == HPXML::HeatPumpSizingMaxAirflow)
+            htg_sys.heating_airflow_cfm = [hvac_sizing_values.Heat_Airflow.round, htg_sys.heating_airflow_cfm].min
+          else
+            htg_sys.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow.round
+            htg_sys.heating_airflow_cfm_isdefaulted = true
+          end
         end
 
         # Heating GSHP loop
@@ -2963,27 +2983,11 @@ class HPXMLDefaults
       clg_sys.additional_properties.cooling_capacity_sensible = hvac_sizing_values.Cool_Capacity_Sens.round
 
       # Cooling airflow
-      clg_sys.cooling_airflow_cfm = hvac_sizing_values.Cool_Airflow.round
-      clg_sys.cooling_airflow_cfm_isdefaulted = true
-
-      # Fan W/cfm adjustment
-      heating_airflow_cfm = hpxml_bldg.header.extension_properties['heating_airflow_cfm']
-      cooling_airflow_cfm = hpxml_bldg.header.extension_properties['cooling_airflow_cfm']
-
-      next unless !heating_airflow_cfm.nil? && !cooling_airflow_cfm.nil?
-
-      heating_airflow_cfm = heating_airflow_cfm.to_f
-      cooling_airflow_cfm = cooling_airflow_cfm.to_f
-
-      hpxml_bldg.heat_pumps.each do |heat_pump|
-        next unless [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump.heat_pump_type
-
-        v_baseline = [heating_airflow_cfm, cooling_airflow_cfm].max
-        v_upgrade = [htg_sys.heating_airflow_cfm, clg_sys.cooling_airflow_cfm].max
-
-        p_int = v_baseline * heat_pump.fan_watts_per_cfm
-        p_upgrade = p_int * (v_baseline / v_upgrade)**3
-        heat_pump.fan_watts_per_cfm = p_upgrade / v_upgrade
+      if !clg_sys.cooling_airflow_cfm.nil? && (hpxml_bldg.header.heat_pump_sizing_methodology == HPXML::HeatPumpSizingMaxAirflow)
+        clg_sys.cooling_airflow_cfm = [hvac_sizing_values.Cool_Airflow.round, clg_sys.cooling_airflow_cfm].min
+      else
+        clg_sys.cooling_airflow_cfm = hvac_sizing_values.Cool_Airflow.round
+        clg_sys.cooling_airflow_cfm_isdefaulted = true
       end
     end
   end

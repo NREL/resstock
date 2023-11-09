@@ -159,6 +159,7 @@ class HPXML < Object
   HeatPumpSizingACCA = 'ACCA'
   HeatPumpSizingHERS = 'HERS'
   HeatPumpSizingMaxLoad = 'MaxLoad'
+  HeatPumpSizingMaxAirflow = 'MaxAirflow'
   HVACCompressorTypeSingleStage = 'single stage'
   HVACCompressorTypeTwoStage = 'two stage'
   HVACCompressorTypeVariableSpeed = 'variable speed'
