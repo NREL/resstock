@@ -80,6 +80,7 @@ f.puts
 f.puts('- **Description**')
 f.puts('- **Created by**')
 f.puts('- **Source**')
+f.puts('- **Assumption**')
 f.puts
 f.puts("Additionally for each parameter, an **Arguments** table is populated (if applicable) based on the contents of `ResStockArguments's measure.xml file <https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments/measure.xml>`_:")
 f.puts
