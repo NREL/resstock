@@ -2947,7 +2947,7 @@ class HPXMLDefaults
         if not (htg_sys.is_a?(HPXML::HeatingSystem) &&
                 [HPXML::HVACTypeBoiler,
                  HPXML::HVACTypeElectricResistance].include?(htg_sys.heating_system_type))
-          if !htg_sys.heating_airflow_cfm.nil? && (hpxml_bldg.header.heat_pump_sizing_methodology == HPXML::HeatPumpSizingMaxAirflow)
+          if !htg_sys.heating_airflow_cfm.nil? && hpxml_bldg.header.use_maximum_airflow_rates
             htg_sys.heating_airflow_cfm = [hvac_sizing_values.Heat_Airflow.round, htg_sys.heating_airflow_cfm].min
           else
             htg_sys.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow.round
@@ -2984,7 +2984,7 @@ class HPXMLDefaults
       clg_sys.additional_properties.cooling_capacity_sensible = hvac_sizing_values.Cool_Capacity_Sens.round
 
       # Cooling airflow
-      if !clg_sys.cooling_airflow_cfm.nil? && (hpxml_bldg.header.heat_pump_sizing_methodology == HPXML::HeatPumpSizingMaxAirflow)
+      if !clg_sys.cooling_airflow_cfm.nil? && hpxml_bldg.header.use_maximum_airflow_rates
         clg_sys.cooling_airflow_cfm = [hvac_sizing_values.Cool_Airflow.round, clg_sys.cooling_airflow_cfm].min
       else
         clg_sys.cooling_airflow_cfm = hvac_sizing_values.Cool_Airflow.round
