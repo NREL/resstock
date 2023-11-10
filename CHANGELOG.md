@@ -11,6 +11,7 @@ Features
 - Add ability to request timeseries resilience output from the yml file ([#1113](https://github.com/NREL/resstock/pull/1113))
 - Add ability to calculate detailed utility bills based on a user-specified TSV file of paths to JSON utility rate tariff files ([#1109](https://github.com/NREL/resstock/pull/1109))
 - Update to OpenStudio v3.7.0 ([#1144](https://github.com/NREL/resstock/pull/1144))
+- Update to RECS 2020 V5 data files ([#1164](https://github.com/NREL/resstock/pull/1164))
 - Automate creation of new "Arguments" documentation sections for summarizing arguments (and their default values) in options_lookup.tsv ([#1146](https://github.com/NREL/resstock/pull/1146))
 
 Fixes
