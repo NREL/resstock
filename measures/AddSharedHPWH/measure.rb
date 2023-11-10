@@ -153,6 +153,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
   end
 
   def add_indoor_pipes(model, hpxml_bldg, demand_inlet, demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value)
+    n_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f # FIXME: should this be hpxml.buildings.size? sounds like maybe the actual number of units
+
     # Copper Pipe
     roughness = 'Smooth'
     thickness = 0.003
@@ -220,7 +222,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       dhw_recirc_supply_pipe.setAmbientTemperatureZone(thermal_zone)
       dhw_recirc_supply_pipe.setConstruction(insulated_supply_pipe_construction)
       dhw_recirc_supply_pipe.setPipeInsideDiameter(UnitConversions.convert(supply_diameter, 'in', 'm'))
-      dhw_recirc_supply_pipe.setPipeLength(UnitConversions.convert(supply_length, 'ft', 'm'))
+      dhw_recirc_supply_pipe.setPipeLength(UnitConversions.convert(supply_length / n_units, 'ft', 'm'))
 
       dhw_recirc_supply_pipe.addToNode(demand_inlet.outletModelObject.get.to_Node.get) # FIXME: check IDF branches to make sure everything looks ok
 
@@ -230,7 +232,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       dhw_recirc_return_pipe.setAmbientTemperatureZone(thermal_zone)
       dhw_recirc_return_pipe.setConstruction(insulated_return_pipe_construction)
       dhw_recirc_return_pipe.setPipeInsideDiameter(UnitConversions.convert(return_diameter, 'in', 'm'))
-      dhw_recirc_return_pipe.setPipeLength(UnitConversions.convert(return_length, 'ft', 'm'))
+      dhw_recirc_return_pipe.setPipeLength(UnitConversions.convert(return_length / n_units, 'ft', 'm'))
 
       dhw_recirc_return_pipe.addToNode(demand_bypass.outletModelObject.get.to_Node.get)
     end
@@ -238,13 +240,22 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
   def calc_recirc_supply_return_lengths(hpxml_bldg)
     l_mech = 8 # ft, Horizontal pipe length in mech room (Per T-24 ACM: 2013 Residential Alternative Calculation Method Reference Manual, June 2013, CEC-400-2013-003-CMF-REV)
-    n_stories = hpxml_bldg.header.extension_properties['geometry_num_floors_above_grade'].to_f
-    h_floor = hpxml_bldg.building_construction.average_ceiling_height
-    l_bldg = 50 # FIXME: how to calculate this?
-    has_double_loaded_corridor = hpxml_bldg.header.extension_properties['geometry_corridor_position']
     n_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f # FIXME: should this be hpxml.buildings.size? sounds like maybe the actual number of units
+    n_stories = hpxml_bldg.header.extension_properties['geometry_num_floors_above_grade'].to_f
+    has_double_loaded_corridor = hpxml_bldg.header.extension_properties['geometry_corridor_position']
+    unit_type = hpxml_bldg.building_construction.residential_facility_type
+    footprint = hpxml_bldg.building_construction.conditioned_floor_area
+    h_floor = hpxml_bldg.building_construction.average_ceiling_height
 
-    l_bldg *= 2 if has_double_loaded_corridor
+    n_units_per_floor = n_units / n_stories
+    if [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include?(unit_type)
+      aspect_ratio = 1.8
+    elsif [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(unit_type)
+      aspect_ratio = 0.5556
+    end
+    fb = Math.sqrt(footprint * aspect_ratio)
+    lr = footprint / fb
+    l_bldg = [fb, lr].max * n_units_per_floor
 
     supply_length = (l_mech + h_floor * (n_stories / 2.0).ceil + l_bldg) # ft
 
@@ -253,9 +264,6 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     else
       return_length = supply_length
     end
-
-    supply_length /= n_units
-    return_length /= n_units
 
     return supply_length, return_length
   end
