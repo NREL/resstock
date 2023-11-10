@@ -3,20 +3,6 @@
 require 'csv'
 require 'oga'
 
-source_report = CSV.read(File.join(File.dirname(__FILE__), '../../../../project_national/resources/source_report.csv'), headers: true)
-
-def write_subsection(f, row, name, sc)
-  return if row[name].nil?
-
-  f.puts(name)
-  f.puts(sc * name.size)
-  f.puts
-  entry = row[name].tr('\\', '/')
-  entry = "``#{entry}``" if entry.include?('.py')
-  f.puts(entry)
-  f.puts
-end
-
 class String
   def to_underscore_case
     gsub(/::/, '/')
@@ -26,6 +12,32 @@ class String
       .tr(' ', '_')
       .downcase
   end
+end
+
+def write_subsection(f, row, name, sc, delim)
+  return if row[name].nil?
+
+  f.puts(name)
+  f.puts(sc * name.size)
+  f.puts
+  entry = row[name].tr('\\', '/')
+  entry = "``#{entry}``" if entry.include?('.py')
+  if !delim.nil?
+    items = []
+    entries = entry.split(delim).map(&:strip)
+    entries.each do |entry|
+      if entry.start_with?(/\[\d\]/)
+        item = "  - \\#{entry}"
+      else
+        item = "- \\#{entry}"
+      end
+      items << item
+      items << ''
+    end
+    entry = items
+  end
+  f.puts(entry)
+  f.puts
 end
 
 def href_to_rst(str)
@@ -96,6 +108,8 @@ f.puts('Assigning "auto" means that downstream OS-HPXML default values (if appli
 f.puts('The **Description** field may include link(s) to applicable `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.')
 f.puts
 
+subsection_names = ['Description', 'Created by', 'Source', 'Assumption']
+source_report = CSV.read(File.join(File.dirname(__FILE__), '../../../../project_national/resources/source_report.csv'), headers: true)
 source_report.each do |row|
   parameter = row['Parameter']
 
@@ -108,10 +122,11 @@ source_report.each do |row|
   f.puts('-' * parameter.size)
   f.puts
 
-  write_subsection(f, row, 'Description', '*')
-  write_subsection(f, row, 'Created by', '*')
-  write_subsection(f, row, 'Source', '*')
-  write_subsection(f, row, 'Assumption', '*')
+  subsection_names.each do |subsection_name|
+    # delim = nil
+    delim = ';' if ['Source', 'Assumption'].include?(subsection_name)
+    write_subsection(f, row, subsection_name, '*', delim)
+  end
 
   # Arguments
   r_arguments = []
