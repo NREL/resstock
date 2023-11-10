@@ -56,28 +56,70 @@ resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../../.
 lookup_file = File.join(resources_dir, 'options_lookup.tsv')
 lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
+buildreshpxmlarguments = {}
+buildreshpxmlarguments_xml = Oga.parse_xml(File.read(File.join(resources_dir, 'hpxml-measures/BuildResidentialHPXML/measure.xml')))
+buildreshpxmlarguments_xml.xpath('//measure/arguments/argument').each do |argument|
+  name = argument.at_xpath('name').text
+  type = argument.at_xpath('type')
+  req = argument.at_xpath('required')
+  buildreshpxmlarguments[name] = [type, req]
+end
+
 resstockarguments = {}
 resstockarguments_xml = Oga.parse_xml(File.read(File.join(resources_dir, '../measures/ResStockArguments/measure.xml')))
 resstockarguments_xml.xpath('//measure/arguments/argument').each do |argument|
   name = argument.at_xpath('name').text
+
+  # Units
   units = argument.at_xpath('units')
-  choices = []
-  argument.xpath('choices/choice').each do |choice|
-    choices << choice.at_xpath('value').text
-  end
-  desc = argument.at_xpath('description')
   if units.nil?
     units = ''
   else
     units = units.text
   end
+
+  # Required
+  req = buildreshpxmlarguments[name][1] if buildreshpxmlarguments.keys.include?(name)
+  if req.nil?
+    req = argument.at_xpath('required')
+    if req.nil?
+      req = ''
+    else
+      req = req.text
+    end
+  else
+    req = req.text
+  end
+
+  # Type
+  type = buildreshpxmlarguments[name][0] if buildreshpxmlarguments.keys.include?(name)
+  if type.nil?
+    type = argument.at_xpath('type')
+    if type.nil?
+      type = ''
+    else
+      type = type.text
+    end
+  else
+    type = type.text
+  end
+
+  # Choices
+  choices = []
+  argument.xpath('choices/choice').each do |choice|
+    choices << choice.at_xpath('value').text
+  end
+  choices.unshift('auto') if req == 'false' && ['String', 'Double', 'Integer'].include?(type) && buildreshpxmlarguments.keys.include?(name)
+
+  # Description
+  desc = argument.at_xpath('description')
   if desc.nil?
     puts "Warning: argument '#{name}' does not have a description."
     desc = ''
   else
     desc = href_to_rst(desc.text)
   end
-  resstockarguments[name] = [units, choices, desc]
+  resstockarguments[name] = [units, req, type, choices, desc]
 end
 
 f = File.open(File.join(File.dirname(__FILE__), 'characteristics.rst'), 'w')
@@ -98,6 +140,8 @@ f.puts("Additionally for each parameter, an **Arguments** table is populated (if
 f.puts
 f.puts('- **Name**')
 f.puts('- **Units**')
+f.puts('- **Required**')
+f.puts('- **Type**')
 f.puts('- **Choices**')
 f.puts('- **Description**')
 f.puts
@@ -150,6 +194,8 @@ source_report.each do |row|
   f.puts
   f.puts('   * - Name')
   f.puts('     - Units')
+  f.puts('     - Required')
+  f.puts('     - Type')
   f.puts('     - Choices')
   f.puts('     - Description')
 
@@ -158,9 +204,13 @@ source_report.each do |row|
     f.puts("   * - ``#{r_argument}``")
 
     units = resstockarguments[r_argument][0]
-    choices = resstockarguments[r_argument][1]
-    desc = resstockarguments[r_argument][2]
+    req = resstockarguments[r_argument][1]
+    type = resstockarguments[r_argument][2]
+    choices = resstockarguments[r_argument][3]
+    desc = resstockarguments[r_argument][4]
     f.puts("     - #{units}")
+    f.puts("     - #{req}")
+    f.puts("     - #{type}")
     if choices.empty?
       f.puts('     -')
     else
