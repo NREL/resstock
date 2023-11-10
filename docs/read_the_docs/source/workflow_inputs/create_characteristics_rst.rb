@@ -52,75 +52,51 @@ def href_to_rst(str)
   return str
 end
 
+def get_measure_xml(filepath)
+  measure_xml = {}
+  parse_xml = Oga.parse_xml(filepath)
+  parse_xml.xpath('//measure/arguments/argument').each do |argument|
+    name = argument.at_xpath('name').text
+    measure_xml[name] = {}
+    ['type', 'required', 'units', 'choices', 'description'].each do |property|
+      if property != 'choices'
+        element = argument.at_xpath(property)
+        value = !element.nil? ? element.text : ''
+      else
+        value = argument.xpath('choices/choice').map { |c| c.at_xpath('value').text }
+      end
+      measure_xml[name][property] = value
+    end
+  end
+  return measure_xml
+end
+
 resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../../../resources'))
-lookup_file = File.join(resources_dir, 'options_lookup.tsv')
-lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
-buildreshpxmlarguments = {}
-buildreshpxmlarguments_xml = Oga.parse_xml(File.read(File.join(resources_dir, 'hpxml-measures/BuildResidentialHPXML/measure.xml')))
-buildreshpxmlarguments_xml.xpath('//measure/arguments/argument').each do |argument|
-  name = argument.at_xpath('name').text
-  type = argument.at_xpath('type')
-  req = argument.at_xpath('required')
-  buildreshpxmlarguments[name] = [type, req]
+filepath = File.read(File.join(resources_dir, 'hpxml-measures/BuildResidentialHPXML/measure.xml'))
+buildreshpxmlarguments_xml = get_measure_xml(filepath)
+
+filepath = File.read(File.join(resources_dir, '../measures/ResStockArguments/measure.xml'))
+resstockarguments_xml = get_measure_xml(filepath)
+
+# Refine resstockarguments_xml
+resstockarguments_xml.each do |name, properties|
+  # Get required and type from BuildResidentialHPXML
+  ['required', 'type'].each do |property|
+    resstockarguments_xml[name][property] = buildreshpxmlarguments_xml[name][property] if buildreshpxmlarguments_xml.keys.include?(name)
+  end
+
+  # Add "auto" to Choices for optional String/Double/Integer
+  if properties['description'].include?('OS-HPXML default') && ['String', 'Double', 'Integer'].include?(properties['type'])
+    resstockarguments_xml[name]['choices'].unshift('auto')
+  end
+
+  # Convert href to rst for description
+  resstockarguments_xml[name]['description'] = href_to_rst(resstockarguments_xml[name]['description'])
 end
 
-resstockarguments = {}
-resstockarguments_xml = Oga.parse_xml(File.read(File.join(resources_dir, '../measures/ResStockArguments/measure.xml')))
-resstockarguments_xml.xpath('//measure/arguments/argument').each do |argument|
-  name = argument.at_xpath('name').text
-
-  # Units
-  units = argument.at_xpath('units')
-  if units.nil?
-    units = ''
-  else
-    units = units.text
-  end
-
-  # Required
-  req = buildreshpxmlarguments[name][1] if buildreshpxmlarguments.keys.include?(name)
-  if req.nil?
-    req = argument.at_xpath('required')
-    if req.nil?
-      req = ''
-    else
-      req = req.text
-    end
-  else
-    req = req.text
-  end
-
-  # Type
-  type = buildreshpxmlarguments[name][0] if buildreshpxmlarguments.keys.include?(name)
-  if type.nil?
-    type = argument.at_xpath('type')
-    if type.nil?
-      type = ''
-    else
-      type = type.text
-    end
-  else
-    type = type.text
-  end
-
-  # Choices
-  choices = []
-  argument.xpath('choices/choice').each do |choice|
-    choices << choice.at_xpath('value').text
-  end
-  choices.unshift('auto') if req == 'false' && ['String', 'Double', 'Integer'].include?(type) && buildreshpxmlarguments.keys.include?(name)
-
-  # Description
-  desc = argument.at_xpath('description')
-  if desc.nil?
-    puts "Warning: argument '#{name}' does not have a description."
-    desc = ''
-  else
-    desc = href_to_rst(desc.text)
-  end
-  resstockarguments[name] = [units, req, type, choices, desc]
-end
+source_report_cols = ['Description', 'Created by', 'Source', 'Assumption']
+arguments_cols = ['Name', 'Required', 'Units', 'Type', 'Choices', 'Description']
 
 f = File.open(File.join(File.dirname(__FILE__), 'characteristics.rst'), 'w')
 f.puts('.. _housing_characteristics:')
@@ -131,19 +107,15 @@ f.puts
 f.puts('Each parameter sampled by the national project is listed alphabetically below.')
 f.puts('For each, the following (if applicable) are reported based on the contents of `source_report.csv <https://github.com/NREL/resstock/blob/develop/project_national/resources/source_report.csv>`_:')
 f.puts
-f.puts('- **Description**')
-f.puts('- **Created by**')
-f.puts('- **Source**')
-f.puts('- **Assumption**')
+source_report_cols.each do |source_report_col|
+  f.puts("- **#{source_report_col}**")
+end
 f.puts
 f.puts("Additionally for each parameter, an **Arguments** table is populated (if applicable) based on the contents of `ResStockArguments's measure.xml file <https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments/measure.xml>`_:")
 f.puts
-f.puts('- **Name**')
-f.puts('- **Units**')
-f.puts('- **Required**')
-f.puts('- **Type**')
-f.puts('- **Choices**')
-f.puts('- **Description**')
+arguments_cols.each do |arguments_col|
+  f.puts("- **#{arguments_col}**")
+end
 f.puts
 f.puts('Each argument name is assigned using defined options found in the `options_lookup.tsv <https://github.com/NREL/resstock/blob/develop/resources/options_lookup.tsv>`_.')
 f.puts('Furthermore, all *optional* choice arguments include "auto" as one of the possible **Choices**.')
@@ -152,7 +124,9 @@ f.puts('Assigning "auto" means that downstream OS-HPXML default values (if appli
 f.puts('The **Description** field may include link(s) to applicable `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.')
 f.puts
 
-subsection_names = ['Description', 'Created by', 'Source', 'Assumption']
+lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
+
 source_report = CSV.read(File.join(File.dirname(__FILE__), '../../../../project_national/resources/source_report.csv'), headers: true)
 source_report.each do |row|
   parameter = row['Parameter']
@@ -166,7 +140,7 @@ source_report.each do |row|
   f.puts('-' * parameter.size)
   f.puts
 
-  subsection_names.each do |subsection_name|
+  source_report_cols.each do |subsection_name|
     # delim = nil
     delim = ';' if ['Source', 'Assumption'].include?(subsection_name)
     write_subsection(f, row, subsection_name, '*', delim)
@@ -192,31 +166,25 @@ source_report.each do |row|
   f.puts('.. list-table::')
   f.puts('   :header-rows: 1')
   f.puts
-  f.puts('   * - Name')
-  f.puts('     - Units')
-  f.puts('     - Required')
-  f.puts('     - Type')
-  f.puts('     - Choices')
-  f.puts('     - Description')
+  arguments_cols.each_with_index do |arguments_col, i|
+    line = "     - #{arguments_col}"
+    line = "   * - #{arguments_col}" if i == 0
+    f.puts(line)
+  end
 
-  r_arguments = r_arguments.sort_by &resstockarguments.keys.method(:index)
+  r_arguments = r_arguments.sort_by &resstockarguments_xml.keys.method(:index)
   r_arguments.each do |r_argument|
     f.puts("   * - ``#{r_argument}``")
-
-    units = resstockarguments[r_argument][0]
-    req = resstockarguments[r_argument][1]
-    type = resstockarguments[r_argument][2]
-    choices = resstockarguments[r_argument][3]
-    desc = resstockarguments[r_argument][4]
-    f.puts("     - #{units}")
-    f.puts("     - #{req}")
-    f.puts("     - #{type}")
+    f.puts("     - #{resstockarguments_xml[r_argument]['required']}")
+    f.puts("     - #{resstockarguments_xml[r_argument]['units']}")
+    f.puts("     - #{resstockarguments_xml[r_argument]['type']}")
+    choices = resstockarguments_xml[r_argument]['choices']
     if choices.empty?
       f.puts('     -')
     else
       f.puts("     - \"#{choices.join('", "')}\"")
     end
-    f.puts("     - #{desc}")
+    f.puts("     - #{resstockarguments_xml[r_argument]['description']}")
   end
   f.puts
 end
