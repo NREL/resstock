@@ -90,7 +90,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # Add Pumps
     add_pump(model, recirculation_loop, 'Recirculation Loop Pump', pump_gpm)
-    add_pump(model, heat_pump_loop, 'Heat Pump Loop Pump', pump_gpm)
+    add_pump(model, heat_pump_loop, 'Heat Pump Loop Pump', pump_gpm) # FIXME: this pump_gpm will likely be different
 
     # Add Setpoint Managers
     add_setpoint_manager(model, recirculation_loop, schedule, 'Recirculation Loop Setpoint Manager')
@@ -222,7 +222,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       dhw_recirc_supply_pipe.setPipeInsideDiameter(UnitConversions.convert(supply_diameter, 'in', 'm'))
       dhw_recirc_supply_pipe.setPipeLength(UnitConversions.convert(supply_length, 'ft', 'm'))
 
-      dhw_recirc_supply_pipe.addToNode(demand_inlet.outletModelObject.get.to_Node.get)
+      dhw_recirc_supply_pipe.addToNode(demand_inlet.outletModelObject.get.to_Node.get) # FIXME: check IDF branches to make sure everything looks ok
 
       # Return
       dhw_recirc_return_pipe = OpenStudio::Model::PipeIndoor.new(model)
@@ -242,7 +242,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     h_floor = hpxml_bldg.building_construction.average_ceiling_height
     l_bldg = 50 # FIXME: how to calculate this?
     has_double_loaded_corridor = hpxml_bldg.header.extension_properties['geometry_corridor_position']
-    n_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f # FIXME: should this be hpxml.buildings.size?
+    n_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f # FIXME: should this be hpxml.buildings.size? sounds like maybe the actual number of units
 
     l_bldg *= 2 if has_double_loaded_corridor
 
@@ -333,6 +333,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     capacity = 0
     storage_tank.setHeater1Capacity(capacity)
     storage_tank.setHeater2Capacity(capacity)
+    # TODO: set volume, height, deadband, control
 
     recirculation_loop.addSupplyBranchForComponent(storage_tank)
     heat_pump_loop.addDemandBranchForComponent(storage_tank)
@@ -347,21 +348,25 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     swing_tank.setName(name)
 
     capacity = 0
-    swing_tank.setHeater1Capacity(capacity)
+    swing_tank.setHeater1Capacity(capacity) # FIXME: this may have small element at the top
     swing_tank.setHeater2Capacity(capacity)
+    # TODO: set volume, height, deadband, control
 
     swing_tank.addToNode(loop.supplyOutletNode)
   end
 
   def add_heat_pump(model, fuel_type, loop, name)
     if fuel_type == HPXML::FuelTypeElectricity
-      heat_pump = OpenStudio::Model::WaterHeaterHeatPump.new(model)
+      heat_pump = OpenStudio::Model::WaterHeaterHeatPump.new(model) # FIXME: this may not be simulating succesfully currently
     elsif fuel_type == HPXML::FuelTypeNaturalGas
       heat_pump = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
       heat_pump.setFuelType(EPlus.fuel_type(fuel_type))
       heat_pump.setEndUseSubcategory('GHP 1')
       heat_pump.setNominalAuxiliaryElectricPower(0)
       heat_pump.setStandbyElectricPower(0)
+      # TODO: GAHP units would have a fixed discrete size
+      # based on how we determine "size", this object may be multiplied
+      # need to set tank properties before checking this
     end
     heat_pump.setName(name)
     loop.addSupplyBranchForComponent(heat_pump)
@@ -391,7 +396,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       'water heater EC_adj ProgramManager',
       'water heater ProgramManager',
       'water heater hpwh EC_adj ProgramManager',
-      'solar hot water Control'
+      'solar hot water Control' # FIXME: this may be a nonfactor if GAHP is only applied (sampled) for buildings without solar hw
     ]
     ems_pcm_to_remove += ems_pcm_to_remove.map { |e| e.gsub(' ', '_') }
     model.getEnergyManagementSystemProgramCallingManagers.each do |ems_pcm|
