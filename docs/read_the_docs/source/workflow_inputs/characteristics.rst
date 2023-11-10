@@ -1021,11 +1021,11 @@ Arguments
      - Type of fuel used by the cooking range/oven.
    * - ``cooking_range_oven_is_induction``
      - 
-     -
+     - "auto", "true", "false"
      - Whether the cooking range is induction. If not provided, the OS-HPXML default (see `HPXML Cooking Range/Oven <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooking-range-oven>`_) is used.
    * - ``cooking_range_oven_is_convection``
      - 
-     -
+     - "auto", "true", "false"
      - Whether the oven is convection. If not provided, the OS-HPXML default (see `HPXML Cooking Range/Oven <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooking-range-oven>`_) is used.
 
 .. _cooking_range_usage_level:
@@ -1320,7 +1320,7 @@ Arguments
      - Description
    * - ``simulation_control_daylight_saving_enabled``
      - 
-     -
+     - "auto", "true", "false"
      - Whether to use daylight saving. If not provided, the OS-HPXML default (see `HPXML Building Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-building-site>`_) is used.
    * - ``site_zip_code``
      - 
@@ -2739,7 +2739,7 @@ Arguments
      - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_, `Evaporative Cooler <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#evaporative-cooler>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
    * - ``cooling_system_is_ducted``
      - 
-     -
+     - "auto", "true", "false"
      - Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.
    * - ``cooling_system_crankcase_heater_watts``
      - W
@@ -3089,7 +3089,7 @@ Arguments
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``heat_pump_is_ducted``
      - 
-     -
+     - "auto", "true", "false"
      - Whether the heat pump is ducted or not. Only used for mini-split. It's assumed that air-to-air and ground-to-air are ducted, and packaged terminal heat pump and room air conditioner with reverse cycle are not ducted. If not provided, assumes not ducted.
    * - ``heat_pump_crankcase_heater_watts``
      - W
@@ -3333,7 +3333,7 @@ Arguments
      - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_, `Evaporative Cooler <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#evaporative-cooler>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
    * - ``cooling_system_is_ducted``
      - 
-     -
+     - "auto", "true", "false"
      - Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.
    * - ``heat_pump_type``
      - 
@@ -3928,7 +3928,7 @@ Arguments
      - Which facilities are connected for the drain water heat recovery. Use 'none' if there is no drain water heat recovery system.
    * - ``dwhr_equal_flow``
      - 
-     -
+     - "auto", "true", "false"
      - Whether the drain water heat recovery has equal flow.
    * - ``dwhr_efficiency``
      - Frac
@@ -6733,7 +6733,7 @@ Arguments
      - Number of dwelling units served (directly or indirectly) by the water heater. Must be 1 if single-family detached. Used to apportion water heater tank losses to the unit.
    * - ``water_heater_uses_desuperheater``
      - 
-     -
+     - "auto", "true", "false"
      - Requires that the dwelling unit has a air-to-air, mini-split, or ground-to-air heat pump or a central air conditioner or mini-split air conditioner. If not provided, assumes no desuperheater.
    * - ``water_heater_tank_model_type``
      - 

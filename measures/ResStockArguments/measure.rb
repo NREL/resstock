@@ -48,9 +48,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           choices = arg.choiceValues.map(&:to_s)
           choices.unshift(Constants.Auto)
           new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
+        when 'boolean'
+          choices = [Constants.Auto, 'true', 'false']
+          new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
         else
           new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
         end
+        new_arg.setDisplayName(arg.displayName.to_s)
         new_arg.setDescription(arg.description.to_s)
         new_arg.setUnits(arg.units.to_s)
         args << new_arg
