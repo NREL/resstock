@@ -268,11 +268,11 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     return supply_length, return_length
   end
 
-  def calc_recirc_supply_return_diameters(hpxml_bldg)
-    n_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f # FIXME: should this be hpxml.buildings.size?
+  def calc_recirc_supply_return_diameters(_hpxml_bldg)
+    # n_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f # FIXME: should this be hpxml.buildings.size?
 
-    supply_diameter = ((-7.525e-9 * n_units**4 + 2.82e-6 * n_units**3 + -4.207e-4 * n_units**2 + 0.04378 * n_units + 1.232) / 0.5 + 1).round * 0.5 # in    Diameter of supply recirc pipe (Per T-24 ACM* which is based on 2009 UPC pipe sizing)
-    # supply_diameter = 2.0 # in
+    # supply_diameter = ((-7.525e-9 * n_units**4 + 2.82e-6 * n_units**3 + -4.207e-4 * n_units**2 + 0.04378 * n_units + 1.232) / 0.5 + 1).round * 0.5 # in    Diameter of supply recirc pipe (Per T-24 ACM* which is based on 2009 UPC pipe sizing)
+    supply_diameter = 2.0 # in
     return_diameter = 0.75 # in
 
     return supply_diameter, return_diameter
@@ -301,7 +301,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     len_ins = 0
     len_unins = 0
     hpxml_buildings.each do |hpxml_bldg|
-      avg_num_bath += hpxml_bldg.building_construction.number_of_bathrooms / hpxml_buildings.size # FIXME: hpxml.buildings.size or total units?
+      avg_num_bath += hpxml_bldg.building_construction.number_of_bathrooms / hpxml_buildings.size
       avg_ffa += hpxml_bldg.building_construction.conditioned_floor_area / hpxml_buildings.size
     end
 
