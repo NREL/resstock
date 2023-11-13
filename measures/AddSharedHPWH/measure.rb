@@ -392,14 +392,21 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
   end
 
   def remove_loops(model)
+    plant_loop_to_remove = [
+      'dhw loop',
+      'solar hot water loop'
+    ]
+    plant_loop_to_remove += plant_loop_to_remove.map { |p| p.gsub(' ', '_') }
     model.getPlantLoops.each do |plant_loop|
-      plant_loop.remove if plant_loop.name.to_s.include?('dhw_loop')
-      plant_loop.remove if plant_loop.name.to_s.include?('solar_hot_water_loop')
+      if plant_loop_to_remove.select { |p| plant_loop.name.to_s.include?(p) }.size == 0
+        next
+      end
+
+      plant_loop.remove
     end
   end
 
   def remove_ems(model)
-    # TODO: jeff to look into EC_adj
     ems_pcm_to_remove = [
       'water heater EC_adj ProgramManager',
       'water heater ProgramManager',
