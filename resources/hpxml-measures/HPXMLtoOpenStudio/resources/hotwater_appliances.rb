@@ -340,8 +340,9 @@ class HotWaterAndAppliances
           if dist_pump_design_level.nil?
             dist_pump_design_level = fixtures_schedule_obj.calc_design_level_from_daily_kwh(dist_pump_annual_kwh / 365.0)
           end
-          dist_pump = add_electric_equipment(model, Constants.ObjectNameHotWaterRecircPump, conditioned_space, dist_pump_design_level * gpd_frac, 0.0, 0.0, fixtures_schedule)
-          if not dist_pump.nil?
+          if dist_pump_design_level * gpd_frac != 0
+            cnt = model.getElectricEquipments.select { |e| e.endUseSubcategory.start_with? Constants.ObjectNameHotWaterRecircPump }.size # Ensure unique meter for each water heater
+            dist_pump = add_electric_equipment(model, "#{Constants.ObjectNameHotWaterRecircPump}#{cnt + 1}", conditioned_space, dist_pump_design_level * gpd_frac, 0.0, 0.0, fixtures_schedule)
             dist_pump.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
           end
         end

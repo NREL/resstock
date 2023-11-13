@@ -281,13 +281,20 @@ class HVAC
     # Supplemental Heating Coil
     htg_supp_coil = create_supp_heating_coil(model, obj_name, heat_pump)
 
+    # Site Ground Temperature Undisturbed
+    xing = OpenStudio::Model::SiteGroundTemperatureUndisturbedXing.new(model)
+    xing.setSoilSurfaceTemperatureAmplitude1(UnitConversions.convert(weather.data.DeepGroundSurfTempAmp1, 'deltaf', 'deltac'))
+    xing.setSoilSurfaceTemperatureAmplitude2(UnitConversions.convert(weather.data.DeepGroundSurfTempAmp2, 'deltaf', 'deltac'))
+    xing.setPhaseShiftofTemperatureAmplitude1(weather.data.DeepGroundPhaseShiftTempAmp1)
+    xing.setPhaseShiftofTemperatureAmplitude2(weather.data.DeepGroundPhaseShiftTempAmp2)
+
     # Ground Heat Exchanger
-    ground_heat_exch_vert = OpenStudio::Model::GroundHeatExchangerVertical.new(model)
+    ground_heat_exch_vert = OpenStudio::Model::GroundHeatExchangerVertical.new(model, xing)
     ground_heat_exch_vert.setName(obj_name + ' exchanger')
     ground_heat_exch_vert.setBoreHoleRadius(UnitConversions.convert(hp_ap.bore_diameter / 2.0, 'in', 'm'))
     ground_heat_exch_vert.setGroundThermalConductivity(UnitConversions.convert(ground_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
     ground_heat_exch_vert.setGroundThermalHeatCapacity(UnitConversions.convert(ground_conductivity / hp_ap.ground_diffusivity, 'Btu/(ft^3*F)', 'J/(m^3*K)'))
-    ground_heat_exch_vert.setGroundTemperature(UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'C'))
+    ground_heat_exch_vert.setGroundTemperature(UnitConversions.convert(weather.data.DeepGroundAnnualTemp, 'F', 'C'))
     ground_heat_exch_vert.setGroutThermalConductivity(UnitConversions.convert(hp_ap.grout_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
     ground_heat_exch_vert.setPipeThermalConductivity(UnitConversions.convert(hp_ap.pipe_cond, 'Btu/(hr*ft*R)', 'W/(m*K)'))
     ground_heat_exch_vert.setPipeOutDiameter(UnitConversions.convert(hp_ap.pipe_od, 'in', 'm'))
@@ -302,10 +309,10 @@ class HVAC
     for i in 0..(hp_ap.GSHP_G_Functions[0].size - 1)
       ground_heat_exch_vert.addGFunction(hp_ap.GSHP_G_Functions[0][i], hp_ap.GSHP_G_Functions[1][i])
     end
-    kusuda = ground_heat_exch_vert.undisturbedGroundTemperatureModel.to_SiteGroundTemperatureUndisturbedKusudaAchenbach.get
-    kusuda.setSoilThermalConductivity(ground_heat_exch_vert.groundThermalConductivity.get)
-    kusuda.setSoilSpecificHeat(ground_heat_exch_vert.groundThermalHeatCapacity.get / kusuda.soilDensity)
-    kusuda.setAverageSoilSurfaceTemperature(ground_heat_exch_vert.groundTemperature.get)
+    xing = ground_heat_exch_vert.undisturbedGroundTemperatureModel.to_SiteGroundTemperatureUndisturbedXing.get
+    xing.setSoilThermalConductivity(ground_heat_exch_vert.groundThermalConductivity.get)
+    xing.setSoilSpecificHeat(ground_heat_exch_vert.groundThermalHeatCapacity.get / xing.soilDensity)
+    xing.setAverageSoilSurfaceTemperature(ground_heat_exch_vert.groundTemperature.get)
 
     # Plant Loop
     plant_loop = OpenStudio::Model::PlantLoop.new(model)
@@ -3345,14 +3352,14 @@ class HVAC
   def self.set_gshp_assumptions(heat_pump, weather)
     hp_ap = heat_pump.additional_properties
 
-    hp_ap.design_chw = [85.0, weather.design.CoolingDrybulb - 15.0, weather.data.AnnualAvgDrybulb + 10.0].max # Temperature of water entering indoor coil,use 85F as lower bound
+    hp_ap.design_chw = [85.0, weather.design.CoolingDrybulb - 15.0, weather.data.DeepGroundAnnualTemp + 10.0].max # Temperature of water entering indoor coil,use 85F as lower bound
     hp_ap.design_delta_t = 10.0
     hp_ap.fluid_type = Constants.FluidPropyleneGlycol
     hp_ap.frac_glycol = 0.3
     if hp_ap.fluid_type == Constants.FluidWater
-      hp_ap.design_hw = [45.0, weather.design.HeatingDrybulb + 35.0, weather.data.AnnualAvgDrybulb - 10.0].max # Temperature of fluid entering indoor coil, use 45F as lower bound for water
+      hp_ap.design_hw = [45.0, weather.design.HeatingDrybulb + 35.0, weather.data.DeepGroundAnnualTemp - 10.0].max # Temperature of fluid entering indoor coil, use 45F as lower bound for water
     else
-      hp_ap.design_hw = [35.0, weather.design.HeatingDrybulb + 35.0, weather.data.AnnualAvgDrybulb - 10.0].min # Temperature of fluid entering indoor coil, use 35F as upper bound
+      hp_ap.design_hw = [35.0, weather.design.HeatingDrybulb + 35.0, weather.data.DeepGroundAnnualTemp - 10.0].min # Temperature of fluid entering indoor coil, use 35F as upper bound
     end
     hp_ap.ground_diffusivity = 0.0208
     hp_ap.grout_conductivity = 0.4 # Btu/h-ft-R
