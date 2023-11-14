@@ -26,7 +26,7 @@ def write_subsection(f, row, name, sc, delim)
     items = []
     entries = entry.split(delim).map(&:strip)
     entries.each do |entry|
-      if entry.start_with?(/\[\d\]/)
+      if entry.start_with?(/\[\d+\]/)
         item = "  - \\#{entry}"
       else
         item = "- \\#{entry}"
@@ -104,24 +104,31 @@ f.puts
 f.puts('Housing Characteristics')
 f.puts('=======================')
 f.puts
-f.puts('Each parameter sampled by the national project is listed alphabetically below.')
-f.puts('For each, the following (if applicable) are reported based on the contents of `source_report.csv <https://github.com/NREL/resstock/blob/develop/project_national/resources/source_report.csv>`_:')
+f.puts('Each parameter sampled by the national project is listed alphabetically as its own subsection below.')
+f.puts('For each parameter, the following (if applicable) are reported based on the contents of the `source_report.csv <https://github.com/NREL/resstock/blob/develop/project_national/resources/source_report.csv>`_:')
 f.puts
 source_report_cols.each do |source_report_col|
   f.puts("- **#{source_report_col}**")
 end
 f.puts
-f.puts("Additionally for each parameter, an **Arguments** table is populated (if applicable) based on the contents of `ResStockArguments's measure.xml file <https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments/measure.xml>`_:")
+f.puts('Additionally, for each parameter an **Arguments** table is populated (if applicable) based on the contents of `ResStockArguments <https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments>`_ and `BuildResidentialHPXML <https://github.com/NREL/resstock/blob/develop/resources/hpxml-measures/BuildResidentialHPXML>`_ measure.xml files.')
 f.puts
 arguments_cols.each do |arguments_col|
-  f.puts("- **#{arguments_col}**")
+  if ['Name', 'Required', 'Type'].include?(arguments_col)
+    f.puts("- **#{arguments_col}** [#]_")
+  else
+    f.puts("- **#{arguments_col}**")
+  end
 end
 f.puts
-f.puts('Each argument name is assigned using defined options found in the `options_lookup.tsv <https://github.com/NREL/resstock/blob/develop/resources/options_lookup.tsv>`_.')
-f.puts('Furthermore, all *optional* choice arguments include "auto" as one of the possible **Choices**.')
-f.puts('Some *optional* double/integer/string/bool arguments can also be assigned a value of "auto" (e.g., ``site_ground_conductivity``).')
+f.puts('.. [#] Each **Name** entry is an argument that is assigned using defined options from the `options_lookup.tsv <https://github.com/NREL/resstock/blob/develop/resources/options_lookup.tsv>`_.')
+f.puts('.. [#] May be "true" or "false".')
+f.puts('.. [#] May be "String", "Double", "Integer", "Boolean", or "Choice".')
+f.puts
+f.puts('Furthermore, all *optional* Choice arguments include "auto" as one of the possible **Choices**.')
+f.puts('Most *optional* String/Double/Integer/Boolean arguments can also be assigned a value of "auto" (e.g., ``site_ground_conductivity``).')
 f.puts('Assigning "auto" means that downstream OS-HPXML default values (if applicable) will be used.')
-f.puts('The **Description** field may include link(s) to applicable `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.')
+f.puts('When applicable, the **Description** field will include link(s) to `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.')
 f.puts
 
 lookup_file = File.join(resources_dir, 'options_lookup.tsv')

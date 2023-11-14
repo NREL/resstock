@@ -3,28 +3,31 @@
 Housing Characteristics
 =======================
 
-Each parameter sampled by the national project is listed alphabetically below.
-For each, the following (if applicable) are reported based on the contents of `source_report.csv <https://github.com/NREL/resstock/blob/develop/project_national/resources/source_report.csv>`_:
+Each parameter sampled by the national project is listed alphabetically as its own subsection below.
+For each parameter, the following (if applicable) are reported based on the contents of the `source_report.csv <https://github.com/NREL/resstock/blob/develop/project_national/resources/source_report.csv>`_:
 
 - **Description**
 - **Created by**
 - **Source**
 - **Assumption**
 
-Additionally for each parameter, an **Arguments** table is populated (if applicable) based on the contents of `ResStockArguments's measure.xml file <https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments/measure.xml>`_:
+Additionally, for each parameter an **Arguments** table is populated (if applicable) based on the contents of `ResStockArguments <https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments>`_ and `BuildResidentialHPXML <https://github.com/NREL/resstock/blob/develop/resources/hpxml-measures/BuildResidentialHPXML>`_ measure.xml files.
 
-- **Name**
-- **Required**
+- **Name** [#]_
+- **Required** [#]_
 - **Units**
-- **Type**
+- **Type** [#]_
 - **Choices**
 - **Description**
 
-Each argument name is assigned using defined options found in the `options_lookup.tsv <https://github.com/NREL/resstock/blob/develop/resources/options_lookup.tsv>`_.
-Furthermore, all *optional* choice arguments include "auto" as one of the possible **Choices**.
-Some *optional* double/integer/string/bool arguments can also be assigned a value of "auto" (e.g., ``site_ground_conductivity``).
+.. [#] Each **Name** entry is an argument that is assigned using defined options from the `options_lookup.tsv <https://github.com/NREL/resstock/blob/develop/resources/options_lookup.tsv>`_.
+.. [#] May be "true" or "false".
+.. [#] May be "String", "Double", "Integer", "Boolean", or "Choice".
+
+Furthermore, all *optional* Choice arguments include "auto" as one of the possible **Choices**.
+Most *optional* String/Double/Integer/Boolean arguments can also be assigned a value of "auto" (e.g., ``site_ground_conductivity``).
 Assigning "auto" means that downstream OS-HPXML default values (if applicable) will be used.
-The **Description** field may include link(s) to applicable `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.
+When applicable, the **Description** field will include link(s) to `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.
 
 .. _ahs_region:
 
@@ -1070,9 +1073,9 @@ Assumption
 
   - \[9] Census Division RECS with AK/HI separate coarsened to Census Division RECS
 
-- \[10] Census Division RECS to Census Region
+  - \[10] Census Division RECS to Census Region
 
-- \[11] Census Region to National
+  - \[11] Census Region to National
 
 - \Household sub-tsv : deps=['Geometry Building Type RECS', 'State' 'Tenure', 'Federal Poverty Level'] with the following fallback coarsening order
 
@@ -1624,7 +1627,7 @@ Assumption
 
   - \[9] Census Division RECS with AK/HI separate coarsened to Census Division RECS
 
-- \[10] Census Division RECS to Census Region
+  - \[10] Census Division RECS to Census Region
 
 
 Arguments
@@ -6166,9 +6169,9 @@ Assumption
 
   - \[9] Census Division RECS with AK/HI separate coarsened to Census Division RECS
 
-- \[10] Census Division RECS to Census Region
+  - \[10] Census Division RECS to Census Region
 
-- \[11] Census Region to National
+  - \[11] Census Region to National
 
 
 Arguments
@@ -7193,9 +7196,9 @@ Assumption
 
   - \[9] Census Division RECS with AK/HI separate coarsened to Census Division RECS
 
-- \[10] Census Division RECS to Census Region
+  - \[10] Census Division RECS to Census Region
 
-- \[11] Census Region to National
+  - \[11] Census Region to National
 
 
 Arguments
