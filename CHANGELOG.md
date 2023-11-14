@@ -12,6 +12,7 @@ Features
 - Add ability to calculate detailed utility bills based on a user-specified TSV file of paths to JSON utility rate tariff files ([#1109](https://github.com/NREL/resstock/pull/1109))
 - Update to OpenStudio v3.7.0 ([#1144](https://github.com/NREL/resstock/pull/1144))
 - Update to RECS 2020 V5 data files ([#1164](https://github.com/NREL/resstock/pull/1164))
+- Add variability in ground thermal conductivity ([#1165](https://github.com/NREL/resstock/pull/1165))
 
 Fixes
 - Set standard format for options_lookup ([#962](https://github.com/NREL/resstock/pull/962))
