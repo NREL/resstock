@@ -347,6 +347,26 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Whether the heat pump uses the existing system as backup.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('heating_setpoint_schedule', false)
+    arg.setDisplayName('Heating Setpoint: Schedule CSV File Path')
+    arg.setDescription('Absolute/relative path of csv file containing user-specified detailed heating setpoint schedule.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('cooling_setpoint_schedule', false)
+    arg.setDisplayName('Cooling Setpoint: Schedule CSV File Path')
+    arg.setDescription('Absolute/relative path of csv file containing user-specified detailed cooling setpoint schedule.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('water_heater_setpoint_schedule', false)
+    arg.setDisplayName('Water Heater Setpoint: Schedule CSV File Path')
+    arg.setDescription('Absolute/relative path of csv file containing user-specified detailed water heater setpoint schedule.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('battery_schedule', false)
+    arg.setDisplayName('Battery: Schedule CSV File Path')
+    arg.setDescription('Absolute/relative path of csv file containing user-specified detailed battery schedule.')
+    args << arg
+
     return args
   end
 
@@ -730,6 +750,29 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       rim_joist_assembly_r = assembly_exterior_r + assembly_interior_r
     end
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
+
+    # Detailed Schedules
+    schedules_filepaths = []
+
+    if args[:heating_setpoint_schedule].is_initialized
+      schedules_filepaths << args[:heating_setpoint_schedule].get
+    end
+
+    if args[:cooling_setpoint_schedule].is_initialized
+      schedules_filepaths << args[:cooling_setpoint_schedule].get
+    end
+
+    if args[:water_heater_setpoint_schedule].is_initialized
+      schedules_filepaths << args[:water_heater_setpoint_schedule].get
+    end
+
+    if args[:battery_schedule].is_initialized
+      schedules_filepaths << args[:battery_schedule].get
+    end
+
+    if !schedules_filepaths.empty?
+      args[:schedules_filepaths] = schedules_filepaths.join(',')
+    end
 
     args.each do |arg_name, arg_value|
       begin
