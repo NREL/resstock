@@ -1477,6 +1477,31 @@ Assumption
 
 Rows where sample size < 10 are replaced with aggregated values down-scaled from dep='State' to dep='Census Division RECS'
 
+.. _ground_thermal_conductivity:
+
+Ground Thermal Conductivity
+---------------------------
+
+Description
+***********
+
+The thermal conductivity (in Btu/hr-ft-F) of the ground using in foundation and geothermal heat pump heat transfer calculations.
+
+Created by
+**********
+
+sources/smu/tsv_maker.py
+
+Source
+******
+
+data from the SMU Geothermal Laboratory. The data is from the Thermal Conductivity Observation in Content Model Format dataset. The data is available at http://geothermal.smu.edu/static/DownloadFilesButtonPage.htm.
+
+Assumption
+**********
+
+The data obtained is from surveyed oil and gas well data.; The latitude and longitudes were assigned to counties and the data was joined to the ResStock spatial lookup tables. In this process, 1482 of 59332 samples did not have a FIPS match or did not have data and were dropped.; Due to limited data in climate zone 1A, data was pulled from samples in 1A plus Florida 2A.; Samples less than 0.5 Btu/hr-ft-F are assigned a value of 0.5 Btu/hr-ft-F. Samples greater than 2.6 Btu/hr-ft-F are assigned a value of 2.6 Btu/hr-ft-F.
+
 .. _hvac_cooling_efficiency:
 
 HVAC Cooling Efficiency
