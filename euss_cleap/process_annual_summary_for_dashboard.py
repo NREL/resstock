@@ -13,6 +13,8 @@ Technology improvements are gradiented by 10 options
 More information can be found here:
 https://oedi-data-lake.s3.amazonaws.com/nrel-pds-building-stock/end-use-load-profiles-for-us-building-stock/2022/EUSS_ResRound1_Technical_Documentation.pdf
 
+Note: since some packages have more failed sims than others, we should consider recalculating the sample_weight of valid samples. We did not reweight in this script.
+
 Created by: Lixi.Liu@nrel.gov
 Created on: Oct 4, 2022
 """
@@ -242,7 +244,8 @@ class SavingsExtraction:
         raise FileNotFoundError(f"Cannot locate file for pkg={pkg}")
 
     def load_results_baseline(self):
-        return self.load_file(0)
+        df = self.load_file(0)
+        return df
 
     def load_results_upgrade(self, pkgs: list):
 
@@ -408,9 +411,6 @@ class SavingsExtraction:
                         available_enduses
                     ].sum(axis=1) # savings
 
-                    # if end_uses == ["range_oven"]:
-                    #     breakpoint()
-
                     dfu2[fuel_col] -= delta  # changing baseline df
                     dfu2[total_col] -= delta
 
@@ -449,9 +449,6 @@ class SavingsExtraction:
                     (cond2 & ~cond), "build_existing_model.vacancy_status"
                 ].value_counts()
             )
-
-        # if end_uses == ["range_oven"]:
-        #     breakpoint()
 
         return dfu2
 
@@ -770,6 +767,8 @@ class SavingsExtraction:
             "build_existing_model.clothes_dryer",  #
             "build_existing_model.clothes_washer",
             "build_existing_model.cooking_range",
+            "build_existing_model.cooling_setpoint",  #
+            "build_existing_model.cooling_setpoint_offset_magnitude", #
             "build_existing_model.county",
             "build_existing_model.county_and_puma",
             "build_existing_model.dishwasher",
@@ -789,6 +788,9 @@ class SavingsExtraction:
             "build_existing_model.geometry_wall_type",  #
             "build_existing_model.has_pv",
             "build_existing_model.heating_fuel",  #
+            "build_existing_model.heating_fuel",  #
+            "build_existing_model.heating_setpoint",  #
+            "build_existing_model.heating_setpoint_offset_magnitude", #
             # 'build_existing_model.hot_water_fixtures',
             "build_existing_model.hvac_cooling_efficiency",  #
             "build_existing_model.hvac_cooling_partial_space_conditioning",
@@ -851,11 +853,97 @@ class SavingsExtraction:
         dfb = self.consolidate_number_of_building_units(dfb)
         dfb = self.consolidate_story(dfb)
         # dfb = self.consolidate_horizontal_location(dfb)
-        dfb = self.create_state_climate_zone(dfb)
+        # dfb = self.create_state_climate_zone(dfb)
+        dfb = self.get_appliance_locations(dfb)
 
         new_cols = [col for col in dfb.columns if col not in cols]
-
         return dfb, new_cols
+
+
+    def get_appliance_locations(self, dfb):
+        """
+        Water Heater Locations
+        - IECC zones 1-3, excluding 3A: “garage”, “living space”
+        - IECC zones 3A, 4-8, unknown: “basement - conditioned”, “basement - unconditioned”, “living space”
+        """
+        para = "build_existing_model.water_heater_location"
+        dfb[para] = "None" 
+
+        dfb.loc[dfb["build_existing_model.water_heater_in_unit"]=="Yes", para] = "Living Space" 
+        cond_cz = dfb["build_existing_model.ashrae_iecc_climate_zone_2004"].isin(["1A", "2A", "2B", "3B", "3C"])
+        cond1 = cond_cz & (dfb["build_existing_model.geometry_garage"]!="None")
+        dfb.loc[cond1, para] = "Nonliving Space" # garage
+
+        cond2 = ~cond_cz & (dfb["build_existing_model.geometry_foundation_type"].isin(["Unheated Basement"]))
+        dfb.loc[cond2, para] = "Nonliving Space" # unheated basement
+        
+        # Dryer Location: auto to OS-HPXML default: Living Space
+        """
+        Heating system locations
+        defaults based on the distribution system:
+        - none: “conditioned space”
+        - air: supply duct location with the largest area, otherwise “conditioned space”
+        - hydronic: same default logic as HPXML Water Heating Systems
+        - dse: “conditioned space” if FractionHeatLoadServed is 1, otherwise “unconditioned space”
+        """
+
+        para = "build_existing_model.heating_location"
+        dfb.loc[dfb["build_existing_model.hvac_heating_type_and_fuel"]=="None", para] = "None"
+        # hydronic
+        cond = dfb["build_existing_model.hvac_heating_type_and_fuel"].isin([
+            "Electricity Electric Boiler",
+            "Fuel Oil Fuel Boiler",
+            "Natural Gas Fuel Boiler",
+            "Other Fuel Fuel Boiler",
+            "Propane Fuel Boiler",
+            "Electricity Shared Heating",
+            "Fuel Oil Shared Heating",
+            "Natural Gas Shared Heating",
+            "Other Fuel Shared Heating",
+            "Propane Shared Heating",
+            ])
+        dfb.loc[cond, para] = "Living Space"
+        dfb.loc[(cond & cond1), para] = "Nonliving Space" # garage
+        dfb.loc[(cond & cond2), para] = "Nonliving Space" # unheated basement
+
+
+        # air - based on ducts
+        cond3 = ~(cond | (dfb["build_existing_model.hvac_heating_type_and_fuel"]=="None"))
+        dfb.loc[cond3, para] = dfb.loc[cond3, [
+            "build_existing_model.geometry_foundation_type",
+            "build_existing_model.geometry_attic_type",
+            "build_existing_model.geometry_garage",
+        ]].apply(lambda x: self._assign_duct_location_living(x), axis=1)
+
+        return dfb
+
+
+    @staticmethod
+    def _assign_duct_location_living(x):
+        """ Duplicating logics of primary duct location from
+        https://github.com/NREL/OpenStudio-HPXML/blob/e96a47e70cb7070ac5baf4969dc4907b130a6e0a/HPXMLtoOpenStudio/resources/hvac.rb#L3665-L3684
+
+        Secondary duct location is always Living Space
+        """
+
+        if x["build_existing_model.geometry_foundation_type"]=="Heated Basement":
+            return "Living Space"
+        if x["build_existing_model.geometry_foundation_type"]=="Unheated Basement":
+            return "Nonliving Space"
+        if x["build_existing_model.geometry_foundation_type"]=="Heated Crawlspace":
+            return "Nonliving Space" # not in ResStock
+        if x["build_existing_model.geometry_foundation_type"]=="Vented Crawlspace":
+            return "Nonliving Space"
+        if x["build_existing_model.geometry_foundation_type"]=="Unvented Crawlspace":
+            return "Nonliving Space"
+        if x["build_existing_model.geometry_attic_type"]=="Vented Attic":
+            return "Nonliving Space"
+        if x["build_existing_model.geometry_attic_type"]=="Unvented Attic":
+            return "Nonliving Space"
+        if x["build_existing_model.geometry_garage"]!="None":
+            return "Nonliving Space"
+        return "Living Space"
+
 
     def get_data_baseline(self):
         """Extract technology savings based on input pkg lists
