@@ -2877,10 +2877,19 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         end
 
       elsif object.to_HeatPumpAirToWaterFuelFiredHeating.is_initialized
-        object = object.to_HeatPumpAirToWaterFuelFiredHeating.get
-        fuel = object.fuelType
-        return { [FT::Elec, EUT::HotWater] => ['Fuel-fired Absorption HeatPump Electricity Energy'],
-                 [to_ft[fuel], EUT::HotWater] => ['Fuel-fired Absorption HeatPump Fuel Energy'] }
+        is_combi_hp = false
+        if object.additionalProperties.getFeatureAsBoolean('IsCombiHP').is_initialized
+          is_combi_hp = object.additionalProperties.getFeatureAsBoolean('IsCombiHP').get
+        end
+        if not is_combi_hp
+          fuel = object.to_HeatPumpAirToWaterFuelFiredHeating.get.fuelType
+          return { [FT::Elec, EUT::HotWater] => ['Fuel-fired Absorption HeatPump Electricity Energy'],
+                   [to_ft[fuel], EUT::HotWater] => ['Fuel-fired Absorption HeatPump Fuel Energy'] }
+        else
+          fuel = object.to_HeatPumpAirToWaterFuelFiredHeating.get.fuelType
+          return { [FT::Elec, EUT::Heating] => ['Fuel-fired Absorption HeatPump Electricity Energy'],
+                   [to_ft[fuel], EUT::Heating] => ['Fuel-fired Absorption HeatPump Fuel Energy'] }
+        end
 
       end
 

@@ -57,7 +57,6 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # Combi
     has_boiler = hpxml_bldg.heating_systems.select { |heating_system| heating_system.heating_system_type == HPXML::HVACTypeBoiler }.size > 0
-    # has_boiler = false # FIXME: E+ crash (on space_heat_loop.addSupplyBranchForComponent(storage_tank) unless space_heat_loop.nil?) when commented out
 
     # TODO
     # 1 Remove any existing WHs and associated plant loops. Keep WaterUseEquipment objects.
@@ -101,11 +100,21 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     add_setpoint_manager(model, heat_pump_loop, schedule, 'Heat Pump Loop Setpoint Manager', 'Temperature')
 
     # Add Tanks
-    storage_tank = add_storage_tank(model, recirculation_loop, heat_pump_loop, 'Main Storage Tank')
+    storage_tank = add_storage_tank(model, recirculation_loop, heat_pump_loop, has_boiler, 'Main Storage Tank')
     add_swing_tank(model, recirculation_loop, 'Swing Tank')
 
     # Add Heat Pump
     heat_pump = add_heat_pump(model, shared_hpwh_fuel_type, heat_pump_loop, 'Heat Pump Water Heater')
+
+    # HPWH provides space heating
+    if has_boiler
+      # Re-connect CoilHeatingWaterBaseboards
+      model.getCoilHeatingWaterBaseboards.each do |chwb|
+        heat_pump_loop.addDemandBranchForComponent(chwb)
+      end
+
+      apply_combi(model, heat_pump_loop, storage_tank)
+    end
 
     # Add Availability Manager
     hot_node = heat_pump.outletModelObject.get.to_Node.get
@@ -117,18 +126,38 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       recirculation_loop.addDemandBranchForComponent(wuc)
     end
 
-    # Re-connect CoilHeatingWaterBaseboards
-    if has_boiler
-      model.getCoilHeatingWaterBaseboards.each do |chwb|
-        heat_pump_loop.addDemandBranchForComponent(chwb)
-      end
-    end
-
     # Remove Existing
     remove_loops(model)
     remove_ems(model)
 
     return true
+  end
+
+  def apply_combi(model, heat_pump_loop, storage_tank)
+    # Clone the heat pump loop
+    # Zero out the pump (?)
+    # The storage tank goes on the demand side of this (cloned) loop
+    # What about all the apply_combi_system_EMS stuff?
+
+    heat_pump_loop_hw = heat_pump_loop.clone(model).to_PlantLoop.get
+    heat_pump_loop_hw.setName('Heat Pump Loop HW')
+
+    heat_pump_hw = nil
+    heat_pump_loop_hw.supplyComponents.each do |supply_component|
+      if supply_component.to_HeatPumpAirToWaterFuelFiredHeating.is_initialized
+        heat_pump_hw = supply_component.to_HeatPumpAirToWaterFuelFiredHeating.get
+      end
+      next unless supply_component.to_PumpConstantSpeed.is_initialized
+
+      pump_hw = supply_component.to_PumpConstantSpeed.get
+      pump_hw.setRatedPowerConsumption(0.0)
+    end
+
+    heat_pump_hw.setName('Heat Pump Water Heater HW')
+    heat_pump_hw.additionalProperties.setFeature('IsCombiHP', true) # Used by reporting measure
+    storage_tank.additionalProperties.setFeature('IsCombiHP', true) # Used by reporting measure
+
+    heat_pump_loop_hw.addDemandBranchForComponent(storage_tank)
   end
 
   def add_loop(model, name)
@@ -347,7 +376,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     manager.addToNode(loop.supplyOutletNode)
   end
 
-  def add_storage_tank(model, recirculation_loop, heat_pump_loop, name)
+  def add_storage_tank(model, recirculation_loop, heat_pump_loop, has_boiler, name)
     storage_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     storage_tank.setName(name)
 
@@ -357,7 +386,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # TODO: set volume, height, deadband, control
 
     recirculation_loop.addSupplyBranchForComponent(storage_tank)
-    heat_pump_loop.addDemandBranchForComponent(storage_tank)
+    heat_pump_loop.addDemandBranchForComponent(storage_tank) if !has_boiler # if there's a boiler, we assume combi system; storage tank instead added to cloned loop
 
     return storage_tank
   end
