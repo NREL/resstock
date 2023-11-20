@@ -49,11 +49,15 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # Extension properties
     hpxml_bldg = hpxml.buildings[0]
-    shared_hpwh = hpxml_bldg.header.extension_properties['shared_hpwh']
-    if shared_hpwh == 'none'
+    shared_hpwh_fuel_type = hpxml_bldg.header.extension_properties['shared_hpwh_fuel_type']
+    if shared_hpwh_fuel_type == 'none'
       runner.registerAsNotApplicable('Building does not have shared HPWH. Skipping AddSharedHPWH measure ...')
       return true
     end
+
+    # Combi
+    # has_boiler = hpxml_bldg.heating_systems.select { |heating_system| heating_system.heating_system_type == HPXML::HVACTypeBoiler }.size > 0
+    has_boiler = false # FIXME: E+ crash (on space_heat_loop.addSupplyBranchForComponent(storage_tank) unless space_heat_loop.nil?) when commented out
 
     # TODO
     # 1 Remove any existing WHs and associated plant loops. Keep WaterUseEquipment objects.
@@ -72,6 +76,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Add Loops
     recirculation_loop = add_loop(model, 'Recirculation Loop')
     heat_pump_loop = add_loop(model, 'Heat Pump Loop')
+    space_heat_loop = add_loop(model, 'Space Heat Loop') if has_boiler
 
     # Add Adiabatic Pipes
     recirculation_loop_demand_inlet, recirculation_loop_demand_bypass = add_adiabatic_pipes(model, recirculation_loop)
@@ -91,17 +96,18 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Add Pumps
     add_pump(model, recirculation_loop, 'Recirculation Loop Pump', pump_gpm)
     add_pump(model, heat_pump_loop, 'Heat Pump Loop Pump', pump_gpm) # FIXME: this pump_gpm will likely be different
+    add_pump(model, space_heat_loop, 'Space Heat Loop Pump', pump_gpm)
 
     # Add Setpoint Managers
     add_setpoint_manager(model, recirculation_loop, schedule, 'Recirculation Loop Setpoint Manager')
     add_setpoint_manager(model, heat_pump_loop, schedule, 'Heat Pump Loop Setpoint Manager', 'Temperature')
 
     # Add Tanks
-    storage_tank = add_storage_tank(model, recirculation_loop, heat_pump_loop, 'Main Storage Tank')
+    storage_tank = add_storage_tank(model, recirculation_loop, heat_pump_loop, space_heat_loop, 'Main Storage Tank')
     add_swing_tank(model, recirculation_loop, 'Swing Tank')
 
     # Add Heat Pump
-    heat_pump = add_heat_pump(model, shared_hpwh, heat_pump_loop, 'Heat Pump Water Heater')
+    heat_pump = add_heat_pump(model, shared_hpwh_fuel_type, heat_pump_loop, 'Heat Pump Water Heater')
 
     # Add Availability Manager
     hot_node = heat_pump.outletModelObject.get.to_Node.get
@@ -111,6 +117,13 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Re-connect WaterUseConections
     model.getWaterUseConnectionss.each do |wuc|
       recirculation_loop.addDemandBranchForComponent(wuc)
+    end
+
+    # Re-connect CoilHeatingWaterBaseboards
+    if !space_heat_loop.nil?
+      model.getCoilHeatingWaterBaseboards.each do |chwb|
+        space_heat_loop.addDemandBranchForComponent(chwb)
+      end
     end
 
     # Remove Existing
@@ -320,6 +333,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
   end
 
   def add_pump(model, loop, name, pump_gpm)
+    return if loop.nil?
+
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
     pump.setName(name)
     pump.setRatedFlowRate(UnitConversions.convert(pump_gpm, 'gal/min', 'm^3/s')) # FIXME: correct setter?
@@ -334,7 +349,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     manager.addToNode(loop.supplyOutletNode)
   end
 
-  def add_storage_tank(model, recirculation_loop, heat_pump_loop, name)
+  def add_storage_tank(model, recirculation_loop, heat_pump_loop, space_heat_loop, name)
     storage_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     storage_tank.setName(name)
 
@@ -345,6 +360,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     recirculation_loop.addSupplyBranchForComponent(storage_tank)
     heat_pump_loop.addDemandBranchForComponent(storage_tank)
+    space_heat_loop.addSupplyBranchForComponent(storage_tank) unless space_heat_loop.nil?
 
     return storage_tank
   end
@@ -394,7 +410,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
   def remove_loops(model)
     plant_loop_to_remove = [
       'dhw loop',
-      'solar hot water loop'
+      'solar hot water loop',
+      'boiler hydronic heat loop'
     ]
     plant_loop_to_remove += plant_loop_to_remove.map { |p| p.gsub(' ', '_') }
     model.getPlantLoops.each do |plant_loop|

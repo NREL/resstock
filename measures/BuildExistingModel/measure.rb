@@ -342,9 +342,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     geometry_corridor_position = bldg_data['Corridor']
 
     # AddSharedHPWH measure
-    # shared_hpwh = 'none'
-    # shared_hpwh = HPXML::FuelTypeElectricity
-    shared_hpwh = HPXML::FuelTypeNaturalGas
+    # shared_hpwh_fuel_type = 'none'
+    # shared_hpwh_fuel_type = HPXML::FuelTypeElectricity
+    shared_hpwh_fuel_type = HPXML::FuelTypeNaturalGas
 
     whole_sfa_mf_building = false
     if geometry_building_num_units < 5
@@ -397,7 +397,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       additional_properties << "geometry_building_num_units=#{geometry_building_num_units}"
       additional_properties << "geometry_num_floors_above_grade=#{geometry_num_floors_above_grade}"
       additional_properties << "geometry_corridor_position=#{['Double-Loaded Interior', 'Double Exterior'].include?(geometry_corridor_position)}"
-      additional_properties << "shared_hpwh=#{shared_hpwh}"
+      additional_properties << "shared_hpwh_fuel_type=#{shared_hpwh_fuel_type}"
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       # Get software program used and version
