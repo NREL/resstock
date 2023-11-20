@@ -14,12 +14,12 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'Replace in-unit water heaters with shared heat pump water heater.'
+    return 'Replace in-unit water heaters and boilers with shared heat pump water heater.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return 'Remove all existing domestic/solar hot water loops and associated EMS objects. Add new recirculation loop with main storage and swing tanks on the supply side, and existing water use connections on the demand side. Add new heat pump loop with main storage tank on the demand side, and heat pump water heater on the supply side.'
+    return 'Remove all existing domestic/solar/boiler hot water loops and associated EMS objects. Add new recirculation loop with main storage and swing tanks on the supply side, and existing water use connections on the demand side. Add new heat pump loop with main storage tank on the demand side along with any space-heating baseboards, and heat pump water heater on the supply side.'
   end
 
   # define the arguments that the user will input
@@ -56,8 +56,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     # Combi
-    # has_boiler = hpxml_bldg.heating_systems.select { |heating_system| heating_system.heating_system_type == HPXML::HVACTypeBoiler }.size > 0
-    has_boiler = false # FIXME: E+ crash (on space_heat_loop.addSupplyBranchForComponent(storage_tank) unless space_heat_loop.nil?) when commented out
+    has_boiler = hpxml_bldg.heating_systems.select { |heating_system| heating_system.heating_system_type == HPXML::HVACTypeBoiler }.size > 0
+    # has_boiler = false # FIXME: E+ crash (on space_heat_loop.addSupplyBranchForComponent(storage_tank) unless space_heat_loop.nil?) when commented out
 
     # TODO
     # 1 Remove any existing WHs and associated plant loops. Keep WaterUseEquipment objects.
@@ -76,7 +76,6 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Add Loops
     recirculation_loop = add_loop(model, 'Recirculation Loop')
     heat_pump_loop = add_loop(model, 'Heat Pump Loop')
-    space_heat_loop = add_loop(model, 'Space Heat Loop') if has_boiler
 
     # Add Adiabatic Pipes
     recirculation_loop_demand_inlet, recirculation_loop_demand_bypass = add_adiabatic_pipes(model, recirculation_loop)
@@ -96,14 +95,13 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Add Pumps
     add_pump(model, recirculation_loop, 'Recirculation Loop Pump', pump_gpm)
     add_pump(model, heat_pump_loop, 'Heat Pump Loop Pump', pump_gpm) # FIXME: this pump_gpm will likely be different
-    add_pump(model, space_heat_loop, 'Space Heat Loop Pump', pump_gpm)
 
     # Add Setpoint Managers
     add_setpoint_manager(model, recirculation_loop, schedule, 'Recirculation Loop Setpoint Manager')
     add_setpoint_manager(model, heat_pump_loop, schedule, 'Heat Pump Loop Setpoint Manager', 'Temperature')
 
     # Add Tanks
-    storage_tank = add_storage_tank(model, recirculation_loop, heat_pump_loop, space_heat_loop, 'Main Storage Tank')
+    storage_tank = add_storage_tank(model, recirculation_loop, heat_pump_loop, 'Main Storage Tank')
     add_swing_tank(model, recirculation_loop, 'Swing Tank')
 
     # Add Heat Pump
@@ -120,9 +118,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     # Re-connect CoilHeatingWaterBaseboards
-    if !space_heat_loop.nil?
+    if has_boiler
       model.getCoilHeatingWaterBaseboards.each do |chwb|
-        space_heat_loop.addDemandBranchForComponent(chwb)
+        heat_pump_loop.addDemandBranchForComponent(chwb)
       end
     end
 
@@ -349,7 +347,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     manager.addToNode(loop.supplyOutletNode)
   end
 
-  def add_storage_tank(model, recirculation_loop, heat_pump_loop, space_heat_loop, name)
+  def add_storage_tank(model, recirculation_loop, heat_pump_loop, name)
     storage_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     storage_tank.setName(name)
 
@@ -360,7 +358,6 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     recirculation_loop.addSupplyBranchForComponent(storage_tank)
     heat_pump_loop.addDemandBranchForComponent(storage_tank)
-    space_heat_loop.addSupplyBranchForComponent(storage_tank) unless space_heat_loop.nil?
 
     return storage_tank
   end
@@ -424,11 +421,14 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
   end
 
   def remove_ems(model)
+    # ProgramCallingManagers / Programs
     ems_pcm_to_remove = [
       'water heater EC_adj ProgramManager',
       'water heater ProgramManager',
       'water heater hpwh EC_adj ProgramManager',
-      'solar hot water Control' # FIXME: this may be a nonfactor if GAHP is only applied (sampled) for buildings without solar hw
+      'solar hot water Control', # FIXME: this may be a nonfactor if GAHP is only applied (sampled) for buildings without solar hw
+      'boiler hydronic pump power program calling manager',
+      'boiler hydronic pump disaggregate program calling manager'
     ]
     ems_pcm_to_remove += ems_pcm_to_remove.map { |e| e.gsub(' ', '_') }
     model.getEnergyManagementSystemProgramCallingManagers.each do |ems_pcm|
@@ -442,6 +442,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       ems_pcm.remove
     end
 
+    # Sensors
     ems_sensor_to_remove = [
       'water heater energy',
       'water heater fan',
@@ -454,7 +455,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       'water heater tl',
       'water heater hpwh',
       'solar hot water Collector',
-      'solar hot water Tank'
+      'solar hot water Tank',
+      'boiler hydronic pump',
+      'boiler plr'
     ]
     ems_sensor_to_remove += ems_sensor_to_remove.map { |e| e.gsub(' ', '_') }
     model.getEnergyManagementSystemSensors.each do |ems_sensor|
@@ -463,6 +466,32 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       end
 
       ems_sensor.remove
+    end
+
+    # OutputVariables
+    ems_outvar_to_remove = [
+      'boiler hydronic pump disaggregate htg primary'
+    ]
+    ems_outvar_to_remove += ems_outvar_to_remove.map { |e| e.gsub(' ', '_') }
+    model.getEnergyManagementSystemOutputVariables.each do |ems_output_variable|
+      if ems_outvar_to_remove.select { |e| ems_output_variable.name.to_s.include?(e) }.size == 0
+        next
+      end
+
+      ems_output_variable.remove
+    end
+
+    # InternalVariables
+    ems_intvar_to_remove = [
+      'boiler hydronic pump rated mfr'
+    ]
+    ems_intvar_to_remove += ems_intvar_to_remove.map { |e| e.gsub(' ', '_') }
+    model.getEnergyManagementSystemInternalVariables.each do |ems_internal_variable|
+      if ems_intvar_to_remove.select { |e| ems_internal_variable.name.to_s.include?(e) }.size == 0
+        next
+      end
+
+      ems_internal_variable.remove
     end
   end
 

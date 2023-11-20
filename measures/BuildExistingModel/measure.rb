@@ -342,9 +342,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     geometry_corridor_position = bldg_data['Corridor']
 
     # AddSharedHPWH measure
-    # shared_hpwh_fuel_type = 'none'
+    shared_hpwh_fuel_type = 'none'
     # shared_hpwh_fuel_type = HPXML::FuelTypeElectricity
-    shared_hpwh_fuel_type = HPXML::FuelTypeNaturalGas
+    # shared_hpwh_fuel_type = HPXML::FuelTypeNaturalGas
 
     whole_sfa_mf_building = false
     if geometry_building_num_units < 5
