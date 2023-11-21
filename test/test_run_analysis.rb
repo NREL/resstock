@@ -27,6 +27,7 @@ class TestRunAnalysis < Minitest::Test
     expected_order = ['BuildExistingModel',
                       'ApplyUpgrade',
                       'HPXMLtoOpenStudio',
+                      'AddSharedHPWH',
                       'ReportSimulationOutput',
                       'ReportHPXMLOutput',
                       'ReportUtilityBills',
@@ -101,7 +102,6 @@ class TestRunAnalysis < Minitest::Test
       next if _expected_warning_message(message, 'Could not find state average fuel oil rate based on')
       next if _expected_warning_message(message, "Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       next if _expected_warning_message(message, 'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units. [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0]')
-      next if _expected_warning_message(message, 'Cannot currently handle an HPXML with multiple Building elements.') # FIXME: thrown by ReportUtilityBills?
 
       if !testing
         next if _expected_warning_message(message, 'Unable to find sql file at')
@@ -123,6 +123,7 @@ class TestRunAnalysis < Minitest::Test
         next if _expected_warning_message(message, 'Heating capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Fireplace]')
         next if _expected_warning_message(message, 'Heating capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/SpaceHeater]')
         next if _expected_warning_message(message, 'Backup heating capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[BackupType="integrated" or BackupSystemFuel]')
+        next if _expected_warning_message(message, 'Cannot currently calculate utility bills based on detailed electric rates for an HPXML with unit multipliers or multiple Building elements.')
       end
 
       flunk "Unexpected cli_output.log message found: #{message}"
