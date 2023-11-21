@@ -237,10 +237,9 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     args = get_arguments(runner, arguments(model), user_arguments)
 
-    output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
-
     hpxml_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
     hpxml_defaults_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
+    output_dir = File.dirname(hpxml_defaults_path)
     building_id = @model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
 
