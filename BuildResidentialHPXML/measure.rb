@@ -4156,6 +4156,10 @@ class HPXMLFile
       hpxml_bldg.header.heat_pump_sizing_methodology = args[:heat_pump_sizing_methodology].get
     end
 
+    if args[:hvac_distribution_adjust_blower_fan_efficiency].is_initialized
+      hpxml_bldg.header.adjust_blower_fan_efficiency = args[:hvac_distribution_adjust_blower_fan_efficiency].get
+    end
+
     if args[:hvac_distribution_use_maximum_airflow_rates].is_initialized
       hpxml_bldg.header.use_maximum_airflow_rates = args[:hvac_distribution_use_maximum_airflow_rates].get
     end
