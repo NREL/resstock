@@ -343,9 +343,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # AddSharedHPWH measure
 
-    # shared_hpwh_type = 'none'
+    shared_hpwh_type = 'none'
     # shared_hpwh_type = 'hpwh'
-    shared_hpwh_type = 'space-heating hpwh'
+    # shared_hpwh_type = 'space-heating hpwh'
 
     # shared_hpwh_fuel_type = HPXML::FuelTypeElectricity
     shared_hpwh_fuel_type = HPXML::FuelTypeNaturalGas

@@ -123,12 +123,12 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     # Add Heat Pump
-    heat_pump = add_heat_pump(model, shared_hpwh_fuel_type, heat_pump_loop, 'Heat Pump Water Heater')
+    heat_pump = add_heat_pump(model, shared_hpwh_fuel_type, heat_pump_loop, shared_hpwh_type, 'Heat Pump Water Heater')
 
     # HPWH provides space heating
     if shared_hpwh_type == 'space-heating hpwh'
-      if model.getCoilHeatingWaterBaseboards.size == 0 # no existing boiler(s)
-        # TODO: create the baseboards
+      if model.getCoilHeatingWaterBaseboards.size == 0 # no existing baseboards(s)
+        # TODO: create the baseboards? or should space-heating hpwh only be available if existing baseboards?
       end
 
       # Re-connect CoilHeatingWaterBaseboards
@@ -136,7 +136,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
         space_heating_loop.addDemandBranchForComponent(chwb)
       end
 
-      apply_combi(model, heat_pump_loop, storage_tank)
+      # disaggregate_heating_vs_how_water(model, heat_pump_loop, storage_tank) # FIXME: doesn't work if both distribution loops go through the source loop
     end
 
     # Add Availability Manager
@@ -409,21 +409,35 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     source_loop.addDemandBranchForComponent(hx)
   end
 
-  def add_heat_pump(model, fuel_type, loop, name)
+  def add_heat_pump(model, fuel_type, loop, shared_hpwh_type, name)
+    heat_pumps = []
+
     if fuel_type == HPXML::FuelTypeElectricity
       heat_pump = OpenStudio::Model::WaterHeaterHeatPump.new(model) # FIXME: this may not be simulating succesfully currently
+      heat_pumps << heat_pump
     elsif fuel_type == HPXML::FuelTypeNaturalGas
       heat_pump = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
       heat_pump.setFuelType(EPlus.fuel_type(fuel_type))
       heat_pump.setEndUseSubcategory('GHP 1')
       heat_pump.setNominalAuxiliaryElectricPower(0)
       heat_pump.setStandbyElectricPower(0)
+      heat_pumps << heat_pump
       # TODO: GAHP units would have a fixed discrete size
       # based on how we determine "size", this object may be multiplied
       # need to set tank properties before checking this
+
+      if shared_hpwh_type == 'space-heating hpwh'
+        n = 5
+        n.times.each do |_i|
+          heat_pumps << heat_pump.clone(model).to_HeatPumpAirToWaterFuelFiredHeating.get
+        end
+      end
     end
-    heat_pump.setName(name)
-    loop.addSupplyBranchForComponent(heat_pump)
+
+    heat_pumps.each do |heat_pump|
+      heat_pump.setName(name)
+      loop.addSupplyBranchForComponent(heat_pump)
+    end
 
     return heat_pump
   end
@@ -437,7 +451,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     loop.addAvailabilityManager(availability_manager)
   end
 
-  def apply_combi(model, heat_pump_loop, storage_tank)
+  def disaggregate_heating_vs_how_water(model, heat_pump_loop, storage_tank)
     # Clone the heat pump loop
     # Zero out the pump (?)
     # The storage tank goes on the demand side of this (cloned) loop
@@ -450,16 +464,14 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     heat_pump_loop_hw.supplyComponents.each do |supply_component|
       if supply_component.to_HeatPumpAirToWaterFuelFiredHeating.is_initialized
         heat_pump_hw = supply_component.to_HeatPumpAirToWaterFuelFiredHeating.get
+        heat_pump_hw.setName('Heat Pump Water Heater HW')
+        heat_pump_hw.additionalProperties.setFeature('IsCombiHP', true) # Used by reporting measure
       end
       next unless supply_component.to_PumpConstantSpeed.is_initialized
 
       pump_hw = supply_component.to_PumpConstantSpeed.get
       pump_hw.setRatedPowerConsumption(0.0)
     end
-
-    heat_pump_hw.setName('Heat Pump Water Heater HW')
-    heat_pump_hw.additionalProperties.setFeature('IsCombiHP', true) # Used by reporting measure
-    storage_tank.additionalProperties.setFeature('IsCombiHP', true) # Used by reporting measure
 
     heat_pump_loop_hw.addDemandBranchForComponent(storage_tank)
   end
