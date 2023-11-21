@@ -452,7 +452,11 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
 
   File.open(File.join(results_dir, 'cli_output.log'), 'a') do |f|
     all_cli_output.each do |cli_output|
-      f.puts(cli_output)
+      cli_output.split("\n").each do |line|
+        next if extra_output.select { |eo| line.include?(eo) }.size > 0
+
+        f.puts(line)
+      end
       f.puts
     end
   end
@@ -460,6 +464,14 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
   FileUtils.rm_rf(lib_dir) if !debug_arg
 
   return true
+end
+
+def extra_output
+  return [
+    'ExpandObjects',
+    'No expanded file generated.',
+    'RunEnergyPlus:'
+  ]
 end
 
 def create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)

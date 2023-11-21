@@ -55,8 +55,8 @@ class TestRunAnalysis < Minitest::Test
     File.readlines(cli_output_log).each do |message|
       next if message.strip.empty?
       next if message.include?('Building ID:')
-      next if message.include?('[openstudio.measure.OSRunner] <1> Cannot find current Workflow Step')
-      next if message.include?('[openstudio.model.Surface] <1> Initial area of other surface')
+      next if message.include?('[openstudio.measure.OSRunner] <Error> Cannot find current Workflow Step')
+      next if message.include?('[openstudio.model.Surface] <Error> Initial area of other surface')
       next if _expected_warning_message(message, 'No valid weather file defined in either the osm or osw.')
       next if _expected_warning_message(message, 'The model contains existing objects and is being reset.')
       next if _expected_warning_message(message, 'HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
