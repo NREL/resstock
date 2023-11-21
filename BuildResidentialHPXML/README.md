@@ -1794,7 +1794,7 @@ The rated efficiency value of the cooling system. Ignored for evaporative cooler
 
 **Cooling System: Cooling Compressor Type**
 
-The compressor type of the cooling system. Only applies to central air conditioner. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner'>Central Air Conditioner</a>) is used.
+The compressor type of the cooling system. Only applies to central air conditioner and mini-split. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner'>Central Air Conditioner</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner'>Mini-Split Air Conditioner</a>) is used.
 
 - **Name:** ``cooling_system_cooling_compressor_type``
 - **Type:** ``Choice``
@@ -2009,7 +2009,7 @@ The rated cooling efficiency value of the heat pump.
 
 **Heat Pump: Cooling Compressor Type**
 
-The compressor type of the heat pump. Only applies to air-to-air. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump'>Air-to-Air Heat Pump</a>) is used.
+The compressor type of the heat pump. Only applies to air-to-air and mini-split. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump'>Air-to-Air Heat Pump</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump'>Mini-Split Heat Pump</a>) is used.
 
 - **Name:** ``heat_pump_cooling_compressor_type``
 - **Type:** ``Choice``
@@ -2328,11 +2328,11 @@ The blower fan efficiency at maximum fan speed. Applies only to Furnace heating 
 
 <br/>
 
-**HVAC Distribution: Use Maximum Airflow Rates**
+**HVAC Distribution: Adjust Blower Fan Efficiency**
 
-Whether to use specified heating/cooling airflow rates as the maximum allowed.
+Whether to adjust the blower fan efficiency based on the provided W/cfm and airflow rates, and autosized airflow rates.
 
-- **Name:** ``hvac_distribution_use_maximum_airflow_rates``
+- **Name:** ``hvac_distribution_adjust_blower_fan_efficiency``
 - **Type:** ``Boolean``
 
 - **Required:** ``false``
@@ -2341,7 +2341,7 @@ Whether to use specified heating/cooling airflow rates as the maximum allowed.
 
 **HVAC Distribution: Heating Airflow Rate**
 
-The heating airflow rate. When enabled, this is the maximum allowable rate. Applies only to Furnace heating system, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default is used.
+The heating airflow rate. Applies only to Furnace heating system, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``hvac_distribution_heating_airflow_cfm``
 - **Type:** ``Double``
@@ -2354,12 +2354,23 @@ The heating airflow rate. When enabled, this is the maximum allowable rate. Appl
 
 **HVAC Distribution: Cooling Airflow Rate**
 
-The cooling airflow rate. When enabled, this is the maximum allowable rate. Applies only to central air conditioner and mini-split cooling systems, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default is used.
+The cooling airflow rate. Applies only to central air conditioner and mini-split cooling systems, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default is used.
 
 - **Name:** ``hvac_distribution_cooling_airflow_cfm``
 - **Type:** ``Double``
 
 - **Units:** ``CFM``
+
+- **Required:** ``false``
+
+<br/>
+
+**HVAC Distribution: Use Maximum Airflow Rates**
+
+Whether to use specified heating/cooling airflow rates as the maximum allowed.
+
+- **Name:** ``hvac_distribution_use_maximum_airflow_rates``
+- **Type:** ``Boolean``
 
 - **Required:** ``false``
 

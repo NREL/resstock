@@ -330,10 +330,12 @@ class Geometry
         HPXML::LocationCrawlspaceVented,
         HPXML::LocationGarage].include? location
       floor_area = hpxml_bldg.slabs.select { |s| s.interior_adjacent_to == location }.map { |s| s.area }.sum(0.0)
-      if location == HPXML::LocationGarage
-        height = 8.0
-      else
-        height = hpxml_bldg.foundation_walls.select { |w| w.interior_adjacent_to == location }.map { |w| w.height }.max
+      height = hpxml_bldg.foundation_walls.select { |w| w.interior_adjacent_to == location }.map { |w| w.height }.max
+      if height.nil? # No foundation walls, need to make assumption because HPXML Wall elements don't have a height
+        height = { HPXML::LocationBasementUnconditioned => 8,
+                   HPXML::LocationCrawlspaceUnvented => 3,
+                   HPXML::LocationCrawlspaceVented => 3,
+                   HPXML::LocationGarage => 8 }[location]
       end
       return floor_area * height
     elsif [HPXML::LocationAtticUnvented,
