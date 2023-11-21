@@ -496,9 +496,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
               HPXML::LocationExteriorWall,
               HPXML::LocationUnderSlab]
       keys.each do |key|
-        next if @model.getScheduleConstants.select { |o| o.name.to_s == key }.size == 0
+        schedules = @model.getScheduleConstants.select { |sch| sch.additionalProperties.getFeatureAsString('ObjectType').to_s == key }
+        next if schedules.empty?
 
-        result << OpenStudio::IdfObject.load("Output:Variable,#{key},Schedule Value,#{args[:timeseries_frequency]};").get
+        result << OpenStudio::IdfObject.load("Output:Variable,#{schedules[0].name.to_s.upcase},Schedule Value,#{args[:timeseries_frequency]};").get
       end
       # Also report thermostat setpoints
       heated_zones.each do |heated_zone|
@@ -560,9 +561,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       args[:use_dview_format] = false
     end
 
-    output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
-
     hpxml_defaults_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
+    output_dir = File.dirname(hpxml_defaults_path)
     building_id = @model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
 
@@ -605,7 +605,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     # Retrieve outputs
-    outputs = get_outputs(runner, args)
+    outputs = get_outputs(runner, args, building_id)
 
     if not check_for_errors(runner, outputs)
       return false
@@ -709,7 +709,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     return ts_output
   end
 
-  def get_outputs(runner, args)
+  def get_outputs(runner, args, building_id)
     outputs = {}
 
     args = setup_timeseries_includes(@emissions, args)
@@ -1066,37 +1066,67 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     # Zone temperatures
     if args[:include_timeseries_zone_temperatures]
-      zone_names = []
-      scheduled_temperature_names = []
-      @model.getThermalZones.each do |zone|
-        if zone.floorArea > 1
-          zone_names << zone.name.to_s.upcase
-        end
+      def sanitize_name(name)
+        return name.gsub('_', ' ').split.map(&:capitalize).join(' ')
       end
-      @model.getScheduleConstants.each do |schedule|
-        next unless [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace,
-                     HPXML::LocationOtherHousingUnit, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab].include? schedule.name.to_s
 
-        scheduled_temperature_names << schedule.name.to_s.upcase
+      # Zone temperatures
+      zone_names = []
+      @model.getThermalZones.each do |zone|
+        next if zone.floorArea <= 1
+
+        zone_names << zone.name.to_s.upcase
       end
       zone_names.sort.each do |zone_name|
         @zone_temps[zone_name] = ZoneTemp.new
-        @zone_temps[zone_name].name = "Temperature: #{zone_name.split.map(&:capitalize).join(' ')}"
+        @zone_temps[zone_name].name = "Temperature: #{sanitize_name(zone_name)}"
         @zone_temps[zone_name].timeseries_units = 'F'
         @zone_temps[zone_name].timeseries_output = get_report_variable_data_timeseries([zone_name], ['Zone Mean Air Temperature'], 9.0 / 5.0, 32.0, args[:timeseries_frequency])
       end
-      scheduled_temperature_names.sort.each do |scheduled_temperature_name|
-        @zone_temps[scheduled_temperature_name] = ZoneTemp.new
-        @zone_temps[scheduled_temperature_name].name = "Temperature: #{scheduled_temperature_name.split.map(&:capitalize).join(' ')}"
-        @zone_temps[scheduled_temperature_name].timeseries_units = 'F'
-        @zone_temps[scheduled_temperature_name].timeseries_output = get_report_variable_data_timeseries([scheduled_temperature_name], ['Schedule Value'], 9.0 / 5.0, 32.0, args[:timeseries_frequency])
+
+      # Scheduled temperatures
+      [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
+       HPXML::LocationOtherNonFreezingSpace, HPXML::LocationOtherHousingUnit,
+       HPXML::LocationExteriorWall, HPXML::LocationUnderSlab].each do |sch_location|
+        @model.getScheduleConstants.each do |schedule|
+          next unless schedule.additionalProperties.getFeatureAsString('ObjectType').to_s == sch_location
+
+          sch_name = schedule.name.to_s.upcase
+          @zone_temps[sch_name] = ZoneTemp.new
+          @zone_temps[sch_name].name = "Temperature: #{sanitize_name(sch_name)}"
+          @zone_temps[sch_name].timeseries_units = 'F'
+          @zone_temps[sch_name].timeseries_output = get_report_variable_data_timeseries([sch_name], ['Schedule Value'], 9.0 / 5.0, 32.0, args[:timeseries_frequency])
+
+          break
+        end
       end
-      { 'Heating Setpoint' => 'Zone Thermostat Heating Setpoint Temperature',
-        'Cooling Setpoint' => 'Zone Thermostat Cooling Setpoint Temperature' }.each do |sp_name, sp_var|
-        @zone_temps[sp_name] = ZoneTemp.new
-        @zone_temps[sp_name].name = "Temperature: #{sp_name}"
-        @zone_temps[sp_name].timeseries_units = 'F'
-        @zone_temps[sp_name].timeseries_output = get_report_variable_data_timeseries([HPXML::LocationConditionedSpace.upcase], [sp_var], 9.0 / 5.0, 32.0, args[:timeseries_frequency])
+
+      # Heating Setpoints
+      heated_zones = eval(@model.getBuilding.additionalProperties.getFeatureAsString('heated_zones').get)
+      heated_zones.each do |heated_zone|
+        var_name = 'Temperature: Heating Setpoint'
+        if building_id == 'ALL'
+          unit_num = @model.getThermalZones.find { |z| z.name.to_s == heated_zone }.spaces[0].buildingUnit.get.additionalProperties.getFeatureAsInteger('unit_num').get
+          var_name = "Temperature: Unit#{unit_num} Heating Setpoint"
+        end
+        @zone_temps["#{heated_zone} Heating Setpoint"] = ZoneTemp.new
+        @zone_temps["#{heated_zone} Heating Setpoint"].name = var_name
+        @zone_temps["#{heated_zone} Heating Setpoint"].timeseries_units = 'F'
+        @zone_temps["#{heated_zone} Heating Setpoint"].timeseries_output = get_report_variable_data_timeseries([heated_zone.upcase], ['Zone Thermostat Heating Setpoint Temperature'], 9.0 / 5.0, 32.0, args[:timeseries_frequency])
+      end
+
+      # Cooling Setpoints
+      cooled_zones = eval(@model.getBuilding.additionalProperties.getFeatureAsString('cooled_zones').get)
+      cooled_zones.each do |cooled_zone|
+        var_name = 'Temperature: Cooling Setpoint'
+        if building_id == 'ALL'
+          unit_num = @model.getThermalZones.find { |z| z.name.to_s == cooled_zone }.spaces[0].buildingUnit.get.additionalProperties.getFeatureAsInteger('unit_num').get
+          var_name = "Temperature: Unit#{unit_num} Cooling Setpoint"
+        end
+        @zone_temps["#{cooled_zone} Cooling Setpoint"] = ZoneTemp.new
+        @zone_temps["#{cooled_zone} Cooling Setpoint"].name = var_name
+        @zone_temps["#{cooled_zone} Cooling Setpoint"].timeseries_units = 'F'
+        @zone_temps["#{cooled_zone} Cooling Setpoint"].timeseries_output = get_report_variable_data_timeseries([cooled_zone.upcase], ['Zone Thermostat Cooling Setpoint Temperature'], 9.0 / 5.0, 32.0, args[:timeseries_frequency])
       end
     end
 
@@ -1840,8 +1870,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         if args[:timeseries_frequency] == 'timestep' || args[:timeseries_frequency] == 'hourly'
           if @hpxml_bldgs[0].dst_enabled
             dst_start_ix, dst_end_ix = get_dst_start_end_indexes(@timestamps, timestamps_dst)
-            dst_end_ix.downto(dst_start_ix + 1) do |i|
-              data[i + 1] = data[i]
+            if !dst_start_ix.nil? && !dst_end_ix.nil?
+              dst_end_ix.downto(dst_start_ix + 1) do |i|
+                data[i + 1] = data[i]
+              end
             end
           end
         end
@@ -1887,7 +1919,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       dst_end_ix = i if ts[0] == ts[1] && dst_end_ix.nil? && !dst_start_ix.nil?
     end
 
-    dst_end_ix = timestamps.size - 1 if dst_end_ix.nil? # run period ends before DST ends
+    dst_end_ix = timestamps.size - 1 if dst_end_ix.nil? && !dst_start_ix.nil? # run period ends before DST ends
 
     return dst_start_ix, dst_end_ix
   end
