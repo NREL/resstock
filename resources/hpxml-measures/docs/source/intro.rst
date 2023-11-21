@@ -16,7 +16,7 @@ The OpenStudio measures used by the workflow are:
 Building Type Scope
 -------------------
 
-See :ref:`bldg_type_scope` for information on the types of buildings/simulations that OpenStudio-HPXML supports.
+See :ref:`hpxmlbuilding` for information on the types of buildings/simulations that OpenStudio-HPXML supports.
 
 Accuracy vs Speed
 -----------------

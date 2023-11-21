@@ -1118,7 +1118,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('cooling_system_cooling_compressor_type', compressor_type_choices, false)
     arg.setDisplayName('Cooling System: Cooling Compressor Type')
-    arg.setDescription("The compressor type of the cooling system. Only applies to #{HPXML::HVACTypeCentralAirConditioner}. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#central-air-conditioner'>Central Air Conditioner</a>) is used.")
+    arg.setDescription("The compressor type of the cooling system. Only applies to #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner}. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#central-air-conditioner'>Central Air Conditioner</a>, <a href='#{docs_base_url}#mini-split-air-conditioner'>Mini-Split Air Conditioner</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_sensible_heat_fraction', false)
@@ -1248,7 +1248,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_cooling_compressor_type', compressor_type_choices, false)
     arg.setDisplayName('Heat Pump: Cooling Compressor Type')
-    arg.setDescription("The compressor type of the heat pump. Only applies to #{HPXML::HVACTypeHeatPumpAirToAir}. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#air-to-air-heat-pump'>Air-to-Air Heat Pump</a>) is used.")
+    arg.setDescription("The compressor type of the heat pump. Only applies to #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit}. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#air-to-air-heat-pump'>Air-to-Air Heat Pump</a>, <a href='#{docs_base_url}#mini-split-heat-pump'>Mini-Split Heat Pump</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_cooling_sensible_heat_fraction', false)
@@ -1408,21 +1408,26 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('W/CFM')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('hvac_distribution_use_maximum_airflow_rates', false)
-    arg.setDisplayName('HVAC Distribution: Use Maximum Airflow Rates')
-    arg.setDescription('Whether to use specified heating/cooling airflow rates as the maximum allowed.')
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('hvac_distribution_adjust_blower_fan_efficiency', false)
+    arg.setDisplayName('HVAC Distribution: Adjust Blower Fan Efficiency')
+    arg.setDescription('Whether to adjust the blower fan efficiency based on the provided W/cfm and airflow rates, and autosized airflow rates.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_heating_airflow_cfm', false)
     arg.setDisplayName('HVAC Distribution: Heating Airflow Rate')
-    arg.setDescription("The heating airflow rate. When enabled, this is the maximum allowable rate. Applies only to #{HPXML::HVACTypeFurnace} heating system, and #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, and #{HPXML::HVACTypeHeatPumpGroundToAir} heat pumps. If not provided, the OS-HPXML default is used.")
+    arg.setDescription("The heating airflow rate. Applies only to #{HPXML::HVACTypeFurnace} heating system, and #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, and #{HPXML::HVACTypeHeatPumpGroundToAir} heat pumps. If not provided, the OS-HPXML default is used.")
     arg.setUnits('CFM')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_cooling_airflow_cfm', false)
     arg.setDisplayName('HVAC Distribution: Cooling Airflow Rate')
-    arg.setDescription("The cooling airflow rate. When enabled, this is the maximum allowable rate. Applies only to #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner} cooling systems, and #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, and #{HPXML::HVACTypeHeatPumpGroundToAir} heat pumps. If not provided, the OS-HPXML default is used.")
+    arg.setDescription("The cooling airflow rate. Applies only to #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner} cooling systems, and #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, and #{HPXML::HVACTypeHeatPumpGroundToAir} heat pumps. If not provided, the OS-HPXML default is used.")
     arg.setUnits('CFM')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('hvac_distribution_use_maximum_airflow_rates', false)
+    arg.setDisplayName('HVAC Distribution: Use Maximum Airflow Rates')
+    arg.setDescription('Whether to use specified heating/cooling airflow rates as the maximum allowed.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_weekday_setpoint', false)
@@ -4934,7 +4939,7 @@ class HPXMLFile
     end
 
     if args[:cooling_system_cooling_compressor_type].is_initialized
-      if cooling_system_type == HPXML::HVACTypeCentralAirConditioner
+      if [HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system_type
         compressor_type = args[:cooling_system_cooling_compressor_type].get
       end
     end
@@ -5087,7 +5092,7 @@ class HPXMLFile
     end
 
     if args[:heat_pump_cooling_compressor_type].is_initialized
-      if [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump_type
+      if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump_type
         compressor_type = args[:heat_pump_cooling_compressor_type].get
       end
     end
