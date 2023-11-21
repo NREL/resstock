@@ -152,8 +152,6 @@ jobs:
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@v2023.10.0
           
-          buildstock_local project_national/hp_upgrades.yml
-          
           buildstock_local project_national/national_baseline.yml
           buildstock_local project_testing/testing_baseline.yml
           
@@ -162,8 +160,6 @@ jobs:
 
       - name: Unzip results
         run: |
-          gunzip -v project_national/hp_upgrades/results_csvs/*.csv.gz
-          
           gunzip -v project_national/national_baseline/results_csvs/*.csv.gz
           gunzip -v project_testing/testing_baseline/results_csvs/*.csv.gz
           
@@ -175,13 +171,6 @@ jobs:
           
           tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw'
           tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw' --wildcards '*in.osm' --wildcards '*in.idf'
-
-      - name: Upload hp_upgrades results
-        uses: actions/upload-artifact@v3
-        with:
-          path: |
-            project_national/hp_upgrades/results_csvs/*.csv
-          name: bsb_hp_upgrades_results_csvs
 
       - name: Process results
         run: |
