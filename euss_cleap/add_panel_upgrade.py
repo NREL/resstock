@@ -154,7 +154,7 @@ plot_panel_amps(df_b, ["build_existing_model.geometry_building_type_recs"], ["ba
 ### upgrade
 for i in range(2):
 	groupby_lmi = False
-	if i == 1:
+	if i == 0:
 		groupby_lmi = True
 		print("\n ===== Results by LMI bin =====")
 
