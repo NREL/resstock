@@ -4,7 +4,7 @@ require 'openstudio'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../measure.rb'
 
-class ApplyUpgradeTest < MiniTest::Test
+class ApplyUpgradeTest < Minitest::Test
   def test_SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH
     osw_file = '../../UpgradeCosts/tests/SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH.osw'
     puts "\nTesting #{File.basename(osw_file)}..."
