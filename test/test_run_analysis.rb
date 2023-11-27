@@ -140,7 +140,7 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output = `#{@command}`
 
-    assert("ResStock v#{Version::ResStock_Version}", cli_output)
+    assert_includes(cli_output, "ResStock v#{Version::ResStock_Version}")
   end
 
   def test_errors_wrong_path
@@ -150,6 +150,12 @@ class TestRunAnalysis < Minitest::Test
     cli_output = `#{@command}`
 
     _assert_and_puts(cli_output, "Error: YML file does not exist at 'test/yml_bad_value/testing_baseline.yml'.")
+  end
+
+  def test_no_yml_argument
+    cli_output = `#{@command}`
+
+    _assert_and_puts(cli_output, 'Error: YML argument is required. Call run_analysis.rb -h for usage.')
   end
 
   def test_errors_bad_value

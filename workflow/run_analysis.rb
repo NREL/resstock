@@ -14,20 +14,26 @@ require_relative '../resources/util'
 $start_time = Time.now
 
 def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_ids, keep_run_folders, samplingonly)
-  fail "YML file does not exist at '#{yml}'." if !File.exist?(yml)
+  if !File.exist?(yml)
+    puts "Error: YML file does not exist at '#{yml}'."
+    return false
+  end
 
   cfg = YAML.load_file(yml)
 
   if !cfg['workflow_generator']['args'].keys.include?('build_existing_model') || !cfg['workflow_generator']['args'].keys.include?('simulation_output_report')
-    fail "Both 'build_existing_model' and 'simulation_output_report' must be included in yml."
+    puts "Error: Both 'build_existing_model' and 'simulation_output_report' must be included in yml."
+    return false
   end
 
   if !['residential_quota', 'residential_quota_downselect', 'precomputed'].include?(cfg['sampler']['type'])
-    fail "Sampler type '#{cfg['sampler']['type']}' is invalid or not supported."
+    puts "Error: Sampler type '#{cfg['sampler']['type']}' is invalid or not supported."
+    return false
   end
 
   if cfg['sampler']['type'] == 'residential_quota_downselect' && cfg['sampler']['args']['resample']
-    fail "Not supporting residential_quota_downselect's 'resample' at this time."
+    puts "Error: Not supporting residential_quota_downselect's 'resample' at this time."
+    return false
   end
 
   thisdir = File.dirname(__FILE__)
@@ -47,7 +53,10 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
     results_dir = File.absolute_path(output_directory)
   end
   FileUtils.rm_rf(results_dir) if overwrite
-  fail "Output directory '#{output_directory}' already exists." if File.exist?(results_dir)
+  if File.exist?(results_dir)
+    puts "Error: Output directory '#{output_directory}' already exists."
+    return false
+  end
 
   Dir.mkdir(results_dir)
 
@@ -391,7 +400,8 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
         weather_files_path = File.absolute_path(File.join(File.dirname(yml), weather_files_path))
       end
     else
-      fail "Must include 'weather_files_url' or 'weather_files_path' in yml."
+      puts "Error: Must include 'weather_files_url' or 'weather_files_path' in yml."
+      return false
     end
 
     puts 'Extracting weather files...'
@@ -665,7 +675,8 @@ if options[:version]
   puts "ResStock v#{Version::ResStock_Version}"
 else
   if not options[:yml]
-    fail "YML argument is required. Call #{File.basename(__FILE__)} -h for usage."
+    puts "Error: YML argument is required. Call #{File.basename(__FILE__)} -h for usage."
+    return
   end
 
   # Run analysis
@@ -673,9 +684,5 @@ else
   success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug], options[:overwrite],
                          options[:building_ids], options[:keep_run_folders], options[:samplingonly])
 
-  if not success
-    exit! 1
-  end
-
-  puts "\nCompleted in #{get_elapsed_time(Time.now, $start_time)}."
+  puts "\nCompleted in #{get_elapsed_time(Time.now, $start_time)}." if success
 end
