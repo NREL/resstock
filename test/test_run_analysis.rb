@@ -55,8 +55,12 @@ class TestRunAnalysis < Minitest::Test
     File.readlines(cli_output_log).each do |message|
       next if message.strip.empty?
       next if message.include?('Building ID:')
-      next if message.include?('[openstudio.measure.OSRunner] <Error> Cannot find current Workflow Step')
-      next if message.include?('[openstudio.model.Surface] <Error> Initial area of other surface')
+
+      # Expected errors
+      next if _expected_error_message(message, 'Cannot find current Workflow Step')
+      next if _expected_error_message(message, 'Initial area of other surface')
+
+      # Expected warnings
       next if _expected_warning_message(message, 'No valid weather file defined in either the osm or osw.')
       next if _expected_warning_message(message, 'The model contains existing objects and is being reset.')
       next if _expected_warning_message(message, 'HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
@@ -122,11 +126,16 @@ class TestRunAnalysis < Minitest::Test
         next if _expected_warning_message(message, 'Heating capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Fireplace]')
         next if _expected_warning_message(message, 'Heating capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/SpaceHeater]')
         next if _expected_warning_message(message, 'Backup heating capacity should typically be greater than or equal to 1000 Btu/hr. [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[BackupType="integrated" or BackupSystemFuel]')
-        next if _expected_warning_message(message, '[openstudio.energyplus.ForwardTranslator] <Error> No construction for either surface')
       end
 
       flunk "Unexpected cli_output.log message found: #{message}"
     end
+  end
+
+  def _expected_error_message(message, txt)
+    return true if message.include?('ERROR') && message.include?(txt)
+
+    return false
   end
 
   def _expected_warning_message(message, txt)

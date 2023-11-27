@@ -448,14 +448,15 @@ class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.run(in_osw, parent_dir, cli_output, upgrade, measures, reporting_measures, measures_only = false)
+  def self.run(in_osw, parent_dir, run_output, upgrade, measures, reporting_measures, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" run"
     command += ' -m' if measures_only
     command += " -w \"#{in_osw}\""
 
-    cli_output += `#{command}`
+    `#{command}` # this suppresses the "RunEnergyPlus: Completed Successfully with ..." message
+    run_output += File.read(File.expand_path(File.join(parent_dir, 'run/run.log')))
 
     result_output = {}
 
@@ -467,7 +468,7 @@ class RunOSWs
 
     results = File.join(parent_dir, 'run/results.json')
 
-    return started_at, completed_at, completed_status, result_output, cli_output if measures_only || !File.exist?(results)
+    return started_at, completed_at, completed_status, result_output, run_output if measures_only || !File.exist?(results)
 
     rows = {}
     old_rows = JSON.parse(File.read(File.expand_path(results)))
@@ -492,7 +493,7 @@ class RunOSWs
       result_output = get_measure_results(rows, result_output, reporting_measure)
     end
 
-    return started_at, completed_at, completed_status, result_output, cli_output
+    return started_at, completed_at, completed_status, result_output, run_output
   end
 
   def self.get_measure_results(rows, result, measure)

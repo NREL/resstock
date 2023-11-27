@@ -462,11 +462,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
 
   File.open(File.join(results_dir, 'cli_output.log'), 'a') do |f|
     all_cli_output.each do |cli_output|
-      cli_output.split("\n").each do |line|
-        next if extra_output.select { |eo| line.include?(eo) }.size > 0
-
-        f.puts(line)
-      end
+      f.puts(cli_output)
       f.puts
     end
   end
@@ -474,14 +470,6 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
   FileUtils.rm_rf(lib_dir) if !debug_arg
 
   return true
-end
-
-def extra_output
-  return [
-    'ExpandObjects',
-    'No expanded file generated.',
-    'EnergyPlus:'
-  ]
 end
 
 def create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
@@ -526,9 +514,9 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
 
   worker_folder_ = job_id
   worker_folder_ = worker_folder if keep_run_folders
-  cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{worker_folder_}\n"
+  run_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{worker_folder_}\n"
   upgrade = upgrade_name != 'Baseline'
-  started_at, completed_at, completed_status, result_output, cli_output = RunOSWs.run(osw, worker_dir, cli_output, upgrade, measures, reporting_measures, measures_only)
+  started_at, completed_at, completed_status, result_output, run_output = RunOSWs.run(osw, worker_dir, run_output, upgrade, measures, reporting_measures, measures_only)
 
   started_at = create_timestamp(started_at)
   completed_at = create_timestamp(completed_at)
@@ -542,7 +530,7 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
   clean_up_result_output(result_output, upgrade)
 
   all_results_output[upgrade_name] << result_output
-  all_cli_output << cli_output
+  all_cli_output << run_output
 
   run_dir = File.join(worker_dir, 'run')
   if debug
