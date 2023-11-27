@@ -470,7 +470,7 @@ def extra_output
   return [
     'ExpandObjects',
     'No expanded file generated.',
-    'RunEnergyPlus:'
+    'EnergyPlus:'
   ]
 end
 
