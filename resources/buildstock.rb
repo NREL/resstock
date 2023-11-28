@@ -455,8 +455,20 @@ class RunOSWs
     command += ' -m' if measures_only
     command += " -w \"#{in_osw}\""
 
-    `#{command}` # this suppresses the "RunEnergyPlus: Completed Successfully with ..." message
-    run_output += File.read(File.expand_path(File.join(parent_dir, 'run/run.log')))
+    `#{command}` # suppresses "RunEnergyPlus: Completed Successfully with xxx" message
+    run_log = File.readlines(File.expand_path(File.join(parent_dir, 'run/run.log')))
+    run_log.each do |line|
+      next if line.include? 'Cannot find current Workflow Step'
+      next if line.include? 'Data will be treated as typical (TMY)'
+      next if line.include? 'WorkflowStepResult value called with undefined stepResult'
+      next if line.include? 'No valid weather file defined in either the osm or osw.'
+      next if line.include? 'EPW file not found'
+      next if line.include?("Object of type 'Schedule:Constant' and named 'Always") && line.include?('points to an object named') && line.include?('but that object cannot be located')
+      next if line.include? 'No construction for either surface'
+      next if line.include? "'UseWeatherFile' is selected in YearDescription, but there are no weather file set for the model."
+
+      run_output += line
+    end
 
     result_output = {}
 

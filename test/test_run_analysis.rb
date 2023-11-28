@@ -40,7 +40,7 @@ class TestRunAnalysis < Minitest::Test
   end
 
   def _assert_and_puts(output, msg, expect = true)
-    includes = output.select { |o| o.include?(msg) && !o.include?('Cannot find current Workflow Step') }.size > 0
+    includes = output.select { |o| o.include?(msg) }.size > 0
     if !includes && expect
       puts output
       assert(includes)
@@ -56,16 +56,7 @@ class TestRunAnalysis < Minitest::Test
       next if message.strip.empty?
       next if message.include?('Building ID:')
 
-      # Expected errors
-      next if _expected_error_message(message, 'Cannot find current Workflow Step')
-      next if _expected_error_message(message, 'Initial area of other surface')
-
       # Expected warnings
-      next if _expected_warning_message(message, "WorkflowStepResult value called with undefined stepResult, returning 'Success'")
-      next if _expected_warning_message(message, 'are greater than 1 day apart in EPW file')
-      next if _expected_warning_message(message, "Object of type 'Schedule:Constant' and named 'Always Off Discrete', points to an object named OnOff 1 from field 1, but that object cannot be located.")
-      next if _expected_warning_message(message, "Object of type 'Schedule:Constant' and named 'Always On Continuous', points to an object named Fractional 1 from field 1, but that object cannot be located.")
-      next if _expected_warning_message(message, 'No valid weather file defined in either the osm or osw.')
       next if _expected_warning_message(message, 'The model contains existing objects and is being reset.')
       next if _expected_warning_message(message, 'HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
       next if _expected_warning_message(message, 'It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.')
@@ -134,12 +125,6 @@ class TestRunAnalysis < Minitest::Test
 
       flunk "Unexpected cli_output.log message found: #{message}"
     end
-  end
-
-  def _expected_error_message(message, txt)
-    return true if message.include?('ERROR') && message.include?(txt)
-
-    return false
   end
 
   def _expected_warning_message(message, txt)
