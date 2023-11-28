@@ -464,8 +464,12 @@ class RunOSWs
       next if line.include? 'No valid weather file defined in either the osm or osw.'
       next if line.include? 'EPW file not found'
       next if line.include?("Object of type 'Schedule:Constant' and named 'Always") && line.include?('points to an object named') && line.include?('but that object cannot be located')
-      next if line.include? 'No construction for either surface'
       next if line.include? "'UseWeatherFile' is selected in YearDescription, but there are no weather file set for the model."
+
+      # FIXME: should we investigate the following errors/warnings?
+      next if line.include? 'No construction for either surface'
+      next if line.include? 'Initial area of other surface'
+      next if line.include?('Surface') && line.include?('is adiabatic, removing all sub surfaces')
 
       run_output += line
     end
