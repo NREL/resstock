@@ -1485,12 +1485,18 @@ class SchedulesFile
     schedule_length = @schedules[col_name].length
     min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
 
-    schedule_file = OpenStudio::Model::ScheduleFile.new(model, @output_schedules_path)
+    file_path = File.dirname(@output_schedules_path)
+    workflow_json = model.workflowJSON
+    file_paths = workflow_json.filePaths.map(&:to_s)
+    workflow_json.addFilePath(file_path) unless file_paths.include?(file_path)
+
+    schedule_file = OpenStudio::Model::ScheduleFile.new(model, File.basename(@output_schedules_path))
     schedule_file.setName(col_name)
     schedule_file.setColumnNumber(col_index + 1)
     schedule_file.setRowstoSkipatTop(rows_to_skip)
     schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)
     schedule_file.setMinutesperItem(min_per_item.to_i)
+    schedule_file.setTranslateFileWithRelativePath(true)
 
     Schedule.set_schedule_type_limits(model, schedule_file, schedule_type_limits_name)
 
