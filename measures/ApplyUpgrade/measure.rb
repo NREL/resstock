@@ -41,10 +41,10 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
   # define the arguments that the user will input
   def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     # Make string arg for upgrade name
-    upgrade_name = OpenStudio::Ruleset::OSArgument::makeStringArgument('upgrade_name', true)
+    upgrade_name = OpenStudio::Measure::OSArgument::makeStringArgument('upgrade_name', true)
     upgrade_name.setDisplayName('Upgrade Name')
     upgrade_name.setDescription('User-specificed name that describes the upgrade.')
     upgrade_name.setDefaultValue('My Upgrade')
@@ -53,13 +53,13 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     for option_num in 1..num_options
 
       # Option name argument
-      option = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}", (option_num == 1))
+      option = OpenStudio::Measure::OSArgument.makeStringArgument("option_#{option_num}", (option_num == 1))
       option.setDisplayName("Option #{option_num}")
       option.setDescription('Specify the parameter|option as found in resources\\options_lookup.tsv.')
       args << option
 
       # Option Apply Logic argument
-      option_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}_apply_logic", false)
+      option_apply_logic = OpenStudio::Measure::OSArgument.makeStringArgument("option_#{option_num}_apply_logic", false)
       option_apply_logic.setDisplayName("Option #{option_num} Apply Logic")
       option_apply_logic.setDescription("Logic that specifies if the Option #{option_num} upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
       args << option_apply_logic
@@ -67,14 +67,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       for cost_num in 1..num_costs_per_option
 
         # Option Cost Value argument
-        cost_value = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("option_#{option_num}_cost_#{cost_num}_value", false)
+        cost_value = OpenStudio::Measure::OSArgument.makeDoubleArgument("option_#{option_num}_cost_#{cost_num}_value", false)
         cost_value.setDisplayName("Option #{option_num} Cost #{cost_num} Value")
         cost_value.setDescription("Total option #{option_num} cost is the sum of all: (Cost N Value) x (Cost N Multiplier).")
         cost_value.setUnits('$')
         args << cost_value
 
         # Option Cost Multiplier argument
-        cost_multiplier = OpenStudio::Ruleset::OSArgument.makeChoiceArgument("option_#{option_num}_cost_#{cost_num}_multiplier", cost_multiplier_choices, false)
+        cost_multiplier = OpenStudio::Measure::OSArgument.makeChoiceArgument("option_#{option_num}_cost_#{cost_num}_multiplier", cost_multiplier_choices, false)
         cost_multiplier.setDisplayName("Option #{option_num} Cost #{cost_num} Multiplier")
         cost_multiplier.setDescription("Total option #{option_num} cost is the sum of all: (Cost N Value) x (Cost N Multiplier).")
         cost_multiplier.setDefaultValue(cost_multiplier_choices[0])
@@ -83,7 +83,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Option Lifetime argument
-      option_lifetime = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("option_#{option_num}_lifetime", false)
+      option_lifetime = OpenStudio::Measure::OSArgument.makeDoubleArgument("option_#{option_num}_lifetime", false)
       option_lifetime.setDisplayName("Option #{option_num} Lifetime")
       option_lifetime.setDescription('The option lifetime.')
       option_lifetime.setUnits('years')
@@ -92,13 +92,13 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     # Package Apply Logic argument
-    package_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument('package_apply_logic', false)
+    package_apply_logic = OpenStudio::Measure::OSArgument.makeStringArgument('package_apply_logic', false)
     package_apply_logic.setDisplayName('Package Apply Logic')
     package_apply_logic.setDescription("Logic that specifies if the entire package upgrade (all options) will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << package_apply_logic
 
     # Make integer arg to run measure [1 is run, 0 is no run]
-    run_measure = OpenStudio::Ruleset::OSArgument::makeIntegerArgument('run_measure', true)
+    run_measure = OpenStudio::Measure::OSArgument::makeIntegerArgument('run_measure', true)
     run_measure.setDisplayName('Run Measure')
     run_measure.setDescription('integer argument to run measure [1 is run, 0 is no run]')
     run_measure.setDefaultValue(1)

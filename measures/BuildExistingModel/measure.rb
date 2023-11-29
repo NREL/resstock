@@ -28,19 +28,19 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
   # define the arguments that the user will input
   def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
-    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('building_id', true)
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('building_id', true)
     arg.setDisplayName('Building Unit ID')
     arg.setDescription('The building unit number (between 1 and the number of samples).')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeDoubleArgument('sample_weight', false)
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('sample_weight', false)
     arg.setDisplayName('Sample Weight of Simulation')
     arg.setDescription('Number of buildings this simulation represents.')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('downselect_logic', false)
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('downselect_logic', false)
     arg.setDisplayName('Downselect Logic')
     arg.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << arg
@@ -81,7 +81,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('os_hescore_directory', false)
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('os_hescore_directory', false)
     arg.setDisplayName('HEScore Workflow: OpenStudio-HEScore directory path')
     arg.setDescription('Path to the OpenStudio-HEScore directory. If specified, the HEScore workflow will run.')
     args << arg
