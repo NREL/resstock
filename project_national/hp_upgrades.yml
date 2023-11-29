@@ -3,9 +3,10 @@ os_version: '3.7.0-rc1'
 os_sha: 211bb633b0
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: hp_upgrades
-weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+output_directory: /scratch/jrobert1/heat_pump_detailed_performance_baseline
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 # weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
@@ -34,7 +35,7 @@ workflow_generator:
       retain_schedules_csv: false
 
 upgrades:
-  - upgrade_name: Higher efficiency ducted ASHP with elec backup - existing elec 
+  - upgrade_name: Baseline - Higher efficiency ducted ASHP with elec backup - existing elec 
     package_apply_logic:
       - HVAC Has Ducts|Yes
       - Heating Fuel|Electricity
@@ -63,7 +64,7 @@ upgrades:
       - &heating_setpoint_offset_period_none
         option: Heating Setpoint Offset Period|None
 
-  - upgrade_name: Higher efficiency ducted ASHP with elec backup - existing natural gas 
+  - upgrade_name: Baseline - Higher efficiency ducted ASHP with elec backup - existing natural gas 
     package_apply_logic:
       - HVAC Has Ducts|Yes
       - Heating Fuel|Natural Gas
@@ -78,7 +79,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: Higher efficiency ducted ASHP with elec backup - existing propane 
+  - upgrade_name: Baseline - Higher efficiency ducted ASHP with elec backup - existing propane 
     package_apply_logic:
       - HVAC Has Ducts|Yes
       - Heating Fuel|Propane
@@ -93,7 +94,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: Higher efficiency ducted ASHP with elec backup - existing fuel oil 
+  - upgrade_name: Baseline - Higher efficiency ducted ASHP with elec backup - existing fuel oil 
     package_apply_logic:
       - HVAC Has Ducts|Yes
       - Heating Fuel|Fuel Oil
@@ -108,7 +109,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: Higher efficiency ductless MSHP with elec backup - existing elec 
+  - upgrade_name: Baseline - Higher efficiency ductless MSHP with elec backup - existing elec 
     package_apply_logic:
       - HVAC Has Ducts|No
       - Heating Fuel|Electricity
@@ -128,7 +129,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: Higher efficiency ductless MSHP with elec backup - existing natural gas
+  - upgrade_name: Baseline - Higher efficiency ductless MSHP with elec backup - existing natural gas
     package_apply_logic:
       - HVAC Has Ducts|No
       - Heating Fuel|Natural Gas
@@ -143,7 +144,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
       
-  - upgrade_name: Higher efficiency ductless MSHP with elec backup - existing propane 
+  - upgrade_name: Baseline - Higher efficiency ductless MSHP with elec backup - existing propane 
     package_apply_logic:
       - HVAC Has Ducts|No
       - Heating Fuel|Propane
@@ -158,7 +159,7 @@ upgrades:
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
 
-  - upgrade_name: Higher efficiency ductless MSHP with elec backup - existing fuel oil 
+  - upgrade_name: Baseline - Higher efficiency ductless MSHP with elec backup - existing fuel oil 
     package_apply_logic:
       - HVAC Has Ducts|No
       - Heating Fuel|Fuel Oil
@@ -172,3 +173,22 @@ upgrades:
       - *heating_setpoint_no_offset
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
+
+kestrel:
+  n_jobs: 1
+  minutes_per_sim: 5
+  account: rescore
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 10
+
+postprocessing:
+  aws:
+    s3:
+      bucket: buildstock-testing
+      prefix: resstock/jrobert1
+    athena:
+      database_name: test_runs
+      max_crawling_time: 600
