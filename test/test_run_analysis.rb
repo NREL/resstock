@@ -102,7 +102,6 @@ class TestRunAnalysis < Minitest::Test
       next if _expected_warning_message(message, 'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units. [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0]')
 
       if !testing
-        next if _expected_warning_message(message, 'Unable to find sql file at')
         next if _expected_warning_message(message, 'No design condition info found; calculating design conditions from EPW weather data.')
         next if _expected_warning_message(message, 'Not calculating emissions because an electricity filepath for at least one emissions scenario could not be located.') # these are AK/HI samples
         next if _expected_warning_message(message, 'The garage pitch was changed to accommodate garage ridge >= house ridge')
