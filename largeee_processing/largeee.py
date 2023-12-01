@@ -44,8 +44,8 @@ class LARGEEE:
                 )
                 |
                 (
-                    pl.col("upgrade.hvac_cooling_efficiency").str.contains("ASHP|MSHP") &
-                    ~pl.col("in.hvac_cooling_efficiency").str.contains("None")
+                    pl.col("upgrade.hvac_cooling_efficiency").str.contains("SEER|Pump") &
+                    pl.col("in.hvac_cooling_efficiency").str.contains("None|Shared")
                 )
                 |
                 (
