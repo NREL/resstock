@@ -12,6 +12,7 @@ Features
 - Add ability to calculate detailed utility bills based on a user-specified TSV file of paths to JSON utility rate tariff files ([#1109](https://github.com/NREL/resstock/pull/1109))
 - Update to OpenStudio v3.7.0 ([#1144](https://github.com/NREL/resstock/pull/1144))
 - Update to RECS 2020 V5 data files ([#1164](https://github.com/NREL/resstock/pull/1164))
+- Automate creation of new "Arguments" documentation sections for summarizing arguments (and their default values) in options_lookup.tsv ([#1146](https://github.com/NREL/resstock/pull/1146))
 - Add variability in ground thermal conductivity ([#1165](https://github.com/NREL/resstock/pull/1165))
 
 Fixes
@@ -24,6 +25,12 @@ Fixes
 - Minor changes to heating and cooling setpoint TSV due to refactoring of prune_rules handling in resstock-estimation ([#1132](https://github.com/NREL/resstock/pull/1132))
 - Minor changes to heating and cooling setpoint TSV after a bug fix ([#1136](https://github.com/NREL/resstock/pull/1136))
 - Update `run_analysis.rb` to handle illegal path characters in upgrade names ([#1138](https://github.com/NREL/resstock/pull/1138))
+
+## ResStock v3.1.1
+###### November 28, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.0...v3.1.1)
+
+Fixes
+- Use `Gem::Version` on buildstockbatch version string comparisons so that, e.g., '2023.10.0' < '2023.5.0' does not evaluate to true ([#1170](https://github.com/NREL/resstock/pull/1170))
 
 ## ResStock v3.1.0
 ###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
