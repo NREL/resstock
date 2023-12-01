@@ -55,7 +55,7 @@ def write_group(largee_run: LARGEEE, group_name: str, filter_states: list[str] |
     up_df = up_df.with_columns(
         pl.when(pl.col("upgrade.needs_electrification_update"))
         .then(pl.col('out.params.upgrade_cost_usd') + config['electrification_adder'])
-        .otherwise(pl.lit(None))
+        .otherwise(pl.col('out.params.upgrade_cost_usd'))
         .alias('out.params.upgrade_cost_with_adder_usd')
         )
 
