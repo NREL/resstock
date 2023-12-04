@@ -68,9 +68,40 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     #  This one includes an ER element to make up for loop losses.
     # 7 Add the GAHP(s). Will need to do some test runs when this is in to figure out how many units before we increase the # of HPs
 
-    # Setpoint Schedule
-    schedule = OpenStudio::Model::ScheduleConstant.new(model)
-    schedule.setValue(UnitConversions.convert(125.0, 'F', 'C'))
+    #Calculate some size parameters: number of heat pumps, storage tank volume, number of tanks, swing tank volume
+    #Sizing is based on CA code requirements: https://efiling.energy.ca.gov/GetDocument.aspx?tn=234434&DocumentContentId=67301
+    #FIXME: How to adjust size when used for space heating?
+    num_beds = 0
+    num_units = hpxml_buildings.size
+    swing_vol = 0
+    hpxml_buildings.each do |hpxml_bldg|
+      num_beds += hpxml_bldg.building_construction.number_of_bedrooms
+    end
+    heat_pump_count = ((0.037 * num_beds + 0.106 * num_units)*(154.0 / 123.5)).ceil #ratio is assumed capacity from code / nominal capacity from Robur spec sheet
+    storage_tank_volume = 80.0 * heat_pump_count
+    storage_tank_count = storage_tank_volume / 80.0 #TODO: Do we model these as x tanks in series or combine them into a single tank?
+    
+    if num_units < 8
+      swing_tank_volume = 40.0
+    elsif num_units < 12
+      swing_tank_volume = 80.0
+    elsif num_units < 24
+      swing_tank_volume = 96.0
+    elsif num_units < 48
+      swing_tank_volume = 168.0
+    elsif num_units < 96
+      swing_tank_volume = 288.0
+    else
+      swing_tank_volume = 480.0
+    end
+    swing_tank_capacity = 0 #updated after the loop heat losses are calculated
+
+    # Setpoint Schedules
+    storage_sp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+    storage_sp_schedule.setValue(UnitConversions.convert(150.0, 'F', 'C')) #FIXME: final setpoint? Should it vary if used for space heating?
+
+    loop_sp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+    loop_sp_schedule.setValue(UnitConversions.convert(125.0, 'F', 'C')) #FIXME: final setpoint? Should it vary if used for space heating?
 
     # Add Loops
     dhw_loop = add_loop(model, 'DHW Loop')
@@ -94,27 +125,29 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     add_indoor_pipes(model, hpxml_bldg, dhw_loop_demand_inlet, dhw_loop_demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value)
 
     # Pump Flow Rate
-    pump_gpm = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value)
+    pump_gpm, loop_loss = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value)
+    swing_tank_capacity = loop_loss
 
     # Add Pumps
+    hp_loop_gpm = 13.6 #gal/min, nominal from Robur spec sheet
     add_pump(model, dhw_loop, 'DHW Loop Pump', pump_gpm)
-    add_pump(model, heat_pump_loop, 'Heat Pump Loop Pump', pump_gpm) # FIXME: this pump_gpm will likely be different
+    add_pump(model, heat_pump_loop, 'Heat Pump Loop Pump', hp_loop_gpm)
     add_pump(model, source_loop, 'Source Loop Pump', pump_gpm)
     if shared_hpwh_type == 'space-heating hpwh'
       add_pump(model, space_heating_loop, 'Space Heating Loop Pump', pump_gpm)
     end
 
     # Add Setpoint Managers
-    add_setpoint_manager(model, dhw_loop, schedule, 'DHW Loop Setpoint Manager')
-    add_setpoint_manager(model, heat_pump_loop, schedule, 'Heat Pump Loop Setpoint Manager', 'Temperature')
-    add_setpoint_manager(model, source_loop, schedule, 'Source Loop Setpoint Manager', 'Temperature')
+    add_setpoint_manager(model, dhw_loop, loop_sp_schedule, 'DHW Loop Setpoint Manager')
+    add_setpoint_manager(model, heat_pump_loop, storage_sp_schedule, 'Heat Pump Loop Setpoint Manager', 'Temperature')
+    add_setpoint_manager(model, source_loop, storage_sp_schedule, 'Source Loop Setpoint Manager', 'Temperature')
     if shared_hpwh_type == 'space-heating hpwh'
-      add_setpoint_manager(model, space_heating_loop, schedule, 'Space Heating Loop Setpoint Manager')
+      add_setpoint_manager(model, space_heating_loop, storage_sp_schedule, 'Space Heating Loop Setpoint Manager')
     end
 
     # Add Tanks
-    storage_tank = add_storage_tank(model, source_loop, heat_pump_loop, 'Main Storage Tank')
-    add_swing_tank(model, source_loop, 'Swing Tank')
+    storage_tank = add_storage_tank(model, source_loop, heat_pump_loop, storage_tank_volume, storage_tank_count, 'Main Storage Tank')
+    add_swing_tank(model, source_loop, swing_tank_volume, swing_tank_capacity, 'Swing Tank')
 
     # Add Heat Exchangers
     add_heat_exchanger(model, dhw_loop, source_loop, 'DHW Heat Exchanger')
@@ -123,7 +156,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     # Add Heat Pump
-    heat_pump = add_heat_pump(model, shared_hpwh_fuel_type, heat_pump_loop, shared_hpwh_type, 'Heat Pump Water Heater')
+    heat_pump = add_heat_pump(model, shared_hpwh_fuel_type, heat_pump_loop, shared_hpwh_type, heat_pump_count, 'Heat Pump Water Heater')
 
     # HPWH provides space heating
     if shared_hpwh_type == 'space-heating hpwh'
@@ -352,7 +385,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Assume a 5 degree temperature drop is acceptable
     delta_T = 5 # degrees F
 
-    return q_loss / (60 * 8.25 * delta_T)
+    return q_loss / (60 * 8.25 * delta_T), q_loss
   end
 
   def add_pump(model, loop, name, pump_gpm)
@@ -372,31 +405,63 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     manager.addToNode(loop.supplyOutletNode)
   end
 
-  def add_storage_tank(model, source_loop, heat_pump_loop, name)
+  def add_storage_tank(model, recirculation_loop, heat_pump_loop, vol, count, name)
+    h_tank = 2.0 #m, assumed
+    h_source_in = 0.01 * h_tank
+    h_source_out = 0.99 * h_tank
+
+    tank_r = UnitConversions.convert(22.0, 'hr*ft^2*f/btu', 'm^2*k/w') #From code
+    tank_u = 1.0 / tank_r
+
+    total_volume = UnitConersions.convert(vol,'gal','m^3') #FIXME: not using count, combining tanks.
+
     storage_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     storage_tank.setName(name)
-
+    
+    # TODO: set volume, height, deadband, control
     capacity = 0
     storage_tank.setHeater1Capacity(capacity)
     storage_tank.setHeater2Capacity(capacity)
-    # TODO: set volume, height, deadband, control
-
-    source_loop.addSupplyBranchForComponent(storage_tank)
+    storage_tank.setTankVolume(total_volume)
+    #storage_tank.setAmbientTemperatureZone #FIXME: What zone do we want to assume the tanks are in?
+    storage_tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(tank_u) #FIXME: typical loss values?
+    storage_tank.setSourceSideInletHeight(h_source_in)
+    storage_tank.setSourceSideOutletHeight(h_source_out)
+    storage_tank.setOffCycleParasiticFuelConsumptionRate(0.0)
+    storage_tank.setOnCycleParasiticFuelConsumptionRate(0.0)
+    storage_tank.setNumberofNodes(6)
+    recirculation_loop.addSupplyBranchForComponent(storage_tank)
     heat_pump_loop.addDemandBranchForComponent(storage_tank)
 
     return storage_tank
   end
 
-  def add_swing_tank(model, loop, name)
+  def add_swing_tank(model, loop, volume, capacity, name)
     # this would be in series with main storage tank, downstream of it
     # this does not go on the demand side of the heat pump loop, like the main storage tank does
     swing_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     swing_tank.setName(name)
-
-    capacity = 0
-    swing_tank.setHeater1Capacity(capacity) # FIXME: this may have small element at the top
+    tank_r = UnitConversions.convert(22.0, 'hr*ft^2*f/btu', 'm^2*k/w') #From code
+    tank_u = 1.0 / tank_r
+    h_tank = 2.0 #m
+    h_ue = 0.8 * h_tank
+    h_le = 0.2 * h_tank
+    
+    swing_tank.setHeaterPriorityControl('MasterSlave')
+    swing_tank.setHeater1Capacity(capacity) 
+    swing_tank.setHeater1Height(h_ue)
+    swing_tank.setHeater1DeadbandTemperatureDifference(5.56) #10 F
     swing_tank.setHeater2Capacity(capacity)
-    # TODO: set volume, height, deadband, control
+    swing_tank.setHeater2Height(h_le)
+    swing_tank.setHeater2DeadbandTemperatureDifference(5.56)
+    swing_tank.setTankVolume(total_volume)
+    #swing_tank.setAmbientTemperatureZone #FIXME: What zone do we want to assume the tanks are in?
+    swing_tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(tank_u) #FIXME: typical loss values?
+    swing_tank.setSourceSideInletHeight(h_source_in)
+    swing_tank.setSourceSideOutletHeight(h_source_out)
+    swing_tank.setOffCycleParasiticFuelConsumptionRate(0.0)
+    swing_tank.setOnCycleParasiticFuelConsumptionRate(0.0)
+    swing_tank.setNumberofNodes(6)
 
     swing_tank.addToNode(loop.supplyOutletNode)
   end
@@ -409,7 +474,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     source_loop.addDemandBranchForComponent(hx)
   end
 
-  def add_heat_pump(model, fuel_type, loop, shared_hpwh_type, name)
+  def add_heat_pump(model, fuel_type, loop, shared_hpwh_type, heat_pump_count, name)
     heat_pumps = []
 
     if fuel_type == HPXML::FuelTypeElectricity
