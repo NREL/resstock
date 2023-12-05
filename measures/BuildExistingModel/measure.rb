@@ -359,11 +359,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     num_units_modeled = 1
     unit_multipliers = []
 
-    if whole_sfa_mf_building
-      register_value(runner, 'geometry_building_num_units', geometry_building_num_units)
-    else
-      register_value(runner, 'geometry_building_num_units', 1)
-    end
+    # if whole_sfa_mf_building
+    # register_value(runner, 'geometry_building_num_units', geometry_building_num_units)
+    # else
+    # register_value(runner, 'geometry_building_num_units', 1)
+    # end
 
     # model units of the building, up to a maximum of 10
     if whole_sfa_mf_building && geometry_building_num_units > 1
@@ -399,7 +399,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"
       end
-      additional_properties << "geometry_building_num_units=#{geometry_building_num_units}"
+      # additional_properties << "geometry_building_num_units=#{geometry_building_num_units}"
       additional_properties << "geometry_num_floors_above_grade=#{geometry_num_floors_above_grade}"
       additional_properties << "geometry_corridor_position=#{['Double-Loaded Interior', 'Double Exterior'].include?(geometry_corridor_position)}"
       additional_properties << "shared_hpwh_type=#{shared_hpwh_type}"

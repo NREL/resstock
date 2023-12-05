@@ -57,6 +57,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     shared_hpwh_fuel_type = hpxml_bldg.header.extension_properties['shared_hpwh_fuel_type']
+    num_stories = hpxml_bldg.header.extension_properties['geometry_num_floors_above_grade'].to_f
+    has_double_loaded_corridor = hpxml_bldg.header.extension_properties['geometry_corridor_position']
 
     # TODO
     # 1 Remove any existing WHs and associated plant loops. Keep WaterUseEquipment objects.
@@ -68,17 +70,20 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     #  This one includes an ER element to make up for loop losses.
     # 7 Add the GAHP(s). Will need to do some test runs when this is in to figure out how many units before we increase the # of HPs
 
+    # Building -level information
+    # num_units = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units }.sum
+    # num_beds = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units * hpxml_bldg.building_construction.number_of_bedrooms }.sum
+    # FIXME: should this be hpxml.buildings.size? sounds like maybe the actual number of units
+    num_units = hpxml.buildings.size
+    num_beds = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_bedrooms }.sum
+
     # Calculate some size parameters: number of heat pumps, storage tank volume, number of tanks, swing tank volume
     # Sizing is based on CA code requirements: https://efiling.energy.ca.gov/GetDocument.aspx?tn=234434&DocumentContentId=67301
     # FIXME: How to adjust size when used for space heating?
-    num_beds = 0
-    num_units = hpxml_buildings.size
-    hpxml_buildings.each do |hpxml_bldg|
-      num_beds += hpxml_bldg.building_construction.number_of_bedrooms
-    end
     heat_pump_count = ((0.037 * num_beds + 0.106 * num_units) * (154.0 / 123.5)).ceil # ratio is assumed capacity from code / nominal capacity from Robur spec sheet
-    storage_tank_volume = 80.0 * heat_pump_count
-    storage_tank_count = storage_tank_volume / 80.0 # TODO: Do we model these as x tanks in series or combine them into a single tank?
+    # storage_tank_volume = 80.0 * heat_pump_count
+    # storage_tank_count = storage_tank_volume / 80.0 # TODO: Do we model these as x tanks in series or combine them into a single tank?
+    storage_tank_volume = 80.0
 
     if num_units < 8
       swing_tank_volume = 40.0
@@ -103,7 +108,11 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # Add Loops
     dhw_loop = add_loop(model, 'DHW Loop')
-    heat_pump_loop = add_loop(model, 'Heat Pump Loop')
+    heat_pump_loops = {}
+    (1..heat_pump_count).to_a.each do |i|
+      heat_pump_loop = add_loop(model, "Heat Pump Loop #{i}")
+      heat_pump_loops[heat_pump_loop] = []
+    end
     source_loop = add_loop(model, 'Source Loop')
     if shared_hpwh_type == 'space-heating hpwh'
       space_heating_loop = add_loop(model, 'Space Heating Loop')
@@ -111,16 +120,18 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # Add Adiabatic Pipes
     dhw_loop_demand_inlet, dhw_loop_demand_bypass = add_adiabatic_pipes(model, dhw_loop)
-    _heat_pump_loop_demand_inlet, _heat_pump_loop_demand_bypass = add_adiabatic_pipes(model, heat_pump_loop)
+    heat_pump_loops.each do |heat_pump_loop, _|
+      _heat_pump_loop_demand_inlet, _heat_pump_loop_demand_bypass = add_adiabatic_pipes(model, heat_pump_loop)
+    end
     _source_loop_demand_inlet, _source_loop_demand_bypass = add_adiabatic_pipes(model, source_loop)
 
     # Pipe Lengths
-    supply_length, return_length = calc_recirc_supply_return_lengths(hpxml_bldg)
+    supply_length, return_length = calc_recirc_supply_return_lengths(hpxml_bldg, num_units, num_stories, has_double_loaded_corridor)
 
     # Add Indoor Pipes
     supply_pipe_ins_r_value = 6.0
     return_pipe_ins_r_value = 4.0
-    add_indoor_pipes(model, hpxml_bldg, dhw_loop_demand_inlet, dhw_loop_demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value)
+    add_indoor_pipes(model, dhw_loop_demand_inlet, dhw_loop_demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value, num_units)
 
     # Pump Flow Rate
     pump_gpm, swing_tank_capacity = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value)
@@ -128,7 +139,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Add Pumps
     hp_loop_gpm = 13.6 # gal/min, nominal from Robur spec sheet
     add_pump(model, dhw_loop, 'DHW Loop Pump', pump_gpm)
-    add_pump(model, heat_pump_loop, 'Heat Pump Loop Pump', hp_loop_gpm)
+    heat_pump_loops.each do |heat_pump_loop, _|
+      add_pump(model, heat_pump_loop, "#{heat_pump_loop.name} Pump", hp_loop_gpm)
+    end
     add_pump(model, source_loop, 'Source Loop Pump', pump_gpm)
     if shared_hpwh_type == 'space-heating hpwh'
       add_pump(model, space_heating_loop, 'Space Heating Loop Pump', pump_gpm) # FIXME: need to re-consider the pump here
@@ -136,14 +149,18 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # Add Setpoint Managers
     add_setpoint_manager(model, dhw_loop, loop_sp_schedule, 'DHW Loop Setpoint Manager')
-    add_setpoint_manager(model, heat_pump_loop, storage_sp_schedule, 'Heat Pump Loop Setpoint Manager', 'Temperature')
+    heat_pump_loops.each do |heat_pump_loop, _|
+      add_setpoint_manager(model, heat_pump_loop, storage_sp_schedule, "#{heat_pump_loop.name} Setpoint Manager", 'Temperature')
+    end
     add_setpoint_manager(model, source_loop, storage_sp_schedule, 'Source Loop Setpoint Manager', 'Temperature')
     if shared_hpwh_type == 'space-heating hpwh'
       add_setpoint_manager(model, space_heating_loop, storage_sp_schedule, 'Space Heating Loop Setpoint Manager')
     end
 
     # Add Tanks
-    storage_tank = add_storage_tank(model, source_loop, heat_pump_loop, storage_tank_volume, storage_tank_count, 'Main Storage Tank')
+    heat_pump_loops.each do |heat_pump_loop, components|
+      components << add_storage_tank(model, source_loop, heat_pump_loop, storage_tank_volume, "#{heat_pump_loop.name} Main Storage Tank")
+    end
     add_swing_tank(model, source_loop, swing_tank_volume, swing_tank_capacity, 'Swing Tank')
 
     # Add Heat Exchangers
@@ -153,7 +170,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     # Add Heat Pump
-    heat_pump = add_heat_pump(model, shared_hpwh_fuel_type, heat_pump_loop, shared_hpwh_type, heat_pump_count, 'Heat Pump Water Heater')
+    heat_pump_loops.each do |heat_pump_loop, components|
+      components << add_heat_pump(model, shared_hpwh_fuel_type, heat_pump_loop, shared_hpwh_type, "#{heat_pump_loop.name} Heat Pump Water Heater")
+    end
 
     # HPWH provides space heating
     if shared_hpwh_type == 'space-heating hpwh'
@@ -170,9 +189,12 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     # Add Availability Manager
-    hot_node = heat_pump.outletModelObject.get.to_Node.get
-    cold_node = storage_tank.demandOutletModelObject.get.to_Node.get
-    add_availability_manager(model, heat_pump_loop, hot_node, cold_node)
+    heat_pump_loops.each do |heat_pump_loop, components|
+      storage_tank, heat_pump = components
+      hot_node = heat_pump.outletModelObject.get.to_Node.get
+      cold_node = storage_tank.demandOutletModelObject.get.to_Node.get
+      add_availability_manager(model, heat_pump_loop, hot_node, cold_node)
+    end
 
     # Re-connect WaterUseConections
     model.getWaterUseConnectionss.each do |wuc|
@@ -218,9 +240,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     return demand_inlet, demand_bypass
   end
 
-  def add_indoor_pipes(model, hpxml_bldg, demand_inlet, demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value)
-    n_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f # FIXME: should this be hpxml.buildings.size? sounds like maybe the actual number of units
-
+  def add_indoor_pipes(model, demand_inlet, demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value, n_units)
     # Copper Pipe
     roughness = 'Smooth'
     thickness = 0.003
@@ -235,7 +255,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     copper_pipe_material.setVisibleAbsorptance(0.5)
 
     # Pipe Diameters
-    supply_diameter, return_diameter = calc_recirc_supply_return_diameters(hpxml_bldg)
+    supply_diameter, return_diameter = calc_recirc_supply_return_diameters()
 
     # Pipe Insulation
     roughness = 'VeryRough'
@@ -304,11 +324,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
   end
 
-  def calc_recirc_supply_return_lengths(hpxml_bldg)
+  def calc_recirc_supply_return_lengths(hpxml_bldg, n_units, n_stories, has_double_loaded_corridor)
     l_mech = 8 # ft, Horizontal pipe length in mech room (Per T-24 ACM: 2013 Residential Alternative Calculation Method Reference Manual, June 2013, CEC-400-2013-003-CMF-REV)
-    n_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f # FIXME: should this be hpxml.buildings.size? sounds like maybe the actual number of units
-    n_stories = hpxml_bldg.header.extension_properties['geometry_num_floors_above_grade'].to_f
-    has_double_loaded_corridor = hpxml_bldg.header.extension_properties['geometry_corridor_position']
     unit_type = hpxml_bldg.building_construction.residential_facility_type
     footprint = hpxml_bldg.building_construction.conditioned_floor_area
     h_floor = hpxml_bldg.building_construction.average_ceiling_height
@@ -334,9 +351,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     return supply_length, return_length
   end
 
-  def calc_recirc_supply_return_diameters(_hpxml_bldg)
-    # n_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f # FIXME: should this be hpxml.buildings.size?
-
+  def calc_recirc_supply_return_diameters()
     # supply_diameter = ((-7.525e-9 * n_units**4 + 2.82e-6 * n_units**3 + -4.207e-4 * n_units**2 + 0.04378 * n_units + 1.232) / 0.5 + 1).round * 0.5 # in    Diameter of supply recirc pipe (Per T-24 ACM* which is based on 2009 UPC pipe sizing)
     supply_diameter = 2.0 # in
     return_diameter = 0.75 # in
@@ -402,15 +417,13 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     manager.addToNode(loop.supplyOutletNode)
   end
 
-  def add_storage_tank(model, recirculation_loop, heat_pump_loop, vol, _count, name)
+  def add_storage_tank(model, recirculation_loop, heat_pump_loop, volume, name)
     h_tank = 2.0 # m, assumed
     h_source_in = 0.01 * h_tank
     h_source_out = 0.99 * h_tank
 
     tank_r = UnitConversions.convert(22.0, 'hr*ft^2*f/btu', 'm^2*k/w') # From code
     tank_u = 1.0 / tank_r
-
-    total_volume = UnitConersions.convert(vol, 'gal', 'm^3') # FIXME: not using count, combining tanks.
 
     storage_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     storage_tank.setName(name)
@@ -419,7 +432,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     capacity = 0
     storage_tank.setHeater1Capacity(capacity)
     storage_tank.setHeater2Capacity(capacity)
-    storage_tank.setTankVolume(total_volume)
+    storage_tank.setTankVolume(UnitConversions.convert(volume, 'gal', 'm^3'))
     # storage_tank.setAmbientTemperatureZone #FIXME: What zone do we want to assume the tanks are in?
     storage_tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(tank_u) # FIXME: typical loss values?
     storage_tank.setSourceSideInletHeight(h_source_in)
@@ -427,31 +440,36 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     storage_tank.setOffCycleParasiticFuelConsumptionRate(0.0)
     storage_tank.setOnCycleParasiticFuelConsumptionRate(0.0)
     storage_tank.setNumberofNodes(6)
+    storage_tank.setEndUseSubcategory(name)
+
     recirculation_loop.addSupplyBranchForComponent(storage_tank)
     heat_pump_loop.addDemandBranchForComponent(storage_tank)
 
     return storage_tank
   end
 
-  def add_swing_tank(model, loop, _volume, capacity, name)
-    # this would be in series with main storage tank, downstream of it
+  def add_swing_tank(model, recirculation_loop, volume, capacity, name)
+    # this would be in series with the main storage tanks, downstream of it
     # this does not go on the demand side of the heat pump loop, like the main storage tank does
     swing_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     swing_tank.setName(name)
+
     tank_r = UnitConversions.convert(22.0, 'hr*ft^2*f/btu', 'm^2*k/w') # From code
     tank_u = 1.0 / tank_r
     h_tank = 2.0 # m
-    h_ue = 0.8 * h_tank
+    # h_ue = 0.8 * h_tank
     h_le = 0.2 * h_tank
+    h_source_in = 0.01 * h_tank
+    h_source_out = 0.99 * h_tank
 
     swing_tank.setHeaterPriorityControl('MasterSlave')
     swing_tank.setHeater1Capacity(capacity)
-    swing_tank.setHeater1Height(h_ue)
+    # swing_tank.setHeater1Height(h_ue) # FIXME: if this gets uncommented, E+ crashes
     swing_tank.setHeater1DeadbandTemperatureDifference(5.56) # 10 F
     swing_tank.setHeater2Capacity(capacity)
     swing_tank.setHeater2Height(h_le)
     swing_tank.setHeater2DeadbandTemperatureDifference(5.56)
-    swing_tank.setTankVolume(total_volume)
+    swing_tank.setTankVolume(UnitConversions.convert(volume, 'gal', 'm^3'))
     # swing_tank.setAmbientTemperatureZone #FIXME: What zone do we want to assume the tanks are in?
     swing_tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(tank_u) # FIXME: typical loss values?
     swing_tank.setSourceSideInletHeight(h_source_in)
@@ -459,8 +477,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     swing_tank.setOffCycleParasiticFuelConsumptionRate(0.0)
     swing_tank.setOnCycleParasiticFuelConsumptionRate(0.0)
     swing_tank.setNumberofNodes(6)
+    swing_tank.setEndUseSubcategory(name)
 
-    swing_tank.addToNode(loop.supplyOutletNode)
+    swing_tank.addToNode(recirculation_loop.supplyOutletNode)
   end
 
   def add_heat_exchanger(model, dhw_loop, source_loop, name)
@@ -471,35 +490,23 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     source_loop.addDemandBranchForComponent(hx)
   end
 
-  def add_heat_pump(model, fuel_type, loop, shared_hpwh_type, _heat_pump_count, name)
-    heat_pumps = []
-
+  def add_heat_pump(model, fuel_type, heat_pump_loop, _shared_hpwh_type, name)
     if fuel_type == HPXML::FuelTypeElectricity
       heat_pump = OpenStudio::Model::WaterHeaterHeatPump.new(model) # FIXME: this may not be simulating succesfully currently
-      heat_pumps << heat_pump
     elsif fuel_type == HPXML::FuelTypeNaturalGas
       heat_pump = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
+
       heat_pump.setFuelType(EPlus.fuel_type(fuel_type))
-      heat_pump.setEndUseSubcategory('GHP 1')
+      heat_pump.setEndUseSubcategory(name)
       heat_pump.setNominalAuxiliaryElectricPower(0)
       heat_pump.setStandbyElectricPower(0)
-      heat_pumps << heat_pump
       # TODO: GAHP units would have a fixed discrete size
       # based on how we determine "size", this object may be multiplied
       # need to set tank properties before checking this
-
-      if shared_hpwh_type == 'space-heating hpwh'
-        n = 5
-        n.times.each do |_i|
-          heat_pumps << heat_pump.clone(model).to_HeatPumpAirToWaterFuelFiredHeating.get
-        end
-      end
     end
 
-    heat_pumps.each do |heat_pump|
-      heat_pump.setName(name)
-      loop.addSupplyBranchForComponent(heat_pump)
-    end
+    heat_pump.setName(name)
+    heat_pump_loop.addSupplyBranchForComponent(heat_pump)
 
     return heat_pump
   end
