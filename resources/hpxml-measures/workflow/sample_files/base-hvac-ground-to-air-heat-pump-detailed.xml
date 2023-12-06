@@ -41,7 +41,11 @@
             <Fuel>natural gas</Fuel>
           </FuelTypesAvailable>
           <Soil>
-            <Conductivity>0.8</Conductivity>
+            <SoilType>sand</SoilType>
+            <MoistureType>dry</MoistureType>
+            <extension>
+              <Diffusivity>0.03</Diffusivity>
+            </extension>
           </Soil>
         </Site>
         <BuildingConstruction>
@@ -321,37 +325,61 @@
         <HVAC>
           <HVACPlant>
             <PrimarySystems>
-              <PrimaryHeatingSystem idref='HeatingSystem1'/>
-              <PrimaryCoolingSystem idref='CoolingSystem1'/>
+              <PrimaryHeatingSystem idref='HeatPump1'/>
+              <PrimaryCoolingSystem idref='HeatPump1'/>
             </PrimarySystems>
-            <HeatingSystem>
-              <SystemIdentifier id='HeatingSystem1'/>
+            <HeatPump>
+              <SystemIdentifier id='HeatPump1'/>
               <DistributionSystem idref='HVACDistribution1'/>
-              <HeatingSystemType>
-                <Furnace/>
-              </HeatingSystemType>
-              <HeatingSystemFuel>natural gas</HeatingSystemFuel>
+              <HeatPumpType>ground-to-air</HeatPumpType>
+              <HeatPumpFuel>electricity</HeatPumpFuel>
               <HeatingCapacity>36000.0</HeatingCapacity>
-              <AnnualHeatingEfficiency>
-                <Units>AFUE</Units>
-                <Value>0.92</Value>
-              </AnnualHeatingEfficiency>
+              <CoolingCapacity>36000.0</CoolingCapacity>
+              <CoolingSensibleHeatFraction>0.73</CoolingSensibleHeatFraction>
+              <BackupType>integrated</BackupType>
+              <BackupSystemFuel>electricity</BackupSystemFuel>
+              <BackupAnnualHeatingEfficiency>
+                <Units>Percent</Units>
+                <Value>1.0</Value>
+              </BackupAnnualHeatingEfficiency>
+              <BackupHeatingCapacity>36000.0</BackupHeatingCapacity>
               <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
-            </HeatingSystem>
-            <CoolingSystem>
-              <SystemIdentifier id='CoolingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <CoolingSystemType>central air conditioner</CoolingSystemType>
-              <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>24000.0</CoolingCapacity>
-              <CompressorType>single stage</CompressorType>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
-                <Units>SEER</Units>
-                <Value>13.0</Value>
+                <Units>EER</Units>
+                <Value>16.6</Value>
               </AnnualCoolingEfficiency>
-              <SensibleHeatFraction>0.73</SensibleHeatFraction>
-            </CoolingSystem>
+              <AnnualHeatingEfficiency>
+                <Units>COP</Units>
+                <Value>3.6</Value>
+              </AnnualHeatingEfficiency>
+              <AttachedToGeothermalLoop idref='GeothermalLoop1'/>
+              <extension>
+                <PumpPowerWattsPerTon>30.0</PumpPowerWattsPerTon>
+              </extension>
+            </HeatPump>
+            <GeothermalLoop>
+              <SystemIdentifier id='GeothermalLoop1'/>
+              <LoopConfiguration>vertical</LoopConfiguration>
+              <LoopFlow>10.0</LoopFlow>
+              <BoreholesOrTrenches>
+                <Count>9</Count>
+                <Length>314.961</Length>
+                <Spacing>16.4042</Spacing>
+                <Diameter>5.905512</Diameter>
+              </BoreholesOrTrenches>
+              <Grout>
+                <Type>standard</Type>
+              </Grout>
+              <Pipe>
+                <Type>standard</Type>
+                <Diameter>1.0</Diameter>
+                <ShankSpacing>2.5</ShankSpacing>
+              </Pipe>
+              <extension>
+                <BorefieldConfiguration>Lopsided U</BorefieldConfiguration>
+              </extension>
+            </GeothermalLoop>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
