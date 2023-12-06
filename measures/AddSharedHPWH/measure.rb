@@ -163,7 +163,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       components << add_storage_tank(model, source_loop, heat_pump_loop, storage_tank_volume, prev_storage_tank, "#{heat_pump_loop.name} Main Storage Tank")
       prev_storage_tank = components[0]
     end
-    add_swing_tank(model, source_loop, swing_tank_volume, swing_tank_capacity, 'Swing Tank')
+    add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank')
 
     # Add Heat Exchangers
     add_heat_exchanger(model, dhw_loop, source_loop, 'DHW Heat Exchanger')
@@ -419,7 +419,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     manager.addToNode(loop.supplyOutletNode)
   end
 
-  def add_storage_tank(model, recirculation_loop, heat_pump_loop, volume, prev_storage_tank, name)
+  def add_storage_tank(model, source_loop, heat_pump_loop, volume, prev_storage_tank, name)
     h_tank = 2.0 # m, assumed
     h_source_in = 0.01 * h_tank
     h_source_out = 0.99 * h_tank
@@ -446,16 +446,16 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     storage_tank.setEndUseSubcategory(name)
 
     if prev_storage_tank.nil?
-      recirculation_loop.addSupplyBranchForComponent(storage_tank) # first one is a new supply branch
+      source_loop.addSupplyBranchForComponent(storage_tank) # first one is a new supply branch
     else
-      storage_tank.addToNode(prev_storage_tank.outletModelObject.get.to_Node.get) # remaining are added in series
+      storage_tank.addToNode(prev_storage_tank.useSideOutletModelObject.get.to_Node.get) # remaining are added in series
     end
     heat_pump_loop.addDemandBranchForComponent(storage_tank)
 
     return storage_tank
   end
 
-  def add_swing_tank(model, recirculation_loop, volume, capacity, name)
+  def add_swing_tank(model, last_storage_tank, volume, capacity, name)
     # this would be in series with the main storage tanks, downstream of it
     # this does not go on the demand side of the heat pump loop, like the main storage tank does
     swing_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
@@ -472,7 +472,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     swing_tank.setTankHeight(h_tank)
     swing_tank.setHeaterPriorityControl('MasterSlave')
     swing_tank.setHeater1Capacity(capacity)
-    swing_tank.setHeater1Height(h_ue) 
+    swing_tank.setHeater1Height(h_ue)
     swing_tank.setHeater1DeadbandTemperatureDifference(5.56) # 10 F
     swing_tank.setHeater2Capacity(capacity)
     swing_tank.setHeater2Height(h_le)
@@ -487,7 +487,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     swing_tank.setNumberofNodes(6)
     swing_tank.setEndUseSubcategory(name)
 
-    swing_tank.addToNode(recirculation_loop.supplyOutletNode)
+    swing_tank.addToNode(last_storage_tank.useSideOutletModelObject.get.to_Node.get) # in series
+    # swing_tank.addToNode(source_loop.supplyOutletNode)
   end
 
   def add_heat_exchanger(model, dhw_loop, source_loop, name)
