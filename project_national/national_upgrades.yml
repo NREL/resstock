@@ -215,6 +215,18 @@ upgrades:
         option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
       - *heat_pump_backup_use_existing_system
 
+  - upgrade_name: GSHP
+    options:
+      - &hvac_heating_efficiency_gshp_eer_20_pt_2_cop_4_pt_2
+        option: HVAC Heating Efficiency|GSHP, EER 20.2, COP 4.2
+        apply_logic:
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 30
+      - *hvac_cooling_efficiency_ducted_heat_pump
+
   - upgrade_name: HPWH
     options:
       - &water_heater_efficiency_electric_heat_pump_66_gal_3_pt_35_uef

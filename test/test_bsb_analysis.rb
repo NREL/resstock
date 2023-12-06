@@ -53,13 +53,14 @@ class TesBuildStockBatch < Minitest::Test
 
     _test_contents(contents, false, true)
 
-    assert(File.exist?(File.join(@testing_upgrades, 'results_csvs', 'results_up16.csv')))
-    results = CSV.read(File.join(@testing_upgrades, 'results_csvs', 'results_up16.csv'), headers: true)
+    num_upgrade_scenarios = Dir[File.join(@testing_upgrades, 'results_csvs', 'results_up*')].count - 1
+    assert(File.exist?(File.join(@testing_upgrades, 'results_csvs', "results_up#{num_upgrade_scenarios}.csv")))
+    results = CSV.read(File.join(@testing_upgrades, 'results_csvs', "results_up#{num_upgrade_scenarios}.csv"), headers: true)
 
     _test_columns(results, true)
 
-    assert(File.exist?(File.join(@testing_upgrades, 'simulation_output', 'up16', 'bldg0000001', 'run')))
-    contents = Dir[File.join(@testing_upgrades, 'simulation_output', 'up16', 'bldg0000001', 'run/*')].collect { |x| File.basename(x) }
+    assert(File.exist?(File.join(@testing_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run')))
+    contents = Dir[File.join(@testing_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run/*')].collect { |x| File.basename(x) }
 
     _test_contents(contents, true, true)
 
@@ -78,13 +79,14 @@ class TesBuildStockBatch < Minitest::Test
 
     _test_contents(contents, false, false)
 
-    assert(File.exist?(File.join(@national_upgrades, 'results_csvs', 'results_up16.csv')))
-    results = CSV.read(File.join(@national_upgrades, 'results_csvs', 'results_up16.csv'), headers: true)
+    num_upgrade_scenarios = Dir[File.join(@national_upgrades, 'results_csvs', 'results_up*')].count - 1
+    assert(File.exist?(File.join(@national_upgrades, 'results_csvs', "results_up#{num_upgrade_scenarios}.csv")))
+    results = CSV.read(File.join(@national_upgrades, 'results_csvs', "results_up#{num_upgrade_scenarios}.csv"), headers: true)
 
     _test_columns(results, true)
 
-    assert(File.exist?(File.join(@national_upgrades, 'simulation_output', 'up16', 'bldg0000001', 'run')))
-    contents = Dir[File.join(@national_upgrades, 'simulation_output', 'up16', 'bldg0000001', 'run/*')].collect { |x| File.basename(x) }
+    assert(File.exist?(File.join(@national_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run')))
+    contents = Dir[File.join(@national_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run/*')].collect { |x| File.basename(x) }
 
     _test_contents(contents, true, false)
 
