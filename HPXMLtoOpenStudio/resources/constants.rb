@@ -86,6 +86,12 @@ class Constants
             '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8']
   end
 
+  def self.MoistureTypes
+    return [HPXML::SiteSoilMoistureTypeDry,
+            HPXML::SiteSoilMoistureTypeMixed,
+            HPXML::SiteSoilMoistureTypeWet]
+  end
+
   def self.ObjectNameAirSourceHeatPump
     return 'air source heat pump'
   end
@@ -384,6 +390,16 @@ class Constants
 
   def self.ScheduleTypeLimitsTemperature
     return 'Temperature'
+  end
+
+  def self.SoilTypes
+    return [HPXML::SiteSoilTypeClay,
+            HPXML::SiteSoilTypeGravel,
+            HPXML::SiteSoilTypeLoam,
+            # HPXML::SiteSoilTypeOther,
+            HPXML::SiteSoilTypeSand,
+            HPXML::SiteSoilTypeSilt,
+            HPXML::SiteSoilTypeUnknown]
   end
 
   def self.StateCodesMap
