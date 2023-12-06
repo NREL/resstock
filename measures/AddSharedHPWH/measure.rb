@@ -432,6 +432,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # TODO: set volume, height, deadband, control
     capacity = 0
+    storage_tank.setTankHeight(h_tank)
     storage_tank.setHeater1Capacity(capacity)
     storage_tank.setHeater2Capacity(capacity)
     storage_tank.setTankVolume(UnitConversions.convert(volume, 'gal', 'm^3'))
@@ -463,14 +464,15 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     tank_r = UnitConversions.convert(22.0, 'hr*ft^2*f/btu', 'm^2*k/w') # From code
     tank_u = 1.0 / tank_r
     h_tank = 2.0 # m
-    # h_ue = 0.8 * h_tank
+    h_ue = 0.8 * h_tank
     h_le = 0.2 * h_tank
     h_source_in = 0.01 * h_tank
     h_source_out = 0.99 * h_tank
 
+    swing_tank.setTankHeight(h_tank)
     swing_tank.setHeaterPriorityControl('MasterSlave')
     swing_tank.setHeater1Capacity(capacity)
-    # swing_tank.setHeater1Height(h_ue) # FIXME: if this gets uncommented, E+ crashes
+    swing_tank.setHeater1Height(h_ue) 
     swing_tank.setHeater1DeadbandTemperatureDifference(5.56) # 10 F
     swing_tank.setHeater2Capacity(capacity)
     swing_tank.setHeater2Height(h_le)
