@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>7948c65d-14ae-4cad-a564-cd343eee7671</version_id>
-  <version_modified>2023-11-10T03:38:15Z</version_modified>
+  <version_id>0a668405-1a29-47fb-96ff-3939c3106bc8</version_id>
+  <version_modified>2023-12-06T19:18:09Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -134,11 +134,107 @@
       </choices>
     </argument>
     <argument>
+      <name>site_soil_and_moisture_type</name>
+      <display_name>Site: Soil and Moisture Type</display_name>
+      <description>Type of soil and moisture. This is used to inform ground conductivity and diffusivity. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>clay, dry</value>
+          <display_name>clay, dry</display_name>
+        </choice>
+        <choice>
+          <value>clay, mixed</value>
+          <display_name>clay, mixed</display_name>
+        </choice>
+        <choice>
+          <value>clay, wet</value>
+          <display_name>clay, wet</display_name>
+        </choice>
+        <choice>
+          <value>gravel, dry</value>
+          <display_name>gravel, dry</display_name>
+        </choice>
+        <choice>
+          <value>gravel, mixed</value>
+          <display_name>gravel, mixed</display_name>
+        </choice>
+        <choice>
+          <value>gravel, wet</value>
+          <display_name>gravel, wet</display_name>
+        </choice>
+        <choice>
+          <value>loam, dry</value>
+          <display_name>loam, dry</display_name>
+        </choice>
+        <choice>
+          <value>loam, mixed</value>
+          <display_name>loam, mixed</display_name>
+        </choice>
+        <choice>
+          <value>loam, wet</value>
+          <display_name>loam, wet</display_name>
+        </choice>
+        <choice>
+          <value>sand, dry</value>
+          <display_name>sand, dry</display_name>
+        </choice>
+        <choice>
+          <value>sand, mixed</value>
+          <display_name>sand, mixed</display_name>
+        </choice>
+        <choice>
+          <value>sand, wet</value>
+          <display_name>sand, wet</display_name>
+        </choice>
+        <choice>
+          <value>silt, dry</value>
+          <display_name>silt, dry</display_name>
+        </choice>
+        <choice>
+          <value>silt, mixed</value>
+          <display_name>silt, mixed</display_name>
+        </choice>
+        <choice>
+          <value>silt, wet</value>
+          <display_name>silt, wet</display_name>
+        </choice>
+        <choice>
+          <value>unknown, dry</value>
+          <display_name>unknown, dry</display_name>
+        </choice>
+        <choice>
+          <value>unknown, mixed</value>
+          <display_name>unknown, mixed</display_name>
+        </choice>
+        <choice>
+          <value>unknown, wet</value>
+          <display_name>unknown, wet</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>site_ground_conductivity</name>
       <display_name>Site: Ground Conductivity</display_name>
-      <description>Conductivity of the ground soil. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <description>Conductivity of the ground soil. If provided, overrides the previous site and moisture type input.</description>
       <type>String</type>
       <units>Btu/hr-ft-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>site_ground_diffusivity</name>
+      <display_name>Site: Ground Diffusivity</display_name>
+      <description>Diffusivity of the ground soil. If provided, overrides the previous site and moisture type input.</description>
+      <type>String</type>
+      <units>ft^2/hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2156,7 +2252,7 @@
     <argument>
       <name>cooling_system_cooling_compressor_type</name>
       <display_name>Cooling System: Cooling Compressor Type</display_name>
-      <description>The compressor type of the cooling system. Only applies to central air conditioner. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner'&gt;Central Air Conditioner&lt;/a&gt;) is used.</description>
+      <description>The compressor type of the cooling system. Only applies to central air conditioner and mini-split. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner'&gt;Central Air Conditioner&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner'&gt;Mini-Split Air Conditioner&lt;/a&gt;) is used.</description>
       <type>Choice</type>
       <units></units>
       <required>false</required>
@@ -2416,7 +2512,7 @@
     <argument>
       <name>heat_pump_cooling_compressor_type</name>
       <display_name>Heat Pump: Cooling Compressor Type</display_name>
-      <description>The compressor type of the heat pump. Only applies to air-to-air. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump'&gt;Air-to-Air Heat Pump&lt;/a&gt;) is used.</description>
+      <description>The compressor type of the heat pump. Only applies to air-to-air and mini-split. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump'&gt;Air-to-Air Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump'&gt;Mini-Split Heat Pump&lt;/a&gt;) is used.</description>
       <type>Choice</type>
       <units></units>
       <required>false</required>
@@ -2649,6 +2745,182 @@
       <units>W</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>geothermal_loop_configuration</name>
+      <display_name>Geothermal Loop: Configuration</display_name>
+      <description>Configuration of the geothermal loop. Only applies to ground-to-air heat pump type.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>none</default_value>
+      <choices>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>vertical</value>
+          <display_name>vertical</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geothermal_loop_borefield_configuration</name>
+      <display_name>Geothermal Loop: Borefield Configuration</display_name>
+      <description>Borefield configuration of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops'&gt;HPXML Geothermal Loops&lt;/a&gt;) is used.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>Rectangle</value>
+          <display_name>Rectangle</display_name>
+        </choice>
+        <choice>
+          <value>Open Rectangle</value>
+          <display_name>Open Rectangle</display_name>
+        </choice>
+        <choice>
+          <value>C</value>
+          <display_name>C</display_name>
+        </choice>
+        <choice>
+          <value>L</value>
+          <display_name>L</display_name>
+        </choice>
+        <choice>
+          <value>U</value>
+          <display_name>U</display_name>
+        </choice>
+        <choice>
+          <value>Lopsided U</value>
+          <display_name>Lopsided U</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geothermal_loop_loop_flow</name>
+      <display_name>Geothermal Loop: Loop Flow</display_name>
+      <description>Water flow rate through the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops'&gt;HPXML Geothermal Loops&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>gpm</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>geothermal_loop_boreholes_count</name>
+      <display_name>Geothermal Loop: Boreholes Count</display_name>
+      <description>Number of boreholes. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops'&gt;HPXML Geothermal Loops&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>geothermal_loop_boreholes_length</name>
+      <display_name>Geothermal Loop: Boreholes Length</display_name>
+      <description>Average length of each borehole (vertical). Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops'&gt;HPXML Geothermal Loops&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>ft</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>geothermal_loop_boreholes_spacing</name>
+      <display_name>Geothermal Loop: Boreholes Spacing</display_name>
+      <description>Distance between bores. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops'&gt;HPXML Geothermal Loops&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>ft</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>geothermal_loop_boreholes_diameter</name>
+      <display_name>Geothermal Loop: Boreholes Diameter</display_name>
+      <description>Diameter of bores. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops'&gt;HPXML Geothermal Loops&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>in</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>geothermal_loop_grout_type</name>
+      <display_name>Geothermal Loop: Grout Type</display_name>
+      <description>Grout type of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops'&gt;HPXML Geothermal Loops&lt;/a&gt;) is used.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>standard</value>
+          <display_name>standard</display_name>
+        </choice>
+        <choice>
+          <value>thermally enhanced</value>
+          <display_name>thermally enhanced</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geothermal_loop_pipe_type</name>
+      <display_name>Geothermal Loop: Pipe Type</display_name>
+      <description>Pipe type of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops'&gt;HPXML Geothermal Loops&lt;/a&gt;) is used.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>standard</value>
+          <display_name>standard</display_name>
+        </choice>
+        <choice>
+          <value>thermally enhanced</value>
+          <display_name>thermally enhanced</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geothermal_loop_pipe_diameter</name>
+      <display_name>Geothermal Loop: Pipe Diameter</display_name>
+      <description>Pipe diameter of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops'&gt;HPXML Geothermal Loops&lt;/a&gt;) is used.</description>
+      <type>Choice</type>
+      <units>in</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>3/4" pipe</value>
+          <display_name>3/4" pipe</display_name>
+        </choice>
+        <choice>
+          <value>1" pipe</value>
+          <display_name>1" pipe</display_name>
+        </choice>
+        <choice>
+          <value>1-1/4" pipe</value>
+          <display_name>1-1/4" pipe</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>heating_system_2_type</name>
@@ -6859,7 +7131,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>2FCFA5AD</checksum>
+      <checksum>2167A075</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
