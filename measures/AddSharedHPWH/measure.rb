@@ -158,8 +158,10 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     # Add Tanks
+    prev_storage_tank = nil
     heat_pump_loops.each do |heat_pump_loop, components|
-      components << add_storage_tank(model, source_loop, heat_pump_loop, storage_tank_volume, "#{heat_pump_loop.name} Main Storage Tank")
+      components << add_storage_tank(model, source_loop, heat_pump_loop, storage_tank_volume, prev_storage_tank, "#{heat_pump_loop.name} Main Storage Tank")
+      prev_storage_tank = components[0]
     end
     add_swing_tank(model, source_loop, swing_tank_volume, swing_tank_capacity, 'Swing Tank')
 
@@ -171,7 +173,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # Add Heat Pump
     heat_pump_loops.each do |heat_pump_loop, components|
-      components << add_heat_pump(model, shared_hpwh_fuel_type, heat_pump_loop, shared_hpwh_type, "#{heat_pump_loop.name} Heat Pump Water Heater")
+      components << add_heat_pump(model, shared_hpwh_fuel_type, heat_pump_loop, "#{heat_pump_loop.name} Heat Pump Water Heater")
     end
 
     # HPWH provides space heating
@@ -417,7 +419,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     manager.addToNode(loop.supplyOutletNode)
   end
 
-  def add_storage_tank(model, recirculation_loop, heat_pump_loop, volume, name)
+  def add_storage_tank(model, recirculation_loop, heat_pump_loop, volume, prev_storage_tank, name)
     h_tank = 2.0 # m, assumed
     h_source_in = 0.01 * h_tank
     h_source_out = 0.99 * h_tank
@@ -433,7 +435,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     storage_tank.setHeater1Capacity(capacity)
     storage_tank.setHeater2Capacity(capacity)
     storage_tank.setTankVolume(UnitConversions.convert(volume, 'gal', 'm^3'))
-    # storage_tank.setAmbientTemperatureZone #FIXME: What zone do we want to assume the tanks are in?
+    # storage_tank.setAmbientTemperatureZone # FIXME: What zone do we want to assume the tanks are in?
     storage_tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(tank_u) # FIXME: typical loss values?
     storage_tank.setSourceSideInletHeight(h_source_in)
     storage_tank.setSourceSideOutletHeight(h_source_out)
@@ -442,7 +444,11 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     storage_tank.setNumberofNodes(6)
     storage_tank.setEndUseSubcategory(name)
 
-    recirculation_loop.addSupplyBranchForComponent(storage_tank)
+    if prev_storage_tank.nil?
+      recirculation_loop.addSupplyBranchForComponent(storage_tank) # first one is a new supply branch
+    else
+      storage_tank.addToNode(prev_storage_tank.outletModelObject.get.to_Node.get) # remaining are added in series
+    end
     heat_pump_loop.addDemandBranchForComponent(storage_tank)
 
     return storage_tank
@@ -470,7 +476,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     swing_tank.setHeater2Height(h_le)
     swing_tank.setHeater2DeadbandTemperatureDifference(5.56)
     swing_tank.setTankVolume(UnitConversions.convert(volume, 'gal', 'm^3'))
-    # swing_tank.setAmbientTemperatureZone #FIXME: What zone do we want to assume the tanks are in?
+    # swing_tank.setAmbientTemperatureZone # FIXME: What zone do we want to assume the tanks are in?
     swing_tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(tank_u) # FIXME: typical loss values?
     swing_tank.setSourceSideInletHeight(h_source_in)
     swing_tank.setSourceSideOutletHeight(h_source_out)
@@ -490,19 +496,15 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     source_loop.addDemandBranchForComponent(hx)
   end
 
-  def add_heat_pump(model, fuel_type, heat_pump_loop, _shared_hpwh_type, name)
+  def add_heat_pump(model, fuel_type, heat_pump_loop, name)
     if fuel_type == HPXML::FuelTypeElectricity
       heat_pump = OpenStudio::Model::WaterHeaterHeatPump.new(model) # FIXME: this may not be simulating succesfully currently
     elsif fuel_type == HPXML::FuelTypeNaturalGas
       heat_pump = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
-
       heat_pump.setFuelType(EPlus.fuel_type(fuel_type))
       heat_pump.setEndUseSubcategory(name)
       heat_pump.setNominalAuxiliaryElectricPower(0)
       heat_pump.setStandbyElectricPower(0)
-      # TODO: GAHP units would have a fixed discrete size
-      # based on how we determine "size", this object may be multiplied
-      # need to set tank properties before checking this
     end
 
     heat_pump.setName(name)
