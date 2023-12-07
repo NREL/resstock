@@ -63,3 +63,7 @@ Run ``openstudio workflow/run_analysis.rb -h`` to see all available commands/arg
 
 .. note::
   At this time the ``residential_quota_downselect`` sampler with ``resample`` is not supported.
+
+.. note::
+  EPW weather files must be contained in a ``weather`` folder at the same level as the ``workflow`` folder (i.e., at the top level of the repository).
+  If no such folder is present, or if the ``weather`` folder does not contain any ``*.epw`` files, it will automatically be created/populated based on the ``weather_files_url`` (or ``weather_files_path``) present in the specified yml file.

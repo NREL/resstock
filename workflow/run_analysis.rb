@@ -380,6 +380,11 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
 
   # Create weather folder
   weather_dir = File.join(thisdir, '../weather')
+
+  if File.exist?(weather_dir) && Dir[File.join(weather_dir, '*.epw')].empty?
+    FileUtils.rm_rf(weather_dir)
+  end
+
   if !File.exist?(weather_dir)
     if cfg.keys.include?('weather_files_url')
       Dir.mkdir(weather_dir)

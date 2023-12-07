@@ -452,8 +452,9 @@ class TestRunAnalysis < Minitest::Test
 
     _test_columns(results, true)
 
-    assert(File.exist?(File.join(@testing_upgrades, 'run76', 'run')))
-    contents = Dir[File.join(@testing_upgrades, 'run76', 'run/*')].collect { |x| File.basename(x) }
+    num_run_folders = Dir[File.join(@testing_upgrades, 'run*')].count
+    assert(File.exist?(File.join(@testing_upgrades, "run#{num_run_folders}", 'run')))
+    contents = Dir[File.join(@testing_upgrades, "run#{num_run_folders}", 'run/*')].collect { |x| File.basename(x) }
 
     _test_contents(contents, true, true)
 
@@ -506,8 +507,9 @@ class TestRunAnalysis < Minitest::Test
 
     _test_columns(results, true)
 
-    assert(File.exist?(File.join(@national_upgrades, 'run76', 'run')))
-    contents = Dir[File.join(@national_upgrades, 'run76', 'run/*')].collect { |x| File.basename(x) }
+    num_run_folders = Dir[File.join(@national_upgrades, 'run*')].count
+    assert(File.exist?(File.join(@national_upgrades, "run#{num_run_folders}", 'run')))
+    contents = Dir[File.join(@national_upgrades, "run#{num_run_folders}", 'run/*')].collect { |x| File.basename(x) }
 
     _test_contents(contents, true, false)
 
