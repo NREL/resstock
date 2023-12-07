@@ -47,7 +47,9 @@ class HVACSizing
       apply_hvac_heat_pump_logic(hvac_sizing_values, hvac_cooling)
       apply_hvac_equipment_adjustments(hvac_sizing_values, weather, hvac_heating, hvac_cooling, hvac_system)
       apply_hvac_installation_quality(hvac_sizing_values, hvac_heating, hvac_cooling)
+      apply_hvac_maximum_airflows(hvac_sizing_values, hvac_heating, hvac_cooling)
       apply_hvac_fixed_capacities(hvac_sizing_values, hvac_heating, hvac_cooling)
+      apply_hvac_blower_fan_adjustment(hvac_sizing_values, hvac_heating, hvac_cooling)
       apply_hvac_ground_loop(hvac_sizing_values, weather, hvac_cooling)
       apply_hvac_finalize_airflows(hvac_sizing_values, hvac_heating, hvac_cooling)
 
@@ -1875,6 +1877,75 @@ class HVACSizing
     end
   end
 
+  def self.apply_hvac_maximum_airflows(hvac_sizing_values, hvac_heating, hvac_cooling)
+    '''
+    Maximum Allowed Airflow Rates
+    '''
+
+    return if !@hpxml_bldg.header.use_maximum_airflow_rates
+
+    # Limit HVAC airflows if maximum values are provided
+    if not hvac_cooling.nil?
+      max_cooling_airflow_cfm = hvac_cooling.cooling_airflow_cfm
+    end
+    if not max_cooling_airflow_cfm.nil?
+      # Use maximum allowed airflow rate; proportionally adjust autosized capacity & sensible capacity
+      prev_airflow = hvac_sizing_values.Cool_Airflow
+      hvac_sizing_values.Cool_Airflow = [prev_airflow, max_cooling_airflow_cfm].min
+      hvac_sizing_values.Cool_Capacity *= hvac_sizing_values.Cool_Airflow / prev_airflow
+      hvac_sizing_values.Cool_Capacity_Sens *= hvac_sizing_values.Cool_Airflow / prev_airflow
+    end
+    if not hvac_heating.nil?
+      max_heating_airflow_cfm = hvac_heating.heating_airflow_cfm
+    end
+    if not max_heating_airflow_cfm.nil?
+      # Use maximum allowed airflow rate; proportionally adjust autosized capacity
+      prev_airflow = hvac_sizing_values.Heat_Airflow
+      hvac_sizing_values.Heat_Airflow = [prev_airflow, max_heating_airflow_cfm].min
+      hvac_sizing_values.Heat_Capacity *= hvac_sizing_values.Heat_Airflow / prev_airflow
+    end
+  end
+
+  def self.apply_hvac_blower_fan_adjustment(hvac_sizing_values, hvac_heating, hvac_cooling)
+    '''
+    Fan W/cfm adjustment
+    '''
+
+    return if ![HPXML::HVACTypeHeatPumpAirToAir,
+                HPXML::HVACTypeHeatPumpMiniSplit,
+                HPXML::HVACTypeHeatPumpGroundToAir].include? @heating_type
+    return if !hvac_heating.adjust_fan_watts_per_cfm
+
+    airflow_max = get_airflow_max(hvac_heating, hvac_cooling)
+    if !airflow_max.nil?
+      v_baseline = airflow_max
+      v_upgrade = [hvac_sizing_values.Heat_Airflow, hvac_sizing_values.Cool_Airflow].max
+
+      p_int = v_baseline * hvac_heating.fan_watts_per_cfm
+      p_upgrade = p_int * (v_baseline / v_upgrade)**3
+      adjusted_fan_watts_per_cfm = p_upgrade / v_upgrade
+
+      hvac_sizing_values.Adjusted_Fan_Watts_Per_CFM = adjusted_fan_watts_per_cfm
+    end
+  end
+
+  def self.get_airflow_max(htg_sys, clg_sys)
+    if !htg_sys.nil? && !clg_sys.nil?
+      if !htg_sys.heating_airflow_cfm.nil? && !clg_sys.cooling_airflow_cfm.nil?
+        return [htg_sys.heating_airflow_cfm, clg_sys.cooling_airflow_cfm].max
+      elsif !htg_sys.heating_airflow_cfm.nil?
+        return htg_sys.heating_airflow_cfm
+      elsif !clg_sys.cooling_airflow_cfm.nil?
+        return clg_sys.cooling_airflow_cfm
+      end
+    elsif !htg_sys.nil?
+      return htg_sys.heating_airflow_cfm
+    elsif !clg_sys.nil?
+      return clg_sys.cooling_airflow_cfm
+    end
+    return
+  end
+
   def self.apply_hvac_fixed_capacities(hvac_sizing_values, hvac_heating, hvac_cooling)
     '''
     Fixed Sizing Equipment
@@ -1900,7 +1971,7 @@ class HVACSizing
     end
     if (not fixed_heating_capacity.nil?) && (hvac_sizing_values.Heat_Capacity > 0)
       if not (@hpxml_bldg.header.allow_increased_fixed_capacities && hvac_sizing_values.Heat_Capacity > fixed_heating_capacity)
-        # Use fixed size; proportionally adjust autosized airflow & sensible capacity
+        # Use fixed size; proportionally adjust autosized airflow
         prev_capacity = hvac_sizing_values.Heat_Capacity
         hvac_sizing_values.Heat_Capacity = fixed_heating_capacity
         hvac_sizing_values.Heat_Airflow *= hvac_sizing_values.Heat_Capacity / prev_capacity
@@ -1919,12 +1990,6 @@ class HVACSizing
       if @hpxml_bldg.header.allow_increased_fixed_capacities
         hvac_sizing_values.Heat_Capacity_Supp = [hvac_sizing_values.Heat_Capacity_Supp, prev_capacity].max
       end
-    end
-  end
-
-  def self.scale_detailed_performance_data_capacities(detailed_performance_data, scaling_factor)
-    detailed_performance_data.each do |dp|
-      dp.capacity *= scaling_factor
     end
   end
 
@@ -3263,7 +3328,8 @@ class HVACSizingValues
   end
   attr_accessor(:Cool_Load_Sens, :Cool_Load_Lat, :Cool_Load_Tot, :Cool_Capacity, :Cool_Capacity_Sens, :Cool_Airflow,
                 :Heat_Load, :Heat_Load_Supp, :Heat_Capacity, :Heat_Capacity_Supp, :Heat_Airflow,
-                :GSHP_Loop_flow, :GSHP_Bore_Holes, :GSHP_Bore_Depth, :GSHP_G_Functions)
+                :GSHP_Loop_flow, :GSHP_Bore_Holes, :GSHP_Bore_Depth, :GSHP_G_Functions,
+                :Adjusted_Fan_Watts_Per_CFM)
 end
 
 class Numeric
