@@ -1904,6 +1904,14 @@ class HVACSizing
       hvac_sizing_values.Heat_Airflow = [prev_airflow, max_heating_airflow_cfm].min
       hvac_sizing_values.Heat_Capacity *= hvac_sizing_values.Heat_Airflow / prev_airflow
     end
+
+    # FIXME: no clue if this is right; i feel like Heat_Capacity should equal Cool_Capacity (process_heat_pump_adjustment)?
+    if [HPXML::HVACTypeHeatPumpAirToAir,
+        HPXML::HVACTypeHeatPumpMiniSplit,
+        HPXML::HVACTypeHeatPumpGroundToAir].include? @heating_type
+      hvac_sizing_values.Heat_Capacity = [hvac_sizing_values.Heat_Capacity, hvac_sizing_values.Cool_Capacity].max
+      hvac_sizing_values.Cool_Capacity = hvac_sizing_values.Heat_Capacity
+    end
   end
 
   def self.apply_hvac_blower_fan_adjustment(hvac_sizing_values, hvac_heating, hvac_cooling)
