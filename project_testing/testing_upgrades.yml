@@ -231,6 +231,8 @@ upgrades:
         option: HVAC Secondary Heating Efficiency|None
 
   - upgrade_name: MSHP w/o Ducts
+    package_apply_logic:
+      - HVAC Has Ducts|No
     options:
       - &hvac_heating_efficiency_mshp_seer_25_12_pt_7_hspf
         option: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
@@ -283,13 +285,11 @@ upgrades:
       - &power_outage_summer
         option: Power Outage|Summer
 
-  - upgrade_name: All Upgrades
+  - upgrade_name: All Upgrades # except Foundation Type, MSHP, MSHP w/o Ducts, GSHP, Power Outage
     options:
       - *windows_triple_low_e_non_metal_l_gain
       - *insulation_wall_wood_stud_r_13
       - *insulation_sheathing_r_5
-      - *geometry_foundation_type_unvented_crawlspace
-      - *insulation_foundation_wall_wall_r_10_exterior
       - *insulation_rim_joist_r_13_interior
       - *insulation_ceiling_r_60
       - *infiltration_reduction_25_percent
@@ -308,7 +308,7 @@ upgrades:
       - *pv_system_size_5_pt_0_kwdc
       - *pv_orientation_south
 
-eagle:
+kestrel:
   n_jobs: 3
   minutes_per_sim: 5
   account: <account you are authorized to use>
