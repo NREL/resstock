@@ -121,6 +121,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'hvac-location-heat-pump' => ['A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.'],
                             'hvac-msac-not-var-speed' => ["Expected CompressorType to be 'variable speed'"],
                             'hvac-mshp-not-var-speed' => ["Expected CompressorType to be 'variable speed'"],
+                            'hvac-shr-low' => ['Expected SensibleHeatFraction to be greater than 0.5'],
                             'hvac-sizing-humidity-setpoint' => ['Expected ManualJInputs/HumiditySetpoint to be less than 1'],
                             'hvac-negative-crankcase-heater-watts' => ['Expected extension/CrankcaseHeaterPowerWatts to be greater than or equal to 0.0.'],
                             'incomplete-integrated-heating' => ['Expected 1 element(s) for xpath: IntegratedHeatingSystemFractionHeatLoadServed'],
@@ -396,6 +397,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['hvac-mshp-not-var-speed'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-mini-split-heat-pump-ductless.xml')
         hpxml_bldg.heat_pumps[0].compressor_type = HPXML::HVACCompressorTypeSingleStage
+      elsif ['hvac-shr-low'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.cooling_systems[0].cooling_shr = 0.4
       elsif ['hvac-sizing-humidity-setpoint'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.header.manualj_humidity_setpoint = 50

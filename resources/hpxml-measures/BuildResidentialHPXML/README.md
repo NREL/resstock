@@ -2315,6 +2315,67 @@ The heat load served fraction of the second heating system. Ignored if this heat
 
 <br/>
 
+**HVAC Distribution: Blower Fan Efficiency**
+
+The blower fan efficiency at maximum fan speed. Applies only to Furnace heating system, central air conditioner and mini-split cooling systems, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``hvac_distribution_fan_watts_per_cfm``
+- **Type:** ``Double``
+
+- **Units:** ``W/CFM``
+
+- **Required:** ``false``
+
+<br/>
+
+**HVAC Distribution: Adjust Blower Fan Efficiency**
+
+Whether to adjust the blower fan efficiency based on the W/cfm and provided airflow rates, and autosized airflow rates. Applies only to air-to-air, mini-split, and ground-to-air heat pumps.
+
+- **Name:** ``hvac_distribution_adjust_blower_fan_efficiency``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
+**HVAC Distribution: Heating Airflow Rate**
+
+The heating airflow rate. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``hvac_distribution_heating_airflow_cfm``
+- **Type:** ``Double``
+
+- **Units:** ``CFM``
+
+- **Required:** ``false``
+
+<br/>
+
+**HVAC Distribution: Cooling Airflow Rate**
+
+The cooling airflow rate. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``hvac_distribution_cooling_airflow_cfm``
+- **Type:** ``Double``
+
+- **Units:** ``CFM``
+
+- **Required:** ``false``
+
+<br/>
+
+**HVAC Distribution: Use Maximum Airflow Rates**
+
+Whether to use specified heating/cooling airflow rates as the maximum allowed.
+
+- **Name:** ``hvac_distribution_use_maximum_airflow_rates``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
 **HVAC Control: Heating Weekday Setpoint Schedule**
 
 Specify the constant or 24-hour comma-separated weekday heating setpoint schedule. Required unless a detailed CSV schedule is provided.
