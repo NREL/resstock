@@ -1,0 +1,103 @@
+schema_version: '0.3'
+os_version: 3.7.0
+os_sha: d5269793f1
+buildstock_directory: ../ # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /scratch/jrobert1/hp_controls
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 100
+
+baseline:
+  n_buildings_represented: 139647020 # American Community Survey 2021 5-year, B25001, does not include territories ( 138765649 without AK and HI )
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    simulation_output_report:
+      timeseries_frequency: none
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+upgrades:
+  - upgrade_name: ASHP
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 30
+      - option: HVAC Cooling Efficiency|Ducted Heat Pump
+
+  - upgrade_name: ASHP w/Adjust Blower Fan Efficiency
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 30
+      - option: HVAC Cooling Efficiency|Ducted Heat Pump
+      - option: HVAC Distribution|Adjust Blower Fan Efficiency
+
+  - upgrade_name: ASHP w/Use Existing As Max Allowed
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 30
+      - option: HVAC Cooling Efficiency|Ducted Heat Pump
+      - option: HVAC Distribution|Use Existing As Max Allowed
+
+  - upgrade_name: ASHP w/Both
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 30
+      - option: HVAC Cooling Efficiency|Ducted Heat Pump
+      - option: HVAC Distribution|Adjust Blower Fan Efficiency
+      - option: HVAC Distribution|Use Existing As Max Allowed
+
+kestrel:
+  n_jobs: 1
+  minutes_per_sim: 5
+  account: heatpump
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 10
+
+postprocessing:
+  aws:
+    s3:
+      bucket: buildstock-testing
+      prefix: resstock/jrobert1
+    athena:
+      database_name: test_runs
+      max_crawling_time: 600
