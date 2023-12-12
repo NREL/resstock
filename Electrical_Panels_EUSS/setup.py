@@ -36,6 +36,7 @@ setuptools.setup(
         "openpyxl",
         "matplotlib",
         "scikit-learn==0.24.2",
+        "xgboost==2.0.1",
     ], # pip install -e .
     extras_require={
         "dev": [
