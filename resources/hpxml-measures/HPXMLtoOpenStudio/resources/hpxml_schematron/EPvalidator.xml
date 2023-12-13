@@ -966,6 +966,7 @@
       <sch:assert role='ERROR' test='h:CompressorType[text()="single stage" or text()="two stage" or text()="variable speed"] or not(h:CompressorType)'>Expected CompressorType to be 'single stage' or 'two stage' or 'variable speed'</sch:assert>
       <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER" or h:Units="SEER2"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value</sch:assert>
       <sch:assert role='ERROR' test='count(h:SensibleHeatFraction) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SensibleHeatFraction</sch:assert>
+      <sch:assert role='ERROR' test='count(h:CoolingDetailedPerformanceData) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CoolingDetailedPerformanceData</sch:assert> <!-- See [CoolingDetailedPerformanceData]-->
       <sch:assert role='ERROR' test='count(h:IntegratedHeatingSystemFuel) = 0'>Expected 0 element(s) for xpath: IntegratedHeatingSystemFuel</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:FanPowerWattsPerCFM) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/FanPowerWattsPerCFM</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:FanPowerWattsPerCFM) &gt;= 0 or not(h:extension/h:FanPowerWattsPerCFM)'>Expected extension/FanPowerWattsPerCFM to be greater than or equal to 0</sch:assert>
@@ -1033,8 +1034,11 @@
       <sch:assert role='ERROR' test='count(../../h:HVACDistribution/h:DistributionSystemType/h:AirDistribution/h:AirDistributionType[text()="regular velocity"]) + count(../../h:HVACDistribution/h:DistributionSystemType/h:Other[text()="DSE"]) &gt;= 0'>Expected 0 or more element(s) for xpath: ../../HVACDistribution/DistributionSystemType/AirDistribution/AirDistributionType[text()="regular velocity"] | ../../HVACDistribution/DistributionSystemType/Other[text()="DSE"]</sch:assert> <!-- See [HVACDistribution] -->
       <sch:assert role='ERROR' test='count(h:DistributionSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DistributionSystem</sch:assert>
       <sch:assert role='ERROR' test='count(h:CoolingCapacity) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CoolingCapacity</sch:assert>
+      <sch:assert role='ERROR' test='count(h:CompressorType) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CompressorType</sch:assert>
+      <sch:assert role='ERROR' test='h:CompressorType[text()="variable speed"] or not(h:CompressorType)'>Expected CompressorType to be 'variable speed'</sch:assert>
       <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER" or h:Units="SEER2"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value</sch:assert>
       <sch:assert role='ERROR' test='count(h:SensibleHeatFraction) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SensibleHeatFraction</sch:assert>
+      <sch:assert role='ERROR' test='count(h:CoolingDetailedPerformanceData) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CoolingDetailedPerformanceData</sch:assert> <!-- See [CoolingDetailedPerformanceData]-->
       <sch:assert role='ERROR' test='count(h:IntegratedHeatingSystemFuel) = 0'>Expected 0 element(s) for xpath: IntegratedHeatingSystemFuel</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:FanPowerWattsPerCFM) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/FanPowerWattsPerCFM</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:FanPowerWattsPerCFM) &gt;= 0 or not(h:extension/h:FanPowerWattsPerCFM)'>Expected extension/FanPowerWattsPerCFM to be greater than or equal to 0</sch:assert>
@@ -1137,6 +1141,7 @@
       <sch:assert role='ERROR' test='count(h:FractionCoolLoadServed) = 1'>Expected 1 element(s) for xpath: FractionCoolLoadServed</sch:assert>
       <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER" or h:Units="SEER2"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value</sch:assert>
       <sch:assert role='ERROR' test='count(h:AnnualHeatingEfficiency[h:Units="HSPF" or h:Units="HSPF2"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualHeatingEfficiency[Units="HSPF" or Units="HSPF2"]/Value</sch:assert>
+      <sch:assert role='ERROR' test='count(h:HeatingDetailedPerformanceData) + count(h:CoolingDetailedPerformanceData) = 0 or count(h:HeatingDetailedPerformanceData) + count(h:CoolingDetailedPerformanceData) = 2'>Expected 0 or 2 element(s) for xpath: HeatingDetailedPerformanceData | CoolingDetailedPerformanceData</sch:assert> <!-- See [HeatingDetailedPerformanceData] and [CoolingDetailedPerformanceData]-->
       <sch:assert role='ERROR' test='count(h:extension/h:FanPowerWattsPerCFM) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/FanPowerWattsPerCFM</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:FanPowerWattsPerCFM) &gt;= 0 or not(h:extension/h:FanPowerWattsPerCFM)'>Expected extension/FanPowerWattsPerCFM to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:AirflowDefectRatio) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/AirflowDefectRatio</sch:assert> <!-- See [AirflowDefectRatio] -->
@@ -1166,12 +1171,15 @@
       <sch:assert role='ERROR' test='count(h:extension/h:HeatingCapacityRetention) + count(h:HeatingCapacity17F) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/HeatingCapacityRetention | HeatingCapacity17F</sch:assert> <!-- See [HeatPumpCapacityRetention] -->
       <sch:assert role='ERROR' test='number(h:HeatingCapacity17F) &lt;= number(h:HeatingCapacity) or not(h:HeatingCapacity17F) or not(h:HeatingCapacity)'>Expected HeatingCapacity17F to be less than or equal to HeatingCapacity</sch:assert>
       <sch:assert role='ERROR' test='count(h:CoolingCapacity) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CoolingCapacity</sch:assert>
+      <sch:assert role='ERROR' test='count(h:CompressorType) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CompressorType</sch:assert>
+      <sch:assert role='ERROR' test='h:CompressorType[text()="variable speed"] or not(h:CompressorType)'>Expected CompressorType to be 'variable speed'</sch:assert>
       <sch:assert role='ERROR' test='count(h:CompressorLockoutTemperature) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CompressorLockoutTemperature</sch:assert>
       <sch:assert role='ERROR' test='count(h:CoolingSensibleHeatFraction) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CoolingSensibleHeatFraction</sch:assert>
       <sch:assert role='ERROR' test='count(h:FractionHeatLoadServed) = 1'>Expected 1 element(s) for xpath: FractionHeatLoadServed</sch:assert>
       <sch:assert role='ERROR' test='count(h:FractionCoolLoadServed) = 1'>Expected 1 element(s) for xpath: FractionCoolLoadServed</sch:assert>
       <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER" or h:Units="SEER2"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value</sch:assert>
       <sch:assert role='ERROR' test='count(h:AnnualHeatingEfficiency[h:Units="HSPF" or h:Units="HSPF2"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualHeatingEfficiency[Units="HSPF" or Units="HSPF2"]/Value</sch:assert>
+      <sch:assert role='ERROR' test='count(h:HeatingDetailedPerformanceData) + count(h:CoolingDetailedPerformanceData) = 0 or count(h:HeatingDetailedPerformanceData) + count(h:CoolingDetailedPerformanceData) = 2'>Expected 0 or 2 element(s) for xpath: HeatingDetailedPerformanceData | CoolingDetailedPerformanceData</sch:assert> <!-- See [HeatingDetailedPerformanceData] and [CoolingDetailedPerformanceData]-->
       <sch:assert role='ERROR' test='count(h:extension/h:FanPowerWattsPerCFM) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/FanPowerWattsPerCFM</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:FanPowerWattsPerCFM) &gt;= 0 or not(h:extension/h:FanPowerWattsPerCFM)'>Expected extension/FanPowerWattsPerCFM to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:AirflowDefectRatio) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/AirflowDefectRatio</sch:assert> <!-- See [AirflowDefectRatio] -->
@@ -1311,6 +1319,38 @@
       <!-- Warnings -->
       <sch:report role='WARN' test='number(h:BackupHeatingSwitchoverTemperature) &lt; 30'>BackupHeatingSwitchoverTemperature is below 30 deg-F; this may result in significant unmet hours if the heat pump does not have sufficient capacity.</sch:report>
       <sch:report role='WARN' test='number(h:BackupHeatingLockoutTemperature) &lt; 30'>BackupHeatingLockoutTemperature is below 30 deg-F; this may result in significant unmet hours if the heat pump does not have sufficient capacity.</sch:report>
+    </sch:rule>
+  </sch:pattern>
+  
+  <sch:pattern>
+    <sch:title>[HeatingDetailedPerformanceData]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACPlant/*/h:HeatingDetailedPerformanceData'>
+      <sch:assert role='ERROR' test='count(../h:HeatingCapacity) = 1'>Expected 1 element(s) for xpath: ../HeatingCapacity</sch:assert>
+      <sch:assert role='ERROR' test='count(../h:CompressorType[text()="variable speed"]) = 1'>Expected 1 element(s) for xpath: ../CompressorType[text()="variable speed"]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:PerformanceDataPoint[h:OutdoorTemperature=47 and h:CapacityDescription="minimum"]) = 1'>Expected 1 element(s) for xpath: PerformanceDataPoint[OutdoorTemperature=47 and CapacityDescription="minimum"]</sch:assert> <!-- See [PerformanceDataPoint] -->
+      <sch:assert role='ERROR' test='count(h:PerformanceDataPoint[h:OutdoorTemperature=47 and h:CapacityDescription="maximum"]) = 1'>Expected 1 element(s) for xpath: PerformanceDataPoint[OutdoorTemperature=47 and CapacityDescription="maximum"]</sch:assert> <!-- See [PerformanceDataPoint] -->
+      <sch:assert role='ERROR' test='count(h:PerformanceDataPoint[h:OutdoorTemperature!=47 and h:CapacityDescription="minimum"]) &gt;= 1'>Expected 1 or more element(s) for xpath: PerformanceDataPoint[OutdoorTemperature!=47 and CapacityDescription="minimum"]</sch:assert> <!-- See [PerformanceDataPoint] -->
+      <sch:assert role='ERROR' test='count(h:PerformanceDataPoint[h:OutdoorTemperature!=47 and h:CapacityDescription="maximum"]) &gt;= 1'>Expected 1 or more element(s) for xpath: PerformanceDataPoint[OutdoorTemperature!=47 and CapacityDescription="maximum"]</sch:assert> <!-- See [PerformanceDataPoint] -->
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[CoolingDetailedPerformanceData]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACPlant/*/h:CoolingDetailedPerformanceData'>
+      <sch:assert role='ERROR' test='count(../h:CoolingCapacity) = 1'>Expected 1 element(s) for xpath: ../CoolingCapacity</sch:assert>
+      <sch:assert role='ERROR' test='count(../h:CompressorType[text()="variable speed"]) = 1'>Expected 1 element(s) for xpath: ../CompressorType[text()="variable speed"]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:PerformanceDataPoint[h:OutdoorTemperature=95 and h:CapacityDescription="minimum"]) = 1'>Expected 1 element(s) for xpath: PerformanceDataPoint[OutdoorTemperature=95 and CapacityDescription="minimum"]</sch:assert> <!-- See [PerformanceDataPoint] -->
+      <sch:assert role='ERROR' test='count(h:PerformanceDataPoint[h:OutdoorTemperature=95 and h:CapacityDescription="maximum"]) = 1'>Expected 1 element(s) for xpath: PerformanceDataPoint[OutdoorTemperature=95 and CapacityDescription="maximum"]</sch:assert> <!-- See [PerformanceDataPoint] -->
+      <sch:assert role='ERROR' test='count(h:PerformanceDataPoint[h:OutdoorTemperature!=95 and h:CapacityDescription="minimum"]) &gt;= 1'>Expected 1 or more element(s) for xpath: PerformanceDataPoint[OutdoorTemperature!=95 and CapacityDescription="minimum"]</sch:assert> <!-- See [PerformanceDataPoint] -->
+      <sch:assert role='ERROR' test='count(h:PerformanceDataPoint[h:OutdoorTemperature!=95 and h:CapacityDescription="maximum"]) &gt;= 1'>Expected 1 or more element(s) for xpath: PerformanceDataPoint[OutdoorTemperature!=95 and CapacityDescription="maximum"]</sch:assert> <!-- See [PerformanceDataPoint] -->
+    </sch:rule>
+  </sch:pattern>
+  
+  <sch:pattern>
+    <sch:title>[PerformanceDataPoint]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACPlant/*/*/h:PerformanceDataPoint'>
+      <sch:assert role='ERROR' test='count(h:Capacity) = 1'>Expected 1 element(s) for xpath: Capacity</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Efficiency[h:Units="COP"]/h:Value) = 1'>Expected 1 element(s) for xpath: Efficiency[Units="COP"]/Value</sch:assert>
     </sch:rule>
   </sch:pattern>
 
