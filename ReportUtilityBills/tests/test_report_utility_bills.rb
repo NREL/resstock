@@ -1045,7 +1045,8 @@ class ReportUtilityBillsTest < Minitest::Test
     utility_bill_scenario = @hpxml_header.utility_bill_scenarios[0]
     Zip.on_exists_proc = true
     Zip::File.open(File.join(File.dirname(__FILE__), '../resources/detailed_rates/openei_rates.zip')) do |zip_file|
-      zip_file.each do |entry|
+      zip_file.each_with_index do |entry, i|
+        break if i >= 1000 # No need to run *every* file, that will take a while
         next unless entry.file?
 
         tmpdir = Dir.tmpdir
@@ -1060,8 +1061,7 @@ class ReportUtilityBillsTest < Minitest::Test
           File.delete(@bills_monthly_csv) if File.exist? @bills_monthly_csv
           actual_bills, actual_monthly_bills = _bill_calcs(@fuels_pv_1kw_detailed, @hpxml_header, @hpxml.buildings, utility_bill_scenario)
           if !File.exist?(@bills_csv)
-            puts entry.name
-            assert(false)
+            flunk "#{entry.name} was not successful."
           end
           if entry.name.include? 'North Slope Borough Power Light - Aged or Handicappedseniors over 60'
             # No cost if < 600 kWh/month, which is the case for PV_None.csv

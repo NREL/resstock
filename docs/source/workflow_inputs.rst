@@ -29,55 +29,6 @@ HPXML files submitted to OpenStudio-HPXML undergo a two step validation process:
 
 OpenStudio-HPXML **automatically validates** the HPXML file against both the XSD and Schematron documents and reports any validation errors, but software developers may find it beneficial to also integrate validation into their software.
 
-.. _bldg_type_scope:
-
-Building Type Scope
-*******************
-
-OpenStudio-HPXML can be used to model either individual residential dwelling units or whole residential buildings.
-
-.. _bldg_type_units:
-
-Dwelling Units
-~~~~~~~~~~~~~~
-
-The OpenStudio-HPXML workflow was originally developed to model individual residential dwelling units -- either a single-family detached (SFD) building, or a single unit of a single-family attached (SFA) or multifamily (MF) building.
-This approach:
-
-- Is required/desired for certain applications (e.g., a Home Energy Score or an Energy Rating Index calculation).
-- Improves runtime speed by being able to simulate individual units in parallel (as opposed to simulating the entire building).
-
-When modeling individual units of SFA/MF buildings, current capabilities include:
-
-- Defining surfaces adjacent to generic SFA/MF spaces (e.g., "other housing unit" or "other multifamily buffer space"), in which temperature profiles will be assumed (see :ref:`hpxmllocations`).
-- Locating various building components (e.g., ducts, water heaters, appliances) in these SFA/MF spaces.
-- Defining shared systems (HVAC, water heating, mechanical ventilation, etc.), in which individual systems are modeled with adjustments to approximate their energy use attributed to the unit.
-
-Note that only the energy use attributed to each dwelling unit is calculated.
-
-.. _bldg_type_bldgs:
-
-Whole SFA/MF Buildings
-~~~~~~~~~~~~~~~~~~~~~~
-
-As of OpenStudio-HPXML v1.7.0, a new capability was added for modeling whole SFA/MF buildings in a single combined simulation.
-
-For these simulations:
-
-- Each dwelling unit is described by a separate ``Building`` element in the HPXML file.
-- To run the single combined simulation, specify the Building ID as 'ALL' in the run_simulation.rb script or OpenStudio workflow.
-- Unit multipliers (using the ``NumberofUnits`` element) can be specified to model *unique* dwelling units, rather than *all* dwelling units, reducing simulation runtime.
-- Adjacent SFA/MF common spaces are still modeled using assumed temperature profiles, not as separate thermal zones.
-- Shared systems are still modeled as individual systems, not shared systems connected to multiple dwelling unit.
-
-Notes/caveats about this approach:
-
-- Some inputs (e.g., EPW location or ground conductivity) cannot vary across ``Building`` elements.
-- Batteries are not currently supported. Dehumidifiers and ground-source heat pumps are only supported if ``NumberofUnits`` is 1.
-- Utility bill calculations using detailed rates are not supported.
-
-Note that only the energy use for the entire building is calculated.
-
 Input Defaults
 **************
 
@@ -384,6 +335,63 @@ You can create an additional column in the CSV file to define another unavailabl
 .. warning::
 
   It is not possible to eliminate all HVAC/DHW energy use (e.g. crankcase/defrost energy, water heater parasitics) in EnergyPlus during an unavailable period.
+
+.. _hpxmlbuilding:
+
+HPXML Building
+--------------
+
+OpenStudio-HPXML can be used to model either individual residential :ref:`bldg_type_units` or :ref:`bldg_type_bldgs`.
+
+Each residential dwelling unit is entered in ``/HPXML/Building``.
+
+  =========================  ======  =======  ===========  ========  =======  ==============================================
+  Element                    Type    Units    Constraints  Required  Default  Notes
+  =========================  ======  =======  ===========  ========  =======  ==============================================
+  ``BuildingID``             id                            Yes                Unique identifier
+  =========================  ======  =======  ===========  ========  =======  ==============================================
+
+.. _bldg_type_units:
+
+Dwelling Units
+**************
+
+The OpenStudio-HPXML workflow was originally developed to model individual residential dwelling units -- either a single-family detached (SFD) building, or a single unit of a single-family attached (SFA) or multifamily (MF) building.
+This approach:
+
+- Is required/desired for certain applications (e.g., a Home Energy Score or an Energy Rating Index calculation).
+- Improves runtime speed by being able to simulate individual units in parallel (as opposed to simulating the entire building).
+
+When modeling individual units of SFA/MF buildings, current capabilities include:
+
+- Defining surfaces adjacent to generic SFA/MF spaces (e.g., "other housing unit" or "other multifamily buffer space"), in which temperature profiles will be assumed (see :ref:`hpxmllocations`).
+- Locating various building components (e.g., ducts, water heaters, appliances) in these SFA/MF spaces.
+- Defining shared systems (HVAC, water heating, mechanical ventilation, etc.), in which individual systems are modeled with adjustments to approximate their energy use attributed to the unit.
+
+Note that only the energy use attributed to each dwelling unit is calculated.
+
+.. _bldg_type_bldgs:
+
+Whole SFA/MF Buildings
+**********************
+
+As of OpenStudio-HPXML v1.7.0, a new capability was added for modeling whole SFA/MF buildings in a single combined simulation.
+
+For these simulations:
+
+- Each dwelling unit is described by a separate ``Building`` element in the HPXML file.
+- To run the single combined simulation, specify the Building ID as 'ALL' in the run_simulation.rb script or OpenStudio workflow.
+- Unit multipliers (using the ``NumberofUnits`` element) can be specified to model *unique* dwelling units, rather than *all* dwelling units, reducing simulation runtime.
+- Adjacent SFA/MF common spaces are still modeled using assumed temperature profiles, not as separate thermal zones.
+- Shared systems are still modeled as individual systems, not shared systems connected to multiple dwelling unit.
+
+Notes/caveats about this approach:
+
+- Some inputs (e.g., EPW location or ground conductivity) cannot vary across ``Building`` elements.
+- Batteries are not currently supported. Dehumidifiers and ground-source heat pumps are only supported if ``NumberofUnits`` is 1.
+- Utility bill calculations using detailed rates are not supported.
+
+Note that only the energy use for the entire building is calculated.
 
 .. _buildingsite:
 
@@ -962,7 +970,7 @@ Each rim joist surface (i.e., the perimeter of floor joists typically found betw
 HPXML Walls
 ***********
 
-Each wall surface not attached to a foundation space is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Walls/Wall``.
+Each wall surface is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Walls/Wall``.
 
   ======================================  =================  ================  =====================  =============  ===========  ====================================
   Element                                 Type               Units             Constraints            Required       Default      Notes
@@ -1011,7 +1019,8 @@ Each wall surface not attached to a foundation space is entered as an ``/HPXML/B
 HPXML Foundation Walls
 **********************
 
-Each wall surface attached to a foundation space is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall``.
+Each foundation wall surface is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall``.
+Any wall surface in contact with the ground is considered a foundation wall.
 
   ==============================================================  =================  ================  ===================  =========  ==============  ====================================
   Element                                                         Type               Units             Constraints          Required   Default         Notes

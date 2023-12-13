@@ -32,6 +32,7 @@ __New Features__
 - Updates deep ground temperatures (used for modeling ground-source heat pumps) using L. Xing's simplified design model (2014).
 - Improvements to HERS & MaxLoad heat pump sizing methodologies.
 - Allows `WaterFixture/FlowRate` as an alternative to `LowFlow`; hot water credit is now calculated based on fraction of low flow fixtures.
+- Allows above-grade basements/crawlspaces defined solely with Wall (not FoundationWall) elements.
 - Added README.md documentation for all OpenStudio measures.
 
 __Bugfixes__
