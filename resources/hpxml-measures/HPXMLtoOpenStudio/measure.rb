@@ -171,15 +171,15 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
       # Create OpenStudio model
       hpxml_osm_map = {}
-      hpxml.buildings.each do |hpxml_bldg|
+      hpxml.buildings.each_with_index do |hpxml_bldg, i|
         schedules_file = hpxml_sch_map[hpxml_bldg]
         if hpxml.buildings.size > 1
           # Create the model for this single unit
           unit_model = OpenStudio::Model::Model.new
-          create_unit_model(hpxml, hpxml_bldg, runner, unit_model, epw_path, epw_file, weather, debug, schedules_file, eri_version)
+          create_unit_model(hpxml, hpxml_bldg, runner, unit_model, epw_path, epw_file, weather, debug, schedules_file, eri_version, i + 1)
           hpxml_osm_map[hpxml_bldg] = unit_model
         else
-          create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, debug, schedules_file, eri_version)
+          create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, debug, schedules_file, eri_version, i + 1)
           hpxml_osm_map[hpxml_bldg] = model
         end
       end
@@ -398,7 +398,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     return "unit#{unit_number + 1}_#{obj_name}".gsub(' ', '_').gsub('-', '_')
   end
 
-  def create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, debug, schedules_file, eri_version)
+  def create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, debug, schedules_file, eri_version, unit_num)
     @hpxml_header = hpxml.header
     @hpxml_bldg = hpxml_bldg
     @debug = debug
@@ -471,6 +471,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     add_photovoltaics(model)
     add_generators(model)
     add_batteries(runner, model, spaces)
+    add_building_unit(model, unit_num)
   end
 
   def check_emissions_references(hpxml_header, hpxml_path)
@@ -2029,6 +2030,16 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
   end
 
+  def add_building_unit(model, unit_num)
+    return if unit_num.nil?
+
+    unit = OpenStudio::Model::BuildingUnit.new(model)
+    unit.additionalProperties.setFeature('unit_num', unit_num)
+    model.getSpaces.each do |s|
+      s.setBuildingUnit(unit)
+    end
+  end
+
   def add_additional_properties(model, hpxml, hpxml_osm_map, hpxml_path, building_id, epw_file, hpxml_defaults_path)
     # Store some data for use in reporting measure
     additionalProperties = model.getBuilding.additionalProperties
@@ -2702,6 +2713,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     sch = OpenStudio::Model::ScheduleConstant.new(model)
     sch.setName(location)
+    sch.additionalProperties.setFeature('ObjectType', location)
 
     space_values = Geometry.get_temperature_scheduled_space_values(location)
 
