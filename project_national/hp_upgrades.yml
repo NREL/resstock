@@ -1,0 +1,194 @@
+schema_version: '0.3'
+os_version: '3.7.0-rc1'
+os_sha: 211bb633b0
+buildstock_directory: ../ # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /scratch/jrobert1/hp3
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 250
+
+baseline:
+  n_buildings_represented: 139647020 # American Community Survey 2021 5-year, B25001, does not include territories ( 138765649 without AK and HI )
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    simulation_output_report:
+      timeseries_frequency: none
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+upgrades:
+  - upgrade_name: Baseline - Higher efficiency ducted ASHP with elec backup - existing elec 
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Electricity
+      - or:
+        - not: HVAC Cooling Efficiency|Ducted Heat Pump
+        - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+        - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+        - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+    options:
+      - &ducted_ASHP_HigherEfficiency_elec_backup
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Max Load 
+      - &HP_cooling_efficiency_ducted
+        option: HVAC Cooling Efficiency|Ducted Heat Pump
+      - &100_percent_conditioned
+        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
+      - &cooling_setpoint_no_offset
+        option: Cooling Setpoint Has Offset|No
+      - &cooling_setpoint_offset_magnitude_0
+        option: Cooling Setpoint Offset Magnitude|0F
+      - &cooling_setpoint_offset_period_none
+        option: Cooling Setpoint Offset Period|None
+      - &heating_setpoint_no_offset
+        option: Heating Setpoint Has Offset|No
+      - &heating_setpoint_offset_magnitude_0
+        option: Heating Setpoint Offset Magnitude|0F
+      - &heating_setpoint_offset_period_none
+        option: Heating Setpoint Offset Period|None
+
+  - upgrade_name: Baseline - Higher efficiency ducted ASHP with elec backup - existing natural gas 
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Natural Gas
+    options:
+      - *ducted_ASHP_HigherEfficiency_elec_backup
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: Baseline - Higher efficiency ducted ASHP with elec backup - existing propane 
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Propane
+    options:
+      - *ducted_ASHP_HigherEfficiency_elec_backup
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: Baseline - Higher efficiency ducted ASHP with elec backup - existing fuel oil 
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
+      - Heating Fuel|Fuel Oil
+    options:
+      - *ducted_ASHP_HigherEfficiency_elec_backup
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: Baseline - Higher efficiency ductless MSHP with elec backup - existing elec 
+    package_apply_logic:
+      - HVAC Has Ducts|No
+      - Heating Fuel|Electricity
+      - or:
+        - not: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+        - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+    options:
+      - &ductless_MSHP_HigherEfficiency_elec_backup
+        option: HVAC Heating Efficiency|MSHP, SEER 20, 11 HSPF, CCHP, Max Load 
+      - &HP_cooling_efficiency_nonducted
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: Baseline - Higher efficiency ductless MSHP with elec backup - existing natural gas
+    package_apply_logic:
+      - HVAC Has Ducts|No
+      - Heating Fuel|Natural Gas
+    options:
+      - *ductless_MSHP_HigherEfficiency_elec_backup
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+      
+  - upgrade_name: Baseline - Higher efficiency ductless MSHP with elec backup - existing propane 
+    package_apply_logic:
+      - HVAC Has Ducts|No
+      - Heating Fuel|Propane
+    options:
+      - *ductless_MSHP_HigherEfficiency_elec_backup
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+  - upgrade_name: Baseline - Higher efficiency ductless MSHP with elec backup - existing fuel oil 
+    package_apply_logic:
+      - HVAC Has Ducts|No
+      - Heating Fuel|Fuel Oil
+    options:
+      - *ductless_MSHP_HigherEfficiency_elec_backup
+      - *HP_cooling_efficiency_nonducted
+      - *100_percent_conditioned
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+kestrel:
+  n_jobs: 1
+  minutes_per_sim: 5
+  account: rescore
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 10
+
+postprocessing:
+  aws:
+    s3:
+      bucket: buildstock-testing
+      prefix: resstock/jrobert1
+    athena:
+      database_name: test_runs
+      max_crawling_time: 600
