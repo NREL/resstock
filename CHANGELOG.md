@@ -25,6 +25,7 @@ Fixes
 - Minor changes to heating and cooling setpoint TSV due to refactoring of prune_rules handling in resstock-estimation ([#1132](https://github.com/NREL/resstock/pull/1132))
 - Minor changes to heating and cooling setpoint TSV after a bug fix ([#1136](https://github.com/NREL/resstock/pull/1136))
 - Update `run_analysis.rb` to handle illegal path characters in upgrade names ([#1138](https://github.com/NREL/resstock/pull/1138))
+- Update TMY3 weather URL from the NREL Data Catalog ([#1182](https://github.com/NREL/resstock/pull/1182))
 
 ## ResStock v3.1.1
 ###### November 28, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.0...v3.1.1)
