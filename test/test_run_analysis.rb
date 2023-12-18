@@ -39,12 +39,12 @@ class TestRunAnalysis < Minitest::Test
     assert_equal(expected_order, actual_order)
   end
 
-  def _assert_and_puts(output, msg, expect_error = true)
-    includes = output.include?(msg)
-    if !includes && expect_error
+  def _assert_and_puts(output, msg, expect = true)
+    includes = output.select { |o| o.include?(msg) }.size > 0
+    if !includes && expect
       puts output
       assert(includes)
-    elsif includes && !expect_error
+    elsif includes && !expect
       puts output
       assert(!includes)
     end
@@ -55,9 +55,8 @@ class TestRunAnalysis < Minitest::Test
     File.readlines(cli_output_log).each do |message|
       next if message.strip.empty?
       next if message.include?('Building ID:')
-      next if message.include?('[openstudio.measure.OSRunner] <1> Cannot find current Workflow Step')
-      next if message.include?('[openstudio.model.Surface] <1> Initial area of other surface')
-      next if _expected_warning_message(message, 'No valid weather file defined in either the osm or osw.')
+
+      # Expected warnings
       next if _expected_warning_message(message, 'The model contains existing objects and is being reset.')
       next if _expected_warning_message(message, 'HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
       next if _expected_warning_message(message, 'It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.')
@@ -103,7 +102,6 @@ class TestRunAnalysis < Minitest::Test
       next if _expected_warning_message(message, 'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units. [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0]')
 
       if !testing
-        next if _expected_warning_message(message, 'Unable to find sql file at')
         next if _expected_warning_message(message, 'No design condition info found; calculating design conditions from EPW weather data.')
         next if _expected_warning_message(message, 'Not calculating emissions because an electricity filepath for at least one emissions scenario could not be located.') # these are AK/HI samples
         next if _expected_warning_message(message, 'The garage pitch was changed to accommodate garage ridge >= house ridge')
@@ -139,7 +137,7 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output = `#{@command}`
 
-    assert("ResStock v#{Version::ResStock_Version}", cli_output)
+    assert_includes(cli_output, "ResStock v#{Version::ResStock_Version}")
   end
 
   def test_errors_wrong_path
@@ -148,7 +146,13 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output = `#{@command}`
 
-    _assert_and_puts(cli_output, "Error: YML file does not exist at 'test/yml_bad_value/testing_baseline.yml'.")
+    _assert_and_puts([cli_output], "Error: YML file does not exist at 'test/yml_bad_value/testing_baseline.yml'.")
+  end
+
+  def test_no_yml_argument
+    cli_output = `#{@command}`
+
+    _assert_and_puts([cli_output], 'Error: YML argument is required. Call run_analysis.rb -h for usage.')
   end
 
   def test_errors_bad_value
@@ -157,9 +161,9 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output = `#{@command}`
 
-    _assert_and_puts(cli_output, 'Failures detected for: 1, 2.')
+    _assert_and_puts([cli_output], 'Failures detected for: 1, 2.')
 
-    cli_output_log = File.read(File.join(@testing_baseline, 'cli_output.log'))
+    cli_output_log = File.readlines(File.join(@testing_baseline, 'cli_output.log'))
     _assert_and_puts(cli_output_log, 'ERROR')
     _assert_and_puts(cli_output_log, 'Run Period End Day of Month (32) must be one of')
   end
@@ -171,7 +175,7 @@ class TestRunAnalysis < Minitest::Test
     `#{@command}`
     cli_output = `#{@command}`
 
-    _assert_and_puts(cli_output, "Error: Output directory 'testing_baseline' already exists.")
+    _assert_and_puts([cli_output], "Error: Output directory 'testing_baseline' already exists.")
   end
 
   def test_errors_downselect_resample
@@ -180,7 +184,7 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output = `#{@command}`
 
-    _assert_and_puts(cli_output, "Error: Not supporting residential_quota_downselect's 'resample' at this time.")
+    _assert_and_puts([cli_output], "Error: Not supporting residential_quota_downselect's 'resample' at this time.")
   end
 
   def test_errors_weather_files
@@ -191,7 +195,7 @@ class TestRunAnalysis < Minitest::Test
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
     cli_output = `#{@command}`
 
-    _assert_and_puts(cli_output, "Error: Must include 'weather_files_url' or 'weather_files_path' in yml.")
+    _assert_and_puts([cli_output], "Error: Must include 'weather_files_url' or 'weather_files_path' in yml.")
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
   end
 
@@ -201,7 +205,7 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output = `#{@command}`
 
-    _assert_and_puts(cli_output, "Error: Sampler type 'residential_quota_downsampler' is invalid or not supported.")
+    _assert_and_puts([cli_output], "Error: Sampler type 'residential_quota_downsampler' is invalid or not supported.")
   end
 
   def test_errors_missing_key
@@ -210,7 +214,7 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output = `#{@command}`
 
-    _assert_and_puts(cli_output, "Error: Both 'build_existing_model' and 'simulation_output_report' must be included in yml.")
+    _assert_and_puts([cli_output], "Error: Both 'build_existing_model' and 'simulation_output_report' must be included in yml.")
   end
 
   def test_errors_precomputed_outdated_missing_parameter
@@ -218,7 +222,7 @@ class TestRunAnalysis < Minitest::Test
     @command += yml
 
     `#{@command}`
-    cli_output = File.read(File.join(@testing_baseline, 'cli_output.log'))
+    cli_output = File.readlines(File.join(@testing_baseline, 'cli_output.log'))
 
     _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Missing parameters: HVAC Cooling Partial Space Conditioning.')
   end
@@ -228,7 +232,7 @@ class TestRunAnalysis < Minitest::Test
     @command += yml
 
     `#{@command}`
-    cli_output = File.read(File.join(@testing_baseline, 'cli_output.log'))
+    cli_output = File.readlines(File.join(@testing_baseline, 'cli_output.log'))
 
     _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: Extra Parameter.')
   end
@@ -307,7 +311,7 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output_log = File.join(@testing_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
-    cli_output = File.read(cli_output_log)
+    cli_output = File.readlines(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
@@ -331,7 +335,7 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output_log = File.join(@testing_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
-    cli_output = File.read(cli_output_log)
+    cli_output = File.readlines(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
@@ -356,7 +360,7 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output_log = File.join(@testing_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
-    cli_output = File.read(cli_output_log)
+    cli_output = File.readlines(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
     _verify_outputs(cli_output_log, true)
 
@@ -390,7 +394,7 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output_log = File.join(@national_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
-    cli_output = File.read(cli_output_log)
+    cli_output = File.readlines(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
     _verify_outputs(cli_output_log)
 
@@ -425,7 +429,7 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output_log = File.join(@testing_upgrades, 'cli_output.log')
     assert(File.exist?(cli_output_log))
-    cli_output = File.read(cli_output_log)
+    cli_output = File.readlines(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
     _verify_outputs(cli_output_log, true)
 
@@ -480,7 +484,7 @@ class TestRunAnalysis < Minitest::Test
 
     cli_output_log = File.join(@national_upgrades, 'cli_output.log')
     assert(File.exist?(cli_output_log))
-    cli_output = File.read(cli_output_log)
+    cli_output = File.readlines(cli_output_log)
     _assert_and_puts(cli_output, 'ERROR', false)
     _verify_outputs(cli_output_log)
 

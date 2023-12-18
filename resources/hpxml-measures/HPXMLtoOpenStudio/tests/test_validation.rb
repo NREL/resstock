@@ -90,17 +90,17 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'emissions-electricity-schedule' => ['Expected NumberofHeaderRows to be greater than or equal to 0',
                                                                  'Expected ColumnNumber to be greater than or equal to 1'],
                             'enclosure-attic-missing-roof' => ['There must be at least one roof adjacent to "attic - unvented". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="attic - unvented" or ExteriorAdjacentTo="attic - unvented"]], id: "MyBuilding"]'],
-                            'enclosure-basement-missing-exterior-foundation-wall' => ['There must be at least one exterior foundation wall adjacent to "basement - unconditioned". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="basement - unconditioned" or ExteriorAdjacentTo="basement - unconditioned"]], id: "MyBuilding"]'],
+                            'enclosure-basement-missing-exterior-foundation-wall' => ['There must be at least one exterior wall or foundation wall adjacent to "basement - unconditioned". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="basement - unconditioned" or ExteriorAdjacentTo="basement - unconditioned"]], id: "MyBuilding"]'],
                             'enclosure-basement-missing-slab' => ['There must be at least one slab adjacent to "basement - unconditioned". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="basement - unconditioned" or ExteriorAdjacentTo="basement - unconditioned"]], id: "MyBuilding"]'],
                             'enclosure-floor-area-exceeds-cfa' => ['Expected ConditionedFloorArea to be greater than or equal to the sum of conditioned slab/floor areas. [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction, id: "MyBuilding"]'],
                             'enclosure-floor-area-exceeds-cfa2' => ['Expected ConditionedFloorArea to be greater than or equal to the sum of conditioned slab/floor areas. [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction, id: "MyBuilding"]'],
-                            'enclosure-garage-missing-exterior-wall' => ['There must be at least one exterior wall/foundation wall adjacent to "garage". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="garage" or ExteriorAdjacentTo="garage"]], id: "MyBuilding"]'],
-                            'enclosure-garage-missing-roof-ceiling' => ['There must be at least one roof/ceiling adjacent to "garage". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="garage" or ExteriorAdjacentTo="garage"]], id: "MyBuilding"]'],
+                            'enclosure-garage-missing-exterior-wall' => ['There must be at least one exterior wall or foundation wall adjacent to "garage". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="garage" or ExteriorAdjacentTo="garage"]], id: "MyBuilding"]'],
+                            'enclosure-garage-missing-roof-ceiling' => ['There must be at least one roof or ceiling adjacent to "garage". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="garage" or ExteriorAdjacentTo="garage"]], id: "MyBuilding"]'],
                             'enclosure-garage-missing-slab' => ['There must be at least one slab adjacent to "garage". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="garage" or ExteriorAdjacentTo="garage"]], id: "MyBuilding"]'],
-                            'enclosure-conditioned-missing-ceiling-roof' => ['There must be at least one ceiling/roof adjacent to conditioned space. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="conditioned space"]], id: "MyBuilding"]',
+                            'enclosure-conditioned-missing-ceiling-roof' => ['There must be at least one ceiling or roof adjacent to conditioned space. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="conditioned space"]], id: "MyBuilding"]',
                                                                              'There must be at least one floor adjacent to "attic - unvented". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="attic - unvented" or ExteriorAdjacentTo="attic - unvented"]], id: "MyBuilding"]'],
                             'enclosure-conditioned-missing-exterior-wall' => ['There must be at least one exterior wall adjacent to conditioned space. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="conditioned space"]], id: "MyBuilding"]'],
-                            'enclosure-conditioned-missing-floor-slab' => ['There must be at least one floor/slab adjacent to conditioned space. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="conditioned space"]], id: "MyBuilding"]'],
+                            'enclosure-conditioned-missing-floor-slab' => ['There must be at least one floor or slab adjacent to conditioned space. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="conditioned space"]], id: "MyBuilding"]'],
                             'frac-sensible-fuel-load' => ['Expected extension/FracSensible to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/MiscLoads/FuelLoad[FuelLoadType="grill" or FuelLoadType="lighting" or FuelLoadType="fireplace"], id: "FuelLoad1"]'],
                             'frac-sensible-plug-load' => ['Expected extension/FracSensible to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/MiscLoads/PlugLoad[PlugLoadType="other" or PlugLoadType="TV other" or PlugLoadType="electric vehicle charging" or PlugLoadType="well pump"], id: "PlugLoad1"]'],
                             'frac-total-fuel-load' => ['Expected sum of extension/FracSensible and extension/FracLatent to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails/MiscLoads/FuelLoad[FuelLoadType="grill" or FuelLoadType="lighting" or FuelLoadType="fireplace"], id: "FuelLoad1"]'],
@@ -111,12 +111,16 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'heat-pump-capacity-17f' => ['Expected HeatingCapacity17F to be less than or equal to HeatingCapacity'],
                             'heat-pump-lockout-temperatures' => ['Expected CompressorLockoutTemperature to be less than or equal to BackupHeatingLockoutTemperature'],
                             'heat-pump-multiple-backup-systems' => ['Expected 0 or 1 element(s) for xpath: HeatPump/BackupSystem [context: /HPXML/Building/BuildingDetails, id: "MyBuilding"]'],
+                            'hvac-detailed-performance-not-variable-speed' => ['Expected 1 element(s) for xpath: ../CompressorType[text()="variable speed"]',
+                                                                               'Expected 1 element(s) for xpath: ../CompressorType[text()="variable speed"]'],
                             'hvac-distribution-return-duct-leakage-missing' => ['Expected 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="return"]/DuctLeakage[(Units="CFM25" or Units="CFM50" or Units="Percent") and TotalOrToOutside="to outside"] [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution[AirDistributionType[text()="regular velocity" or text()="gravity"]], id: "HVACDistribution1"]'],
                             'hvac-frac-load-served' => ['Expected sum(FractionHeatLoadServed) to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails, id: "MyBuilding"]',
                                                         'Expected sum(FractionCoolLoadServed) to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails, id: "MyBuilding"]'],
                             'hvac-location-heating-system' => ['A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.'],
                             'hvac-location-cooling-system' => ['A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.'],
                             'hvac-location-heat-pump' => ['A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.'],
+                            'hvac-msac-not-var-speed' => ["Expected CompressorType to be 'variable speed'"],
+                            'hvac-mshp-not-var-speed' => ["Expected CompressorType to be 'variable speed'"],
                             'hvac-sizing-humidity-setpoint' => ['Expected ManualJInputs/HumiditySetpoint to be less than 1'],
                             'hvac-negative-crankcase-heater-watts' => ['Expected extension/CrankcaseHeaterPowerWatts to be greater than or equal to 0.0.'],
                             'incomplete-integrated-heating' => ['Expected 1 element(s) for xpath: IntegratedHeatingSystemFractionHeatLoadServed'],
@@ -194,6 +198,8 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                                                                            "Expected Location to be 'conditioned space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'crawlspace - conditioned' or 'other exterior' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space'"],
                             'manufactured-home-reference-floor' => ['There are references to "manufactured home belly" or "manufactured home underbelly" but ResidentialFacilityType is not "manufactured home".',
                                                                     'There must be at least one ceiling adjacent to "crawlspace - vented".'],
+                            'missing-capacity-detailed-performance' => ['Expected 1 element(s) for xpath: ../CoolingCapacity',
+                                                                        'Expected 1 element(s) for xpath: ../HeatingCapacity'],
                             'missing-cfis-supplemental-fan' => ['Expected 1 element(s) for xpath: SupplementalFan'],
                             'missing-distribution-cfa-served' => ['Expected 1 element(s) for xpath: ../../../ConditionedFloorAreaServed [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[not(DuctSurfaceArea)], id: "Ducts2"]'],
                             'missing-duct-area' => ['Expected 1 or more element(s) for xpath: FractionDuctArea | DuctSurfaceArea [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctLocation], id: "Ducts2"]'],
@@ -361,6 +367,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml_bldg.heat_pumps[-1].id = 'HeatPump2'
         hpxml_bldg.heat_pumps[-1].primary_heating_system = false
         hpxml_bldg.heat_pumps[-1].primary_cooling_system = false
+      elsif ['hvac-detailed-performance-not-variable-speed'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-detailed-performance.xml')
+        hpxml_bldg.heat_pumps[0].compressor_type = HPXML::HVACCompressorTypeTwoStage
       elsif ['hvac-distribution-return-duct-leakage-missing'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-evap-cooler-only-ducted.xml')
         hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[-1].delete
@@ -381,6 +390,12 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['hvac-location-heat-pump'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed.xml')
         hpxml_bldg.heat_pumps[0].location = HPXML::LocationBasementUnconditioned
+      elsif ['hvac-msac-not-var-speed'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-mini-split-air-conditioner-only-ductless.xml')
+        hpxml_bldg.cooling_systems[0].compressor_type = HPXML::HVACCompressorTypeTwoStage
+      elsif ['hvac-mshp-not-var-speed'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-mini-split-heat-pump-ductless.xml')
+        hpxml_bldg.heat_pumps[0].compressor_type = HPXML::HVACCompressorTypeSingleStage
       elsif ['hvac-sizing-humidity-setpoint'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.header.manualj_humidity_setpoint = 50
@@ -548,6 +563,10 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
             break
           end
         end
+      elsif ['missing-capacity-detailed-performance'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-mini-split-heat-pump-ductless-detailed-performance.xml')
+        hpxml_bldg.heat_pumps[0].cooling_capacity = nil
+        hpxml_bldg.heat_pumps[0].heating_capacity = nil
       elsif ['missing-cfis-supplemental-fan'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-mechvent-cfis.xml')
         hpxml_bldg.ventilation_fans[0].cfis_addtl_runtime_operating_mode = HPXML::CFISModeSupplementalFan
@@ -873,6 +892,10 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'emissions-wrong-filename' => ["Emissions File file path 'invalid-wrong-filename.csv' does not exist."],
                             'emissions-wrong-rows' => ['Emissions File has invalid number of rows'],
                             'heat-pump-backup-system-load-fraction' => ['Heat pump backup system cannot have a fraction heat load served specified.'],
+                            'hvac-cooling-detailed-performance-incomplete-pair' => ['Cooling detailed performance data for outdoor temperature = 82.0 is incomplete; there must be exactly one minimum and one maximum capacity datapoint.',
+                                                                                    'Cooling detailed performance data for outdoor temperature = 81.0 is incomplete; there must be exactly one minimum and one maximum capacity datapoint.'],
+                            'hvac-heating-detailed-performance-incomplete-pair' => ['Heating detailed performance data for outdoor temperature = 5.0 is incomplete; there must be exactly one minimum and one maximum capacity datapoint.',
+                                                                                    'Heating detailed performance data for outdoor temperature = 4.0 is incomplete; there must be exactly one minimum and one maximum capacity datapoint.'],
                             'heat-pump-switchover-temp-elec-backup' => ['Switchover temperature should only be used for a heat pump with fossil fuel backup; use compressor lockout temperature instead.'],
                             'heat-pump-lockout-temps-elec-backup' => ['Similar compressor/backup lockout temperatures should only be used for a heat pump with fossil fuel backup.'],
                             'hvac-distribution-multiple-attached-cooling' => ["Multiple cooling systems found attached to distribution system 'HVACDistribution2'."],
@@ -1019,6 +1042,12 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['heat-pump-switchover-temp-elec-backup'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed.xml')
         hpxml_bldg.heat_pumps[0].backup_heating_switchover_temp = 35.0
+      elsif ['hvac-cooling-detailed-performance-incomplete-pair'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-detailed-performance.xml')
+        hpxml_bldg.heat_pumps[0].cooling_detailed_performance_data[-1].outdoor_temperature -= 1.0
+      elsif ['hvac-heating-detailed-performance-incomplete-pair'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-detailed-performance.xml')
+        hpxml_bldg.heat_pumps[0].heating_detailed_performance_data[-1].outdoor_temperature -= 1.0
       elsif ['heat-pump-lockout-temps-elec-backup'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed.xml')
         hpxml_bldg.heat_pumps[0].compressor_lockout_temp = 35.0
