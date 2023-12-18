@@ -73,6 +73,8 @@ class HPXML < Object
   BatteryLifetimeModelNone = 'None'
   BatteryLifetimeModelKandlerSmith = 'KandlerSmith'
   BuildingAmerica = 'BuildingAmerica'
+  CapacityDescriptionMinimum = 'minimum'
+  CapacityDescriptionMaximum = 'maximum'
   CertificationEnergyStar = 'Energy Star'
   ClothesDryerControlTypeMoisture = 'moisture'
   ClothesDryerControlTypeTimer = 'timer'
@@ -3993,6 +3995,10 @@ class HPXML < Object
   end
 
   class HeatingSystem < BaseElement
+    def initialize(hpxml_object, *args)
+      @heating_detailed_performance_data = HeatingDetailedPerformanceData.new(hpxml_object)
+      super(hpxml_object, *args)
+    end
     ATTRS = [:id, :distribution_system_idref, :year_installed, :heating_system_type,
              :heating_system_fuel, :heating_capacity, :heating_efficiency_afue,
              :heating_efficiency_percent, :fraction_heat_load_served, :electric_auxiliary_energy,
@@ -4001,6 +4007,7 @@ class HPXML < Object
              :airflow_defect_ratio, :fan_watts, :heating_airflow_cfm, :location, :primary_system,
              :pilot_light, :pilot_light_btuh]
     attr_accessor(*ATTRS)
+    attr_reader(:heating_detailed_performance_data)
 
     def distribution_system
       return if @distribution_system_idref.nil?
@@ -4062,6 +4069,7 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; distribution_system; rescue StandardError => e; errors << e.message; end
+      errors += @heating_detailed_performance_data.check_for_errors
       return errors
     end
 
@@ -4109,6 +4117,7 @@ class HPXML < Object
         XMLHelper.add_element(annual_efficiency, 'Units', UnitsPercent, :string)
         XMLHelper.add_element(annual_efficiency, 'Value', @heating_efficiency_percent, :float, @heating_efficiency_percent_isdefaulted)
       end
+      @heating_detailed_performance_data.to_doc(heating_system)
       XMLHelper.add_element(heating_system, 'FractionHeatLoadServed', @fraction_heat_load_served, :float, @fraction_heat_load_served_isdefaulted) unless @fraction_heat_load_served.nil?
       XMLHelper.add_element(heating_system, 'ElectricAuxiliaryEnergy', @electric_auxiliary_energy, :float, @electric_auxiliary_energy_isdefaulted) unless @electric_auxiliary_energy.nil?
       XMLHelper.add_extension(heating_system, 'SharedLoopWatts', @shared_loop_watts, :float) unless @shared_loop_watts.nil?
@@ -4144,6 +4153,7 @@ class HPXML < Object
       @heating_capacity = XMLHelper.get_value(heating_system, 'HeatingCapacity', :float)
       @heating_efficiency_afue = XMLHelper.get_value(heating_system, "AnnualHeatingEfficiency[Units='#{UnitsAFUE}']/Value", :float)
       @heating_efficiency_percent = XMLHelper.get_value(heating_system, "AnnualHeatingEfficiency[Units='Percent']/Value", :float)
+      @heating_detailed_performance_data.from_doc(heating_system)
       @fraction_heat_load_served = XMLHelper.get_value(heating_system, 'FractionHeatLoadServed', :float)
       @electric_auxiliary_energy = XMLHelper.get_value(heating_system, 'ElectricAuxiliaryEnergy', :float)
       @shared_loop_watts = XMLHelper.get_value(heating_system, 'extension/SharedLoopWatts', :float)
@@ -4186,6 +4196,10 @@ class HPXML < Object
   end
 
   class CoolingSystem < BaseElement
+    def initialize(hpxml_object, *args)
+      @cooling_detailed_performance_data = CoolingDetailedPerformanceData.new(hpxml_object)
+      super(hpxml_object, *args)
+    end
     ATTRS = [:id, :distribution_system_idref, :year_installed, :cooling_system_type, :cooling_system_fuel,
              :cooling_capacity, :compressor_type, :fraction_cool_load_served, :cooling_efficiency_seer,
              :cooling_efficiency_seer2, :cooling_efficiency_eer, :cooling_efficiency_ceer, :cooling_efficiency_kw_per_ton,
@@ -4195,6 +4209,7 @@ class HPXML < Object
              :integrated_heating_system_fuel, :integrated_heating_system_capacity, :integrated_heating_system_efficiency_percent,
              :integrated_heating_system_fraction_heat_load_served, :integrated_heating_system_airflow_cfm, :htg_seed_id, :crankcase_heater_watts]
     attr_accessor(*ATTRS)
+    attr_reader(:cooling_detailed_performance_data)
 
     def distribution_system
       return if @distribution_system_idref.nil?
@@ -4238,6 +4253,7 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; distribution_system; rescue StandardError => e; errors << e.message; end
+      errors += @cooling_detailed_performance_data.check_for_errors
       return errors
     end
 
@@ -4289,6 +4305,7 @@ class HPXML < Object
         XMLHelper.add_element(annual_efficiency, 'Value', @cooling_efficiency_kw_per_ton, :float, @cooling_efficiency_kw_per_ton_isdefaulted)
       end
       XMLHelper.add_element(cooling_system, 'SensibleHeatFraction', @cooling_shr, :float, @cooling_shr_isdefaulted) unless @cooling_shr.nil?
+      @cooling_detailed_performance_data.to_doc(cooling_system)
       XMLHelper.add_element(cooling_system, 'IntegratedHeatingSystemFuel', @integrated_heating_system_fuel, :string) unless @integrated_heating_system_fuel.nil?
       XMLHelper.add_element(cooling_system, 'IntegratedHeatingSystemCapacity', @integrated_heating_system_capacity, :float, @integrated_heating_system_capacity_isdefaulted) unless @integrated_heating_system_capacity.nil?
       if not @integrated_heating_system_efficiency_percent.nil?
@@ -4334,6 +4351,7 @@ class HPXML < Object
       @cooling_efficiency_eer = XMLHelper.get_value(cooling_system, "AnnualCoolingEfficiency[Units='#{UnitsEER}']/Value", :float)
       @cooling_efficiency_ceer = XMLHelper.get_value(cooling_system, "AnnualCoolingEfficiency[Units='#{UnitsCEER}']/Value", :float)
       @cooling_efficiency_kw_per_ton = XMLHelper.get_value(cooling_system, "AnnualCoolingEfficiency[Units='#{UnitsKwPerTon}']/Value", :float)
+      @cooling_detailed_performance_data.from_doc(cooling_system)
       @cooling_shr = XMLHelper.get_value(cooling_system, 'SensibleHeatFraction', :float)
       @integrated_heating_system_fuel = XMLHelper.get_value(cooling_system, 'IntegratedHeatingSystemFuel', :string)
       @integrated_heating_system_capacity = XMLHelper.get_value(cooling_system, 'IntegratedHeatingSystemCapacity', :float)
@@ -4382,6 +4400,11 @@ class HPXML < Object
   end
 
   class HeatPump < BaseElement
+    def initialize(hpxml_object, *args)
+      @cooling_detailed_performance_data = CoolingDetailedPerformanceData.new(hpxml_object)
+      @heating_detailed_performance_data = HeatingDetailedPerformanceData.new(hpxml_object)
+      super(hpxml_object, *args)
+    end
     ATTRS = [:id, :distribution_system_idref, :year_installed, :heat_pump_type, :heat_pump_fuel,
              :heating_capacity, :heating_capacity_17F, :cooling_capacity, :compressor_type, :compressor_lockout_temp,
              :cooling_shr, :backup_type, :backup_system_idref, :backup_heating_fuel, :backup_heating_capacity,
@@ -4394,6 +4417,8 @@ class HPXML < Object
              :heating_airflow_cfm, :cooling_airflow_cfm, :location, :primary_heating_system, :primary_cooling_system,
              :heating_capacity_retention_fraction, :heating_capacity_retention_temp, :crankcase_heater_watts]
     attr_accessor(*ATTRS)
+    attr_reader(:cooling_detailed_performance_data)
+    attr_reader(:heating_detailed_performance_data)
 
     def distribution_system
       return if @distribution_system_idref.nil?
@@ -4451,6 +4476,8 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; distribution_system; rescue StandardError => e; errors << e.message; end
+      errors += @cooling_detailed_performance_data.check_for_errors
+      errors += @heating_detailed_performance_data.check_for_errors
       return errors
     end
 
@@ -4535,6 +4562,8 @@ class HPXML < Object
         XMLHelper.add_element(annual_efficiency, 'Units', UnitsCOP, :string)
         XMLHelper.add_element(annual_efficiency, 'Value', @heating_efficiency_cop, :float, @heating_efficiency_cop_isdefaulted)
       end
+      @cooling_detailed_performance_data.to_doc(heat_pump)
+      @heating_detailed_performance_data.to_doc(heat_pump)
       XMLHelper.add_extension(heat_pump, 'AirflowDefectRatio', @airflow_defect_ratio, :float, @airflow_defect_ratio_isdefaulted) unless @airflow_defect_ratio.nil?
       XMLHelper.add_extension(heat_pump, 'ChargeDefectRatio', @charge_defect_ratio, :float, @charge_defect_ratio_isdefaulted) unless @charge_defect_ratio.nil?
       XMLHelper.add_extension(heat_pump, 'FanPowerWattsPerCFM', @fan_watts_per_cfm, :float, @fan_watts_per_cfm_isdefaulted) unless @fan_watts_per_cfm.nil?
@@ -4596,6 +4625,8 @@ class HPXML < Object
       @heating_efficiency_hspf = XMLHelper.get_value(heat_pump, "AnnualHeatingEfficiency[Units='#{UnitsHSPF}']/Value", :float)
       @heating_efficiency_hspf2 = XMLHelper.get_value(heat_pump, "AnnualHeatingEfficiency[Units='#{UnitsHSPF2}']/Value", :float)
       @heating_efficiency_cop = XMLHelper.get_value(heat_pump, "AnnualHeatingEfficiency[Units='#{UnitsCOP}']/Value", :float)
+      @cooling_detailed_performance_data.from_doc(heat_pump)
+      @heating_detailed_performance_data.from_doc(heat_pump)
       @airflow_defect_ratio = XMLHelper.get_value(heat_pump, 'extension/AirflowDefectRatio', :float)
       @charge_defect_ratio = XMLHelper.get_value(heat_pump, 'extension/ChargeDefectRatio', :float)
       @fan_watts_per_cfm = XMLHelper.get_value(heat_pump, 'extension/FanPowerWattsPerCFM', :float)
@@ -7181,6 +7212,153 @@ class HPXML < Object
       @weekday_fractions = XMLHelper.get_value(fuel_load, 'extension/WeekdayScheduleFractions', :string)
       @weekend_fractions = XMLHelper.get_value(fuel_load, 'extension/WeekendScheduleFractions', :string)
       @monthly_multipliers = XMLHelper.get_value(fuel_load, 'extension/MonthlyScheduleMultipliers', :string)
+    end
+  end
+
+  class CoolingDetailedPerformanceData < BaseArrayElement
+    def add(**kwargs)
+      self << CoolingPerformanceDataPoint.new(@parent_object, **kwargs)
+    end
+
+    def check_for_errors
+      errors = []
+      # For every unique outdoor temperature, check we have exactly one minimum and one maximum datapoint
+      outdoor_temps = self.select { |dp| [HPXML::CapacityDescriptionMinimum, HPXML::CapacityDescriptionMaximum].include? dp.capacity_description }.map { |dp| dp.outdoor_temperature }.uniq
+      outdoor_temps.each do |outdoor_temp|
+        num_min = self.select { |dp| dp.capacity_description == HPXML::CapacityDescriptionMinimum && dp.outdoor_temperature == outdoor_temp }.size
+        num_max = self.select { |dp| dp.capacity_description == HPXML::CapacityDescriptionMaximum && dp.outdoor_temperature == outdoor_temp }.size
+        if (num_min != 1) || (num_max != 1)
+          errors << "Cooling detailed performance data for outdoor temperature = #{outdoor_temp} is incomplete; there must be exactly one minimum and one maximum capacity datapoint."
+        end
+      end
+      return errors
+    end
+
+    def from_doc(hvac_system)
+      return if hvac_system.nil?
+
+      XMLHelper.get_elements(hvac_system, 'CoolingDetailedPerformanceData/PerformanceDataPoint').each do |performance_data_point|
+        self << CoolingPerformanceDataPoint.new(@parent_object, performance_data_point)
+      end
+    end
+  end
+
+  class CoolingPerformanceDataPoint < BaseElement
+    ATTRS = [:outdoor_temperature, :indoor_temperature, :indoor_wetbulb, :capacity, :capacity_fraction_of_nominal,
+             :capacity_description, :efficiency_cop, :gross_capacity, :gross_efficiency_cop, :isdefaulted]
+    attr_accessor(*ATTRS)
+
+    def delete
+      (@parent_object.cooling_systems + @parent_object.heat_pumps).each do |cooling_system|
+        cooling_system.cooling_detailed_performance_data.delete(self)
+      end
+    end
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def to_doc(hvac_system)
+      detailed_performance_data = XMLHelper.create_elements_as_needed(hvac_system, ['CoolingDetailedPerformanceData'])
+      performance_data_point = XMLHelper.add_element(detailed_performance_data, 'PerformanceDataPoint')
+      XMLHelper.add_attribute(performance_data_point, 'dataSource', 'software') if @isdefaulted
+      XMLHelper.add_element(performance_data_point, 'OutdoorTemperature', @outdoor_temperature, :float, @outdoor_temperature_isdefaulted) unless @outdoor_temperature.nil?
+      XMLHelper.add_element(performance_data_point, 'IndoorTemperature', @indoor_temperature, :float, @indoor_temperature_isdefaulted) unless @indoor_temperature.nil?
+      XMLHelper.add_element(performance_data_point, 'IndoorWetbulbTemperature', @indoor_wetbulb, :float, @indoor_wetbulb_isdefaulted) unless @indoor_wetbulb.nil?
+      XMLHelper.add_element(performance_data_point, 'Capacity', @capacity, :float, @capacity_isdefaulted) unless @capacity.nil?
+      XMLHelper.add_element(performance_data_point, 'CapacityFractionOfNominal', @capacity_fraction_of_nominal, :float, @capacity_fraction_of_nominal_isdefaulted) unless @capacity_fraction_of_nominal.nil?
+      XMLHelper.add_element(performance_data_point, 'CapacityDescription', @capacity_description, :string, @capacity_description_isdefaulted) unless @capacity_description.nil?
+      if not @efficiency_cop.nil?
+        efficiency = XMLHelper.add_element(performance_data_point, 'Efficiency')
+        XMLHelper.add_element(efficiency, 'Units', UnitsCOP, :string)
+        XMLHelper.add_element(efficiency, 'Value', @efficiency_cop, :float)
+      end
+    end
+
+    def from_doc(performance_data_point)
+      return if performance_data_point.nil?
+
+      @outdoor_temperature = XMLHelper.get_value(performance_data_point, 'OutdoorTemperature', :float)
+      @indoor_temperature = XMLHelper.get_value(performance_data_point, 'IndoorTemperature', :float)
+      @indoor_wetbulb = XMLHelper.get_value(performance_data_point, 'IndoorWetbulbTemperature', :float)
+      @capacity = XMLHelper.get_value(performance_data_point, 'Capacity', :float)
+      @capacity_fraction_of_nominal = XMLHelper.get_value(performance_data_point, 'CapacityFractionOfNominal', :float)
+      @capacity_description = XMLHelper.get_value(performance_data_point, 'CapacityDescription', :string)
+      @efficiency_cop = XMLHelper.get_value(performance_data_point, "Efficiency[Units='#{UnitsCOP}']/Value", :float)
+    end
+  end
+
+  class HeatingDetailedPerformanceData < BaseArrayElement
+    def add(**kwargs)
+      self << HeatingPerformanceDataPoint.new(@parent_object, **kwargs)
+    end
+
+    def check_for_errors
+      errors = []
+      # For every unique outdoor temperature, check we have exactly one minimum and one maximum datapoint
+      outdoor_temps = self.select { |dp| [HPXML::CapacityDescriptionMinimum, HPXML::CapacityDescriptionMaximum].include? dp.capacity_description }.map { |dp| dp.outdoor_temperature }.uniq
+      outdoor_temps.each do |outdoor_temp|
+        num_min = self.select { |dp| dp.capacity_description == HPXML::CapacityDescriptionMinimum && dp.outdoor_temperature == outdoor_temp }.size
+        num_max = self.select { |dp| dp.capacity_description == HPXML::CapacityDescriptionMaximum && dp.outdoor_temperature == outdoor_temp }.size
+        if (num_min != 1) || (num_max != 1)
+          errors << "Heating detailed performance data for outdoor temperature = #{outdoor_temp} is incomplete; there must be exactly one minimum and one maximum capacity datapoint."
+        end
+      end
+      return errors
+    end
+
+    def from_doc(hvac_system)
+      return if hvac_system.nil?
+
+      XMLHelper.get_elements(hvac_system, 'HeatingDetailedPerformanceData/PerformanceDataPoint').each do |performance_data_point|
+        self << HeatingPerformanceDataPoint.new(@parent_object, performance_data_point)
+      end
+    end
+  end
+
+  class HeatingPerformanceDataPoint < BaseElement
+    ATTRS = [:outdoor_temperature, :indoor_temperature, :capacity, :capacity_fraction_of_nominal,
+             :capacity_description, :efficiency_cop, :gross_capacity, :gross_efficiency_cop,
+             :isdefaulted]
+    attr_accessor(*ATTRS)
+
+    def delete
+      (@parent_object.heating_systems + @parent_object.heat_pumps).each do |heating_system|
+        heating_system.cooling_detailed_performance_data.delete(self)
+      end
+    end
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def to_doc(hvac_system)
+      detailed_performance_data = XMLHelper.create_elements_as_needed(hvac_system, ['HeatingDetailedPerformanceData'])
+      performance_data_point = XMLHelper.add_element(detailed_performance_data, 'PerformanceDataPoint')
+      XMLHelper.add_attribute(performance_data_point, 'dataSource', 'software') if @isdefaulted
+      XMLHelper.add_element(performance_data_point, 'OutdoorTemperature', @outdoor_temperature, :float, @outdoor_temperature_isdefaulted) unless @outdoor_temperature.nil?
+      XMLHelper.add_element(performance_data_point, 'IndoorTemperature', @indoor_temperature, :float, @indoor_temperature_isdefaulted) unless @indoor_temperature.nil?
+      XMLHelper.add_element(performance_data_point, 'Capacity', @capacity, :float, @capacity_isdefaulted) unless @capacity.nil?
+      XMLHelper.add_element(performance_data_point, 'CapacityFractionOfNominal', @capacity_fraction_of_nominal, :float, @capacity_fraction_of_nominal_isdefaulted) unless @capacity_fraction_of_nominal.nil?
+      XMLHelper.add_element(performance_data_point, 'CapacityDescription', @capacity_description, :string, @capacity_description_isdefaulted) unless @capacity_description.nil?
+      if not @efficiency_cop.nil?
+        efficiency = XMLHelper.add_element(performance_data_point, 'Efficiency')
+        XMLHelper.add_element(efficiency, 'Units', UnitsCOP, :string)
+        XMLHelper.add_element(efficiency, 'Value', @efficiency_cop, :float)
+      end
+    end
+
+    def from_doc(performance_data_point)
+      return if performance_data_point.nil?
+
+      @outdoor_temperature = XMLHelper.get_value(performance_data_point, 'OutdoorTemperature', :float)
+      @indoor_temperature = XMLHelper.get_value(performance_data_point, 'IndoorTemperature', :float)
+      @capacity = XMLHelper.get_value(performance_data_point, 'Capacity', :float)
+      @capacity_fraction_of_nominal = XMLHelper.get_value(performance_data_point, 'CapacityFractionOfNominal', :float)
+      @capacity_description = XMLHelper.get_value(performance_data_point, 'CapacityDescription', :string)
+      @efficiency_cop = XMLHelper.get_value(performance_data_point, "Efficiency[Units='#{UnitsCOP}']/Value", :float)
     end
   end
 
