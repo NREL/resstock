@@ -918,6 +918,18 @@ class Schedule
     return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
   end
 
+  def self.ShowersWeekdayFractions
+    return '0.011,	0.005,	0.003,	0.005,	0.014,	0.052,	0.118,	0.117,	0.095,	0.074,	0.06,	0.047,	0.034,	0.029,	0.026,	0.025,	0.03,	0.039,	0.042,	0.042,	0.042,	0.041,	0.029,	0.021'
+  end
+
+  def self.ShowersWeekendFractions
+    return '0.011,	0.005,	0.003,	0.005,	0.014,	0.052,	0.118,	0.117,	0.095,	0.074,	0.06,	0.047,	0.034,	0.029,	0.026,	0.025,	0.03,	0.039,	0.042,	0.042,	0.042,	0.041,	0.029,	0.021'
+  end
+
+  def self.ShowersMonthlyMultipliers
+    return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+  end
+
   def self.RefrigeratorWeekdayFractions
     return '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
   end
@@ -1334,6 +1346,7 @@ class SchedulesFile
   ColumnHotWaterDishwasher = 'hot_water_dishwasher'
   ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
   ColumnHotWaterFixtures = 'hot_water_fixtures'
+  ColumnHotWaterShowers = 'hot_water_showers'
   ColumnSleeping = 'sleeping'
   ColumnHeatingSetpoint = 'heating_setpoint'
   ColumnCoolingSetpoint = 'cooling_setpoint'

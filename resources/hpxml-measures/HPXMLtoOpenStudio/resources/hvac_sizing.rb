@@ -1922,12 +1922,6 @@ class HVACSizing
     end
   end
 
-  def self.scale_detailed_performance_data_capacities(detailed_performance_data, scaling_factor)
-    detailed_performance_data.each do |dp|
-      dp.capacity *= scaling_factor
-    end
-  end
-
   def self.apply_hvac_ground_loop(hvac_sizing_values, weather, hvac_cooling)
     '''
     GSHP Ground Loop Sizing Calculations

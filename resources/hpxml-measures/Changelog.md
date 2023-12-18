@@ -1,3 +1,13 @@
+## OpenStudio-HPXML v1.8.0
+
+__New Features__
+- Added calculations of unmet water heating load.
+- Added capability to model 120V HPWHs
+
+__Bugfixes__
+- Fixes error if using AllowIncreasedFixedCapacities=true w/ HP detailed performance data.
+- Error-checking for unrealistically low HVAC SensibleHeatFraction values (less than or equal to 0.5).
+
 ## OpenStudio-HPXML v1.7.0
 
 __New Features__

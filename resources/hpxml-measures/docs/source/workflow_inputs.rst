@@ -1648,7 +1648,7 @@ If a central air conditioner is specified, additional information is entered in 
   ``CoolingCapacity``                                               double   Btu/hr       >= 0         No        autosized [#]_  Cooling output capacity
   ``CompressorType``                                                string                See [#]_     No        See [#]_        Type of compressor
   ``AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value``  double   Btu/Wh or #  > 0          Yes                       Rated efficiency [#]_
-  ``SensibleHeatFraction``                                          double   frac         0 - 1        No        See [#]_        Sensible heat fraction
+  ``SensibleHeatFraction``                                          double   frac         0.5 - 1      No        See [#]_        Sensible heat fraction
   ``CoolingDetailedPerformanceData``                                element                            No        <none>          Cooling detailed performance data [#]_
   ``extension/FanPowerWattsPerCFM``                                 double   W/cfm        >= 0         No        See [#]_        Blower fan efficiency at maximum fan speed [#]_
   ``extension/AirflowDefectRatio``                                  double   frac         -0.9 - 9     No        0.0             Deviation between design/installed airflows [#]_
@@ -1681,7 +1681,7 @@ If a room air conditioner is specified, additional information is entered in ``C
   ==================================================================  ======  ======  ===========  ========  ==============  ============================================
   ``CoolingCapacity``                                                 double  Btu/hr  >= 0         No        autosized [#]_  Cooling output capacity
   ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``      double  Btu/Wh  > 0          Yes                       Rated efficiency
-  ``SensibleHeatFraction``                                            double  frac    0 - 1        No        0.65            Sensible heat fraction
+  ``SensibleHeatFraction``                                            double  frac    0.5 - 1      No        0.65            Sensible heat fraction
   ``IntegratedHeatingSystemFuel``                                     string          See [#]_     No        <none>          Fuel type of integrated heater
   ``extension/CrankcaseHeaterPowerWatts``                             double  W                    No        0.0             Crankcase heater power
   ==================================================================  ======  ======  ===========  ========  ==============  ============================================
@@ -1713,7 +1713,7 @@ If a PTAC is specified, additional information is entered in ``CoolingSystem``.
   ==================================================================  ======  ======  ===========  ========  ==============  ==========================================
   ``CoolingCapacity``                                                 double  Btu/hr  >= 0         No        autosized [#]_  Cooling output capacity
   ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``      double  Btu/Wh  > 0          Yes                       Rated efficiency
-  ``SensibleHeatFraction``                                            double  frac    0 - 1        No        0.65            Sensible heat fraction
+  ``SensibleHeatFraction``                                            double  frac    0.5 - 1      No        0.65            Sensible heat fraction
   ``IntegratedHeatingSystemFuel``                                     string          See [#]_     No        <none>          Fuel type of integrated heater
   ``extension/CrankcaseHeaterPowerWatts``                             double  W                    No        0.0             Crankcase heater power
   ==================================================================  ======  ======  ===========  ========  ==============  ==========================================
@@ -1762,7 +1762,7 @@ If a mini-split air conditioner is specified, additional information is entered 
   ``CoolingCapacity``                                               double    Btu/hr  >= 0         No        autosized [#]_  Cooling output capacity
   ``CompressorType``                                                string            See [#]_     No        variable speed  Type of compressor
   ``AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value``  double    Btu/Wh  > 0          Yes                       Rated cooling efficiency [#]_
-  ``SensibleHeatFraction``                                          double    frac    0 - 1        No        0.73            Sensible heat fraction
+  ``SensibleHeatFraction``                                          double    frac    0.5 - 1      No        0.73            Sensible heat fraction
   ``CoolingDetailedPerformanceData``                                element                        No        <none>          Cooling detailed performance data [#]_
   ``extension/FanPowerWattsPerCFM``                                 double    W/cfm   >= 0         No        See [#]_        Blower fan efficiency at maximum fan speed
   ``extension/AirflowDefectRatio``                                  double    frac    -0.9 - 9     No        0.0             Deviation between design/installed airflows [#]_
@@ -1882,7 +1882,7 @@ If an air-to-air heat pump is specified, additional information is entered in ``
   ``CoolingCapacity``                                               double   Btu/hr    >= 0                      No        autosized [#]_  Cooling output capacity
   ``CompressorType``                                                string             See [#]_                  No        See [#]_        Type of compressor
   ``CompressorLockoutTemperature``                                  double   F                                   No        See [#]_        Minimum outdoor temperature for compressor operation
-  ``CoolingSensibleHeatFraction``                                   double   frac      0 - 1                     No        See [#]_        Sensible heat fraction
+  ``CoolingSensibleHeatFraction``                                   double   frac      0.5 - 1                   No        See [#]_        Sensible heat fraction
   ``FractionHeatLoadServed``                                        double   frac      0 - 1 [#]_                Yes                       Fraction of heating load served
   ``FractionCoolLoadServed``                                        double   frac      0 - 1 [#]_                Yes                       Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value``  double   Btu/Wh    > 0                       Yes                       Rated cooling efficiency [#]_
@@ -1940,7 +1940,7 @@ If a mini-split heat pump is specified, additional information is entered in ``H
   ``CoolingCapacity``                                               double    Btu/hr    >= 0                      No        autosized [#]_  Cooling output capacity
   ``CompressorType``                                                string              See [#]_                  No        variable speed  Type of compressor
   ``CompressorLockoutTemperature``                                  double    F                                   No        See [#]_        Minimum outdoor temperature for compressor operation
-  ``CoolingSensibleHeatFraction``                                   double    frac      0 - 1                     No        0.73            Sensible heat fraction
+  ``CoolingSensibleHeatFraction``                                   double    frac      0.5 - 1                   No        0.73            Sensible heat fraction
   ``FractionHeatLoadServed``                                        double    frac      0 - 1 [#]_                Yes                       Fraction of heating load served
   ``FractionCoolLoadServed``                                        double    frac      0 - 1 [#]_                Yes                       Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value``  double    Btu/Wh    > 0                       Yes                       Rated cooling efficiency [#]_
@@ -1997,7 +1997,7 @@ If a packaged terminal heat pump is specified, additional information is entered
   ``HeatingCapacity17F``                                           double    Btu/hr    >= 0, <= HeatingCapacity  No                        Heating output capacity at 17F, if available
   ``CoolingCapacity``                                              double    Btu/hr    >= 0                      No        autosized [#]_  Cooling output capacity
   ``CompressorLockoutTemperature``                                 double    F                                   No        See [#]_        Minimum outdoor temperature for compressor operation
-  ``CoolingSensibleHeatFraction``                                  double    frac      0 - 1                     No        0.65            Sensible heat fraction
+  ``CoolingSensibleHeatFraction``                                  double    frac      0.5 - 1                   No        0.65            Sensible heat fraction
   ``FractionHeatLoadServed``                                       double    frac      0 - 1 [#]_                Yes                       Fraction of heating load served
   ``FractionCoolLoadServed``                                       double    frac      0 - 1 [#]_                Yes                       Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``   double    Btu/Wh    > 0                       Yes                       Rated cooling efficiency
@@ -2028,7 +2028,7 @@ If a room air conditioner with reverse cycle is specified, additional informatio
   ``HeatingCapacity17F``                                           double    Btu/hr    >= 0, <= HeatingCapacity  No                        Heating output capacity at 17F, if available
   ``CoolingCapacity``                                              double    Btu/hr    >= 0                      No        autosized [#]_  Cooling output capacity
   ``CompressorLockoutTemperature``                                 double    F                                   No        See [#]_        Minimum outdoor temperature for compressor operation
-  ``CoolingSensibleHeatFraction``                                  double    frac      0 - 1                     No        0.65            Sensible heat fraction
+  ``CoolingSensibleHeatFraction``                                  double    frac      0.5 - 1                   No        0.65            Sensible heat fraction
   ``FractionHeatLoadServed``                                       double    frac      0 - 1 [#]_                Yes                       Fraction of heating load served
   ``FractionCoolLoadServed``                                       double    frac      0 - 1 [#]_                Yes                       Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``   double    Btu/Wh    > 0                       Yes                       Rated cooling efficiency
@@ -2057,7 +2057,7 @@ If a ground-to-air heat pump is specified, additional information is entered in 
   ``DistributionSystem``                           idref             See [#]_     Yes                       ID of attached distribution system
   ``HeatingCapacity``                              double    Btu/hr  >= 0         No        autosized [#]_  Heating output capacity (excluding any backup heating)
   ``CoolingCapacity``                              double    Btu/hr  >= 0         No        autosized [#]_  Cooling output capacity
-  ``CoolingSensibleHeatFraction``                  double    frac    0 - 1        No        0.73            Sensible heat fraction
+  ``CoolingSensibleHeatFraction``                  double    frac    0.5 - 1      No        0.73            Sensible heat fraction
   ``FractionHeatLoadServed``                       double    frac    0 - 1 [#]_   Yes                       Fraction of heating load served
   ``FractionCoolLoadServed``                       double    frac    0 - 1 [#]_   Yes                       Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="EER"]/Value``   double    Btu/Wh  > 0          Yes                       Rated cooling efficiency
