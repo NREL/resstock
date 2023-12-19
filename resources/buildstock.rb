@@ -461,9 +461,10 @@ class RunOSWs
       next if line.include? 'Cannot find current Workflow Step'
       next if line.include? 'Data will be treated as typical (TMY)'
       next if line.include? 'WorkflowStepResult value called with undefined stepResult'
+      next if line.include?("Object of type 'Schedule:Constant' and named 'Always") && line.include?('points to an object named') && line.include?('but that object cannot be located')
+      next if line.include? 'Appears there are no design condition fields in the EPW file'
       next if line.include? 'No valid weather file defined in either the osm or osw.'
       next if line.include? 'EPW file not found'
-      next if line.include?("Object of type 'Schedule:Constant' and named 'Always") && line.include?('points to an object named') && line.include?('but that object cannot be located')
       next if line.include? "'UseWeatherFile' is selected in YearDescription, but there are no weather file set for the model."
       next if line.include? 'not within the expected limits' # Ignore EpwFile warnings
       next if line.include? 'Unable to find sql file at'
@@ -568,7 +569,7 @@ class RunOSWs
 end
 
 class Version
-  ResStock_Version = '3.1.1' # Version of ResStock
+  ResStock_Version = '3.2.0' # Version of ResStock
   BuildStockBatch_Version = '2023.10.0' # Minimum required version of BuildStockBatch
 
   def self.check_buildstockbatch_version
