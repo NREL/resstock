@@ -2,8 +2,10 @@
 ###### December 19, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.1...v3.2.0)
 
 Features
+- Add ability to calculate simple utility bills based on a user-specified TSV file of utility rates ([#1012](https://github.com/NREL/resstock/pull/1012))
 - Add 2022 Cambium emissions data ([#1038](https://github.com/NREL/resstock/pull/1038))
 - Update characteristics to use EIA 2020 RECS ([#1031](https://github.com/NREL/resstock/pull/1031))
+- Add Energystar Climate Zone for window upgrade specification ([#1080](https://github.com/NREL/resstock/pull/1080))
 - Include HVAC secondary heating capabilities for project_testing ([#1090](https://github.com/NREL/resstock/pull/1090))
 - For heat pump upgrades, adds the ability to set the existing primary (non-shared) heating system as the backup system using only a single option from the lookup ([#1074](https://github.com/NREL/resstock/pull/1074))
 - options_saturations.csv is added to project_*/resources/ folder ([#1132](https://github.com/NREL/resstock/pull/1132))
@@ -39,7 +41,6 @@ Fixes
 
 Features
 - Include battery modeling capabilities for project_testing ([#1009](https://github.com/NREL/resstock/pull/1009))
-- Add ability to calculate simple utility bills based on a user-specified TSV file of utility rates ([#1012](https://github.com/NREL/resstock/pull/1012))
 - Ability to check buildstock csv against an options lookup as a command line utility ([#1042](https://github.com/NREL/resstock/pull/1042))
 - Demonstrate new power outage modeling feature using upgrades specified in example project yml files ([#1054](https://github.com/NREL/resstock/pull/1054))
 - Ability to specify a "sample_weight" column in the precomputed buildstock.csv ([#1056](https://github.com/NREL/resstock/pull/1056))
@@ -48,7 +49,6 @@ Features
 - Add data dictionary files for describing various outputs. Use these files to (1) check against integration test results, and (2) generate documentation tables ([#1058](https://github.com/NREL/resstock/pull/1058))
 - OS-HPXML now supports use of optional heat pump capacity retention temperature and fraction arguments (applicable to both ASHP and MSHP) ([#1072](https://github.com/NREL/resstock/pull/1072))
 - Update to OpenStudio v3.6.1 ([#1076](https://github.com/NREL/resstock/pull/1076))
-- Add Energystar Climate Zone for window upgrade specification ([#1080](https://github.com/NREL/resstock/pull/1080))
 
 Fixes
 - Pulls in upstream OS-HPXML fix related to [avoiding possible OpenStudio temporary directory collision](https://github.com/NREL/OpenStudio-HPXML/pull/1316) causing random errors ([#1054](https://github.com/NREL/resstock/pull/1054))
