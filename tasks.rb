@@ -3,14 +3,16 @@
 def download_epws
   require_relative 'resources/hpxml-measures/HPXMLtoOpenStudio/resources/util'
 
+  weather_dir = File.join(File.dirname(__FILE__), 'weather')
+  FileUtils.mkdir(weather_dir) if !File.exist?(weather_dir)
+
   require 'tempfile'
   tmpfile = Tempfile.new('epw')
 
-  UrlResolver.fetch('https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip', tmpfile)
+  UrlResolver.fetch('https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip', tmpfile)
 
   puts 'Extracting weather files...'
   require 'zip'
-  weather_dir = File.join(File.dirname(__FILE__), 'weather')
   Zip.on_exists_proc = true
   Zip::File.open(tmpfile.path.to_s) do |zip_file|
     zip_file.each do |f|
