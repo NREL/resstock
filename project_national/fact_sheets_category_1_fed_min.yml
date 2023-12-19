@@ -218,8 +218,7 @@ upgrades:
         lifetime: &propane_furnace_fed_min_cost_lifetime 15 # do we need a lifetime here?
 
       ####
-      # HSPF >= 8.8 for heat pumps, this includes the constraint of SEER 14 for northern states and SEER 15 for southern states 
-      # southern states
+      # HSPF >= 8.82 for air source heat pumps
       - &ashp_fed_min
         option: HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF # same as base option
         apply_logic: &logic_fed_min_heat_pump_ASHP_ducted
@@ -243,7 +242,7 @@ upgrades:
           - value: 167.64
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: &lifetime_ashp_ducted_8-82_HSPF 15
-      # MSHP
+      # MSHP, HSPF >= 8.33
       - &heat_pump_fed_min_ductless
         option: HVAC Heating Efficiency|MSHP, SEER 14.5, 8.33 HSPF # federal minimum is SEER 14.3, but 14.5 is lowest SEER in baseline ResStock
         apply_logic: &logic_fed_min_heat_pump_MSHP_ductless
@@ -393,13 +392,8 @@ upgrades:
             multiplier: Size, Cooling System Primary (kBtu/h)
         lifetime: &Room_AC_lifetime 5 # dummy value
       # Heat Pumps
-      # SEER 14 for northern states and SEER 15 for southern states, comes with HSPF == 8.8 which is the federal minimum
-      # southern states
-      - *heat_pump_fed_min_ducted_southern
-      - *heat_pump_fed_min_ductless_southern
-      - *heat_pump_fed_min_ducted_northern_SEER_14
-      - *heat_pump_fed_min_ducted_northern_SEER_15
-      - *heat_pump_fed_min_ductless_northern
+      - *ashp_fed_min
+      - *heat_pump_fed_min_ductless
       #global
       - *heat_pump_ducted_cooling
       - *heat_pump_ductless_cooling
@@ -408,13 +402,13 @@ upgrades:
     options:
     ####
     # Federal minimum heat pumps
-      - *heat_pump_fed_min_ducted_southern
-      - *heat_pump_fed_min_ductless_southern
-      - *heat_pump_fed_min_ducted_northern_SEER_14
-      - *heat_pump_fed_min_ducted_northern_SEER_15
-      - *heat_pump_fed_min_ductless_northern
+      # Heat Pumps
+      - *ashp_fed_min
+      - *heat_pump_fed_min_ductless
+      #global
       - *heat_pump_ducted_cooling
       - *heat_pump_ductless_cooling
+
 
     # Federal minimum AC - central and room
       - *room_AC_fed_min
@@ -426,9 +420,9 @@ upgrades:
       - *fuel_oil_boiler_fed_min
 
     # Federal minimum furnaces - NG and fuel oil
-      - *natural_gas_furnace_fed_min_north
-      - *natural_gas_furnace_fed_min_south
+      - *natural_gas_furnace_fed_min
       - *fuel_oil_furnace_fed_min
+      - *propane_furnace_fed_min
 
   - upgrade_name: Federal Minimum Water Heating
     options:
@@ -523,14 +517,15 @@ upgrades:
   - upgrade_name: Federal Minimum Heating, Cooling, and Water Heating
     options:
     ####
+    ####
     # Federal minimum heat pumps
-      - *heat_pump_fed_min_ducted_southern
-      - *heat_pump_fed_min_ductless_southern
-      - *heat_pump_fed_min_ducted_northern_SEER_14
-      - *heat_pump_fed_min_ducted_northern_SEER_15
-      - *heat_pump_fed_min_ductless_northern
+      # Heat Pumps
+      - *ashp_fed_min
+      - *heat_pump_fed_min_ductless
+      #global
       - *heat_pump_ducted_cooling
       - *heat_pump_ductless_cooling
+
 
     # Federal minimum AC - central and room
       - *room_AC_fed_min
@@ -542,13 +537,12 @@ upgrades:
       - *fuel_oil_boiler_fed_min
 
     # Federal minimum furnaces - NG and fuel oil
-      - *natural_gas_furnace_fed_min_north
-      - *natural_gas_furnace_fed_min_south
+      - *natural_gas_furnace_fed_min
       - *fuel_oil_furnace_fed_min
+      - *propane_furnace_fed_min
+
     # Federal minimum water heating - Elec + NG
-      - *HPWH_fed_min_30_gal
-      - *HPWH_fed_min_50_gal
+      - *elec_fed_min_30-55_gal
       - *HPWH_fed_min_66_gal
-      - *gas_wh_fed_min_30_and_40_gal
-      - *gas_wh_fed_min_50_gal
-      - *gas_tankless_fed_min
+      - *gas_wh_fed_min_30_40_50_gal
+      - *oil_wh_fed_min_30_40_50_gal
