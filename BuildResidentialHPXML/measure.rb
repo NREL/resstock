@@ -1384,10 +1384,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # geothermal_loop_configuration_choices << HPXML::GeothermalLoopLoopConfigurationOther
     geothermal_loop_configuration_choices << HPXML::GeothermalLoopLoopConfigurationVertical
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geothermal_loop_configuration', geothermal_loop_configuration_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geothermal_loop_configuration', geothermal_loop_configuration_choices, false)
     arg.setDisplayName('Geothermal Loop: Configuration')
-    arg.setDescription("Configuration of the geothermal loop. Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type.")
-    arg.setDefaultValue('none')
+    arg.setDescription("Configuration of the geothermal loop. Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#ground-to-air-heat-pump'>Ground-to-Air Heat Pump</a>) is used.")
     args << arg
 
     geothermal_loop_borefield_configuration_choices = OpenStudio::StringVector.new
@@ -3330,6 +3329,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:ceiling_assembly_r] > max_uninsulated_ceiling_rvalue)
     warnings << 'Home with conditioned attic has ceiling insulation.' if warning
 
+    warning = (args[:heat_pump_type] != HPXML::HVACTypeHeatPumpGroundToAir) && (args[:geothermal_loop_configuration].is_initialized && args[:geothermal_loop_configuration].get != 'none')
+    warnings << 'Specified an attached geothermal loop but home has no ground source heat pump.' if warning
+
     return warnings
   end
 
@@ -5226,9 +5228,8 @@ class HPXMLFile
   end
 
   def self.set_geothermal_loop(hpxml_bldg, args)
-    loop_configuration = args[:geothermal_loop_configuration]
-
-    return if loop_configuration == 'none'
+    return if hpxml_bldg.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size == 0
+    return if !args[:geothermal_loop_configuration].is_initialized || args[:geothermal_loop_configuration].get == 'none'
 
     if args[:geothermal_loop_borefield_configuration].is_initialized
       bore_config = args[:geothermal_loop_borefield_configuration].get
@@ -5274,7 +5275,7 @@ class HPXMLFile
     end
 
     hpxml_bldg.geothermal_loops.add(id: "GeothermalLoop#{hpxml_bldg.geothermal_loops.size + 1}",
-                                    loop_configuration: loop_configuration,
+                                    loop_configuration: args[:geothermal_loop_configuration].get,
                                     loop_flow: loop_flow,
                                     bore_config: bore_config,
                                     num_bore_holes: num_bore_holes,

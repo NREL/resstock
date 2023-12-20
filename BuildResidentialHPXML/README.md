@@ -2278,12 +2278,12 @@ Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-ai
 
 **Geothermal Loop: Configuration**
 
-Configuration of the geothermal loop. Only applies to ground-to-air heat pump type.
+Configuration of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump'>Ground-to-Air Heat Pump</a>) is used.
 
 - **Name:** ``geothermal_loop_configuration``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 - **Choices:** `none`, `vertical`
 
