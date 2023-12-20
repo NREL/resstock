@@ -435,7 +435,6 @@ upgrades:
             - Bedrooms|1
             - Bedrooms|2
             - Bedrooms|3
-            - Bedrooms|4
           - not:
               - Water Heater Efficiency|Electric Premium
         costs:
@@ -448,7 +447,7 @@ upgrades:
         option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 2.1171 UEF
         apply_logic:
           - Water Heater Fuel|Electricity
-          - Bedrooms|5
+          - Bedrooms|4
           - not:
               or:
                 - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
@@ -457,6 +456,21 @@ upgrades:
         costs:
           - value: 3736.48  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
             multiplier: Fixed (1)
+
+      - &HPWH_fed_min_80_gal
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 2.1171 UEF
+        apply_logic:
+          - Water Heater Fuel|Electricity
+          - Bedrooms|5
+          - not:
+              or:
+                - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+                - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+                - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        costs:
+          - value: 4631.88  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+            multiplier: Fixed (1)
+
 
     #### Gas storage 0.6483 is fed min
       - &gas_wh_fed_min_30_40_50_gal
@@ -544,5 +558,6 @@ upgrades:
     # Federal minimum water heating - Elec + NG
       - *elec_fed_min_30-55_gal
       - *HPWH_fed_min_66_gal
+      - *HPWH_fed_min_80_gal
       - *gas_wh_fed_min_30_40_50_gal
       - *oil_wh_fed_min_30_40_50_gal
