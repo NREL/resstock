@@ -385,7 +385,7 @@ upgrades:
           - HVAC Cooling Type|Room AC
         costs: &Room_AC_cost
         # Source: survey of big box stores best-selling Room AC units with a linear regression for cost (y) and tons of refrigeration (x)
-        # Resulting equation - y = 16.87 + 396.17x
+        # Resulting equation - y = 16.87 + 33.01x
           - value: 16.87
             multiplier: Fixed (1)
           - value: 33.01
@@ -437,6 +437,10 @@ upgrades:
             - Bedrooms|3
           - not:
               - Water Heater Efficiency|Electric Premium
+              - or:
+                - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+                - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+                - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         costs:
           - value: 820.62  # 586.16 * 1.4: Interpolated using REMDB values for EF 0.92 (UEF 0.9174) and 0.95 (UEF 0.9299), inflation adjusted with 1.4 factor - https://remdb.nrel.gov/measures?group_id=6&component_type_id=270&actionId=2084&bcId=4102
             multiplier: Fixed (1)
