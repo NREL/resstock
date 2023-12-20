@@ -217,6 +217,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'warning-unvented-attic-with-floor-and-roof-insulation.xml' => 'base-sfd.xml',
       'warning-conditioned-basement-with-ceiling-insulation.xml' => 'base-sfd.xml',
       'warning-conditioned-attic-with-floor-insulation.xml' => 'base-sfd.xml',
+      'warning-geothermal-loop-but-no-gshp.xml' => 'base-sfd.xml'
     }
 
     expected_errors = {
@@ -281,7 +282,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'warning-vented-attic-with-floor-and-roof-insulation.xml' => ['Home with unconditioned attic type has both ceiling insulation and roof insulation.'],
       'warning-unvented-attic-with-floor-and-roof-insulation.xml' => ['Home with unconditioned attic type has both ceiling insulation and roof insulation.'],
       'warning-conditioned-basement-with-ceiling-insulation.xml' => ['Home with conditioned basement has floor insulation.'],
-      'warning-conditioned-attic-with-floor-insulation.xml' => ['Home with conditioned attic has ceiling insulation.']
+      'warning-conditioned-attic-with-floor-insulation.xml' => ['Home with conditioned attic has ceiling insulation.'],
+      'warning-geothermal-loop-but-no-gshp.xml' => ['Specified an attached geothermal loop but home has no ground source heat pump.']
     }
 
     schema_path = File.join(File.dirname(__FILE__), '../..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
@@ -1269,6 +1271,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['geometry_attic_type'] = HPXML::AtticTypeConditioned
       args['ducts_supply_location'] = HPXML::LocationConditionedSpace
       args['ducts_return_location'] = HPXML::LocationConditionedSpace
+    elsif ['warning-geothermal-loop-but-no-gshp.xml'].include? hpxml_file
+      args['geothermal_loop_configuration'] = HPXML::GeothermalLoopLoopConfigurationVertical
     end
   end
 
