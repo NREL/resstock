@@ -136,10 +136,28 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription("Presence of nearby buildings, trees, obstructions for infiltration model. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
     args << arg
 
+    site_soil_and_moisture_type_choices = OpenStudio::StringVector.new
+    Constants.SoilTypes.each do |soil_type|
+      Constants.MoistureTypes.each do |moisture_type|
+        site_soil_and_moisture_type_choices << "#{soil_type}, #{moisture_type}"
+      end
+    end
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('site_soil_and_moisture_type', site_soil_and_moisture_type_choices, false)
+    arg.setDisplayName('Site: Soil and Moisture Type')
+    arg.setDescription("Type of soil and moisture. This is used to inform ground conductivity and diffusivity. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_ground_conductivity', false)
     arg.setDisplayName('Site: Ground Conductivity')
-    arg.setDescription("Conductivity of the ground soil. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
+    arg.setDescription('Conductivity of the ground soil. If provided, overrides the previous site and moisture type input.')
     arg.setUnits('Btu/hr-ft-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_ground_diffusivity', false)
+    arg.setDisplayName('Site: Ground Diffusivity')
+    arg.setDescription('Diffusivity of the ground soil. If provided, overrides the previous site and moisture type input.')
+    arg.setUnits('ft^2/hr')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('site_zip_code', false)
@@ -1357,6 +1375,85 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Heat Pump: Crankcase Heater Power Watts')
     arg.setDescription("Heat Pump crankcase heater power consumption in Watts. Applies only to #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, #{HPXML::HVACTypeHeatPumpPTHP} and #{HPXML::HVACTypeHeatPumpRoom}. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#air-to-air-heat-pump'>Air-to-Air Heat Pump</a>, <a href='#{docs_base_url}#mini-split-heat-pump'>Mini-Split Heat Pump</a>, <a href='#{docs_base_url}#packaged-terminal-heat-pump'>Packaged Terminal Heat Pump</a>, <a href='#{docs_base_url}#room-air-conditioner-w-reverse-cycle'>Room Air Conditioner w/ Reverse Cycle</a>) is used.")
     arg.setUnits('W')
+    args << arg
+
+    geothermal_loop_configuration_choices = OpenStudio::StringVector.new
+    geothermal_loop_configuration_choices << 'none'
+    # geothermal_loop_configuration_choices << HPXML::GeothermalLoopLoopConfigurationDiagonal
+    # geothermal_loop_configuration_choices << HPXML::GeothermalLoopLoopConfigurationHorizontal
+    # geothermal_loop_configuration_choices << HPXML::GeothermalLoopLoopConfigurationOther
+    geothermal_loop_configuration_choices << HPXML::GeothermalLoopLoopConfigurationVertical
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geothermal_loop_configuration', geothermal_loop_configuration_choices, true)
+    arg.setDisplayName('Geothermal Loop: Configuration')
+    arg.setDescription("Configuration of the geothermal loop. Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type.")
+    arg.setDefaultValue('none')
+    args << arg
+
+    geothermal_loop_borefield_configuration_choices = OpenStudio::StringVector.new
+    valid_bore_configs = HVACSizing.valid_bore_configs
+    valid_bore_configs.keys.each do |valid_bore_config|
+      geothermal_loop_borefield_configuration_choices << valid_bore_config
+    end
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geothermal_loop_borefield_configuration', geothermal_loop_borefield_configuration_choices, false)
+    arg.setDisplayName('Geothermal Loop: Borefield Configuration')
+    arg.setDescription("Borefield configuration of the geothermal loop. Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-geothermal-loops'>HPXML Geothermal Loops</a>) is used.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geothermal_loop_loop_flow', false)
+    arg.setDisplayName('Geothermal Loop: Loop Flow')
+    arg.setDescription("Water flow rate through the geothermal loop. Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type. If not provided, the OS-HPXML autosized default (see <a href='#{docs_base_url}#hpxml-geothermal-loops'>HPXML Geothermal Loops</a>) is used.")
+    arg.setUnits('gpm')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geothermal_loop_boreholes_count', false)
+    arg.setDisplayName('Geothermal Loop: Boreholes Count')
+    arg.setDescription("Number of boreholes. Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type. If not provided, the OS-HPXML autosized default (see <a href='#{docs_base_url}#hpxml-geothermal-loops'>HPXML Geothermal Loops</a>) is used.")
+    arg.setUnits('#')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geothermal_loop_boreholes_length', false)
+    arg.setDisplayName('Geothermal Loop: Boreholes Length')
+    arg.setDescription("Average length of each borehole (vertical). Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type. If not provided, the OS-HPXML autosized default (see <a href='#{docs_base_url}#hpxml-geothermal-loops'>HPXML Geothermal Loops</a>) is used.")
+    arg.setUnits('ft')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geothermal_loop_boreholes_spacing', false)
+    arg.setDisplayName('Geothermal Loop: Boreholes Spacing')
+    arg.setDescription("Distance between bores. Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-geothermal-loops'>HPXML Geothermal Loops</a>) is used.")
+    arg.setUnits('ft')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geothermal_loop_boreholes_diameter', false)
+    arg.setDisplayName('Geothermal Loop: Boreholes Diameter')
+    arg.setDescription("Diameter of bores. Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-geothermal-loops'>HPXML Geothermal Loops</a>) is used.")
+    arg.setUnits('in')
+    args << arg
+
+    geothermal_loop_grout_or_pipe_type_choices = OpenStudio::StringVector.new
+    geothermal_loop_grout_or_pipe_type_choices << HPXML::GeothermalLoopGroutOrPipeTypeStandard
+    geothermal_loop_grout_or_pipe_type_choices << HPXML::GeothermalLoopGroutOrPipeTypeThermallyEnhanced
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geothermal_loop_grout_type', geothermal_loop_grout_or_pipe_type_choices, false)
+    arg.setDisplayName('Geothermal Loop: Grout Type')
+    arg.setDescription("Grout type of the geothermal loop. Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-geothermal-loops'>HPXML Geothermal Loops</a>) is used.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geothermal_loop_pipe_type', geothermal_loop_grout_or_pipe_type_choices, false)
+    arg.setDisplayName('Geothermal Loop: Pipe Type')
+    arg.setDescription("Pipe type of the geothermal loop. Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-geothermal-loops'>HPXML Geothermal Loops</a>) is used.")
+    args << arg
+
+    geothermal_loop_pipe_diameter_choices = OpenStudio::StringVector.new
+    geothermal_loop_pipe_diameter_choices << '3/4" pipe'
+    geothermal_loop_pipe_diameter_choices << '1" pipe'
+    geothermal_loop_pipe_diameter_choices << '1-1/4" pipe'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geothermal_loop_pipe_diameter', geothermal_loop_pipe_diameter_choices, false)
+    arg.setDisplayName('Geothermal Loop: Pipe Diameter')
+    arg.setDescription("Pipe diameter of the geothermal loop. Only applies to #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump type. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-geothermal-loops'>HPXML Geothermal Loops</a>) is used.")
+    arg.setUnits('in')
     args << arg
 
     heating_system_2_type_choices = OpenStudio::StringVector.new
@@ -3424,6 +3521,7 @@ class HPXMLFile
     set_heating_systems(hpxml_bldg, args)
     set_cooling_systems(hpxml_bldg, args)
     set_heat_pumps(hpxml_bldg, args)
+    set_geothermal_loop(hpxml_bldg, args)
     set_secondary_heating_systems(hpxml_bldg, args)
     set_hvac_distribution(hpxml_bldg, args)
     set_hvac_control(hpxml, hpxml_bldg, args, epw_file, weather)
@@ -4017,6 +4115,16 @@ class HPXMLFile
 
     if args[:site_ground_conductivity].is_initialized
       hpxml_bldg.site.ground_conductivity = args[:site_ground_conductivity].get
+    end
+
+    if args[:site_ground_diffusivity].is_initialized
+      hpxml_bldg.site.ground_diffusivity = args[:site_ground_diffusivity].get
+    end
+
+    if args[:site_soil_and_moisture_type].is_initialized
+      soil_type, moisture_type = args[:site_soil_and_moisture_type].get.split(', ')
+      hpxml_bldg.site.soil_type = soil_type
+      hpxml_bldg.site.moisture_type = moisture_type
     end
 
     if args[:site_type].is_initialized
@@ -5115,6 +5223,68 @@ class HPXMLFile
                               crankcase_heater_watts: heat_pump_crankcase_heater_watts,
                               primary_heating_system: primary_heating_system,
                               primary_cooling_system: primary_cooling_system)
+  end
+
+  def self.set_geothermal_loop(hpxml_bldg, args)
+    loop_configuration = args[:geothermal_loop_configuration]
+
+    return if loop_configuration == 'none'
+
+    if args[:geothermal_loop_borefield_configuration].is_initialized
+      bore_config = args[:geothermal_loop_borefield_configuration].get
+    end
+
+    if args[:geothermal_loop_loop_flow].is_initialized
+      loop_flow = args[:geothermal_loop_loop_flow].get
+    end
+
+    if args[:geothermal_loop_boreholes_count].is_initialized
+      num_bore_holes = args[:geothermal_loop_boreholes_count].get
+    end
+
+    if args[:geothermal_loop_boreholes_length].is_initialized
+      bore_length = args[:geothermal_loop_boreholes_length].get
+    end
+
+    if args[:geothermal_loop_boreholes_spacing].is_initialized
+      bore_spacing = args[:geothermal_loop_boreholes_spacing].get
+    end
+
+    if args[:geothermal_loop_boreholes_diameter].is_initialized
+      bore_diameter = args[:geothermal_loop_boreholes_diameter].get
+    end
+
+    if args[:geothermal_loop_grout_type].is_initialized
+      grout_type = args[:geothermal_loop_grout_type].get
+    end
+
+    if args[:geothermal_loop_pipe_type].is_initialized
+      pipe_type = args[:geothermal_loop_pipe_type].get
+    end
+
+    if args[:geothermal_loop_pipe_diameter].is_initialized
+      pipe_diameter = args[:geothermal_loop_pipe_diameter].get
+      if pipe_diameter == '3/4" pipe'
+        pipe_diameter = 0.75
+      elsif pipe_diameter == '1" pipe'
+        pipe_diameter = 1.0
+      elsif pipe_diameter == '1-1/4" pipe'
+        pipe_diameter = 1.25
+      end
+    end
+
+    hpxml_bldg.geothermal_loops.add(id: "GeothermalLoop#{hpxml_bldg.geothermal_loops.size + 1}",
+                                    loop_configuration: loop_configuration,
+                                    loop_flow: loop_flow,
+                                    bore_config: bore_config,
+                                    num_bore_holes: num_bore_holes,
+                                    bore_length: bore_length,
+                                    bore_spacing: bore_spacing,
+                                    bore_diameter: bore_diameter,
+                                    grout_type: grout_type,
+                                    pipe_type: pipe_type,
+                                    pipe_diameter: pipe_diameter)
+    hpxml_bldg.heat_pumps[-1].geothermal_loop_idref = hpxml_bldg.geothermal_loops[-1].id
   end
 
   def self.set_secondary_heating_systems(hpxml_bldg, args)
