@@ -22,11 +22,15 @@ See :doc:`run_project` for more information about running ResStock analyses.
 Sampling
 --------
    
-To run the sampling script yourself, from the command line execute, e.g. ``openstudio resources/run_sampling.rb -p project_national -n 10000 -o buildstock.csv``, and a file ``buildstock.csv`` will be created in the ``resources`` directory.
+To run the sampling script yourself, from the command line execute, e.g. ``openstudio resources/run_sampling.rb -p project_national -n 10000 -o buildstock.csv``, and a ``buildstock.csv`` file will be created in the ``resources`` directory.
+
+If a custom ``buildstock.csv`` file is referenced using the `precomputed sampler <https://buildstockbatch.readthedocs.io/en/stable/samplers/precomputed.html>`_ when you run the project, it will be used as the basis for generating simulation datapoints.
+Alternatively by using other (non-precomputed) quota-based samplers, the sampling will be run automatically to create a ``buildstock.csv`` file.
+For each simulation datapoint, the workflow will then look up its building description from the sampled ``buildstock.csv`` file.
  
-If a custom ``buildstock.csv`` file is located in a project's ``housing_characteristics`` directory when you run the project, it will automatically be used to generate simulations. If it’s not found, the sampling will be run automatically to create one. For each datapoint, the measure will then look up its building description from the sampled csv.
- 
-You can use this manual sampling process to downselect which simulations you want to run. For example, you can use the command above to generate a ``buildstock.csv`` for the entire U.S. and then open up this file in Excel and delete all of the rows that you don't want to simulate (e.g., all rows that aren't in New York). Keep in mind that if you do this, you will need to re-enumerate the "Building" column as "1" through the number of rows.
+You can use this manual sampling process to downselect which simulations you want to run.
+For example, you can use the command above to generate a ``buildstock.csv`` for the entire U.S. and then open up this file in Excel and delete all of the rows that you don't want to simulate (e.g., all rows that aren't in New York).
+Keep in mind that if you do this, you will need to re-enumerate the "Building" column as "1" through the number of rows.
 
 Measures
 --------
@@ -63,6 +67,8 @@ The BuildExistingModel and ApplyUpgrade meta measures call the following model m
   2     BuildResidentialHPXML         Model              No                      OS-HPXML
   3     BuildResidentialScheduleFile  Model              No                      OS-HPXML
   ===== ============================= ================== ========= ============= ==========================
+
+.. _model-measures:
 
 Model Measures
 **************

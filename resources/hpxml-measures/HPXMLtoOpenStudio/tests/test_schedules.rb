@@ -7,7 +7,7 @@ require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'
 
-class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
+class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
   def setup
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
     @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')
@@ -36,7 +36,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
   def test_default_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     schedule_constants = 11
     schedule_rulesets = 17
@@ -51,21 +51,21 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
 
     assert_in_epsilon(6020, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameOccupants + ' schedule'), 0.1)
     assert_in_epsilon(3321, get_annual_equivalent_full_load_hrs(model, 'lighting schedule'), 0.1)
-    assert_in_epsilon(2763, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameExteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator), 0.1)
-    assert_in_epsilon(2224, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameCookingRange), 0.1)
-    assert_in_epsilon(2994, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameDishwasher), 0.1)
-    assert_in_epsilon(4158, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesWasher), 0.1)
-    assert_in_epsilon(4502, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesDryer), 0.1)
+    assert_in_epsilon(2763, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingExterior + ' schedule'), 0.1)
+    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator + ' schedule'), 0.1)
+    assert_in_epsilon(2224, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameCookingRange + ' schedule'), 0.1)
+    assert_in_epsilon(2994, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameDishwasher + ' schedule'), 0.1)
+    assert_in_epsilon(4158, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesWasher + ' schedule'), 0.1)
+    assert_in_epsilon(4502, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesDryer + ' schedule'), 0.1)
     assert_in_epsilon(5468, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameMiscPlugLoads + ' schedule'), 0.1)
     assert_in_epsilon(2256, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameMiscTelevision + ' schedule'), 0.1)
-    assert_in_epsilon(4204, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameFixtures), 0.1)
+    assert_in_epsilon(4204, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameFixtures + ' schedule'), 0.1)
   end
 
   def test_simple_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-simple.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     schedule_constants = 11
     schedule_rulesets = 17
@@ -79,86 +79,93 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     assert_equal(model.getSchedules.size, schedule_constants + schedule_rulesets + schedule_fixed_intervals + schedule_files)
 
     assert_in_epsilon(6020, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameOccupants + ' schedule'), 0.1)
-    assert_in_epsilon(3321, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameInteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(2763, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameExteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator), 0.1)
-    assert_in_epsilon(2224, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameCookingRange), 0.1)
-    assert_in_epsilon(2994, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameDishwasher), 0.1)
-    assert_in_epsilon(4158, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesWasher), 0.1)
-    assert_in_epsilon(4502, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesDryer), 0.1)
+    assert_in_epsilon(3321, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingInterior + ' schedule'), 0.1)
+    assert_in_epsilon(2763, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingExterior + ' schedule'), 0.1)
+    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator + ' schedule'), 0.1)
+    assert_in_epsilon(2224, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameCookingRange + ' schedule'), 0.1)
+    assert_in_epsilon(2994, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameDishwasher + ' schedule'), 0.1)
+    assert_in_epsilon(4158, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesWasher + ' schedule'), 0.1)
+    assert_in_epsilon(4502, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesDryer + ' schedule'), 0.1)
     assert_in_epsilon(5468, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameMiscPlugLoads + ' schedule'), 0.1)
     assert_in_epsilon(2956, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameMiscTelevision + ' schedule'), 0.1)
-    assert_in_epsilon(4204, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameFixtures), 0.1)
+    assert_in_epsilon(4204, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameFixtures + ' schedule'), 0.1)
   end
 
   def test_simple_vacancy_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-simple-vacancy.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     vacancy_hrs = 31.0 * 2.0 * 24.0
     occupied_ratio = (1.0 - vacancy_hrs / 8760.0)
 
     assert_in_epsilon(6020 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameOccupants + ' schedule'), 0.1)
-    assert_in_epsilon(3321 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameInteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(2763 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameExteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator), 0.1)
-    assert_in_epsilon(2224 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameCookingRange), 0.1)
-    assert_in_epsilon(2994 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameDishwasher), 0.1)
-    assert_in_epsilon(4158 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesWasher), 0.1)
-    assert_in_epsilon(4502 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesDryer), 0.1)
+    assert_in_epsilon(3321 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingInterior + ' schedule'), 0.1)
+    assert_in_epsilon(2763 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingExterior + ' schedule'), 0.1)
+    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator + ' schedule'), 0.1)
+    assert_in_epsilon(2224 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameCookingRange + ' schedule'), 0.1)
+    assert_in_epsilon(2994 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameDishwasher + ' schedule'), 0.1)
+    assert_in_epsilon(4158 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesWasher + ' schedule'), 0.1)
+    assert_in_epsilon(4502 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesDryer + ' schedule'), 0.1)
     assert_in_epsilon(5468 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameMiscPlugLoads + ' schedule'), 0.1)
     assert_in_epsilon(2956 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameMiscTelevision + ' schedule'), 0.1)
-    assert_in_epsilon(4204 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameFixtures), 0.1)
+    assert_in_epsilon(4204 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameFixtures + ' schedule'), 0.1)
   end
 
   def test_simple_vacancy_year_round_schedules
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-simple-vacancy-year-round.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    hpxml_path = File.absolute_path(File.join(sample_files_dir, 'base-schedules-simple-vacancy.xml'))
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    hpxml.header.unavailable_periods[0].begin_month = 1
+    hpxml.header.unavailable_periods[0].begin_day = 1
+    hpxml.header.unavailable_periods[0].end_month = 12
+    hpxml.header.unavailable_periods[0].end_day = 31
+    XMLHelper.write_file(hpxml.to_doc(), @tmp_hpxml_path)
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     vacancy_hrs = 8760.0
     occupied_ratio = (1.0 - vacancy_hrs / 8760.0)
 
     assert_in_epsilon(6020 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameOccupants + ' schedule'), 0.1)
-    assert_in_epsilon(3321 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameInteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(2763 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameExteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator), 0.1)
-    assert_in_epsilon(2224 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameCookingRange), 0.1)
-    assert_in_epsilon(2994 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameDishwasher), 0.1)
-    assert_in_epsilon(4158 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesWasher), 0.1)
-    assert_in_epsilon(4502 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesDryer), 0.1)
+    assert_in_epsilon(3321 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingInterior + ' schedule'), 0.1)
+    assert_in_epsilon(2763 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingExterior + ' schedule'), 0.1)
+    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator + ' schedule'), 0.1)
+    assert_in_epsilon(2224 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameCookingRange + ' schedule'), 0.1)
+    assert_in_epsilon(2994 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameDishwasher + ' schedule'), 0.1)
+    assert_in_epsilon(4158 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesWasher + ' schedule'), 0.1)
+    assert_in_epsilon(4502 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesDryer + ' schedule'), 0.1)
     assert_in_epsilon(5468 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameMiscPlugLoads + ' schedule'), 0.1)
     assert_in_epsilon(2956 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameMiscTelevision + ' schedule'), 0.1)
-    assert_in_epsilon(4204 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameFixtures), 0.1)
+    assert_in_epsilon(4204 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameFixtures + ' schedule'), 0.1)
   end
 
   def test_simple_power_outage_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-simple-power-outage.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     outage_hrs = 31.0 * 1.0 * 24.0 - 15.0
     powered_ratio = (1.0 - outage_hrs / 8760.0)
 
     assert_in_epsilon(6020, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameOccupants + ' schedule'), 0.1)
-    assert_in_epsilon(3321 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameInteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(2763 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameExteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(6673 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator), 0.1)
-    assert_in_epsilon(2224 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameCookingRange), 0.1)
-    assert_in_epsilon(2994 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameDishwasher), 0.1)
-    assert_in_epsilon(4158 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesWasher), 0.1)
-    assert_in_epsilon(4502 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesDryer), 0.1)
+    assert_in_epsilon(3321 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingInterior + ' schedule'), 0.1)
+    assert_in_epsilon(2763 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingExterior + ' schedule'), 0.1)
+    assert_in_epsilon(6673 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator + ' schedule'), 0.1)
+    assert_in_epsilon(2224 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameCookingRange + ' schedule'), 0.1)
+    assert_in_epsilon(2994 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameDishwasher + ' schedule'), 0.1)
+    assert_in_epsilon(4158 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesWasher + ' schedule'), 0.1)
+    assert_in_epsilon(4502 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameClothesDryer + ' schedule'), 0.1)
     assert_in_epsilon(5468 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameMiscPlugLoads + ' schedule'), 0.1)
     assert_in_epsilon(2956 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameMiscTelevision + ' schedule'), 0.1)
-    assert_in_epsilon(4204 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameFixtures), 0.1)
+    assert_in_epsilon(4204 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameFixtures + ' schedule'), 0.1)
     assert_in_epsilon(8760 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameMechanicalVentilationHouseFan + ' schedule'), 0.1)
   end
 
   def test_stochastic_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     assert_equal(11, model.getScheduleFiles.size)
 
@@ -169,11 +176,11 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     assert(schedule_file_names.include?(SchedulesFile::ColumnOccupants))
     assert(schedule_file_names.include?(SchedulesFile::ColumnLightingInterior))
     assert(!schedule_file_names.include?(SchedulesFile::ColumnLightingExterior))
-    assert_in_epsilon(2763, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameExteriorLighting + ' schedule'), 0.1)
+    assert_in_epsilon(2763, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingExterior + ' schedule'), 0.1)
     assert(!schedule_file_names.include?(SchedulesFile::ColumnLightingGarage))
     assert(!schedule_file_names.include?(SchedulesFile::ColumnLightingExteriorHoliday))
     assert(!schedule_file_names.include?(SchedulesFile::ColumnRefrigerator))
-    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator), 0.1)
+    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator + ' schedule'), 0.1)
     assert(schedule_file_names.include?(SchedulesFile::ColumnCookingRange))
     assert(schedule_file_names.include?(SchedulesFile::ColumnDishwasher))
     assert(schedule_file_names.include?(SchedulesFile::ColumnClothesWasher))
@@ -189,9 +196,9 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
   def test_stochastic_vacancy_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-vacancy.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
-    schedules_paths = hpxml.header.schedules_filepaths.collect { |sfp|
+    schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|
       FilePath.check_path(sfp,
                           File.dirname(args_hash['hpxml_path']),
                           'Schedules')
@@ -199,8 +206,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
 
     column_name = hpxml.header.unavailable_periods[0].column_name
 
-    sf = SchedulesFile.new(model: model,
-                           schedules_paths: schedules_paths,
+    sf = SchedulesFile.new(schedules_paths: schedules_paths,
                            year: 2007,
                            unavailable_periods: hpxml.header.unavailable_periods,
                            output_path: @tmp_schedule_file_path)
@@ -211,8 +217,8 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     assert_in_epsilon(6689 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOccupants, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingInterior, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingGarage, schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2763 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameExteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator), 0.1)
+    assert_in_epsilon(2763 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingExterior + ' schedule'), 0.1)
+    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator + ' schedule'), 0.1)
     assert_in_epsilon(534 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnCookingRange, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(213 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(134 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnClothesWasher, schedules: sf.tmp_schedules), 0.1)
@@ -230,7 +236,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
   def test_stochastic_vacancy_schedules2
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-vacancy.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
     column_name = hpxml.header.unavailable_periods[0].column_name
 
@@ -242,14 +248,13 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
                                          end_day: 28,
                                          natvent_availability: HPXML::ScheduleUnavailable)
 
-    schedules_paths = hpxml.header.schedules_filepaths.collect { |sfp|
+    schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|
       FilePath.check_path(sfp,
                           File.dirname(args_hash['hpxml_path']),
                           'Schedules')
     }
 
-    sf = SchedulesFile.new(model: model,
-                           schedules_paths: schedules_paths,
+    sf = SchedulesFile.new(schedules_paths: schedules_paths,
                            year: 2007,
                            unavailable_periods: hpxml.header.unavailable_periods,
                            output_path: @tmp_schedule_file_path)
@@ -260,8 +265,8 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     assert_in_epsilon(6689 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOccupants, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingInterior, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingGarage, schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2763 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameExteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator), 0.1)
+    assert_in_epsilon(2763 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingExterior + ' schedule'), 0.1)
+    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator + ' schedule'), 0.1)
     assert_in_epsilon(534 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnCookingRange, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(213 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(134 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnClothesWasher, schedules: sf.tmp_schedules), 0.1)
@@ -278,10 +283,17 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
 
   def test_stochastic_vacancy_year_round_schedules
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-vacancy-year-round.xml'))
-    model, hpxml = _test_measure(args_hash)
+    hpxml_path = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-vacancy.xml'))
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    hpxml.header.unavailable_periods[0].begin_month = 1
+    hpxml.header.unavailable_periods[0].begin_day = 1
+    hpxml.header.unavailable_periods[0].end_month = 12
+    hpxml.header.unavailable_periods[0].end_day = 31
+    XMLHelper.write_file(hpxml.to_doc(), @tmp_hpxml_path)
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
-    schedules_paths = hpxml.header.schedules_filepaths.collect { |sfp|
+    schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|
       FilePath.check_path(sfp,
                           File.dirname(args_hash['hpxml_path']),
                           'Schedules')
@@ -289,8 +301,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
 
     column_name = hpxml.header.unavailable_periods[0].column_name
 
-    sf = SchedulesFile.new(model: model,
-                           schedules_paths: schedules_paths,
+    sf = SchedulesFile.new(schedules_paths: schedules_paths,
                            year: 2007,
                            unavailable_periods: hpxml.header.unavailable_periods,
                            output_path: @tmp_schedule_file_path)
@@ -301,8 +312,8 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     assert_in_epsilon(6689 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOccupants, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingInterior, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingGarage, schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2763 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameExteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator), 0.1)
+    assert_in_epsilon(2763 * occupied_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingExterior + ' schedule'), 0.1)
+    assert_in_epsilon(6673, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator + ' schedule'), 0.1)
     assert_in_epsilon(534 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnCookingRange, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(213 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(134 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnClothesWasher, schedules: sf.tmp_schedules), 0.1)
@@ -320,9 +331,9 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
   def test_stochastic_power_outage_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-power-outage.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
-    schedules_paths = hpxml.header.schedules_filepaths.collect { |sfp|
+    schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|
       FilePath.check_path(sfp,
                           File.dirname(args_hash['hpxml_path']),
                           'Schedules')
@@ -330,8 +341,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
 
     column_name = hpxml.header.unavailable_periods[0].column_name
 
-    sf = SchedulesFile.new(model: model,
-                           schedules_paths: schedules_paths,
+    sf = SchedulesFile.new(schedules_paths: schedules_paths,
                            year: 2007,
                            unavailable_periods: hpxml.header.unavailable_periods,
                            output_path: @tmp_schedule_file_path)
@@ -342,8 +352,8 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     assert_in_epsilon(6689, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOccupants, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingInterior, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingGarage, schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2763 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameExteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(6673 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator), 0.1)
+    assert_in_epsilon(2763 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingExterior + ' schedule'), 0.1)
+    assert_in_epsilon(6673 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator + ' schedule'), 0.1)
     assert_in_epsilon(534 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnCookingRange, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(213 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(134 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnClothesWasher, schedules: sf.tmp_schedules), 0.1)
@@ -362,7 +372,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
   def test_stochastic_power_outage_schedules2
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-power-outage.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
     column_name = hpxml.header.unavailable_periods[0].column_name
 
@@ -375,14 +385,13 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
                                          end_day: 27,
                                          end_hour: 24)
 
-    schedules_paths = hpxml.header.schedules_filepaths.collect { |sfp|
+    schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|
       FilePath.check_path(sfp,
                           File.dirname(args_hash['hpxml_path']),
                           'Schedules')
     }
 
-    sf = SchedulesFile.new(model: model,
-                           schedules_paths: schedules_paths,
+    sf = SchedulesFile.new(schedules_paths: schedules_paths,
                            year: 2007,
                            unavailable_periods: hpxml.header.unavailable_periods,
                            output_path: @tmp_schedule_file_path)
@@ -393,8 +402,8 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     assert_in_epsilon(6689, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnOccupants, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingInterior, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnLightingGarage, schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2763 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameExteriorLighting + ' schedule'), 0.1)
-    assert_in_epsilon(5743, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator), 0.1) # this reflects only the first outage period because we aren't applying the measure again
+    assert_in_epsilon(2763 * powered_ratio, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameLightingExterior + ' schedule'), 0.1)
+    assert_in_epsilon(5743, get_annual_equivalent_full_load_hrs(model, Constants.ObjectNameRefrigerator + ' schedule'), 0.1) # this reflects only the first outage period because we aren't applying the measure again
     assert_in_epsilon(534 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnCookingRange, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(213 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnDishwasher, schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(134 * powered_ratio, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::ColumnClothesWasher, schedules: sf.tmp_schedules), 0.1)
@@ -421,10 +430,10 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     end_day = 31
     end_hour = 24
 
-    sch_name = Constants.ObjectNameRefrigerator
+    sch_name = Constants.ObjectNameRefrigerator + ' schedule'
 
     # hours not specified
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
     schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
@@ -445,7 +454,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     end_day = 1
     end_hour = 5
 
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
     schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
@@ -465,7 +474,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     end_day = 2
     end_hour = 24
 
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
     schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
@@ -486,7 +495,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     end_day = 2
     end_hour = 11
 
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
     schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
@@ -510,7 +519,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     end_day = 31
     end_hour = 12
 
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
     schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
@@ -542,7 +551,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
 
     sch_name = "#{Constants.ObjectNameNaturalVentilation} schedule"
 
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
     schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
@@ -560,7 +569,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     # not available
     natvent_availability = HPXML::ScheduleUnavailable
 
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
     schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
@@ -578,7 +587,7 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     # available
     natvent_availability = HPXML::ScheduleAvailable
 
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
 
     schedule = model.getScheduleRulesets.find { |schedule| schedule.name.to_s == sch_name }
@@ -605,9 +614,9 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
     end_day = 30
     end_hour = 24
 
-    sch_name = Constants.ObjectNameRefrigerator
+    sch_name = Constants.ObjectNameRefrigerator + ' schedule'
 
-    model, hpxml = _test_measure(args_hash)
+    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
     year = model.getYearDescription.assumedYear
     assert_equal(2012, year)
 
@@ -688,6 +697,6 @@ class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
 
     File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
-    return model, hpxml
+    return model, hpxml, hpxml.buildings[0]
   end
 end

@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 class Battery
-  def self.apply(runner, model, pv_systems, battery, schedules_file)
+  def self.apply(runner, model, pv_systems, battery, schedules_file, unit_multiplier)
     charging_schedule = nil
     discharging_schedule = nil
     if not schedules_file.nil?
-      charging_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnBatteryCharging)
-      discharging_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnBatteryDischarging)
+      charging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnBatteryCharging)
+      discharging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnBatteryDischarging)
     end
 
     if pv_systems.empty? && charging_schedule.nil? && discharging_schedule.nil?
@@ -17,24 +17,29 @@ class Battery
     obj_name = battery.id
 
     rated_power_output = battery.rated_power_output # W
-    nominal_voltage = battery.nominal_voltage # V
     if not battery.nominal_capacity_kwh.nil?
       if battery.usable_capacity_kwh.nil?
         fail "UsableCapacity and NominalCapacity for Battery '#{battery.id}' must be in the same units."
       end
 
       nominal_capacity_kwh = battery.nominal_capacity_kwh # kWh
-      usable_fraction = battery.usable_capacity_kwh / nominal_capacity_kwh
+      usable_capacity_kwh = battery.usable_capacity_kwh
+      usable_fraction = usable_capacity_kwh / nominal_capacity_kwh
     else
       if battery.usable_capacity_ah.nil?
         fail "UsableCapacity and NominalCapacity for Battery '#{battery.id}' must be in the same units."
       end
 
-      nominal_capacity_kwh = get_kWh_from_Ah(battery.nominal_capacity_ah, nominal_voltage) # kWh
+      nominal_capacity_kwh = get_kWh_from_Ah(battery.nominal_capacity_ah, battery.nominal_voltage) # kWh
+      usable_capacity_kwh = get_kWh_from_Ah(battery.usable_capacity_ah, battery.nominal_voltage) # kWh
       usable_fraction = battery.usable_capacity_ah / battery.nominal_capacity_ah
     end
 
-    return if rated_power_output <= 0 || nominal_capacity_kwh <= 0 || nominal_voltage <= 0
+    return if rated_power_output <= 0 || nominal_capacity_kwh <= 0 || battery.nominal_voltage <= 0
+
+    nominal_capacity_kwh *= unit_multiplier
+    usable_capacity_kwh *= unit_multiplier
+    rated_power_output *= unit_multiplier
 
     is_outside = (battery.location == HPXML::LocationOutside)
     if not is_outside
@@ -46,7 +51,7 @@ class Battery
     default_nominal_cell_voltage = 3.342 # V, EnergyPlus default
     default_cell_capacity = 3.2 # Ah, EnergyPlus default
 
-    number_of_cells_in_series = Integer((nominal_voltage / default_nominal_cell_voltage).round)
+    number_of_cells_in_series = Integer((battery.nominal_voltage / default_nominal_cell_voltage).round)
     number_of_strings_in_parallel = Integer(((nominal_capacity_kwh * 1000.0) / ((default_nominal_cell_voltage * number_of_cells_in_series) * default_cell_capacity)).round)
     battery_mass = (nominal_capacity_kwh / 10.0) * 99.0 # kg
     battery_surface_area = 0.306 * (nominal_capacity_kwh**(2.0 / 3.0)) # m^2
@@ -64,7 +69,7 @@ class Battery
 
     elcs = OpenStudio::Model::ElectricLoadCenterStorageLiIonNMCBattery.new(model, number_of_cells_in_series, number_of_strings_in_parallel, battery_mass, battery_surface_area)
     elcs.setName("#{obj_name} li ion")
-    unless is_outside
+    if not is_outside
       elcs.setThermalZone(battery.additional_properties.space.thermalZone.get)
     end
     elcs.setRadiativeFraction(0.9 * frac_sens)
@@ -80,7 +85,7 @@ class Battery
     elcs.setCellVoltageatEndofNominalZone(default_nominal_cell_voltage)
     if not voltage_dependence
       elcs.setBatteryCellInternalElectricalResistance(0.002) # 2 mOhm/cell, based on OCHRE defaults (which are based on fitting to lab results)
-      # FIXME: if the voltage reported during charge/discharge is different, energy may not balance
+      # Note: if the voltage reported during charge/discharge is different, energy may not balance
       # elcs.setFullyChargedCellVoltage(default_nominal_cell_voltage)
       # elcs.setCellVoltageatEndofExponentialZone(default_nominal_cell_voltage)
     end
@@ -130,9 +135,13 @@ class Battery
     charge_sensor.setName('battery_charge')
     charge_sensor.setKeyName(elcs.name.to_s)
 
+    discharge_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Electric Storage Discharge Energy')
+    discharge_sensor.setName('battery_discharge')
+    discharge_sensor.setKeyName(elcs.name.to_s)
+
     loss_adj_object_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
     loss_adj_object = OpenStudio::Model::OtherEquipment.new(loss_adj_object_def)
-    obj_name = Constants.ObjectNameBatteryLossesAdjustment(elcs.name)
+    obj_name = Constants.ObjectNameBatteryLossesAdjustment
     loss_adj_object.setName(obj_name)
     loss_adj_object.setEndUseSubcategory(obj_name)
     loss_adj_object.setFuelType(EPlus.fuel_type(HPXML::FuelTypeElectricity))
@@ -143,13 +152,16 @@ class Battery
     loss_adj_object_def.setFractionLatent(0)
     loss_adj_object_def.setFractionLost(frac_lost)
     loss_adj_object.setSchedule(model.alwaysOnDiscreteSchedule)
+    loss_adj_object.additionalProperties.setFeature('ObjectType', Constants.ObjectNameBatteryLossesAdjustment)
 
     battery_adj_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(loss_adj_object, *EPlus::EMSActuatorOtherEquipmentPower, loss_adj_object.space.get)
     battery_adj_actuator.setName('battery loss_adj_act')
 
     battery_losses_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     battery_losses_program.setName('battery_losses')
-    battery_losses_program.addLine("Set losses = -1 * #{charge_sensor.name} * (1 - #{battery.round_trip_efficiency})")
+    battery_losses_program.addLine("Set charge_losses = (-1 * #{charge_sensor.name} * (1 - (#{battery.round_trip_efficiency} ^ 0.5))) / #{unit_multiplier}")
+    battery_losses_program.addLine("Set discharge_losses = (-1 * #{discharge_sensor.name} * (1 - (#{battery.round_trip_efficiency} ^ 0.5))) / #{unit_multiplier}")
+    battery_losses_program.addLine('Set losses = charge_losses + discharge_losses')
     battery_losses_program.addLine("Set #{battery_adj_actuator.name} = -1 * losses / ( 3600 * SystemTimeStep )")
 
     battery_losses_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
@@ -157,12 +169,9 @@ class Battery
     battery_losses_pcm.setCallingPoint('EndOfSystemTimestepBeforeHVACReporting')
     battery_losses_pcm.addProgram(battery_losses_program)
 
-    battery_losses_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, 'losses')
-    battery_losses_output_var.setName("#{Constants.ObjectNameBatteryLossesAdjustment(elcs.name)} outvar")
-    battery_losses_output_var.setTypeOfDataInVariable('Summed')
-    battery_losses_output_var.setUpdateFrequency('SystemTimestep')
-    battery_losses_output_var.setEMSProgramOrSubroutineName(battery_losses_program)
-    battery_losses_output_var.setUnits('J')
+    elcd.additionalProperties.setFeature('HPXML_ID', battery.id)
+    elcs.additionalProperties.setFeature('HPXML_ID', battery.id)
+    elcs.additionalProperties.setFeature('UsableCapacity_kWh', Float(usable_capacity_kwh))
   end
 
   def self.get_battery_default_values(has_garage = false)
@@ -185,5 +194,16 @@ class Battery
 
   def self.get_kWh_from_Ah(nominal_capacity_ah, nominal_voltage)
     return nominal_capacity_ah * nominal_voltage / 1000.0
+  end
+
+  def self.get_usable_capacity_kWh(battery)
+    usable_capacity_kwh = battery.usable_capacity_kwh
+    if usable_capacity_kwh.nil?
+      usable_capacity_kwh = get_kWh_from_Ah(battery.usable_capacity_ah, battery.nominal_voltage) # kWh
+    end
+    return usable_capacity_kwh
+  end
+
+  def self.get_min_max_state_of_charge()
   end
 end

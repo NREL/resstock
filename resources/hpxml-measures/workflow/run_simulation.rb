@@ -12,8 +12,8 @@ require_relative '../HPXMLtoOpenStudio/resources/version'
 basedir = File.expand_path(File.dirname(__FILE__))
 
 def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs, skip_validation, add_comp_loads,
-                 output_format, building_id, ep_input_format, stochastic_schedules, timeseries_time_column_types,
-                 timeseries_output_variables, timeseries_timestamp_convention)
+                 output_format, building_id, ep_input_format, stochastic_schedules,
+                 timeseries_output_variables)
   measures_dir = File.join(basedir, '..')
 
   measures = {}
@@ -26,6 +26,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
     args['hpxml_output_path'] = hpxml
     args['output_csv_path'] = File.join(rundir, 'stochastic.csv')
     args['debug'] = debug
+    args['building_id'] = building_id
     update_args_hash(measures, measure_subdir, args)
   end
 
@@ -59,9 +60,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['include_timeseries_zone_temperatures'] = timeseries_outputs.include? 'temperatures'
   args['include_timeseries_airflows'] = timeseries_outputs.include? 'airflows'
   args['include_timeseries_weather'] = timeseries_outputs.include? 'weather'
-  args['timeseries_timestamp_convention'] = timeseries_timestamp_convention
-  args['add_timeseries_dst_column'] = timeseries_time_column_types.include? 'DST'
-  args['add_timeseries_utc_column'] = timeseries_time_column_types.include? 'UTC'
+  args['include_timeseries_resilience'] = timeseries_outputs.include? 'resilience'
   args['user_output_variables'] = timeseries_output_variables.join(', ') unless timeseries_output_variables.empty?
   update_args_hash(measures, measure_subdir, args)
 
@@ -80,7 +79,7 @@ end
 
 timeseries_types = ['ALL', 'total', 'fuels', 'enduses', 'systemuses', 'emissions', 'emissionfuels',
                     'emissionenduses', 'hotwater', 'loads', 'componentloads',
-                    'unmethours', 'temperatures', 'airflows', 'weather']
+                    'unmethours', 'temperatures', 'airflows', 'weather', 'resilience']
 
 options = {}
 OptionParser.new do |opts|
@@ -133,19 +132,9 @@ OptionParser.new do |opts|
     options[:stochastic_schedules] = true
   end
 
-  options[:timeseries_time_column_types] = []
-  opts.on('--add-timeseries-time-column TYPE', ['DST', 'UTC'], 'Add timeseries time column (DST, UTC); can be called multiple times') do |t|
-    options[:timeseries_time_column_types] << t
-  end
-
   options[:timeseries_output_variables] = []
-  opts.on('--add-timeseries-output-variable NAME', 'Add timeseries output variable; can be called multiple times') do |t|
+  opts.on('-t', '--add-timeseries-output-variable NAME', 'Add timeseries output variable; can be called multiple times') do |t|
     options[:timeseries_output_variables] << t
-  end
-
-  options[:timeseries_timestamp_convention] = 'start'
-  opts.on('--timeseries-timestamp-convention TYPE', ['start', 'end'], 'Convention (start, end) for timeseries timestamps') do |t|
-    options[:timeseries_timestamp_convention] = t
   end
 
   options[:ep_input_format] = 'idf'
@@ -153,7 +142,7 @@ OptionParser.new do |opts|
     options[:ep_input_format] = t
   end
 
-  opts.on('-b', '--building-id <ID>', 'ID of Building to simulate (required when multiple HPXML Building elements)') do |t|
+  opts.on('-b', '--building-id ID', 'ID of Building to simulate (required when multiple HPXML Building elements); use "ALL" to simulate a single whole MF building') do |t|
     options[:building_id] = t
   end
 
@@ -244,8 +233,7 @@ else
   end
   success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
                          options[:skip_validation], options[:add_comp_loads], options[:output_format], options[:building_id],
-                         options[:ep_input_format], options[:stochastic_schedules], options[:timeseries_time_column_types],
-                         options[:timeseries_output_variables], options[:timeseries_timestamp_convention])
+                         options[:ep_input_format], options[:stochastic_schedules], options[:timeseries_output_variables])
 
   if not success
     exit! 1

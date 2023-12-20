@@ -43,7 +43,21 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Convert optional arguments to string arguments that allow Constants.Auto for defaulting
       if !arg.required
-        args << OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
+        case arg.type.valueName.downcase
+        when 'choice'
+          choices = arg.choiceValues.map(&:to_s)
+          choices.unshift(Constants.Auto)
+          new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
+        when 'boolean'
+          choices = [Constants.Auto, 'true', 'false']
+          new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
+        else
+          new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
+        end
+        new_arg.setDisplayName(arg.displayName.to_s)
+        new_arg.setDescription(arg.description.to_s)
+        new_arg.setUnits(arg.units.to_s)
+        args << new_arg
       else
         args << arg
       end
@@ -304,42 +318,55 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_rated_cfm_per_ton', false)
     arg.setDisplayName('Heating System: Rated CFM Per Ton')
+    arg.setDescription('The rated cfm per ton of the heating system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_actual_cfm_per_ton', false)
     arg.setDisplayName('Heating System: Actual CFM Per Ton')
+    arg.setDescription('The actual cfm per ton of the heating system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_rated_cfm_per_ton', false)
     arg.setDisplayName('Cooling System: Rated CFM Per Ton')
+    arg.setDescription('The rated cfm per ton of the cooling system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_actual_cfm_per_ton', false)
     arg.setDisplayName('Cooling System: Actual CFM Per Ton')
+    arg.setDescription('The actual cfm per ton of the cooling system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_frac_manufacturer_charge', false)
     arg.setDisplayName('Cooling System: Fraction of Manufacturer Recommended Charge')
+    arg.setDescription('The fraction of manufacturer recommended charge of the cooling system.')
     arg.setUnits('Frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_rated_cfm_per_ton', false)
     arg.setDisplayName('Heat Pump: Rated CFM Per Ton')
+    arg.setDescription('The rated cfm per ton of the heat pump.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_actual_cfm_per_ton', false)
     arg.setDisplayName('Heat Pump: Actual CFM Per Ton')
+    arg.setDescription('The actual cfm per ton of the heat pump.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_frac_manufacturer_charge', false)
     arg.setDisplayName('Heat Pump: Fraction of Manufacturer Recommended Charge')
+    arg.setDescription('The fraction of manufacturer recommended charge of the heat pump.')
     arg.setUnits('Frac')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_backup_use_existing_system', false)
+    arg.setDisplayName('Heat Pump: Backup Use Existing System')
+    arg.setDescription('Whether the heat pump uses the existing system as backup.')
     args << arg
 
     return args
@@ -398,7 +425,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
                ['2500-2999', HPXML::ResidentialTypeApartment] => 2648, # AHS 2021, multi-family weighted average
                ['3000-3999', HPXML::ResidentialTypeSFD] => 3310, # AHS 2021, 1 detached and mobile home weighted average
                ['3000-3999', HPXML::ResidentialTypeSFA] => 3228, # AHS 2021, 1 attached
-               ['3000-3999', HPXML::ResidentialTypeApartment] => 33171, # AHS 2021, multi-family weighted average
+               ['3000-3999', HPXML::ResidentialTypeApartment] => 3171, # AHS 2021, multi-family weighted average
                ['4000+', HPXML::ResidentialTypeSFD] => 5587, # AHS 2021, 1 detached and mobile home weighted average
                ['4000+', HPXML::ResidentialTypeSFA] => 7414, # AHS 2019, 1 attached
                ['4000+', HPXML::ResidentialTypeApartment] => 6348 } # AHS 2021, 4,000 or more all unit average
@@ -413,7 +440,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Vintage
-    if args[:vintage].is_initialized
+    if args[:vintage].is_initialized && args[:year_built].to_s == Constants.Auto
       args[:year_built] = Integer(Float(args[:vintage].get.gsub(/[^0-9]/, ''))) # strip non-numeric
     end
 
@@ -477,11 +504,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:hvac_control_cooling_weekend_setpoint] = weekend_cooling_setpoints.join(', ')
 
     # Seasons
-    if args[:use_auto_heating_season]
+    if args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].to_s == Constants.Auto
       args[:hvac_control_heating_season_period] = HPXML::BuildingAmerica
     end
 
-    if args[:use_auto_cooling_season]
+    if args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].to_s == Constants.Auto
       args[:hvac_control_cooling_season_period] = HPXML::BuildingAmerica
     end
 
@@ -494,6 +521,25 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           (args[:heating_system_2_type] != 'none' && args[:heating_system_2_has_flue_or_chimney] == 'true') ||
           (args[:water_heater_type] != 'none' && args[:water_heater_has_flue_or_chimney] == 'true')
       args[:air_leakage_has_flue_or_chimney_in_conditioned_space] = true
+    end
+
+    # HVAC Secondary
+    if args[:heating_system_2_type] != 'none'
+      if args[:heating_system_type] != 'none'
+        if ((args[:heating_system_fraction_heat_load_served] + args[:heating_system_2_fraction_heat_load_served]) > 1.0)
+          info_msg = "Adjusted fraction of heat load served by the primary heating system (#{args[:heating_system_fraction_heat_load_served]}"
+          args[:heating_system_fraction_heat_load_served] = 1.0 - args[:heating_system_2_fraction_heat_load_served]
+          info_msg += " to #{args[:heating_system_fraction_heat_load_served]}) to allow for a secondary heating system (#{args[:heating_system_2_fraction_heat_load_served]})."
+          runner.registerInfo(info_msg)
+        end
+      elsif args[:heat_pump_type] != 'none'
+        if ((args[:heat_pump_fraction_heat_load_served] + args[:heating_system_2_fraction_heat_load_served]) > 1.0)
+          info_msg = "Adjusted fraction of heat load served by the primary heating system (#{args[:heat_pump_fraction_heat_load_served]}"
+          args[:heat_pump_fraction_heat_load_served] = 1.0 - args[:heating_system_2_fraction_heat_load_served]
+          info_msg += " to #{args[:heat_pump_fraction_heat_load_served]}) to allow for a secondary heating system (#{args[:heating_system_2_fraction_heat_load_served]})."
+          runner.registerInfo(info_msg)
+        end
+      end
     end
 
     # HVAC Faults

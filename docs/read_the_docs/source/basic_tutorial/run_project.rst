@@ -54,7 +54,7 @@ Run ``openstudio workflow/run_analysis.rb -h`` to see all available commands/arg
       -n, --threads N                  Number of parallel simulations (defaults to processor count)
       -m, --measures_only              Only run the OpenStudio and EnergyPlus measures
       -i, --building_id ID             Only run this building ID; can be called multiple times     
-      -k, --keep_run_folders           Preserve run folder for all datapoints
+      -k, --keep_run_folders           Preserve run folder for all datapoints; also populates run folder in cli_output.log and results-xxx.csv files
       -s, --samplingonly               Run the sampling only
       -d, --debug                      Preserve lib folder and "existing" xml/osw files
       -o, --overwrite                  Overwrite existing project directory
@@ -63,3 +63,7 @@ Run ``openstudio workflow/run_analysis.rb -h`` to see all available commands/arg
 
 .. note::
   At this time the ``residential_quota_downselect`` sampler with ``resample`` is not supported.
+
+.. note::
+  EPW weather files must be contained in a ``weather`` folder at the same level as the ``workflow`` folder (i.e., at the top level of the repository).
+  If no such folder is present, or if the ``weather`` folder does not contain any ``*.epw`` files, it will automatically be created/populated based on the ``weather_files_url`` (or ``weather_files_path``) present in the specified yml file.

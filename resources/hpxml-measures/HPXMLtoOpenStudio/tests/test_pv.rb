@@ -7,7 +7,7 @@ require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'
 
-class HPXMLtoOpenStudioPVTest < MiniTest::Test
+class HPXMLtoOpenStudioPVTest < Minitest::Test
   def sample_files_dir
     return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
   end
@@ -29,9 +29,9 @@ class HPXMLtoOpenStudioPVTest < MiniTest::Test
   def test_pv
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-pv.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
-    hpxml.pv_systems.each do |pv_system|
+    hpxml_bldg.pv_systems.each do |pv_system|
       generator, inverter = get_generator_inverter(model, pv_system.id)
 
       # Check PV
@@ -49,14 +49,14 @@ class HPXMLtoOpenStudioPVTest < MiniTest::Test
 
   def test_pv_shared
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-pv.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-mf-unit-shared-pv.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
-    hpxml.pv_systems.each do |pv_system|
+    hpxml_bldg.pv_systems.each do |pv_system|
       generator, inverter = get_generator_inverter(model, pv_system.id)
 
       # Check PV
-      max_power = pv_system.max_power_output * hpxml.building_construction.number_of_bedrooms.to_f / pv_system.number_of_bedrooms_served.to_f
+      max_power = pv_system.max_power_output * hpxml_bldg.building_construction.number_of_bedrooms.to_f / pv_system.number_of_bedrooms_served.to_f
       assert_equal(pv_system.array_tilt, generator.tiltAngle)
       assert_equal(pv_system.array_azimuth, generator.azimuthAngle)
       assert_equal(max_power, generator.dcSystemCapacity)
@@ -104,6 +104,6 @@ class HPXMLtoOpenStudioPVTest < MiniTest::Test
 
     File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
-    return model, hpxml
+    return model, hpxml, hpxml.buildings[0]
   end
 end

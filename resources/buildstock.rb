@@ -1,16 +1,8 @@
 # frozen_string_literal: true
 
-require 'openstudio'
-if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), 'hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), 'hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
-end
-require File.join(resources_path, 'meta_measure')
-
 require 'csv'
+
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
 class TsvFile
   def initialize(full_path, runner)
@@ -353,6 +345,19 @@ def register_value(runner, parameter_name, option_name)
   runner.registerValue(parameter_name, option_name)
 end
 
+def register_logs(runner, new_runner)
+  # Register logs from measures called by meta measures
+  new_runner.result.warnings.each do |warning|
+    runner.registerWarning(warning.logMessage)
+  end
+  new_runner.result.info.each do |info|
+    runner.registerInfo(info.logMessage)
+  end
+  new_runner.result.errors.each do |error|
+    runner.registerError(error.logMessage)
+  end
+end
+
 # Accepts string option_apply_logic and tries to evaluate it based on
 # (parameter_name, option_name) pairs stored in runner.
 #
@@ -439,17 +444,38 @@ def get_data_for_sample(buildstock_csv_path, building_id, runner)
 end
 
 class RunOSWs
+  require 'openstudio'
   require 'csv'
   require 'json'
 
-  def self.run(in_osw, parent_dir, cli_output, upgrade, measures, reporting_measures, measures_only = false)
+  def self.run(in_osw, parent_dir, run_output, upgrade, measures, reporting_measures, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" run"
     command += ' -m' if measures_only
     command += " -w \"#{in_osw}\""
 
-    cli_output += `#{command}`
+    `#{command}` # suppresses "RunEnergyPlus: Completed Successfully with xxx" message
+    run_log = File.readlines(File.expand_path(File.join(parent_dir, 'run/run.log')))
+    run_log.each do |line|
+      next if line.include? 'Cannot find current Workflow Step'
+      next if line.include? 'Data will be treated as typical (TMY)'
+      next if line.include? 'WorkflowStepResult value called with undefined stepResult'
+      next if line.include?("Object of type 'Schedule:Constant' and named 'Always") && line.include?('points to an object named') && line.include?('but that object cannot be located')
+      next if line.include? 'Appears there are no design condition fields in the EPW file'
+      next if line.include? 'No valid weather file defined in either the osm or osw.'
+      next if line.include? 'EPW file not found'
+      next if line.include? "'UseWeatherFile' is selected in YearDescription, but there are no weather file set for the model."
+      next if line.include? 'not within the expected limits' # Ignore EpwFile warnings
+      next if line.include? 'Unable to find sql file at'
+
+      # FIXME: should we investigate the following errors/warnings?
+      next if line.include? 'No construction for either surface'
+      next if line.include? 'Initial area of other surface'
+      next if line.include?('Surface') && line.include?('is adiabatic, removing all sub surfaces')
+
+      run_output += line
+    end
 
     result_output = {}
 
@@ -461,7 +487,7 @@ class RunOSWs
 
     results = File.join(parent_dir, 'run/results.json')
 
-    return started_at, completed_at, completed_status, result_output, cli_output if measures_only || !File.exist?(results)
+    return started_at, completed_at, completed_status, result_output, run_output if measures_only || !File.exist?(results)
 
     rows = {}
     old_rows = JSON.parse(File.read(File.expand_path(results)))
@@ -486,7 +512,7 @@ class RunOSWs
       result_output = get_measure_results(rows, result_output, reporting_measure)
     end
 
-    return started_at, completed_at, completed_status, result_output, cli_output
+    return started_at, completed_at, completed_status, result_output, run_output
   end
 
   def self.get_measure_results(rows, result, measure)
@@ -543,8 +569,8 @@ class RunOSWs
 end
 
 class Version
-  ResStock_Version = '3.1.1' # Version of ResStock
-  BuildStockBatch_Version = '2023.5.0' # Minimum required version of BuildStockBatch
+  ResStock_Version = '3.2.0' # Version of ResStock
+  BuildStockBatch_Version = '2023.10.0' # Minimum required version of BuildStockBatch
 
   def self.check_buildstockbatch_version
     if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed

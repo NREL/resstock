@@ -13,7 +13,8 @@ If your changes are intended to be merged into the ``develop`` branch of the `Re
    :maxdepth: 2
 
    installer_setup
-   tasks
+   running_tasks
    options_lookup
    increasing_upgrade_options
    upgrade_scenario_config
+   heat_pump_upgrades

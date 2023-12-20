@@ -53,13 +53,14 @@ class TesBuildStockBatch < Minitest::Test
 
     _test_contents(contents, false, true)
 
-    assert(File.exist?(File.join(@testing_upgrades, 'results_csvs', 'results_up15.csv')))
-    results = CSV.read(File.join(@testing_upgrades, 'results_csvs', 'results_up15.csv'), headers: true)
+    num_upgrade_scenarios = Dir[File.join(@testing_upgrades, 'results_csvs', 'results_up*')].count - 1
+    assert(File.exist?(File.join(@testing_upgrades, 'results_csvs', "results_up#{num_upgrade_scenarios}.csv")))
+    results = CSV.read(File.join(@testing_upgrades, 'results_csvs', "results_up#{num_upgrade_scenarios}.csv"), headers: true)
 
     _test_columns(results, true)
 
-    assert(File.exist?(File.join(@testing_upgrades, 'simulation_output', 'up15', 'bldg0000001', 'run')))
-    contents = Dir[File.join(@testing_upgrades, 'simulation_output', 'up15', 'bldg0000001', 'run/*')].collect { |x| File.basename(x) }
+    assert(File.exist?(File.join(@testing_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run')))
+    contents = Dir[File.join(@testing_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run/*')].collect { |x| File.basename(x) }
 
     _test_contents(contents, true, true)
 
@@ -78,13 +79,14 @@ class TesBuildStockBatch < Minitest::Test
 
     _test_contents(contents, false, false)
 
-    assert(File.exist?(File.join(@national_upgrades, 'results_csvs', 'results_up15.csv')))
-    results = CSV.read(File.join(@national_upgrades, 'results_csvs', 'results_up15.csv'), headers: true)
+    num_upgrade_scenarios = Dir[File.join(@national_upgrades, 'results_csvs', 'results_up*')].count - 1
+    assert(File.exist?(File.join(@national_upgrades, 'results_csvs', "results_up#{num_upgrade_scenarios}.csv")))
+    results = CSV.read(File.join(@national_upgrades, 'results_csvs', "results_up#{num_upgrade_scenarios}.csv"), headers: true)
 
     _test_columns(results, true)
 
-    assert(File.exist?(File.join(@national_upgrades, 'simulation_output', 'up15', 'bldg0000001', 'run')))
-    contents = Dir[File.join(@national_upgrades, 'simulation_output', 'up15', 'bldg0000001', 'run/*')].collect { |x| File.basename(x) }
+    assert(File.exist?(File.join(@national_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run')))
+    contents = Dir[File.join(@national_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run/*')].collect { |x| File.basename(x) }
 
     _test_contents(contents, true, false)
 
@@ -102,13 +104,15 @@ class TesBuildStockBatch < Minitest::Test
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
+    actual_outputs.headers.map { |x| actual_outputs.delete(x) if x.include?('report_utility_bills.bills_2_') }
+    actual_outputs.headers.map { |x| actual_outputs.delete(x) if x.include?('report_utility_bills.bills_3_') }
     actual_names = actual_outputs.headers - expected_annual_names
 
     actual_extras = actual_names - expected_names
-    puts "Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
+    puts "Input Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_names - actual_names
-    puts "Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
+    puts "Input Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
 
     assert_equal(0, actual_extras.size)
     # assert_equal(0, expected_extras.size) # allow
@@ -127,11 +131,11 @@ class TesBuildStockBatch < Minitest::Test
     actual_names = actual_outputs.headers - expected_annual_names
 
     actual_extras = actual_names - expected_names
-    puts "Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
+    puts "Input Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
 
     expected_extras = expected_names - actual_names
     expected_extras -= ['report_simulation_output.user_output_variables']
-    puts "Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
+    puts "Input Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
 
     assert_equal(0, actual_extras.size)
     assert_equal(0, expected_extras.size)
@@ -147,6 +151,8 @@ class TesBuildStockBatch < Minitest::Test
     expected_annual_names = expected_outputs['Annual Name'].select { |n| !n.nil? }
 
     actual_outputs = CSV.read(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
+    actual_outputs.headers.map { |x| actual_outputs.delete(x) if x.include?('report_utility_bills.bills_2_') }
+    actual_outputs.headers.map { |x| actual_outputs.delete(x) if x.include?('report_utility_bills.bills_3_') }
     actual_annual_names = actual_outputs.headers - expected_names
 
     actual_extras = actual_annual_names - expected_annual_names

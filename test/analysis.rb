@@ -62,8 +62,7 @@ def expected_baseline_contents(testing)
     'existing.osw',
     'existing.xml',
     'in.osm',
-    'in.idf',
-    'schedules.csv'
+    'in.idf'
   ] if testing
   return contents
 end
@@ -87,7 +86,7 @@ def expected_timeseries_columns(testing)
   ]
   contents += [
     'Energy Use: Net',
-    'Zone People Occupant Count: Living Space'
+    'Zone People Occupant Count: Conditioned Space'
   ] if testing
   return contents
 end

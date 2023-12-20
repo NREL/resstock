@@ -7,7 +7,7 @@ require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'
 
-class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
+class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
   def sample_files_dir
     return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
   end
@@ -39,7 +39,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_misc_loads
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
@@ -56,8 +56,8 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
                Constants.ObjectNameMiscWellPump,
                Constants.ObjectNameMiscPoolPump,
                Constants.ObjectNameMiscPoolHeater,
-               Constants.ObjectNameMiscHotTubPump,
-               Constants.ObjectNameMiscHotTubHeater,
+               Constants.ObjectNameMiscPermanentSpaPump,
+               Constants.ObjectNameMiscPermanentSpaHeater,
                Constants.ObjectNameMiscGrill,
                Constants.ObjectNameMiscLighting,
                Constants.ObjectNameMiscFireplace]
@@ -71,7 +71,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_large_uncommon_loads
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-misc-loads-large-uncommon.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
@@ -103,13 +103,13 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
     assert_equal(0, kwh_yr)
     assert_in_epsilon(500, therm_yr, 0.1)
 
-    # Check hot tub pump
-    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubPump)
+    # Check permanent spa pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPermanentSpaPump)
     assert_in_epsilon(1000, kwh_yr, 0.1)
     assert_equal(0, therm_yr)
 
-    # Check hot tub heater
-    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubHeater)
+    # Check permanent spa heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPermanentSpaHeater)
     assert_in_epsilon(1300, kwh_yr, 0.1)
     assert_equal(0, therm_yr)
 
@@ -132,7 +132,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_large_uncommon_loads2
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-misc-loads-large-uncommon2.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
@@ -164,13 +164,13 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
     assert_equal(0, kwh_yr)
     assert_equal(0, therm_yr)
 
-    # Check hot tub pump
-    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubPump)
+    # Check permanent spa pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPermanentSpaPump)
     assert_in_epsilon(1000, kwh_yr, 0.1)
     assert_equal(0, therm_yr)
 
-    # Check hot tub heater
-    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubHeater)
+    # Check permanent spa heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPermanentSpaHeater)
     assert_in_epsilon(260, kwh_yr, 0.1)
     assert_equal(0, therm_yr)
 
@@ -193,7 +193,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_operational_defaults
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-5.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
@@ -225,13 +225,13 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
     assert_equal(0, kwh_yr)
     assert_in_epsilon(0, therm_yr, 0.1)
 
-    # Check hot tub pump
-    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubPump)
+    # Check permanent spa pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPermanentSpaPump)
     assert_in_epsilon(0, kwh_yr, 0.1)
     assert_equal(0, therm_yr)
 
-    # Check hot tub heater
-    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubHeater)
+    # Check permanent spa heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPermanentSpaHeater)
     assert_in_epsilon(0, kwh_yr, 0.1)
     assert_equal(0, therm_yr)
 
@@ -254,7 +254,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_operational_large_uncommon_loads
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-1-misc-loads-large-uncommon.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
@@ -286,13 +286,13 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
     assert_equal(0, kwh_yr)
     assert_in_epsilon(186, therm_yr, 0.1)
 
-    # Check hot tub pump
-    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubPump)
+    # Check permanent spa pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPermanentSpaPump)
     assert_in_epsilon(877, kwh_yr, 0.1)
     assert_equal(0, therm_yr)
 
-    # Check hot tub heater
-    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubHeater)
+    # Check permanent spa heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPermanentSpaHeater)
     assert_in_epsilon(889, kwh_yr, 0.1)
     assert_equal(0, therm_yr)
 
@@ -315,7 +315,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_operational_large_uncommon_loads2
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-1-misc-loads-large-uncommon2.xml'))
-    model, _hpxml = _test_measure(args_hash)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
@@ -347,13 +347,13 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
     assert_equal(0, kwh_yr)
     assert_equal(0, therm_yr)
 
-    # Check hot tub pump
-    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubPump)
+    # Check permanent spa pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPermanentSpaPump)
     assert_in_epsilon(877, kwh_yr, 0.1)
     assert_equal(0, therm_yr)
 
-    # Check hot tub heater
-    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubHeater)
+    # Check permanent spa heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPermanentSpaHeater)
     assert_in_epsilon(178, kwh_yr, 0.1)
     assert_equal(0, therm_yr)
 
@@ -408,6 +408,6 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
 
     File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
-    return model, hpxml
+    return model, hpxml, hpxml.buildings[0]
   end
 end

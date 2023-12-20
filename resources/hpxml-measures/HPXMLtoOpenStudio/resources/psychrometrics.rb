@@ -272,7 +272,7 @@ class Psychrometrics
         Pstd    float        barometric pressure (psia)
     '''
 
-    pstd = 14.696 * ((1 - 6.8754e-6 * z)**5.2559)
+    pstd = UnitConversions.convert(((1 - 6.8754e-6 * z)**5.2559), 'atm', 'psi')
     return pstd
   end
 

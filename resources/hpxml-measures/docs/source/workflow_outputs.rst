@@ -157,8 +157,8 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Electricity: Well Pump (MBtu)
    End Use: Electricity: Pool Heater (MBtu)
    End Use: Electricity: Pool Pump (MBtu)
-   End Use: Electricity: Hot Tub Heater (MBtu)
-   End Use: Electricity: Hot Tub Pump (MBtu)
+   End Use: Electricity: Permanent Spa Heater (MBtu)
+   End Use: Electricity: Permanent Spa Pump (MBtu)
    End Use: Electricity: PV (MBtu)                                   Negative value for any power produced
    End Use: Electricity: Generator (MBtu)                            Negative value for any power produced
    End Use: Electricity: Battery (MBtu)                              Positive value for charging (including efficiency losses); negative value for discharging
@@ -169,7 +169,7 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Natural Gas: Range/Oven (MBtu)
    End Use: Natural Gas: Mech Vent Preheating (MBtu)
    End Use: Natural Gas: Pool Heater (MBtu)
-   End Use: Natural Gas: Hot Tub Heater (MBtu)
+   End Use: Natural Gas: Permanent Spa Heater (MBtu)
    End Use: Natural Gas: Grill (MBtu)
    End Use: Natural Gas: Lighting (MBtu)
    End Use: Natural Gas: Fireplace (MBtu)
@@ -334,6 +334,7 @@ Peak building electricity outputs are listed below.
    ==================================  =============================================================
    Peak Electricity: Winter Total (W)  Maximum value in Dec/Jan/Feb (or Jun/Jul/Aug in the southern hemisphere)
    Peak Electricity: Summer Total (W)  Maximum value in Jun/Jul/Aug (or Dec/Jan/Feb in the southern hemisphere)
+   Peak Electricity: Annual Total (W)  Maximum value in any month
    ==================================  =============================================================
 
 Peak Building Loads
@@ -403,12 +404,26 @@ Annual hot water uses are listed below.
    Hot Water: Distribution Waste (gal) 
    ===================================  ====================
 
+Resilience
+~~~~~~~~~~
+
+Resilience outputs are listed below.
+
+   ===================================  ====================
+   Type                                 Notes
+   ===================================  ====================
+   Resilience: Battery (hr)             Average length of time the battery state of charge can meet the electric load [#]_
+   ===================================  ====================
+
+  .. [#] Calculation is performed every timestep and then averaged, which assumes a power outage is equally likely to occur every hour of the year.
+         The entire electric load is treated as a "critical load" that would be supported during an outage.
+         Resilience hours are set to 0 for any timestep where the battery is not charged, even if there is sufficient PV to power the building.
+
 HVAC Capacities
 ~~~~~~~~~~~~~~~
 
 System outputs are listed below.
-Autosized HVAC systems are based on HVAC design temperatures/loads described below.
-Capacities for individual HVAC systems can be found in the `in.xml` file.
+Capacities for individual HVAC systems can be found in the ``in.xml`` file.
 
    ====================================================  ====================
    Type                                                  Notes
@@ -418,11 +433,21 @@ Capacities for individual HVAC systems can be found in the `in.xml` file.
    HVAC Capacity: Heat Pump Backup (Btu/h)               Total HVAC heat pump backup capacity
    ====================================================  ====================
 
+.. note::
+
+  Autosized HVAC systems are based on :ref:`hvac_design_temps` and :ref:`hvac_design_loads`.
+
+  For heat pumps with a minimum compressor lockout temperature greater than the heating design temperature (e.g., a dual-fuel heat pump in a cold climate), the compressor will be sized based on heating design loads calculated at the compressor lockout temperature.
+  This is done to prevent unutilized capacity at temperatures below the compressor lockout temperature.
+  Any heat pump backup will still be based on heating design loads calculated using the heating design temperature.
+  
+.. _hvac_design_temps:
+
 HVAC Design Temperatures
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Design temperatures are used in the design load calculations for autosizing of HVAC equipment; see :ref:`hvac_sizing_control` for how they are derived.
-Design temperatures can also be found in the `in.xml` file.
+Design temperatures can also be found in the ``in.xml`` file.
 
    =====================================================================  ====================
    Type                                                                   Notes
@@ -431,12 +456,14 @@ Design temperatures can also be found in the `in.xml` file.
    HVAC Design Temperature: Cooling (F)                                   1% cooling drybulb temperature
    =====================================================================  ====================
 
+.. _hvac_design_loads:
+
 HVAC Design Loads
 ~~~~~~~~~~~~~~~~~
 
 Design load outputs, used for autosizing of HVAC equipment, are listed below.
-Design loads are based on block load ACCA Manual J calculations using 1%/99% design temperatures.
-Design loads can also be found in the `in.xml` file.
+Design loads are based on block load ACCA Manual J calculations using :ref:`hvac_design_temps`.
+Design loads can also be found in the ``in.xml`` file.
 
    =====================================================================  ====================
    Type                                                                   Notes
@@ -494,9 +521,10 @@ Depending on the outputs requested, the file may include:
    Total Loads                          Heating, cooling, and hot water loads (in kBtu).
    Component Loads                      Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).
    Unmet Hours                          Heating and cooling unmet hours.
-   Zone Temperatures                    Zone temperatures (in deg-F) for each space (e.g., living space, attic, garage, basement, crawlspace, etc.) plus heating/cooling setpoints.
+   Zone Temperatures                    Zone temperatures (in deg-F) for each space (e.g., conditioned space, attic, garage, basement, crawlspace, etc.) plus heating/cooling setpoints.
    Airflows                             Airflow rates (in cfm) for infiltration, mechanical ventilation (including clothes dryer exhaust), natural ventilation, whole house fans.
    Weather                              Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
+   Resilience                           Resilience outputs (currently only average resilience hours for battery storage).
    EnergyPlus Output Variables          These are optional and can be requested with the ReportSimulationOutput ``user_output_variables`` argument.
    ===================================  ==================================================================================================================================
 
@@ -506,42 +534,51 @@ Timestamps in the output use the start-of-period convention unless you have requ
 Additional timestamp columns can be optionally requested that reflect daylight saving time (DST) and/or coordinated universal time (UTC).
 Most outputs will be summed over the hour (e.g., energy) but some will be averaged over the hour (e.g., temperatures, airflows).
 
-Note that if the home is not fully conditioned (e.g., a room air conditioner that only meets 30% of the cooling load), the reported zone temperature for the living space will reflect a fully conditioned home due to the way these systems are modeled in EnergyPlus.
+Note that if the home is not fully conditioned (e.g., a room air conditioner that only meets 30% of the cooling load), the reported zone temperature for the conditioned space will reflect a fully conditioned home due to the way these systems are modeled in EnergyPlus.
 
 .. _bill_outputs:
 
 Utility Bill Outputs
 --------------------
 
-OpenStudio-HPXML can optionally generate a utility bills output file.
-The utility bills output file is called ``results_bills.csv`` (or ``results_bills.json`` or ``results_bills.msgpack``) and located in the run directory.
+OpenStudio-HPXML can optionally generate utility bill output files (annual, monthly, or both).
+The annual utility bills output file is called ``results_bills.csv`` (or ``results_bills.json`` or ``results_bills.msgpack``) and located in the run directory.
+The monthly utility bills output file is called ``results_bills_monthly.csv`` (or ``results_bills_monthly.json`` or ``results_bills_monthly.msgpack``) and located in the run directory.
 
-Results for each utility bill scenario defined in the HPXML file are listed as shown below.
+Annual Bills by Fuel Use
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-   =============================================  ====================
-   Type                                           Notes
-   =============================================  ====================
-   <ScenarioName>: Total ($)                      Scenario annual total charges.
-   <ScenarioName>: Electricity: Fixed ($)         Scenario annual fixed charges for electricity.
-   <ScenarioName>: Electricity: Energy ($)        Scenario annual energy charges for electricity.
-   <ScenarioName>: Electricity: PV Credit ($)     Scenario annual production credit (negative value) for PV.
-   <ScenarioName>: Electricity: Total ($)         Scenario annual total charges for electricity.
-   <ScenarioName>: Natural Gas: Fixed ($)         Scenario annual fixed charges for natural gas.
-   <ScenarioName>: Natural Gas: Energy ($)        Scenario annual energy charges for natural gas.
-   <ScenarioName>: Natural Gas: Total ($)         Scenario annual total charges for natural gas.
-   <ScenarioName>: Fuel Oil: Fixed ($)            Scenario annual fixed charges for fuel oil.
-   <ScenarioName>: Fuel Oil: Energy ($)           Scenario annual energy charges for fuel oil.
-   <ScenarioName>: Fuel Oil: Total ($)            Scenario annual total charges for fuel oil.
-   <ScenarioName>: Propane: Fixed ($)             Scenario annual fixed charges for propane.
-   <ScenarioName>: Propane: Energy ($)            Scenario annual energy charges for propane.
-   <ScenarioName>: Propane: Total ($)             Scenario annual total charges for propane.
-   <ScenarioName>: Wood Cord: Fixed ($)           Scenario annual fixed charges for wood cord.
-   <ScenarioName>: Wood Cord: Energy ($)          Scenario annual energy charges for wood cord.
-   <ScenarioName>: Wood Cord: Total ($)           Scenario annual total charges for wood cord.
-   <ScenarioName>: Wood Pellets: Fixed ($)        Scenario annual fixed charges for wood pellets.
-   <ScenarioName>: Wood Pellets: Energy ($)       Scenario annual energy charges for wood pellets.
-   <ScenarioName>: Wood Pellets: Total ($)        Scenario annual total charges for wood pellets.
-   <ScenarioName>: Coal: Fixed ($)                Scenario annual fixed charges for coal.
-   <ScenarioName>: Coal: Energy ($)               Scenario annual energy charges for coal.
-   <ScenarioName>: Coal: Total ($)                Scenario annual total charges for coal.
-   =============================================  ====================
+Annual results for each utility bill scenario defined in the HPXML file are listed as shown below.
+
+   =================================================  ====================
+   Type                                               Notes
+   =================================================  ====================
+   <ScenarioName>: Total (USD)                        Scenario annual total charges.
+   <ScenarioName>: Electricity: Fixed (USD)           Scenario annual fixed charges for electricity.
+   <ScenarioName>: Electricity: Energy (USD)          Scenario annual energy charges for electricity.
+   <ScenarioName>: Electricity: PV Credit (USD)       Scenario annual production credit (negative value) for PV.
+   <ScenarioName>: Electricity: Total (USD)           Scenario annual total charges for electricity.
+   <ScenarioName>: Natural Gas: Fixed (USD)           Scenario annual fixed charges for natural gas.
+   <ScenarioName>: Natural Gas: Energy (USD)          Scenario annual energy charges for natural gas.
+   <ScenarioName>: Natural Gas: Total (USD)           Scenario annual total charges for natural gas.
+   <ScenarioName>: Fuel Oil: Fixed (USD)              Scenario annual fixed charges for fuel oil.
+   <ScenarioName>: Fuel Oil: Energy (USD)             Scenario annual energy charges for fuel oil.
+   <ScenarioName>: Fuel Oil: Total (USD)              Scenario annual total charges for fuel oil.
+   <ScenarioName>: Propane: Fixed (USD)               Scenario annual fixed charges for propane.
+   <ScenarioName>: Propane: Energy (USD)              Scenario annual energy charges for propane.
+   <ScenarioName>: Propane: Total (USD)               Scenario annual total charges for propane.
+   <ScenarioName>: Wood Cord: Fixed (USD)             Scenario annual fixed charges for wood cord.
+   <ScenarioName>: Wood Cord: Energy (USD)            Scenario annual energy charges for wood cord.
+   <ScenarioName>: Wood Cord: Total (USD)             Scenario annual total charges for wood cord.
+   <ScenarioName>: Wood Pellets: Fixed (USD)          Scenario annual fixed charges for wood pellets.
+   <ScenarioName>: Wood Pellets: Energy (USD)         Scenario annual energy charges for wood pellets.
+   <ScenarioName>: Wood Pellets: Total (USD)          Scenario annual total charges for wood pellets.
+   <ScenarioName>: Coal: Fixed (USD)                  Scenario annual fixed charges for coal.
+   <ScenarioName>: Coal: Energy (USD)                 Scenario annual energy charges for coal.
+   <ScenarioName>: Coal: Total (USD)                  Scenario annual total charges for coal.
+   =================================================  ====================
+
+Monthly Bills by Fuel Use
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Monthly results for each utility bill scenario defined in the HPXML file are listed as rows corresponding to Month, and columns corresponding to Type.
