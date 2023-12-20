@@ -1,3 +1,11 @@
+## ResStock v3.3.0 (pending)
+
+Features
+- Updates and enhancements to the ground source heat pump model; ability to describe detailed geothermal loop inputs ([#1187](https://github.com/NREL/resstock/pull/1187))
+
+Fixes
+-
+
 ## ResStock v3.2.0
 ###### December 19, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.1...v3.2.0)
 
