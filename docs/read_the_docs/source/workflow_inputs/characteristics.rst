@@ -3561,11 +3561,11 @@ Arguments
      - "auto"
      - Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-air, mini-split, packaged terminal heat pump and room air conditioner with reverse cycle. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_) is used.
    * - ``geothermal_loop_configuration``
-     - true
+     - false
      - 
      - Choice
-     - "none", "vertical"
-     - Configuration of the geothermal loop. Only applies to ground-to-air heat pump type.
+     - "auto", "none", "vertical"
+     - Configuration of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
    * - ``geothermal_loop_borefield_configuration``
      - false
      - 
@@ -3985,11 +3985,11 @@ Arguments
      - "auto", "ACCA", "HERS", "MaxLoad"
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``geothermal_loop_configuration``
-     - true
+     - false
      - 
      - Choice
-     - "none", "vertical"
-     - Configuration of the geothermal loop. Only applies to ground-to-air heat pump type.
+     - "auto", "none", "vertical"
+     - Configuration of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
    * - ``geothermal_loop_borefield_configuration``
      - false
      - 
