@@ -134,7 +134,8 @@ def get_outcols(metadata_parquet_list) -> List[str]:
 
 
 def read_formatted_metadata_file(file_path: str, upgrade_name: str, outcols: list[str],
-                                 filter_states: list[str] | None = None):
+                                 filter_states: list[str] | None = None,
+                                 filter_yaml: str | None = None):
     df = pl.scan_parquet(file_path).filter(pl.col("completed_status") == "Success")
     if filter_states is not None:
         df = df.filter(pl.col("build_existing_model.state").is_in(filter_states))

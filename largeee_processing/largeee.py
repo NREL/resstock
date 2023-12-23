@@ -1,18 +1,35 @@
 from buildstock_query import BuildStockQuery
 import polars as pl
-from collections import defaultdict
 from resstock import get_outcols, read_formatted_metadata_file
 from metadata import process_upgrade
 from polars.type_aliases import SelectorType
-from typing import Union
-
+from typing import Union, Optional
+import pandas as pd
 
 class LARGEEE:
     def __init__(self, run_names: list[str],
                  db_name: str = "largeee_test_runs",
                  workgroup: str = "largeee",
+                 filter_yamls: Optional[dict[int, str]] = None,
+                 opt_sat_path: Optional[str] = None,
                  state_split: bool = False,
                  skip_parquet_download: bool = False) -> None:
+        """
+        A class to manage the processing of LARGEEE run consisting of series of individual upgrade runs (also
+        called categories).
+
+        Args:
+            run_names: List of athena table names for the upgrade runs. First one is considered the baseline
+            db_name: Athena database name where the runs reside.
+            workgroup: Athena workgroup
+            filter_yamls: A dictionary mapping run_number (or category number) which is the index of
+                of the run in the run_names list to a upgrades filter yaml.
+            opt_sat_path: Path to the options_saturation.csv file. Required when using filter_yamls.
+            state_split: Whether to generate separate group of files for different state or one combined national file.
+                If set to true, the class will add state to all parquet files (for each upgrade) for easy spliting.
+            skip_parquet_download: Normally, the class will download the upgrade and baseline parquet files for
+                all the runs during initialization. Sometimes it's useful to skip this step (eg. for quicklook).
+        """
 
         self.run_names = run_names.copy()
         self.db_name = db_name
@@ -21,6 +38,8 @@ class LARGEEE:
         self.run_objs: dict[int, BuildStockQuery] = {}
         self.processed_bs_df, self.processed_all_up_df, self.combined_report_df = None, None, None
         self._get_run_objs()
+        self.filter_yamls = filter_yamls or {}
+        self.opt_sat_path = opt_sat_path
         if not skip_parquet_download:
             self.parquet_paths = self._download_parquets()
             self.outcols = get_outcols(list(set(self.parquet_paths.values())))
@@ -37,15 +56,12 @@ class LARGEEE:
             pl.when(
                 (
                     pl.col("upgrade.hvac_heating_efficiency").str.contains("ASHP|MSHP") &
-                    (~pl.col("in.heating_fuel").str.contains("Electricity")
-                     |
-                     pl.col("in.hvac_heating_efficiency").str.contains("Shared")
-                     )
+                    ~pl.col("in.heating_fuel").str.contains("Electricity")
                 )
                 |
                 (
                     pl.col("upgrade.hvac_cooling_efficiency").str.contains("SEER|Pump") &
-                    pl.col("in.hvac_cooling_efficiency").str.contains("None|Shared")
+                    pl.col("in.hvac_cooling_efficiency").str.contains("None")
                 )
                 |
                 (
@@ -128,28 +144,43 @@ class LARGEEE:
             print(f"Updated {upgrade_name} with state")
 
     def get_bs_up_df(self, filter_states: list[str] | None = None,
-                     column_selector: Union[SelectorType, None] = None) -> tuple[pl.DataFrame, pl.DataFrame]:
+                     column_selector: Union[SelectorType, None] = None,
+                     ugprade_filters: dict[str, str] | None = None,) -> tuple[pl.DataFrame, pl.DataFrame]:
         bs_df = read_formatted_metadata_file(self.parquet_paths['1.00'], 'baseline', self.outcols, filter_states)
         processed_bs_df = process_upgrade(bs_df)
         if column_selector is not None:
             processed_bs_df = processed_bs_df.select(column_selector)
         final_bs_df = processed_bs_df.collect()
         processed_up_df_list: list[pl.DataFrame] = []
-        for upgrade_name, path in self.parquet_paths.items():
-            if upgrade_name.endswith(".00"):  # skip baseline for each run
-                continue
-            if not filter_states:
-                print(f"Processing {upgrade_name} at {path}.")
-            else:
-                print(f"Processing {upgrade_name} at {path} for {filter_states}")
-            up_df = read_formatted_metadata_file(path, upgrade_name, self.outcols, filter_states)
-            if up_df.select(pl.count()).collect().row(0) == (0,):
-                print(f"Skipping {upgrade_name} - no data")
-                continue
-            p_up_df = process_upgrade(bs_df=bs_df, up_df=up_df)
-            if column_selector is not None:
-                p_up_df = p_up_df.select(column_selector)
-            processed_up_df_list.append(p_up_df.collect())
+        for cat in range(0, len(self.run_names)):
+            available_upgrades = self.run_objs[cat].get_available_upgrades()
+            if (filter_yaml := self.filter_yamls.get(cat)) and (self.opt_sat_path is not None):
+                ua = self.run_objs[cat].get_upgrades_analyzer(filter_yaml_file=filter_yaml,
+                                                              opt_sat_file=self.opt_sat_path)
+                ua_report = ua.get_report().set_index('upgrade')
+                removal_bldgs = ua_report['removal_buildings'].map(lambda x: set() if pd.isna(x) else x)
+
+            for upgrade in available_upgrades:
+                upgrade = int(upgrade)
+                upgrade_name = f"{cat}.{upgrade:02}"
+                if upgrade == 0:  # skip baseline for each run
+                    continue
+                path = self.parquet_paths.get(upgrade_name)
+                if not filter_states:
+                    print(f"Processing {upgrade_name} at {path}.")
+                else:
+                    print(f"Processing {upgrade_name} at {path} for {filter_states}")
+                up_df = read_formatted_metadata_file(path, upgrade_name, self.outcols, filter_states)
+                if filter_yaml:
+                    # up_df = up_df.filter(pl.col())
+                    up_df = up_df.filter(~pl.col('bldg_id').is_in(removal_bldgs.loc[upgrade]))
+                if up_df.select(pl.count()).collect().row(0) == (0,):
+                    print(f"Skipping {upgrade_name} - no data")
+                    continue
+                p_up_df = process_upgrade(bs_df=bs_df, up_df=up_df)
+                if column_selector is not None:
+                    p_up_df = p_up_df.select(column_selector)
+                processed_up_df_list.append(p_up_df.collect())
         processed_all_up_df = pl.concat(processed_up_df_list, how='diagonal')
         processed_all_up_df = self._add_electrification_adder(final_bs_df, processed_all_up_df)
         return final_bs_df, processed_all_up_df
@@ -157,15 +188,10 @@ class LARGEEE:
     def get_upgrade_names(self):
         up_name_dfs = [pl.DataFrame({"upgrade": ["1.00"], "upgrade_name": ["Baseline"]})]
         for cat in range(1, len(self.run_names)):
-            upgrade_table = self.run_objs[cat].up_table
-            query = f"""
-                Select cast(upgrade as integer) as upgrade, arbitrary("apply_upgrade.upgrade_name") as upgrade_name
-                from {upgrade_table}
-                where completed_status = 'Success' group by 1 order by 1
-            """
-            up_name_df = self.run_objs[cat].execute(query)
-            up_name_df['upgrade'] = up_name_df['upgrade'].map(lambda x: f"{cat}.{int(x):02}")
-            up_name_dfs.append(pl.from_pandas(up_name_df, include_index=False))
+            up_names = self.run_objs[cat].get_upgrade_names()
+            up_names = [{"upgrade": f"{cat}.{int(up_num):02}", "upgrade_name": up_name}
+                        for up_num, up_name in up_names.items()]
+            up_name_dfs.append(pl.from_dicts(up_names))
             self.run_objs[cat].save_cache()
             print(f"Got name for {cat=}")
         return pl.concat(up_name_dfs, how='diagonal')

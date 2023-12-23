@@ -1,5 +1,5 @@
 # Name of the output folder
-output_folder: med_run_output5b
+output_folder: med_run_output5b_new
 
 # All files will include this prefix. Replace with '' to have no prefix.
 file_prefix: medium_run_
@@ -47,6 +47,18 @@ upgrade_runs:
   - medium_run_category_13_20230920
   - medium_run_category_14_20230921
   - medium_run_category_15_20230920
+
+
+# If certain buildings are to be removed from the upgrades in postprocessing,
+# provide the path to the filter yamls. Key is the category number (1-indexed) and value is the path to the filter yaml.
+filter_yamls:
+  5: https://raw.githubusercontent.com/NREL/resstock/fact_sheets_2023/project_national/fact_sheets_category_5_upgrades_filter.yml
+  7: https://raw.githubusercontent.com/NREL/resstock/fact_sheets_2023/project_national/fact_sheets_category_7_upgrades_filter.yml
+  8: https://raw.githubusercontent.com/NREL/resstock/fact_sheets_2023/project_national/fact_sheets_category_8_upgrades_filter.yml
+  9: https://raw.githubusercontent.com/NREL/resstock/fact_sheets_2023/project_national/fact_sheets_category_9_upgrades_filter.yml
+  13: https://raw.githubusercontent.com/NREL/resstock/fact_sheets_2023/project_national/fact_sheets_category_13_upgrades_filter.yml
+  15: https://raw.githubusercontent.com/NREL/resstock/fact_sheets_2023/project_national/fact_sheets_category_15_upgrades_filter.yml
+
 
 # These are the housing characteristics what will be exported in the wide-format characteristics file.
 # You can add/remove as needed. Wide format includes 'weight' column by default.
@@ -117,3 +129,6 @@ quick_look_columns:
   - report_simulation_output.emissions_co_2_e_lrmer_mid_case_2030_boxavg_total_lb
   - upgrade_costs.upgrade_cost_usd
   - report_utility_bills.utility_rates_fixed_variable_total_usd
+
+# The path to the options saturation file for the project. Can take local path or url
+opt_sat_path: https://raw.githubusercontent.com/NREL/resstock/fact_sheets_2023/project_national/resources/options_saturations.csv
