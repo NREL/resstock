@@ -446,12 +446,7 @@ upgrades:
             - Bedrooms|1
             - Bedrooms|2
             - Bedrooms|3
-          - not:
-              - Water Heater Efficiency|Electric Premium
-              - or:
-                - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
-                - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
-                - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+          - Water Heater Efficiency|Electric Standard
         costs:
           - value: 820.62  # 586.16 * 1.4: Interpolated using REMDB values for EF 0.92 (UEF 0.9174) and 0.95 (UEF 0.9299), inflation adjusted with 1.4 factor - https://remdb.nrel.gov/measures?group_id=6&component_type_id=270&actionId=2084&bcId=4102
             multiplier: Fixed (1)
@@ -464,10 +459,11 @@ upgrades:
           - Water Heater Fuel|Electricity
           - Bedrooms|4
           - not:
-              or:
+            - or:
                 - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
                 - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
                 - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+                - Water Heater Efficiency|Electric Tankless
         costs:
           - value: 3736.48  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
             multiplier: Fixed (1)
@@ -478,10 +474,11 @@ upgrades:
           - Water Heater Fuel|Electricity
           - Bedrooms|5
           - not:
-              or:
+            - or:
                 - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
                 - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
                 - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+                - Water Heater Efficiency|Electric Tankless
         costs:
           - value: 4631.88  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
             multiplier: Fixed (1)
