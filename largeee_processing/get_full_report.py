@@ -103,7 +103,9 @@ def write_all():
     largee_run = LARGEEE(
         db_name=config['db_name'],
         run_names=[config['baseline_run']] + config['upgrade_runs'],
-        state_split=config['state_split']
+        state_split=config['state_split'],
+        filter_yamls=config['filter_yamls'],
+        opt_sat_path=config['opt_sat_path']
     )
 
     for group_name, states in config['state_grouping'].items():
