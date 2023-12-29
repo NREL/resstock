@@ -58,15 +58,9 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     output_format = runner.getStringArgumentValue('output_format', user_arguments)
-    output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
-
-    if not File.exist? File.join(output_dir, 'eplusout.msgpack')
-      runner.registerError('Cannot find eplusout.msgpack.')
-      return false
-    end
-    @msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout.msgpack'), mode: 'rb'))
 
     hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
+    output_dir = File.dirname(hpxml_defaults_path)
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
 
     # Set paths
@@ -93,14 +87,16 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     bldg_outputs[BO::SystemsWaterHeaterVolume] = BaseOutput.new
     bldg_outputs[BO::SystemsMechanicalVentilationFlowRate] = BaseOutput.new
 
-    # Building outputs
-    bldg_outputs.each do |bldg_type, bldg_output|
-      bldg_output.output = get_bldg_output(hpxml, bldg_type)
-    end
+    hpxml.buildings.each do |hpxml_bldg|
+      # Building outputs
+      bldg_outputs.each do |bldg_type, bldg_output|
+        bldg_output.output = get_bldg_output(hpxml_bldg, bldg_type)
+      end
 
-    # Primary and Secondary
-    if hpxml.primary_hvac_systems.size > 0
-      assign_primary_and_secondary(hpxml, bldg_outputs)
+      # Primary and Secondary
+      if hpxml_bldg.primary_hvac_systems.size > 0
+        assign_primary_and_secondary(hpxml_bldg, bldg_outputs)
+      end
     end
 
     # Units
@@ -170,46 +166,46 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     attr_accessor(:output, :units)
   end
 
-  def get_bldg_output(hpxml, bldg_type)
+  def get_bldg_output(hpxml_bldg, bldg_type)
     bldg_output = 0.0
     if bldg_type == BO::EnclosureWallAreaThermalBoundary
-      hpxml.walls.each do |wall|
+      hpxml_bldg.walls.each do |wall|
         next unless wall.is_thermal_boundary
 
         bldg_output += wall.area
       end
     elsif bldg_type == BO::EnclosureWallAreaExterior
-      hpxml.walls.each do |wall|
+      hpxml_bldg.walls.each do |wall|
         next unless wall.is_exterior
 
         bldg_output += wall.area
       end
     elsif bldg_type == BO::EnclosureFoundationWallAreaExterior
-      hpxml.foundation_walls.each do |foundation_wall|
+      hpxml_bldg.foundation_walls.each do |foundation_wall|
         next unless foundation_wall.is_exterior
 
         bldg_output += foundation_wall.area
       end
     elsif bldg_type == BO::EnclosureFloorAreaConditioned
-      bldg_output += hpxml.building_construction.conditioned_floor_area
+      bldg_output += hpxml_bldg.building_construction.conditioned_floor_area
     elsif bldg_type == BO::EnclosureFloorAreaLighting
-      if hpxml.lighting.interior_usage_multiplier.to_f != 0
-        bldg_output += hpxml.building_construction.conditioned_floor_area
+      if hpxml_bldg.lighting.interior_usage_multiplier.to_f != 0
+        bldg_output += hpxml_bldg.building_construction.conditioned_floor_area
       end
-      hpxml.slabs.each do |slab|
+      hpxml_bldg.slabs.each do |slab|
         next unless [HPXML::LocationGarage].include?(slab.interior_adjacent_to)
-        next if hpxml.lighting.garage_usage_multiplier.to_f == 0
+        next if hpxml_bldg.lighting.garage_usage_multiplier.to_f == 0
 
         bldg_output += slab.area
       end
     elsif bldg_type == BO::EnclosureFloorAreaFoundation
-      hpxml.slabs.each do |slab|
+      hpxml_bldg.slabs.each do |slab|
         next if slab.interior_adjacent_to == HPXML::LocationGarage
 
         bldg_output += slab.area
       end
     elsif bldg_type == BO::EnclosureCeilingAreaThermalBoundary
-      hpxml.floors.each do |floor|
+      hpxml_bldg.floors.each do |floor|
         next unless floor.is_thermal_boundary
         next unless floor.is_interior
         next unless floor.is_ceiling
@@ -219,58 +215,58 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
         bldg_output += floor.area
       end
     elsif bldg_type == BO::EnclosureRoofArea
-      hpxml.roofs.each do |roof|
+      hpxml_bldg.roofs.each do |roof|
         bldg_output += roof.area
       end
     elsif bldg_type == BO::EnclosureWindowArea
-      hpxml.windows.each do |window|
+      hpxml_bldg.windows.each do |window|
         bldg_output += window.area
       end
     elsif bldg_type == BO::EnclosureDoorArea
-      hpxml.doors.each do |door|
+      hpxml_bldg.doors.each do |door|
         next unless door.is_thermal_boundary
 
         bldg_output += door.area
       end
     elsif bldg_type == BO::EnclosureDuctAreaUnconditioned
-      hpxml.hvac_distributions.each do |hvac_distribution|
+      hpxml_bldg.hvac_distributions.each do |hvac_distribution|
         hvac_distribution.ducts.each do |duct|
-          next if [HPXML::LocationLivingSpace,
+          next if [HPXML::LocationConditionedSpace,
                    HPXML::LocationBasementConditioned].include?(duct.duct_location)
 
           bldg_output += duct.duct_surface_area * duct.duct_surface_area_multiplier
         end
       end
     elsif bldg_type == BO::EnclosureRimJoistAreaExterior
-      hpxml.rim_joists.each do |rim_joist|
+      hpxml_bldg.rim_joists.each do |rim_joist|
         bldg_output += rim_joist.area
       end
     elsif bldg_type == BO::EnclosureSlabExposedPerimeterThermalBoundary
-      hpxml.slabs.each do |slab|
+      hpxml_bldg.slabs.each do |slab|
         next unless slab.is_exterior_thermal_boundary
 
         bldg_output += slab.exposed_perimeter
       end
     elsif bldg_type == BO::SystemsHeatingCapacity
-      hpxml.heating_systems.each do |heating_system|
+      hpxml_bldg.heating_systems.each do |heating_system|
         next if heating_system.is_heat_pump_backup_system
 
         bldg_output += heating_system.heating_capacity
       end
 
-      hpxml.heat_pumps.each do |heat_pump|
+      hpxml_bldg.heat_pumps.each do |heat_pump|
         bldg_output += heat_pump.heating_capacity
       end
     elsif bldg_type == BO::SystemsCoolingCapacity
-      hpxml.cooling_systems.each do |cooling_system|
+      hpxml_bldg.cooling_systems.each do |cooling_system|
         bldg_output += cooling_system.cooling_capacity
       end
 
-      hpxml.heat_pumps.each do |heat_pump|
+      hpxml_bldg.heat_pumps.each do |heat_pump|
         bldg_output += heat_pump.cooling_capacity
       end
     elsif bldg_type == BO::SystemsHeatPumpBackupCapacity
-      hpxml.heat_pumps.each do |heat_pump|
+      hpxml_bldg.heat_pumps.each do |heat_pump|
         if not heat_pump.backup_heating_capacity.nil?
           bldg_output += heat_pump.backup_heating_capacity
         elsif not heat_pump.backup_system.nil?
@@ -278,11 +274,11 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
         end
       end
     elsif bldg_type == BO::SystemsWaterHeaterVolume
-      hpxml.water_heating_systems.each do |water_heating_system|
+      hpxml_bldg.water_heating_systems.each do |water_heating_system|
         bldg_output += water_heating_system.tank_volume.to_f
       end
     elsif bldg_type == BO::SystemsMechanicalVentilationFlowRate
-      hpxml.ventilation_fans.each do |ventilation_fan|
+      hpxml_bldg.ventilation_fans.each do |ventilation_fan|
         next unless ventilation_fan.used_for_whole_building_ventilation
 
         bldg_output += ventilation_fan.flow_rate.to_f
@@ -291,15 +287,15 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     return bldg_output
   end
 
-  def assign_primary_and_secondary(hpxml, bldg_outputs)
+  def assign_primary_and_secondary(hpxml_bldg, bldg_outputs)
     # Determine if we have primary/secondary systems
     has_primary_cooling_system = false
     has_secondary_cooling_system = false
-    hpxml.cooling_systems.each do |cooling_system|
+    hpxml_bldg.cooling_systems.each do |cooling_system|
       has_primary_cooling_system = true if cooling_system.primary_system
       has_secondary_cooling_system = true if !cooling_system.primary_system
     end
-    hpxml.heat_pumps.each do |heat_pump|
+    hpxml_bldg.heat_pumps.each do |heat_pump|
       has_primary_cooling_system = true if heat_pump.primary_cooling_system
       has_secondary_cooling_system = true if !heat_pump.primary_cooling_system
     end
@@ -307,57 +303,57 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
     has_primary_heating_system = false
     has_secondary_heating_system = false
-    hpxml.heating_systems.each do |heating_system|
+    hpxml_bldg.heating_systems.each do |heating_system|
       next if heating_system.is_heat_pump_backup_system
 
       has_primary_heating_system = true if heating_system.primary_system
       has_secondary_heating_system = true if !heating_system.primary_system
     end
-    hpxml.heat_pumps.each do |heat_pump|
+    hpxml_bldg.heat_pumps.each do |heat_pump|
       has_primary_heating_system = true if heat_pump.primary_heating_system
       has_secondary_heating_system = true if !heat_pump.primary_heating_system
     end
     has_secondary_heating_system = false unless has_primary_heating_system
 
     # Set up order of outputs
-    if has_primary_cooling_system
+    if has_primary_cooling_system && !bldg_outputs.keys.include?("Primary #{BO::SystemsCoolingCapacity}")
       bldg_outputs["Primary #{BO::SystemsCoolingCapacity}"] = BaseOutput.new
     end
 
-    if has_primary_heating_system
+    if has_primary_heating_system && !bldg_outputs.keys.include?("Primary #{BO::SystemsHeatingCapacity}") && !bldg_outputs.keys.include?("Primary #{BO::SystemsHeatPumpBackupCapacity}")
       bldg_outputs["Primary #{BO::SystemsHeatingCapacity}"] = BaseOutput.new
       bldg_outputs["Primary #{BO::SystemsHeatPumpBackupCapacity}"] = BaseOutput.new
     end
 
-    if has_secondary_cooling_system
+    if has_secondary_cooling_system && !bldg_outputs.keys.include?("Secondary #{BO::SystemsCoolingCapacity}")
       bldg_outputs["Secondary #{BO::SystemsCoolingCapacity}"] = BaseOutput.new
     end
 
-    if has_secondary_heating_system
+    if has_secondary_heating_system && !bldg_outputs.keys.include?("Secondary #{BO::SystemsHeatingCapacity}") && !bldg_outputs.keys.include?("Secondary #{BO::SystemsHeatPumpBackupCapacity}")
       bldg_outputs["Secondary #{BO::SystemsHeatingCapacity}"] = BaseOutput.new
       bldg_outputs["Secondary #{BO::SystemsHeatPumpBackupCapacity}"] = BaseOutput.new
     end
 
     # Obtain values
     if has_primary_cooling_system || has_secondary_cooling_system
-      hpxml.cooling_systems.each do |cooling_system|
+      hpxml_bldg.cooling_systems.each do |cooling_system|
         prefix = cooling_system.primary_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsCoolingCapacity}"].output += cooling_system.cooling_capacity
       end
-      hpxml.heat_pumps.each do |heat_pump|
+      hpxml_bldg.heat_pumps.each do |heat_pump|
         prefix = heat_pump.primary_cooling_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsCoolingCapacity}"].output += heat_pump.cooling_capacity
       end
     end
 
     if has_primary_heating_system || has_secondary_heating_system
-      hpxml.heating_systems.each do |heating_system|
+      hpxml_bldg.heating_systems.each do |heating_system|
         next if heating_system.is_heat_pump_backup_system
 
         prefix = heating_system.primary_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsHeatingCapacity}"].output += heating_system.heating_capacity
       end
-      hpxml.heat_pumps.each do |heat_pump|
+      hpxml_bldg.heat_pumps.each do |heat_pump|
         prefix = heat_pump.primary_heating_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsHeatingCapacity}"].output += heat_pump.heating_capacity
         if not heat_pump.backup_heating_capacity.nil?

@@ -62,7 +62,8 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
+    hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
+    output_dir = File.dirname(hpxml_defaults_path)
 
     # Initialize timeseries hash
     timeseries = { 'Temperature' => [],

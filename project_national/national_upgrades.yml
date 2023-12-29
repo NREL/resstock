@@ -1,11 +1,11 @@
 schema_version: '0.3'
-os_version: 3.6.1
-os_sha: bb9481519e
+os_version: 3.7.0
+os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 output_directory: national_upgrades
-# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-weather_files_path: ../../weather/BuildStock_TMY3_FIPS.zip
+weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
@@ -46,6 +46,7 @@ workflow_generator:
       include_timeseries_zone_temperatures: true
       include_timeseries_airflows: true
       include_timeseries_weather: true
+      include_timeseries_resilience: true
 
     reporting_measures:
       - measure_dir_name: QOIReport
@@ -55,7 +56,7 @@ workflow_generator:
       retain_schedules_csv: false
 
 baseline:
-  n_buildings_represented: 139647020 # American Community Survey 2021 5-year, B25001, does not include territories
+  n_buildings_represented: 139647020 # American Community Survey 2021 5-year, B25001, does not include territories ( 138765649 without AK and HI )
 
 upgrades:
   - upgrade_name: Windows
@@ -86,27 +87,21 @@ upgrades:
         lifetime: 999
 
   - upgrade_name: Foundation Type
+    package_apply_logic:
+      and:
+        - Geometry Foundation Type|Vented Crawlspace
+        - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+            - Geometry Building Level MF|None
+            - Geometry Building Level MF|Bottom
     options:
       - &geometry_foundation_type_unvented_crawlspace
         option: Geometry Foundation Type|Unvented Crawlspace
-        apply_logic:
-          and:
-            - Geometry Foundation Type|Vented Crawlspace
-            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
-                - Geometry Building Level MF|None
-                - Geometry Building Level MF|Bottom
         costs:
           - value: 0.84
             multiplier: Floor Area, Foundation (ft^2)
         lifetime: 999
       - &insulation_foundation_wall_wall_r_10_exterior
         option: Insulation Foundation Wall|Wall R-10, Exterior
-        apply_logic:
-          and:
-            - Geometry Foundation Type|Vented Crawlspace
-            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
-                - Geometry Building Level MF|None
-                - Geometry Building Level MF|Bottom
         costs:
           - value: 1.05
             multiplier: Wall Area, Below-Grade (ft^2)
@@ -173,11 +168,11 @@ upgrades:
         option: Holiday Lighting|No Exterior Use
 
   - upgrade_name: ASHP
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
     options:
       - &hvac_heating_efficiency_ashp_seer_22_10_hspf
         option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
-        apply_logic:
-          - HVAC Has Ducts|Yes
         costs:
           - value: 50.0
             multiplier: Size, Heating System Primary (kBtu/h)
@@ -188,11 +183,11 @@ upgrades:
         option: Heat Pump Backup|Use Existing System
 
   - upgrade_name: MSHP
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
     options:
       - &hvac_heating_efficiency_mshp_seer_25_12_pt_7_hspf_ducted
         option: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF, Ducted
-        apply_logic:
-          - HVAC Has Ducts|Yes
         costs:
           - value: 50.0
             multiplier: Size, Heating System Primary (kBtu/h)
@@ -202,7 +197,9 @@ upgrades:
       - &hvac_secondary_heating_efficiency_none
         option: HVAC Secondary Heating Efficiency|None
 
-  - upgrade_name: Ductless MSHP
+  - upgrade_name: MSHP w/o Ducts
+    package_apply_logic:
+      - HVAC Has Ducts|No
     options:
       - &hvac_heating_efficiency_mshp_seer_25_12_pt_7_hspf
         option: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
@@ -213,6 +210,18 @@ upgrades:
       - &hvac_cooling_efficiency_non_ducted_heat_pump
         option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
       - *heat_pump_backup_use_existing_system
+
+  - upgrade_name: GSHP
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
+    options:
+      - &hvac_heating_efficiency_gshp_eer_20_pt_2_cop_4_pt_2
+        option: HVAC Heating Efficiency|GSHP, EER 20.2, COP 4.2
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 30
+      - *hvac_cooling_efficiency_ducted_heat_pump
 
   - upgrade_name: HPWH
     options:
@@ -243,13 +252,11 @@ upgrades:
       - &power_outage_summer
         option: Power Outage|Summer
 
-  - upgrade_name: All Upgrades
+  - upgrade_name: All Upgrades # except Foundation Type, MSHP, MSHP w/o Ducts, GSHP, Power Outage
     options:
       - *windows_triple_low_e_non_metal_l_gain
       - *insulation_wall_wood_stud_r_13
       - *insulation_sheathing_r_5
-      - *geometry_foundation_type_unvented_crawlspace
-      - *insulation_foundation_wall_wall_r_10_exterior
       - *insulation_rim_joist_r_13_interior
       - *insulation_ceiling_r_60
       - *infiltration_reduction_25_percent
@@ -270,10 +277,10 @@ upgrades:
 
 eagle:
   n_jobs: 3
-  minutes_per_sim: 30
+  minutes_per_sim: 5
   account: <account you are authorized to use>
   postprocessing:
     time: 20
     n_workers: 1
   sampling:
-    time: 5
+    time: 10

@@ -1,10 +1,30 @@
-## ResStock v3.2.0 (pending)
+## ResStock v3.3.0 (pending)
 
 Features
+- Updates and enhancements to the ground source heat pump model; ability to describe detailed geothermal loop inputs ([#1187](https://github.com/NREL/resstock/pull/1187))
+
+Fixes
+-
+
+## ResStock v3.2.0
+###### December 19, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.1...v3.2.0)
+
+Features
+- Add ability to calculate simple utility bills based on a user-specified TSV file of utility rates ([#1012](https://github.com/NREL/resstock/pull/1012))
 - Add 2022 Cambium emissions data ([#1038](https://github.com/NREL/resstock/pull/1038))
 - Update characteristics to use EIA 2020 RECS ([#1031](https://github.com/NREL/resstock/pull/1031))
+- Add Energystar Climate Zone for window upgrade specification ([#1080](https://github.com/NREL/resstock/pull/1080))
 - Include HVAC secondary heating capabilities for project_testing ([#1090](https://github.com/NREL/resstock/pull/1090))
 - For heat pump upgrades, adds the ability to set the existing primary (non-shared) heating system as the backup system using only a single option from the lookup ([#1074](https://github.com/NREL/resstock/pull/1074))
+- options_saturations.csv is added to project_*/resources/ folder ([#1132](https://github.com/NREL/resstock/pull/1132))
+- Update `run_analysis.rb` to map datapoints to run folder names when the `-k` argument is supplied ([#1138](https://github.com/NREL/resstock/pull/1138))
+- Add Water Heater Location and Geometry Space Combination, update Geometry Garage and Geometry Floor Area Bin to RECS2020, update RECS2020 microdata from v2 to v4, auto-generate buildstocks for yml_precomputed tests ([#1125](https://github.com/NREL/resstock/pull/1125))
+- Add ability to request timeseries resilience output from the yml file ([#1113](https://github.com/NREL/resstock/pull/1113))
+- Add ability to calculate detailed utility bills based on a user-specified TSV file of paths to JSON utility rate tariff files ([#1109](https://github.com/NREL/resstock/pull/1109))
+- Update to OpenStudio v3.7.0 ([#1144](https://github.com/NREL/resstock/pull/1144))
+- Update to RECS 2020 V5 data files ([#1164](https://github.com/NREL/resstock/pull/1164))
+- Automate creation of new "Arguments" documentation sections for summarizing arguments (and their default values) in options_lookup.tsv ([#1146](https://github.com/NREL/resstock/pull/1146))
+- Add variability in ground thermal conductivity ([#1165](https://github.com/NREL/resstock/pull/1165))
 
 Fixes
 - Set standard format for options_lookup ([#962](https://github.com/NREL/resstock/pull/962))
@@ -13,13 +33,22 @@ Fixes
 - Fix square footage for a MF dwelling unit in the "3000-3999" CFA bin (from 33171 to 3171) ([#1115](https://github.com/NREL/resstock/pull/1115))
 - Fix/clarify duct location assignment by defining Duct Location.tsv, making Duct Leakage and Insulation (formerly Duct) depend on Duct Location, and making HVAC Has Ducts depend on HVAC Has Shared Systems. Includes fixes on standalone and shared heating system assignment for Other Fuel. ([#1104](https://github.com/NREL/resstock/pull/1104), [#1112](https://github.com/NREL/resstock/pull/1112))
 - Correct refrigerator rated annual kWh based on EF and an assumed volume of 20.9cft. ([#1118](https://github.com/NREL/resstock/pull/1118))
+- Minor changes to heating and cooling setpoint TSV due to refactoring of prune_rules handling in resstock-estimation ([#1132](https://github.com/NREL/resstock/pull/1132))
+- Minor changes to heating and cooling setpoint TSV after a bug fix ([#1136](https://github.com/NREL/resstock/pull/1136))
+- Update `run_analysis.rb` to handle illegal path characters in upgrade names ([#1138](https://github.com/NREL/resstock/pull/1138))
+- Update TMY3 weather URL from the NREL Data Catalog ([#1182](https://github.com/NREL/resstock/pull/1182))
+
+## ResStock v3.1.1
+###### November 28, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.0...v3.1.1)
+
+Fixes
+- Use `Gem::Version` on buildstockbatch version string comparisons so that, e.g., '2023.10.0' < '2023.5.0' does not evaluate to true ([#1170](https://github.com/NREL/resstock/pull/1170))
 
 ## ResStock v3.1.0
 ###### May 25, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.0.0...v3.1.0)
 
 Features
 - Include battery modeling capabilities for project_testing ([#1009](https://github.com/NREL/resstock/pull/1009))
-- Add ability to calculate simple utility bills based on a user-specified TSV file of utility rates ([#1012](https://github.com/NREL/resstock/pull/1012))
 - Ability to check buildstock csv against an options lookup as a command line utility ([#1042](https://github.com/NREL/resstock/pull/1042))
 - Demonstrate new power outage modeling feature using upgrades specified in example project yml files ([#1054](https://github.com/NREL/resstock/pull/1054))
 - Ability to specify a "sample_weight" column in the precomputed buildstock.csv ([#1056](https://github.com/NREL/resstock/pull/1056))
@@ -28,7 +57,6 @@ Features
 - Add data dictionary files for describing various outputs. Use these files to (1) check against integration test results, and (2) generate documentation tables ([#1058](https://github.com/NREL/resstock/pull/1058))
 - OS-HPXML now supports use of optional heat pump capacity retention temperature and fraction arguments (applicable to both ASHP and MSHP) ([#1072](https://github.com/NREL/resstock/pull/1072))
 - Update to OpenStudio v3.6.1 ([#1076](https://github.com/NREL/resstock/pull/1076))
-- Add Energystar Climate Zone for window upgrade specification ([#1080](https://github.com/NREL/resstock/pull/1080))
 
 Fixes
 - Pulls in upstream OS-HPXML fix related to [avoiding possible OpenStudio temporary directory collision](https://github.com/NREL/OpenStudio-HPXML/pull/1316) causing random errors ([#1054](https://github.com/NREL/resstock/pull/1054))

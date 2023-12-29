@@ -14,10 +14,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_gas
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-gas.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -46,10 +46,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ['base-dhw-tank-gas-uef.xml', 'base-dhw-tank-gas-uef-fhr.xml'].each do |hpxml_name|
       args_hash = {}
       args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, hpxml_name))
-      model, hpxml = _test_measure(args_hash)
+      model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
       # Get HPXML values
-      water_heating_system = hpxml.water_heating_systems[0]
+      water_heating_system = hpxml_bldg.water_heating_systems[0]
 
       # Expected value
       tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -78,10 +78,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_oil
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-oil.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -109,10 +109,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_wood
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-wood.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -140,10 +140,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_coal
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-coal.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -171,10 +171,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_electric
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -202,10 +202,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_electric_uef
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-elec-uef.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -233,10 +233,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tankless_electric
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tankless-electric.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(1.0, 'gal', 'm^3') # convert to actual volume
@@ -264,10 +264,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tankless_electric_uef
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tankless-electric-uef.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(1.0, 'gal', 'm^3') # convert to actual volume
@@ -295,10 +295,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tankless_gas_uef
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tankless-gas-uef.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(1.0, 'gal', 'm^3') # convert to actual volume
@@ -326,10 +326,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_outside
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-gas-outside.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -355,10 +355,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_dsh_1_speed
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-desuperheater.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -393,10 +393,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_dsh_var_speed
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-desuperheater-var-speed.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -431,10 +431,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_dsh_gshp
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-desuperheater-gshp.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -469,11 +469,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_solar_direct_evacuated_tube
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-direct-evacuated-tube.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-    solar_thermal_system = hpxml.solar_thermal_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -490,7 +490,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     iam_coeff3 = -0.3057
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.8 * solar_thermal_system.collector_area
 
@@ -542,11 +542,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_solar_direct_flat_plate
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-direct-flat-plate.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-    solar_thermal_system = hpxml.solar_thermal_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -563,7 +563,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     iam_coeff3 = 0
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.8 * solar_thermal_system.collector_area
 
@@ -615,11 +615,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_solar_indirect_flat_plate
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-indirect-flat-plate.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-    solar_thermal_system = hpxml.solar_thermal_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -636,7 +636,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     iam_coeff3 = 0
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = UnitConversions.convert(solar_thermal_system.storage_volume, 'gal', 'm^3')
-    storage_tank_height = UnitConversions.convert(4.513, 'ft', 'm')
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = UnitConversions.convert(0.1, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     pump_power = 0.8 * solar_thermal_system.collector_area
 
@@ -688,11 +688,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_solar_thermosyphon_flat_plate
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-thermosyphon-flat-plate.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-    solar_thermal_system = hpxml.solar_thermal_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -709,7 +709,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     iam_coeff3 = 0
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.0
 
@@ -761,11 +761,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_solar_direct_ics
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-direct-ics.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-    solar_thermal_system = hpxml.solar_thermal_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -780,7 +780,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     collector_storage_volume = UnitConversions.convert(solar_thermal_system.storage_volume, 'gal', 'm^3')
     ther_eff = 1.0
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.8 * solar_thermal_system.collector_area
 
@@ -829,10 +829,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_solar_fraction
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-fraction.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -860,10 +860,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_indirect
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-indirect.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -896,10 +896,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_combi_tankless
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-combi-tankless.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(1, 'gal', 'm^3') # convert to actual volume
@@ -933,10 +933,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_heat_pump
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-heat-pump.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -968,10 +968,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_heat_pump_uef
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-heat-pump-uef.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -1003,10 +1003,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_jacket
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-jacket-electric.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -1033,11 +1033,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
 
   def test_shared_water_heater
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-water-heater.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-mf-unit-shared-water-heater.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -1063,11 +1063,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
 
   def test_shared_laundry_room
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-mf-unit-shared-laundry-room.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -1094,10 +1094,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_heat_pump_operating_mode_heat_pump_only
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-heat-pump-operating-mode-heat-pump-only.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -1129,10 +1129,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
   def test_tank_stratified
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-model-type-stratified.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -1194,6 +1194,6 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
 
     File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
-    return model, hpxml
+    return model, hpxml, hpxml.buildings[0]
   end
 end
