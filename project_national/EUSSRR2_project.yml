@@ -1,0 +1,512 @@
+schema_version: '0.3'
+os_version: 3.7.0
+os_sha: d5269793f1
+buildstock_directory: ../ # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: national_baseline
+weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 250
+
+eagle:
+  n_jobs: 3
+  minutes_per_sim: 30
+  account: enduse
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 5
+
+postprocessing:
+  keep_individual_timeseries: false
+  # partition_columns:
+  #   - State
+  #   - County
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: euss
+      prefix: eussrr2
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: eussrr2
+      max_crawling_time: 1200
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 15
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    emissions:
+      - scenario_name: LRMER_MidCase_15
+        type: CO2e
+        elec_folder: data/cambium/2022/LRMER_MidCase_15
+
+    utility_bills:
+      - scenario_name: Bills
+
+    simulation_output_report:
+      timeseries_frequency: hourly
+      include_timeseries_total_consumptions: true
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_emission_fuels: true
+      include_timeseries_emission_end_uses: true
+      include_timeseries_hot_water_uses: true
+      include_timeseries_total_loads: true
+      include_timeseries_component_loads: true
+      include_timeseries_unmet_hours: true
+      include_timeseries_zone_temperatures: true
+      include_timeseries_airflows: true
+      include_timeseries_weather: true
+      include_timeseries_resilience: true
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+baseline:
+  n_buildings_represented: 138765649 # American Community Survey 2021 5-year, B25001, does not include territories ( 139647020 with AK and HI ) 
+
+### -- Upgrades --
+# EUSS Residential Round 2
+
+### -- Heat Pumps --
+upgrades:
+  - upgrade_name: ENERGY STAR heat pump with elec backup
+    
+    # package_apply_logic: &remove_shared_heating_cooling
+    #   - not:
+    #     - or:
+    #       - HVAC Heating Efficiency|Shared Heating
+    #       - HVAC Heating Efficiency|Shared Cooling
+
+    options:
+        ### -- ENERGY STAR ASHP applies to all dwellings with ducts
+      - &ducted_ASHP_ENERGYSTAR_elec_backup
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, Max Load
+        apply_logic: &ducted_ASHP_apply_logic
+          - HVAC Has Ducts|Yes
+        costs: &costs_ashp_ducted_SEER_16_9-5_HSPF
+        #### costs not accurate or final, need to adjust inflation and re-calculate regressions - PRW 1/2/2024 ####
+        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+          - value: 4821.83 # for HSPF 9.2
+            multiplier: Fixed (1)
+          - value: 167.64
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_ducted_ASHP 15
+
+        ### -- ENERGY STAR MSHP applies to all dwellings without ducts
+      - &nonducted_MSHP_ENERGYSTAR_elec_backup
+        option: HVAC Heating Efficiency|MSHP, SEER 16, 9.5 HSPF, Max Load
+        apply_logic: &nonducted_MSHP_apply_logic
+          - HVAC Has Ducts|No
+        costs: &costs_mshp_nonducted_SEER_16_9-5_HSPF
+        #### costs not accurate or final, need to adjust inflation and re-calculate regressions - PRW 1/2/2024 ####
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
+        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
+          - value: 2733.38
+            multiplier: Fixed (1)
+          - value: 354.96
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_nonducted_MSHP 15
+
+        
+        ### -- Apply no setpoint offsets to heat pumps that are variable speed -- ###
+      - &cooling_setpoint_no_offset_nonducted
+        option: Cooling Setpoint Has Offset|No
+        apply_logic: *nonducted_MSHP_apply_logic
+
+      - &cooling_setpoint_offset_magnitude_0_nonducted
+        option: Cooling Setpoint Offset Magnitude|0F
+        apply_logic: *nonducted_MSHP_apply_logic
+              
+      - &cooling_setpoint_offset_period_none_nonducted
+        option: Cooling Setpoint Offset Period|None
+        apply_logic: *nonducted_MSHP_apply_logic
+
+      - &heating_setpoint_no_offset_nonducted
+        option: Heating Setpoint Has Offset|No
+        apply_logic: *nonducted_MSHP_apply_logic
+
+      - &heating_setpoint_offset_magnitude_0_nonducted
+        option: Heating Setpoint Offset Magnitude|0F
+        apply_logic: *nonducted_MSHP_apply_logic
+
+      - &heating_setpoint_offset_period_none_nonducted
+        option: Heating Setpoint Offset Period|None
+        apply_logic: *nonducted_MSHP_apply_logic
+
+      - &HP_cooling_efficiency_nonducted
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+        apply_logic: *nonducted_MSHP_apply_logic
+
+      - &HP_cooling_efficiency_ducted
+        option: HVAC Cooling Efficiency|Ducted Heat Pump
+        apply_logic: *ducted_ASHP_apply_logic
+
+        ### -- Apply 100% conditioned to all dwellings -- ###
+      - &100_percent_conditioned
+        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
+        apply_logic: &yes_and_no_has_ducts_apply_logic
+          - or:
+            - HVAC Has Ducts|Yes
+            - HVAC Has Ducts|No 
+
+  - upgrade_name: High efficiency cold-climate heat pump with elec backup
+    
+    # package_apply_logic: &remove_shared_heating_cooling
+    #   - not:
+    #     - or:
+    #       - HVAC Heating Efficiency|Shared Heating
+    #       - HVAC Heating Efficiency|Shared Cooling
+
+    options:
+        ### -- High efficiency CC ASHP applies to all dwellings with ducts
+      - &ducted_ASHP_HighEfficiencyCC_elec_backup
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Max Load
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: &costs_ashp_ducted_SEER_20_11_HSPF
+        #### costs not accurate or final, need to adjust inflation and re-calculate regressions - PRW 1/2/2024 ####
+        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+          - value: 10229.58 # for HSPF 11
+            multiplier: Fixed (1)
+          - value: 167.64
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: *lifetime_ducted_ASHP
+
+      - &nonducted_MSHP_HighEfficiencyCC_elec_backup
+        option: HVAC Heating Efficiency|MSHP, SEER 20, 11 HSPF, CCHP, Max Load
+        apply_logic: *nonducted_MSHP_apply_logic 
+        costs: &costs_mshp_ductless_SEER_20_11_HSPF
+        #### costs not accurate or final, need to adjust inflation and re-calculate regressions - PRW 1/2/2024 ####
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
+        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
+          - value: 2844.81
+            multiplier: Fixed (1)
+          - value: 369.43
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: *lifetime_nonducted_MSHP
+
+        ### -- Apply no setpoint offsets to heat pumps that are variable speed -- ###
+      - &cooling_setpoint_no_offset
+        option: Cooling Setpoint Has Offset|No
+        apply_logic: *yes_and_no_has_ducts_apply_logic
+
+      - &cooling_setpoint_offset_magnitude_0
+        option: Cooling Setpoint Offset Magnitude|0F
+        apply_logic: *yes_and_no_has_ducts_apply_logic
+              
+      - &cooling_setpoint_offset_period_none
+        option: Cooling Setpoint Offset Period|None
+        apply_logic: *yes_and_no_has_ducts_apply_logic
+
+      - &heating_setpoint_no_offset
+        option: Heating Setpoint Has Offset|No
+        apply_logic: *yes_and_no_has_ducts_apply_logic
+
+      - &heating_setpoint_offset_magnitude_0
+        option: Heating Setpoint Offset Magnitude|0F
+        apply_logic: *yes_and_no_has_ducts_apply_logic
+
+      - &heating_setpoint_offset_period_none
+        option: Heating Setpoint Offset Period|None
+        apply_logic: *yes_and_no_has_ducts_apply_logic
+
+      - *HP_cooling_efficiency_nonducted
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+
+  - upgrade_name: Ultra high efficiency heat pump with elec backup
+    
+    # package_apply_logic: &remove_shared_heating_cooling
+    #   - not:
+    #     - or:
+    #       - HVAC Heating Efficiency|Shared Heating
+    #       - HVAC Heating Efficiency|Shared Cooling
+
+    options:
+        ### -- Ultra high efficiency ASHP applies to all dwellings with ducts
+      - &ducted_ASHP_UltraHighEfficiency_elec_backup
+        option: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF, Max Load
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: &costs_ashp_ducted_SEER_24_13_HSPF
+        #### costs not accurate or final, need to adjust inflation and re-calculate regressions - PRW 1/2/2024 ####
+        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+          - value: 10229.58 # for HSPF 11
+            multiplier: Fixed (1)
+          - value: 167.64
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: *lifetime_ducted_ASHP
+
+      - &nonducted_MSHP_UltraHighEfficiency_elec_backup
+        option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, Max Load
+        apply_logic: *nonducted_MSHP_apply_logic 
+        costs: &costs_mshp_ductless_SEER_24_13_HSPF
+        #### costs not accurate or final, need to adjust inflation and re-calculate regressions - PRW 1/2/2024 ####
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
+        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
+          - value: 2844.81
+            multiplier: Fixed (1)
+          - value: 369.43
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: *lifetime_nonducted_MSHP
+
+        ### -- Apply no setpoint offsets to heat pumps that are variable speed -- ###
+      - *cooling_setpoint_no_offset
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_no_offset
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+
+      - *HP_cooling_efficiency_nonducted
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+
+  - upgrade_name: ENERGY STAR heat pump with existing system as backup
+
+    ### no shared heating/cooling dwellings will be included in existing-system-as-backup upgrade    
+    package_apply_logic: &remove_shared_heating_cooling
+      - not:
+        - or:
+          - HVAC Heating Efficiency|Shared Heating
+          - HVAC Heating Efficiency|Shared Cooling
+
+    options:
+        ### -- ENERGY STAR ASHP applies to all dwellings with ducts, retaining existing system as backup
+        ### ENERGY STAR ASHP for dwellings with ducts, but non-ducted heating systems
+      - &ducted_ASHP_ENERGYSTAR_exist_backup
+        option: HVAC Heating Efficiency|ASHP, SEER 16, 9.5 HSPF, Separate Backup
+        apply_logic: &nonducted_heating_with_ducts_apply_logic
+          - HVAC Has Ducts|Yes
+          - not:
+            - or:
+              - HVAC Heating Type|Ducted Heating
+              - HVAC Heating Type|Ducted Heat Pump
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        #### costs not accurate or final, need to adjust inflation and re-calculate regressions - PRW 1/2/2024 ####
+        lifetime: *lifetime_ducted_ASHP
+
+        ### -- ENERGY STAR MSHP applies to all dwellings without ducts
+      - &nonducted_MSHP_ENERGYSTAR_exist_backup
+        option: HVAC Heating Efficiency|MSHP, SEER 16, 9.5 HSPF, Max Load
+        apply_logic: *nonducted_MSHP_apply_logic
+        costs: *costs_mshp_nonducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_nonducted_MSHP
+
+      #### ducted furnace ####
+      ## natural gas furnaces ##
+      - &ducted_ASHP_ENERGYSTAR_exist_backup_shared_ducts_60_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 60% AFUE NG, 5F-40F switchover band
+        apply_logic: &dual-fuel_60pctAFUE_NG_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_76_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 76% AFUE NG, 5F-40F switchover band
+        apply_logic: &dual-fuel_76pctAFUE_NG_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_80_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 80% AFUE NG, 5F-40F switchover band
+        apply_logic: &dual-fuel_80pctAFUE_NG_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_92-5_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 92.5% AFUE NG, 5F-40F switchover band
+        apply_logic: &dual-fuel_92-5pctAFUE_NG_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+
+      ## propane furnaces ##
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_60_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 60% AFUE Propane, 5F-40F switchover band
+        apply_logic: &dual-fuel_60pctAFUE_propane_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+          - HVAC Heating Type And Fuel|Propane Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_76_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 76% AFUE Propane, 5F-40F switchover band
+        apply_logic: &dual-fuel_76pctAFUE_propane_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+          - HVAC Heating Type And Fuel|Propane Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_80_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 80% AFUE Propane, 5F-40F switchover band
+        apply_logic: &dual-fuel_80pctAFUE_propane_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+          - HVAC Heating Type And Fuel|Propane Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_92-5_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 92.5% AFUE Propane, 5F-40F switchover band
+        apply_logic: &dual-fuel_92-5pctAFUE_propane_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+          - HVAC Heating Type And Fuel|Propane Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+
+      ## fuel oil furnaces ##
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_60_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 60% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: &dual-fuel_60pctAFUE_FO_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_76_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 76% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: &dual-fuel_76pctAFUE_FO_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_80_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 80% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: &dual-fuel_80pctAFUE_FO_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+      - &ducted_ASHP_EnergyStar_exist_backup_shared_ducts_92-5_FO
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16, 9.5 HSPF, Integrated Backup, 92.5% AFUE Fuel Oil, 5F-40F switchover band
+        apply_logic: &dual-fuel_92-5pctAFUE_FO_furnace_apply_logic
+          - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
+        costs: *costs_ashp_ducted_SEER_16_9-5_HSPF
+        lifetime: *lifetime_ducted_ASHP
+
+      # Boilers as secondary systems
+      # Set secondary boiler fuel type
+      - &ng_boiler_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Fuel|Natural Gas
+        apply_logic:
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+      - &propane_boiler_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Fuel|Propane
+        apply_logic:
+          - HVAC Heating Type And Fuel|Propane Fuel Boiler
+      - &fuel_oil_boiler_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Fuel|Fuel Oil
+        apply_logic:
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+      # Set secondary fuel boiler efficiency levels
+      - &secondary_boiler_76
+        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+      - &secondary_boiler_80
+        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+      - &secondary_boiler_90
+        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+
+      # Wall/Floor Furnace as secondary systems
+      # Set secondary Wall/Floor Furnace fuel type
+      - &ng_wallfloor_furnace_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Fuel|Natural Gas
+        apply_logic:
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
+      - &propane_wallfloor_furnace_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Fuel|Propane
+        apply_logic:
+          - HVAC Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+      - &fuel_oil_wallfloor_furnace_secondary_heating_type_fuel
+        option: HVAC Secondary Heating Fuel|Fuel Oil
+        apply_logic:
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+
+      # Set secondary fuel Wall/Floor Furnace efficiency levels
+      - &secondary_wallfloor_furnace_60
+        option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+      - &secondary_wallfloor_furnace_68
+        option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+
+        ### -- Apply no setpoint offsets to heat pumps that are variable speed -- ###
+      - *cooling_setpoint_no_offset_nonducted
+      - *cooling_setpoint_offset_magnitude_0_nonducted
+      - *cooling_setpoint_offset_period_none_nonducted
+      - *heating_setpoint_no_offset_nonducted
+      - *heating_setpoint_offset_magnitude_0_nonducted
+      - *heating_setpoint_offset_period_none_nonducted
+
+      - *HP_cooling_efficiency_nonducted
+      - *HP_cooling_efficiency_ducted
+      - *100_percent_conditioned
+
+  - upgrade_name: Geothermal heat pump
+    
+    # package_apply_logic: &remove_shared_heating_cooling
+    #   - not:
+    #     - or:
+    #       - HVAC Heating Efficiency|Shared Heating
+    #       - HVAC Heating Efficiency|Shared Cooling
+
+    options:
+        ### -- GTHP applies to all dwellings with ducts
+      - &ducted_GTHP
+        option: HVAC Heating Efficiency|GSHP, EER 20.5, COP 4.0
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: &costs_GTHP
+        #### costs not accurate or final, need to find GTHP costs + adjust to inflation - PRW 1/2/2024 ####
+          - value: 999
+            multiplier: Fixed (1)
+          - value: 999
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_ducted_GTHP 15
+
+      - *HP_cooling_efficiency_ducted # double check this is the correct designation for GTHPs
+      - *100_percent_conditioned
