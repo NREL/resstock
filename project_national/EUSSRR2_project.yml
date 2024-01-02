@@ -81,7 +81,7 @@ workflow_generator:
       retain_schedules_csv: false
 
 baseline:
-  n_buildings_represented: 138765649 # American Community Survey 2021 5-year, B25001, does not include territories ( 139647020 with AK and HI ) 
+  n_buildings_represented: 138765649 # American Community Survey 2021 5-year, B25001, does not include territories, AK, or HI ( 139647020 with AK and HI ) 
 
 ### -- Upgrades --
 # EUSS Residential Round 2
@@ -308,6 +308,9 @@ upgrades:
         - or:
           - HVAC Heating Efficiency|Shared Heating
           - HVAC Heating Efficiency|Shared Cooling
+      - or:
+        - HVAC Has Ducts|Yes
+        - HVAC Has Ducts|No
 
     options:
         ### -- ENERGY STAR ASHP applies to all dwellings with ducts, retaining existing system as backup
@@ -538,7 +541,11 @@ upgrades:
 
 ### -- Heat Pumps + Light Touch -- ###
   - upgrade_name: ENERGY STAR heat pump with elec backup + Light Touch Envelope
-    
+    package_apply_logic: &yes_and_no_has_ducts_apply_logic
+      - or:
+            - HVAC Has Ducts|Yes
+            - HVAC Has Ducts|No 
+
     # package_apply_logic: &remove_shared_heating_cooling
     #   - not:
     #     - or:
@@ -663,7 +670,7 @@ upgrades:
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
 
   - upgrade_name: High efficiency cold-climate heat pump with elec backup + Light Touch Envelope
-    
+    package_apply_logic: *yes_and_no_has_ducts_apply_logic
     # package_apply_logic: &remove_shared_heating_cooling
     #   - not:
     #     - or:
@@ -692,7 +699,7 @@ upgrades:
       - *infiltration_30pct_reduction
 
   - upgrade_name: Ultra high efficiency heat pump with elec backup + Light Touch Envelope
-    
+    package_apply_logic: *yes_and_no_has_ducts_apply_logic
     # package_apply_logic: &remove_shared_heating_cooling
     #   - not:
     #     - or:
@@ -721,7 +728,7 @@ upgrades:
       - *infiltration_30pct_reduction
 
   - upgrade_name: ENERGY STAR heat pump with existing system as backup + Light Touch Envelope
-    
+
     package_apply_logic: *remove_shared_heating_cooling
 
     options: 
@@ -772,12 +779,15 @@ upgrades:
       - *infiltration_30pct_reduction
 
   - upgrade_name: Geothermal heat pump + Light Touch Envelope
-    
+
     # package_apply_logic: &remove_shared_heating_cooling
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
     #       - HVAC Heating Efficiency|Shared Cooling
+    
+    package_apply_logic: &only_dwellings_with_ducts
+      - HVAC Has Ducts|Yes
 
     options:
       - *ducted_GTHP
@@ -799,7 +809,7 @@ upgrades:
 
 ### -- Heat Pumps + Light Touch + Full Electrification -- ###
   - upgrade_name: ENERGY STAR heat pump with elec backup + Light Touch Envelope + Full Electrification
-    
+    package_apply_logic: *yes_and_no_has_ducts_apply_logic    
     # package_apply_logic: &remove_shared_heating_cooling
     #   - not:
     #     - or:
@@ -927,7 +937,8 @@ upgrades:
         lifetime: 15
 
   - upgrade_name: High efficiency cold-climate heat pump with elec backup + Light Touch Envelope + Full Electrification
-    
+    package_apply_logic: *yes_and_no_has_ducts_apply_logic
+
     # package_apply_logic: &remove_shared_heating_cooling
     #   - not:
     #     - or:
@@ -968,7 +979,7 @@ upgrades:
       - *electric_spa_heaters
 
   - upgrade_name: Ultra high efficiency heat pump with elec backup + Light Touch Envelope + Full Electrification
-    
+    package_apply_logic: *yes_and_no_has_ducts_apply_logic    
     # package_apply_logic: &remove_shared_heating_cooling
     #   - not:
     #     - or:
@@ -1078,6 +1089,8 @@ upgrades:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
     #       - HVAC Heating Efficiency|Shared Cooling
+
+    package_apply_logic: *only_dwellings_with_ducts
 
     options:
       - *ducted_GTHP
