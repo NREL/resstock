@@ -1039,22 +1039,24 @@ Assembly R-value of the roof.
 
 <br/>
 
-**Roof: Has Radiant Barrier**
+**Attic: Radiant Barrier Location**
 
-Presence of a radiant barrier in the attic.
+The location of the radiant barrier in the attic.
 
-- **Name:** ``roof_radiant_barrier``
-- **Type:** ``Boolean``
+- **Name:** ``radiant_barrier_attic_location``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `none`, `Attic roof only`, `Attic roof and gable walls`, `Attic floor`
 
 <br/>
 
-**Roof: Radiant Barrier Grade**
+**Attic: Radiant Barrier Grade**
 
-The grade of the radiant barrier. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs'>HPXML Roofs</a>) is used.
+The grade of the radiant barrier in the attic. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs'>HPXML Roofs</a>) is used.
 
-- **Name:** ``roof_radiant_barrier_grade``
+- **Name:** ``radiant_barrier_grade``
 - **Type:** ``Choice``
 
 - **Required:** ``false``

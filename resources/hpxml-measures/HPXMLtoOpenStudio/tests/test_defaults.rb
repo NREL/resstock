@@ -2811,7 +2811,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     pv.year_modules_manufactured = 2010
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_pv_system_values(default_hpxml_bldg, 0.96, 0.194, false, HPXML::LocationRoof, HPXML::PVTrackingTypeFixed, HPXML::PVModuleTypeStandard, 135)
+    _test_default_pv_system_values(default_hpxml_bldg, 0.96, 0.198, false, HPXML::LocationRoof, HPXML::PVTrackingTypeFixed, HPXML::PVModuleTypeStandard, 135)
   end
 
   def test_batteries

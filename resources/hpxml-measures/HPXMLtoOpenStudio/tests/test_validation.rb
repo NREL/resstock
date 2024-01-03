@@ -1181,7 +1181,8 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml_bldg.batteries[0].usable_capacity_kwh = 10.0
         hpxml_bldg.batteries[0].usable_capacity_ah = nil
       elsif ['invalid-datatype-boolean'].include? error_case
-        hpxml, _hpxml_bldg = _create_hpxml('base.xml')
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.roofs[0].radiant_barrier = false
       elsif ['invalid-datatype-integer'].include? error_case
         hpxml, _hpxml_bldg = _create_hpxml('base.xml')
       elsif ['invalid-datatype-float'].include? error_case

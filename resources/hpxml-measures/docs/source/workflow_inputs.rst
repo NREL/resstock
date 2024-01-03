@@ -940,7 +940,7 @@ For a multifamily building where the dwelling unit has another dwelling unit abo
   ``InteriorFinish/Type``                 string                               See [#]_                  No         See [#]_                        Interior finish material
   ``InteriorFinish/Thickness``            double             in                >= 0                      No         0.5                             Interior finish thickness
   ``Pitch``                               integer            ?:12              >= 0                      Yes                                        Pitch
-  ``RadiantBarrier``                      boolean                                                        No         false                           Presence of radiant barrier
+  ``RadiantBarrier``                      boolean                                                        No         false                           Presence of radiant barrier [#]_
   ``RadiantBarrierGrade``                 integer                              >= 1, <= 3                No         1                               Radiant barrier installation grade
   ``Insulation/SystemIdentifier``         id                                                             Yes                                        Unique identifier
   ``Insulation/AssemblyEffectiveRValue``  double             F-ft2-hr/Btu      > 0                       Yes                                        Assembly R-value [#]_
@@ -975,6 +975,7 @@ For a multifamily building where the dwelling unit has another dwelling unit abo
          
   .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
   .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is conditioned space, otherwise "none".
+  .. [#] RadiantBarrier intended for attic roofs. Model assumes an emittance of 0.05.
   .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
 
 HPXML Rim Joists
@@ -1039,6 +1040,8 @@ Each wall surface is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/W
   ``Emittance``                           double                               >= 0, <= 1                No             0.90         Emittance
   ``InteriorFinish/Type``                 string                               See [#]_                  No             See [#]_     Interior finish material
   ``InteriorFinish/Thickness``            double             in                >= 0                      No             0.5          Interior finish thickness
+  ``RadiantBarrier``                      boolean                                                        No             false        Presence of radiant barrier [#]_
+  ``RadiantBarrierGrade``                 integer                              >= 1, <= 3                No             1            Radiant barrier installation grade
   ``Insulation/SystemIdentifier``         id                                                             Yes                         Unique identifier
   ``Insulation/AssemblyEffectiveRValue``  double             F-ft2-hr/Btu      > 0                       Yes                         Assembly R-value [#]_
   ======================================  =================  ================  ========================  =============  ===========  ====================================
@@ -1067,6 +1070,7 @@ Each wall surface is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/W
          
   .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
   .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is conditioned space or basement - conditioned, otherwise "none".
+  .. [#] RadiantBarrier intended for attic gable walls. Model assumes an emittance of 0.05.
   .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
 
 HPXML Foundation Walls
@@ -1143,6 +1147,8 @@ Each floor/ceiling surface that is not in contact with the ground (Slab) nor adj
   ``Area``                                double    ft2           > 0          Yes                 Gross area
   ``InteriorFinish/Type``                 string                  See [#]_     No        See [#]_  Interior finish material
   ``InteriorFinish/Thickness``            double    in            >= 0         No        0.5       Interior finish thickness
+  ``RadiantBarrier``                      boolean                              No        false     Presence of radiant barrier [#]_
+  ``RadiantBarrierGrade``                 integer                 >= 1, <= 3   No        1         Radiant barrier installation grade
   ``Insulation/SystemIdentifier``         id                                   Yes                 Unique identifier
   ``Insulation/AssemblyEffectiveRValue``  double    F-ft2-hr/Btu  > 0          Yes                 Assembly R-value [#]_
   ======================================  ========  ============  ===========  ========  ========  ============================
@@ -1154,11 +1160,9 @@ Each floor/ceiling surface that is not in contact with the ground (Slab) nor adj
   .. [#] FloorType child element choices are ``WoodFrame``, ``StructuralInsulatedPanel``, ``SteelFrame``, or ``SolidConcrete``.
   .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
   .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is conditioned space and the surface is a ceiling, otherwise "none".
-  .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior
-    air films, and insulation installation grade. For a manufactured home belly
-    where the area of the belly wrap is different and usually greater than the
-    floor area, the AssemblyEffectiveRValue should be adjusted to account for
-    the surface area of the belly wrap and insulation.
+  .. [#] RadiantBarrier intended for attic floors. Model assumes an emittance of 0.5 (reduced effectiveness due to accumulation of dust) per `an ORNL article on radiant barriers <https://web.ornl.gov/sci/buildings/tools/radiant/rb2/>`_.
+  .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
+         For a manufactured home belly where the area of the belly wrap is different and usually greater than the floor area, the AssemblyEffectiveRValue should be adjusted to account for the surface area of the belly wrap and insulation.
 
 For floors adjacent to "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space", additional information is entered in ``Floor``.
 

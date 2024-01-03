@@ -2,17 +2,20 @@
 
 __New Features__
 - Replaces `BuildingSummary/Site/extension/GroundConductivity` with `BuildingSummary/Site/Soil/Conductivity`.
+- Allows radiant barriers for additional locations (attic gable walls and floor); reduced emissivity due to dust assumed for radiant barriers on attic floor.
 - Ground source heat pump enhancements:
   - Allows optional detailed inputs related to geothermal loop (`HVACPlant/GeothermalLoop`).
   - Allows optional ground diffusivity input.
   - Updates to using G-Functions from the [G-Function Library for Modeling Vertical Bore Ground Heat Exchanger](https://gdr.openei.org/submissions/1325).
   - Updated heating/cooling performance curves to reflect newer equipment.
 - BuildResidentialHPXML measure:
+  - **Breaking change**: Replaces `roof_radiant_barrier`/`roof_radiant_barrier_grade` arguments with `radiant_barrier_attic_location`/`radiant_barrier_grade`.
   - Add soil and moisture type arguments (for determining ground conductivity and diffusivity) and optional geothermal loop arguments for ground source heat pumps.
 - Adds more error-checking for inappropriate inputs (e.g., HVAC SHR=0 or clothes washer IMEF=0).
 
 __Bugfixes__
 - Fixes error if using AllowIncreasedFixedCapacities=true w/ HP detailed performance data.
+- Prevents mains water temperature from going below freezing (0 C).
 
 ## OpenStudio-HPXML v1.7.0
 
