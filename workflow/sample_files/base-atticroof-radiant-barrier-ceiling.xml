@@ -13,77 +13,7 @@
       </SimulationControl>
       <UtilityBillScenarios>
         <UtilityBillScenario>
-          <Name>Net Metering w/ Wholesale Excess Rate</Name>
-          <UtilityRate>
-            <FuelType>electricity</FuelType>
-            <FixedCharge>10.0</FixedCharge>
-            <MarginalRate>0.12</MarginalRate>
-          </UtilityRate>
-          <UtilityRate>
-            <FuelType>natural gas</FuelType>
-            <FixedCharge>11.0</FixedCharge>
-            <MarginalRate>1.1</MarginalRate>
-          </UtilityRate>
-          <PVCompensation>
-            <CompensationType>
-              <NetMetering>
-                <AnnualExcessSellbackRateType>User-Specified</AnnualExcessSellbackRateType>
-                <AnnualExcessSellbackRate>0.035</AnnualExcessSellbackRate>
-              </NetMetering>
-            </CompensationType>
-            <MonthlyGridConnectionFee>
-              <Units>$/kW</Units>
-              <Value>2.5</Value>
-            </MonthlyGridConnectionFee>
-          </PVCompensation>
-        </UtilityBillScenario>
-        <UtilityBillScenario>
-          <Name>Net Metering w/ Retail Excess Rate</Name>
-          <UtilityRate>
-            <FuelType>electricity</FuelType>
-            <FixedCharge>10.0</FixedCharge>
-            <MarginalRate>0.12</MarginalRate>
-          </UtilityRate>
-          <UtilityRate>
-            <FuelType>natural gas</FuelType>
-            <FixedCharge>11.0</FixedCharge>
-            <MarginalRate>1.1</MarginalRate>
-          </UtilityRate>
-          <PVCompensation>
-            <CompensationType>
-              <NetMetering>
-                <AnnualExcessSellbackRateType>Retail Electricity Cost</AnnualExcessSellbackRateType>
-              </NetMetering>
-            </CompensationType>
-            <MonthlyGridConnectionFee>
-              <Units>$/kW</Units>
-              <Value>2.5</Value>
-            </MonthlyGridConnectionFee>
-          </PVCompensation>
-        </UtilityBillScenario>
-        <UtilityBillScenario>
-          <Name>Feed-In Tariff</Name>
-          <UtilityRate>
-            <FuelType>electricity</FuelType>
-            <FixedCharge>10.0</FixedCharge>
-            <MarginalRate>0.12</MarginalRate>
-          </UtilityRate>
-          <UtilityRate>
-            <FuelType>natural gas</FuelType>
-            <FixedCharge>11.0</FixedCharge>
-            <MarginalRate>1.1</MarginalRate>
-          </UtilityRate>
-          <PVCompensation>
-            <CompensationType>
-              <FeedInTariff>
-                <FeedInTariffRate>0.13</FeedInTariffRate>
-              </FeedInTariff>
-            </CompensationType>
-            <MonthlyGridConnectionFee>
-              <Units>$</Units>
-              <Value>7.5</Value>
-            </MonthlyGridConnectionFee>
-          </PVCompensation>
+          <Name>Bills</Name>
         </UtilityBillScenario>
       </UtilityBillScenarios>
     </extension>
@@ -93,7 +23,7 @@
     <Site>
       <SiteID id='SiteID'/>
       <Address>
-        <StateCode>CO</StateCode>
+        <StateCode>TX</StateCode>
       </Address>
     </Site>
     <ProjectStatus>
@@ -113,25 +43,25 @@
         </Site>
         <BuildingConstruction>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
-          <NumberofConditionedFloors>2.0</NumberofConditionedFloors>
+          <NumberofConditionedFloors>1.0</NumberofConditionedFloors>
           <NumberofConditionedFloorsAboveGrade>1.0</NumberofConditionedFloorsAboveGrade>
           <AverageCeilingHeight>8.0</AverageCeilingHeight>
           <NumberofBedrooms>3</NumberofBedrooms>
           <NumberofBathrooms>2</NumberofBathrooms>
-          <ConditionedFloorArea>2700.0</ConditionedFloorArea>
-          <ConditionedBuildingVolume>21600.0</ConditionedBuildingVolume>
+          <ConditionedFloorArea>1350.0</ConditionedFloorArea>
+          <ConditionedBuildingVolume>10800.0</ConditionedBuildingVolume>
         </BuildingConstruction>
       </BuildingSummary>
       <ClimateandRiskZones>
         <ClimateZoneIECC>
           <Year>2006</Year>
-          <ClimateZone>5B</ClimateZone>
+          <ClimateZone>3A</ClimateZone>
         </ClimateZoneIECC>
         <WeatherStation>
           <SystemIdentifier id='WeatherStation'/>
-          <Name>USA_CO_Denver.Intl.AP.725650_TMY3</Name>
+          <Name>USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3</Name>
           <extension>
-            <EPWFilePath>USA_CO_Denver.Intl.AP.725650_TMY3.epw</EPWFilePath>
+            <EPWFilePath>USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw</EPWFilePath>
           </extension>
         </WeatherStation>
       </ClimateandRiskZones>
@@ -144,7 +74,7 @@
               <UnitofMeasure>ACH</UnitofMeasure>
               <AirLeakage>3.0</AirLeakage>
             </BuildingAirLeakage>
-            <InfiltrationVolume>21600.0</InfiltrationVolume>
+            <InfiltrationVolume>10800.0</InfiltrationVolume>
           </AirInfiltrationMeasurement>
         </AirInfiltration>
         <Attics>
@@ -165,12 +95,8 @@
           <Foundation>
             <SystemIdentifier id='Foundation1'/>
             <FoundationType>
-              <Basement>
-                <Conditioned>true</Conditioned>
-              </Basement>
+              <SlabOnGrade/>
             </FoundationType>
-            <AttachedToRimJoist idref='RimJoist1'/>
-            <AttachedToFoundationWall idref='FoundationWall1'/>
             <AttachedToSlab idref='Slab1'/>
           </Foundation>
         </Foundations>
@@ -189,21 +115,6 @@
             </Insulation>
           </Roof>
         </Roofs>
-        <RimJoists>
-          <RimJoist>
-            <SystemIdentifier id='RimJoist1'/>
-            <ExteriorAdjacentTo>outside</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>basement - conditioned</InteriorAdjacentTo>
-            <Area>115.6</Area>
-            <Siding>wood siding</Siding>
-            <SolarAbsorptance>0.7</SolarAbsorptance>
-            <Emittance>0.92</Emittance>
-            <Insulation>
-              <SystemIdentifier id='RimJoist1Insulation'/>
-              <AssemblyEffectiveRValue>23.0</AssemblyEffectiveRValue>
-            </Insulation>
-          </RimJoist>
-        </RimJoists>
         <Walls>
           <Wall>
             <SystemIdentifier id='Wall1'/>
@@ -242,33 +153,6 @@
             </Insulation>
           </Wall>
         </Walls>
-        <FoundationWalls>
-          <FoundationWall>
-            <SystemIdentifier id='FoundationWall1'/>
-            <ExteriorAdjacentTo>ground</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>basement - conditioned</InteriorAdjacentTo>
-            <Height>8.0</Height>
-            <Area>1200.0</Area>
-            <Thickness>8.0</Thickness>
-            <DepthBelowGrade>7.0</DepthBelowGrade>
-            <InteriorFinish>
-              <Type>gypsum board</Type>
-            </InteriorFinish>
-            <Insulation>
-              <SystemIdentifier id='FoundationWall1Insulation'/>
-              <Layer>
-                <InstallationType>continuous - exterior</InstallationType>
-                <NominalRValue>8.9</NominalRValue>
-                <DistanceToTopOfInsulation>0.0</DistanceToTopOfInsulation>
-                <DistanceToBottomOfInsulation>8.0</DistanceToBottomOfInsulation>
-              </Layer>
-              <Layer>
-                <InstallationType>continuous - interior</InstallationType>
-                <NominalRValue>0.0</NominalRValue>
-              </Layer>
-            </Insulation>
-          </FoundationWall>
-        </FoundationWalls>
         <Floors>
           <Floor>
             <SystemIdentifier id='Floor1'/>
@@ -282,16 +166,18 @@
             <InteriorFinish>
               <Type>gypsum board</Type>
             </InteriorFinish>
+            <RadiantBarrier>true</RadiantBarrier>
+            <RadiantBarrierGrade>2</RadiantBarrierGrade>
             <Insulation>
               <SystemIdentifier id='Floor1Insulation'/>
-              <AssemblyEffectiveRValue>39.3</AssemblyEffectiveRValue>
+              <AssemblyEffectiveRValue>8.7</AssemblyEffectiveRValue>
             </Insulation>
           </Floor>
         </Floors>
         <Slabs>
           <Slab>
             <SystemIdentifier id='Slab1'/>
-            <InteriorAdjacentTo>basement - conditioned</InteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
             <Area>1350.0</Area>
             <Thickness>4.0</Thickness>
             <ExposedPerimeter>150.0</ExposedPerimeter>
@@ -305,13 +191,13 @@
             <UnderSlabInsulation>
               <SystemIdentifier id='Slab1UnderSlabInsulation'/>
               <Layer>
-                <NominalRValue>0.0</NominalRValue>
-                <InsulationWidth>0.0</InsulationWidth>
+                <NominalRValue>5.0</NominalRValue>
+                <InsulationSpansEntireSlab>true</InsulationSpansEntireSlab>
               </Layer>
             </UnderSlabInsulation>
             <extension>
-              <CarpetFraction>0.0</CarpetFraction>
-              <CarpetRValue>0.0</CarpetRValue>
+              <CarpetFraction>1.0</CarpetFraction>
+              <CarpetRValue>2.5</CarpetRValue>
             </extension>
           </Slab>
         </Slabs>
@@ -397,7 +283,7 @@
                 <Furnace/>
               </HeatingSystemType>
               <HeatingSystemFuel>natural gas</HeatingSystemFuel>
-              <HeatingCapacity>36000.0</HeatingCapacity>
+              <HeatingCapacity>24000.0</HeatingCapacity>
               <AnnualHeatingEfficiency>
                 <Units>AFUE</Units>
                 <Value>0.92</Value>
@@ -449,14 +335,14 @@
                   <SystemIdentifier id='Ducts1'/>
                   <DuctType>supply</DuctType>
                   <DuctInsulationRValue>4.0</DuctInsulationRValue>
-                  <DuctLocation>attic - unvented</DuctLocation>
+                  <DuctLocation>under slab</DuctLocation>
                   <DuctSurfaceArea>150.0</DuctSurfaceArea>
                 </Ducts>
                 <Ducts>
                   <SystemIdentifier id='Ducts2'/>
                   <DuctType>return</DuctType>
                   <DuctInsulationRValue>0.0</DuctInsulationRValue>
-                  <DuctLocation>attic - unvented</DuctLocation>
+                  <DuctLocation>under slab</DuctLocation>
                   <DuctSurfaceArea>50.0</DuctSurfaceArea>
                 </Ducts>
               </AirDistribution>
@@ -497,34 +383,6 @@
             <LowFlow>false</LowFlow>
           </WaterFixture>
         </WaterHeating>
-        <Photovoltaics>
-          <PVSystem>
-            <SystemIdentifier id='PVSystem1'/>
-            <Location>roof</Location>
-            <ModuleType>standard</ModuleType>
-            <Tracking>fixed</Tracking>
-            <ArrayAzimuth>180</ArrayAzimuth>
-            <ArrayTilt>20.0</ArrayTilt>
-            <MaxPowerOutput>10000.0</MaxPowerOutput>
-            <SystemLossesFraction>0.14</SystemLossesFraction>
-            <AttachedToInverter idref='Inverter1'/>
-          </PVSystem>
-          <PVSystem>
-            <SystemIdentifier id='PVSystem2'/>
-            <Location>roof</Location>
-            <ModuleType>premium</ModuleType>
-            <Tracking>fixed</Tracking>
-            <ArrayAzimuth>90</ArrayAzimuth>
-            <ArrayTilt>20.0</ArrayTilt>
-            <MaxPowerOutput>1500.0</MaxPowerOutput>
-            <SystemLossesFraction>0.14</SystemLossesFraction>
-            <AttachedToInverter idref='Inverter1'/>
-          </PVSystem>
-          <Inverter>
-            <SystemIdentifier id='Inverter1'/>
-            <InverterEfficiency>0.96</InverterEfficiency>
-          </Inverter>
-        </Photovoltaics>
       </Systems>
       <Appliances>
         <ClothesWasher>
@@ -637,7 +495,7 @@
           <PlugLoadType>other</PlugLoadType>
           <Load>
             <Units>kWh/year</Units>
-            <Value>2457.0</Value>
+            <Value>1228.5</Value>
           </Load>
           <extension>
             <FracSensible>0.855</FracSensible>

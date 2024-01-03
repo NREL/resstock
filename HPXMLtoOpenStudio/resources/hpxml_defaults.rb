@@ -852,6 +852,14 @@ class HPXMLDefaults
         wall.interior_finish_thickness = 0.5
         wall.interior_finish_thickness_isdefaulted = true
       end
+      if wall.radiant_barrier.nil?
+        wall.radiant_barrier = false
+        wall.radiant_barrier_isdefaulted = true
+      end
+      if wall.radiant_barrier && wall.radiant_barrier_grade.nil?
+        wall.radiant_barrier_grade = 1
+        wall.radiant_barrier_grade_isdefaulted = true
+      end
     end
   end
 
@@ -937,6 +945,14 @@ class HPXMLDefaults
       if floor.interior_finish_type != HPXML::InteriorFinishNone
         floor.interior_finish_thickness = 0.5
         floor.interior_finish_thickness_isdefaulted = true
+      end
+      if floor.radiant_barrier.nil?
+        floor.radiant_barrier = false
+        floor.radiant_barrier_isdefaulted = true
+      end
+      if floor.radiant_barrier && floor.radiant_barrier_grade.nil?
+        floor.radiant_barrier_grade = 1
+        floor.radiant_barrier_grade_isdefaulted = true
       end
     end
   end
