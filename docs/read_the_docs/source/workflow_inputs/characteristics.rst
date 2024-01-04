@@ -7249,18 +7249,18 @@ Arguments
      - Type
      - Choices
      - Description
-   * - ``roof_radiant_barrier``
-     - true
+   * - ``radiant_barrier_attic_location``
+     - false
      - 
-     - Boolean
-     - "true", "false"
-     - Presence of a radiant barrier in the attic.
-   * - ``roof_radiant_barrier_grade``
+     - Choice
+     - "auto", "none", "Attic roof only", "Attic roof and gable walls", "Attic floor"
+     - The location of the radiant barrier in the attic.
+   * - ``radiant_barrier_grade``
      - false
      - 
      - Choice
      - "auto", "1", "2", "3"
-     - The grade of the radiant barrier. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
+     - The grade of the radiant barrier in the attic. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
 
 .. _range_spot_vent_hour:
 
