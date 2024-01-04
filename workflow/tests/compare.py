@@ -178,7 +178,7 @@ class BaseCompare:
             except BaseException:
                 pass
 
-            return(min_value, max_value)
+            return (min_value, max_value)
 
         def add_error_lines(fig, showlegend, row, col, min_value, max_value):
             fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value],
