@@ -4224,6 +4224,9 @@ class HPXMLFile
     hpxml_bldg.building_construction.conditioned_building_volume = conditioned_building_volume
     hpxml_bldg.building_construction.average_ceiling_height = args[:geometry_average_ceiling_height]
     hpxml_bldg.building_construction.residential_facility_type = args[:geometry_unit_type]
+    if args[:geometry_building_num_units].is_initialized
+      hpxml_bldg.building_construction.number_of_units_in_building = args[:geometry_building_num_units].get
+    end
 
     if args[:year_built].is_initialized
       hpxml_bldg.building_construction.year_built = args[:year_built].get
