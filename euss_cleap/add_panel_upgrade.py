@@ -149,12 +149,13 @@ else:
 
 # plot baseline amps
 df_b = pd.concat([df_b, baseline_panel_amp.rename("baseline_panel_amp")], axis=1)
-plot_panel_amps(df_b, ["build_existing_model.geometry_building_type_recs"], ["baseline_panel_amp"], "baseline", plotdir)
+plot_panel_amps(df_b, ["build_existing_model.geometry_building_type_recs"], ["baseline_panel_amp"], "baseline_bldgtype", plotdir)
+plot_panel_amps(df_b, ["build_existing_model.area_median_income"], ["baseline_panel_amp"], "baseline_ami", plotdir)
 
 ### upgrade
 for i in range(2):
 	groupby_lmi = False
-	if i == 0:
+	if i == 1:
 		groupby_lmi = True
 		print("\n ===== Results by LMI bin =====")
 
@@ -207,14 +208,24 @@ for i in range(2):
 		for min_delta in decrease_thresholds:
 			cond_high_delta = peak_delta_pct <= min_delta
 			df["cond_high_delta"] = cond_high_delta
-			n_high_delta = df.loc[df["cond_high_delta"] == True].groupby(["lmi"])["sample_weight"].sum()
+			if groupby_lmi:
+				n_high_delta = df.loc[df["cond_high_delta"] == True].groupby(["lmi"])["sample_weight"].sum()
+				if len(n_high_delta) == 0:
+					n_high_delta = pd.Series(0, index=n_applicable.index).rename("sample_weight")
+			else:
+				n_high_delta = df.loc[df["cond_high_delta"] == True, "sample_weight"].sum()
 			pct_high_delta = n_high_delta / n_applicable
 			delta_pct.append(pct_high_delta)
 		# increase
 		for min_delta in increase_thresholds:
 			cond_high_delta = peak_delta_pct >= min_delta
 			df["cond_high_delta"] = cond_high_delta
-			n_high_delta = df.loc[df["cond_high_delta"] == True].groupby(["lmi"])["sample_weight"].sum()
+			if groupby_lmi:
+				n_high_delta = df.loc[df["cond_high_delta"] == True].groupby(["lmi"])["sample_weight"].sum()
+				if len(n_high_delta) == 0:
+					n_high_delta = pd.Series(0, index=n_applicable.index).rename("sample_weight")
+			else:
+				n_high_delta = df.loc[df["cond_high_delta"] == True, "sample_weight"].sum()
 			pct_high_delta = n_high_delta / n_applicable
 			delta_pct.append(pct_high_delta)
 
@@ -276,7 +287,12 @@ for i in range(2):
 
 		cond_replace = (delta_loads > 0) & (new_panel_amp >= bl_panel_amp)
 		dfu["cond_replace"] = cond_replace
-		n_replace = dfu.loc[dfu["cond_replace"] == True].groupby(["lmi"])["sample_weight"].sum()
+		if groupby_lmi:
+			n_replace = dfu.loc[dfu["cond_replace"] == True].groupby(["lmi"])["sample_weight"].sum()
+			if len(n_replace) == 0:
+				n_replace = pd.Series(0, index=n_applicable.index).rename("sample_weight")
+		else:
+			n_replace = dfu.loc[dfu["cond_replace"] == True, "sample_weight"].sum()
 		pct_replace = n_replace / n_applicable
 
 		## calculate new required amp and plot
@@ -288,8 +304,8 @@ for i in range(2):
 		# dfu.loc[cond_replace, "new_nec_panel_amp"] = dff.loc[cond_replace, "new_nec_panel_amp"]
 
 		dfu.loc[cond_replace, "new_nec_panel_amp"] = dfu.loc[cond_replace, "new_load_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
-		plot_panel_amps(dfu, ["build_existing_model.geometry_building_type_recs"], ["new_nec_panel_amp"], f"new_load__{upgrade_name}", plotdir)
-		plot_panel_amps(dfu, ["build_existing_model.area_median_income"], ["new_nec_panel_amp"], f"new_load__{upgrade_name}", plotdir)
+		plot_panel_amps(dfu, ["build_existing_model.geometry_building_type_recs"], ["new_nec_panel_amp"], f"new_load__{upgrade_name}_bldgtype", plotdir)
+		plot_panel_amps(dfu, ["build_existing_model.area_median_income"], ["new_nec_panel_amp"], f"new_load__{upgrade_name}_ami", plotdir)
 
 		
 		# --- NEC 220.87 (Load Study) ---
@@ -299,7 +315,12 @@ for i in range(2):
 
 		cond_replace_load_study = (new_loads > 0) & (new_panel_amp_load_study >= bl_panel_amp)
 		dfu["cond_replace_load_study"] = cond_replace_load_study
-		n_replace_load_study = dfu.loc[dfu["cond_replace_load_study"] == True].groupby(["lmi"])["sample_weight"].sum()
+		if groupby_lmi:
+			n_replace_load_study = dfu.loc[dfu["cond_replace_load_study"] == True].groupby(["lmi"])["sample_weight"].sum()
+			if len(n_replace_load_study) == 0:
+				n_replace_load_study = pd.Series(0, index=n_applicable.index).rename("sample_weight")
+		else:
+			n_replace_load_study = dfu.loc[dfu["cond_replace_load_study"] == True, "sample_weight"].sum()
 		pct_replace_load_study = n_replace_load_study / n_applicable
 
 
