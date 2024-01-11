@@ -4,7 +4,7 @@ Features
 - Updates and enhancements to the ground source heat pump model; ability to describe detailed geothermal loop inputs ([#1187](https://github.com/NREL/resstock/pull/1187))
 
 Fixes
--
+- Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
 
 ## ResStock v3.2.0
 ###### December 19, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.1...v3.2.0)
