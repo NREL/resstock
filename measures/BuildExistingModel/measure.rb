@@ -727,7 +727,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     hpxml_bldg = hpxml.buildings[0]
     if run_hescore_workflow
-      register_value(runner, 'zip_code', hpxml_bldg.header.zip_code)
+      register_value(runner, 'zip_code', hpxml_bldg.zip_code)
     else
       epw_path = Location.get_epw_path(hpxml_bldg, hpxml_path)
       epw_file = OpenStudio::EpwFile.new(epw_path)
