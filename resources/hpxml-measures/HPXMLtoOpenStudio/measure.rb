@@ -1545,7 +1545,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     Waterheater.apply_combi_system_EMS(model, @hpxml_bldg.water_heating_systems, plantloop_map)
     
     # Add unmet wh loads calculation
-    Waterheater.unmet_wh_loads_program(model, @hpxml.water_heating_systems, plantloop_map, showers_peak_flow)
+    Waterheater.unmet_wh_loads_program(model, @hpxml_bldg.water_heating_systems, plantloop_map, showers_peak_flow)
   
   end
 

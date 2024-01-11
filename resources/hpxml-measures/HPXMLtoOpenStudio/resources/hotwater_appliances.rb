@@ -309,7 +309,7 @@ class HotWaterAndAppliances
       showers_schedule = nil
       showers_col_name = SchedulesFile::ColumnHotWaterShowers
       if not schedules_file.nil?
-        showers_schedule = schedules_file.create_schedule_file(col_name: showers_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
+        showers_schedule = schedules_file.create_schedule_file(model,col_name: showers_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if showers_schedule.nil?
         showers_unavailable_periods = Schedule.get_unavailable_periods(runner, showers_col_name, unavailable_periods)
@@ -334,9 +334,9 @@ class HotWaterAndAppliances
       if gpd_frac > 0
 
         #For showers, calculate flow rates but don't add a WaterUse:Equipment object. Shower usage is included in fixtures and only used for tracking unmet loads
-        fx_gpd = get_fixtures_gpd(eri_version, nbeds, fixtures_all_low_flow, daily_mw_fractions, fixtures_usage_multiplier)
-        shower_gpd = get_showers_gpd(eri_version, nbeds, fixtures_all_low_flow, daily_mw_fractions, fixtures_usage_multiplier)
-        w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, hot_water_distribution, fixtures_all_low_flow, fixtures_usage_multiplier)
+        fx_gpd = get_fixtures_gpd(eri_version, nbeds, frac_low_flow_fixtures, daily_mw_fractions, fixtures_usage_multiplier)
+        shower_gpd = get_showers_gpd(eri_version, nbeds, frac_low_flow_fixtures, daily_mw_fractions, fixtures_usage_multiplier)
+        w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, hot_water_distribution, frac_low_flow_fixtures, fixtures_usage_multiplier)
 
         fx_peak_flow = nil
         shower_peak_flow = nil
@@ -1015,7 +1015,7 @@ class HotWaterAndAppliances
     return f_eff * ref_f_gpd * fixtures_usage_multiplier
   end
 
-  def self.get_showers_gpd(eri_version, nbeds, fixtures_all_low_flow, daily_mw_fractions, fixtures_usage_multiplier = 1.0)
+  def self.get_showers_gpd(eri_version, nbeds, frac_low_flow_fixtures, daily_mw_fractions, fixtures_usage_multiplier = 1.0)
     if nbeds < 0.0
       return 0.0
     end
@@ -1031,7 +1031,7 @@ class HotWaterAndAppliances
     # ANSI/RESNET 301-2014 Addendum A-2015
     # Amendment on Domestic Hot Water (DHW) Systems
     ref_shower_gpd = 14.0 + 4.67 * nbeds # Based on BA Benchmark shower usage
-    f_eff = get_fixtures_effectiveness(fixtures_all_low_flow)
+    f_eff = get_fixtures_effectiveness(frac_low_flow_fixtures)
 
     return f_eff * ref_shower_gpd * fixtures_usage_multiplier
   end

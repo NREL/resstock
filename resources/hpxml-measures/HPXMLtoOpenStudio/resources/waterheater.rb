@@ -1746,9 +1746,6 @@ class Waterheater
 
     if tank_model_type == HPXML::WaterHeaterTankModelTypeStratified
       h_tank = get_tank_height() # ft
-      # height of upper and lower element based on TRNSYS assumptions for an ERWH
-      h_UE = 0.733333333 * h_tank # node 4/15
-      h_LE = 0.133333333 * h_tank # node 13/15
 
       # Add a WaterHeater:Stratified to the model
       new_heater = OpenStudio::Model::WaterHeaterStratified.new(model)

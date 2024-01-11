@@ -354,17 +354,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       return result
     end
 
-    unmet_hours_program = @model.getModelObjectByName(Constants.ObjectNameUnmetHoursProgram.gsub(' ', '_')).get.to_EnergyManagementSystemProgram.get
+    unmet_hours_program = @model.getEnergyManagementSystemPrograms.find { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameUnmetHoursProgram }
     unmet_loads_program = @model.getModelObjectByName(Constants.ObjectNameUnmetLoadsProgram.gsub(' ', '_')).get.to_EnergyManagementSystemProgram.get
-    total_loads_program = @model.getModelObjectByName(Constants.ObjectNameTotalLoadsProgram.gsub(' ', '_')).get.to_EnergyManagementSystemProgram.get
-    comp_loads_program = @model.getModelObjectByName(Constants.ObjectNameComponentLoadsProgram.gsub(' ', '_'))
-    if comp_loads_program.is_initialized
-      comp_loads_program = comp_loads_program.get.to_EnergyManagementSystemProgram.get
-    else
-      comp_loads_program = nil
-    end
-    has_heating = @model.getBuilding.additionalProperties.getFeatureAsBoolean('has_heating').get
-    has_cooling = @model.getBuilding.additionalProperties.getFeatureAsBoolean('has_cooling').get
+    total_loads_program = @model.getEnergyManagementSystemPrograms.find { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameTotalLoadsProgram }
+    comp_loads_program = @model.getEnergyManagementSystemPrograms.find { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameComponentLoadsProgram }
+    heated_zones = eval(@model.getBuilding.additionalProperties.getFeatureAsString('heated_zones').get)
+    cooled_zones = eval(@model.getBuilding.additionalProperties.getFeatureAsString('cooled_zones').get)
 
     args = get_arguments(runner, arguments(model), user_arguments)
 
