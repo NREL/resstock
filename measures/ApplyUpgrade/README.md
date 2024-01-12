@@ -2197,6 +2197,3051 @@ The option lifetime.
 
 <br/>
 
+**Option 26**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_26``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 26 Apply Logic**
+
+Logic that specifies if the Option 26 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_26_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 26 Cost 1 Value**
+
+Total option 26 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_26_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 26 Cost 1 Multiplier**
+
+Total option 26 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_26_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 26 Cost 2 Value**
+
+Total option 26 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_26_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 26 Cost 2 Multiplier**
+
+Total option 26 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_26_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 26 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_26_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 27**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_27``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 27 Apply Logic**
+
+Logic that specifies if the Option 27 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_27_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 27 Cost 1 Value**
+
+Total option 27 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_27_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 27 Cost 1 Multiplier**
+
+Total option 27 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_27_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 27 Cost 2 Value**
+
+Total option 27 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_27_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 27 Cost 2 Multiplier**
+
+Total option 27 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_27_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 27 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_27_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 28**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_28``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 28 Apply Logic**
+
+Logic that specifies if the Option 28 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_28_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 28 Cost 1 Value**
+
+Total option 28 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_28_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 28 Cost 1 Multiplier**
+
+Total option 28 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_28_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 28 Cost 2 Value**
+
+Total option 28 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_28_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 28 Cost 2 Multiplier**
+
+Total option 28 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_28_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 28 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_28_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 29**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_29``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 29 Apply Logic**
+
+Logic that specifies if the Option 29 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_29_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 29 Cost 1 Value**
+
+Total option 29 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_29_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 29 Cost 1 Multiplier**
+
+Total option 29 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_29_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 29 Cost 2 Value**
+
+Total option 29 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_29_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 29 Cost 2 Multiplier**
+
+Total option 29 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_29_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 29 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_29_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 30**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_30``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 30 Apply Logic**
+
+Logic that specifies if the Option 30 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_30_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 30 Cost 1 Value**
+
+Total option 30 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_30_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 30 Cost 1 Multiplier**
+
+Total option 30 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_30_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 30 Cost 2 Value**
+
+Total option 30 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_30_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 30 Cost 2 Multiplier**
+
+Total option 30 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_30_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 30 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_30_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 31**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_31``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 31 Apply Logic**
+
+Logic that specifies if the Option 31 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_31_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 31 Cost 1 Value**
+
+Total option 31 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_31_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 31 Cost 1 Multiplier**
+
+Total option 31 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_31_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 31 Cost 2 Value**
+
+Total option 31 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_31_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 31 Cost 2 Multiplier**
+
+Total option 31 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_31_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 31 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_31_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 32**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_32``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 32 Apply Logic**
+
+Logic that specifies if the Option 32 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_32_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 32 Cost 1 Value**
+
+Total option 32 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_32_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 32 Cost 1 Multiplier**
+
+Total option 32 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_32_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 32 Cost 2 Value**
+
+Total option 32 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_32_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 32 Cost 2 Multiplier**
+
+Total option 32 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_32_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 32 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_32_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 33**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_33``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 33 Apply Logic**
+
+Logic that specifies if the Option 33 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_33_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 33 Cost 1 Value**
+
+Total option 33 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_33_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 33 Cost 1 Multiplier**
+
+Total option 33 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_33_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 33 Cost 2 Value**
+
+Total option 33 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_33_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 33 Cost 2 Multiplier**
+
+Total option 33 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_33_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 33 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_33_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 34**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_34``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 34 Apply Logic**
+
+Logic that specifies if the Option 34 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_34_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 34 Cost 1 Value**
+
+Total option 34 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_34_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 34 Cost 1 Multiplier**
+
+Total option 34 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_34_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 34 Cost 2 Value**
+
+Total option 34 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_34_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 34 Cost 2 Multiplier**
+
+Total option 34 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_34_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 34 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_34_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 35**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_35``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 35 Apply Logic**
+
+Logic that specifies if the Option 35 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_35_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 35 Cost 1 Value**
+
+Total option 35 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_35_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 35 Cost 1 Multiplier**
+
+Total option 35 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_35_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 35 Cost 2 Value**
+
+Total option 35 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_35_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 35 Cost 2 Multiplier**
+
+Total option 35 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_35_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 35 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_35_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 36**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_36``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 36 Apply Logic**
+
+Logic that specifies if the Option 36 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_36_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 36 Cost 1 Value**
+
+Total option 36 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_36_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 36 Cost 1 Multiplier**
+
+Total option 36 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_36_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 36 Cost 2 Value**
+
+Total option 36 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_36_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 36 Cost 2 Multiplier**
+
+Total option 36 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_36_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 36 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_36_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 37**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_37``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 37 Apply Logic**
+
+Logic that specifies if the Option 37 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_37_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 37 Cost 1 Value**
+
+Total option 37 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_37_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 37 Cost 1 Multiplier**
+
+Total option 37 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_37_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 37 Cost 2 Value**
+
+Total option 37 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_37_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 37 Cost 2 Multiplier**
+
+Total option 37 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_37_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 37 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_37_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 38**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_38``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 38 Apply Logic**
+
+Logic that specifies if the Option 38 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_38_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 38 Cost 1 Value**
+
+Total option 38 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_38_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 38 Cost 1 Multiplier**
+
+Total option 38 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_38_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 38 Cost 2 Value**
+
+Total option 38 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_38_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 38 Cost 2 Multiplier**
+
+Total option 38 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_38_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 38 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_38_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 39**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_39``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 39 Apply Logic**
+
+Logic that specifies if the Option 39 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_39_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 39 Cost 1 Value**
+
+Total option 39 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_39_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 39 Cost 1 Multiplier**
+
+Total option 39 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_39_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 39 Cost 2 Value**
+
+Total option 39 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_39_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 39 Cost 2 Multiplier**
+
+Total option 39 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_39_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 39 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_39_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 40**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_40``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 40 Apply Logic**
+
+Logic that specifies if the Option 40 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_40_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 40 Cost 1 Value**
+
+Total option 40 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_40_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 40 Cost 1 Multiplier**
+
+Total option 40 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_40_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 40 Cost 2 Value**
+
+Total option 40 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_40_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 40 Cost 2 Multiplier**
+
+Total option 40 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_40_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 40 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_40_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 41**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_41``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 41 Apply Logic**
+
+Logic that specifies if the Option 41 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_41_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 41 Cost 1 Value**
+
+Total option 41 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_41_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 41 Cost 1 Multiplier**
+
+Total option 41 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_41_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 41 Cost 2 Value**
+
+Total option 41 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_41_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 41 Cost 2 Multiplier**
+
+Total option 41 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_41_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 41 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_41_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 42**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_42``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 42 Apply Logic**
+
+Logic that specifies if the Option 42 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_42_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 42 Cost 1 Value**
+
+Total option 42 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_42_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 42 Cost 1 Multiplier**
+
+Total option 42 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_42_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 42 Cost 2 Value**
+
+Total option 42 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_42_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 42 Cost 2 Multiplier**
+
+Total option 42 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_42_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 42 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_42_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 43**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_43``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 43 Apply Logic**
+
+Logic that specifies if the Option 43 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_43_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 43 Cost 1 Value**
+
+Total option 43 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_43_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 43 Cost 1 Multiplier**
+
+Total option 43 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_43_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 43 Cost 2 Value**
+
+Total option 43 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_43_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 43 Cost 2 Multiplier**
+
+Total option 43 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_43_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 43 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_43_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 44**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_44``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 44 Apply Logic**
+
+Logic that specifies if the Option 44 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_44_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 44 Cost 1 Value**
+
+Total option 44 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_44_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 44 Cost 1 Multiplier**
+
+Total option 44 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_44_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 44 Cost 2 Value**
+
+Total option 44 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_44_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 44 Cost 2 Multiplier**
+
+Total option 44 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_44_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 44 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_44_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 45**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_45``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 45 Apply Logic**
+
+Logic that specifies if the Option 45 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_45_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 45 Cost 1 Value**
+
+Total option 45 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_45_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 45 Cost 1 Multiplier**
+
+Total option 45 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_45_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 45 Cost 2 Value**
+
+Total option 45 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_45_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 45 Cost 2 Multiplier**
+
+Total option 45 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_45_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 45 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_45_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 46**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_46``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 46 Apply Logic**
+
+Logic that specifies if the Option 46 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_46_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 46 Cost 1 Value**
+
+Total option 46 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_46_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 46 Cost 1 Multiplier**
+
+Total option 46 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_46_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 46 Cost 2 Value**
+
+Total option 46 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_46_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 46 Cost 2 Multiplier**
+
+Total option 46 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_46_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 46 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_46_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 47**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_47``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 47 Apply Logic**
+
+Logic that specifies if the Option 47 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_47_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 47 Cost 1 Value**
+
+Total option 47 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_47_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 47 Cost 1 Multiplier**
+
+Total option 47 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_47_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 47 Cost 2 Value**
+
+Total option 47 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_47_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 47 Cost 2 Multiplier**
+
+Total option 47 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_47_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 47 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_47_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 48**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_48``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 48 Apply Logic**
+
+Logic that specifies if the Option 48 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_48_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 48 Cost 1 Value**
+
+Total option 48 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_48_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 48 Cost 1 Multiplier**
+
+Total option 48 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_48_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 48 Cost 2 Value**
+
+Total option 48 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_48_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 48 Cost 2 Multiplier**
+
+Total option 48 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_48_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 48 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_48_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 49**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_49``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 49 Apply Logic**
+
+Logic that specifies if the Option 49 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_49_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 49 Cost 1 Value**
+
+Total option 49 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_49_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 49 Cost 1 Multiplier**
+
+Total option 49 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_49_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 49 Cost 2 Value**
+
+Total option 49 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_49_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 49 Cost 2 Multiplier**
+
+Total option 49 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_49_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 49 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_49_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 50**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_50``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 50 Apply Logic**
+
+Logic that specifies if the Option 50 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_50_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 50 Cost 1 Value**
+
+Total option 50 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_50_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 50 Cost 1 Multiplier**
+
+Total option 50 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_50_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 50 Cost 2 Value**
+
+Total option 50 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_50_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 50 Cost 2 Multiplier**
+
+Total option 50 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_50_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 50 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_50_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 51**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_51``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 51 Apply Logic**
+
+Logic that specifies if the Option 51 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_51_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 51 Cost 1 Value**
+
+Total option 51 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_51_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 51 Cost 1 Multiplier**
+
+Total option 51 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_51_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 51 Cost 2 Value**
+
+Total option 51 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_51_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 51 Cost 2 Multiplier**
+
+Total option 51 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_51_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 51 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_51_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 52**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_52``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 52 Apply Logic**
+
+Logic that specifies if the Option 52 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_52_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 52 Cost 1 Value**
+
+Total option 52 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_52_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 52 Cost 1 Multiplier**
+
+Total option 52 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_52_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 52 Cost 2 Value**
+
+Total option 52 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_52_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 52 Cost 2 Multiplier**
+
+Total option 52 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_52_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 52 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_52_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 53**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_53``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 53 Apply Logic**
+
+Logic that specifies if the Option 53 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_53_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 53 Cost 1 Value**
+
+Total option 53 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_53_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 53 Cost 1 Multiplier**
+
+Total option 53 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_53_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 53 Cost 2 Value**
+
+Total option 53 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_53_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 53 Cost 2 Multiplier**
+
+Total option 53 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_53_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 53 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_53_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 54**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_54``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 54 Apply Logic**
+
+Logic that specifies if the Option 54 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_54_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 54 Cost 1 Value**
+
+Total option 54 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_54_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 54 Cost 1 Multiplier**
+
+Total option 54 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_54_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 54 Cost 2 Value**
+
+Total option 54 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_54_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 54 Cost 2 Multiplier**
+
+Total option 54 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_54_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 54 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_54_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 55**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_55``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 55 Apply Logic**
+
+Logic that specifies if the Option 55 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_55_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 55 Cost 1 Value**
+
+Total option 55 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_55_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 55 Cost 1 Multiplier**
+
+Total option 55 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_55_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 55 Cost 2 Value**
+
+Total option 55 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_55_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 55 Cost 2 Multiplier**
+
+Total option 55 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_55_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 55 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_55_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 56**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_56``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 56 Apply Logic**
+
+Logic that specifies if the Option 56 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_56_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 56 Cost 1 Value**
+
+Total option 56 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_56_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 56 Cost 1 Multiplier**
+
+Total option 56 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_56_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 56 Cost 2 Value**
+
+Total option 56 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_56_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 56 Cost 2 Multiplier**
+
+Total option 56 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_56_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 56 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_56_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 57**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_57``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 57 Apply Logic**
+
+Logic that specifies if the Option 57 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_57_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 57 Cost 1 Value**
+
+Total option 57 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_57_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 57 Cost 1 Multiplier**
+
+Total option 57 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_57_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 57 Cost 2 Value**
+
+Total option 57 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_57_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 57 Cost 2 Multiplier**
+
+Total option 57 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_57_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 57 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_57_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 58**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_58``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 58 Apply Logic**
+
+Logic that specifies if the Option 58 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_58_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 58 Cost 1 Value**
+
+Total option 58 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_58_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 58 Cost 1 Multiplier**
+
+Total option 58 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_58_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 58 Cost 2 Value**
+
+Total option 58 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_58_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 58 Cost 2 Multiplier**
+
+Total option 58 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_58_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 58 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_58_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 59**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_59``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 59 Apply Logic**
+
+Logic that specifies if the Option 59 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_59_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 59 Cost 1 Value**
+
+Total option 59 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_59_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 59 Cost 1 Multiplier**
+
+Total option 59 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_59_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 59 Cost 2 Value**
+
+Total option 59 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_59_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 59 Cost 2 Multiplier**
+
+Total option 59 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_59_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 59 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_59_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 60**
+
+Specify the parameter|option as found in resources\options_lookup.tsv.
+
+- **Name:** ``option_60``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 60 Apply Logic**
+
+Logic that specifies if the Option 60 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.
+
+- **Name:** ``option_60_apply_logic``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 60 Cost 1 Value**
+
+Total option 60 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_60_cost_1_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 60 Cost 1 Multiplier**
+
+Total option 60 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_60_cost_1_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 60 Cost 2 Value**
+
+Total option 60 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_60_cost_2_value``
+- **Type:** ``Double``
+
+- **Units:** ``$``
+
+- **Required:** ``false``
+
+<br/>
+
+**Option 60 Cost 2 Multiplier**
+
+Total option 60 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).
+
+- **Name:** ``option_60_cost_2_multiplier``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** ``, `Fixed (1)`, `Wall Area, Above-Grade, Conditioned (ft^2)`, `Wall Area, Above-Grade, Exterior (ft^2)`, `Wall Area, Below-Grade (ft^2)`, `Floor Area, Conditioned (ft^2)`, `Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)`, `Floor Area, Lighting (ft^2)`, `Floor Area, Foundation (ft^2)`, `Floor Area, Attic (ft^2)`, `Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)`, `Roof Area (ft^2)`, `Window Area (ft^2)`, `Door Area (ft^2)`, `Duct Unconditioned Surface Area (ft^2)`, `Rim Joist Area, Above-Grade, Exterior (ft^2)`, `Slab Perimeter, Exposed, Conditioned (ft)`, `Size, Heating System Primary (kBtu/h)`, `Size, Heating System Secondary (kBtu/h)`, `Size, Cooling System Primary (kBtu/h)`, `Size, Heat Pump Backup Primary (kBtu/h)`, `Size, Water Heater (gal)`, `Flow Rate, Mechanical Ventilation (cfm)`
+
+<br/>
+
+**Option 60 Lifetime**
+
+The option lifetime.
+
+- **Name:** ``option_60_lifetime``
+- **Type:** ``Double``
+
+- **Units:** ``years``
+
+- **Required:** ``false``
+
+<br/>
+
 **Package Apply Logic**
 
 Logic that specifies if the entire package upgrade (all options) will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.

@@ -3,24 +3,31 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_baseline
-weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+output_directory: /projects/enduse/buildstocks_500k/
+# weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota
+  type: residential_quota_downselect
   args:
-    n_datapoints: 250
+    n_datapoints: 550000
+    logic: 
+      not:
+        or:
+          - State|AK
+          - State|HI
+    resample: true
 
-eagle:
-  n_jobs: 3
-  minutes_per_sim: 30
+
+kestrel:
+  n_jobs: 10
+  minutes_per_sim: 0.8
   account: enduse
-  postprocessing:
-    time: 20
-    n_workers: 1
   sampling:
-    time: 5
+    time: 30
+  postprocessing:
+    time: 30
+    n_workers: 4
 
 postprocessing:
   keep_individual_timeseries: false
@@ -94,7 +101,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
 
     options:
         ### -- ENERGY STAR ASHP applies to all dwellings with ducts
@@ -181,7 +188,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
 
     options:
         ### -- High efficiency CC ASHP applies to all dwellings with ducts
@@ -252,7 +259,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
 
     options:
         ### -- Ultra high efficiency ASHP applies to all dwellings with ducts
@@ -307,7 +314,7 @@ upgrades:
       - not:
         - or:
           - HVAC Heating Efficiency|Shared Heating
-          - HVAC Heating Efficiency|Shared Cooling
+          - HVAC Cooling Efficiency|Shared Cooling
       - or:
         - HVAC Has Ducts|Yes
         - HVAC Has Ducts|No
@@ -496,7 +503,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
 
     options:
         ### -- GTHP applies to all dwellings with ducts
@@ -547,7 +554,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
 
     options: 
         ### -- ENERGY STAR heat pumps ###
@@ -672,7 +679,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
 
     options:
       - *ducted_ASHP_HighEfficiencyCC_elec_backup
@@ -701,7 +708,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
 
     options:
       - *ducted_ASHP_UltraHighEfficiency_elec_backup
@@ -781,7 +788,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
     
     package_apply_logic: &only_dwellings_with_ducts
       - HVAC Has Ducts|Yes
@@ -811,7 +818,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
 
     options: 
         ### -- ENERGY STAR heat pumps ###
@@ -940,7 +947,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
 
     options:
       - *ducted_ASHP_HighEfficiencyCC_elec_backup
@@ -981,7 +988,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
 
     options:
       - *ducted_ASHP_UltraHighEfficiency_elec_backup
@@ -1085,7 +1092,7 @@ upgrades:
     #   - not:
     #     - or:
     #       - HVAC Heating Efficiency|Shared Heating
-    #       - HVAC Heating Efficiency|Shared Cooling
+    #       - HVAC Cooling Efficiency|Shared Cooling
 
     package_apply_logic: *only_dwellings_with_ducts
 
