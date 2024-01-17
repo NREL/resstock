@@ -11,8 +11,6 @@ require_relative '../resources/xmlvalidator.rb'
 
 class HPXMLtoOpenStudioValidationTest < Minitest::Test
   def setup
-    OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
-
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
     @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')
     schema_path = File.absolute_path(File.join(@root_path, 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd'))
@@ -70,7 +68,6 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
   end
 
   def test_schema_schematron_error_messages
-    OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
     # Test case => Error message
     all_expected_errors = { 'boiler-invalid-afue' => ['Expected AnnualHeatingEfficiency[Units="AFUE"]/Value to be less than or equal to 1'],
                             'clothes-dryer-location' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
@@ -676,7 +673,6 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
   end
 
   def test_schema_schematron_warning_messages
-    OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
     # Test case => Warning message
     all_expected_warnings = { 'battery-pv-output-power-low' => ['Max power output should typically be greater than or equal to 500 W.',
                                                                 'Max power output should typically be greater than or equal to 500 W.',
