@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>2ed07206-d696-427a-8180-bc1e83f1493f</version_id>
-  <version_modified>2024-01-04T21:36:40Z</version_modified>
+  <version_id>f7857399-a3b7-4fda-9289-16b9cd33c128</version_id>
+  <version_modified>2024-01-17T19:57:19Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -2755,6 +2755,115 @@
       <description>Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-air, mini-split, packaged terminal heat pump and room air conditioner with reverse cycle. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump'&gt;Air-to-Air Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump'&gt;Mini-Split Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump'&gt;Packaged Terminal Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle'&gt;Room Air Conditioner w/ Reverse Cycle&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>W</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_perf_data_capacity_type</name>
+      <display_name>HVAC Detailed Performance Data: Capacity Type</display_name>
+      <description>Type of capacity values for detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps).</description>
+      <type>Choice</type>
+      <units>Absolute capacities</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>Absolute capacities</value>
+          <display_name>Absolute capacities</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>hvac_perf_data_heating_outdoor_temperatures</name>
+      <display_name>HVAC Detailed Performance Data: Heating Outdoor Temperatures</display_name>
+      <description>Outdoor temperatures of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). One of the outdoor temperatures must be 47 deg-F. At least two performance data points are required using a comma-separated list.</description>
+      <type>String</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_perf_data_heating_min_speed_capacities</name>
+      <display_name>HVAC Detailed Performance Data: Heating Minimum Speed Capacities</display_name>
+      <description>Minimum speed capacities of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.</description>
+      <type>String</type>
+      <units>Btu/hr or Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_perf_data_heating_max_speed_capacities</name>
+      <display_name>HVAC Detailed Performance Data: Heating Maximum Speed Capacities</display_name>
+      <description>Maximum speed capacities of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.</description>
+      <type>String</type>
+      <units>Btu/hr or Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_perf_data_heating_min_speed_cops</name>
+      <display_name>HVAC Detailed Performance Data: Heating Minimum Speed COPs</display_name>
+      <description>Minimum speed efficiency COP values of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.</description>
+      <type>String</type>
+      <units>W/W</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_perf_data_heating_max_speed_cops</name>
+      <display_name>HVAC Detailed Performance Data: Heating Maximum Speed COPs</display_name>
+      <description>Maximum speed efficiency COP values of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.</description>
+      <type>String</type>
+      <units>W/W</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_perf_data_cooling_outdoor_temperatures</name>
+      <display_name>HVAC Detailed Performance Data: Cooling Outdoor Temperatures</display_name>
+      <description>Outdoor temperatures of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). One of the outdoor temperatures must be 95 deg-F. At least two performance data points are required using a comma-separated list.</description>
+      <type>String</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_perf_data_cooling_min_speed_capacities</name>
+      <display_name>HVAC Detailed Performance Data: Cooling Minimum Speed Capacities</display_name>
+      <description>Minimum speed capacities of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.</description>
+      <type>String</type>
+      <units>Btu/hr or Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_perf_data_cooling_max_speed_capacities</name>
+      <display_name>HVAC Detailed Performance Data: Cooling Maximum Speed Capacities</display_name>
+      <description>Maximum speed capacities of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.</description>
+      <type>String</type>
+      <units>Btu/hr or Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_perf_data_cooling_min_speed_cops</name>
+      <display_name>HVAC Detailed Performance Data: Cooling Minimum Speed COPs</display_name>
+      <description>Minimum speed efficiency COP values of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.</description>
+      <type>String</type>
+      <units>W/W</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_perf_data_cooling_max_speed_cops</name>
+      <display_name>HVAC Detailed Performance Data: Cooling Maximum Speed COPs</display_name>
+      <description>Maximum speed efficiency COP values of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.</description>
+      <type>String</type>
+      <units>W/W</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -7147,7 +7256,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>202E5F10</checksum>
+      <checksum>944D3EE8</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
