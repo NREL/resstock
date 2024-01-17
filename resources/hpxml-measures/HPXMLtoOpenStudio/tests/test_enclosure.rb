@@ -104,25 +104,54 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
         _check_surface(hpxml_bldg.roofs[i], os_surface, roof_values[:layer_names])
       end
     end
+  end
 
-    # Radiant Barrier
+  def test_radiant_barriers
+    # Attic roof and gable walls
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
 
-    # Open cavity, asphalt shingles roof
     roofs_values = [{ assembly_r: 0.1, layer_names: ['asphalt or fiberglass shingles', 'radiant barrier'] },
                     { assembly_r: 5.0, layer_names: ['asphalt or fiberglass shingles', 'roof rigid ins', 'osb sheathing', 'radiant barrier'] },
                     { assembly_r: 20.0, layer_names: ['asphalt or fiberglass shingles', 'roof rigid ins', 'osb sheathing', 'radiant barrier'] }]
+    gablewalls_values = [{ assembly_r: 0.1, layer_names: ['wood siding', 'wall stud and cavity', 'radiant barrier'] },
+                         { assembly_r: 5.0, layer_names: ['wood siding', 'osb sheathing 0.5 in.', 'wall stud and cavity', 'radiant barrier'] },
+                         { assembly_r: 20.0, layer_names: ['wood siding', 'wall rigid ins', 'osb sheathing 0.5 in.', 'wall stud and cavity', 'radiant barrier'] }]
 
     hpxml, hpxml_bldg = _create_hpxml('base-atticroof-radiant-barrier.xml')
-    roofs_values.each do |roof_values|
+    roofs_values.each_with_index do |roof_values, idx|
+      gablewall_values = gablewalls_values[idx]
       hpxml_bldg.roofs[0].insulation_assembly_r_value = roof_values[:assembly_r]
+      hpxml_bldg.walls[1].insulation_assembly_r_value = gablewall_values[:assembly_r]
       XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
       model, hpxml, hpxml_bldg = _test_measure(args_hash)
 
-      # Check properties
+      # Check roof properties
       os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml_bldg.roofs[0].id}:" }
-      _check_surface(hpxml_bldg.roofs[0], os_surface, roof_values[:layer_names])
+      _check_surface(hpxml_bldg.roofs[0], os_surface, roof_values[:layer_names], 0.05)
+
+      # Check gable wall properties
+      os_surface = model.getSurfaces.find { |s| s.name.to_s.start_with? "#{hpxml_bldg.walls[1].id}:" }
+      _check_surface(hpxml_bldg.walls[1], os_surface, gablewall_values[:layer_names], 0.05)
+    end
+
+    # Attic floor
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+
+    ceilings_values = [{ assembly_r: 0.1, layer_names: ['radiant barrier', 'ceiling stud and cavity', 'gypsum board'] },
+                       { assembly_r: 5.0, layer_names: ['radiant barrier', 'ceiling stud and cavity', 'gypsum board'] },
+                       { assembly_r: 20.0, layer_names: ['radiant barrier', 'ceiling loosefill ins', 'ceiling stud and cavity', 'gypsum board'] }]
+
+    hpxml, hpxml_bldg = _create_hpxml('base-atticroof-radiant-barrier-ceiling.xml')
+    ceilings_values.each do |ceiling_values|
+      hpxml_bldg.floors[0].insulation_assembly_r_value = ceiling_values[:assembly_r]
+      XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+      model, hpxml, hpxml_bldg = _test_measure(args_hash)
+
+      # Check ceiling properties
+      os_surface = model.getSurfaces.find { |s| s.name.to_s == hpxml_bldg.floors[0].id }
+      _check_surface(hpxml_bldg.floors[0], os_surface, ceiling_values[:layer_names], 0.5)
     end
   end
 
@@ -1003,7 +1032,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
     assert_in_delta(0.6667, front_back_wall_length / left_right_wall_length, 0.01)
   end
 
-  def _check_surface(hpxml_surface, os_surface, expected_layer_names)
+  def _check_surface(hpxml_surface, os_surface, expected_layer_names, radiant_barrier_emittance = nil)
     os_construction = os_surface.construction.get.to_LayeredConstruction.get
 
     # Check exterior solar absorptance and emittance
@@ -1015,12 +1044,21 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
       assert_equal(hpxml_surface.emittance, exterior_layer.thermalAbsorptance)
     end
 
+    # Check radiant barrier properties
+    has_radiant_barrier = false
+    expected_layer_names.each_with_index do |expected_layer_name, idx|
+      next if expected_layer_name != 'radiant barrier'
+
+      has_radiant_barrier = true
+      layer = os_construction.getLayer(idx).to_OpaqueMaterial.get
+      assert(idx == 0 || idx == expected_layer_names.size - 1) # Must be the interior layer of the construction
+      assert_in_delta(radiant_barrier_emittance, layer.thermalAbsorptance, 0.1)
+      assert_equal(0.05, layer.solarAbsorptance)
+    end
+    assert(has_radiant_barrier) unless radiant_barrier_emittance.nil?
+
     # Check interior finish solar absorptance and emittance
-    if expected_layer_names[-1] == 'radiant barrier'
-      interior_layer = os_construction.getLayer(os_construction.numLayers - 1).to_OpaqueMaterial.get
-      assert_operator(interior_layer.solarAbsorptance, :<, 0.1)
-      assert_operator(interior_layer.thermalAbsorptance, :<, 0.1)
-    elsif hpxml_surface.respond_to?(:interior_finish_type) && hpxml_surface.interior_finish_type != HPXML::InteriorFinishNone
+    if hpxml_surface.respond_to?(:interior_finish_type) && hpxml_surface.interior_finish_type != HPXML::InteriorFinishNone && !has_radiant_barrier
       interior_layer = os_construction.getLayer(os_construction.numLayers - 1).to_OpaqueMaterial.get
       assert_equal(0.6, interior_layer.solarAbsorptance)
       assert_equal(0.9, interior_layer.thermalAbsorptance)

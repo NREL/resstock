@@ -386,6 +386,7 @@ class WeatherProcess
     for d in 1..n_days
       data.MainsDailyTemps << data.AnnualAvgDrybulb + 6 + tmains_ratio * maxDiffMonthlyAvgOAT / 2 * Math.sin(deg_rad * (0.986 * (d - 15 - tmains_lag) + sign * 90))
     end
+    data.MainsDailyTemps.map! { |temp| [32.0, temp].max } # ensure mains never gets below freezing. Algorithm will never provide water over boiling without a check
     data.MainsAnnualTemp = data.MainsDailyTemps.sum / n_days
 
     # Calculate monthly
@@ -393,5 +394,6 @@ class WeatherProcess
     for m in 1..12
       data.MainsMonthlyTemps << data.AnnualAvgDrybulb + 6 + tmains_ratio * maxDiffMonthlyAvgOAT / 2 * Math.sin(deg_rad * (0.986 * ((m * 30 - 15) - 15 - tmains_lag) + sign * 90))
     end
+    data.MainsMonthlyTemps.map! { |temp| [32.0, temp].max } # ensure mains never gets below freezing. Algorithm will never provide water over boiling without a check
   end
 end
