@@ -1384,7 +1384,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     perf_data_capacity_type_choices = OpenStudio::StringVector.new
     perf_data_capacity_type_choices << 'Absolute capacities'
-    # perf_data_capacity_type_choices << 'Normalized capacity fractions'
+    perf_data_capacity_type_choices << 'Normalized capacity fractions'
 
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('hvac_perf_data_capacity_type', perf_data_capacity_type_choices, false)
     arg.setDisplayName('HVAC Detailed Performance Data: Capacity Type')
