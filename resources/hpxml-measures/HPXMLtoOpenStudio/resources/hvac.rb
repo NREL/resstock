@@ -1230,13 +1230,13 @@ class HVAC
   def self.set_heat_curves_central_air_source(heating_system, use_cop = false)
     htg_ap = heating_system.additional_properties
     htg_ap.heat_rated_cfm_per_ton = get_default_heat_cfm_per_ton(heating_system.compressor_type, use_cop)
-    heating_capacity_retention_temp, heating_capacity_retention_fraction = get_heating_capacity_retention(heating_system)
     htg_ap.heat_cap_fflow_spec, htg_ap.heat_eir_fflow_spec = get_heat_cap_eir_fflow_spec(heating_system.compressor_type)
     htg_ap.heat_capacity_ratios = get_heat_capacity_ratios(heating_system)
     set_heat_c_d(heating_system)
 
     hspf = heating_system.heating_efficiency_hspf
     if heating_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
+      heating_capacity_retention_temp, heating_capacity_retention_fraction = get_heating_capacity_retention(heating_system)
       htg_ap.heat_cap_ft_spec, htg_ap.heat_eir_ft_spec = get_heat_cap_eir_ft_spec(heating_system.compressor_type, heating_capacity_retention_temp, heating_capacity_retention_fraction)
       if not use_cop
         htg_ap.heat_rated_cops = [0.0353 * hspf**2 + 0.0331 * hspf + 0.9447] # Regression based on inverse model
@@ -1247,6 +1247,7 @@ class HVAC
       end
 
     elsif heating_system.compressor_type == HPXML::HVACCompressorTypeTwoStage
+      heating_capacity_retention_temp, heating_capacity_retention_fraction = get_heating_capacity_retention(heating_system)
       htg_ap.heat_cap_ft_spec, htg_ap.heat_eir_ft_spec = get_heat_cap_eir_ft_spec(heating_system.compressor_type, heating_capacity_retention_temp, heating_capacity_retention_fraction)
       htg_ap.heat_rated_airflow_rate = htg_ap.heat_rated_cfm_per_ton[-1]
       htg_ap.heat_fan_speed_ratios = calc_fan_speed_ratios(htg_ap.heat_capacity_ratios, htg_ap.heat_rated_cfm_per_ton, htg_ap.heat_rated_airflow_rate)
@@ -3549,13 +3550,17 @@ class HVAC
       hp_sys.backup_heating_capacity = [hp_sys.backup_heating_capacity, min_capacity].max unless hp_sys.backup_heating_capacity.nil?
       if not hp_sys.heating_detailed_performance_data.empty?
         hp_sys.heating_detailed_performance_data.each do |dp|
+          next if dp.capacity.nil?
+
           speed = dp.capacity_description == HPXML::CapacityDescriptionMinimum ? 1 : 2
           dp.capacity = [dp.capacity, min_capacity * speed].max
         end
       end
-      next unless not hp_sys.cooling_detailed_performance_data.empty?
+      next if hp_sys.cooling_detailed_performance_data.empty?
 
       hp_sys.cooling_detailed_performance_data.each do |dp|
+        next if dp.capacity.nil?
+
         speed = dp.capacity_description == HPXML::CapacityDescriptionMinimum ? 1 : 2
         dp.capacity = [dp.capacity, min_capacity * speed].max
       end
