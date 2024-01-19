@@ -3,22 +3,20 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_baseline
-weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+output_directory: /projects/abc_typol/EUSSRR2_test_runs/small_run_20240119
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota_downselect
   args:
     n_datapoints: 30000
     logic: 
-      - not:
-        - State|AK
-        - State|HI
-    resmaple: true
+      - not: State|AK
+      - not: State|HI
+    resample: true
 
 
-eagle:
+kestrel:
   n_jobs: 3
   minutes_per_sim: 30
   account: enduse
@@ -135,7 +133,7 @@ upgrades:
       - &nonducted_MSHP_ENERGYSTAR_elec_backup
         option: HVAC Heating Efficiency|MSHP, SEER 16, 9.2 HSPF, Max Load
         apply_logic: &nonducted_MSHP_apply_logic
-          -or: 
+          - or: 
             - HVAC Has Ducts|No
             - or:
               - or:
@@ -144,7 +142,6 @@ upgrades:
                 - HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Electricity
                 - HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Fuel
                 - HVAC Shared Efficiencies|Fan Coil Cooling Only
-              - HVAC Has Ducts|Yes
         costs: &costs_mshp_nonducted_SEER_16_9-2_HSPF
         #### costs not accurate or final, need to adjust inflation and re-calculate regressions - PRW 1/2/2024 ####
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
@@ -270,7 +267,7 @@ upgrades:
 
   - upgrade_name: Ultra high efficiency heat pump with elec backup
     
-    package_apply_logic: &remove_high_rise_shared
+    package_apply_logic: *remove_high_rise_shared
 
     options:
         ### -- Ultra high efficiency ASHP applies to all dwellings with ducts
