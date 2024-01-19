@@ -1,7 +1,8 @@
 These are all 10 available Standard Scenarios for three metrics at GEA geographic resolution. Metrics:
 1. LRMER levelized over 15 years
-2. LRMER levelized over 30 years
-3. average emissions rate (AER) non-levelized
+2. LRMER levelized over 25 years
+3. LRMER levelized over 30 years
+4. average emissions rate (AER) non-levelized
 
 2022 Cambium release data:
 - Levelized **LRMER** come from Cambium22_LRMER_GEAregions.xlsx (available via [Long-run Marginal Emission Rates for Electricity - Workbooks for 2022 Cambium Data](https://data.nrel.gov/submissions/206)):
@@ -10,7 +11,7 @@ These are all 10 available Standard Scenarios for three metrics at GEA geographi
   - Emission | CO2e
   - Emission stage | Combined
   - Start year | 2025
-  - Evaluation period (years) | 15, 30
+  - Evaluation period (years) | 15, 25, 30
   - Discount rate (real) | 0.03
   - Scenario | Mid-case, Low RE Costs, High RE Costs, 95% Decarb by 2050, 95% Decarb by 2035, Low NG Prices, High NG Prices, Electrification, Mid-case (credits expire), Low RE Costs (credits expire)
   - Global Warming Potentials | 100-year (AR5)

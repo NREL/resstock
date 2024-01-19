@@ -596,6 +596,11 @@ class Schedule
       return annual_flh
     end
 
+    if schedule.to_ScheduleConstant.is_initialized
+      annual_flh = schedule.to_ScheduleConstant.get.value * Constants.NumHoursInYear(modelYear)
+      return annual_flh
+    end
+
     if not schedule.to_ScheduleRuleset.is_initialized
       return
     end
@@ -831,6 +836,10 @@ class Schedule
 
   def self.OccupantsMonthlyMultipliers
     return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+  end
+
+  def self.LightingInteriorMonthlyMultipliers
+    return '1.075, 1.064951905, 1.0375, 1.0, 0.9625, 0.935048095, 0.925, 0.935048095, 0.9625, 1.0, 1.0375, 1.064951905'
   end
 
   def self.LightingExteriorWeekdayFractions
@@ -1506,8 +1515,18 @@ class SchedulesFile
   # the equivalent number of hours in the year, if the schedule was at full load (1.0)
   def annual_equivalent_full_load_hrs(col_name:,
                                       schedules: nil)
+
+    ann_equiv_full_load_hrs = period_equivalent_full_load_hrs(col_name: col_name, schedules: schedules)
+
+    return ann_equiv_full_load_hrs
+  end
+
+  # the equivalent number of hours in the period, if the schedule was at full load (1.0)
+  def period_equivalent_full_load_hrs(col_name:,
+                                      schedules: nil,
+                                      period: nil)
     if schedules.nil?
-      schedules = @schedules # the schedules before vacancy is applied
+      schedules = @schedules # the schedules before unavailable periods are applied
     end
 
     if schedules[col_name].nil?
@@ -1517,9 +1536,41 @@ class SchedulesFile
     num_hrs_in_year = Constants.NumHoursInYear(@year)
     schedule_length = schedules[col_name].length
     min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
-    ann_equiv_full_load_hrs = schedules[col_name].reduce(:+) / (60.0 / min_per_item)
 
-    return ann_equiv_full_load_hrs
+    equiv_full_load_hrs = 0.0
+    if not period.nil?
+      n_steps = schedules[schedules.keys[0]].length
+      num_days_in_year = Constants.NumDaysInYear(@year)
+      steps_in_day = n_steps / num_days_in_year
+      steps_in_hour = steps_in_day / 24
+
+      begin_day_num = Schedule.get_day_num_from_month_day(@year, period.begin_month, period.begin_day)
+      end_day_num = Schedule.get_day_num_from_month_day(@year, period.end_month, period.end_day)
+
+      begin_hour = 0
+      end_hour = 24
+
+      begin_hour = period.begin_hour if not period.begin_hour.nil?
+      end_hour = period.end_hour if not period.end_hour.nil?
+
+      if end_day_num >= begin_day_num
+        start_ix = (begin_day_num - 1) * steps_in_day + (begin_hour * steps_in_hour)
+        end_ix = (end_day_num - begin_day_num + 1) * steps_in_day - ((24 - end_hour + begin_hour) * steps_in_hour)
+        equiv_full_load_hrs += schedules[col_name][start_ix..end_ix].sum / (60.0 / min_per_item)
+      else # Wrap around year
+        start_ix = (begin_day_num - 1) * steps_in_day + (begin_hour * steps_in_hour)
+        end_ix = -1
+        equiv_full_load_hrs += schedules[col_name][start_ix..end_ix].sum / (60.0 / min_per_item)
+
+        start_ix = 0
+        end_ix = (end_day_num - 1) * steps_in_day + (end_hour * steps_in_hour)
+        equiv_full_load_hrs += schedules[col_name][start_ix..end_ix].sum / (60.0 / min_per_item)
+      end
+    else # Annual
+      equiv_full_load_hrs += schedules[col_name].sum / (60.0 / min_per_item)
+    end
+
+    return equiv_full_load_hrs
   end
 
   # the power in watts the equipment needs to consume so that, if it were to run annual_equivalent_full_load_hrs hours,
