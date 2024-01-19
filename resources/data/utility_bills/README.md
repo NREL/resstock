@@ -15,4 +15,4 @@ Any blank fields, or missing options for a parameter not specified in the TSV lo
 
 See the Detailed section of OpenStudio-HPXML's documentation for [Electricity Rates](https://openstudio-hpxml.readthedocs.io/en/latest/workflow_inputs.html#electricity-rates), and [Fuel Rates](https://openstudio-hpxml.readthedocs.io/en/latest/workflow_inputs.html#fuel-rates), for more information about arguments for electricity tariff file paths, fixed charges, marginal rates, and PV.
 
-For both Simple and Detailed utility rate structures, refer to BuildStockBatch's documentation for [Residential HPXML Workflow Generator](https://buildstockbatch.readthedocs.io/en/stable/workflow_generators/residential_hpxml.html) for more information about YML file arguments.
+For both Simple and Detailed utility rate structures, refer to BuildStockBatch's documentation for [Residential HPXML Workflow Generator](https://buildstockbatch.readthedocs.io/en/stable/workflow_generators/residential_hpxml.html) for more information about YML file utility bills -related arguments.
