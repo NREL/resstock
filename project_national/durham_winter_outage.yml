@@ -3,25 +3,28 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_baseline
-weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+output_directory: /kfs2/projects/redlineres/durham/winter/
+# weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
+weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota
+  type: residential_quota_downselect
   args:
-    n_datapoints: 250
+    n_datapoints: 5000
+    logic:
+      - County|NC, Durham County
+    resample: true
 
 workflow_generator:
   type: residential_hpxml
   args:
     build_existing_model:
-      simulation_control_timestep: 60
-      simulation_control_run_period_begin_month: 1
-      simulation_control_run_period_begin_day_of_month: 1
-      simulation_control_run_period_end_month: 12
-      simulation_control_run_period_end_day_of_month: 31
-      simulation_control_run_period_calendar_year: 2007
+      simulation_control_timestep: 15
+      simulation_control_run_period_begin_month: 2
+      simulation_control_run_period_begin_day_of_month: 15
+      simulation_control_run_period_end_month: 3
+      simulation_control_run_period_end_day_of_month: 15
+      simulation_control_run_period_calendar_year: 2015
 
     emissions:
       - scenario_name: LRMER_MidCase_15
@@ -64,22 +67,28 @@ workflow_generator:
       retain_schedules_csv: false
 
 baseline:
-  n_buildings_represented: 139647020 # American Community Survey 2021 5-year, B25001, does not include territories ( 138765649 without AK and HI )
+  n_buildings_represented: 133506 # 0.000956024 * 139647020 from American Community Survey 2021 5-year, B25001, fraction is from options_saturations.csv
 
 kestrel:
   n_jobs: 3
   minutes_per_sim: 30
   account: redlineres
   postprocessing:
-    time: 20
+    time: 60
     n_workers: 1
   sampling:
-    time: 5
+    time: 30
 
 ### -- Upgrades ---
 upgrades:
+  - upgrade_name: Outage only
+    options:
+      - &durham_outage
+        option: Power Outage|Durham Winter
+
   - upgrade_name: Light Touch Envelope
     options:
+      - *durham_outage
       #Attic floor insulation up to IECC 2021 levels for homes with vented attics with R-13 or less insulation
       - &attic_insulation_IECC_CZ1A
         option: Insulation Ceiling|R-30
@@ -178,17 +187,18 @@ upgrades:
   - upgrade_name: Advanced Envelope with mix of ERVs and exhaust-only ventilation
     #Up
     options:
+      - *durham_outage
       #Light Enclosure Measures
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
       - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
       - &ducts_category1 #improving leakage a lot, and insulation
-        option: Duct Leakage and Insulation|10% Leakage, R-8
+        option: Duct Leakage and Insulation|10% Leakage to Outside, R-8
         apply_logic:
           or: 
-            - Duct Leakage and Insulation|30% Leakage, Uninsulated
-            - Duct Leakage and Insulation|30% Leakage, R-4
-            - Duct Leakage and Insulation|30% Leakage, R-6
+            - Duct Leakage and Insulation|30% Leakage to Outside, Uninsulated
+            - Duct Leakage and Insulation|30% Leakage to Outside, R-4
+            - Duct Leakage and Insulation|30% Leakage to Outside, R-6
         costs:
           - value: 3.08 # 2.2 $/(ft^2) is the mid-value from REMDB, 30% Leakage, Uninsulated to 10% Leakage, R-8
                         # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2145&bcId=6185
@@ -197,22 +207,22 @@ upgrades:
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category2 #improving leakage a lot only
-        option: Duct Leakage and Insulation|10% Leakage, R-8
+        option: Duct Leakage and Insulation|10% Leakage to Outside, R-8
         apply_logic:
           or: 
-            - Duct Leakage and Insulation|30% Leakage, R-8
+            - Duct Leakage and Insulation|30% Leakage to Outside, R-8
         costs:
           - value: 1.134 # 0.81 $/(ft^2) is Mid-value from REMDB https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2143&bcId=6187
                         # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category3 #improving leakage some, and insulation
-        option: Duct Leakage and Insulation|10% Leakage, R-8
+        option: Duct Leakage and Insulation|10% Leakage to Outside, R-8
         apply_logic:
           or: 
-            - Duct Leakage and Insulation|20% Leakage, Uninsulated
-            - Duct Leakage and Insulation|20% Leakage, R-4
-            - Duct Leakage and Insulation|20% Leakage, R-6 
+            - Duct Leakage and Insulation|20% Leakage to Outside, Uninsulated
+            - Duct Leakage and Insulation|20% Leakage to Outside, R-4
+            - Duct Leakage and Insulation|20% Leakage to Outside, R-6 
         costs:
           - value: 2.52 # 1.8 $/(ft^2) is Mid-value from REMDB, 20% Leakage, Uninsulated to 10% Leakage, R-8
                         # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2145&bcId=6716
@@ -221,10 +231,10 @@ upgrades:
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category4 #improving leakage some only
-        option: Duct Leakage and Insulation|10% Leakage, R-8
+        option: Duct Leakage and Insulation|10% Leakage to Outside, R-8
         apply_logic:
           or: 
-            - Duct Leakage and Insulation|20% Leakage, R-8
+            - Duct Leakage and Insulation|20% Leakage to Outside, R-8
         costs:
           - value: 0.56 # 0.4 $/(ft^2) is the Mid-value from REMDB https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2143&bcId=6718
                         # apply inflation factor 1.4 (Jan 2010 to Apr 2023)
@@ -256,12 +266,12 @@ upgrades:
         #       multiplier: Duct Unconditioned Surface Area (ft^2)
         #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category7 #improving insulation only
-        option: Duct Leakage and Insulation|10% Leakage, R-8
+        option: Duct Leakage and Insulation|10% Leakage to Outside, R-8
         apply_logic:
           or: 
-            - Duct Leakage and Insulation|10% Leakage, Uninsulated
-            - Duct Leakage and Insulation|10% Leakage, R-4
-            - Duct Leakage and Insulation|10% Leakage, R-6
+            - Duct Leakage and Insulation|10% Leakage to Outside, Uninsulated
+            - Duct Leakage and Insulation|10% Leakage to Outside, R-4
+            - Duct Leakage and Insulation|10% Leakage to Outside, R-6
         costs:
           - value: 1.96 # 1.4 $/(ft^2) Mid-value from REMDB, 10% Leakage, Uninsulated to 10% Leakage, R-8
                         # https://remdb.nrel.gov/measures?group_id=2&component_type_id=401&actionId=2144&bcId=6725
@@ -728,35 +738,17 @@ upgrades:
 
   - upgrade_name: Universal Cooling
     options:
+      - *durham_outage
       - &add_room_ac
         option: HVAC Cooling Type|Room AC
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Cooling Type|None
-      - &add_room_ac_add_27_partial_space_conditioning
-        option: HVAC Cooling Partial Space Conditioning|27% Conditioned
+      - &add_room_ac_add_100_partial_space_conditioning
+        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Cooling Type|None
-          - Geometry Floor Area Bin|4000+
-      - &add_room_ac_add_36_partial_space_conditioning
-        option: HVAC Cooling Partial Space Conditioning|36% Conditioned
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Cooling Type|None
-          - Geometry Floor Area Bin|2500-3999
-      - &add_room_ac_add_37_partial_space_conditioning
-        option: HVAC Cooling Partial Space Conditioning|37% Conditioned
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Cooling Type|None
-          - Geometry Floor Area Bin|1500-2499
-      - &add_room_ac_add_52_partial_space_conditioning
-        option: HVAC Cooling Partial Space Conditioning|52% Conditioned
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Cooling Type|None
-          - Geometry Floor Area Bin|0-1499
       - &add_central_ac
         option: HVAC Cooling Type|Central AC
         apply_logic:
@@ -856,3 +848,75 @@ upgrades:
           - value: 58.8
             multiplier: Size, Cooling System Primary (kBtu/h)
         lifetime: &AC_SEER_14_lifetime 15 # do we need a lifetime here?
+
+  - upgrade_name: Universal Cooling + Light Touch
+    options: 
+      - *durham_outage
+      # Central AC
+      - *add_room_ac
+      - *add_room_ac_add_100_partial_space_conditioning
+      - *add_central_ac
+      - *add_central_ac_add_100_partial_space_conditioning
+      - *eff_room_ac
+      - *eff_central_ac_southeast_and_southwest
+      - *eff_central_ac_us_others
+      # Light Touch
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+
+  - upgrade_name: Universal Cooling + Advanced Enclosure
+    options:
+      - *durham_outage
+      # Central AC
+      - *add_room_ac
+      - *add_room_ac_add_100_partial_space_conditioning
+      - *add_central_ac
+      - *add_central_ac_add_100_partial_space_conditioning
+      - *eff_room_ac
+      - *eff_central_ac_southeast_and_southwest
+      - *eff_central_ac_us_others
+      # Advanced Enclosure
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      - *ducts_category7
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *foundation_wall_insulation_finished_basement
+      - *rim_joist_insulation
+      - *seal_vented_duct_location
+      - *seal_vented_crawlspaces
+      - *EnergyStar_window_northern
+      - *EnergyStar_window_north_central
+      - *EnergyStar_window_southern
+      - *EnergyStar_window_south_central
+      - *exterior_wall_insulation
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ1A-2A-2B_baseline_50ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_4ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_5ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_6ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_7ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_8ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_10ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_15ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_20ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_25ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_30ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_40ACH50
+      - *infiltration_IECC2021_CZ3A-3B-3C-4A-4B-4C-5A-5B-6A-6B-7A-7B_baseline_50ACH50
+      - *roof_insulation_to_R30
+      - *add_ERV_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *add_exhaust_ventilation_IECC_CZ1A-2A-2B
+      - *add_exhaust_ventilation_IECC_3A-3B-3C
