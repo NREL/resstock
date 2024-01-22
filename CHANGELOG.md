@@ -8,6 +8,7 @@ Features
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
+- Reorganize the emissions and utility rates data folders such that their sources and functions are more clear ([#1195](https://github.com/NREL/resstock/pull/1195))
 
 ## ResStock v3.2.0
 ###### December 19, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.1...v3.2.0)
