@@ -68,6 +68,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'extra-water-heater-attic.xml' => 'base-sfd.xml',
       'extra-battery-crawlspace.xml' => 'base-sfd.xml',
       'extra-battery-attic.xml' => 'base-sfd.xml',
+      'extra-detailed-performance-autosize.xml' => 'base-sfd.xml',
 
       'extra-sfa-atticroof-flat.xml' => 'base-sfa.xml',
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
@@ -915,6 +916,27 @@ class BuildResidentialHPXMLTest < Minitest::Test
     elsif ['extra-battery-attic.xml'].include? hpxml_file
       args['battery_present'] = true
       args['battery_location'] = HPXML::LocationAttic
+    elsif ['extra-detailed-performance-autosize.xml'].include? hpxml_file
+      args['heating_system_type'] = 'none'
+      args['cooling_system_type'] = 'none'
+      args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
+      args['heat_pump_heating_efficiency'] = 10.0
+      args['heat_pump_cooling_efficiency'] = 17.25
+      args['heat_pump_cooling_compressor_type'] = HPXML::HVACCompressorTypeVariableSpeed
+      args['heat_pump_cooling_sensible_heat_fraction'] = 0.78
+      args.delete('heat_pump_heating_capacity')
+      args.delete('heat_pump_cooling_capacity')
+      args['hvac_perf_data_capacity_type'] = 'Normalized capacity fractions'
+      args['hvac_perf_data_heating_outdoor_temperatures'] = '47.0, 17.0, 5.0'
+      args['hvac_perf_data_heating_min_speed_capacities'] = '0.28, 0.12, 0.05'
+      args['hvac_perf_data_heating_max_speed_capacities'] = '1.0, 0.69, 0.55'
+      args['hvac_perf_data_heating_min_speed_cops'] = '4.73, 1.84, 0.81'
+      args['hvac_perf_data_heating_max_speed_cops'] = '3.44, 2.66, 2.28'
+      args['hvac_perf_data_cooling_outdoor_temperatures'] = '95.0, 82.0'
+      args['hvac_perf_data_cooling_min_speed_capacities'] = '0.325, 0.37'
+      args['hvac_perf_data_cooling_max_speed_capacities'] = '1.0, 1.11'
+      args['hvac_perf_data_cooling_min_speed_cops'] = '4.47, 6.34'
+      args['hvac_perf_data_cooling_max_speed_cops'] = '2.71, 3.53'
     elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
       args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
       args['ducts_supply_leakage_to_outside_value'] = 0.0

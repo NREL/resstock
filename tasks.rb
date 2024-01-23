@@ -2330,6 +2330,13 @@ if ARGV[0].to_sym == :update_hpxmls
   t = Time.now
   create_hpxmls()
   puts "Completed in #{(Time.now - t).round(1)}s"
+
+  # Reformat real_homes HPXMLs
+  puts 'Reformatting real_homes HPXMLs...'
+  Dir['workflow/real_homes/*.xml'].each do |hpxml_path|
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    XMLHelper.write_file(hpxml.to_doc, hpxml_path)
+  end
 end
 
 if ARGV[0].to_sym == :download_utility_rates
