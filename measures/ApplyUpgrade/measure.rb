@@ -466,7 +466,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
                                                     'building_id' => 'ALL' }]
 
       # Specify measures to run
-      # measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
+      measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
       if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
         register_logs(runner, new_runner)
