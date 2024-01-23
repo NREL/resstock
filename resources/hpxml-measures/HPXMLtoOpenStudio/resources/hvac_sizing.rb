@@ -1715,7 +1715,7 @@ class HVACSizing
         capacity_retention_temperature, capacity_retention_fraction = HVAC.get_heating_capacity_retention(hvac_sys)
       end
       odb_adj = (1.0 - capacity_retention_fraction) / (rated_odb - capacity_retention_temperature) * (adjusted_outdoor_temp - rated_odb) + 1.0
-    else
+    else # there are detailed performance data
       # Based on detailed performance data
       max_rated_dp = detailed_performance_data.find { |dp| dp.outdoor_temperature == rated_odb && dp.capacity_description == HPXML::CapacityDescriptionMaximum }
       if max_rated_dp.capacity.nil?

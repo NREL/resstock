@@ -132,9 +132,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'invalid-battery-capacities-kwh' => ['Expected UsableCapacity to be less than NominalCapacity'],
                             'invalid-calendar-year-low' => ['Expected CalendarYear to be greater than or equal to 1600'],
                             'invalid-calendar-year-high' => ['Expected CalendarYear to be less than or equal to 9999'],
-                            'invalid-clothes-dryer-cef' => ['Expected CombinedEnergyFactor to be greater than 0'],
-                            'invalid-clothes-washer-imef' => ['Expected IntegratedModifiedEnergyFactor to be greater than 0'],
-                            'invalid-dishwasher-ler' => ['Expected LabelElectricRate to be greater than 0'],
+                            'invalid-clothes-dryer-cef' => ["Element 'CombinedEnergyFactor': [facet 'minExclusive'] The value '0.0' must be greater than '0'."],
+                            'invalid-clothes-washer-imef' => ["Element 'IntegratedModifiedEnergyFactor': [facet 'minExclusive'] The value '0.0' must be greater than '0'."],
+                            'invalid-dishwasher-ler' => ["Element 'LabelElectricRate': [facet 'minExclusive'] The value '0.0' must be greater than '0'."],
                             'invalid-duct-area-fractions' => ['Expected sum(Ducts/FractionDuctArea) for DuctType="supply" to be 1 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution, id: "HVACDistribution1"]',
                                                               'Expected sum(Ducts/FractionDuctArea) for DuctType="return" to be 1 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution, id: "HVACDistribution1"]'],
                             'invalid-facility-type' => ['Expected 1 element(s) for xpath: ../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]] [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[IsSharedSystem="true"], id: "WaterHeatingSystem1"]',
@@ -218,7 +218,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'multifamily-reference-surface' => ['There are references to "other heated space" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
                             'multifamily-reference-water-heater' => ['There are references to "other non-freezing space" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
                             'refrigerator-location' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
-                            'solar-fraction-one' => ['Expected SolarFraction to be less than 1 [context: /HPXML/Building/BuildingDetails/Systems/SolarThermal/SolarThermalSystem, id: "SolarThermalSystem1"]'],
+                            'solar-fraction-one' => ['Expected SolarFraction to be less than 1 [context: /HPXML/Building/BuildingDetails/Systems/SolarThermal/SolarThermalSystem[SolarFraction], id: "SolarThermalSystem1"]'],
                             'water-heater-location' => ['A location is specified as "crawlspace - vented" but no surfaces were found adjacent to this space type.'],
                             'water-heater-location-other' => ["Expected Location to be 'conditioned space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'crawlspace - conditioned' or 'other exterior' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space'"],
                             'water-heater-recovery-efficiency' => ['Expected RecoveryEfficiency to be greater than EnergyFactor'] }
@@ -400,7 +400,6 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['hvac-gshp-autosized-count-not-rectangle'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-ground-to-air-heat-pump-detailed-geothermal-loop.xml')
         hpxml_bldg.geothermal_loops[0].num_bore_holes = nil
-        puts hpxml_bldg.geothermal_loops
       elsif ['hvac-location-heating-system'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-boiler-oil-only.xml')
         hpxml_bldg.heating_systems[0].location = HPXML::LocationBasementUnconditioned
