@@ -1573,6 +1573,36 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.25)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_fan_watts_per_cfm', false)
+    arg.setDisplayName('HVAC Distribution: Blower Fan Efficiency')
+    arg.setDescription("The blower fan efficiency at maximum fan speed. Applies only to #{HPXML::HVACTypeFurnace} heating system, #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner} cooling systems, and #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, and #{HPXML::HVACTypeHeatPumpGroundToAir} heat pumps. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-heating-systems'>HPXML Heating Systems</a>, <a href='#{docs_base_url}#hpxml-cooling-systems'>HPXML Cooling Systems</a>, <a href='#{docs_base_url}#hpxml-heat-pumps'>HPXML Heat Pumps</a>) is used.")
+    arg.setUnits('W/CFM')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_heating_airflow_cfm', false)
+    arg.setDisplayName('HVAC Distribution: Heating Airflow Rate')
+    arg.setDescription("The heating airflow rate. If not provided, the OS-HPXML autosized default (see <a href='#{docs_base_url}#hpxml-heating-systems'>HPXML Heating Systems</a>, <a href='#{docs_base_url}#hpxml-cooling-systems'>HPXML Cooling Systems</a>, <a href='#{docs_base_url}#hpxml-heat-pumps'>HPXML Heat Pumps</a>) is used.")
+    arg.setUnits('CFM')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_cooling_airflow_cfm', false)
+    arg.setDisplayName('HVAC Distribution: Cooling Airflow Rate')
+    arg.setDescription("The cooling airflow rate. If not provided, the OS-HPXML autosized default (see <a href='#{docs_base_url}#hpxml-heating-systems'>HPXML Heating Systems</a>, <a href='#{docs_base_url}#hpxml-cooling-systems'>HPXML Cooling Systems</a>, <a href='#{docs_base_url}#hpxml-heat-pumps'>HPXML Heat Pumps</a>) is used.")
+    arg.setUnits('CFM')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_max_heating_airflow_cfm', false)
+    arg.setDisplayName('HVAC Distribution: Maximum Heating Airflow Rate')
+    arg.setDescription('The heating airflow rate used to (a) set the maximum allowed heating airflow rate and (b) adjust blower fan efficiency.')
+    arg.setUnits('CFM')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_max_cooling_airflow_cfm', false)
+    arg.setDisplayName('HVAC Distribution: Maximum Cooling Airflow Rate')
+    arg.setDescription('The cooling airflow rate used to (a) set the maximum allowed cooling airflow rate and (b) adjust blower fan efficiency.')
+    arg.setUnits('CFM')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_weekday_setpoint', false)
     arg.setDisplayName('HVAC Control: Heating Weekday Setpoint Schedule')
     arg.setDescription('Specify the constant or 24-hour comma-separated weekday heating setpoint schedule. Required unless a detailed CSV schedule is provided.')
@@ -1743,13 +1773,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_flow_rate', false)
     arg.setDisplayName('Mechanical Ventilation: Flow Rate')
-    arg.setDescription("The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#whole-ventilation-fan'>Whole Ventilation Fan</a>) is used.")
+    arg.setDescription("The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-mechanical-ventilation-fans'>HPXML Mechanical Ventilation Fans</a>) is used.")
     arg.setUnits('CFM')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_hours_in_operation', false)
     arg.setDisplayName('Mechanical Ventilation: Hours In Operation')
-    arg.setDescription("The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#whole-ventilation-fan'>Whole Ventilation Fan</a>) is used.")
+    arg.setDescription("The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-mechanical-ventilation-fans'>HPXML Mechanical Ventilation Fans</a>) is used.")
     arg.setUnits('hrs/day')
     args << arg
 
@@ -1775,7 +1805,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_fan_power', false)
     arg.setDisplayName('Mechanical Ventilation: Fan Power')
-    arg.setDescription("The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#whole-ventilation-fan'>Whole Ventilation Fan</a>) is used.")
+    arg.setDescription("The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-mechanical-ventilation-fans'>HPXML Mechanical Ventilation Fans</a>) is used.")
     arg.setUnits('W')
     args << arg
 
@@ -1886,61 +1916,61 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('kitchen_fans_quantity', false)
     arg.setDisplayName('Kitchen Fans: Quantity')
-    arg.setDescription("The quantity of the kitchen fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The quantity of the kitchen fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('#')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('kitchen_fans_flow_rate', false)
     arg.setDisplayName('Kitchen Fans: Flow Rate')
-    arg.setDescription("The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('CFM')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('kitchen_fans_hours_in_operation', false)
     arg.setDisplayName('Kitchen Fans: Hours In Operation')
-    arg.setDescription("The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('hrs/day')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('kitchen_fans_power', false)
     arg.setDisplayName('Kitchen Fans: Fan Power')
-    arg.setDescription("The fan power of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The fan power of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('W')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('kitchen_fans_start_hour', false)
     arg.setDisplayName('Kitchen Fans: Start Hour')
-    arg.setDescription("The start hour of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The start hour of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('hr')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('bathroom_fans_quantity', false)
     arg.setDisplayName('Bathroom Fans: Quantity')
-    arg.setDescription("The quantity of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The quantity of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('#')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('bathroom_fans_flow_rate', false)
     arg.setDisplayName('Bathroom Fans: Flow Rate')
-    arg.setDescription("The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('CFM')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('bathroom_fans_hours_in_operation', false)
     arg.setDisplayName('Bathroom Fans: Hours In Operation')
-    arg.setDescription("The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('hrs/day')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('bathroom_fans_power', false)
     arg.setDisplayName('Bathroom Fans: Fan Power')
-    arg.setDescription("The fan power of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The fan power of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('W')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('bathroom_fans_start_hour', false)
     arg.setDisplayName('Bathroom Fans: Start Hour')
-    arg.setDescription("The start hour of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The start hour of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('hr')
     args << arg
 
@@ -1952,13 +1982,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('whole_house_fan_flow_rate', false)
     arg.setDisplayName('Whole House Fan: Flow Rate')
-    arg.setDescription("The flow rate of the whole house fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#whole-house-fan'>Whole House Fan</a>) is used.")
+    arg.setDescription("The flow rate of the whole house fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-whole-house-fans'>HPXML Whole House Fans</a>) is used.")
     arg.setUnits('CFM')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('whole_house_fan_power', false)
     arg.setDisplayName('Whole House Fan: Fan Power')
-    arg.setDescription("The fan power of the whole house fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#whole-house-fan'>Whole House Fan</a>) is used.")
+    arg.setDescription("The fan power of the whole house fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-whole-house-fans'>HPXML Whole House Fans</a>) is used.")
     arg.setUnits('W')
     args << arg
 
@@ -2138,19 +2168,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hot_water_distribution_recirc_piping_length', false)
     arg.setDisplayName('Hot Water Distribution: Recirculation Piping Length')
     arg.setUnits('ft')
-    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the length of the recirculation piping. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation'>Recirculation</a>) is used.")
+    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the length of the recirculation piping. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation-in-unit'>Recirculation (In-Unit)</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hot_water_distribution_recirc_branch_piping_length', false)
     arg.setDisplayName('Hot Water Distribution: Recirculation Branch Piping Length')
     arg.setUnits('ft')
-    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation'>Recirculation</a>) is used.")
+    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation-in-unit'>Recirculation (In-Unit)</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hot_water_distribution_recirc_pump_power', false)
     arg.setDisplayName('Hot Water Distribution: Recirculation Pump Power')
     arg.setUnits('W')
-    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the recirculation pump power. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation'>Recirculation</a>) is used.")
+    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the recirculation pump power. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation-in-unit'>Recirculation (In-Unit)</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hot_water_distribution_pipe_r', false)
@@ -5099,6 +5129,24 @@ class HPXMLFile
       end
     end
 
+    if args[:hvac_distribution_fan_watts_per_cfm].is_initialized
+      if [HPXML::HVACTypeFurnace].include?(heating_system_type)
+        fan_watts_per_cfm = args[:hvac_distribution_fan_watts_per_cfm].get
+      end
+    end
+
+    if args[:hvac_distribution_heating_airflow_cfm].is_initialized
+      if [HPXML::HVACTypeFurnace].include?(heating_system_type)
+        heating_airflow_cfm = args[:hvac_distribution_heating_airflow_cfm].get
+      end
+    end
+
+    if args[:hvac_distribution_max_heating_airflow_cfm].is_initialized
+      if [HPXML::HVACTypeFurnace].include?(heating_system_type)
+        max_heating_airflow_cfm = args[:hvac_distribution_max_heating_airflow_cfm].get
+      end
+    end
+
     fraction_heat_load_served = args[:heating_system_fraction_heat_load_served]
 
     if heating_system_type.include?('Shared')
@@ -5121,6 +5169,9 @@ class HPXMLFile
                                    airflow_defect_ratio: airflow_defect_ratio,
                                    pilot_light: pilot_light,
                                    pilot_light_btuh: pilot_light_btuh,
+                                   fan_watts_per_cfm: fan_watts_per_cfm,
+                                   heating_airflow_cfm: heating_airflow_cfm,
+                                   max_heating_airflow_cfm: max_heating_airflow_cfm,
                                    is_shared_system: is_shared_system,
                                    number_of_units_served: number_of_units_served,
                                    primary_system: true)
@@ -5177,6 +5228,24 @@ class HPXMLFile
       end
     end
 
+    if args[:hvac_distribution_fan_watts_per_cfm].is_initialized
+      if [HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypeMiniSplitAirConditioner].include?(cooling_system_type)
+        fan_watts_per_cfm = args[:hvac_distribution_fan_watts_per_cfm].get
+      end
+    end
+
+    if args[:hvac_distribution_cooling_airflow_cfm].is_initialized
+      if [HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypeMiniSplitAirConditioner].include?(cooling_system_type)
+        cooling_airflow_cfm = args[:hvac_distribution_cooling_airflow_cfm].get
+      end
+    end
+
+    if args[:hvac_distribution_max_cooling_airflow_cfm].is_initialized
+      if [HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypeMiniSplitAirConditioner].include?(cooling_system_type)
+        max_cooling_airflow_cfm = args[:hvac_distribution_max_cooling_airflow_cfm].get
+      end
+    end
+
     if [HPXML::HVACTypePTAC, HPXML::HVACTypeRoomAirConditioner].include?(cooling_system_type)
       if args[:cooling_system_integrated_heating_system_fuel].is_initialized
         integrated_heating_system_fuel = args[:cooling_system_integrated_heating_system_fuel].get
@@ -5209,6 +5278,9 @@ class HPXMLFile
                                    airflow_defect_ratio: airflow_defect_ratio,
                                    charge_defect_ratio: charge_defect_ratio,
                                    crankcase_heater_watts: cooling_system_crankcase_heater_watts,
+                                   fan_watts_per_cfm: fan_watts_per_cfm,
+                                   cooling_airflow_cfm: cooling_airflow_cfm,
+                                   max_cooling_airflow_cfm: max_cooling_airflow_cfm,
                                    primary_system: true,
                                    integrated_heating_system_fuel: integrated_heating_system_fuel,
                                    integrated_heating_system_capacity: integrated_heating_system_capacity,
@@ -5353,6 +5425,36 @@ class HPXMLFile
       end
     end
 
+    if args[:hvac_distribution_fan_watts_per_cfm].is_initialized
+      if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type)
+        fan_watts_per_cfm = args[:hvac_distribution_fan_watts_per_cfm].get
+      end
+    end
+
+    if args[:hvac_distribution_heating_airflow_cfm].is_initialized
+      if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type)
+        heating_airflow_cfm = args[:hvac_distribution_heating_airflow_cfm].get
+      end
+    end
+
+    if args[:hvac_distribution_cooling_airflow_cfm].is_initialized
+      if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type)
+        cooling_airflow_cfm = args[:hvac_distribution_cooling_airflow_cfm].get
+      end
+    end
+
+    if args[:hvac_distribution_max_heating_airflow_cfm].is_initialized
+      if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type)
+        max_heating_airflow_cfm = args[:hvac_distribution_max_heating_airflow_cfm].get
+      end
+    end
+
+    if args[:hvac_distribution_max_cooling_airflow_cfm].is_initialized
+      if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type)
+        max_cooling_airflow_cfm = args[:hvac_distribution_max_cooling_airflow_cfm].get
+      end
+    end
+
     fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
     fraction_cool_load_served = args[:heat_pump_fraction_cool_load_served]
 
@@ -5393,6 +5495,11 @@ class HPXMLFile
                               airflow_defect_ratio: airflow_defect_ratio,
                               charge_defect_ratio: charge_defect_ratio,
                               crankcase_heater_watts: heat_pump_crankcase_heater_watts,
+                              fan_watts_per_cfm: fan_watts_per_cfm,
+                              heating_airflow_cfm: heating_airflow_cfm,
+                              cooling_airflow_cfm: cooling_airflow_cfm,
+                              max_heating_airflow_cfm: max_heating_airflow_cfm,
+                              max_cooling_airflow_cfm: max_cooling_airflow_cfm,
                               primary_heating_system: primary_heating_system,
                               primary_cooling_system: primary_cooling_system)
 
@@ -5562,13 +5669,20 @@ class HPXMLFile
       fraction_heat_load_served = args[:heating_system_2_fraction_heat_load_served]
     end
 
+    if args[:hvac_distribution_fan_watts_per_cfm].is_initialized
+      if [HPXML::HVACTypeFurnace].include?(heating_system_type)
+        fan_watts_per_cfm = args[:hvac_distribution_fan_watts_per_cfm].get
+      end
+    end
+
     hpxml_bldg.heating_systems.add(id: "HeatingSystem#{hpxml_bldg.heating_systems.size + 1}",
                                    heating_system_type: heating_system_type,
                                    heating_system_fuel: heating_system_fuel,
                                    heating_capacity: heating_capacity,
                                    fraction_heat_load_served: fraction_heat_load_served,
                                    heating_efficiency_afue: heating_efficiency_afue,
-                                   heating_efficiency_percent: heating_efficiency_percent)
+                                   heating_efficiency_percent: heating_efficiency_percent,
+                                   fan_watts_per_cfm: fan_watts_per_cfm)
   end
 
   def self.set_hvac_distribution(hpxml_bldg, args)
