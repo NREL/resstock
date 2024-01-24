@@ -356,6 +356,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = capacities['heat_pump_cooling_capacity']
       measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = capacities['heat_pump_backup_heating_capacity']
 
+      # Set maximum HVAC airflows
+      ductwork_restriction = measures['ResStockArguments'][0]['hvac_distribution_ductwork_restriction']
+      if ductwork_restriction
+        airflows = get_airflows(hpxml_bldg)
+        measures['BuildResidentialHPXML'][0]['hvac_distribution_max_heating_airflow_cfm'] = airflows['heating_airflow_cfm']
+        measures['BuildResidentialHPXML'][0]['hvac_distribution_max_cooling_airflow_cfm'] = airflows['cooling_airflow_cfm']
+      end
+
       # Retain Existing Heating System as Heat Pump Backup
       heat_pump_backup_use_existing_system = measures['ResStockArguments'][0]['heat_pump_backup_use_existing_system']
       if heat_pump_backup_use_existing_system == 'true'
@@ -642,6 +650,34 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     return capacities
+  end
+
+  def get_airflows(hpxml_bldg)
+    airflows = {
+      'heating_airflow_cfm' => nil,
+      'cooling_airflow_cfm' => nil
+    }
+
+    hpxml_bldg.heating_systems.each do |heating_system|
+      next if heating_system.distribution_system.nil?
+
+      airflows['heating_airflow_cfm'] = heating_system.heating_airflow_cfm
+    end
+
+    hpxml_bldg.cooling_systems.each do |cooling_system|
+      next if cooling_system.distribution_system.nil?
+
+      airflows['cooling_airflow_cfm'] = cooling_system.cooling_airflow_cfm
+    end
+
+    hpxml_bldg.heat_pumps.each do |heat_pump|
+      next if heat_pump.distribution_system.nil?
+
+      airflows['heating_airflow_cfm'] = heat_pump.heating_airflow_cfm
+      airflows['cooling_airflow_cfm'] = heat_pump.cooling_airflow_cfm
+    end
+
+    return airflows
   end
 end
 
