@@ -1,0 +1,230 @@
+<?xml version="1.0"?>
+<measure>
+  <schema_version>3.1</schema_version>
+  <name>peak_period_schedules_shift</name>
+  <uid>4954275f-9caf-422c-9e1f-061244ade152</uid>
+  <version_id>6547cc63-d672-4b2b-b455-2bb82bd0e381</version_id>
+  <version_modified>2024-01-24T21:19:30Z</version_modified>
+  <xml_checksum>A8988589</xml_checksum>
+  <class_name>PeakPeriodSchedulesShift</class_name>
+  <display_name>PeakPeriodSchedulesShift</display_name>
+  <description>Shifts select weekday (or weekday/weekend) schedules out of a peak period.</description>
+  <modeler_description>Enter a peak period window, a delay value, and any applicable ScheduleRuleset or ScheduleFile schedules. Shift all schedule values falling within the peak period to after the end (offset by delay) of the peak period. Optionally prevent stacking of schedule values by only allowing shifts to all-zero periods. Optionally apply schedule shifts to weekend days.</modeler_description>
+  <arguments>
+    <argument>
+      <name>schedules_peak_period</name>
+      <display_name>Schedules: Peak Period</display_name>
+      <description>Specifies the peak period. Enter a time like "15 - 18" (start hour can be 0 through 23 and end hour can be 1 through 24).</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>15 - 18</default_value>
+    </argument>
+    <argument>
+      <name>schedules_peak_period_delay</name>
+      <display_name>Schedules: Peak Period Delay</display_name>
+      <description>The number of hours after peak period end.</description>
+      <type>Integer</type>
+      <units>hr</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>schedules_peak_period_allow_stacking</name>
+      <display_name>Schedules: Peak Period Allow Stacking</display_name>
+      <description>Whether schedules can be shifted to periods that already have non-zero schedule values. Defaults to true. Note that stacking runs the risk of creating out-of-range schedule values.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>schedules_peak_period_weekdays_only</name>
+      <display_name>Schedules: Peak Period Weekdays Only</display_name>
+      <description>Whether schedules can be shifted for weekdays only, or weekends as well. Defaults to true.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>schedules_peak_period_schedule_rulesets_names</name>
+      <display_name>Schedules: Peak Period Schedule Rulesets Names</display_name>
+      <description>Comma-separated list of Schedule:Ruleset object names corresponding to schedules to shift during the specified peak period.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_peak_period_schedule_files_column_names</name>
+      <display_name>Schedules: Peak Period Schedule Files Column Names</display_name>
+      <description>Comma-separated list of column names, referenced by Schedule:File objects, corresponding to schedules to shift during the specified peak period.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+  </arguments>
+  <outputs />
+  <provenances />
+  <tags>
+    <tag>Whole Building.Whole Building Schedules</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Measure Language</name>
+      <value>Ruby</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>LICENSE.md</filename>
+      <filetype>md</filetype>
+      <usage_type>license</usage_type>
+      <checksum>CD7F5672</checksum>
+    </file>
+    <file>
+      <filename>README.md</filename>
+      <filetype>md</filetype>
+      <usage_type>readme</usage_type>
+      <checksum>D6B918A1</checksum>
+    </file>
+    <file>
+      <filename>README.md.erb</filename>
+      <filetype>erb</filetype>
+      <usage_type>readmeerb</usage_type>
+      <checksum>456E1929</checksum>
+    </file>
+    <file>
+      <filename>measures-overview.PNG</filename>
+      <filetype>PNG</filetype>
+      <usage_type>doc</usage_type>
+      <checksum>0536DAD0</checksum>
+    </file>
+    <file>
+      <filename>measures-overview.png</filename>
+      <filetype>png</filetype>
+      <usage_type>doc</usage_type>
+      <checksum>0536DAD0</checksum>
+    </file>
+    <file>
+      <filename>other-examples1.PNG</filename>
+      <filetype>PNG</filetype>
+      <usage_type>doc</usage_type>
+      <checksum>39590575</checksum>
+    </file>
+    <file>
+      <filename>other-examples1.png</filename>
+      <filetype>png</filetype>
+      <usage_type>doc</usage_type>
+      <checksum>39590575</checksum>
+    </file>
+    <file>
+      <filename>other-examples2.PNG</filename>
+      <filetype>PNG</filetype>
+      <usage_type>doc</usage_type>
+      <checksum>5AA85040</checksum>
+    </file>
+    <file>
+      <filename>other-examples2.png</filename>
+      <filetype>png</filetype>
+      <usage_type>doc</usage_type>
+      <checksum>5AA85040</checksum>
+    </file>
+    <file>
+      <filename>other-examples3.PNG</filename>
+      <filetype>PNG</filetype>
+      <usage_type>doc</usage_type>
+      <checksum>D6815644</checksum>
+    </file>
+    <file>
+      <filename>other-examples3.png</filename>
+      <filetype>png</filetype>
+      <usage_type>doc</usage_type>
+      <checksum>D6815644</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>3.5.1</identifier>
+        <min_compatible>3.5.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>ADA0292C</checksum>
+    </file>
+    <file>
+      <filename>PeakPeriodSchedulesShift_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CB58565B</checksum>
+    </file>
+    <file>
+      <filename>base-schedules-detailed-occupancy-stochastic.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFA80A78</checksum>
+    </file>
+    <file>
+      <filename>base.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8193AAB9</checksum>
+    </file>
+    <file>
+      <filename>files/schedules20230418-20180-18nykxu.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D6FBB6B6</checksum>
+    </file>
+    <file>
+      <filename>files/unmodified_schedules.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D6FBB6B6</checksum>
+    </file>
+    <file>
+      <filename>test_smooth_schedules.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C85A2F6A</checksum>
+    </file>
+    <file>
+      <filename>test_stochastic_schedules.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>77977945</checksum>
+    </file>
+    <file>
+      <filename>test_stochastic_schedules_no_stacking.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>36631473</checksum>
+    </file>
+  </files>
+</measure>
