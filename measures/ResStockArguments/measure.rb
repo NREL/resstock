@@ -369,6 +369,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Whether the heat pump uses the existing system as backup.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('hvac_distribution_ductwork_restriction', false)
+    arg.setDisplayName('HVAC Distribution: Ductwork Restriction')
+    arg.setDescription('Whether to set maximum allowable airflow rates of the upgraded building equal to airflow rates of the existing building.')
+    args << arg
+
     return args
   end
 
