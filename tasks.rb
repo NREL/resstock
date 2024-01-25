@@ -26,7 +26,7 @@ def download_epws
   exit!
 end
 
-command_list = [:update_measures, :integrity_check_national, :integrity_check_testing, :download_weather]
+command_list = [:update_measures, :update_resources, :integrity_check_national, :integrity_check_testing, :download_weather]
 
 def display_usage(command_list)
   puts "Usage: openstudio #{File.basename(__FILE__)} [COMMAND]\nCommands:\n  " + command_list.join("\n  ")
@@ -93,6 +93,14 @@ if ARGV[0].to_sym == :update_measures
   end
 
   puts 'Done.'
+end
+
+if ARGV[0].to_sym == :update_resources
+  prefix = 'resources/hpxml-measures'
+  repository = 'https://github.com/NREL/OpenStudio-HPXML.git'
+  branch_or_tag = 'master'
+
+  system("git subtree pull --prefix #{prefix} #{repository} #{branch_or_tag} --squash")
 end
 
 if ARGV[0].to_sym == :integrity_check_national
