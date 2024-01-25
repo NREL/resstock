@@ -95,6 +95,9 @@ upgrades:
   - upgrade_name: ENERGY STAR heat pump with elec backup
     
     package_apply_logic: &remove_high_rise_shared
+      - not: Heating Fuel|Wood
+      - not: Heating Fuel|Other Fuel
+      - not: Heating Fuel|None
       - not:
         - or:
           - HVAC Shared Efficiencies|Boiler Baseboards Heating Only, Electricity
@@ -318,7 +321,11 @@ upgrades:
   - upgrade_name: ENERGY STAR heat pump with existing system as backup
 
     ### no shared heating/cooling dwellings will be included in existing-system-as-backup upgrade    
-    package_apply_logic: &remove_shared_heating_cooling
+    package_apply_logic: &remove_shared_heating_cooling_no_electric_fuel
+      - not: Heating Fuel|Electricity
+      - not: Heating Fuel|Wood
+      - not: Heating Fuel|Other Fuel
+      - not: Heating Fuel|None
       - not:
         - or:
           - HVAC Shared Efficiencies|Boiler Baseboards Heating Only, Electricity
@@ -507,8 +514,17 @@ upgrades:
 
   - upgrade_name: Geothermal heat pump
     
-    package_apply_logic: *remove_shared_heating_cooling
-
+    package_apply_logic: &remove_shared_heating_cooling
+      - not: Heating Fuel|Wood
+      - not: Heating Fuel|Other Fuel
+      - not: Heating Fuel|None
+      - not:
+        - or:
+          - HVAC Shared Efficiencies|Boiler Baseboards Heating Only, Electricity
+          - HVAC Shared Efficiencies|Boiler Baseboards Heating Only, Fuel
+          - HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Electricity
+          - HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Fuel
+          - HVAC Shared Efficiencies|Fan Coil Cooling Only
     options:
         ### -- GTHP applies to all dwellings with ducts
       - &ducted_GTHP
@@ -548,7 +564,11 @@ upgrades:
       #   apply_logic: *ducted_ASHP_apply_logic
 
       - *HP_cooling_efficiency_ducted # double check this is the correct designation for GTHPs
-      - *100_percent_conditioned
+      - &100_percent_conditioned_ducts_only
+        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
+        apply_logic: &yes_has_ducts_apply_logic
+          - HVAC Has Ducts|Yes
+
 
 ### -- Heat Pumps + Light Touch -- ###
   - upgrade_name: ENERGY STAR heat pump with elec backup + Light Touch Envelope
@@ -722,7 +742,7 @@ upgrades:
 
   - upgrade_name: ENERGY STAR heat pump with existing system as backup + Light Touch Envelope
 
-    package_apply_logic: *remove_shared_heating_cooling
+    package_apply_logic: *remove_shared_heating_cooling_no_electric_fuel
 
     options: 
 
@@ -787,7 +807,7 @@ upgrades:
       # - *heating_setpoint_offset_period_none_ducted     
 
       - *HP_cooling_efficiency_ducted
-      - *100_percent_conditioned
+      - *100_percent_conditioned_ducts_only
         ### -- Light Touch Envelope -- ###
       - *attic_insulation_IECC_CZ1A
       - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
@@ -795,7 +815,7 @@ upgrades:
       - *infiltration_30pct_reduction
 
 ### -- Heat Pumps + Light Touch + Full Electrification -- ###
-  - upgrade_name: ENERGY STAR heat pump with elec backup + Light Touch Envelope + Full Electrification
+  - upgrade_name: ENERGY STAR heat pump with elec backup + Light Touch Envelope + Full Electrification with Efficiency
     package_apply_logic: *remove_high_rise_shared
     options: 
         ### -- ENERGY STAR heat pumps ###
@@ -917,7 +937,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 15
 
-  - upgrade_name: High efficiency cold-climate heat pump with elec backup + Light Touch Envelope + Full Electrification
+  - upgrade_name: High efficiency cold-climate heat pump with elec backup + Light Touch Envelope + Full Electrification with Efficiency
     package_apply_logic: *remove_high_rise_shared
 
     options:
@@ -953,7 +973,7 @@ upgrades:
       - *electric_pool_heaters
       - *electric_spa_heaters
 
-  - upgrade_name: Ultra high efficiency heat pump with elec backup + Light Touch Envelope + Full Electrification
+  - upgrade_name: Ultra high efficiency heat pump with elec backup + Light Touch Envelope + Full Electrification with Efficiency
     package_apply_logic: *remove_high_rise_shared    
 
     options:
@@ -989,9 +1009,9 @@ upgrades:
       - *electric_pool_heaters
       - *electric_spa_heaters
 
-  - upgrade_name: ENERGY STAR heat pump with existing system as backup + Light Touch Envelope + Full Electrification
+  - upgrade_name: ENERGY STAR heat pump with existing system as backup + Light Touch Envelope + Full Electrification with Efficiency
     
-    package_apply_logic: *remove_shared_heating_cooling
+    package_apply_logic: *remove_shared_heating_cooling_no_electric_fuel
 
     options: 
 
@@ -1052,7 +1072,7 @@ upgrades:
       - *electric_pool_heaters
       - *electric_spa_heaters
 
-  - upgrade_name: Geothermal heat pump + Light Touch Envelope + Full Electrification
+  - upgrade_name: Geothermal heat pump + Light Touch Envelope + Full Electrification with Efficiency
     
     package_apply_logic: *remove_shared_heating_cooling
 
@@ -1067,7 +1087,7 @@ upgrades:
       # - *heating_setpoint_offset_period_none_ducted     
 
       - *HP_cooling_efficiency_ducted
-      - *100_percent_conditioned
+      - *100_percent_conditioned_ducts_only
 
         ### -- Light Touch Envelope -- ###
       - *attic_insulation_IECC_CZ1A
