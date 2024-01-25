@@ -828,7 +828,10 @@ class Waterheater
 
     coil = OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped.new(model)
     coil.setName("#{obj_name_hpwh} coil")
-    coil.setRatedHeatingCapacity(UnitConversions.convert(cap, 'kW', 'W') * cop)
+    if hpwh_120V
+      coil.setRatedHeatingCapacity(4220.0)
+    else
+      coil.setRatedHeatingCapacity(UnitConversions.convert(cap, 'kW', 'W') * cop)
     coil.setRatedCOP(cop)
     coil.setRatedSensibleHeatRatio(shr)
     coil.setRatedEvaporatorInletAirDryBulbTemperature(rated_edb)
