@@ -924,8 +924,7 @@ class ReportSimulationOutputTest < Minitest::Test
   end
 
   def test_timeseries_hourly_zone_temperatures_whole_mf_building
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-multiple-mf-units.xml'),
-                  'building_id' => 'ALL',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-bldgtype-mf-whole-building.xml'),
                   'skip_validation' => true,
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_zone_temperatures' => true }
@@ -1192,14 +1191,15 @@ class ReportSimulationOutputTest < Minitest::Test
   end
 
   def test_timeseries_hourly_runperiod_1month
-    expected_values = { 'hourly' => 28 * 24,
-                        'monthly' => 1 }
+    expected_values = { 'hourly' => 30 * 24, # Feb 15 - Mar 15, w/ leap day
+                        'monthly' => 2 } # Feb, Mar
 
     expected_values.each do |timeseries_frequency, expected_value|
       args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
                     'skip_validation' => true,
                     'timeseries_frequency' => timeseries_frequency,
-                    'include_timeseries_fuel_consumptions' => true }
+                    'include_timeseries_fuel_consumptions' => true,
+                    'include_timeseries_emission_fuels' => true }
       annual_csv, timeseries_csv = _test_measure(args_hash)
       assert(File.exist?(annual_csv))
       assert(File.exist?(timeseries_csv))

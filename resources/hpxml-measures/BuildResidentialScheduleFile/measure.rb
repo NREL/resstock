@@ -104,7 +104,6 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     building_id = nil
     building_id = args[:building_id].get if args[:building_id].is_initialized
-    hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: building_id)
 
     debug = false
     if args[:debug].is_initialized
@@ -121,9 +120,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       runner.registerInfo('Unable to retrieve the schedules random seed; setting it to 1.')
     end
 
-    # create EpwFile object
-    epw_path = Location.get_epw_path(hpxml.buildings[0], hpxml_path)
-    epw_file = OpenStudio::EpwFile.new(epw_path)
+    epw_path, epw_file = nil, nil
 
     output_csv_basename, _ = args[:output_csv_path].split('.csv')
 
@@ -135,11 +132,16 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
       next if doc_buildings.size > 1 && building_id != 'ALL' && building_id != doc_building_id
 
+      hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: doc_building_id)
+      hpxml_bldg = hpxml.buildings[0]
+
+      if epw_path.nil?
+        epw_path = Location.get_epw_path(hpxml_bldg, hpxml_path)
+        epw_file = OpenStudio::EpwFile.new(epw_path)
+      end
+
       # deterministically vary schedules across building units
       args[:random_seed] *= (i + 1)
-
-      # get hpxml_bldg
-      hpxml_bldg = hpxml.buildings.find { |hb| hb.building_id == doc_building_id }
 
       # exit if number of occupants is zero
       if hpxml_bldg.building_occupancy.number_of_residents == 0

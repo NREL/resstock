@@ -231,56 +231,68 @@ class WorkflowOtherTest < Minitest::Test
     end
   end
 
-  def test_multiple_buildings
+  def test_mf_building_simulations
+    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+    sample_files_path = File.join(File.dirname(__FILE__), '..', 'sample_files')
+    csv_output_path = File.join(sample_files_path, 'run', 'results_annual.csv')
+    bills_csv_path = File.join(sample_files_path, 'run', 'results_bills.csv')
+    run_log = File.join(sample_files_path, 'run', 'run.log')
     dryer_warning_msg = 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.'
 
-    ['base-multiple-sfd-buildings.xml',
-     'base-multiple-mf-units.xml'].each do |hpxml_name|
-      xml = File.join(File.dirname(__FILE__), '..', 'sample_files', hpxml_name)
-      rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
-      csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
-      bills_csv_path = File.join(File.dirname(xml), 'run', 'results_bills.csv')
-      run_log = File.join(File.dirname(xml), 'run', 'run.log')
+    [true, false].each do |whole_sfa_or_mf_building_sim|
+      tmp_hpxml_path = File.join(sample_files_path, 'tmp.xml')
+      hpxml = HPXML.new(hpxml_path: File.join(sample_files_path, 'base-bldgtype-mf-whole-building.xml'))
+      hpxml.header.whole_sfa_or_mf_building_sim = whole_sfa_or_mf_building_sim
+      XMLHelper.write_file(hpxml.to_doc, tmp_hpxml_path)
 
-      # Check successful simulation when providing correct building ID
-      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyBuilding_2"
+      # Check for when building-id argument is not provided
+      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{tmp_hpxml_path}\""
       system(command, err: File::NULL)
-      assert_equal(true, File.exist?(csv_output_path))
-      assert_equal(true, File.exist?(bills_csv_path))
+      if whole_sfa_or_mf_building_sim
+        # Simulation should be successful
+        assert_equal(true, File.exist?(csv_output_path))
+        assert_equal(true, File.exist?(bills_csv_path))
 
-      if hpxml_name == 'base-multiple-sfd-buildings.xml'
-        # Check that we have exactly one warning (i.e., check we are only validating a single Building element against schematron)
-        assert_equal(1, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
+        # Check that we have multiple warnings, one for each Building element
+        assert_equal(6, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
       else
-        assert_equal(0, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
+        # Simulation should be unsuccessful (building_id or WholeSFAorMFBuildingSimulation=true is required)
+        assert_equal(false, File.exist?(csv_output_path))
+        assert_equal(false, File.exist?(bills_csv_path))
+        assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; provide Building ID argument or set WholeSFAorMFBuildingSimulation=true.' }.size)
       end
 
-      # Check unsuccessful simulation when providing incorrect building ID
-      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyFoo"
+      # Check for when building-id argument is provided
+      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{tmp_hpxml_path}\" --building-id MyBuilding_2"
+      system(command, err: File::NULL)
+      if whole_sfa_or_mf_building_sim
+        # Simulation should be successful (WholeSFAorMFBuildingSimulation is true, so building-id argument is ignored)
+        # Note: We don't want to override WholeSFAorMFBuildingSimulation because we may have Schematron validation based on it, and it would be wrong to
+        # validate the HPXML for one use case (whole building model) while running it for a different unit case (individual dwelling unit model).
+        assert_equal(true, File.exist?(csv_output_path))
+        assert_equal(true, File.exist?(bills_csv_path))
+        assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file and WholeSFAorMFBuildingSimulation=true; Building ID argument will be ignored.' }.size)
+      else
+        # Simulation should be successful
+        assert_equal(true, File.exist?(csv_output_path))
+        assert_equal(true, File.exist?(bills_csv_path))
+
+        # Check that we have exactly one warning (i.e., check we are only validating a single Building element against schematron)
+        assert_equal(1, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
+      end
+
+      next unless not whole_sfa_or_mf_building_sim
+
+      # Check for when building-id argument is invalid (incorrect building ID)
+      # Simulation should be unsuccessful
+      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{tmp_hpxml_path}\" --building-id MyFoo"
       system(command, err: File::NULL)
       assert_equal(false, File.exist?(csv_output_path))
       assert_equal(false, File.exist?(bills_csv_path))
       assert_equal(1, File.readlines(run_log).select { |l| l.include? "Could not find Building element with ID 'MyFoo'." }.size)
 
-      # Check unsuccessful simulation when not providing building ID
-      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\""
-      system(command, err: File::NULL)
-      assert_equal(false, File.exist?(csv_output_path))
-      assert_equal(false, File.exist?(bills_csv_path))
-      assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.' }.size)
-
-      # Check successful simulation when running whole building
-      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id ALL"
-      system(command, err: File::NULL)
-      assert_equal(true, File.exist?(csv_output_path))
-      assert_equal(true, File.exist?(bills_csv_path))
-
-      if hpxml_name == 'base-multiple-sfd-buildings.xml'
-        # Check that we now have three warnings, one for each Building element
-        assert_equal(3, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
-      else
-        assert_equal(0, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
-      end
+      # Cleanup
+      File.delete(tmp_hpxml_path) if File.exist? tmp_hpxml_path
     end
   end
 
