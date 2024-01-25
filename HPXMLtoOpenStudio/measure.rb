@@ -63,7 +63,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('building_id', false)
     arg.setDisplayName('BuildingID')
-    arg.setDescription("The ID of the HPXML Building. Only required if there are multiple Building elements in the HPXML file. Use 'ALL' to run all the HPXML Buildings (dwelling units) of a multifamily building in a single model.")
+    arg.setDescription('The ID of the HPXML Building. Only required if the HPXML has multiple Building elements and WholeSFAorMFBuildingSimulation is not true.')
     args << arg
 
     return args
@@ -137,7 +137,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         fail 'Weather station EPW filepath has different values across dwelling units.'
       end
 
-      if (building_id == 'ALL') && (hpxml.buildings.size > 1)
+      if hpxml.header.whole_sfa_or_mf_building_sim && (hpxml.buildings.size > 1)
         if hpxml.buildings.map { |hpxml_bldg| hpxml_bldg.batteries.size }.sum > 0
           # FUTURE: Figure out how to allow this. If we allow it, update docs and hpxml_translator_test.rb too.
           # Batteries use "TrackFacilityElectricDemandStoreExcessOnSite"; to support modeling of batteries in whole

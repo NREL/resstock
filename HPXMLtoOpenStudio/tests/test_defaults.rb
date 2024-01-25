@@ -1537,6 +1537,35 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     _test_default_air_to_air_heat_pump_values(default_hpxml_bldg.heat_pumps[0], 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22, nil, nil, 9876, nil, 14.0, 8.0, nil, nil, 40.0)
+
+    # Test w/ detailed performance data and autosizing
+    heating_capacity_fractions = [0.35, 1.0, 0.2, 0.75, 0.1, 0.65]
+    cooling_capacity_fractions = [0.2, 1.0, 0.45, 1]
+    heating_capacities = []
+    cooling_capacities = []
+    hpxml_bldg.heat_pumps[0].heating_detailed_performance_data.each_with_index do |dp, idx|
+      dp.capacity_fraction_of_nominal = heating_capacity_fractions[idx]
+      heating_capacities << dp.capacity
+    end
+    hpxml_bldg.heat_pumps[0].cooling_detailed_performance_data.each_with_index do |dp, idx|
+      dp.capacity_fraction_of_nominal = cooling_capacity_fractions[idx]
+      cooling_capacities << dp.capacity
+    end
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    # Test that fractions are not used when capacities are provided
+    _test_default_detailed_performance_capacities(default_hpxml_bldg.heat_pumps[0], 36000, 36000, heating_capacities, cooling_capacities)
+
+    hpxml_bldg.heat_pumps[0].heating_detailed_performance_data.each_with_index do |dp, idx|
+      dp.capacity = nil
+      heating_capacities << 36000 * heating_capacity_fractions[idx]
+    end
+    hpxml_bldg.heat_pumps[0].cooling_detailed_performance_data.each_with_index do |dp, idx|
+      dp.capacity = nil
+      cooling_capacities << 36000 * cooling_capacity_fractions[idx]
+    end
+    # Test that fractions are used when capacities are missing
+    _test_default_detailed_performance_capacities(default_hpxml_bldg.heat_pumps[0], 36000, 36000, heating_capacities, cooling_capacities)
   end
 
   def test_pthp
@@ -4273,6 +4302,29 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
       assert_nil(heat_pump.heating_capacity_retention_temp)
     else
       assert_equal(heating_capacity_retention_temp, heat_pump.heating_capacity_retention_temp)
+    end
+  end
+
+  def _test_default_detailed_performance_capacities(heat_pump, heating_nominal_capacity, cooling_nominal_capacity, heating_capacities, cooling_capacities)
+    if cooling_nominal_capacity.nil?
+      assert(heat_pump.cooling_capacity > 0)
+    else
+      assert_equal(cooling_nominal_capacity, heat_pump.cooling_capacity)
+    end
+    if heating_nominal_capacity.nil?
+      assert(heat_pump.heating_capacity > 0)
+    else
+      assert_equal(heating_nominal_capacity, heat_pump.heating_capacity)
+    end
+    if not heat_pump.heating_detailed_performance_data.empty?
+      heat_pump.heating_detailed_performance_data.each_with_index do |dp, idx|
+        assert_equal(heating_capacities[idx], dp.capacity)
+      end
+    end
+    if not heat_pump.cooling_detailed_performance_data.empty?
+      heat_pump.cooling_detailed_performance_data.each_with_index do |dp, idx|
+        assert_equal(cooling_capacities[idx], dp.capacity)
+      end
     end
   end
 

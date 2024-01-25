@@ -49,6 +49,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path of the existing HPXML file. If not provided, a new HPXML file with one Building element is created. If provided, a new Building element will be appended to this HPXML file (e.g., to create a multifamily HPXML file describing multiple dwelling units).')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('whole_sfa_or_mf_building_sim', false)
+    arg.setDisplayName('Whole SFA/MF Building Simulation?')
+    arg.setDescription('If the HPXML file represents a single family-attached/multifamily building with multiple dwelling units defined, specifies whether to run the HPXML file as a single whole building model.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('software_info_program_used', false)
     arg.setDisplayName('Software Info: Program Used')
     arg.setDescription('The name of the software program used.')
@@ -1384,7 +1389,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     perf_data_capacity_type_choices = OpenStudio::StringVector.new
     perf_data_capacity_type_choices << 'Absolute capacities'
-    # perf_data_capacity_type_choices << 'Normalized capacity fractions'
+    perf_data_capacity_type_choices << 'Normalized capacity fractions'
 
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('hvac_perf_data_capacity_type', perf_data_capacity_type_choices, false)
     arg.setDisplayName('HVAC Detailed Performance Data: Capacity Type')
@@ -1743,13 +1748,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_flow_rate', false)
     arg.setDisplayName('Mechanical Ventilation: Flow Rate')
-    arg.setDescription("The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#whole-ventilation-fan'>Whole Ventilation Fan</a>) is used.")
+    arg.setDescription("The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-mechanical-ventilation-fans'>HPXML Mechanical Ventilation Fans</a>) is used.")
     arg.setUnits('CFM')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_hours_in_operation', false)
     arg.setDisplayName('Mechanical Ventilation: Hours In Operation')
-    arg.setDescription("The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#whole-ventilation-fan'>Whole Ventilation Fan</a>) is used.")
+    arg.setDescription("The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-mechanical-ventilation-fans'>HPXML Mechanical Ventilation Fans</a>) is used.")
     arg.setUnits('hrs/day')
     args << arg
 
@@ -1775,7 +1780,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_fan_power', false)
     arg.setDisplayName('Mechanical Ventilation: Fan Power')
-    arg.setDescription("The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#whole-ventilation-fan'>Whole Ventilation Fan</a>) is used.")
+    arg.setDescription("The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-mechanical-ventilation-fans'>HPXML Mechanical Ventilation Fans</a>) is used.")
     arg.setUnits('W')
     args << arg
 
@@ -1886,61 +1891,61 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('kitchen_fans_quantity', false)
     arg.setDisplayName('Kitchen Fans: Quantity')
-    arg.setDescription("The quantity of the kitchen fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The quantity of the kitchen fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('#')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('kitchen_fans_flow_rate', false)
     arg.setDisplayName('Kitchen Fans: Flow Rate')
-    arg.setDescription("The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('CFM')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('kitchen_fans_hours_in_operation', false)
     arg.setDisplayName('Kitchen Fans: Hours In Operation')
-    arg.setDescription("The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('hrs/day')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('kitchen_fans_power', false)
     arg.setDisplayName('Kitchen Fans: Fan Power')
-    arg.setDescription("The fan power of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The fan power of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('W')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('kitchen_fans_start_hour', false)
     arg.setDisplayName('Kitchen Fans: Start Hour')
-    arg.setDescription("The start hour of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The start hour of the kitchen fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('hr')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('bathroom_fans_quantity', false)
     arg.setDisplayName('Bathroom Fans: Quantity')
-    arg.setDescription("The quantity of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The quantity of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('#')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('bathroom_fans_flow_rate', false)
     arg.setDisplayName('Bathroom Fans: Flow Rate')
-    arg.setDescription("The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('CFM')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('bathroom_fans_hours_in_operation', false)
     arg.setDisplayName('Bathroom Fans: Hours In Operation')
-    arg.setDescription("The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('hrs/day')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('bathroom_fans_power', false)
     arg.setDisplayName('Bathroom Fans: Fan Power')
-    arg.setDescription("The fan power of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The fan power of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('W')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('bathroom_fans_start_hour', false)
     arg.setDisplayName('Bathroom Fans: Start Hour')
-    arg.setDescription("The start hour of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#local-ventilation-fan'>Local Ventilation Fan</a>) is used.")
+    arg.setDescription("The start hour of the bathroom fans. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.")
     arg.setUnits('hr')
     args << arg
 
@@ -1952,13 +1957,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('whole_house_fan_flow_rate', false)
     arg.setDisplayName('Whole House Fan: Flow Rate')
-    arg.setDescription("The flow rate of the whole house fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#whole-house-fan'>Whole House Fan</a>) is used.")
+    arg.setDescription("The flow rate of the whole house fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-whole-house-fans'>HPXML Whole House Fans</a>) is used.")
     arg.setUnits('CFM')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('whole_house_fan_power', false)
     arg.setDisplayName('Whole House Fan: Fan Power')
-    arg.setDescription("The fan power of the whole house fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#whole-house-fan'>Whole House Fan</a>) is used.")
+    arg.setDescription("The fan power of the whole house fan. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-whole-house-fans'>HPXML Whole House Fans</a>) is used.")
     arg.setUnits('W')
     args << arg
 
@@ -2138,19 +2143,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hot_water_distribution_recirc_piping_length', false)
     arg.setDisplayName('Hot Water Distribution: Recirculation Piping Length')
     arg.setUnits('ft')
-    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the length of the recirculation piping. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation'>Recirculation</a>) is used.")
+    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the length of the recirculation piping. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation-in-unit'>Recirculation (In-Unit)</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hot_water_distribution_recirc_branch_piping_length', false)
     arg.setDisplayName('Hot Water Distribution: Recirculation Branch Piping Length')
     arg.setUnits('ft')
-    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation'>Recirculation</a>) is used.")
+    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation-in-unit'>Recirculation (In-Unit)</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hot_water_distribution_recirc_pump_power', false)
     arg.setDisplayName('Hot Water Distribution: Recirculation Pump Power')
     arg.setUnits('W')
-    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the recirculation pump power. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation'>Recirculation</a>) is used.")
+    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the recirculation pump power. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#recirculation-in-unit'>Recirculation (In-Unit)</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hot_water_distribution_pipe_r', false)
@@ -3608,7 +3613,7 @@ class HPXMLFile
     sorted_surfaces = model.getSurfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
     sorted_subsurfaces = model.getSubSurfaces.sort_by { |ss| ss.additionalProperties.getFeatureAsInteger('Index').get }
 
-    hpxml = HPXML.new(hpxml_path: existing_hpxml_path, building_id: 'ALL')
+    hpxml = HPXML.new(hpxml_path: existing_hpxml_path)
 
     if not set_header(runner, hpxml, args)
       return false
@@ -3810,6 +3815,10 @@ class HPXMLFile
     hpxml.header.xml_type = 'HPXML'
     hpxml.header.xml_generated_by = 'BuildResidentialHPXML'
     hpxml.header.transaction = 'create'
+
+    if args[:whole_sfa_or_mf_building_sim].is_initialized
+      hpxml.header.whole_sfa_or_mf_building_sim = args[:whole_sfa_or_mf_building_sim].get
+    end
 
     if args[:schedules_vacancy_period].is_initialized
       begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Schedule.parse_date_time_range(args[:schedules_vacancy_period].get)
@@ -5232,23 +5241,23 @@ class HPXMLFile
         outdoor_temperature, min_speed_cap_or_frac, max_speed_cap_or_frac, min_speed_cop, max_speed_cop = cooling_perf_data_data_point
 
         if hvac_perf_data_capacity_type == 'Absolute capacities'
-          min_speed_capacity = min_speed_cap_or_frac
-          max_speed_capacity = max_speed_cap_or_frac
+          min_speed_capacity = Float(min_speed_cap_or_frac)
+          max_speed_capacity = Float(max_speed_cap_or_frac)
         elsif hvac_perf_data_capacity_type == 'Normalized capacity fractions'
-          min_speed_capacity_fraction_of_nominal = min_speed_cap_or_frac
-          max_speed_capacity_fraction_of_nominal = max_speed_cap_or_frac
+          min_speed_capacity_fraction_of_nominal = Float(min_speed_cap_or_frac)
+          max_speed_capacity_fraction_of_nominal = Float(max_speed_cap_or_frac)
         end
 
-        clg_perf_data.add(outdoor_temperature: outdoor_temperature,
+        clg_perf_data.add(outdoor_temperature: Float(outdoor_temperature),
                           capacity: min_speed_capacity,
                           capacity_fraction_of_nominal: min_speed_capacity_fraction_of_nominal,
                           capacity_description: HPXML::CapacityDescriptionMinimum,
-                          efficiency_cop: min_speed_cop)
-        clg_perf_data.add(outdoor_temperature: outdoor_temperature,
+                          efficiency_cop: Float(min_speed_cop))
+        clg_perf_data.add(outdoor_temperature: Float(outdoor_temperature),
                           capacity: max_speed_capacity,
                           capacity_fraction_of_nominal: max_speed_capacity_fraction_of_nominal,
                           capacity_description: HPXML::CapacityDescriptionMaximum,
-                          efficiency_cop: max_speed_cop)
+                          efficiency_cop: Float(max_speed_cop))
       end
     end
   end
@@ -5413,28 +5422,25 @@ class HPXMLFile
         outdoor_temperature, min_speed_cap_or_frac, max_speed_cap_or_frac, min_speed_cop, max_speed_cop = heating_perf_data_data_point
 
         if hvac_perf_data_capacity_type == 'Absolute capacities'
-          min_speed_capacity = min_speed_cap_or_frac
-          max_speed_capacity = max_speed_cap_or_frac
+          min_speed_capacity = Float(min_speed_cap_or_frac)
+          max_speed_capacity = Float(max_speed_cap_or_frac)
         elsif hvac_perf_data_capacity_type == 'Normalized capacity fractions'
-          min_speed_capacity_fraction_of_nominal = min_speed_cap_or_frac
-          max_speed_capacity_fraction_of_nominal = max_speed_cap_or_frac
+          min_speed_capacity_fraction_of_nominal = Float(min_speed_cap_or_frac)
+          max_speed_capacity_fraction_of_nominal = Float(max_speed_cap_or_frac)
         end
 
-        htg_perf_data.add(outdoor_temperature: outdoor_temperature,
+        htg_perf_data.add(outdoor_temperature: Float(outdoor_temperature),
                           capacity: min_speed_capacity,
                           capacity_fraction_of_nominal: min_speed_capacity_fraction_of_nominal,
                           capacity_description: HPXML::CapacityDescriptionMinimum,
-                          efficiency_cop: min_speed_cop)
-        htg_perf_data.add(outdoor_temperature: outdoor_temperature,
+                          efficiency_cop: Float(min_speed_cop))
+        htg_perf_data.add(outdoor_temperature: Float(outdoor_temperature),
                           capacity: max_speed_capacity,
                           capacity_fraction_of_nominal: max_speed_capacity_fraction_of_nominal,
                           capacity_description: HPXML::CapacityDescriptionMaximum,
-                          efficiency_cop: max_speed_cop)
+                          efficiency_cop: Float(max_speed_cop))
       end
-    end
 
-    if args[:hvac_perf_data_capacity_type].is_initialized
-      hvac_perf_data_capacity_type = args[:hvac_perf_data_capacity_type].get
       hvac_perf_data_cooling_outdoor_temperatures = args[:hvac_perf_data_cooling_outdoor_temperatures].get.split(',').map(&:strip)
       hvac_perf_data_cooling_min_speed_capacities = args[:hvac_perf_data_cooling_min_speed_capacities].get.split(',').map(&:strip)
       hvac_perf_data_cooling_max_speed_capacities = args[:hvac_perf_data_cooling_max_speed_capacities].get.split(',').map(&:strip)
@@ -5450,23 +5456,23 @@ class HPXMLFile
         outdoor_temperature, min_speed_cap_or_frac, max_speed_cap_or_frac, min_speed_cop, max_speed_cop = cooling_perf_data_data_point
 
         if hvac_perf_data_capacity_type == 'Absolute capacities'
-          min_speed_capacity = min_speed_cap_or_frac
-          max_speed_capacity = max_speed_cap_or_frac
+          min_speed_capacity = Float(min_speed_cap_or_frac)
+          max_speed_capacity = Float(max_speed_cap_or_frac)
         elsif hvac_perf_data_capacity_type == 'Normalized capacity fractions'
-          min_speed_capacity_fraction_of_nominal = min_speed_cap_or_frac
-          max_speed_capacity_fraction_of_nominal = max_speed_cap_or_frac
+          min_speed_capacity_fraction_of_nominal = Float(min_speed_cap_or_frac)
+          max_speed_capacity_fraction_of_nominal = Float(max_speed_cap_or_frac)
         end
 
-        clg_perf_data.add(outdoor_temperature: outdoor_temperature,
+        clg_perf_data.add(outdoor_temperature: Float(outdoor_temperature),
                           capacity: min_speed_capacity,
                           capacity_fraction_of_nominal: min_speed_capacity_fraction_of_nominal,
                           capacity_description: HPXML::CapacityDescriptionMinimum,
-                          efficiency_cop: min_speed_cop)
-        clg_perf_data.add(outdoor_temperature: outdoor_temperature,
+                          efficiency_cop: Float(min_speed_cop))
+        clg_perf_data.add(outdoor_temperature: Float(outdoor_temperature),
                           capacity: max_speed_capacity,
                           capacity_fraction_of_nominal: max_speed_capacity_fraction_of_nominal,
                           capacity_description: HPXML::CapacityDescriptionMaximum,
-                          efficiency_cop: max_speed_cop)
+                          efficiency_cop: Float(max_speed_cop))
       end
     end
   end
