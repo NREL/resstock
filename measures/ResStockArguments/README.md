@@ -11,19 +11,6 @@ Passes in all arguments from the options lookup, processes them, and then regist
 ## Arguments
 
 
-**Whole SFA/MF Building Simulation?**
-
-If the HPXML file represents a single family-attached/multifamily building with multiple dwelling units defined, specifies whether to run the HPXML file as a single whole building model.
-
-- **Name:** ``whole_sfa_or_mf_building_sim``
-- **Type:** ``Choice``
-
-- **Required:** ``false``
-
-- **Choices:** `auto`, `true`, `false`
-
-<br/>
-
 **Schedules: Vacancy Period**
 
 Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).
