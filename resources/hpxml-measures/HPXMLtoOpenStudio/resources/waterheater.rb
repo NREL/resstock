@@ -63,7 +63,7 @@ class Waterheater
   def self.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, eri_version, schedules_file, unavailable_periods, unit_multiplier)
     #TODO: flag for testing, need to add whether this is 120 V or 240 V, shared or dedicated circuit, to the HPXML files. Extension elements?
     
-    if water_heating_system.uniform_energy_factor > 5.0
+    if water_heating_system.uniform_energy_factor > 4.8
       hpwh_120V = true
       hpwh_120V_type = 'dedicated' #'shared'
     end
@@ -120,11 +120,16 @@ class Waterheater
     if hpwh_120V
       min_temp = 37.0 # F, from spec sheet
       max_temp = 145.0 # F, from spec sheet
+      if hpwh_120V_type == 'dedicated'
+        airflow_rate = 350.0 # cfm
+      else
+        airflow_rate = 230.0 # cfm
+      end
     else
       min_temp = 42.0 # F
       max_temp = 120.0 # F
+      airflow_rate = 181.0 # cfm
     end
-    airflow_rate = 181.0 # cfm
 
     # Coil:WaterHeating:AirToWaterHeatPump:Wrapped
     coil = setup_hpwh_dxcoil(model, runner, water_heating_system, weather, obj_name_hpwh, airflow_rate, unit_multiplier, hpwh_120V, hpwh_120V_type)
@@ -654,7 +659,7 @@ class Waterheater
 
   def self.setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, setpoint_schedule, unit_multiplier, hpwh_120V, hpwh_120V_type)
     h_tank = get_tank_height()
-	h_condtop = (1.0 - (5.5 / 12.0)) * h_tank # in the 6th node of the tank (counting from top)
+	  h_condtop = (1.0 - (5.5 / 12.0)) * h_tank # in the 6th node of the tank (counting from top)
     h_condbot = 0.01 * unit_multiplier # bottom node
     h_hpctrl_up = (1.0 - (2.5 / 12.0)) * h_tank # in the 3rd node of the tank
     h_hpctrl_low = (1.0 - (8.5 / 12.0)) * h_tank # in the 9th node of the tank
@@ -696,7 +701,7 @@ class Waterheater
     # Curves
     if hpwh_120V
       if hpwh_120V_type == 'dedicated'
-        cap = 0.422 * unit_multiplier # kW
+        cap = 0.422 * unit_multiplier / 3.6 # kW
 
         hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
         hpwh_cap.setName('HPWH-Cap-fT')
@@ -868,7 +873,11 @@ class Waterheater
     e_cap *= unit_multiplier
     parasitics *= unit_multiplier
 
-    h_UE = (1.0 - (3.5 / 12.0)) * h_tank # in the 3rd node of the tank (counting from top)
+    if hpwh_120V
+      h_UE = 0.5 * h_tank # only used for controls, no elements in 120V
+    else
+      h_UE = (1.0 - (3.5 / 12.0)) * h_tank # in the 3rd node of the tank (counting from top)
+    end
     h_LE = (1.0 - (9.5 / 12.0)) * h_tank # in the 10th node of the tank (counting from top)
 
     tank = OpenStudio::Model::WaterHeaterStratified.new(model)
@@ -1944,7 +1953,7 @@ class Waterheater
     end
   end
 
-  def self.unmet_wh_loads_program(model, water_heating_systems, plantloop_map, showers_peak_flow)
+  def self.unmet_wh_loads_program(model, water_heating_systems, plantloop_map, showers_peak_flows)
    
     water_heating_systems.each do |water_heating_system|
       # Get the water storage tanks for the outlet temp sensor
@@ -2001,7 +2010,7 @@ class Waterheater
       unmet_wh_loads_program.addLine('EndIf')
       unmet_wh_loads_program.addLine("If (#{shower_flow_sensor.name} > 0) && (#{wh_temp_sensor.name} < #{mixed_setpoint_sensor.name})")      
       unmet_wh_loads_program.addLine('Set ShowerSagTime=SystemTimeStep')
-      unmet_wh_loads_program.addLine("Set ShowerE=#{shower_flow_sensor.name} * #{showers_peak_flow[water_heating_system.id]} * 990.0 * 4183.0 * (SystemTimeStep * 3600) * (#{mixed_setpoint_sensor.name} - #{wh_temp_sensor.name})")
+      unmet_wh_loads_program.addLine("Set ShowerE=#{shower_flow_sensor.name} * #{showers_peak_flows[water_heating_system.id]} * 990.0 * 4183.0 * (SystemTimeStep * 3600) * (#{mixed_setpoint_sensor.name} - #{wh_temp_sensor.name})")
       unmet_wh_loads_program.addLine('Else')
       unmet_wh_loads_program.addLine('Set ShowerSagTime=0')
       unmet_wh_loads_program.addLine('Set ShowerE=0')

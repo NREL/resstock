@@ -352,7 +352,7 @@ class HotWaterAndAppliances
         end
 
         id = water_heating_system.id
-        shower_peak_flows = {id => shower_peak_flow}
+        shower_peak_flows[id] = shower_peak_flow
 
         # Fixtures (showers, sinks, baths)
         add_water_use_equipment(model, fixtures_obj_name, fx_peak_flow * gpd_frac * non_solar_fraction, fixtures_schedule, water_use_connections[water_heating_system.id], unit_multiplier, mw_temp_schedule)
