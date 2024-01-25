@@ -40,6 +40,13 @@ Use ``openstudio tasks.rb update_resources`` to update files in ``resources/hpxm
 .. code:: bash
 
   $ openstudio tasks.rb update_resources
+  remote: Enumerating objects: 188817, done.
+  remote: Counting objects: 100% (15305/15305), done.
+  ...
+  From https://github.com/NREL/OpenStudio-HPXML
+   * branch                    master     -> FETCH_HEAD
+  Merge made by the 'ort' strategy.
+  ...
 
 .. _integrity-checks:
 
