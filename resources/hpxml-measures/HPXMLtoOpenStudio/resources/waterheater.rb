@@ -832,6 +832,7 @@ class Waterheater
       coil.setRatedHeatingCapacity(4220.0)
     else
       coil.setRatedHeatingCapacity(UnitConversions.convert(cap, 'kW', 'W') * cop)
+    end
     coil.setRatedCOP(cop)
     coil.setRatedSensibleHeatRatio(shr)
     coil.setRatedEvaporatorInletAirDryBulbTemperature(rated_edb)
