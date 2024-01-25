@@ -701,7 +701,7 @@ class Waterheater
     # Curves
     if hpwh_120V
       if hpwh_120V_type == 'dedicated'
-        cap = 0.422 * unit_multiplier / 3.6 # kW
+        cap = 0.422 * unit_multiplier * 3.6 # kW
 
         hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
         hpwh_cap.setName('HPWH-Cap-fT')
