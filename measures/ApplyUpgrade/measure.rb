@@ -458,13 +458,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = values['utility_bill_pv_monthly_grid_connection_fee_units']
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = values['utility_bill_pv_monthly_grid_connection_fees']
 
-      # Get registered values and pass them to BuildResidentialScheduleFile
-      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path,
-                                                    'hpxml_output_path' => hpxml_path,
-                                                    'schedules_random_seed' => values['building_id'],
-                                                    'output_csv_path' => File.expand_path('../schedules.csv'),
-                                                    'building_id' => 'ALL' }]
-
       # Specify measures to run
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
