@@ -319,7 +319,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../upgraded.xml')
 
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    hpxml.buildings.each do |hpxml_bldg|
+    hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
+      unit_number += 1
+
       system_upgrades = []
       options.each do |_option_num, option|
         parameter_name, option_name = option.split('|')
@@ -337,6 +339,18 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         next if value == ''
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
+      end
+
+      if unit_number > 1
+        measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
+        measures['BuildResidentialHPXML'][0]['whole_sfa_or_mf_building_sim'] = true
+        measures['BuildResidentialHPXML'][0]['battery_present'] = 'false' # limitation of OS-HPXML
+      end
+
+      unit_multiplier = hpxml_bldg.building_construction.number_of_units
+      if unit_multiplier > 1
+        measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
+        measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
       end
 
       # Set additional properties
@@ -460,6 +474,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       # Specify measures to run
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
+      # measures['BuildResidentialHPXML'][0]['apply_validation'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
       if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
         register_logs(runner, new_runner)
@@ -476,7 +491,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
     # Specify measures to run
     measures_hash = { 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] }
-    if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+    if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
       register_logs(runner, new_runner)
       return false
     end
