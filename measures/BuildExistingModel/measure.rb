@@ -333,7 +333,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../existing.xml')
 
     # Optional whole SFA/MF building simulation
-    whole_sfa_or_mf_building_sim = true
+    whole_sfa_or_mf_building_sim = false
     geometry_building_num_units = 1
     if whole_sfa_or_mf_building_sim
       resstock_arguments_runner.result.stepValues.each do |step_value|
