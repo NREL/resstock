@@ -318,6 +318,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Initialize measure keys with hpxml_path arguments
     hpxml_path = File.expand_path('../upgraded.xml')
 
+    # Optional whole SFA/MF building simulation
+    whole_sfa_or_mf_building_sim = hpxml.header.whole_sfa_or_mf_building_sim
+
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
       unit_number += 1
@@ -334,6 +337,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
 
+      # Assign ResStockArgument's runner arguments to BuildResidentialHPXML
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
         next if value == ''
@@ -341,15 +345,20 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
 
+      # Set whole SFA/MF building simulation items
+      measures['BuildResidentialHPXML'][0]['whole_sfa_or_mf_building_sim'] = whole_sfa_or_mf_building_sim
+
       if unit_number > 1
         measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
-        measures['BuildResidentialHPXML'][0]['whole_sfa_or_mf_building_sim'] = true
+      end
+
+      if whole_sfa_or_mf_building_sim && hpxml.buildings.size > 1
         measures['BuildResidentialHPXML'][0]['battery_present'] = 'false' # limitation of OS-HPXML
       end
 
       unit_multiplier = hpxml_bldg.building_construction.number_of_units
+      measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
       if unit_multiplier > 1
-        measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
         measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
       end
 
