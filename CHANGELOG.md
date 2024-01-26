@@ -27,7 +27,6 @@ Features
 - Add ability to request timeseries resilience output from the yml file ([#1113](https://github.com/NREL/resstock/pull/1113))
 - Add ability to calculate detailed utility bills based on a user-specified TSV file of paths to JSON utility rate tariff files ([#1109](https://github.com/NREL/resstock/pull/1109))
 - Update to OpenStudio v3.7.0 ([#1144](https://github.com/NREL/resstock/pull/1144))
-- Update to RECS 2020 V5 data files ([#1164](https://github.com/NREL/resstock/pull/1164))
 - Automate creation of new "Arguments" documentation sections for summarizing arguments (and their default values) in options_lookup.tsv ([#1146](https://github.com/NREL/resstock/pull/1146))
 - Add variability in ground thermal conductivity ([#1165](https://github.com/NREL/resstock/pull/1165))
 
@@ -41,7 +40,9 @@ Fixes
 - Minor changes to heating and cooling setpoint TSV due to refactoring of prune_rules handling in resstock-estimation ([#1132](https://github.com/NREL/resstock/pull/1132))
 - Minor changes to heating and cooling setpoint TSV after a bug fix ([#1136](https://github.com/NREL/resstock/pull/1136))
 - Update `run_analysis.rb` to handle illegal path characters in upgrade names ([#1138](https://github.com/NREL/resstock/pull/1138))
+- Update to RECS 2020 V5 data files ([#1164](https://github.com/NREL/resstock/pull/1164))
 - Update TMY3 weather URL from the NREL Data Catalog ([#1182](https://github.com/NREL/resstock/pull/1182))
+- Update to RECS 2020 V7 data files ([#1164](https://github.com/NREL/resstock/pull/1199))
 
 ## ResStock v3.1.1
 ###### November 28, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.0...v3.1.1)
