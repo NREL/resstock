@@ -5,6 +5,7 @@ Features
 - Add flexibility to specify location of the radiant barrier ([#1188](https://github.com/NREL/resstock/pull/1188))
 - Add ability to describe detailed performance data for variable-speed air-source HVAC systems ([#1188](https://github.com/NREL/resstock/pull/1188))
 - Include additional 2022 Cambium 25-year LRMER emissions data ([#1194](https://github.com/NREL/resstock/pull/1194))
+- Add optional switch to BuildExistingModel (defaulted to false) for modeling whole SFA/MF buildings ([#1200](https://github.com/NREL/resstock/pull/1200))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
