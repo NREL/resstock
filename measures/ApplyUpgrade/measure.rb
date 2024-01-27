@@ -303,7 +303,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Get the absolute paths relative to this meta measure in the run directory
-      if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+      if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
         return false
       end
     end # apply_package_upgrade
@@ -485,7 +485,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
       measures['BuildResidentialHPXML'][0]['apply_validation'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
-      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         register_logs(runner, new_runner)
         return false
       end
@@ -537,6 +537,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   def halt_workflow(runner, measures)
     if measures.size == 0
       # Upgrade not applied; don't re-run existing home simulation
+      FileUtils.rm_rf(File.expand_path('../existing.osw'))
+      FileUtils.rm_rf(File.expand_path('../existing.xml'))
       runner.haltWorkflow('Invalid')
       return true
     end

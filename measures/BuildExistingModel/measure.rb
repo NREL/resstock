@@ -324,7 +324,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Get the absolute paths relative to this meta measure in the run directory
     resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
-    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
       register_logs(runner, resstock_arguments_runner)
       return false
     end
@@ -722,7 +722,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # for apply_hvac_sizing since ApplyUpgrade sets HVAC capacities
       measures['BuildResidentialHPXML'][0]['apply_validation'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
-      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
+      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         register_logs(runner, new_runner)
         return false
       end
