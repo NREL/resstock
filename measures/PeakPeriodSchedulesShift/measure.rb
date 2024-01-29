@@ -328,6 +328,9 @@ class Schedules
   def shift_schedules(model, runner, schedule_file_column_names_enabled, begin_hour, end_hour, delay, allow_stacking, total_days_in_year, sim_start_day, steps_in_day, schedules_peak_period_weekdays_only)
     shift_summary = {}
     schedule_file_column_names_enabled.each do |schedule_file_column_name, peak_period_shift_enabled|
+      schedule_file = model.getScheduleFiles.find { |schedule_file| schedule_file.name.to_s == schedule_file_column_name }
+
+      next if schedule_file.nil?
       next if !@schedules.keys.include?(schedule_file_column_name)
       next if !peak_period_shift_enabled
 
@@ -349,8 +352,6 @@ class Schedules
       end
 
       next unless shifted_schedule && allow_stacking
-
-      schedule_file = model.getScheduleFiles.find { |schedule_file| schedule_file.name.to_s == schedule_file_column_name }
 
       new_schedule_type_limits = OpenStudio::Model::ScheduleTypeLimits.new(model)
       new_schedule_type_limits.setName("#{schedule_file_column_name} Stacked Limits")
