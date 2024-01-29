@@ -445,10 +445,10 @@ class TestRunAnalysis < Minitest::Test
 
     _test_contents(contents, false, true)
 
-    _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-AllUpgrades.osw'))
-    results_allupgrades = File.join(@testing_upgrades, 'results-AllUpgrades.csv')
-    assert(File.exist?(results_allupgrades))
-    results = CSV.read(results_allupgrades, headers: true)
+    _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-PackageUpgrade.osw'))
+    results_packageupgrade = File.join(@testing_upgrades, 'results-PackageUpgrade.csv')
+    assert(File.exist?(results_packageupgrade))
+    results = CSV.read(results_packageupgrade, headers: true)
 
     _test_columns(results, true)
 
@@ -466,12 +466,12 @@ class TestRunAnalysis < Minitest::Test
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-existing.xml')))
     assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-upgraded.xml')))
 
-    assert(File.exist?(File.join(@testing_upgrades, 'osw', 'AllUpgrades', '1-existing.osw')))
-    assert(File.exist?(File.join(@testing_upgrades, 'osw', 'AllUpgrades', '1-upgraded.osw')))
-    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-existing.xml')))
-    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'AllUpgrades', '1-upgraded.xml')))
+    assert(File.exist?(File.join(@testing_upgrades, 'osw', 'PackageUpgrade', '1-existing.osw')))
+    assert(File.exist?(File.join(@testing_upgrades, 'osw', 'PackageUpgrade', '1-upgraded.osw')))
+    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'PackageUpgrade', '1-existing.xml')))
+    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'PackageUpgrade', '1-upgraded.xml')))
 
-    FileUtils.cp(results_allupgrades, File.join(File.dirname(@testing_upgrades), 'project_testing'))
+    FileUtils.cp(results_packageupgrade, File.join(File.dirname(@testing_upgrades), 'project_testing'))
   end
 
   def test_national_upgrades
@@ -500,10 +500,10 @@ class TestRunAnalysis < Minitest::Test
 
     _test_contents(contents, false, false)
 
-    _test_measure_order(File.join(@national_upgrades, 'national_upgrades-AllUpgrades.osw'))
-    results_allupgrades = File.join(@national_upgrades, 'results-AllUpgrades.csv')
-    assert(File.exist?(results_allupgrades))
-    results = CSV.read(results_allupgrades, headers: true)
+    _test_measure_order(File.join(@national_upgrades, 'national_upgrades-PackageUpgrade.osw'))
+    results_packageupgrade = File.join(@national_upgrades, 'results-PackageUpgrade.csv')
+    assert(File.exist?(results_packageupgrade))
+    results = CSV.read(results_packageupgrade, headers: true)
 
     _test_columns(results, true)
 
@@ -521,11 +521,11 @@ class TestRunAnalysis < Minitest::Test
     assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing.xml')))
     assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-upgraded.xml')))
 
-    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-existing.osw')))
-    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'AllUpgrades', '1-upgraded.osw')))
-    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-existing.xml')))
-    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'AllUpgrades', '1-upgraded.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'PackageUpgrade', '1-existing.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'PackageUpgrade', '1-upgraded.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'PackageUpgrade', '1-existing.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'PackageUpgrade', '1-upgraded.xml')))
 
-    FileUtils.cp(results_allupgrades, File.join(File.dirname(@national_upgrades), 'project_national'))
+    FileUtils.cp(results_packageupgrade, File.join(File.dirname(@national_upgrades), 'project_national'))
   end
 end

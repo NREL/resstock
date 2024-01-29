@@ -85,8 +85,8 @@ class TesBuildStockBatch < Minitest::Test
 
     _test_columns(results, true)
 
-    assert(File.exist?(File.join(@national_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000002', 'run')))
-    contents = Dir[File.join(@national_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000002', 'run/*')].collect { |x| File.basename(x) }
+    assert(File.exist?(File.join(@national_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run')))
+    contents = Dir[File.join(@national_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run/*')].collect { |x| File.basename(x) }
 
     _test_contents(contents, true, false)
 
