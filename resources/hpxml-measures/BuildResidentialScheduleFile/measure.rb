@@ -85,7 +85,6 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # return true
     # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
 

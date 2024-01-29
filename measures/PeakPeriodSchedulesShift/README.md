@@ -27,12 +27,12 @@ ___
 The intent of this measure is to give the user the ability to shift schedules, thereby giving some control over the timing of energy use.
 A daily peak period is defined using a start and end hour of the day.
 This represents a peak demand window for which customers, e.g., might be penalized for running home appliances.
-Schedule values falling within the peak period are then shifted back in time, to start at the end of the peak period.
+Schedule values falling within the peak period are then shifted back by the length of the peak period.
 An optional delay value can be specified to control how many hours after the peak period final hour the load shift should begin.
 By default, only schedule values occuring during weekdays can be shifted.
-However, an optional argument can be supplied to additionally enable schedule shifts for weekend days.
-Users also have the ability to disallow overlapping of shifted schedules onto any existing events.
-By default, however, schedules are shifted to periods that already have non-zero schedule values.
+However, an optional argument can be supplied to enable schedule shifts for weekend days.
+Users also have the ability to disallow the overlapping of shifted schedules onto existing events.
+By default, however, schedules are shifted to periods that may already have non-zero schedule values.
 In terms of specifying which schedules may be shifted, the user may provide comma-separated lists of schedule names for both ScheduleRuleset and ScheduleFile object types.
 Any schedule whose name is not listed is not available to receive any schedule shifts.
 
