@@ -47,7 +47,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('schedules_peak_period_allow_stacking', false)
     arg.setDisplayName('Schedules: Peak Period Allow Stacking')
-    arg.setDescription('Whether schedules can be shifted to periods that already have non-zero schedule values. Defaults to true. Note that stacking runs the risk of creating out-of-range schedule values.')
+    arg.setDescription('Whether schedules can be shifted to periods that already have non-zero schedule values. Defaults to true. Note that the schedule type limits upper value is increased to 2.0 when allowing stacked schedule values.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('schedules_peak_period_weekdays_only', false)
@@ -159,15 +159,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
 
       shift_summary[schedule_ruleset_name] = 0
 
-      if schedules_peak_period_allow_stacking
-        new_schedule_type_limits = OpenStudio::Model::ScheduleTypeLimits.new(model)
-        new_schedule_type_limits.setName("#{schedule_ruleset_name} Stacked Limits")
-        new_schedule_type_limits.setLowerLimitValue(0)
-        # new_schedule_type_limits.setUpperLimitValue(2)
-        new_schedule_type_limits.setNumericType('Continuous')
-      end
-
-      any_shifted = false
+      shifted_schedule = false
       schedule_ruleset = schedule_rulesets.find { |schedule_ruleset| schedule_ruleset.name.to_s == schedule_ruleset_name }
       schedule_ruleset.scheduleRules.reverse.each do |schedule_rule|
         if schedules_peak_period_weekdays_only
@@ -192,12 +184,11 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
         new_day_schedule.setName("#{old_day_schedule.name} Shifted")
 
         schedule = get_hourly_values(old_day_schedule)
-        shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
+        shifted_day_schedule = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
 
-        if shifted
+        if shifted_day_schedule
           shift_day_schedule(calendar_year, shift_summary, schedule_ruleset_name, new_schedule_rule, new_day_schedule, schedule, schedules_peak_period_weekdays_only)
-          any_shifted = true
-          # new_day_schedule.setScheduleTypeLimits(new_schedule_type_limits) if schedules_peak_period_allow_stacking
+          shifted_schedule = true
         else
           new_schedule_rule.remove
         end
@@ -221,21 +212,25 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       new_default_day_schedule.setName("#{old_default_day_schedule.name} Shifted")
 
       schedule = get_hourly_values(old_default_day_schedule)
-      shifted = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
+      shifted_day_schedule = Schedules.day_peak_shift(schedule, 0, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, 24)
 
-      if shifted
+      if shifted_day_schedule
         shift_day_schedule(calendar_year, shift_summary, schedule_ruleset_name, new_default_schedule_rule, new_default_day_schedule, schedule, schedules_peak_period_weekdays_only)
-        any_shifted = true
-        # new_default_day_schedule.setScheduleTypeLimits(new_schedule_type_limits) if schedules_peak_period_allow_stacking
+        shifted_schedule = true
       else
         new_default_schedule_rule.remove
       end
 
-      if any_shifted && schedules_peak_period_allow_stacking
-        schedule_ruleset.setScheduleTypeLimits(new_schedule_type_limits)
-      else
-        # new_schedule_type_limits.remove
-      end
+      next unless shifted_schedule && schedules_peak_period_allow_stacking
+
+      new_schedule_type_limits = OpenStudio::Model::ScheduleTypeLimits.new(model)
+      new_schedule_type_limits.setName("#{schedule_ruleset_name} Stacked Limits")
+      new_schedule_type_limits.setLowerLimitValue(0)
+      new_schedule_type_limits.setUpperLimitValue(1)
+      new_schedule_type_limits.setNumericType('Continuous')
+
+      schedule_ruleset.setScheduleTypeLimits(new_schedule_type_limits)
+      schedule_ruleset.scheduleTypeLimits.get.setUpperLimitValue(2.0) # ScheduleTypeRegistry prevents us from setting ScheduleTypeLimits with invalid limits
     end
 
     shift_summary.each do |schedule_ruleset_name, shifted_days|
@@ -248,7 +243,7 @@ class PeakPeriodSchedulesShift < OpenStudio::Measure::ModelMeasure
       external_file_path = external_file.filePath.to_s
 
       schedules = Schedules.new(file_path: external_file_path)
-      schedules.shift_schedules(runner, schedule_file_column_names_enabled, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, total_days_in_year, sim_start_day, steps_in_day, schedules_peak_period_weekdays_only)
+      schedules.shift_schedules(model, runner, schedule_file_column_names_enabled, begin_hour, end_hour, schedules_peak_period_delay, schedules_peak_period_allow_stacking, total_days_in_year, sim_start_day, steps_in_day, schedules_peak_period_weekdays_only)
       schedules.export()
     end
 
@@ -330,7 +325,7 @@ class Schedules
     end
   end
 
-  def shift_schedules(runner, schedule_file_column_names_enabled, begin_hour, end_hour, delay, allow_stacking, total_days_in_year, sim_start_day, steps_in_day, schedules_peak_period_weekdays_only)
+  def shift_schedules(model, runner, schedule_file_column_names_enabled, begin_hour, end_hour, delay, allow_stacking, total_days_in_year, sim_start_day, steps_in_day, schedules_peak_period_weekdays_only)
     shift_summary = {}
     schedule_file_column_names_enabled.each do |schedule_file_column_name, peak_period_shift_enabled|
       next if !@schedules.keys.include?(schedule_file_column_name)
@@ -340,14 +335,31 @@ class Schedules
       shift_summary[schedule_file_column_name] = 0
       next if schedule.nil?
 
+      shifted_schedule = false
       total_days_in_year.times do |day|
         today = sim_start_day + day
         day_of_week = today.wday
         next if [0, 6].include?(day_of_week) && schedules_peak_period_weekdays_only
 
-        shifted = Schedules.day_peak_shift(schedule, day, begin_hour, end_hour, delay, allow_stacking, steps_in_day)
-        shift_summary[schedule_file_column_name] += 1 if shifted
+        shifted_day_schedule = Schedules.day_peak_shift(schedule, day, begin_hour, end_hour, delay, allow_stacking, steps_in_day)
+        if shifted_day_schedule
+          shift_summary[schedule_file_column_name] += 1
+          shifted_schedule = true
+        end
       end
+
+      next unless shifted_schedule && allow_stacking
+
+      schedule_file = model.getScheduleFiles.find { |schedule_file| schedule_file.name.to_s == schedule_file_column_name }
+
+      new_schedule_type_limits = OpenStudio::Model::ScheduleTypeLimits.new(model)
+      new_schedule_type_limits.setName("#{schedule_file_column_name} Stacked Limits")
+      new_schedule_type_limits.setLowerLimitValue(0)
+      new_schedule_type_limits.setUpperLimitValue(1)
+      new_schedule_type_limits.setNumericType('Continuous')
+
+      schedule_file.setScheduleTypeLimits(new_schedule_type_limits)
+      schedule_file.scheduleTypeLimits.get.setUpperLimitValue(2.0) # ScheduleTypeRegistry prevents us from setting ScheduleTypeLimits with invalid limits
     end
 
     shift_summary.each do |schedule_file_column_name, shifted_days|

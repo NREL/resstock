@@ -99,7 +99,7 @@ The number of hours after peak period end.
 
 
 ### Schedules: Peak Period Allow Stacking
-Whether schedules can be shifted to periods that already have non-zero schedule values. Defaults to true. Note that stacking runs the risk of creating out-of-range schedule values.
+Whether schedules can be shifted to periods that already have non-zero schedule values. Defaults to true. Note that the schedule type limits upper value is increased to 2.0 when allowing stacked schedule values.
 **Name:** schedules_peak_period_allow_stacking,
 **Type:** Boolean,
 **Units:** ,
