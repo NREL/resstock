@@ -378,7 +378,17 @@ class ReportUtilityBillsTest < Minitest::Test
     hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-unit-multiplier.xml'))
     hpxml.header.utility_bill_scenarios.add(name: 'Test 1', elec_tariff_filepath: '../../ReportUtilityBills/resources/detailed_rates/Sample Tiered Rate.json')
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
-    expected_warnings = ['Cannot currently calculate utility bills based on detailed electric rates for an HPXML with unit multipliers or multiple Building elements.']
+    expected_warnings = ['Cannot currently calculate utility bills based on detailed electric rates for an HPXML with unit multipliers.']
+    actual_bills, _actual_monthly_bills = _test_measure(expected_warnings: expected_warnings)
+    assert_nil(actual_bills)
+  end
+
+  def test_warning_detailed_rates_whole_sfa_mf_building
+    @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-mf-whole-building.xml'))
+    hpxml.header.utility_bill_scenarios.add(name: 'Test 1', elec_tariff_filepath: '../../ReportUtilityBills/resources/detailed_rates/Sample Tiered Rate.json')
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    expected_warnings = ['Cannot currently calculate utility bills based on detailed electric rates for a whole SFA/MF building simulation.']
     actual_bills, _actual_monthly_bills = _test_measure(expected_warnings: expected_warnings)
     assert_nil(actual_bills)
   end
@@ -1045,7 +1055,8 @@ class ReportUtilityBillsTest < Minitest::Test
     utility_bill_scenario = @hpxml_header.utility_bill_scenarios[0]
     Zip.on_exists_proc = true
     Zip::File.open(File.join(File.dirname(__FILE__), '../resources/detailed_rates/openei_rates.zip')) do |zip_file|
-      zip_file.each do |entry|
+      zip_file.each_with_index do |entry, i|
+        break if i >= 1000 # No need to run *every* file, that will take a while
         next unless entry.file?
 
         tmpdir = Dir.tmpdir
@@ -1060,8 +1071,7 @@ class ReportUtilityBillsTest < Minitest::Test
           File.delete(@bills_monthly_csv) if File.exist? @bills_monthly_csv
           actual_bills, actual_monthly_bills = _bill_calcs(@fuels_pv_1kw_detailed, @hpxml_header, @hpxml.buildings, utility_bill_scenario)
           if !File.exist?(@bills_csv)
-            puts entry.name
-            assert(false)
+            flunk "#{entry.name} was not successful."
           end
           if entry.name.include? 'North Slope Borough Power Light - Aged or Handicappedseniors over 60'
             # No cost if < 600 kWh/month, which is the case for PV_None.csv
@@ -1211,7 +1221,8 @@ class ReportUtilityBillsTest < Minitest::Test
 
     # Run OSW
     command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path}"
-    cli_output = `#{command}`
+    success = system(command)
+    assert(success)
 
     # Cleanup
     File.delete(osw_path)
@@ -1220,15 +1231,12 @@ class ReportUtilityBillsTest < Minitest::Test
     bills_monthly_csv = File.join(File.dirname(template_osw), 'run', 'results_bills_monthly.csv')
 
     # Check warnings/errors
-    if not expected_errors.empty?
-      expected_errors.each do |expected_error|
-        assert(cli_output.include?("ERROR] #{expected_error}"))
-      end
+    log_lines = File.readlines(File.join(File.dirname(template_osw), 'run', 'run.log')).map(&:strip)
+    expected_errors.each do |expected_error|
+      assert(log_lines.any? { |line| line.include?(' ERROR]') && line.include?(expected_error) })
     end
-    if not expected_warnings.empty?
-      expected_warnings.each do |expected_warning|
-        assert(cli_output.include?("WARN] #{expected_warning}"))
-      end
+    expected_warnings.each do |expected_warning|
+      assert(log_lines.any? { |line| line.include?(' WARN]') && line.include?(expected_warning) })
     end
 
     if !hpxml.nil?

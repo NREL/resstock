@@ -28,19 +28,19 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
   # define the arguments that the user will input
   def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
-    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('building_id', true)
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('building_id', true)
     arg.setDisplayName('Building Unit ID')
     arg.setDescription('The building unit number (between 1 and the number of samples).')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeDoubleArgument('sample_weight', false)
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('sample_weight', false)
     arg.setDisplayName('Sample Weight of Simulation')
     arg.setDescription('Number of buildings this simulation represents.')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('downselect_logic', false)
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('downselect_logic', false)
     arg.setDisplayName('Downselect Logic')
     arg.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << arg
@@ -81,7 +81,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('os_hescore_directory', false)
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('os_hescore_directory', false)
     arg.setDisplayName('HEScore Workflow: OpenStudio-HEScore directory path')
     arg.setDescription('Path to the OpenStudio-HEScore directory. If specified, the HEScore workflow will run.')
     args << arg
@@ -324,7 +324,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Get the absolute paths relative to this meta measure in the run directory
     resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
-    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
       register_logs(runner, resstock_arguments_runner)
       return false
     end
@@ -332,16 +332,29 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Initialize measure keys with hpxml_path arguments
     hpxml_path = File.expand_path('../existing.xml')
 
+    # Optional whole SFA/MF building simulation
+    whole_sfa_or_mf_building_sim = true
     geometry_building_num_units = 1
-    resstock_arguments_runner.result.stepValues.each do |step_value|
-      if step_value.name == 'geometry_building_num_units'
-        geometry_building_num_units = Integer(get_value_from_workflow_step_value(step_value))
+    if whole_sfa_or_mf_building_sim
+      resstock_arguments_runner.result.stepValues.each do |step_value|
+        if step_value.name == 'geometry_building_num_units'
+          geometry_building_num_units = Integer(get_value_from_workflow_step_value(step_value))
+        end
       end
     end
-    geometry_num_floors_above_grade = bldg_data['Geometry Stories']
-    geometry_corridor_position = bldg_data['Corridor']
+
+    num_units_modeled = 1
+    max_num_units_modeled = 5
+    unit_multipliers = []
+    if whole_sfa_or_mf_building_sim && geometry_building_num_units > 1
+      num_units_modeled = [geometry_building_num_units, max_num_units_modeled].min
+      unit_multipliers = split_into(geometry_building_num_units, num_units_modeled)
+    end
 
     # AddSharedHPWH measure
+    register_value(runner, 'num_units_modeled', num_units_modeled)
+    geometry_num_floors_above_grade = bldg_data['Geometry Stories']
+    geometry_corridor_position = bldg_data['Corridor']
 
     # shared_hpwh_type = 'none'
     shared_hpwh_type = 'hpwh'
@@ -350,32 +363,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # shared_hpwh_fuel_type = HPXML::FuelTypeElectricity
     shared_hpwh_fuel_type = HPXML::FuelTypeNaturalGas
 
-    # Whole building modeling flag
-    whole_sfa_mf_building = false
-    if geometry_building_num_units < 5
-      whole_sfa_mf_building = true
-    end
-
-    num_units_modeled = 1
-    unit_multipliers = []
-
-    # if whole_sfa_mf_building
-    # register_value(runner, 'geometry_building_num_units', geometry_building_num_units)
-    # else
-    # register_value(runner, 'geometry_building_num_units', 1)
-    # end
-
-    # model units of the building, up to a maximum of 10
-    if whole_sfa_mf_building && geometry_building_num_units > 1
-      num_units_modeled = [geometry_building_num_units, 10].min
-      unit_multipliers = split_into(geometry_building_num_units, num_units_modeled)
-    end
-    register_value(runner, 'num_units_modeled', num_units_modeled)
-
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     (1..num_units_modeled).each do |unit_number|
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
 
+      # Assign ResStockArgument's runner arguments to BuildResidentialHPXML
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
         next if value == ''
@@ -383,18 +375,28 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
 
+      # Set whole SFA/MF building simulation items
+      measures['BuildResidentialHPXML'][0]['whole_sfa_or_mf_building_sim'] = whole_sfa_or_mf_building_sim
+
       if unit_number > 1
         measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
+      end
+
+      if whole_sfa_or_mf_building_sim && num_units_modeled > 1
         measures['BuildResidentialHPXML'][0]['battery_present'] = 'false' # limitation of OS-HPXML
       end
 
       if !unit_multipliers.empty?
-        measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multipliers[unit_number - 1]
-        measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
+        unit_multiplier = unit_multipliers[unit_number - 1]
+        measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
+        if unit_multiplier > 1
+          measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
+        end
       end
 
       # Set additional properties
       additional_properties = []
+
       ['ceiling_insulation_r'].each do |arg_name|
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"
@@ -406,7 +408,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       additional_properties << "shared_hpwh_fuel_type=#{shared_hpwh_fuel_type}"
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
-      # Get software program used and version
       measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
       measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
 
@@ -423,7 +424,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
       # Emissions
       if args[:emissions_scenario_names].is_initialized
-
         if !bldg_data.keys.include?('Generation And Emissions Assessment Region')
           runner.registerError('Emissions scenario(s) were specified, but could not find the Generation and Emissions Assessment (GEA) region.')
           return false
@@ -710,29 +710,36 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         measures['BuildResidentialHPXML'][0]['utility_bill_wood_marginal_rates'] = utility_bill_wood_marginal_rates
         register_value(runner, 'utility_bill_wood_marginal_rates', utility_bill_wood_marginal_rates)
 
-        utility_bill_pv_compensation_types = args[:utility_bill_pv_compensation_types].get
+        utility_bill_pv_compensation_types = utility_bill_pv_compensation_types.join(',')
         measures['BuildResidentialHPXML'][0]['utility_bill_pv_compensation_types'] = utility_bill_pv_compensation_types
+        register_value(runner, 'utility_bill_pv_compensation_types', utility_bill_pv_compensation_types)
 
-        utility_bill_pv_net_metering_annual_excess_sellback_rate_types = args[:utility_bill_pv_net_metering_annual_excess_sellback_rate_types].get
+        utility_bill_pv_net_metering_annual_excess_sellback_rate_types = utility_bill_pv_net_metering_annual_excess_sellback_rate_types.join(',')
         measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = utility_bill_pv_net_metering_annual_excess_sellback_rate_types
+        register_value(runner, 'utility_bill_pv_net_metering_annual_excess_sellback_rate_types', utility_bill_pv_net_metering_annual_excess_sellback_rate_types)
 
-        utility_bill_pv_net_metering_annual_excess_sellback_rates = args[:utility_bill_pv_net_metering_annual_excess_sellback_rates].get
+        utility_bill_pv_net_metering_annual_excess_sellback_rates = utility_bill_pv_net_metering_annual_excess_sellback_rates.join(',')
         measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = utility_bill_pv_net_metering_annual_excess_sellback_rates
+        register_value(runner, 'utility_bill_pv_net_metering_annual_excess_sellback_rates', utility_bill_pv_net_metering_annual_excess_sellback_rates)
 
-        utility_bill_pv_feed_in_tariff_rates = args[:utility_bill_pv_feed_in_tariff_rates].get
+        utility_bill_pv_feed_in_tariff_rates = utility_bill_pv_feed_in_tariff_rates.join(',')
         measures['BuildResidentialHPXML'][0]['utility_bill_pv_feed_in_tariff_rates'] = utility_bill_pv_feed_in_tariff_rates
+        register_value(runner, 'utility_bill_pv_feed_in_tariff_rates', utility_bill_pv_feed_in_tariff_rates)
 
-        utility_bill_pv_monthly_grid_connection_fee_units = args[:utility_bill_pv_monthly_grid_connection_fee_units].get
+        utility_bill_pv_monthly_grid_connection_fee_units = utility_bill_pv_monthly_grid_connection_fee_units.join(',')
         measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = utility_bill_pv_monthly_grid_connection_fee_units
+        register_value(runner, 'utility_bill_pv_monthly_grid_connection_fee_units', utility_bill_pv_monthly_grid_connection_fee_units)
 
-        utility_bill_pv_monthly_grid_connection_fees = args[:utility_bill_pv_monthly_grid_connection_fees].get
+        utility_bill_pv_monthly_grid_connection_fees = utility_bill_pv_monthly_grid_connection_fees.join(',')
         measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = utility_bill_pv_monthly_grid_connection_fees
+        register_value(runner, 'utility_bill_pv_monthly_grid_connection_fees', utility_bill_pv_monthly_grid_connection_fees)
       end
 
       # Specify measures to run
-      measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # for apply_hvac_sizing
+      measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # for apply_hvac_sizing since ApplyUpgrade sets HVAC capacities
+      measures['BuildResidentialHPXML'][0]['apply_validation'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
-      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
+      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         register_logs(runner, new_runner)
         return false
       end
@@ -748,7 +755,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
       # Specify measures to run
       measures_hash = { 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] }
-      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
+      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         register_logs(runner, new_runner)
         return false
       end
@@ -776,7 +783,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Report some additional location and model characteristics
     if File.exist?(hpxml_path)
-      hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'MyBuilding')
+      hpxml = HPXML.new(hpxml_path: hpxml_path)
     else
       runner.registerWarning("BuildExistingModel measure could not find '#{hpxml_path}'.")
       return true

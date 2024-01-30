@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
+
 Dir["#{File.dirname(__FILE__)}/HPXMLtoOpenStudio/resources/*.rb"].each do |resource_file|
   next if resource_file.include? 'minitest_helper.rb'
 
@@ -54,20 +56,16 @@ def create_hpxmls
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
     num_apply_measures = 1
-    if hpxml_path.include?('base-multiple-sfd-buildings')
-      num_apply_measures = 3
-    elsif hpxml_path.include?('base-multiple-mf-units')
+    if hpxml_path.include?('base-bldgtype-mf-whole-building.xml')
       num_apply_measures = 6
     end
 
     for i in 1..num_apply_measures
       measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path if i > 1
-      if hpxml_path.include?('base-multiple-sfd-buildings') || hpxml_path.include?('base-multiple-mf-units')
+      if hpxml_path.include?('base-bldgtype-mf-whole-building.xml')
         suffix = "_#{i}" if i > 1
         measures['BuildResidentialHPXML'][0]['schedules_filepaths'] = "../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic#{suffix}.csv"
-      end
-      if hpxml_path.include?('base-multiple-mf-units')
-        measures['BuildResidentialHPXML'][0]['geometry_foundation_type'] = (i <= 1 ? 'UnconditionedBasement' : 'AboveApartment')
+        measures['BuildResidentialHPXML'][0]['geometry_foundation_type'] = (i <= 2 ? 'UnconditionedBasement' : 'AboveApartment')
         measures['BuildResidentialHPXML'][0]['geometry_attic_type'] = (i >= 5 ? 'VentedAttic' : 'BelowApartment')
       end
 
@@ -96,7 +94,7 @@ def create_hpxmls
       end
     end
 
-    hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
     if hpxml_path.include? 'ASHRAE_Standard_140'
       apply_hpxml_modification_ashrae_140(hpxml)
     else
@@ -1185,6 +1183,18 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       wall = hpxml_bldg.walls.select { |w| w.azimuth == hpxml_bldg.neighbor_buildings[0].azimuth }[0]
       wall.exterior_adjacent_to = HPXML::LocationOtherHeatedSpace
     end
+    if ['base-foundation-vented-crawlspace-above-grade.xml'].include? hpxml_file
+      # Convert FoundationWall to Wall to test a foundation with only Wall elements
+      fwall = hpxml_bldg.foundation_walls[0]
+      hpxml_bldg.walls.add(id: "Wall#{hpxml_bldg.walls.size + 1}",
+                           exterior_adjacent_to: HPXML::LocationOutside,
+                           interior_adjacent_to: fwall.interior_adjacent_to,
+                           wall_type: HPXML::WallTypeConcrete,
+                           area: fwall.area,
+                           insulation_assembly_r_value: 10.1)
+      hpxml_bldg.foundations[0].attached_to_wall_idrefs << hpxml_bldg.walls[-1].id
+      hpxml_bldg.foundation_walls[0].delete
+    end
 
     # ---------- #
     # HPXML HVAC #
@@ -1308,33 +1318,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       end
     end
     if hpxml_file.include? 'shared-ground-loop'
-      hpxml_bldg.heating_systems.reverse_each do |heating_system|
-        heating_system.delete
-      end
-      hpxml_bldg.cooling_systems.reverse_each do |cooling_system|
-        cooling_system.delete
-      end
-      hpxml_bldg.heat_pumps.add(id: "HeatPump#{hpxml_bldg.heat_pumps.size + 1}",
-                                distribution_system_idref: hpxml_bldg.hvac_distributions[-1].id,
-                                heat_pump_type: HPXML::HVACTypeHeatPumpGroundToAir,
-                                heat_pump_fuel: HPXML::FuelTypeElectricity,
-                                backup_type: HPXML::HeatPumpBackupTypeIntegrated,
-                                backup_heating_fuel: HPXML::FuelTypeElectricity,
-                                is_shared_system: true,
-                                number_of_units_served: 6,
-                                backup_heating_efficiency_percent: 1.0,
-                                fraction_heat_load_served: 1,
-                                fraction_cool_load_served: 1,
-                                heating_efficiency_cop: 3.6,
-                                cooling_efficiency_eer: 16.6,
-                                heating_capacity: 12000,
-                                cooling_capacity: 12000,
-                                backup_heating_capacity: 12000,
-                                cooling_shr: 0.73,
-                                primary_heating_system: true,
-                                primary_cooling_system: true,
-                                pump_watts_per_ton: 0.0)
-
+      hpxml_bldg.heat_pumps[0].is_shared_system = true
+      hpxml_bldg.heat_pumps[0].number_of_units_served = 6
+      hpxml_bldg.heat_pumps[0].pump_watts_per_ton = 0.0
     end
     if hpxml_file.include? 'eae'
       hpxml_bldg.heating_systems[0].electric_auxiliary_energy = 500.0
@@ -1687,6 +1673,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.heat_pumps[0].heating_capacity_17F = hpxml_bldg.heat_pumps[0].heating_capacity * hpxml_bldg.heat_pumps[0].heating_capacity_retention_fraction
       hpxml_bldg.heat_pumps[0].heating_capacity_retention_fraction = nil
       hpxml_bldg.heat_pumps[0].heating_capacity_retention_temp = nil
+    end
+    if hpxml_file.include? 'base-hvac-ground-to-air-heat-pump-detailed-geothermal-loop.xml'
+      hpxml_bldg.geothermal_loops[0].shank_spacing = 2.5
     end
 
     # ------------------ #
@@ -2228,7 +2217,38 @@ def download_utility_rates
   exit!
 end
 
-command_list = [:update_measures, :update_hpxmls, :create_release_zips, :download_utility_rates]
+def download_g_functions
+  require_relative 'HPXMLtoOpenStudio/resources/data/g_functions/util'
+
+  g_functions_dir = File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio/resources/data/g_functions')
+  FileUtils.mkdir(g_functions_dir) if !File.exist?(g_functions_dir)
+  filepath = File.join(g_functions_dir, 'g-function_library_1.0')
+
+  if !File.exist?(filepath) # presence of 'g-function_library_1.0' folder will skip re-downloading
+    require 'tempfile'
+    tmpfile = Tempfile.new('functions')
+
+    UrlResolver.fetch('https://gdr.openei.org/files/1325/g-function_library_1.0.zip', tmpfile)
+
+    puts 'Extracting g-functions...'
+    require 'zip'
+    Zip::File.open(tmpfile.path.to_s) do |zipfile|
+      zipfile.each do |file|
+        fpath = File.join(g_functions_dir, file.name)
+        FileUtils.mkdir_p(File.dirname(fpath))
+        zipfile.extract(file, fpath) unless File.exist?(fpath)
+      end
+    end
+  end
+
+  num_configs_actual = process_g_functions(filepath)
+
+  puts "#{num_configs_actual} config files are available in #{g_functions_dir}."
+  puts 'Completed.'
+  exit!
+end
+
+command_list = [:update_measures, :update_hpxmls, :create_release_zips, :download_utility_rates, :download_g_functions]
 
 def display_usage(command_list)
   puts "Usage: openstudio #{File.basename(__FILE__)} [COMMAND]\nCommands:\n  " + command_list.join("\n  ")
@@ -2287,47 +2307,11 @@ if ARGV[0].to_sym == :update_measures
 
   # Update measures XMLs
   puts 'Updating measure.xmls...'
-  require 'oga'
   Dir['**/measure.xml'].each do |measure_xml|
-    for n_attempt in 1..5 # For some reason CLI randomly generates errors, so try multiple times
-      measure_dir = File.dirname(measure_xml)
-      command = "#{OpenStudio.getOpenStudioCLI} measure -u '#{measure_dir}'"
-      system(command, [:out, :err] => File::NULL)
-
-      # Check for error
-      xml_doc = XMLHelper.parse_file(measure_xml)
-      err_val = XMLHelper.get_value(xml_doc, '/measure/error', :string)
-      if err_val.nil?
-        err_val = XMLHelper.get_value(xml_doc, '/error', :string)
-      end
-      if err_val.nil?
-        break # Successfully updated
-      else
-        if n_attempt == 5
-          fail "#{measure_xml}: #{err_val}" # Error generated all 5 times, fail
-        else
-          # Remove error from measure XML, try again
-          orig_lines = File.readlines(measure_xml)
-          new_lines = []
-          inside_error = false
-          orig_lines.each do |l|
-            if l.include? '<error>'
-              inside_error = true
-            end
-            if l.include? '</error>'
-              inside_error = false
-              next
-            end
-            next if inside_error
-
-            new_lines << l
-          end
-          File.open(measure_xml, 'w') do |file|
-            file.puts new_lines
-          end
-        end
-      end
-    end
+    measure_dir = File.dirname(measure_xml)
+    # Using classic to work around https://github.com/NREL/OpenStudio/issues/5045
+    command = "#{OpenStudio.getOpenStudioCLI} classic measure -u '#{measure_dir}'"
+    system(command, [:out, :err] => File::NULL)
   end
 
   puts 'Done.'
@@ -2339,14 +2323,24 @@ if ARGV[0].to_sym == :update_hpxmls
   ENV['HOMEDRIVE'] = 'C:\\' if !ENV['HOMEDRIVE'].nil? && ENV['HOMEDRIVE'].start_with?('U:')
 
   # Create sample/test HPXMLs
-  OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
   t = Time.now
   create_hpxmls()
   puts "Completed in #{(Time.now - t).round(1)}s"
+
+  # Reformat real_homes HPXMLs
+  puts 'Reformatting real_homes HPXMLs...'
+  Dir['workflow/real_homes/*.xml'].each do |hpxml_path|
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    XMLHelper.write_file(hpxml.to_doc, hpxml_path)
+  end
 end
 
 if ARGV[0].to_sym == :download_utility_rates
   download_utility_rates
+end
+
+if ARGV[0].to_sym == :download_g_functions
+  download_g_functions
 end
 
 if ARGV[0].to_sym == :create_release_zips

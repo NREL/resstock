@@ -41,10 +41,10 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
   # define the arguments that the user will input
   def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
     # Make string arg for upgrade name
-    upgrade_name = OpenStudio::Ruleset::OSArgument::makeStringArgument('upgrade_name', true)
+    upgrade_name = OpenStudio::Measure::OSArgument::makeStringArgument('upgrade_name', true)
     upgrade_name.setDisplayName('Upgrade Name')
     upgrade_name.setDescription('User-specificed name that describes the upgrade.')
     upgrade_name.setDefaultValue('My Upgrade')
@@ -53,13 +53,13 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     for option_num in 1..num_options
 
       # Option name argument
-      option = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}", (option_num == 1))
+      option = OpenStudio::Measure::OSArgument.makeStringArgument("option_#{option_num}", (option_num == 1))
       option.setDisplayName("Option #{option_num}")
       option.setDescription('Specify the parameter|option as found in resources\\options_lookup.tsv.')
       args << option
 
       # Option Apply Logic argument
-      option_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}_apply_logic", false)
+      option_apply_logic = OpenStudio::Measure::OSArgument.makeStringArgument("option_#{option_num}_apply_logic", false)
       option_apply_logic.setDisplayName("Option #{option_num} Apply Logic")
       option_apply_logic.setDescription("Logic that specifies if the Option #{option_num} upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
       args << option_apply_logic
@@ -67,14 +67,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       for cost_num in 1..num_costs_per_option
 
         # Option Cost Value argument
-        cost_value = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("option_#{option_num}_cost_#{cost_num}_value", false)
+        cost_value = OpenStudio::Measure::OSArgument.makeDoubleArgument("option_#{option_num}_cost_#{cost_num}_value", false)
         cost_value.setDisplayName("Option #{option_num} Cost #{cost_num} Value")
         cost_value.setDescription("Total option #{option_num} cost is the sum of all: (Cost N Value) x (Cost N Multiplier).")
         cost_value.setUnits('$')
         args << cost_value
 
         # Option Cost Multiplier argument
-        cost_multiplier = OpenStudio::Ruleset::OSArgument.makeChoiceArgument("option_#{option_num}_cost_#{cost_num}_multiplier", cost_multiplier_choices, false)
+        cost_multiplier = OpenStudio::Measure::OSArgument.makeChoiceArgument("option_#{option_num}_cost_#{cost_num}_multiplier", cost_multiplier_choices, false)
         cost_multiplier.setDisplayName("Option #{option_num} Cost #{cost_num} Multiplier")
         cost_multiplier.setDescription("Total option #{option_num} cost is the sum of all: (Cost N Value) x (Cost N Multiplier).")
         cost_multiplier.setDefaultValue(cost_multiplier_choices[0])
@@ -83,7 +83,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Option Lifetime argument
-      option_lifetime = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("option_#{option_num}_lifetime", false)
+      option_lifetime = OpenStudio::Measure::OSArgument.makeDoubleArgument("option_#{option_num}_lifetime", false)
       option_lifetime.setDisplayName("Option #{option_num} Lifetime")
       option_lifetime.setDescription('The option lifetime.')
       option_lifetime.setUnits('years')
@@ -92,13 +92,13 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     # Package Apply Logic argument
-    package_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument('package_apply_logic', false)
+    package_apply_logic = OpenStudio::Measure::OSArgument.makeStringArgument('package_apply_logic', false)
     package_apply_logic.setDisplayName('Package Apply Logic')
     package_apply_logic.setDescription("Logic that specifies if the entire package upgrade (all options) will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << package_apply_logic
 
     # Make integer arg to run measure [1 is run, 0 is no run]
-    run_measure = OpenStudio::Ruleset::OSArgument::makeIntegerArgument('run_measure', true)
+    run_measure = OpenStudio::Measure::OSArgument::makeIntegerArgument('run_measure', true)
     run_measure.setDisplayName('Run Measure')
     run_measure.setDescription('integer argument to run measure [1 is run, 0 is no run]')
     run_measure.setDefaultValue(1)
@@ -219,7 +219,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Get defaulted hpxml
     hpxml_path = File.expand_path('../existing.xml') # this is the defaulted hpxml
     if File.exist?(hpxml_path)
-      hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
+      hpxml = HPXML.new(hpxml_path: hpxml_path)
     else
       runner.registerWarning("ApplyUpgrade measure could not find '#{hpxml_path}'.")
       return true
@@ -303,7 +303,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Get the absolute paths relative to this meta measure in the run directory
-      if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+      if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
         return false
       end
     end # apply_package_upgrade
@@ -317,6 +317,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
     # Initialize measure keys with hpxml_path arguments
     hpxml_path = File.expand_path('../upgraded.xml')
+
+    # Optional whole SFA/MF building simulation
+    whole_sfa_or_mf_building_sim = hpxml.header.whole_sfa_or_mf_building_sim
 
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
@@ -334,6 +337,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
 
+      # Assign ResStockArgument's runner arguments to BuildResidentialHPXML
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
         next if value == ''
@@ -341,14 +345,20 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
 
+      # Set whole SFA/MF building simulation items
+      measures['BuildResidentialHPXML'][0]['whole_sfa_or_mf_building_sim'] = whole_sfa_or_mf_building_sim
+
       if unit_number > 1
         measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
+      end
+
+      if whole_sfa_or_mf_building_sim && hpxml.buildings.size > 1
         measures['BuildResidentialHPXML'][0]['battery_present'] = 'false' # limitation of OS-HPXML
       end
 
       unit_multiplier = hpxml_bldg.building_construction.number_of_units
+      measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
       if unit_multiplier > 1
-        measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
         measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
       end
 
@@ -471,17 +481,11 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = values['utility_bill_pv_monthly_grid_connection_fee_units']
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = values['utility_bill_pv_monthly_grid_connection_fees']
 
-      # Get registered values and pass them to BuildResidentialScheduleFile
-      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path,
-                                                    'hpxml_output_path' => hpxml_path,
-                                                    'schedules_random_seed' => values['building_id'],
-                                                    'output_csv_path' => File.expand_path('../schedules.csv'),
-                                                    'building_id' => 'ALL' }]
-
       # Specify measures to run
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
+      measures['BuildResidentialHPXML'][0]['apply_validation'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
-      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         register_logs(runner, new_runner)
         return false
       end
@@ -496,7 +500,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
     # Specify measures to run
     measures_hash = { 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] }
-    if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+    if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
       register_logs(runner, new_runner)
       return false
     end
@@ -533,6 +537,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   def halt_workflow(runner, measures)
     if measures.size == 0
       # Upgrade not applied; don't re-run existing home simulation
+      FileUtils.rm_rf(File.expand_path('../existing.osw'))
+      FileUtils.rm_rf(File.expand_path('../existing.xml'))
       runner.haltWorkflow('Invalid')
       return true
     end

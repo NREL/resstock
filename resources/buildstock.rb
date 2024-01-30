@@ -448,14 +448,34 @@ class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.run(in_osw, parent_dir, cli_output, upgrade, measures, reporting_measures, measures_only = false)
+  def self.run(in_osw, parent_dir, run_output, upgrade, measures, reporting_measures, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" run"
     command += ' -m' if measures_only
     command += " -w \"#{in_osw}\""
 
-    cli_output += `#{command}`
+    `#{command}` # suppresses "RunEnergyPlus: Completed Successfully with xxx" message
+    run_log = File.readlines(File.expand_path(File.join(parent_dir, 'run/run.log')))
+    run_log.each do |line|
+      next if line.include? 'Cannot find current Workflow Step'
+      next if line.include? 'Data will be treated as typical (TMY)'
+      next if line.include? 'WorkflowStepResult value called with undefined stepResult'
+      next if line.include?("Object of type 'Schedule:Constant' and named 'Always") && line.include?('points to an object named') && line.include?('but that object cannot be located')
+      next if line.include? 'Appears there are no design condition fields in the EPW file'
+      next if line.include? 'No valid weather file defined in either the osm or osw.'
+      next if line.include? 'EPW file not found'
+      next if line.include? "'UseWeatherFile' is selected in YearDescription, but there are no weather file set for the model."
+      next if line.include? 'not within the expected limits' # Ignore EpwFile warnings
+      next if line.include? 'Unable to find sql file at'
+
+      # FIXME: should we investigate the following errors/warnings?
+      next if line.include? 'No construction for either surface'
+      next if line.include? 'Initial area of other surface'
+      next if line.include?('Surface') && line.include?('is adiabatic, removing all sub surfaces')
+
+      run_output += line
+    end
 
     result_output = {}
 
@@ -467,7 +487,7 @@ class RunOSWs
 
     results = File.join(parent_dir, 'run/results.json')
 
-    return started_at, completed_at, completed_status, result_output, cli_output if measures_only || !File.exist?(results)
+    return started_at, completed_at, completed_status, result_output, run_output if measures_only || !File.exist?(results)
 
     rows = {}
     old_rows = JSON.parse(File.read(File.expand_path(results)))
@@ -492,7 +512,7 @@ class RunOSWs
       result_output = get_measure_results(rows, result_output, reporting_measure)
     end
 
-    return started_at, completed_at, completed_status, result_output, cli_output
+    return started_at, completed_at, completed_status, result_output, run_output
   end
 
   def self.get_measure_results(rows, result, measure)
@@ -535,21 +555,10 @@ class RunOSWs
     puts "Wrote: #{csv_out}"
     return csv_out
   end
-
-  def self._rm_path(path)
-    if Dir.exist?(path)
-      FileUtils.rm_r(path)
-    end
-    while true
-      break if not Dir.exist?(path)
-
-      sleep(0.01)
-    end
-  end
 end
 
 class Version
-  ResStock_Version = '3.1.1' # Version of ResStock
+  ResStock_Version = '3.2.0' # Version of ResStock
   BuildStockBatch_Version = '2023.10.0' # Minimum required version of BuildStockBatch
 
   def self.check_buildstockbatch_version

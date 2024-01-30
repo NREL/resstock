@@ -297,7 +297,7 @@ class Material
     return new(name: "osb sheathing #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Wood)
   end
 
-  def self.RadiantBarrier(grade)
+  def self.RadiantBarrier(grade, is_attic_floor)
     # FUTURE: Merge w/ Constructions.get_gap_factor
     if grade == 1
       gap_frac = 0.0
@@ -306,7 +306,13 @@ class Material
     elsif grade == 3
       gap_frac = 0.05
     end
-    rb_emittance = 0.05
+    if is_attic_floor
+      # Assume reduced effectiveness due to accumulation of dust per https://web.ornl.gov/sci/buildings/tools/radiant/rb2/
+      rb_emittance = 0.5
+    else
+      # ASTM C1313 3.2.1 defines a radiant barrier as <= 0.1
+      rb_emittance = 0.05
+    end
     non_rb_emittance = 0.90
     emittance = rb_emittance * (1.0 - gap_frac) + non_rb_emittance * gap_frac
     return new(name: 'radiant barrier', thick_in: 0.0084, k_in: 1629.6, rho: 168.6, cp: 0.22, tAbs: emittance, sAbs: 0.05)

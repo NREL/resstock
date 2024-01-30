@@ -63,7 +63,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('building_id', false)
     arg.setDisplayName('BuildingID')
-    arg.setDescription("The ID of the HPXML Building. Only required if there are multiple Building elements in the HPXML file. Use 'ALL' to run all the HPXML Buildings (dwelling units) of a multifamily building in a single model.")
+    arg.setDescription('The ID of the HPXML Building. Only required if the HPXML has multiple Building elements and WholeSFAorMFBuildingSimulation is not true.')
     args << arg
 
     return args
@@ -137,7 +137,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         fail 'Weather station EPW filepath has different values across dwelling units.'
       end
 
-      if (building_id == 'ALL') && (hpxml.buildings.size > 1)
+      if hpxml.header.whole_sfa_or_mf_building_sim && (hpxml.buildings.size > 1)
         if hpxml.buildings.map { |hpxml_bldg| hpxml_bldg.batteries.size }.sum > 1
           # FUTURE: Figure out how to allow this. If we allow it, update docs and hpxml_translator_test.rb too.
           # Batteries use "TrackFacilityElectricDemandStoreExcessOnSite"; to support modeling of batteries in whole
@@ -171,15 +171,15 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
       # Create OpenStudio model
       hpxml_osm_map = {}
-      hpxml.buildings.each do |hpxml_bldg|
+      hpxml.buildings.each_with_index do |hpxml_bldg, i|
         schedules_file = hpxml_sch_map[hpxml_bldg]
         if hpxml.buildings.size > 1
           # Create the model for this single unit
           unit_model = OpenStudio::Model::Model.new
-          create_unit_model(hpxml, hpxml_bldg, runner, unit_model, epw_path, epw_file, weather, debug, schedules_file, eri_version)
+          create_unit_model(hpxml, hpxml_bldg, runner, unit_model, epw_path, epw_file, weather, debug, schedules_file, eri_version, i + 1)
           hpxml_osm_map[hpxml_bldg] = unit_model
         else
-          create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, debug, schedules_file, eri_version)
+          create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, debug, schedules_file, eri_version, i + 1)
           hpxml_osm_map[hpxml_bldg] = model
         end
       end
@@ -398,7 +398,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     return "unit#{unit_number + 1}_#{obj_name}".gsub(' ', '_').gsub('-', '_')
   end
 
-  def create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, debug, schedules_file, eri_version)
+  def create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, debug, schedules_file, eri_version, unit_num)
     @hpxml_header = hpxml.header
     @hpxml_bldg = hpxml_bldg
     @debug = debug
@@ -448,8 +448,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     @hvac_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::ColumnHVAC, @hpxml_header.unavailable_periods)
     airloop_map = {} # Map of HPXML System ID -> AirLoopHVAC (or ZoneHVACFourPipeFanCoil)
     add_ideal_system(model, spaces, epw_path)
-    add_cooling_system(model, spaces, airloop_map)
-    add_heating_system(runner, model, spaces, airloop_map)
+    add_cooling_system(model, weather, spaces, airloop_map)
+    add_heating_system(runner, model, weather, spaces, airloop_map)
     add_heat_pump(runner, model, weather, spaces, airloop_map)
     add_dehumidifiers(runner, model, spaces)
     add_ceiling_fans(runner, model, weather, spaces)
@@ -471,6 +471,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     add_photovoltaics(model)
     add_generators(model)
     add_batteries(runner, model, spaces)
+    add_building_unit(model, unit_num)
   end
 
   def check_emissions_references(hpxml_header, hpxml_path)
@@ -733,7 +734,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       # Apply construction
       # The code below constructs a reasonable wall construction based on the
       # wall type while ensuring the correct assembly R-value.
-
+      has_radiant_barrier = wall.radiant_barrier
+      if has_radiant_barrier
+        radiant_barrier_grade = wall.radiant_barrier_grade
+      end
       inside_film = Material.AirFilmVertical
       if wall.is_exterior
         outside_film = Material.AirFilmOutside
@@ -749,7 +753,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       mat_int_finish = Material.InteriorFinishMaterial(wall.interior_finish_type, wall.interior_finish_thickness)
 
       Constructions.apply_wall_construction(runner, model, surfaces, wall.id, wall.wall_type, wall.insulation_assembly_r_value,
-                                            mat_int_finish, inside_film, outside_film, mat_ext_finish, wall.solar_absorptance,
+                                            mat_int_finish, has_radiant_barrier, inside_film, outside_film,
+                                            radiant_barrier_grade, mat_ext_finish, wall.solar_absorptance,
                                             wall.emittance)
     end
   end
@@ -875,6 +880,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
           outside_film = Material.AirFilmFloorAverage
         end
         mat_int_finish_or_covering = Material.InteriorFinishMaterial(floor.interior_finish_type, floor.interior_finish_thickness)
+        has_radiant_barrier = floor.radiant_barrier
+        if has_radiant_barrier
+          radiant_barrier_grade = floor.radiant_barrier_grade
+        end
       else # Floor
         if @apply_ashrae140_assumptions
           # Raised floor
@@ -896,7 +905,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
 
       Constructions.apply_floor_ceiling_construction(runner, model, [surface], floor.id, floor.floor_type, floor.is_ceiling, floor.insulation_assembly_r_value,
-                                                     mat_int_finish_or_covering, inside_film, outside_film)
+                                                     mat_int_finish_or_covering, has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade)
     end
   end
 
@@ -999,8 +1008,20 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         end
         mat_ext_finish = nil
 
-        Constructions.apply_wall_construction(runner, model, [surface], fnd_wall.id, wall_type, assembly_r,
-                                              mat_int_finish, inside_film, outside_film, mat_ext_finish, nil, nil)
+        Constructions.apply_wall_construction(runner,
+                                              model,
+                                              [surface],
+                                              fnd_wall.id,
+                                              wall_type,
+                                              assembly_r,
+                                              mat_int_finish,
+                                              false,
+                                              inside_film,
+                                              outside_film,
+                                              nil,
+                                              mat_ext_finish,
+                                              nil,
+                                              nil)
       end
     end
   end
@@ -1457,12 +1478,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       mat_int_finish = Material.InteriorFinishMaterial(HPXML::InteriorFinishGypsumBoard, 0.5)
       mat_ext_finish = Material.ExteriorFinishMaterial(HPXML::SidingTypeWood)
       Constructions.apply_wood_stud_wall(model, surfaces, 'AdiabaticWallConstruction',
-                                         0, 1, 3.5, true, 0.1, mat_int_finish, 0, 99, mat_ext_finish,
-                                         Material.AirFilmVertical, Material.AirFilmVertical)
+                                         0, 1, 3.5, true, 0.1, mat_int_finish, 0, 99, mat_ext_finish, false,
+                                         Material.AirFilmVertical, Material.AirFilmVertical, nil)
     elsif type == 'floor'
       Constructions.apply_wood_frame_floor_ceiling(model, surfaces, 'AdiabaticFloorConstruction', false,
-                                                   0, 1, 0.07, 5.5, 0.75, 99, Material.CoveringBare,
-                                                   Material.AirFilmFloorReduced, Material.AirFilmFloorReduced)
+                                                   0, 1, 0.07, 5.5, 0.75, 99, Material.CoveringBare, false,
+                                                   Material.AirFilmFloorReduced, Material.AirFilmFloorReduced, nil)
     elsif type == 'roof'
       Constructions.apply_open_cavity_roof(model, surfaces, 'AdiabaticRoofConstruction',
                                            0, 1, 7.25, 0.07, 7.25, 0.75, 99,
@@ -1543,7 +1564,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     Waterheater.apply_combi_system_EMS(model, @hpxml_bldg.water_heating_systems, plantloop_map)
   end
 
-  def add_cooling_system(model, spaces, airloop_map)
+  def add_cooling_system(model, weather, spaces, airloop_map)
     conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
 
     HVAC.get_hpxml_hvac_systems(@hpxml_bldg).each do |hvac_system|
@@ -1576,8 +1597,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
           HPXML::HVACTypeMiniSplitAirConditioner,
           HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type
 
-        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, cooling_system, heating_system,
-                                                                 sequential_cool_load_fracs, sequential_heat_load_fracs,
+        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, cooling_system, heating_system, sequential_cool_load_fracs, sequential_heat_load_fracs,
+                                                                 weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
                                                                  conditioned_zone, @hvac_unavailable_periods)
 
       elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
@@ -1589,7 +1610,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
   end
 
-  def add_heating_system(runner, model, spaces, airloop_map)
+  def add_heating_system(runner, model, weather, spaces, airloop_map)
     conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
 
     HVAC.get_hpxml_hvac_systems(@hpxml_bldg).each do |hvac_system|
@@ -1621,8 +1642,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       sys_id = heating_system.id
       if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
 
-        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, nil, heating_system,
-                                                                 [0], sequential_heat_load_fracs,
+        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, nil, heating_system, [0], sequential_heat_load_fracs,
+                                                                 weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
                                                                  conditioned_zone, @hvac_unavailable_periods)
 
       elsif [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
@@ -1683,15 +1704,15 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
              HPXML::HVACTypeHeatPumpMiniSplit,
              HPXML::HVACTypeHeatPumpPTHP,
              HPXML::HVACTypeHeatPumpRoom].include? heat_pump.heat_pump_type
-        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, heat_pump, heat_pump,
-                                                                 sequential_cool_load_fracs, sequential_heat_load_fracs,
+        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, heat_pump, heat_pump, sequential_cool_load_fracs, sequential_heat_load_fracs,
+                                                                 weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
                                                                  conditioned_zone, @hvac_unavailable_periods)
       elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
 
         airloop_map[sys_id] = HVAC.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
                                                                  sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                                                 conditioned_zone, @hpxml_bldg.site.ground_conductivity, @hvac_unavailable_periods,
-                                                                 @hpxml_bldg.building_construction.number_of_units)
+                                                                 conditioned_zone, @hpxml_bldg.site.ground_conductivity, @hpxml_bldg.site.ground_diffusivity,
+                                                                 @hvac_unavailable_periods, @hpxml_bldg.building_construction.number_of_units)
 
       end
 
@@ -2026,6 +2047,16 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       # Assign space
       battery.additional_properties.space = get_space_from_location(battery.location, spaces)
       Battery.apply(runner, model, @hpxml_bldg.pv_systems, battery, @schedules_file, @hpxml_bldg.building_construction.number_of_units)
+    end
+  end
+
+  def add_building_unit(model, unit_num)
+    return if unit_num.nil?
+
+    unit = OpenStudio::Model::BuildingUnit.new(model)
+    unit.additionalProperties.setFeature('unit_num', unit_num)
+    model.getSpaces.each do |s|
+      s.setBuildingUnit(unit)
     end
   end
 
@@ -2627,6 +2658,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     ocf.setOutputMTR(@debug)
     ocf.setOutputRDD(@debug)
     ocf.setOutputSHD(@debug)
+    ocf.setOutputCSV(@debug)
     ocf.setOutputSQLite(@debug)
     ocf.setOutputPerfLog(@debug)
   end
@@ -2702,6 +2734,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     sch = OpenStudio::Model::ScheduleConstant.new(model)
     sch.setName(location)
+    sch.additionalProperties.setFeature('ObjectType', location)
 
     space_values = Geometry.get_temperature_scheduled_space_values(location)
 

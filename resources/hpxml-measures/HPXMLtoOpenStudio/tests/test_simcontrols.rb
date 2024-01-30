@@ -40,9 +40,9 @@ class HPXMLtoOpenStudioSimControlsTest < Minitest::Test
 
     begin_month, begin_day, end_month, end_day = get_run_period_month_and_days(model)
     assert_equal(2, begin_month)
-    assert_equal(1, begin_day)
-    assert_equal(2, end_month)
-    assert_equal(28, end_day)
+    assert_equal(15, begin_day)
+    assert_equal(3, end_month)
+    assert_equal(15, end_day)
   end
 
   def test_timestep_1hour

@@ -223,31 +223,31 @@ Arguments
      - #
      - Integer
      - "auto"
-     - The quantity of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The quantity of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_flow_rate``
      - false
      - CFM
      - Double
      - "auto"
-     - The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_hours_in_operation``
      - false
      - hrs/day
      - Double
      - "auto"
-     - The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_power``
      - false
      - W
      - Double
      - "auto"
-     - The fan power of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The fan power of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_start_hour``
      - false
      - hr
      - Integer
      - "auto"
-     - The start hour of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The start hour of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
 
 .. _battery:
 
@@ -3034,12 +3034,24 @@ Arguments
      - Type
      - Choices
      - Description
+   * - ``site_soil_and_moisture_type``
+     - false
+     - 
+     - Choice
+     - "auto", "clay, dry", "clay, mixed", "clay, wet", "gravel, dry", "gravel, mixed", "gravel, wet", "loam, dry", "loam, mixed", "loam, wet", "sand, dry", "sand, mixed", "sand, wet", "silt, dry", "silt, mixed", "silt, wet", "unknown, dry", "unknown, mixed", "unknown, wet"
+     - Type of soil and moisture. This is used to inform ground conductivity and diffusivity. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``site_ground_conductivity``
      - false
      - Btu/hr-ft-F
      - Double
-     - "auto"
-     - Conductivity of the ground soil. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
+     -
+     - Conductivity of the ground soil. If provided, overrides the previous site and moisture type input.
+   * - ``site_ground_diffusivity``
+     - false
+     - ft^2/hr
+     - Double
+     -
+     - Diffusivity of the ground soil. If provided, overrides the previous site and moisture type input.
 
 .. _hvac_cooling_efficiency:
 
@@ -3105,7 +3117,7 @@ Arguments
      - 
      - Choice
      - "auto", "single stage", "two stage", "variable speed"
-     - The compressor type of the cooling system. Only applies to central air conditioner. If not provided, the OS-HPXML default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_) is used.
+     - The compressor type of the cooling system. Only applies to central air conditioner and mini-split. If not provided, the OS-HPXML default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
    * - ``cooling_system_cooling_sensible_heat_fraction``
      - false
      - Frac
@@ -3451,7 +3463,7 @@ Arguments
      - 
      - Choice
      - "auto", "single stage", "two stage", "variable speed"
-     - The compressor type of the heat pump. Only applies to air-to-air. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_) is used.
+     - The compressor type of the heat pump. Only applies to air-to-air and mini-split. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_) is used.
    * - ``heat_pump_cooling_sensible_heat_fraction``
      - false
      - Frac
@@ -3548,6 +3560,66 @@ Arguments
      - Double
      - "auto"
      - Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-air, mini-split, packaged terminal heat pump and room air conditioner with reverse cycle. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_) is used.
+   * - ``geothermal_loop_configuration``
+     - false
+     - 
+     - Choice
+     - "auto", "none", "vertical"
+     - Configuration of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
+   * - ``geothermal_loop_borefield_configuration``
+     - false
+     - 
+     - Choice
+     - "auto", "Rectangle", "Open Rectangle", "C", "L", "U", "Lopsided U"
+     - Borefield configuration of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_loop_flow``
+     - false
+     - gpm
+     - Double
+     -
+     - Water flow rate through the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_boreholes_count``
+     - false
+     - #
+     - Integer
+     -
+     - Number of boreholes. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_boreholes_length``
+     - false
+     - ft
+     - Double
+     -
+     - Average length of each borehole (vertical). Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_boreholes_spacing``
+     - false
+     - ft
+     - Double
+     - "auto"
+     - Distance between bores. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_boreholes_diameter``
+     - false
+     - in
+     - Double
+     - "auto"
+     - Diameter of bores. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_grout_type``
+     - false
+     - 
+     - Choice
+     - "auto", "standard", "thermally enhanced"
+     - Grout type of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_pipe_type``
+     - false
+     - 
+     - Choice
+     - "auto", "standard", "thermally enhanced"
+     - Pipe type of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_pipe_diameter``
+     - false
+     - in
+     - Choice
+     - "auto", "3/4" pipe", "1" pipe", "1-1/4" pipe"
+     - Pipe diameter of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
    * - ``heating_system_has_flue_or_chimney``
      - true
      - 
@@ -3912,6 +3984,66 @@ Arguments
      - Choice
      - "auto", "ACCA", "HERS", "MaxLoad"
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
+   * - ``geothermal_loop_configuration``
+     - false
+     - 
+     - Choice
+     - "auto", "none", "vertical"
+     - Configuration of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
+   * - ``geothermal_loop_borefield_configuration``
+     - false
+     - 
+     - Choice
+     - "auto", "Rectangle", "Open Rectangle", "C", "L", "U", "Lopsided U"
+     - Borefield configuration of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_loop_flow``
+     - false
+     - gpm
+     - Double
+     -
+     - Water flow rate through the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_boreholes_count``
+     - false
+     - #
+     - Integer
+     -
+     - Number of boreholes. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_boreholes_length``
+     - false
+     - ft
+     - Double
+     -
+     - Average length of each borehole (vertical). Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML autosized default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_boreholes_spacing``
+     - false
+     - ft
+     - Double
+     - "auto"
+     - Distance between bores. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_boreholes_diameter``
+     - false
+     - in
+     - Double
+     - "auto"
+     - Diameter of bores. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_grout_type``
+     - false
+     - 
+     - Choice
+     - "auto", "standard", "thermally enhanced"
+     - Grout type of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_pipe_type``
+     - false
+     - 
+     - Choice
+     - "auto", "standard", "thermally enhanced"
+     - Pipe type of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
+   * - ``geothermal_loop_pipe_diameter``
+     - false
+     - in
+     - Choice
+     - "auto", "3/4" pipe", "1" pipe", "1-1/4" pipe"
+     - Pipe diameter of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
    * - ``heating_system_has_flue_or_chimney``
      - true
      - 
@@ -4496,19 +4628,19 @@ Arguments
      - ft
      - Double
      - "auto"
-     - If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
+     - If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default (see `Recirculation (In-Unit) <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit>`_) is used.
    * - ``hot_water_distribution_recirc_branch_piping_length``
      - false
      - ft
      - Double
      - "auto"
-     - If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
+     - If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see `Recirculation (In-Unit) <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit>`_) is used.
    * - ``hot_water_distribution_recirc_pump_power``
      - false
      - W
      - Double
      - "auto"
-     - If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
+     - If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default (see `Recirculation (In-Unit) <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit>`_) is used.
    * - ``hot_water_distribution_pipe_r``
      - false
      - h-ft^2-R/Btu
@@ -5533,13 +5665,13 @@ Arguments
      - CFM
      - Double
      - "auto"
-     - The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
+     - The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see `HPXML Mechanical Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans>`_) is used.
    * - ``mech_vent_hours_in_operation``
      - false
      - hrs/day
      - Double
      - "auto"
-     - The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
+     - The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see `HPXML Mechanical Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans>`_) is used.
    * - ``mech_vent_recovery_efficiency_type``
      - true
      - 
@@ -5563,7 +5695,7 @@ Arguments
      - W
      - Double
      - "auto"
-     - The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
+     - The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see `HPXML Mechanical Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans>`_) is used.
    * - ``mech_vent_num_units_served``
      - true
      - #
@@ -5665,13 +5797,13 @@ Arguments
      - CFM
      - Double
      - "auto"
-     - The flow rate of the whole house fan. If not provided, the OS-HPXML default (see `Whole House Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-house-fan>`_) is used.
+     - The flow rate of the whole house fan. If not provided, the OS-HPXML default (see `HPXML Whole House Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-whole-house-fans>`_) is used.
    * - ``whole_house_fan_power``
      - false
      - W
      - Double
      - "auto"
-     - The fan power of the whole house fan. If not provided, the OS-HPXML default (see `Whole House Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-house-fan>`_) is used.
+     - The fan power of the whole house fan. If not provided, the OS-HPXML default (see `HPXML Whole House Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-whole-house-fans>`_) is used.
 
 .. _misc_extra_refrigerator:
 
@@ -7117,18 +7249,18 @@ Arguments
      - Type
      - Choices
      - Description
-   * - ``roof_radiant_barrier``
-     - true
+   * - ``radiant_barrier_attic_location``
+     - false
      - 
-     - Boolean
-     - "true", "false"
-     - Presence of a radiant barrier in the attic.
-   * - ``roof_radiant_barrier_grade``
+     - Choice
+     - "auto", "none", "Attic roof only", "Attic roof and gable walls", "Attic floor"
+     - The location of the radiant barrier in the attic.
+   * - ``radiant_barrier_grade``
      - false
      - 
      - Choice
      - "auto", "1", "2", "3"
-     - The grade of the radiant barrier. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
+     - The grade of the radiant barrier in the attic. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
 
 .. _range_spot_vent_hour:
 
@@ -7168,31 +7300,31 @@ Arguments
      - #
      - Integer
      - "auto"
-     - The quantity of the kitchen fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The quantity of the kitchen fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_flow_rate``
      - false
      - CFM
      - Double
      - "auto"
-     - The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_hours_in_operation``
      - false
      - hrs/day
      - Double
      - "auto"
-     - The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_power``
      - false
      - W
      - Double
      - "auto"
-     - The fan power of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The fan power of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_start_hour``
      - false
      - hr
      - Integer
      - "auto"
-     - The start hour of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The start hour of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
 
 .. _refrigerator:
 

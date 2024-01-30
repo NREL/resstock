@@ -10,7 +10,7 @@ end
 class WeatherData
   def initialize
   end
-  ATTRS ||= [:AnnualAvgDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :MonthlyAvgDrybulbs, :ShallowGroundAnnualTemp, :ShallowGroundMonthlyTemps,
+  ATTRS ||= [:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :MonthlyAvgDrybulbs, :ShallowGroundAnnualTemp, :ShallowGroundMonthlyTemps,
              :DeepGroundAnnualTemp, :DeepGroundSurfTempAmp1, :DeepGroundSurfTempAmp2, :DeepGroundPhaseShiftTempAmp1, :DeepGroundPhaseShiftTempAmp2,
              :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs, :MainsAnnualTemp, :MainsDailyTemps, :MainsMonthlyTemps]
   attr_accessor(*ATTRS)
@@ -115,6 +115,8 @@ class WeatherProcess
     end
 
     data.AnnualAvgDrybulb = UnitConversions.convert(rowdata.map { |x| x['db'] }.sum(0.0) / rowdata.length, 'C', 'F')
+    data.AnnualMinDrybulb = UnitConversions.convert(rowdata.map { |x| x['db'] }.min, 'C', 'F')
+    data.AnnualMaxDrybulb = UnitConversions.convert(rowdata.map { |x| x['db'] }.max, 'C', 'F')
     data.MonthlyAvgDrybulbs = []
     for i in 1..12
       data.MonthlyAvgDrybulbs << UnitConversions.convert(monthdbs[i - 1].sum / monthdbs[i - 1].length, 'C', 'F')
@@ -384,6 +386,7 @@ class WeatherProcess
     for d in 1..n_days
       data.MainsDailyTemps << data.AnnualAvgDrybulb + 6 + tmains_ratio * maxDiffMonthlyAvgOAT / 2 * Math.sin(deg_rad * (0.986 * (d - 15 - tmains_lag) + sign * 90))
     end
+    data.MainsDailyTemps.map! { |temp| [32.0, temp].max } # ensure mains never gets below freezing. Algorithm will never provide water over boiling without a check
     data.MainsAnnualTemp = data.MainsDailyTemps.sum / n_days
 
     # Calculate monthly
@@ -391,5 +394,6 @@ class WeatherProcess
     for m in 1..12
       data.MainsMonthlyTemps << data.AnnualAvgDrybulb + 6 + tmains_ratio * maxDiffMonthlyAvgOAT / 2 * Math.sin(deg_rad * (0.986 * ((m * 30 - 15) - 15 - tmains_lag) + sign * 90))
     end
+    data.MainsMonthlyTemps.map! { |temp| [32.0, temp].max } # ensure mains never gets below freezing. Algorithm will never provide water over boiling without a check
   end
 end

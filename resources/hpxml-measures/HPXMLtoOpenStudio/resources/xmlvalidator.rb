@@ -21,13 +21,7 @@ class XMLValidator
   end
 
   def self.get_schematron_validator(schematron_path)
-    # First create XSLT at our specified output path to avoid possible errors due
-    # to https://github.com/NREL/OpenStudio/issues/4824.
-    xslt_dir = Dir.mktmpdir('xmlvalidation-')
-    OpenStudio::XMLValidator::schematronToXslt(schematron_path, xslt_dir)
-    xslt_path = File.join(xslt_dir, File.basename(schematron_path, '.xml') + '_stylesheet.xslt')
-
-    return OpenStudio::XMLValidator.new(xslt_path)
+    return OpenStudio::XMLValidator.new(schematron_path)
   end
 
   def self.validate_against_schematron(hpxml_path, validator, hpxml_doc, errors = [], warnings = [])

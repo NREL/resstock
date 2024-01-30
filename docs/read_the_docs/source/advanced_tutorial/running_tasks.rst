@@ -10,6 +10,7 @@ Run ``openstudio tasks.rb`` to see available task commands:
   Usage: openstudio tasks.rb [COMMAND]
   Commands:
     update_measures
+    update_resources
     integrity_check_national
     integrity_check_testing
     download_weather
@@ -30,6 +31,22 @@ Use ``openstudio tasks.rb update_measures`` to apply rubocop auto-correct to mea
   91 files inspected, no offenses detected
   Updating measure.xmls...
   Done.
+
+Update Resources
+----------------
+
+Use ``openstudio tasks.rb update_resources`` to update files in ``resources/hpxml-measures`` with the latest version of OpenStudio-HPXML.
+
+.. code:: bash
+
+  $ openstudio tasks.rb update_resources
+  remote: Enumerating objects: 188817, done.
+  remote: Counting objects: 100% (15305/15305), done.
+  ...
+  From https://github.com/NREL/OpenStudio-HPXML
+   * branch                    master     -> FETCH_HEAD
+  Merge made by the 'ort' strategy.
+  ...
 
 .. _integrity-checks:
 

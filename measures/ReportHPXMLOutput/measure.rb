@@ -58,16 +58,10 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     output_format = runner.getStringArgumentValue('output_format', user_arguments)
-    output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
-
-    if not File.exist? File.join(output_dir, 'eplusout.msgpack')
-      runner.registerError('Cannot find eplusout.msgpack.')
-      return false
-    end
-    @msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout.msgpack'), mode: 'rb'))
 
     hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
-    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: 'ALL')
+    output_dir = File.dirname(hpxml_defaults_path)
+    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
 
     # Set paths
     output_path = File.join(output_dir, "results_hpxml.#{output_format}")
