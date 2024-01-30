@@ -10,62 +10,7 @@
     <extension>
       <SimulationControl>
         <Timestep>60</Timestep>
-        <BeginMonth>2</BeginMonth>
-        <BeginDayOfMonth>15</BeginDayOfMonth>
-        <EndMonth>3</EndMonth>
-        <EndDayOfMonth>15</EndDayOfMonth>
       </SimulationControl>
-      <EmissionsScenarios>
-        <EmissionsScenario>
-          <Name>Cambium Hourly MidCase LRMER RMPA</Name>
-          <EmissionsType>CO2e</EmissionsType>
-          <EmissionsFactor>
-            <FuelType>electricity</FuelType>
-            <Units>kg/MWh</Units>
-            <ScheduleFilePath>../../HPXMLtoOpenStudio/resources/data/cambium/LRMER_MidCase.csv</ScheduleFilePath>
-            <NumberofHeaderRows>1</NumberofHeaderRows>
-            <ColumnNumber>17</ColumnNumber>
-          </EmissionsFactor>
-        </EmissionsScenario>
-        <EmissionsScenario>
-          <Name>Cambium Hourly LowRECosts LRMER RMPA</Name>
-          <EmissionsType>CO2e</EmissionsType>
-          <EmissionsFactor>
-            <FuelType>electricity</FuelType>
-            <Units>kg/MWh</Units>
-            <ScheduleFilePath>../../HPXMLtoOpenStudio/resources/data/cambium/LRMER_LowRECosts.csv</ScheduleFilePath>
-            <NumberofHeaderRows>1</NumberofHeaderRows>
-            <ColumnNumber>17</ColumnNumber>
-          </EmissionsFactor>
-        </EmissionsScenario>
-        <EmissionsScenario>
-          <Name>Cambium Annual MidCase AER National</Name>
-          <EmissionsType>CO2e</EmissionsType>
-          <EmissionsFactor>
-            <FuelType>electricity</FuelType>
-            <Units>kg/MWh</Units>
-            <Value>392.6</Value>
-          </EmissionsFactor>
-        </EmissionsScenario>
-        <EmissionsScenario>
-          <Name>eGRID RMPA</Name>
-          <EmissionsType>SO2</EmissionsType>
-          <EmissionsFactor>
-            <FuelType>electricity</FuelType>
-            <Units>lb/MWh</Units>
-            <Value>0.384</Value>
-          </EmissionsFactor>
-        </EmissionsScenario>
-        <EmissionsScenario>
-          <Name>eGRID RMPA</Name>
-          <EmissionsType>NOx</EmissionsType>
-          <EmissionsFactor>
-            <FuelType>electricity</FuelType>
-            <Units>lb/MWh</Units>
-            <Value>0.67</Value>
-          </EmissionsFactor>
-        </EmissionsScenario>
-      </EmissionsScenarios>
       <UtilityBillScenarios>
         <UtilityBillScenario>
           <Name>Bills</Name>
@@ -114,9 +59,9 @@
         </ClimateZoneIECC>
         <WeatherStation>
           <SystemIdentifier id='WeatherStation'/>
-          <Name>US_CO_Boulder_AMY_2012</Name>
+          <Name>USA_CO_Denver.Intl.AP.725650_TMY3</Name>
           <extension>
-            <EPWFilePath>US_CO_Boulder_AMY_2012.epw</EPWFilePath>
+            <EPWFilePath>USA_CO_Denver.Intl.AP.725650_TMY3.epw</EPWFilePath>
           </extension>
         </WeatherStation>
       </ClimateandRiskZones>
@@ -372,37 +317,128 @@
         <HVAC>
           <HVACPlant>
             <PrimarySystems>
-              <PrimaryHeatingSystem idref='HeatingSystem1'/>
-              <PrimaryCoolingSystem idref='CoolingSystem1'/>
+              <PrimaryHeatingSystem idref='HeatPump1'/>
+              <PrimaryCoolingSystem idref='HeatPump1'/>
             </PrimarySystems>
-            <HeatingSystem>
-              <SystemIdentifier id='HeatingSystem1'/>
+            <HeatPump>
+              <SystemIdentifier id='HeatPump1'/>
               <DistributionSystem idref='HVACDistribution1'/>
-              <HeatingSystemType>
-                <Furnace/>
-              </HeatingSystemType>
-              <HeatingSystemFuel>natural gas</HeatingSystemFuel>
-              <HeatingCapacity>36000.0</HeatingCapacity>
-              <AnnualHeatingEfficiency>
-                <Units>AFUE</Units>
-                <Value>0.92</Value>
-              </AnnualHeatingEfficiency>
+              <HeatPumpType>air-to-air</HeatPumpType>
+              <HeatPumpFuel>electricity</HeatPumpFuel>
+              <CompressorType>variable speed</CompressorType>
+              <CoolingSensibleHeatFraction>0.78</CoolingSensibleHeatFraction>
+              <BackupType>integrated</BackupType>
+              <BackupSystemFuel>electricity</BackupSystemFuel>
+              <BackupAnnualHeatingEfficiency>
+                <Units>Percent</Units>
+                <Value>1.0</Value>
+              </BackupAnnualHeatingEfficiency>
+              <BackupHeatingCapacity>36000.0</BackupHeatingCapacity>
               <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
-            </HeatingSystem>
-            <CoolingSystem>
-              <SystemIdentifier id='CoolingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <CoolingSystemType>central air conditioner</CoolingSystemType>
-              <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>24000.0</CoolingCapacity>
-              <CompressorType>single stage</CompressorType>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
                 <Units>SEER</Units>
-                <Value>13.0</Value>
+                <Value>17.25</Value>
               </AnnualCoolingEfficiency>
-              <SensibleHeatFraction>0.73</SensibleHeatFraction>
-            </CoolingSystem>
+              <AnnualHeatingEfficiency>
+                <Units>HSPF</Units>
+                <Value>10.0</Value>
+              </AnnualHeatingEfficiency>
+              <CoolingDetailedPerformanceData>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>95.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>0.325</CapacityFractionOfNominal>
+                  <CapacityDescription>minimum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>4.47</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>95.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>1.0</CapacityFractionOfNominal>
+                  <CapacityDescription>maximum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>2.71</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>82.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>0.37</CapacityFractionOfNominal>
+                  <CapacityDescription>minimum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>6.34</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>82.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>1.11</CapacityFractionOfNominal>
+                  <CapacityDescription>maximum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>3.53</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+              </CoolingDetailedPerformanceData>
+              <HeatingDetailedPerformanceData>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>47.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>0.28</CapacityFractionOfNominal>
+                  <CapacityDescription>minimum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>4.73</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>47.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>1.0</CapacityFractionOfNominal>
+                  <CapacityDescription>maximum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>3.44</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>17.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>0.12</CapacityFractionOfNominal>
+                  <CapacityDescription>minimum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>1.84</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>17.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>0.69</CapacityFractionOfNominal>
+                  <CapacityDescription>maximum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>2.66</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>5.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>0.05</CapacityFractionOfNominal>
+                  <CapacityDescription>minimum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>0.81</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>5.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>0.55</CapacityFractionOfNominal>
+                  <CapacityDescription>maximum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>2.28</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+              </HeatingDetailedPerformanceData>
+            </HeatPump>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>

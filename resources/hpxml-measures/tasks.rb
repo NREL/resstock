@@ -56,19 +56,15 @@ def create_hpxmls
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
     num_apply_measures = 1
-    if hpxml_path.include?('base-multiple-sfd-buildings')
-      num_apply_measures = 3
-    elsif hpxml_path.include?('base-multiple-mf-units')
+    if hpxml_path.include?('base-bldgtype-mf-whole-building.xml')
       num_apply_measures = 6
     end
 
     for i in 1..num_apply_measures
       measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path if i > 1
-      if hpxml_path.include?('base-multiple-sfd-buildings') || hpxml_path.include?('base-multiple-mf-units')
+      if hpxml_path.include?('base-bldgtype-mf-whole-building.xml')
         suffix = "_#{i}" if i > 1
         measures['BuildResidentialHPXML'][0]['schedules_filepaths'] = "../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic#{suffix}.csv"
-      end
-      if hpxml_path.include?('base-multiple-mf-units')
         measures['BuildResidentialHPXML'][0]['geometry_foundation_type'] = (i <= 2 ? 'UnconditionedBasement' : 'AboveApartment')
         measures['BuildResidentialHPXML'][0]['geometry_attic_type'] = (i >= 5 ? 'VentedAttic' : 'BelowApartment')
       end
@@ -98,7 +94,7 @@ def create_hpxmls
       end
     end
 
-    hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
     if hpxml_path.include? 'ASHRAE_Standard_140'
       apply_hpxml_modification_ashrae_140(hpxml)
     else

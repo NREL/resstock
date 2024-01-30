@@ -10,62 +10,7 @@
     <extension>
       <SimulationControl>
         <Timestep>60</Timestep>
-        <BeginMonth>2</BeginMonth>
-        <BeginDayOfMonth>15</BeginDayOfMonth>
-        <EndMonth>3</EndMonth>
-        <EndDayOfMonth>15</EndDayOfMonth>
       </SimulationControl>
-      <EmissionsScenarios>
-        <EmissionsScenario>
-          <Name>Cambium Hourly MidCase LRMER RMPA</Name>
-          <EmissionsType>CO2e</EmissionsType>
-          <EmissionsFactor>
-            <FuelType>electricity</FuelType>
-            <Units>kg/MWh</Units>
-            <ScheduleFilePath>../../HPXMLtoOpenStudio/resources/data/cambium/LRMER_MidCase.csv</ScheduleFilePath>
-            <NumberofHeaderRows>1</NumberofHeaderRows>
-            <ColumnNumber>17</ColumnNumber>
-          </EmissionsFactor>
-        </EmissionsScenario>
-        <EmissionsScenario>
-          <Name>Cambium Hourly LowRECosts LRMER RMPA</Name>
-          <EmissionsType>CO2e</EmissionsType>
-          <EmissionsFactor>
-            <FuelType>electricity</FuelType>
-            <Units>kg/MWh</Units>
-            <ScheduleFilePath>../../HPXMLtoOpenStudio/resources/data/cambium/LRMER_LowRECosts.csv</ScheduleFilePath>
-            <NumberofHeaderRows>1</NumberofHeaderRows>
-            <ColumnNumber>17</ColumnNumber>
-          </EmissionsFactor>
-        </EmissionsScenario>
-        <EmissionsScenario>
-          <Name>Cambium Annual MidCase AER National</Name>
-          <EmissionsType>CO2e</EmissionsType>
-          <EmissionsFactor>
-            <FuelType>electricity</FuelType>
-            <Units>kg/MWh</Units>
-            <Value>392.6</Value>
-          </EmissionsFactor>
-        </EmissionsScenario>
-        <EmissionsScenario>
-          <Name>eGRID RMPA</Name>
-          <EmissionsType>SO2</EmissionsType>
-          <EmissionsFactor>
-            <FuelType>electricity</FuelType>
-            <Units>lb/MWh</Units>
-            <Value>0.384</Value>
-          </EmissionsFactor>
-        </EmissionsScenario>
-        <EmissionsScenario>
-          <Name>eGRID RMPA</Name>
-          <EmissionsType>NOx</EmissionsType>
-          <EmissionsFactor>
-            <FuelType>electricity</FuelType>
-            <Units>lb/MWh</Units>
-            <Value>0.67</Value>
-          </EmissionsFactor>
-        </EmissionsScenario>
-      </EmissionsScenarios>
       <UtilityBillScenarios>
         <UtilityBillScenario>
           <Name>Bills</Name>
@@ -114,9 +59,9 @@
         </ClimateZoneIECC>
         <WeatherStation>
           <SystemIdentifier id='WeatherStation'/>
-          <Name>US_CO_Boulder_AMY_2012</Name>
+          <Name>USA_CO_Denver.Intl.AP.725650_TMY3</Name>
           <extension>
-            <EPWFilePath>US_CO_Boulder_AMY_2012.epw</EPWFilePath>
+            <EPWFilePath>USA_CO_Denver.Intl.AP.725650_TMY3.epw</EPWFilePath>
           </extension>
         </WeatherStation>
       </ClimateandRiskZones>
@@ -372,81 +317,63 @@
         <HVAC>
           <HVACPlant>
             <PrimarySystems>
-              <PrimaryHeatingSystem idref='HeatingSystem1'/>
               <PrimaryCoolingSystem idref='CoolingSystem1'/>
             </PrimarySystems>
-            <HeatingSystem>
-              <SystemIdentifier id='HeatingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <HeatingSystemType>
-                <Furnace/>
-              </HeatingSystemType>
-              <HeatingSystemFuel>natural gas</HeatingSystemFuel>
-              <HeatingCapacity>36000.0</HeatingCapacity>
-              <AnnualHeatingEfficiency>
-                <Units>AFUE</Units>
-                <Value>0.92</Value>
-              </AnnualHeatingEfficiency>
-              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
-            </HeatingSystem>
             <CoolingSystem>
               <SystemIdentifier id='CoolingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <CoolingSystemType>central air conditioner</CoolingSystemType>
+              <CoolingSystemType>mini-split</CoolingSystemType>
               <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>24000.0</CoolingCapacity>
-              <CompressorType>single stage</CompressorType>
+              <CompressorType>variable speed</CompressorType>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
                 <Units>SEER</Units>
-                <Value>13.0</Value>
+                <Value>21.5</Value>
               </AnnualCoolingEfficiency>
               <SensibleHeatFraction>0.73</SensibleHeatFraction>
+              <CoolingDetailedPerformanceData>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>95.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>0.255</CapacityFractionOfNominal>
+                  <CapacityDescription>minimum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>4.05</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>95.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>1.0</CapacityFractionOfNominal>
+                  <CapacityDescription>maximum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>3.27</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>82.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>0.28</CapacityFractionOfNominal>
+                  <CapacityDescription>minimum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>8.03</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>82.0</OutdoorTemperature>
+                  <CapacityFractionOfNominal>1.033</CapacityFractionOfNominal>
+                  <CapacityDescription>maximum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>3.27</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+              </CoolingDetailedPerformanceData>
             </CoolingSystem>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
-            <SetpointTempHeatingSeason>68.0</SetpointTempHeatingSeason>
             <SetpointTempCoolingSeason>78.0</SetpointTempCoolingSeason>
           </HVACControl>
-          <HVACDistribution>
-            <SystemIdentifier id='HVACDistribution1'/>
-            <DistributionSystemType>
-              <AirDistribution>
-                <AirDistributionType>regular velocity</AirDistributionType>
-                <DuctLeakageMeasurement>
-                  <DuctType>supply</DuctType>
-                  <DuctLeakage>
-                    <Units>CFM25</Units>
-                    <Value>75.0</Value>
-                    <TotalOrToOutside>to outside</TotalOrToOutside>
-                  </DuctLeakage>
-                </DuctLeakageMeasurement>
-                <DuctLeakageMeasurement>
-                  <DuctType>return</DuctType>
-                  <DuctLeakage>
-                    <Units>CFM25</Units>
-                    <Value>25.0</Value>
-                    <TotalOrToOutside>to outside</TotalOrToOutside>
-                  </DuctLeakage>
-                </DuctLeakageMeasurement>
-                <Ducts>
-                  <SystemIdentifier id='Ducts1'/>
-                  <DuctType>supply</DuctType>
-                  <DuctInsulationRValue>4.0</DuctInsulationRValue>
-                  <DuctLocation>attic - unvented</DuctLocation>
-                  <DuctSurfaceArea>150.0</DuctSurfaceArea>
-                </Ducts>
-                <Ducts>
-                  <SystemIdentifier id='Ducts2'/>
-                  <DuctType>return</DuctType>
-                  <DuctInsulationRValue>0.0</DuctInsulationRValue>
-                  <DuctLocation>attic - unvented</DuctLocation>
-                  <DuctSurfaceArea>50.0</DuctSurfaceArea>
-                </Ducts>
-              </AirDistribution>
-            </DistributionSystemType>
-          </HVACDistribution>
         </HVAC>
         <WaterHeating>
           <WaterHeatingSystem>

@@ -68,6 +68,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'extra-water-heater-attic.xml' => 'base-sfd.xml',
       'extra-battery-crawlspace.xml' => 'base-sfd.xml',
       'extra-battery-attic.xml' => 'base-sfd.xml',
+      'extra-detailed-performance-autosize.xml' => 'base-sfd.xml',
 
       'extra-sfa-atticroof-flat.xml' => 'base-sfa.xml',
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
@@ -341,9 +342,13 @@ class BuildResidentialHPXMLTest < Minitest::Test
 
           flunk "Error: Did not successfully generate #{hpxml_file}."
         end
-
         hpxml_path = File.absolute_path(File.join(@output_path, hpxml_file))
-        hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
+        hpxml = HPXML.new(hpxml_path: hpxml_path)
+        if hpxml.errors.size > 0
+          puts hpxml.errors.to_s
+          puts "\nError: Did not successfully validate #{hpxml_file}."
+          exit!
+        end
         hpxml.header.xml_generated_by = 'build_residential_hpxml_test.rb'
         hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
 
@@ -356,7 +361,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
         puts errors.to_s
         puts "\nError: Did not successfully validate #{hpxml_file}."
         exit!
-      rescue Exception
+      rescue Exception => e
+        puts "#{e.message}\n#{e.backtrace.join("\n")}"
         flunk "Error: Did not successfully generate #{hpxml_file}"
       end
     end
@@ -656,6 +662,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['permanent_spa_heater_type'] = HPXML::HeaterTypeElectricResistance
     elsif ['base-sfd2.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfd.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-sfa.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
       args['geometry_unit_cfa'] = 1800.0
@@ -672,8 +679,10 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
     elsif ['base-sfa2.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfa.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-sfa3.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfa2.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-mf.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
       args['geometry_unit_cfa'] = 900.0
@@ -701,10 +710,13 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
     elsif ['base-mf2.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-mf3.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf2.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-mf4.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf3.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-sfd-header.xml'].include? hpxml_file
       args['software_info_program_used'] = 'Program'
       args['software_info_program_version'] = '1'
@@ -723,6 +735,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['utility_bill_scenario_names'] = 'Bills'
     elsif ['base-sfd-header-no-duplicates.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfd-header.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     end
 
     # Extras
@@ -915,6 +928,27 @@ class BuildResidentialHPXMLTest < Minitest::Test
     elsif ['extra-battery-attic.xml'].include? hpxml_file
       args['battery_present'] = true
       args['battery_location'] = HPXML::LocationAttic
+    elsif ['extra-detailed-performance-autosize.xml'].include? hpxml_file
+      args['heating_system_type'] = 'none'
+      args['cooling_system_type'] = 'none'
+      args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
+      args['heat_pump_heating_efficiency'] = 10.0
+      args['heat_pump_cooling_efficiency'] = 17.25
+      args['heat_pump_cooling_compressor_type'] = HPXML::HVACCompressorTypeVariableSpeed
+      args['heat_pump_cooling_sensible_heat_fraction'] = 0.78
+      args.delete('heat_pump_heating_capacity')
+      args.delete('heat_pump_cooling_capacity')
+      args['hvac_perf_data_capacity_type'] = 'Normalized capacity fractions'
+      args['hvac_perf_data_heating_outdoor_temperatures'] = '47.0, 17.0, 5.0'
+      args['hvac_perf_data_heating_min_speed_capacities'] = '0.28, 0.12, 0.05'
+      args['hvac_perf_data_heating_max_speed_capacities'] = '1.0, 0.69, 0.55'
+      args['hvac_perf_data_heating_min_speed_cops'] = '4.73, 1.84, 0.81'
+      args['hvac_perf_data_heating_max_speed_cops'] = '3.44, 2.66, 2.28'
+      args['hvac_perf_data_cooling_outdoor_temperatures'] = '95.0, 82.0'
+      args['hvac_perf_data_cooling_min_speed_capacities'] = '0.325, 0.37'
+      args['hvac_perf_data_cooling_max_speed_capacities'] = '1.0, 1.11'
+      args['hvac_perf_data_cooling_min_speed_cops'] = '4.47, 6.34'
+      args['hvac_perf_data_cooling_max_speed_cops'] = '2.71, 3.53'
     elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
       args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
       args['ducts_supply_leakage_to_outside_value'] = 0.0
