@@ -649,7 +649,7 @@ OptionParser.new do |opts|
   end
 
   options[:debug] = false
-  opts.on('-d', '--debug', 'Preserve lib folder and "existing" xml/osw files') do |_t|
+  opts.on('-d', '--debug', 'Preserve lib folder and xml/osw files for existing building') do |_t|
     options[:debug] = true
   end
 

@@ -49,6 +49,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path of the existing HPXML file. If not provided, a new HPXML file with one Building element is created. If provided, a new Building element will be appended to this HPXML file (e.g., to create a multifamily HPXML file describing multiple dwelling units).')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('whole_sfa_or_mf_building_sim', false)
+    arg.setDisplayName('Whole SFA/MF Building Simulation?')
+    arg.setDescription('If the HPXML file represents a single family-attached/multifamily building with multiple dwelling units defined, specifies whether to run the HPXML file as a single whole building model.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('software_info_program_used', false)
     arg.setDisplayName('Software Info: Program Used')
     arg.setDescription('The name of the software program used.')
@@ -3608,7 +3613,7 @@ class HPXMLFile
     sorted_surfaces = model.getSurfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
     sorted_subsurfaces = model.getSubSurfaces.sort_by { |ss| ss.additionalProperties.getFeatureAsInteger('Index').get }
 
-    hpxml = HPXML.new(hpxml_path: existing_hpxml_path, building_id: 'ALL')
+    hpxml = HPXML.new(hpxml_path: existing_hpxml_path)
 
     if not set_header(runner, hpxml, args)
       return false
@@ -3810,6 +3815,10 @@ class HPXMLFile
     hpxml.header.xml_type = 'HPXML'
     hpxml.header.xml_generated_by = 'BuildResidentialHPXML'
     hpxml.header.transaction = 'create'
+
+    if args[:whole_sfa_or_mf_building_sim].is_initialized
+      hpxml.header.whole_sfa_or_mf_building_sim = args[:whole_sfa_or_mf_building_sim].get
+    end
 
     if args[:schedules_vacancy_period].is_initialized
       begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Schedule.parse_date_time_range(args[:schedules_vacancy_period].get)

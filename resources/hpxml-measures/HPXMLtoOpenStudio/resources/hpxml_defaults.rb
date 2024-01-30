@@ -1668,7 +1668,8 @@ class HPXMLDefaults
         hvac_system.cooling_detailed_performance_data.each do |dp|
           next unless dp.capacity.nil?
 
-          dp.capacity = dp.capacity_fraction_of_nominal * hvac_system.cooling_capacity
+          dp.capacity = (dp.capacity_fraction_of_nominal * hvac_system.cooling_capacity).round(3)
+          dp.capacity_isdefaulted = true
         end
 
         # override some properties based on detailed performance data
@@ -1686,7 +1687,8 @@ class HPXMLDefaults
           hvac_system.heating_detailed_performance_data.each do |dp|
             next unless dp.capacity.nil?
 
-            dp.capacity = dp.capacity_fraction_of_nominal * hvac_system.heating_capacity
+            dp.capacity = (dp.capacity_fraction_of_nominal * hvac_system.heating_capacity).round(3)
+            dp.capacity_isdefaulted = true
           end
 
           if hvac_system.heating_capacity_retention_fraction.nil? && hvac_system.heating_capacity_17F.nil?
@@ -1696,6 +1698,8 @@ class HPXMLDefaults
             hvac_system.heating_capacity_retention_fraction = (HVAC.interpolate_to_odb_table_point(hvac_system.heating_detailed_performance_data, HPXML::CapacityDescriptionMaximum, target_odb, :capacity) / max_capacity_47).round(5)
             hvac_system.heating_capacity_retention_fraction = 0.0 if hvac_system.heating_capacity_retention_fraction < 0
             hvac_system.heating_capacity_retention_temp = target_odb
+            hvac_system.heating_capacity_retention_fraction_isdefaulted = true
+            hvac_system.heating_capacity_retention_temp_isdefaulted = true
           end
           # override some properties based on detailed performance data
           heat_rated_capacity = [hvac_system.heating_capacity, 1.0].max

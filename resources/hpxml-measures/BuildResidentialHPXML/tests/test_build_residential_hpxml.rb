@@ -342,9 +342,13 @@ class BuildResidentialHPXMLTest < Minitest::Test
 
           flunk "Error: Did not successfully generate #{hpxml_file}."
         end
-
         hpxml_path = File.absolute_path(File.join(@output_path, hpxml_file))
-        hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
+        hpxml = HPXML.new(hpxml_path: hpxml_path)
+        if hpxml.errors.size > 0
+          puts hpxml.errors.to_s
+          puts "\nError: Did not successfully validate #{hpxml_file}."
+          exit!
+        end
         hpxml.header.xml_generated_by = 'build_residential_hpxml_test.rb'
         hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
 
@@ -357,7 +361,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
         puts errors.to_s
         puts "\nError: Did not successfully validate #{hpxml_file}."
         exit!
-      rescue Exception
+      rescue Exception => e
+        puts "#{e.message}\n#{e.backtrace.join("\n")}"
         flunk "Error: Did not successfully generate #{hpxml_file}"
       end
     end
@@ -657,6 +662,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['permanent_spa_heater_type'] = HPXML::HeaterTypeElectricResistance
     elsif ['base-sfd2.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfd.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-sfa.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
       args['geometry_unit_cfa'] = 1800.0
@@ -673,8 +679,10 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
     elsif ['base-sfa2.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfa.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-sfa3.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfa2.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-mf.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
       args['geometry_unit_cfa'] = 900.0
@@ -702,10 +710,13 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
     elsif ['base-mf2.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-mf3.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf2.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-mf4.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf3.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-sfd-header.xml'].include? hpxml_file
       args['software_info_program_used'] = 'Program'
       args['software_info_program_version'] = '1'
@@ -724,6 +735,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['utility_bill_scenario_names'] = 'Bills'
     elsif ['base-sfd-header-no-duplicates.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfd-header.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     end
 
     # Extras

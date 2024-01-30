@@ -33,6 +33,17 @@ Absolute/relative path of the existing HPXML file. If not provided, a new HPXML 
 
 <br/>
 
+**Whole SFA/MF Building Simulation?**
+
+If the HPXML file represents a single family-attached/multifamily building with multiple dwelling units defined, specifies whether to run the HPXML file as a single whole building model.
+
+- **Name:** ``whole_sfa_or_mf_building_sim``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
 **Software Info: Program Used**
 
 The name of the software program used.

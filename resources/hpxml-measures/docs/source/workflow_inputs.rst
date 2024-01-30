@@ -343,7 +343,7 @@ HPXML Building
 
 OpenStudio-HPXML can be used to model either individual residential :ref:`bldg_type_units` or :ref:`bldg_type_bldgs`.
 
-Each residential dwelling unit is entered in ``/HPXML/Building``.
+In either case, each residential dwelling unit is entered as a ``/HPXML/Building``.
 
   =========================  ======  =======  ===========  ========  =======  ==============================================
   Element                    Type    Units    Constraints  Required  Default  Notes
@@ -356,42 +356,46 @@ Each residential dwelling unit is entered in ``/HPXML/Building``.
 Dwelling Units
 **************
 
-The OpenStudio-HPXML workflow was originally developed to model individual residential dwelling units -- either a single-family detached (SFD) building, or a single unit of a single-family attached (SFA) or multifamily (MF) building.
+OpenStudio-HPXML was originally developed to model individual residential dwelling units -- either a single-family detached (SFD) building, or a single unit of a single-family attached (SFA) or multifamily (MF) building.
 This approach:
 
 - Is required/desired for certain applications (e.g., a Home Energy Score or an Energy Rating Index calculation).
 - Improves runtime speed by being able to simulate individual units in parallel (as opposed to simulating the entire building).
 
-When modeling individual units of SFA/MF buildings, current capabilities include:
+For these simulations:
 
-- Defining surfaces adjacent to generic SFA/MF spaces (e.g., "other housing unit" or "other multifamily buffer space"), in which temperature profiles will be assumed (see :ref:`hpxmllocations`).
-- Locating various building components (e.g., ducts, water heaters, appliances) in these SFA/MF spaces.
-- Defining shared systems (HVAC, water heating, mechanical ventilation, etc.), in which individual systems are modeled with adjustments to approximate their energy use attributed to the unit.
-
-Note that only the energy use attributed to each dwelling unit is calculated.
+- Surfaces can be defined adjacent to generic SFA/MF spaces (e.g., "other housing unit" or "other multifamily buffer space") with assumed temperature profiles (see :ref:`hpxmllocations`).
+- Various building components (e.g., ducts, water heaters, appliances) can be located in these SFA/MF spaces.
+- Shared systems (HVAC, water heating, mechanical ventilation, etc.) serving multiple dwelling units can be defined, in which these systems are approximated as individual systems with efficiency adjustments to estimate the energy use attributed to the unit.
+- Energy use attributed only to the dwelling unit is calculated.
 
 .. _bldg_type_bldgs:
 
 Whole SFA/MF Buildings
 **********************
 
-As of OpenStudio-HPXML v1.7.0, a new capability was added for modeling whole SFA/MF buildings in a single combined simulation.
+As of v1.7.0, OpenStudio-HPXML can model whole SFA/MF buildings in a single combined simulation.
+
+Modeling a whole SFA/MF building is defined in ``/HPXML/SoftwareInfo/extension``.
+
+  ==================================  ========  =====  ===========  ========  ========  ========================================================
+  Element                             Type      Units  Constraints  Required  Default   Notes
+  ==================================  ========  =====  ===========  ========  ========  ========================================================
+  ``WholeSFAorMFBuildingSimulation``  boolean                       No        false     Whether to run an individual dwelling unit or whole building for SFA/MF
+  ==================================  ========  =====  ===========  ========  ========  ========================================================
 
 For these simulations:
 
-- Each dwelling unit is described by a separate ``Building`` element in the HPXML file.
-- To run the single combined simulation, specify the Building ID as 'ALL' in the run_simulation.rb script or OpenStudio workflow.
 - Unit multipliers (using the ``NumberofUnits`` element) can be specified to model *unique* dwelling units, rather than *all* dwelling units, reducing simulation runtime.
 - Adjacent SFA/MF common spaces are still modeled using assumed temperature profiles, not as separate thermal zones.
 - Shared systems are still modeled as individual systems, not shared systems connected to multiple dwelling unit.
+- Energy use for the entire building is calculated.
 
 Notes/caveats about this approach:
 
 - Some inputs (e.g., EPW location or ground conductivity) cannot vary across ``Building`` elements.
 - Batteries are not currently supported. Dehumidifiers and ground-source heat pumps are only supported if ``NumberofUnits`` is 1.
 - Utility bill calculations using detailed rates are not supported.
-
-Note that only the energy use for the entire building is calculated.
 
 .. _buildingsite:
 
@@ -2483,24 +2487,21 @@ Detailed Cooling Performance Data
 
 For air-source HVAC systems with detailed cooling performance data, two or more pairs of minimum/maximum capacity data are entered in ``CoolingDetailedPerformanceData/PerformanceDataPoint``.
 
-  =================================  ========  ======  ===========  ========  =========  ==========================================
-  Element                            Type      Units   Constraints  Required  Default    Notes
-  =================================  ========  ======  ===========  ========  =========  ==========================================
-  ``OutdoorTemperature``             double    F       See [#]_     Yes                  Outdoor drybulb temperature
-  ``Capacity``                       double    Btu/hr  >= 0         No [#]_              Cooling capacity at the specified outdoor temperature
-  ``CapacityFractionOfNominal``      double    frac    > 0, <= 1    No                   Cooling capacity fraction of nominal at the specified outdoor temperature
-  ``CapacityDescription``            string            See [#]_     Yes                  Whether the datapoint corresponds to minimum or maximum capacity
-  ``Efficiency[Units="COP"]/Value``  double    W/W     > 0          Yes                  Cooling efficiency at the specified outdoor temperature
-  =================================  ========  ======  ===========  ========  =========  ==========================================
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
+  Element                                         Type      Units           Constraints  Required  Default    Notes
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
+  ``OutdoorTemperature``                          double    F               See [#]_     Yes                  Outdoor drybulb temperature
+  ``Capacity`` or ``CapacityFractionOfNominal``   double    Btu/hr or frac  >= 0         Yes [#]_             Cooling capacity or capacity fraction at the specified outdoor temperature
+  ``CapacityDescription``                         string                    See [#]_     Yes                  Whether the datapoint corresponds to minimum or maximum capacity
+  ``Efficiency[Units="COP"]/Value``               double    W/W             > 0          Yes                  Cooling efficiency at the specified outdoor temperature
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
 
   .. [#] One of the minimum/maximum datapoint pairs must occur at the 95F rated outdoor temperature condition.
          The other datapoint pairs can be at any temperature.
-  .. [#] If Capacity is provided, the nominal capacity specified at CoolingSystem/CoolingCapacity or HeatPump/CoolingCapacity must be provided; 
-         If Capacity is not provided, CapacityFractionOfNominal must be provided, but the nominal capacity is optional. 
-         If nominal capacity is not provided, the system will be autosized.
+  .. [#] If Capacity is provided, the nominal capacity (``CoolingCapacity``) must also be set in the parent object.
   .. [#] CapacityDescription choices are "minimum" and "maximum".
 
-In addition, the parent object must provide the ``CoolingCapacity`` and the ``CompressorType`` must be set to "variable speed".
+In addition, the ``CompressorType`` must be set to "variable speed" in the parent object.
 For heat pumps, :ref:`htg_detailed_perf_data` must also be provided.
 Note that when detailed cooling performance data is provided, some other inputs (like SEER) are ignored.
 
@@ -2511,24 +2512,21 @@ Detailed Heating Performance Data
 
 For air-source HVAC systems with detailed heating performance data, two or more pairs of minimum/maximum capacity data are entered in ``HeatingDetailedPerformanceData/PerformanceDataPoint``.
 
-  =================================  ========  ======  ===========  ========  =========  ==========================================
-  Element                            Type      Units   Constraints  Required  Default    Notes
-  =================================  ========  ======  ===========  ========  =========  ==========================================
-  ``OutdoorTemperature``             double    F       See [#]_     Yes                  Outdoor drybulb temperature
-  ``Capacity``                       double    Btu/hr  >= 0         No [#]_              Heating capacity at the specified outdoor temperature
-  ``CapacityFractionOfNominal``      double    frac    > 0, <= 1    No                   Heating capacity fraction of nominal at the specified outdoor temperature
-  ``CapacityDescription``            string            See [#]_     Yes                  Whether the datapoint corresponds to minimum or maximum capacity
-  ``Efficiency[Units="COP"]/Value``  double    W/W     > 0          Yes                  Heating efficiency at the specified outdoor temperature
-  =================================  ========  ======  ===========  ========  =========  ==========================================
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
+  Element                                         Type      Units           Constraints  Required  Default    Notes
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
+  ``OutdoorTemperature``                          double    F               See [#]_     Yes                  Outdoor drybulb temperature
+  ``Capacity`` or ``CapacityFractionOfNominal``   double    Btu/hr or frac  >= 0         Yes [#]_             Heating capacity or capacity fraction at the specified outdoor temperature
+  ``CapacityDescription``                         string                    See [#]_     Yes                  Whether the datapoint corresponds to minimum or maximum capacity
+  ``Efficiency[Units="COP"]/Value``               double    W/W             > 0          Yes                  Heating efficiency at the specified outdoor temperature
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
 
   .. [#] One of the minimum/maximum datapoint pairs must occur at the 47F rated outdoor temperature condition.
          The other datapoint pairs can be at any temperature.
-  .. [#] If Capacity is provided, the nominal capacity specified at HeatPump/HeatingCapacity must be provided; 
-         If Capacity is not provided, CapacityFractionOfNominal must be provided, but the nominal capacity is optional. 
-         If nominal capacity is not provided, the system will be autosized.
+  .. [#] If Capacity is provided, the nominal capacity (``HeatingCapacity``) must also be set in the parent object.
   .. [#] CapacityDescription choices are "minimum" and "maximum".
 
-In addition, the parent object must provide the ``HeatingCapacity`` and the ``CompressorType`` must be set to "variable speed".
+In addition, the ``CompressorType`` must be set to "variable speed" in the parent object.
 For heat pumps, :ref:`clg_detailed_perf_data` must also be provided.
 Note that when detailed cooling performance data is provided, some other inputs (like HSPF and HeatingCapacityRetention) are ignored.
 
@@ -3268,9 +3266,9 @@ Each conventional storage water heater is entered as a ``/HPXML/Building/Buildin
          See :ref:`hpxmllocations` for descriptions.
   .. [#] If Location not provided, defaults to the first present space type:
          
-         \- **IECC zones 1-3, excluding 3A**: "garage", "conditioned space"
+         \- **IECC zones 1-3**: "garage", "conditioned space"
          
-         \- **IECC zones 3A, 4-8, unknown**: "basement - conditioned", "basement - unconditioned", "conditioned space"
+         \- **IECC zones 3-8, unknown**: "basement - unconditioned", "basement - conditioned", "conditioned space"
          
   .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
   .. [#] If TankVolume not provided, defaults based on Table 8 in the `2014 BAHSP <https://www.energy.gov/sites/prod/files/2014/03/f13/house_simulation_protocols_2014.pdf>`_.
@@ -3323,9 +3321,9 @@ Each instantaneous tankless water heater is entered as a ``/HPXML/Building/Build
          See :ref:`hpxmllocations` for descriptions.
   .. [#] If Location not provided, defaults to the first present space type:
          
-         \- **IECC zones 1-3, excluding 3A**: "garage", "conditioned space"
+         \- **IECC zones 1-3**: "garage", "conditioned space"
          
-         \- **IECC zones 3A, 4-8, unknown**: "basement - conditioned", "basement - unconditioned", "conditioned space"
+         \- **IECC zones 3-8, unknown**: "basement - unconditioned", "basement - conditioned", "conditioned space"
          
   .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
   .. [#] If PerformanceAdjustment not provided, defaults to 0.94 (UEF) or 0.92 (EF) based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
@@ -3365,9 +3363,9 @@ Each heat pump water heater is entered as a ``/HPXML/Building/BuildingDetails/Sy
          See :ref:`hpxmllocations` for descriptions.
   .. [#] If Location not provided, defaults to the first present space type:
          
-         \- **IECC zones 1-3, excluding 3A**: "garage", "conditioned space"
+         \- **IECC zones 1-3**: "garage", "conditioned space"
          
-         \- **IECC zones 3A, 4-8, unknown**: "basement - conditioned", "basement - unconditioned", "conditioned space"
+         \- **IECC zones 3-8, unknown**: "basement - unconditioned", "basement - conditioned", "conditioned space"
 
   .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
   .. [#] The sum of all ``FractionDHWLoadServed`` (across all WaterHeatingSystems) must equal to 1.
@@ -3409,9 +3407,9 @@ Each combination boiler w/ storage tank (sometimes referred to as an indirect wa
          See :ref:`hpxmllocations` for descriptions.
   .. [#] If Location not provided, defaults to the first present space type:
          
-         \- **IECC zones 1-3, excluding 3A**: "garage", "conditioned space"
+         \- **IECC zones 1-3**: "garage", "conditioned space"
          
-         \- **IECC zones 3A, 4-8, unknown**: "basement - conditioned", "basement - unconditioned", "conditioned space"
+         \- **IECC zones 3-8, unknown**: "basement - unconditioned", "basement - conditioned", "conditioned space"
          
   .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
   .. [#] The sum of all ``FractionDHWLoadServed`` (across all WaterHeatingSystems) must equal to 1.
@@ -3445,9 +3443,9 @@ Each combination boiler w/ tankless coil is entered as a ``/HPXML/Building/Build
          See :ref:`hpxmllocations` for descriptions.
   .. [#] If Location not provided, defaults to the first present space type:
          
-         \- **IECC zones 1-3, excluding 3A**: "garage", "conditioned space"
+         \- **IECC zones 1-3**: "garage", "conditioned space"
          
-         \- **IECC zones 3A, 4-8, unknown**: "basement - conditioned", "basement - unconditioned", "conditioned space"
+         \- **IECC zones 3-8, unknown**: "basement - unconditioned", "basement - conditioned", "conditioned space"
          
   .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
   .. [#] The sum of all ``FractionDHWLoadServed`` (across all WaterHeatingSystems) must equal to 1.

@@ -1404,25 +1404,21 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml, _hpxml_bldg = _create_hpxml('base-schedules-simple-vacancy.xml')
         hpxml.header.unavailable_periods[0].column_name = 'foobar'
       elsif ['unique-objects-vary-across-units-epw'].include? error_case
-        building_id = 'ALL'
-        hpxml, hpxml_bldg = _create_hpxml('base-multiple-sfd-buildings.xml', building_id: building_id)
+        hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-whole-building.xml', building_id: building_id)
         hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = 'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'
       elsif ['unique-objects-vary-across-units-dst'].include? error_case
-        building_id = 'ALL'
-        hpxml, hpxml_bldg = _create_hpxml('base-multiple-sfd-buildings.xml', building_id: building_id)
+        hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-whole-building.xml', building_id: building_id)
         hpxml_bldg.dst_begin_month = 3
         hpxml_bldg.dst_begin_day = 15
         hpxml_bldg.dst_end_month = 10
         hpxml_bldg.dst_end_day = 15
       elsif ['unique-objects-vary-across-units-tmains'].include? error_case
-        building_id = 'ALL'
-        hpxml, hpxml_bldg = _create_hpxml('base-multiple-sfd-buildings.xml', building_id: building_id)
+        hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-whole-building.xml', building_id: building_id)
         hpxml_bldg.hot_water_distributions[0].dwhr_facilities_connected = HPXML::DWHRFacilitiesConnectedOne
         hpxml_bldg.hot_water_distributions[0].dwhr_equal_flow = true
         hpxml_bldg.hot_water_distributions[0].dwhr_efficiency = 0.55
       elsif ['whole-mf-building-batteries'].include? error_case
-        building_id = 'ALL'
-        hpxml, hpxml_bldg = _create_hpxml('base-multiple-sfd-buildings.xml', building_id: building_id)
+        hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-whole-building.xml', building_id: building_id)
         hpxml_bldg.batteries.add(id: 'Battery1',
                                  type: HPXML::BatteryTypeLithiumIon)
       elsif ['whole-mf-building-dehumidifiers-unit-multiplier'].include? error_case

@@ -5,6 +5,7 @@ class Constants
     # don't make these BuildResidentialHPXML arguments into ResStockArguments arguments
     return ['hpxml_path',
             'existing_hpxml_path',
+            'whole_sfa_or_mf_building_sim',
             'software_info_program_used',
             'software_info_program_version',
             'schedules_filepaths',
