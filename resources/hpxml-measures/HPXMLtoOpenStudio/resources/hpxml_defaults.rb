@@ -1241,17 +1241,9 @@ class HPXMLDefaults
       next unless heat_pump.heating_capacity_retention_fraction.nil?
       next unless heat_pump.heating_capacity_17F.nil?
       next if [HPXML::HVACTypeHeatPumpGroundToAir, HPXML::HVACTypeHeatPumpWaterLoopToAir].include? heat_pump.heat_pump_type
+      next unless heat_pump.heating_detailed_performance_data.empty? # set after hvac sizing
 
-      if not heat_pump.heating_detailed_performance_data.empty?
-        # Calculate heating capacity retention at 5F outdoor drybulb
-        target_odb = 5.0
-        max_capacity_47 = heat_pump.heating_detailed_performance_data.find { |dp| dp.outdoor_temperature == HVAC::AirSourceHeatRatedODB && dp.capacity_description == HPXML::CapacityDescriptionMaximum }.capacity
-        heat_pump.heating_capacity_retention_fraction = (HVAC.interpolate_to_odb_table_point(heat_pump.heating_detailed_performance_data, HPXML::CapacityDescriptionMaximum, target_odb, :capacity) / max_capacity_47).round(5)
-        heat_pump.heating_capacity_retention_fraction = 0.0 if heat_pump.heating_capacity_retention_fraction < 0
-        heat_pump.heating_capacity_retention_temp = target_odb
-      else
-        heat_pump.heating_capacity_retention_temp, heat_pump.heating_capacity_retention_fraction = HVAC.get_default_heating_capacity_retention(heat_pump.compressor_type, heat_pump.heating_efficiency_hspf)
-      end
+      heat_pump.heating_capacity_retention_temp, heat_pump.heating_capacity_retention_fraction = HVAC.get_default_heating_capacity_retention(heat_pump.compressor_type, heat_pump.heating_efficiency_hspf)
       heat_pump.heating_capacity_retention_fraction_isdefaulted = true
       heat_pump.heating_capacity_retention_temp_isdefaulted = true
     end
@@ -1672,6 +1664,14 @@ class HPXMLDefaults
       if hvac_system.cooling_detailed_performance_data.empty?
         HVAC.set_cool_detailed_performance_data(hvac_system)
       else
+        # process capacity fraction of nominal
+        hvac_system.cooling_detailed_performance_data.each do |dp|
+          next unless dp.capacity.nil?
+
+          dp.capacity = (dp.capacity_fraction_of_nominal * hvac_system.cooling_capacity).round(3)
+          dp.capacity_isdefaulted = true
+        end
+
         # override some properties based on detailed performance data
         cool_rated_capacity = [hvac_system.cooling_capacity, 1.0].max
         cool_max_capacity = [hvac_system.cooling_detailed_performance_data.find { |dp| (dp.outdoor_temperature == HVAC::AirSourceCoolRatedODB) && (dp.capacity_description == HPXML::CapacityDescriptionMaximum) }.capacity, 1.0].max
@@ -1683,6 +1683,24 @@ class HPXMLDefaults
         if hvac_system.heating_detailed_performance_data.empty?
           HVAC.set_heat_detailed_performance_data(hvac_system)
         else
+          # process capacity fraction of nominal
+          hvac_system.heating_detailed_performance_data.each do |dp|
+            next unless dp.capacity.nil?
+
+            dp.capacity = (dp.capacity_fraction_of_nominal * hvac_system.heating_capacity).round(3)
+            dp.capacity_isdefaulted = true
+          end
+
+          if hvac_system.heating_capacity_retention_fraction.nil? && hvac_system.heating_capacity_17F.nil?
+            # Calculate heating capacity retention at 5F outdoor drybulb
+            target_odb = 5.0
+            max_capacity_47 = hvac_system.heating_detailed_performance_data.find { |dp| dp.outdoor_temperature == HVAC::AirSourceHeatRatedODB && dp.capacity_description == HPXML::CapacityDescriptionMaximum }.capacity
+            hvac_system.heating_capacity_retention_fraction = (HVAC.interpolate_to_odb_table_point(hvac_system.heating_detailed_performance_data, HPXML::CapacityDescriptionMaximum, target_odb, :capacity) / max_capacity_47).round(5)
+            hvac_system.heating_capacity_retention_fraction = 0.0 if hvac_system.heating_capacity_retention_fraction < 0
+            hvac_system.heating_capacity_retention_temp = target_odb
+            hvac_system.heating_capacity_retention_fraction_isdefaulted = true
+            hvac_system.heating_capacity_retention_temp_isdefaulted = true
+          end
           # override some properties based on detailed performance data
           heat_rated_capacity = [hvac_system.heating_capacity, 1.0].max
           heat_max_capacity = [hvac_system.heating_detailed_performance_data.find { |dp| (dp.outdoor_temperature == HVAC::AirSourceHeatRatedODB) && (dp.capacity_description == HPXML::CapacityDescriptionMaximum) }.capacity, 1.0].max
@@ -3071,6 +3089,8 @@ class HPXMLDefaults
           if not htg_sys.heating_detailed_performance_data.empty?
             # Fixed values entered; Scale w/ heating_capacity in case allow_increased_fixed_capacities=true
             htg_sys.heating_detailed_performance_data.each do |dp|
+              next if dp.capacity.nil? # using autosized values, process later
+
               htg_cap_dp = dp.capacity * scaling_factor
               if (dp.capacity - htg_cap_dp).abs >= 1.0
                 dp.capacity = Float(htg_cap_dp.round)
@@ -3141,6 +3161,8 @@ class HPXMLDefaults
           scaling_factor = Float(hvac_sizing_values.Cool_Capacity.round) / clg_sys.cooling_capacity unless clg_sys.cooling_capacity.nil?
           # Fixed values entered; Scale w/ cooling_capacity in case allow_increased_fixed_capacities=true
           clg_sys.cooling_detailed_performance_data.each do |dp|
+            next if dp.capacity.nil? # using autosized values
+
             clg_cap_dp = dp.capacity * scaling_factor
             if (dp.capacity - clg_cap_dp).abs >= 1.0
               dp.capacity = Float(clg_cap_dp.round)

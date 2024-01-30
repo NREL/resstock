@@ -90,7 +90,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     hpxml.buildings.each do |hpxml_bldg|
       # Building outputs
       bldg_outputs.each do |bldg_type, bldg_output|
-        bldg_output.output = get_bldg_output(hpxml_bldg, bldg_type)
+        bldg_output.output += get_bldg_output(hpxml_bldg, bldg_type)
       end
 
       # Primary and Secondary

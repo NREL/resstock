@@ -142,7 +142,7 @@ OptionParser.new do |opts|
     options[:ep_input_format] = t
   end
 
-  opts.on('-b', '--building-id ID', 'ID of Building to simulate (required when multiple HPXML Building elements); use "ALL" to simulate a single whole MF building') do |t|
+  opts.on('-b', '--building-id ID', 'ID of Building to simulate (required if the HPXML has multiple Building elements and WholeSFAorMFBuildingSimulation is not true)') do |t|
     options[:building_id] = t
   end
 

@@ -1938,7 +1938,7 @@ Type of capacity values for detailed performance data if available. Applies only
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `Absolute capacities`
+- **Choices:** `auto`, `Absolute capacities`, `Normalized capacity fractions`
 
 <br/>
 

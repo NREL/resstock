@@ -303,7 +303,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Get the absolute paths relative to this meta measure in the run directory
-      if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+      if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
         return false
       end
     end # apply_package_upgrade
@@ -318,8 +318,13 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Initialize measure keys with hpxml_path arguments
     hpxml_path = File.expand_path('../upgraded.xml')
 
+    # Optional whole SFA/MF building simulation
+    whole_sfa_or_mf_building_sim = hpxml.header.whole_sfa_or_mf_building_sim
+
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    hpxml.buildings.each do |hpxml_bldg|
+    hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
+      unit_number += 1
+
       system_upgrades = []
       options.each do |_option_num, option|
         parameter_name, option_name = option.split('|')
@@ -332,11 +337,29 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
 
+      # Assign ResStockArgument's runner arguments to BuildResidentialHPXML
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
         next if value == ''
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
+      end
+
+      # Set whole SFA/MF building simulation items
+      measures['BuildResidentialHPXML'][0]['whole_sfa_or_mf_building_sim'] = whole_sfa_or_mf_building_sim
+
+      if unit_number > 1
+        measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
+      end
+
+      if whole_sfa_or_mf_building_sim && hpxml.buildings.size > 1
+        measures['BuildResidentialHPXML'][0]['battery_present'] = 'false' # limitation of OS-HPXML
+      end
+
+      unit_multiplier = hpxml_bldg.building_construction.number_of_units
+      measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
+      if unit_multiplier > 1
+        measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
       end
 
       # Set additional properties
@@ -466,17 +489,11 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = values['utility_bill_pv_monthly_grid_connection_fee_units']
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = values['utility_bill_pv_monthly_grid_connection_fees']
 
-      # Get registered values and pass them to BuildResidentialScheduleFile
-      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path,
-                                                    'hpxml_output_path' => hpxml_path,
-                                                    'schedules_random_seed' => values['building_id'],
-                                                    'output_csv_path' => File.expand_path('../schedules.csv'),
-                                                    'building_id' => 'ALL' }]
-
       # Specify measures to run
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
+      measures['BuildResidentialHPXML'][0]['apply_validation'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
-      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+      if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         register_logs(runner, new_runner)
         return false
       end
@@ -491,7 +508,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
     # Specify measures to run
     measures_hash = { 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] }
-    if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+    if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
       register_logs(runner, new_runner)
       return false
     end
@@ -528,6 +545,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   def halt_workflow(runner, measures)
     if measures.size == 0
       # Upgrade not applied; don't re-run existing home simulation
+      FileUtils.rm_rf(File.expand_path('../existing.osw'))
+      FileUtils.rm_rf(File.expand_path('../existing.xml'))
       runner.haltWorkflow('Invalid')
       return true
     end

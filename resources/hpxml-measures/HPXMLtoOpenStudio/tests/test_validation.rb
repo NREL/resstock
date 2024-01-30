@@ -132,9 +132,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'invalid-battery-capacities-kwh' => ['Expected UsableCapacity to be less than NominalCapacity'],
                             'invalid-calendar-year-low' => ['Expected CalendarYear to be greater than or equal to 1600'],
                             'invalid-calendar-year-high' => ['Expected CalendarYear to be less than or equal to 9999'],
-                            'invalid-clothes-dryer-cef' => ['Expected CombinedEnergyFactor to be greater than 0'],
-                            'invalid-clothes-washer-imef' => ['Expected IntegratedModifiedEnergyFactor to be greater than 0'],
-                            'invalid-dishwasher-ler' => ['Expected LabelElectricRate to be greater than 0'],
+                            'invalid-clothes-dryer-cef' => ["Element 'CombinedEnergyFactor': [facet 'minExclusive'] The value '0.0' must be greater than '0'."],
+                            'invalid-clothes-washer-imef' => ["Element 'IntegratedModifiedEnergyFactor': [facet 'minExclusive'] The value '0.0' must be greater than '0'."],
+                            'invalid-dishwasher-ler' => ["Element 'LabelElectricRate': [facet 'minExclusive'] The value '0.0' must be greater than '0'."],
                             'invalid-duct-area-fractions' => ['Expected sum(Ducts/FractionDuctArea) for DuctType="supply" to be 1 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution, id: "HVACDistribution1"]',
                                                               'Expected sum(Ducts/FractionDuctArea) for DuctType="return" to be 1 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution, id: "HVACDistribution1"]'],
                             'invalid-facility-type' => ['Expected 1 element(s) for xpath: ../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]] [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[IsSharedSystem="true"], id: "WaterHeatingSystem1"]',
@@ -205,8 +205,8 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                                                                            "Expected Location to be 'conditioned space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'crawlspace - conditioned' or 'other exterior' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space'"],
                             'manufactured-home-reference-floor' => ['There are references to "manufactured home belly" or "manufactured home underbelly" but ResidentialFacilityType is not "manufactured home".',
                                                                     'There must be at least one ceiling adjacent to "crawlspace - vented".'],
-                            'missing-capacity-detailed-performance' => ['Expected 1 element(s) for xpath: ../CoolingCapacity',
-                                                                        'Expected 1 element(s) for xpath: ../HeatingCapacity'],
+                            'missing-capacity-detailed-performance' => ['Expected 1 element(s) for xpath: ../../../HeatingCapacity',
+                                                                        'Expected 1 element(s) for xpath: ../../../CoolingCapacity'],
                             'missing-cfis-supplemental-fan' => ['Expected 1 element(s) for xpath: SupplementalFan'],
                             'missing-distribution-cfa-served' => ['Expected 1 element(s) for xpath: ../../../ConditionedFloorAreaServed [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[not(DuctSurfaceArea)], id: "Ducts2"]'],
                             'missing-duct-area' => ['Expected 1 or more element(s) for xpath: FractionDuctArea | DuctSurfaceArea [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctLocation], id: "Ducts2"]'],
@@ -1404,25 +1404,21 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml, _hpxml_bldg = _create_hpxml('base-schedules-simple-vacancy.xml')
         hpxml.header.unavailable_periods[0].column_name = 'foobar'
       elsif ['unique-objects-vary-across-units-epw'].include? error_case
-        building_id = 'ALL'
-        hpxml, hpxml_bldg = _create_hpxml('base-multiple-sfd-buildings.xml', building_id: building_id)
+        hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-whole-building.xml', building_id: building_id)
         hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = 'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'
       elsif ['unique-objects-vary-across-units-dst'].include? error_case
-        building_id = 'ALL'
-        hpxml, hpxml_bldg = _create_hpxml('base-multiple-sfd-buildings.xml', building_id: building_id)
+        hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-whole-building.xml', building_id: building_id)
         hpxml_bldg.dst_begin_month = 3
         hpxml_bldg.dst_begin_day = 15
         hpxml_bldg.dst_end_month = 10
         hpxml_bldg.dst_end_day = 15
       elsif ['unique-objects-vary-across-units-tmains'].include? error_case
-        building_id = 'ALL'
-        hpxml, hpxml_bldg = _create_hpxml('base-multiple-sfd-buildings.xml', building_id: building_id)
+        hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-whole-building.xml', building_id: building_id)
         hpxml_bldg.hot_water_distributions[0].dwhr_facilities_connected = HPXML::DWHRFacilitiesConnectedOne
         hpxml_bldg.hot_water_distributions[0].dwhr_equal_flow = true
         hpxml_bldg.hot_water_distributions[0].dwhr_efficiency = 0.55
       elsif ['whole-mf-building-batteries'].include? error_case
-        building_id = 'ALL'
-        hpxml, hpxml_bldg = _create_hpxml('base-multiple-sfd-buildings.xml', building_id: building_id)
+        hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-whole-building.xml', building_id: building_id)
         hpxml_bldg.batteries.add(id: 'Battery1',
                                  type: HPXML::BatteryTypeLithiumIon)
       elsif ['whole-mf-building-dehumidifiers-unit-multiplier'].include? error_case
