@@ -275,8 +275,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
           'output_dir' => '',
           'debug' => debug,
           'add_component_loads' => add_component_loads,
-          'skip_validation' => true,
-          'building_id' => 'ALL'
+          'skip_validation' => true
         }
       }
     ]
