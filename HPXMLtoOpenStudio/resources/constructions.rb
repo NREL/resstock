@@ -1424,15 +1424,17 @@ class Constructions
       fail "Unexpected #{type.downcase} frame type."
     end
 
-    if [HPXML::WindowGlassTypeClear].include? window_or_skylight.glass_type
+    if [HPXML::WindowGlassTypeClear,
+        HPXML::WindowGlassTypeReflective].include? window_or_skylight.glass_type
       glass_type = 'clear'
     elsif [HPXML::WindowGlassTypeTinted,
            HPXML::WindowGlassTypeTintedReflective].include? window_or_skylight.glass_type
       glass_type = 'tinted'
-    elsif [HPXML::WindowGlassTypeLowE].include? window_or_skylight.glass_type
-      glass_type = 'low_e'
-    elsif [HPXML::WindowGlassTypeReflective].include? window_or_skylight.glass_type
-      glass_type = 'reflective'
+    elsif [HPXML::WindowGlassTypeLowE,
+           HPXML::WindowGlassTypeLowEHighSolarGain].include? window_or_skylight.glass_type
+      glass_type = 'low_e_insulating'
+    elsif [HPXML::WindowGlassTypeLowELowSolarGain].include? window_or_skylight.glass_type
+      glass_type = 'low_e_solar_control'
     else
       fail "Unexpected #{type.downcase} glass type."
     end
@@ -1465,14 +1467,14 @@ class Constructions
                [true, false, 2, 'tinted', 'air'] => [0.81, 0.55], # Double-pane, tinted, aluminum frame
                [true, true, 2, 'tinted', 'air'] => [0.60, 0.55], # Double-pane, tinted, aluminum frame w/ thermal break
                [false, nil, 2, 'tinted', 'air'] => [0.51, 0.46], # Double-pane, tinted, wood or vinyl frame
-               [false, nil, 2, 'low_e', 'air'] => [0.42, 0.52], # Double-pane, insulating low-E, wood or vinyl frame
-               [true, true, 2, 'low_e', 'gas'] => [0.47, 0.62], # Double-pane, insulating low-E, argon gas fill, aluminum frame w/ thermal break
-               [false, nil, 2, 'low_e', 'gas'] => [0.39, 0.52], # Double-pane, insulating low-E, argon gas fill, wood or vinyl frame
-               [true, false, 2, 'reflective', 'air'] => [0.67, 0.37], # Double-pane, solar-control low-E, aluminum frame
-               [true, true, 2, 'reflective', 'air'] => [0.47, 0.37], # Double-pane, solar-control low-E, aluminum frame w/ thermal break
-               [false, nil, 2, 'reflective', 'air'] => [0.39, 0.31], # Double-pane, solar-control low-E, wood or vinyl frame
-               [false, nil, 2, 'reflective', 'gas'] => [0.36, 0.31], # Double-pane, solar-control low-E, argon gas fill, wood or vinyl frame
-               [false, nil, 3, 'low_e', 'gas'] => [0.27, 0.31] }[key] # Triple-pane, insulating low-E, argon gas fill, wood or vinyl frame
+               [false, nil, 2, 'low_e_insulating', 'air'] => [0.42, 0.52], # Double-pane, insulating low-E, wood or vinyl frame
+               [true, true, 2, 'low_e_insulating', 'gas'] => [0.47, 0.62], # Double-pane, insulating low-E, argon gas fill, aluminum frame w/ thermal break
+               [false, nil, 2, 'low_e_insulating', 'gas'] => [0.39, 0.52], # Double-pane, insulating low-E, argon gas fill, wood or vinyl frame
+               [true, false, 2, 'low_e_solar_control', 'air'] => [0.67, 0.37], # Double-pane, solar-control low-E, aluminum frame
+               [true, true, 2, 'low_e_solar_control', 'air'] => [0.47, 0.37], # Double-pane, solar-control low-E, aluminum frame w/ thermal break
+               [false, nil, 2, 'low_e_solar_control', 'air'] => [0.39, 0.31], # Double-pane, solar-control low-E, wood or vinyl frame
+               [false, nil, 2, 'low_e_solar_control', 'gas'] => [0.36, 0.31], # Double-pane, solar-control low-E, argon gas fill, wood or vinyl frame
+               [false, nil, 3, 'low_e_insulating', 'gas'] => [0.27, 0.31] }[key] # Triple-pane, insulating low-E, argon gas fill, wood or vinyl frame
     elsif type.downcase == 'skylight'
       vals = { [true, false, 1, 'clear', 'none'] => [1.98, 0.75], # Single-pane, clear, aluminum frame
                [false, nil, 1, 'clear', 'none'] => [1.47, 0.64], # Single-pane, clear, wood or vinyl frame
@@ -1484,14 +1486,14 @@ class Constructions
                [true, false, 2, 'tinted', 'air'] => [1.30, 0.55], # Double-pane, tinted, aluminum frame
                [true, true, 2, 'tinted', 'air'] => [1.10, 0.55], # Double-pane, tinted, aluminum frame w/ thermal break
                [false, nil, 2, 'tinted', 'air'] => [0.84, 0.46], # Double-pane, tinted, wood or vinyl frame
-               [false, nil, 2, 'low_e', 'air'] => [0.74, 0.52], # Double-pane, insulating low-E, wood or vinyl frame
-               [true, true, 2, 'low_e', 'gas'] => [0.95, 0.62], # Double-pane, insulating low-E, argon gas fill, aluminum frame w/ thermal break
-               [false, nil, 2, 'low_e', 'gas'] => [0.68, 0.52], # Double-pane, insulating low-E, argon gas fill, wood or vinyl frame
-               [true, false, 2, 'reflective', 'air'] => [1.17, 0.37], # Double-pane, solar-control low-E, aluminum frame
-               [true, true, 2, 'reflective', 'air'] => [0.98, 0.37], # Double-pane, solar-control low-E, aluminum frame w/ thermal break
-               [false, nil, 2, 'reflective', 'air'] => [0.71, 0.31], # Double-pane, solar-control low-E, wood or vinyl frame
-               [false, nil, 2, 'reflective', 'gas'] => [0.65, 0.31], # Double-pane, solar-control low-E, argon gas fill, wood or vinyl frame
-               [false, nil, 3, 'low_e', 'gas'] => [0.47, 0.31] }[key] # Triple-pane, insulating low-E, argon gas fill, wood or vinyl frame
+               [false, nil, 2, 'low_e_insulating', 'air'] => [0.74, 0.52], # Double-pane, insulating low-E, wood or vinyl frame
+               [true, true, 2, 'low_e_insulating', 'gas'] => [0.95, 0.62], # Double-pane, insulating low-E, argon gas fill, aluminum frame w/ thermal break
+               [false, nil, 2, 'low_e_insulating', 'gas'] => [0.68, 0.52], # Double-pane, insulating low-E, argon gas fill, wood or vinyl frame
+               [true, false, 2, 'low_e_solar_control', 'air'] => [1.17, 0.37], # Double-pane, solar-control low-E, aluminum frame
+               [true, true, 2, 'low_e_solar_control', 'air'] => [0.98, 0.37], # Double-pane, solar-control low-E, aluminum frame w/ thermal break
+               [false, nil, 2, 'low_e_solar_control', 'air'] => [0.71, 0.31], # Double-pane, solar-control low-E, wood or vinyl frame
+               [false, nil, 2, 'low_e_solar_control', 'gas'] => [0.65, 0.31], # Double-pane, solar-control low-E, argon gas fill, wood or vinyl frame
+               [false, nil, 3, 'low_e_insulating', 'gas'] => [0.47, 0.31] }[key] # Triple-pane, insulating low-E, argon gas fill, wood or vinyl frame
     else
       fail 'Unexpected type.'
     end
