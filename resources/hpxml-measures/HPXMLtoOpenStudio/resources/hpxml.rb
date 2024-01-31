@@ -419,6 +419,8 @@ class HPXML < Object
   WindowGasXenon = 'xenon'
   WindowGlassTypeClear = 'clear'
   WindowGlassTypeLowE = 'low-e'
+  WindowGlassTypeLowEHighSolarGain = 'low-e, high-solar-gain'
+  WindowGlassTypeLowELowSolarGain = 'low-e, low-solar-gain'
   WindowGlassTypeReflective = 'reflective'
   WindowGlassTypeTinted = 'tinted'
   WindowGlassTypeTintedReflective = 'tinted/reflective'

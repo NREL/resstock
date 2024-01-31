@@ -658,7 +658,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.windows[1].shgc = nil
       hpxml_bldg.windows[1].glass_layers = HPXML::WindowLayersDoublePane
       hpxml_bldg.windows[1].frame_type = HPXML::WindowFrameTypeVinyl
-      hpxml_bldg.windows[1].glass_type = HPXML::WindowGlassTypeReflective
+      hpxml_bldg.windows[1].glass_type = HPXML::WindowGlassTypeLowELowSolarGain
       hpxml_bldg.windows[1].gas_fill = HPXML::WindowGasAir
       hpxml_bldg.windows[2].ufactor = nil
       hpxml_bldg.windows[2].shgc = nil
