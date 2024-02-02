@@ -3504,6 +3504,7 @@ class HVAC
     end
 
     hpxml_bldg.heating_systems.each do |heating_system|
+      next if heating_system.is_heat_pump_backup_system # Will be processed later
       if is_attached_heating_and_cooling_systems(hpxml_bldg, heating_system, heating_system.attached_cooling_system)
         next # Already processed with cooling
       end
@@ -3518,6 +3519,13 @@ class HVAC
     hpxml_bldg.heat_pumps.sort_by { |hp| hp.backup_system_idref.to_s }.each do |heat_pump|
       hvac_systems << { cooling: heat_pump,
                         heating: heat_pump }
+    end
+
+    hpxml_bldg.heating_systems.each do |heating_system|
+      next unless heating_system.is_heat_pump_backup_system
+
+      hvac_systems << { cooling: nil,
+                        heating: heating_system }
     end
 
     return hvac_systems

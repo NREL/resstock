@@ -16,6 +16,7 @@ __New Features__
   - Adds detailed performance data inputs for variable-speed air source HVAC systems.
   - Add soil and moisture type arguments (for determining ground conductivity and diffusivity) and optional geothermal loop arguments for ground source heat pumps.
   - The "Geometry: Building Number of Units" input is now written to the HPXML `NumberofUnitsInBuilding` element.
+- Adds window and skylight `GlassType` options of "low-e, high-solar-gain" and "low-e, low-solar-gain"; updates U-factor/SHGC lookup tables.
 - Updated water heater installation location defaulting to match ANSI 301-2022
 - Adds more error-checking for inappropriate inputs (e.g., HVAC SHR=0 or clothes washer IMEF=0).
 
@@ -23,6 +24,7 @@ __Bugfixes__
 - Fixes error if using AllowIncreasedFixedCapacities=true w/ HP detailed performance data.
 - Prevents mains water temperature from going below freezing (0 C).
 - Fixes error if HPXML has emissions scenario and abbreviated run period.
+- Fixes detailed schedule error-checking where schedules with MAX < 1 were incorrectly allowed.
 
 ## OpenStudio-HPXML v1.7.0
 
