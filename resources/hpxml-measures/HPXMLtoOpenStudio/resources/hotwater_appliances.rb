@@ -48,8 +48,13 @@ class HotWaterAndAppliances
       cw_power_schedule = nil
       cw_col_name = SchedulesFile::ColumnClothesWasher
       cw_object_name = Constants.ObjectNameClothesWasher
+      metered_clothes_washer_IMEF = 2.07
+      if clothes_washer.integrated_modified_energy_factor.nil?
+        clothes_washer.integrated_modified_energy_factor = 2.07
+      end 
+      clothes_washer_power_multiplier = metered_clothes_washer_IMEF/clothes_washer.integrated_modified_energy_factor
       if not schedules_file.nil?
-        cw_design_level_w = schedules_file.calc_design_level_from_schedule_max(col_name: cw_col_name)
+        cw_design_level_w = schedules_file.calc_design_level_from_schedule_max(col_name: cw_col_name) * clothes_washer_power_multiplier
         cw_power_schedule = schedules_file.create_schedule_file(model, col_name: cw_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if cw_power_schedule.nil?
@@ -81,7 +86,7 @@ class HotWaterAndAppliances
       cd_obj_name = Constants.ObjectNameClothesDryer
       metered_clothes_dryer_CEF = 2.68 
       if clothes_dryer.combined_energy_factor.nil?
-        clothes_dryer.combined_energy_factor = calc_clothes_dryer_cef_from_ef(clothes_dryer.energy_factor)
+        clothes_dryer.combined_energy_factor = 2.68
       end
       clothes_dryer_power_multiplier = metered_clothes_dryer_CEF/clothes_dryer.combined_energy_factor
       if not schedules_file.nil?
@@ -122,8 +127,13 @@ class HotWaterAndAppliances
       dw_power_schedule = nil
       dw_col_name = SchedulesFile::ColumnDishwasher
       dw_obj_name = Constants.ObjectNameDishwasher
+      metered_dishwasher_rated_annual_kwh = 240
+      if dishwasher.rated_annual_kwh.nil?
+        dishwasher.rated_annual_kwh = 240
+      end 
+      dishwasher_power_multiplier = dishwasher.rated_annual_kwh/metered_dishwasher_rated_annual_kwh
       if not schedules_file.nil?
-        dw_design_level_w = schedules_file.calc_design_level_from_schedule_max(col_name: dw_col_name)
+        dw_design_level_w = schedules_file.calc_design_level_from_schedule_max(col_name: dw_col_name) * dishwasher_power_multiplier
         dw_power_schedule = schedules_file.create_schedule_file(model, col_name: dw_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if dw_power_schedule.nil?

@@ -824,7 +824,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       cooking_range_full_load_operation_hour = (cooking_range_full_load_operation * hour_each_value).to_s
       cooking_range_operation_hour = (cooking_range_operation * hour_each_value).to_s
       cooking_range_event_num = (cooking_range_event_num).to_s
-      register_value(runner, 'cooking_range_peak_power_kw', cooking_range_max_value)
       register_value(runner, 'cooking_range_full_load_operation_hour', cooking_range_full_load_operation_hour)
       register_value(runner, 'cooking_range_operation_hour', cooking_range_operation_hour)
       register_value(runner, 'cooking_range_event_num', cooking_range_event_num)
@@ -832,7 +831,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       dishwasher_full_load_operation_hour = (dishwasher_full_load_operation * hour_each_value).to_s
       dishwasher_operation_hour = (dishwasher_operation * hour_each_value).to_s
       dishwasher_event_num = (dishwasher_event_num).to_s
-      register_value(runner, 'dishwaser_peak_power_kw', dishwasher_max_value)
       register_value(runner, 'dishwaser_full_load_operation_hour', dishwasher_full_load_operation_hour)
       register_value(runner, 'dishwasher_operation_hour', dishwasher_operation_hour)
       register_value(runner, 'dishwasher_event_num', dishwasher_event_num)
@@ -840,7 +838,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       clothes_washer_full_load_operation_hour = (clothes_washer_full_load_operation * hour_each_value).to_s
       clothes_washer_operation_hour = (clothes_washer_operation * hour_each_value).to_s
       clothes_washer_event_num = (clothes_washer_event_num).to_s
-      register_value(runner, 'clothes_washer_peak_power_kw', clothes_washer_max_value)
       register_value(runner, 'clothes_washer_full_load_operation_hour', clothes_washer_full_load_operation_hour)
       register_value(runner, 'clothes_washer_operation_hour', clothes_washer_operation_hour)
       register_value(runner, 'clothes_washer_event_num', clothes_washer_event_num)
@@ -848,7 +845,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       clothes_dryer_full_load_operation_hour = (clothes_dryer_full_load_operation * hour_each_value).to_s
       clothes_dryer_operation_hour = (clothes_dryer_operation * hour_each_value).to_s
       clothes_dryer_event_num = (clothes_dryer_event_num).to_s
-      register_value(runner, 'clothes_dryer_peak_power_kw', clothes_dryer_max_value)
       register_value(runner, 'clothes_dryer_full_load_operation_hour', clothes_dryer_full_load_operation_hour)
       register_value(runner, 'clothes_dryer_operation_hour', clothes_dryer_operation_hour)
       register_value(runner, 'clothes_dryer_event_num', clothes_dryer_event_num)
