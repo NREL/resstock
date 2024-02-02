@@ -1035,8 +1035,15 @@ class HPXMLDefaults
       end
       if window.gas_fill.nil?
         if window.glass_layers == HPXML::WindowLayersDoublePane
-          window.gas_fill = HPXML::WindowGasAir
-          window.gas_fill_isdefaulted = true
+          if [HPXML::WindowGlassTypeLowE,
+              HPXML::WindowGlassTypeLowEHighSolarGain,
+              HPXML::WindowGlassTypeLowELowSolarGain].include? window.glass_type
+            window.gas_fill = HPXML::WindowGasArgon
+            window.gas_fill_isdefaulted = true
+          else
+            window.gas_fill = HPXML::WindowGasAir
+            window.gas_fill_isdefaulted = true
+          end
         elsif window.glass_layers == HPXML::WindowLayersTriplePane
           window.gas_fill = HPXML::WindowGasArgon
           window.gas_fill_isdefaulted = true
@@ -1099,8 +1106,15 @@ class HPXMLDefaults
       end
       if skylight.gas_fill.nil?
         if skylight.glass_layers == HPXML::WindowLayersDoublePane
-          skylight.gas_fill = HPXML::WindowGasAir
-          skylight.gas_fill_isdefaulted = true
+          if [HPXML::WindowGlassTypeLowE,
+              HPXML::WindowGlassTypeLowEHighSolarGain,
+              HPXML::WindowGlassTypeLowELowSolarGain].include? skylight.glass_type
+            skylight.gas_fill = HPXML::WindowGasArgon
+            skylight.gas_fill_isdefaulted = true
+          else
+            skylight.gas_fill = HPXML::WindowGasAir
+            skylight.gas_fill_isdefaulted = true
+          end
         elsif skylight.glass_layers == HPXML::WindowLayersTriplePane
           skylight.gas_fill = HPXML::WindowGasArgon
           skylight.gas_fill_isdefaulted = true
