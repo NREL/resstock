@@ -250,11 +250,8 @@
             <SystemIdentifier id='Window1'/>
             <Area>108.0</Area>
             <Azimuth>0</Azimuth>
-            <FrameType>
-              <Wood/>
-            </FrameType>
-            <GlassLayers>single-pane</GlassLayers>
-            <GlassType>tinted</GlassType>
+            <UFactor>0.33</UFactor>
+            <SHGC>0.45</SHGC>
             <InteriorShading>
               <SystemIdentifier id='Window1InteriorShading'/>
               <SummerShadingCoefficient>0.7</SummerShadingCoefficient>
@@ -267,12 +264,8 @@
             <SystemIdentifier id='Window2'/>
             <Area>72.0</Area>
             <Azimuth>90</Azimuth>
-            <FrameType>
-              <Vinyl/>
-            </FrameType>
-            <GlassLayers>double-pane</GlassLayers>
-            <GlassType>low-e, low-solar-gain</GlassType>
-            <GasFill>air</GasFill>
+            <UFactor>0.33</UFactor>
+            <SHGC>0.45</SHGC>
             <InteriorShading>
               <SystemIdentifier id='Window2InteriorShading'/>
               <SummerShadingCoefficient>0.7</SummerShadingCoefficient>
@@ -285,14 +278,8 @@
             <SystemIdentifier id='Window3'/>
             <Area>108.0</Area>
             <Azimuth>180</Azimuth>
-            <FrameType>
-              <Metal>
-                <ThermalBreak>true</ThermalBreak>
-              </Metal>
-            </FrameType>
-            <GlassLayers>double-pane</GlassLayers>
-            <GlassType>low-e</GlassType>
-            <GasFill>argon</GasFill>
+            <UFactor>0.33</UFactor>
+            <SHGC>0.45</SHGC>
             <InteriorShading>
               <SystemIdentifier id='Window3InteriorShading'/>
               <SummerShadingCoefficient>0.7</SummerShadingCoefficient>
@@ -305,7 +292,8 @@
             <SystemIdentifier id='Window4'/>
             <Area>72.0</Area>
             <Azimuth>270</Azimuth>
-            <GlassLayers>glass block</GlassLayers>
+            <UFactor>0.33</UFactor>
+            <SHGC>0.45</SHGC>
             <InteriorShading>
               <SystemIdentifier id='Window4InteriorShading'/>
               <SummerShadingCoefficient>0.7</SummerShadingCoefficient>
@@ -329,37 +317,92 @@
         <HVAC>
           <HVACPlant>
             <PrimarySystems>
-              <PrimaryHeatingSystem idref='HeatingSystem1'/>
-              <PrimaryCoolingSystem idref='CoolingSystem1'/>
+              <PrimaryHeatingSystem idref='HeatPump1'/>
+              <PrimaryCoolingSystem idref='HeatPump1'/>
             </PrimarySystems>
-            <HeatingSystem>
-              <SystemIdentifier id='HeatingSystem1'/>
+            <HeatPump>
+              <SystemIdentifier id='HeatPump1'/>
               <DistributionSystem idref='HVACDistribution1'/>
-              <HeatingSystemType>
-                <Furnace/>
-              </HeatingSystemType>
-              <HeatingSystemFuel>natural gas</HeatingSystemFuel>
+              <HeatPumpType>air-to-air</HeatPumpType>
+              <HeatPumpFuel>electricity</HeatPumpFuel>
               <HeatingCapacity>36000.0</HeatingCapacity>
-              <AnnualHeatingEfficiency>
-                <Units>AFUE</Units>
-                <Value>0.92</Value>
-              </AnnualHeatingEfficiency>
+              <CoolingCapacity>36000.0</CoolingCapacity>
+              <CompressorType>variable speed</CompressorType>
+              <CoolingSensibleHeatFraction>0.78</CoolingSensibleHeatFraction>
+              <BackupType>integrated</BackupType>
+              <BackupSystemFuel>electricity</BackupSystemFuel>
+              <BackupAnnualHeatingEfficiency>
+                <Units>Percent</Units>
+                <Value>1.0</Value>
+              </BackupAnnualHeatingEfficiency>
+              <BackupHeatingCapacity>36000.0</BackupHeatingCapacity>
               <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
-            </HeatingSystem>
-            <CoolingSystem>
-              <SystemIdentifier id='CoolingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <CoolingSystemType>central air conditioner</CoolingSystemType>
-              <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>24000.0</CoolingCapacity>
-              <CompressorType>single stage</CompressorType>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
                 <Units>SEER</Units>
-                <Value>13.0</Value>
+                <Value>17.25</Value>
               </AnnualCoolingEfficiency>
-              <SensibleHeatFraction>0.73</SensibleHeatFraction>
-            </CoolingSystem>
+              <AnnualHeatingEfficiency>
+                <Units>HSPF</Units>
+                <Value>10.0</Value>
+              </AnnualHeatingEfficiency>
+              <HeatingDetailedPerformanceData>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>47.0</OutdoorTemperature>
+                  <Capacity>10000.0</Capacity>
+                  <CapacityDescription>minimum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>4.73</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>47.0</OutdoorTemperature>
+                  <Capacity>36000.0</Capacity>
+                  <CapacityDescription>maximum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>3.44</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>17.0</OutdoorTemperature>
+                  <Capacity>4200.0</Capacity>
+                  <CapacityDescription>minimum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>1.84</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>17.0</OutdoorTemperature>
+                  <Capacity>24800.0</Capacity>
+                  <CapacityDescription>maximum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>2.66</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>5.0</OutdoorTemperature>
+                  <Capacity>1900.0</Capacity>
+                  <CapacityDescription>minimum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>0.81</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+                <PerformanceDataPoint>
+                  <OutdoorTemperature>5.0</OutdoorTemperature>
+                  <Capacity>19900.0</Capacity>
+                  <CapacityDescription>maximum</CapacityDescription>
+                  <Efficiency>
+                    <Units>COP</Units>
+                    <Value>2.28</Value>
+                  </Efficiency>
+                </PerformanceDataPoint>
+              </HeatingDetailedPerformanceData>
+            </HeatPump>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
