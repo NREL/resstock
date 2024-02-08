@@ -12,6 +12,7 @@ class HPXMLDefaults
     ncfl = hpxml_bldg.building_construction.number_of_conditioned_floors
     ncfl_ag = hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
     has_uncond_bsmnt = hpxml_bldg.has_location(HPXML::LocationBasementUnconditioned)
+    has_cond_bsmnt = hpxml_bldg.has_location(HPXML::LocationBasementConditioned)
     infil_measurement = Airflow.get_infiltration_measurement_of_interest(hpxml_bldg.air_infiltration_measurements)
 
     # Check for presence of fuels once
@@ -49,7 +50,7 @@ class HPXMLDefaults
     apply_ventilation_fans(hpxml_bldg, weather, cfa, nbeds)
     apply_water_heaters(hpxml_bldg, nbeds, eri_version, schedules_file)
     apply_flue_or_chimney(hpxml_bldg)
-    apply_hot_water_distribution(hpxml_bldg, cfa, ncfl, has_uncond_bsmnt)
+    apply_hot_water_distribution(hpxml_bldg, cfa, ncfl, has_uncond_bsmnt, has_cond_bsmnt)
     apply_water_fixtures(hpxml_bldg, schedules_file)
     apply_solar_thermal_systems(hpxml_bldg)
     apply_appliances(hpxml_bldg, nbeds, eri_version, schedules_file)
@@ -1275,9 +1276,11 @@ class HPXMLDefaults
       end
 
       if (not hp_backup_fuel.nil?) && (hp_backup_fuel != HPXML::FuelTypeElectricity)
+        # Fuel backup
         heat_pump.compressor_lockout_temp = 25.0 # deg-F
       else
-        if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit
+        # Electric backup or no backup
+        if heat_pump.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
           heat_pump.compressor_lockout_temp = -20.0 # deg-F
         else
           heat_pump.compressor_lockout_temp = 0.0 # deg-F
@@ -2120,7 +2123,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_hot_water_distribution(hpxml_bldg, cfa, ncfl, has_uncond_bsmnt)
+  def self.apply_hot_water_distribution(hpxml_bldg, cfa, ncfl, has_uncond_bsmnt, has_cond_bsmnt)
     return if hpxml_bldg.hot_water_distributions.size == 0
 
     hot_water_distribution = hpxml_bldg.hot_water_distributions[0]
@@ -2132,12 +2135,12 @@ class HPXMLDefaults
 
     if hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
       if hot_water_distribution.standard_piping_length.nil?
-        hot_water_distribution.standard_piping_length = HotWaterAndAppliances.get_default_std_pipe_length(has_uncond_bsmnt, cfa, ncfl)
+        hot_water_distribution.standard_piping_length = HotWaterAndAppliances.get_default_std_pipe_length(has_uncond_bsmnt, has_cond_bsmnt, cfa, ncfl)
         hot_water_distribution.standard_piping_length_isdefaulted = true
       end
     elsif hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
       if hot_water_distribution.recirculation_piping_length.nil?
-        hot_water_distribution.recirculation_piping_length = HotWaterAndAppliances.get_default_recirc_loop_length(HotWaterAndAppliances.get_default_std_pipe_length(has_uncond_bsmnt, cfa, ncfl))
+        hot_water_distribution.recirculation_piping_length = HotWaterAndAppliances.get_default_recirc_loop_length(HotWaterAndAppliances.get_default_std_pipe_length(has_uncond_bsmnt, has_cond_bsmnt, cfa, ncfl))
         hot_water_distribution.recirculation_piping_length_isdefaulted = true
       end
       if hot_water_distribution.recirculation_branch_piping_length.nil?
