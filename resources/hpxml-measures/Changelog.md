@@ -1,3 +1,30 @@
+## OpenStudio-HPXML v1.8.0
+
+__New Features__
+- Updates to HPXML v4.0-rc3.
+- **Breaking change**: Modeling whole SFA/MF buildings is now specified using a `SoftwareInfo/extension/WholeSFAorMFBuildingSimulation=true` element instead of `building-id=ALL` argument.
+- Replaces `BuildingSummary/Site/extension/GroundConductivity` with `BuildingSummary/Site/Soil/Conductivity`.
+- Allows radiant barriers for additional locations (attic gable walls and floor); reduced emissivity due to dust assumed for radiant barriers on attic floor.
+- Allows autosizing with detailed performance data inputs for variable-speed air source HVAC systems using `CapacityFractionOfNominal`.
+- Ground source heat pump enhancements:
+  - Allows optional detailed inputs related to geothermal loop (`HVACPlant/GeothermalLoop`).
+  - Allows optional ground diffusivity input.
+  - Updates to using G-Functions from the [G-Function Library for Modeling Vertical Bore Ground Heat Exchanger](https://gdr.openei.org/submissions/1325).
+  - Updated heating/cooling performance curves to reflect newer equipment.
+- BuildResidentialHPXML measure:
+  - **Breaking change**: Replaces `roof_radiant_barrier`/`roof_radiant_barrier_grade` arguments with `radiant_barrier_attic_location`/`radiant_barrier_grade`.
+  - Adds detailed performance data inputs for variable-speed air source HVAC systems.
+  - Add soil and moisture type arguments (for determining ground conductivity and diffusivity) and optional geothermal loop arguments for ground source heat pumps.
+  - The "Geometry: Building Number of Units" input is now written to the HPXML `NumberofUnitsInBuilding` element.
+- Updated water heater installation location defaulting to match ANSI 301-2022
+- Adds more error-checking for inappropriate inputs (e.g., HVAC SHR=0 or clothes washer IMEF=0).
+
+__Bugfixes__
+- Fixes error if using AllowIncreasedFixedCapacities=true w/ HP detailed performance data.
+- Prevents mains water temperature from going below freezing (0 C).
+- Fixes error if HPXML has emissions scenario and abbreviated run period.
+- Fixes detailed schedule error-checking where schedules with MAX < 1 were incorrectly allowed.
+
 ## OpenStudio-HPXML v1.7.0
 
 __New Features__

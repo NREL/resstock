@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
+
 Dir["#{File.dirname(__FILE__)}/HPXMLtoOpenStudio/resources/*.rb"].each do |resource_file|
   next if resource_file.include? 'minitest_helper.rb'
 
@@ -54,19 +56,15 @@ def create_hpxmls
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
     num_apply_measures = 1
-    if hpxml_path.include?('base-multiple-sfd-buildings')
-      num_apply_measures = 3
-    elsif hpxml_path.include?('base-multiple-mf-units')
+    if hpxml_path.include?('base-bldgtype-mf-whole-building.xml')
       num_apply_measures = 6
     end
 
     for i in 1..num_apply_measures
       measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path if i > 1
-      if hpxml_path.include?('base-multiple-sfd-buildings') || hpxml_path.include?('base-multiple-mf-units')
+      if hpxml_path.include?('base-bldgtype-mf-whole-building.xml')
         suffix = "_#{i}" if i > 1
         measures['BuildResidentialHPXML'][0]['schedules_filepaths'] = "../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic#{suffix}.csv"
-      end
-      if hpxml_path.include?('base-multiple-mf-units')
         measures['BuildResidentialHPXML'][0]['geometry_foundation_type'] = (i <= 2 ? 'UnconditionedBasement' : 'AboveApartment')
         measures['BuildResidentialHPXML'][0]['geometry_attic_type'] = (i >= 5 ? 'VentedAttic' : 'BelowApartment')
       end
@@ -96,7 +94,7 @@ def create_hpxmls
       end
     end
 
-    hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
     if hpxml_path.include? 'ASHRAE_Standard_140'
       apply_hpxml_modification_ashrae_140(hpxml)
     else
@@ -257,266 +255,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml_bldg.header.manualj_internal_loads_sensible = 4000
     hpxml_bldg.header.manualj_internal_loads_latent = 200
     hpxml_bldg.header.manualj_num_occupants = 5
-  end
-  if ['base-hvac-air-to-air-heat-pump-var-speed-detailed-performance.xml'].include? hpxml_file
-    # YORK HMH7
-    # https://ashp.neep.org/#!/product/64253/7/25000///0
-    clg_perf_data = hpxml_bldg.heat_pumps[0].cooling_detailed_performance_data
-    htg_perf_data = hpxml_bldg.heat_pumps[0].heating_detailed_performance_data
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 11700,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.47)
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 36000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.71)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 13200,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 6.34)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 40000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.53)
-    htg_perf_data.add(outdoor_temperature: 47.0,
-                      capacity: 10000,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.73)
-    htg_perf_data.add(outdoor_temperature: 47.0,
-                      capacity: 36000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.44)
-    htg_perf_data.add(outdoor_temperature: 17.0,
-                      capacity: 4200,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 1.84)
-    htg_perf_data.add(outdoor_temperature: 17.0,
-                      capacity: 24800,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.66)
-    htg_perf_data.add(outdoor_temperature: 5.0,
-                      capacity: 1900,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 0.81)
-    htg_perf_data.add(outdoor_temperature: 5.0,
-                      capacity: 19900,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.28)
-  end
-  if ['base-hvac-install-quality-air-to-air-heat-pump-var-speed-detailed-performance.xml'].include? hpxml_file
-    # YORK HMH7
-    # https://ashp.neep.org/#!/product/64253/7/25000///0
-    clg_perf_data = hpxml_bldg.heat_pumps[0].cooling_detailed_performance_data
-    htg_perf_data = hpxml_bldg.heat_pumps[0].heating_detailed_performance_data
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 11700,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.47)
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 36000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.71)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 13200,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 6.34)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 40000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.53)
-    htg_perf_data.add(outdoor_temperature: 47.0,
-                      capacity: 10000,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.73)
-    htg_perf_data.add(outdoor_temperature: 47.0,
-                      capacity: 36000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.44)
-    htg_perf_data.add(outdoor_temperature: 17.0,
-                      capacity: 4200,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 1.84)
-    htg_perf_data.add(outdoor_temperature: 17.0,
-                      capacity: 24800,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.66)
-    htg_perf_data.add(outdoor_temperature: 5.0,
-                      capacity: 1900,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 0.81)
-    htg_perf_data.add(outdoor_temperature: 5.0,
-                      capacity: 19900,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.28)
-    hpxml_bldg.heat_pumps[0].airflow_defect_ratio = -0.25
-    hpxml_bldg.heat_pumps[0].charge_defect_ratio = -0.25
-  end
-  if ['base-hvac-air-to-air-heat-pump-var-speed-detailed-performance-other-temperatures.xml'].include? hpxml_file
-    clg_perf_data = hpxml_bldg.heat_pumps[0].cooling_detailed_performance_data
-    htg_perf_data = hpxml_bldg.heat_pumps[0].heating_detailed_performance_data
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 11700,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.47)
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 36000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.71)
-    clg_perf_data.add(outdoor_temperature: 105.0,
-                      capacity: 10000,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 3.9)
-    clg_perf_data.add(outdoor_temperature: 105.0,
-                      capacity: 30000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.3)
-    htg_perf_data.add(outdoor_temperature: 47.0,
-                      capacity: 10000,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.73)
-    htg_perf_data.add(outdoor_temperature: 47.0,
-                      capacity: 36000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.44)
-    htg_perf_data.add(outdoor_temperature: 55.0,
-                      capacity: 12000,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 5.5)
-    htg_perf_data.add(outdoor_temperature: 55.0,
-                      capacity: 45000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 4.0)
-  end
-  if ['base-hvac-central-ac-only-var-speed-detailed-performance.xml'].include? hpxml_file
-    clg_perf_data = hpxml_bldg.cooling_systems[0].cooling_detailed_performance_data
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 11700,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.47)
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 36000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.71)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 13200,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 6.34)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 40000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.53)
-  end
-  if ['base-hvac-mini-split-air-conditioner-only-ductless-detailed-performance.xml'].include? hpxml_file
-    clg_perf_data = hpxml_bldg.cooling_systems[0].cooling_detailed_performance_data
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 10372,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.05)
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 42653,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.27)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 19456,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 8.03)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 40093,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.27)
-  end
-  if ['base-hvac-mini-split-heat-pump-ducted-detailed-performance.xml'].include? hpxml_file
-    # FUJITSU Halcyon Single-room Mini-Split Systems Slim
-    # https://ashp.neep.org/#!/product/25352/7/25000///0
-    clg_perf_data = hpxml_bldg.heat_pumps[0].cooling_detailed_performance_data
-    htg_perf_data = hpxml_bldg.heat_pumps[0].heating_detailed_performance_data
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 9600,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.02)
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 39000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.86)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 10224,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.61)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 41587,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.29)
-    htg_perf_data.add(outdoor_temperature: 47.0,
-                      capacity: 9200,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.35)
-    htg_perf_data.add(outdoor_temperature: 47.0,
-                      capacity: 48000,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.21)
-    htg_perf_data.add(outdoor_temperature: 17.0,
-                      capacity: 7063,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 2.92)
-    htg_perf_data.add(outdoor_temperature: 17.0,
-                      capacity: 36800,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.15)
-    htg_perf_data.add(outdoor_temperature: 5.0,
-                      capacity: 6310,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 2.60)
-    htg_perf_data.add(outdoor_temperature: 5.0,
-                      capacity: 32920,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 1.93)
-  end
-  if ['base-hvac-mini-split-heat-pump-ductless-detailed-performance.xml'].include? hpxml_file
-    # BOSCH Bosch Climate 5000 ductless minisplit series
-    # https://ashp.neep.org/#!/product/66076/7/25000///0
-    clg_perf_data = hpxml_bldg.heat_pumps[0].cooling_detailed_performance_data
-    htg_perf_data = hpxml_bldg.heat_pumps[0].heating_detailed_performance_data
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 10372,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.05)
-    clg_perf_data.add(outdoor_temperature: 95.0,
-                      capacity: 42653,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.27)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 19456,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 8.03)
-    clg_perf_data.add(outdoor_temperature: 82.0,
-                      capacity: 40093,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.27)
-    htg_perf_data.add(outdoor_temperature: 47.0,
-                      capacity: 12143,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 4.81)
-    htg_perf_data.add(outdoor_temperature: 47.0,
-                      capacity: 56499,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 3.17)
-    htg_perf_data.add(outdoor_temperature: 17.0,
-                      capacity: 7414,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 1.96)
-    htg_perf_data.add(outdoor_temperature: 17.0,
-                      capacity: 43387,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 2.31)
-    htg_perf_data.add(outdoor_temperature: 5.0,
-                      capacity: 8130,
-                      capacity_description: HPXML::CapacityDescriptionMinimum,
-                      efficiency_cop: 1.71)
-    htg_perf_data.add(outdoor_temperature: 5.0,
-                      capacity: 36037,
-                      capacity_description: HPXML::CapacityDescriptionMaximum,
-                      efficiency_cop: 1.96)
   end
 
   hpxml.buildings.each do |hpxml_bldg|
@@ -1580,33 +1318,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       end
     end
     if hpxml_file.include? 'shared-ground-loop'
-      hpxml_bldg.heating_systems.reverse_each do |heating_system|
-        heating_system.delete
-      end
-      hpxml_bldg.cooling_systems.reverse_each do |cooling_system|
-        cooling_system.delete
-      end
-      hpxml_bldg.heat_pumps.add(id: "HeatPump#{hpxml_bldg.heat_pumps.size + 1}",
-                                distribution_system_idref: hpxml_bldg.hvac_distributions[-1].id,
-                                heat_pump_type: HPXML::HVACTypeHeatPumpGroundToAir,
-                                heat_pump_fuel: HPXML::FuelTypeElectricity,
-                                backup_type: HPXML::HeatPumpBackupTypeIntegrated,
-                                backup_heating_fuel: HPXML::FuelTypeElectricity,
-                                is_shared_system: true,
-                                number_of_units_served: 6,
-                                backup_heating_efficiency_percent: 1.0,
-                                fraction_heat_load_served: 1,
-                                fraction_cool_load_served: 1,
-                                heating_efficiency_cop: 3.6,
-                                cooling_efficiency_eer: 16.6,
-                                heating_capacity: 12000,
-                                cooling_capacity: 12000,
-                                backup_heating_capacity: 12000,
-                                cooling_shr: 0.73,
-                                primary_heating_system: true,
-                                primary_cooling_system: true,
-                                pump_watts_per_ton: 0.0)
-
+      hpxml_bldg.heat_pumps[0].is_shared_system = true
+      hpxml_bldg.heat_pumps[0].number_of_units_served = 6
+      hpxml_bldg.heat_pumps[0].pump_watts_per_ton = 0.0
     end
     if hpxml_file.include? 'eae'
       hpxml_bldg.heating_systems[0].electric_auxiliary_energy = 500.0
@@ -1959,6 +1673,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.heat_pumps[0].heating_capacity_17F = hpxml_bldg.heat_pumps[0].heating_capacity * hpxml_bldg.heat_pumps[0].heating_capacity_retention_fraction
       hpxml_bldg.heat_pumps[0].heating_capacity_retention_fraction = nil
       hpxml_bldg.heat_pumps[0].heating_capacity_retention_temp = nil
+    end
+    if hpxml_file.include? 'base-hvac-ground-to-air-heat-pump-detailed-geothermal-loop.xml'
+      hpxml_bldg.geothermal_loops[0].shank_spacing = 2.5
     end
 
     # ------------------ #
@@ -2500,7 +2217,38 @@ def download_utility_rates
   exit!
 end
 
-command_list = [:update_measures, :update_hpxmls, :create_release_zips, :download_utility_rates]
+def download_g_functions
+  require_relative 'HPXMLtoOpenStudio/resources/data/g_functions/util'
+
+  g_functions_dir = File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio/resources/data/g_functions')
+  FileUtils.mkdir(g_functions_dir) if !File.exist?(g_functions_dir)
+  filepath = File.join(g_functions_dir, 'g-function_library_1.0')
+
+  if !File.exist?(filepath) # presence of 'g-function_library_1.0' folder will skip re-downloading
+    require 'tempfile'
+    tmpfile = Tempfile.new('functions')
+
+    UrlResolver.fetch('https://gdr.openei.org/files/1325/g-function_library_1.0.zip', tmpfile)
+
+    puts 'Extracting g-functions...'
+    require 'zip'
+    Zip::File.open(tmpfile.path.to_s) do |zipfile|
+      zipfile.each do |file|
+        fpath = File.join(g_functions_dir, file.name)
+        FileUtils.mkdir_p(File.dirname(fpath))
+        zipfile.extract(file, fpath) unless File.exist?(fpath)
+      end
+    end
+  end
+
+  num_configs_actual = process_g_functions(filepath)
+
+  puts "#{num_configs_actual} config files are available in #{g_functions_dir}."
+  puts 'Completed.'
+  exit!
+end
+
+command_list = [:update_measures, :update_hpxmls, :create_release_zips, :download_utility_rates, :download_g_functions]
 
 def display_usage(command_list)
   puts "Usage: openstudio #{File.basename(__FILE__)} [COMMAND]\nCommands:\n  " + command_list.join("\n  ")
@@ -2575,14 +2323,24 @@ if ARGV[0].to_sym == :update_hpxmls
   ENV['HOMEDRIVE'] = 'C:\\' if !ENV['HOMEDRIVE'].nil? && ENV['HOMEDRIVE'].start_with?('U:')
 
   # Create sample/test HPXMLs
-  OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
   t = Time.now
   create_hpxmls()
   puts "Completed in #{(Time.now - t).round(1)}s"
+
+  # Reformat real_homes HPXMLs
+  puts 'Reformatting real_homes HPXMLs...'
+  Dir['workflow/real_homes/*.xml'].each do |hpxml_path|
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    XMLHelper.write_file(hpxml.to_doc, hpxml_path)
+  end
 end
 
 if ARGV[0].to_sym == :download_utility_rates
   download_utility_rates
+end
+
+if ARGV[0].to_sym == :download_g_functions
+  download_g_functions
 end
 
 if ARGV[0].to_sym == :create_release_zips

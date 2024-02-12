@@ -378,7 +378,17 @@ class ReportUtilityBillsTest < Minitest::Test
     hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-unit-multiplier.xml'))
     hpxml.header.utility_bill_scenarios.add(name: 'Test 1', elec_tariff_filepath: '../../ReportUtilityBills/resources/detailed_rates/Sample Tiered Rate.json')
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
-    expected_warnings = ['Cannot currently calculate utility bills based on detailed electric rates for an HPXML with unit multipliers or multiple Building elements.']
+    expected_warnings = ['Cannot currently calculate utility bills based on detailed electric rates for an HPXML with unit multipliers.']
+    actual_bills, _actual_monthly_bills = _test_measure(expected_warnings: expected_warnings)
+    assert_nil(actual_bills)
+  end
+
+  def test_warning_detailed_rates_whole_sfa_mf_building
+    @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-mf-whole-building.xml'))
+    hpxml.header.utility_bill_scenarios.add(name: 'Test 1', elec_tariff_filepath: '../../ReportUtilityBills/resources/detailed_rates/Sample Tiered Rate.json')
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    expected_warnings = ['Cannot currently calculate utility bills based on detailed electric rates for a whole SFA/MF building simulation.']
     actual_bills, _actual_monthly_bills = _test_measure(expected_warnings: expected_warnings)
     assert_nil(actual_bills)
   end

@@ -133,6 +133,9 @@ class UnitConversions
     ['btu/(hr*ft*r)', 'w/(m*k)'] => 1.731,
     ['btu*in/(hr*ft^2*r)', 'w/(m*k)'] => 0.14425,
 
+    # Thermal Diffusivity
+    ['m^2/s', 'ft^2/hr'] => 38750.1,
+
     # Infiltration
     ['ft^2/(s^2*r)', 'l^2/(s^2*cm^4*k)'] => 0.001672,
     ['inh2o/mph^2', 'pa*s^2/m^2'] => 1246.0,

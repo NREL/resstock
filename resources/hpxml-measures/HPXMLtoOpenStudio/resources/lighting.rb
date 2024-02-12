@@ -74,7 +74,7 @@ class Lighting
           interior_sch = MonthWeekdayWeekendSchedule.new(model, interior_obj_name + ' schedule', lighting.interior_weekday_fractions, lighting.interior_weekend_fractions, lighting.interior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, unavailable_periods: interior_unavailable_periods)
         else
           lighting_sch = get_schedule(epw_file)
-          interior_sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, Constants.ScheduleTypeLimitsFraction, unavailable_periods: interior_unavailable_periods)
+          interior_sch = HourlyByMonthSchedule.new(model, interior_obj_name + ' schedule', lighting_sch, lighting_sch, Constants.ScheduleTypeLimitsFraction, unavailable_periods: interior_unavailable_periods)
         end
 
         if lighting.interior_weekday_fractions.nil?
@@ -365,7 +365,7 @@ class Lighting
     end
 
     june_kws = [0.060, 0.040, 0.035, 0.025, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.025, 0.030, 0.030, 0.025, 0.020, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.020, 0.020, 0.020, 0.025, 0.025, 0.030, 0.030, 0.035, 0.045, 0.060, 0.085, 0.125, 0.145, 0.130, 0.105, 0.080]
-    lighting_seasonal_multiplier =   [1.075, 1.064951905, 1.0375, 1.0, 0.9625, 0.935048095, 0.925, 0.935048095, 0.9625, 1.0, 1.0375, 1.064951905]
+    lighting_seasonal_multiplier = Schedule.LightingInteriorMonthlyMultipliers.split(',').map { |v| v.to_f }
     amplConst1 = 0.929707907917098
     sunsetLag1 = 2.45016230615269
     stdDevCons1 = 1.58679810983444

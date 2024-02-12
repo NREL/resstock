@@ -596,6 +596,11 @@ class Schedule
       return annual_flh
     end
 
+    if schedule.to_ScheduleConstant.is_initialized
+      annual_flh = schedule.to_ScheduleConstant.get.value * Constants.NumHoursInYear(modelYear)
+      return annual_flh
+    end
+
     if not schedule.to_ScheduleRuleset.is_initialized
       return
     end
@@ -613,8 +618,7 @@ class Schedule
     # Get a 365-value array of which schedule is used on each day of the year,
     day_schs_used_each_day = schedule.getActiveRuleIndices(year_start_date, year_end_date)
     if !day_schs_used_each_day.length == 365
-      OpenStudio::logFree(OpenStudio::Error, 'openstudio.standards.ScheduleRuleset', "#{schedule.name} does not have 365 daily schedules accounted for, cannot accurately calculate annual EFLH.")
-      return 0
+      fail "#{schedule.name} does not have 365 daily schedules accounted for, cannot accurately calculate annual EFLH."
     end
 
     # Create a map that shows how many days each schedule is used
@@ -667,11 +671,11 @@ class Schedule
       annual_flh += daily_flh * number_of_days_sch_used
     end
 
-    # Warn if the max daily EFLH is more than 24,
+    # Check if the max daily EFLH is more than 24,
     # which would indicate that this isn't a
     # fractional schedule.
     if max_daily_flh > 24
-      OpenStudio::logFree(OpenStudio::Warn, 'openstudio.standards.ScheduleRuleset', "#{schedule.name} has more than 24 EFLH in one day schedule, indicating that it is not a fractional schedule.")
+      fail "#{schedule.name} has more than 24 EFLH in one day schedule, indicating that it is not a fractional schedule."
     end
 
     return annual_flh
@@ -831,6 +835,10 @@ class Schedule
 
   def self.OccupantsMonthlyMultipliers
     return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+  end
+
+  def self.LightingInteriorMonthlyMultipliers
+    return '1.075, 1.064951905, 1.0375, 1.0, 0.9625, 0.935048095, 0.925, 0.935048095, 0.9625, 1.0, 1.0375, 1.064951905'
   end
 
   def self.LightingExteriorWeekdayFractions
@@ -1362,22 +1370,10 @@ class SchedulesFile
     battery_schedules
     expand_schedules
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
-    normalize_zero_to_one_scale
     set_unavailable_periods(runner, unavailable_periods)
     convert_setpoints
     @output_schedules_path = output_path
     export()
-  end
-
-  def normalize_zero_to_one_scale
-    range_max_value = @tmp_schedules['cooking_range'].max
-    @tmp_schedules['cooking_range'] = @tmp_schedules['cooking_range'].map { |power| power / range_max_value }
-    dishwasher_max_value = @tmp_schedules['dishwasher'].max
-    @tmp_schedules['dishwasher'] = @tmp_schedules['dishwasher'].map { |power| power / dishwasher_max_value }
-    washer_max_value = @tmp_schedules['clothes_washer'].max
-    @tmp_schedules['clothes_washer'] = @tmp_schedules['clothes_washer'].map { |power| power / washer_max_value }
-    dryer_max_value = @tmp_schedules['clothes_dryer'].max
-    @tmp_schedules['clothes_dryer'] = @tmp_schedules['clothes_dryer'].map { |power| power / dryer_max_value }
   end
 
   def nil?
@@ -1416,11 +1412,11 @@ class SchedulesFile
           fail "Schedule column name '#{col_name}' is duplicated. [context: #{schedules_path}]"
         end
 
-        #if max_value_one[col_name]
-          #if values.max > 1
-            #fail "Schedule max value for column '#{col_name}' must be 1. [context: #{schedules_path}]"
-          #end
-        #end
+        if max_value_one[col_name]
+          if values.max > 1.01 || values.max < 0.99 # Allow some imprecision
+            fail "Schedule max value for column '#{col_name}' must be 1. [context: #{schedules_path}]"
+          end
+        end
 
         if min_value_zero[col_name]
           if values.min < 0
@@ -1428,9 +1424,12 @@ class SchedulesFile
           end
         end
 
-        if min_value_neg_one[col_name]
+        if value_neg_one_to_one[col_name]
           if values.min < -1
-            fail "Schedule min value for column '#{col_name}' must be -1. [context: #{schedules_path}]"
+            fail "Schedule value for column '#{col_name}' must be greater than or equal to -1. [context: #{schedules_path}]"
+          end
+          if values.max > 1
+            fail "Schedule value for column '#{col_name}' must be less than or equal to 1. [context: #{schedules_path}]"
           end
         end
 
@@ -1518,8 +1517,18 @@ class SchedulesFile
   # the equivalent number of hours in the year, if the schedule was at full load (1.0)
   def annual_equivalent_full_load_hrs(col_name:,
                                       schedules: nil)
+
+    ann_equiv_full_load_hrs = period_equivalent_full_load_hrs(col_name: col_name, schedules: schedules)
+
+    return ann_equiv_full_load_hrs
+  end
+
+  # the equivalent number of hours in the period, if the schedule was at full load (1.0)
+  def period_equivalent_full_load_hrs(col_name:,
+                                      schedules: nil,
+                                      period: nil)
     if schedules.nil?
-      schedules = @tmp_schedules # the schedules before vacancy is applied
+      schedules = @schedules # the schedules before unavailable periods are applied
     end
 
     if schedules[col_name].nil?
@@ -1529,9 +1538,41 @@ class SchedulesFile
     num_hrs_in_year = Constants.NumHoursInYear(@year)
     schedule_length = schedules[col_name].length
     min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
-    ann_equiv_full_load_hrs = schedules[col_name].reduce(:+) / (60.0 / min_per_item)
 
-    return ann_equiv_full_load_hrs
+    equiv_full_load_hrs = 0.0
+    if not period.nil?
+      n_steps = schedules[schedules.keys[0]].length
+      num_days_in_year = Constants.NumDaysInYear(@year)
+      steps_in_day = n_steps / num_days_in_year
+      steps_in_hour = steps_in_day / 24
+
+      begin_day_num = Schedule.get_day_num_from_month_day(@year, period.begin_month, period.begin_day)
+      end_day_num = Schedule.get_day_num_from_month_day(@year, period.end_month, period.end_day)
+
+      begin_hour = 0
+      end_hour = 24
+
+      begin_hour = period.begin_hour if not period.begin_hour.nil?
+      end_hour = period.end_hour if not period.end_hour.nil?
+
+      if end_day_num >= begin_day_num
+        start_ix = (begin_day_num - 1) * steps_in_day + (begin_hour * steps_in_hour)
+        end_ix = (end_day_num - begin_day_num + 1) * steps_in_day - ((24 - end_hour + begin_hour) * steps_in_hour)
+        equiv_full_load_hrs += schedules[col_name][start_ix..end_ix].sum / (60.0 / min_per_item)
+      else # Wrap around year
+        start_ix = (begin_day_num - 1) * steps_in_day + (begin_hour * steps_in_hour)
+        end_ix = -1
+        equiv_full_load_hrs += schedules[col_name][start_ix..end_ix].sum / (60.0 / min_per_item)
+
+        start_ix = 0
+        end_ix = (end_day_num - 1) * steps_in_day + (end_hour * steps_in_hour)
+        equiv_full_load_hrs += schedules[col_name][start_ix..end_ix].sum / (60.0 / min_per_item)
+      end
+    else # Annual
+      equiv_full_load_hrs += schedules[col_name].sum / (60.0 / min_per_item)
+    end
+
+    return equiv_full_load_hrs
   end
 
   # the power in watts the equipment needs to consume so that, if it were to run annual_equivalent_full_load_hrs hours,
@@ -1547,16 +1588,6 @@ class SchedulesFile
     return 0 if ann_equiv_full_load_hrs == 0
 
     design_level = annual_kwh * 1000.0 / ann_equiv_full_load_hrs # W
-
-    return design_level
-  end
-
-  def calc_design_level_from_schedule_max(col_name:)
-    if @schedules[col_name].nil?
-      return
-    end
-
-    design_level = @schedules[col_name].max * 1000 # W
 
     return design_level
   end
@@ -1796,7 +1827,7 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       max_value_one[column_name] = true
-      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name)
+      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name) || SchedulesFile.BatteryColumnNames.include?(column_name)
         max_value_one[column_name] = false
       end
     end
@@ -1815,16 +1846,16 @@ class SchedulesFile
     return min_value_zero
   end
 
-  def min_value_neg_one
-    min_value_neg_one = {}
+  def value_neg_one_to_one
+    value_neg_one_to_one = {}
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
-      min_value_neg_one[column_name] = false
+      value_neg_one_to_one[column_name] = false
       if column_name == SchedulesFile::ColumnBattery
-        min_value_neg_one[column_name] = true
+        value_neg_one_to_one[column_name] = true
       end
     end
-    return min_value_neg_one
+    return value_neg_one_to_one
   end
 
   def only_zeros_and_ones
