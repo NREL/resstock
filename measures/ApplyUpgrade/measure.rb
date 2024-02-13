@@ -679,18 +679,21 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
     hpxml_bldg.heating_systems.each do |heating_system|
       next if heating_system.distribution_system.nil?
+      next if heating_system.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
 
       airflows['heating_airflow_cfm'] = heating_system.heating_airflow_cfm
     end
 
     hpxml_bldg.cooling_systems.each do |cooling_system|
       next if cooling_system.distribution_system.nil?
+      next if cooling_system.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
 
       airflows['cooling_airflow_cfm'] = cooling_system.cooling_airflow_cfm
     end
 
     hpxml_bldg.heat_pumps.each do |heat_pump|
       next if heat_pump.distribution_system.nil?
+      next if heat_pump.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
 
       airflows['heating_airflow_cfm'] = heat_pump.heating_airflow_cfm
       airflows['cooling_airflow_cfm'] = heat_pump.cooling_airflow_cfm
