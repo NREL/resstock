@@ -61,11 +61,12 @@ baseline:
 references:
 
     options:
-    #### 1.0 Common Options For Heat Pump, 12 options ####
+    #### 1.0 Common Options For Heat Pump with ele backup, 12 options ####
       - &1_heating_fuel
         option: Heating Fuel|Electricity
         apply_logic:
           - not: Heating Fuel|None
+          - not: Heating Fuel|Electricity
 
       - &2_cooling_efficiency_ducted
         option: HVAC Cooling Efficiency|Ducted Heat Pump
@@ -87,13 +88,6 @@ references:
           - or:
             - *logic_ducted_hvac_no_ashp
             - *logic_ductless_hvac_no_mshp
-      
-      - &5_cooling_setpoint_no_offset
-        option: Cooling Setpoint Has Offset|No
-        apply_logic:
-          - or:
-            - *logic_ducted_hvac_no_ashp
-            - *logic_ductless_hvac_no_mshp
 
       - &6_cooling_setpoint_offset_magnitude_0
         option: Cooling Setpoint Offset Magnitude|0F
@@ -104,13 +98,6 @@ references:
       
       - &7_cooling_setpoint_offset_period_none
         option: Cooling Setpoint Offset Period|None
-        apply_logic:
-          - or:
-            - *logic_ducted_hvac_no_ashp
-            - *logic_ductless_hvac_no_mshp
-
-      - &8_heating_setpoint_no_offset
-        option: Heating Setpoint Has Offset|No
         apply_logic:
           - or:
             - *logic_ducted_hvac_no_ashp
@@ -129,18 +116,64 @@ references:
           - or:
             - *logic_ducted_hvac_no_ashp
             - *logic_ductless_hvac_no_mshp
-
-      - &11_heating_type_and_fuel_ashp 
-        option: HVAC Heating Type And Fuel|Electricity ASHP
+    #### 1.0 Common Options For Heat Pump with existing backup, 12 options ####
+      - &hp_exist_bkup_heating_fuel
+        option: Heating Fuel|Electricity
         apply_logic:
+          - not: Heating Fuel|None
+          - not: Heating Fuel|Electricity
+          - HVAC Has Shared System|None
+
+      - &hp_exist_bkup_cooling_efficiency_ducted
+        option: HVAC Cooling Efficiency|Ducted Heat Pump
+        apply_logic: &logic_ducted_hvac_no_ashp_no_shared_sys
           - HVAC Has Ducts|Yes
           - not: Heating Fuel|None
-
-      - &12_heating_type_and_fuel_mshp 
-        option: HVAC Heating Type And Fuel|Electricity MSHP
-        apply_logic:
+          - not: HVAC Heating Type And Fuel|Electricity ASHP
+          - HVAC Has Shared System|None
+      
+      - &hp_exist_bkup_cooling_efficiency_ductless
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+        apply_logic: &logic_ductless_hvac_no_mshp_no_shared_sys
           - HVAC Has Ducts|No
           - not: Heating Fuel|None
+          - not: HVAC Heating Type And Fuel|Electricity MSHP
+          - HVAC Has Shared System|None
+
+      - &hp_exist_bkup_100_percent_conditioned
+        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
+        apply_logic:
+          - or:
+            - *logic_ducted_hvac_no_ashp_no_shared_sys
+            - *logic_ductless_hvac_no_mshp_no_shared_sys
+
+      - &hp_exist_bkup_cooling_setpoint_offset_magnitude_0
+        option: Cooling Setpoint Offset Magnitude|0F
+        apply_logic:
+          - or:
+            - *logic_ducted_hvac_no_ashp_no_shared_sys
+            - *logic_ductless_hvac_no_mshp_no_shared_sys
+      
+      - &hp_exist_bkup_cooling_setpoint_offset_period_none
+        option: Cooling Setpoint Offset Period|None
+        apply_logic:
+          - or:
+            - *logic_ducted_hvac_no_ashp_no_shared_sys
+            - *logic_ductless_hvac_no_mshp_no_shared_sys
+
+      - &hp_exist_bkup_heating_setpoint_offset_magnitude_0
+        option: Heating Setpoint Offset Magnitude|0F
+        apply_logic:
+          - or:
+            - *logic_ducted_hvac_no_ashp_no_shared_sys
+            - *logic_ductless_hvac_no_mshp_no_shared_sys
+      
+      - &hp_exist_bkup_heating_setpoint_offset_period_none
+        option: Heating Setpoint Offset Period|None
+        apply_logic:
+          - or:
+            - *logic_ducted_hvac_no_ashp_no_shared_sys
+            - *logic_ductless_hvac_no_mshp_no_shared_sys
 
     #### 1.1 Electric Resistance Heating, 10 options ####
       - &1_electric_resistance_heating_heating_fuel
@@ -148,52 +181,36 @@ references:
         apply_logic:
           - not: Heating Fuel|None
 
-      - &2_electric_resistance_heating_heating_type_and_fuel_boiler 
-        option: HVAC Heating Type And Fuel|Electricity Electric Boiler
+      - &6_electric_resistance_heating_heating_eff_boiler 
+        option: HVAC Heating Efficiency|Electric Boiler, 100% AFUE
         apply_logic: &apply_logic_fuel_boiler
           - or: 
             - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
             - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE      
-      - &3_electric_resistance_heating_heating_type_and_fuel_furnace
-        option: HVAC Heating Type And Fuel|Electricity Electric Furnace
+            - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE     
+      - &7_electric_resistance_heating_heating_eff_fuel_furnace
+        option: HVAC Heating Efficiency|Electric Furnace, 100% AFUE
         apply_logic: &apply_logic_fuel_furnace
           - or: 
             - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
             - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
             - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
-            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE    
-      - &4_electric_resistance_heating_heating_type_and_fuel_wall_floor_furnace
-        option: HVAC Heating Type And Fuel|Electricity Electric Wall Furnace
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE      
+      - &8_electric_resistance_heating_heating_eff_wall_floor_furnace
+        option: HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
         apply_logic: &apply_logic_fuel_wall_floor_furnace
           - or: 
             - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
             - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-      - &5_electric_resistance_heating_heating_type_and_fuel_shared_heating
-        option: HVAC Heating Type And Fuel|Electricity Shared Heating
-        apply_logic:
-          - HVAC Heating Efficiency|Shared Heating 
-
-      - &6_electric_resistance_heating_heating_eff_boiler 
-        option: HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-        apply_logic: *apply_logic_fuel_boiler      
-      - &7_electric_resistance_heating_heating_eff_fuel_furnace
-        option: HVAC Heating Efficiency|Electric Furnace, 100% AFUE
-        apply_logic: *apply_logic_fuel_furnace      
-      - &8_electric_resistance_heating_heating_eff_wall_floor_furnace
-        option: HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-        apply_logic: *apply_logic_fuel_wall_floor_furnace
 
       - &9_electric_resistance_hvac_shared_eff_shared_heating_only
         option: HVAC Shared Efficiencies|Boiler Baseboards Heating Only, Electricity
         apply_logic:
-          - HVAC Heating Efficiency|Shared Heating
-          - not: HVAC Cooling Efficiency|Shared Cooling
+          - HVAC Shared Efficiencies|Boiler Baseboards Heating Only, Fuel
       - &10_electric_resistance_hvac_shared_eff_shared_heating_cooling
         option: HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Electricity
         apply_logic:
-          - HVAC Heating Efficiency|Shared Heating
-          - HVAC Cooling Efficiency|Shared Cooling
+          - HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Fuel
 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
       - &1_fed_min_ashp_ducted
@@ -237,11 +254,9 @@ references:
       - &fed_min_ashp_exist_backup_no_shared_ducts
         option: HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, Separate Backup, Supplemental Backup Sizing
         apply_logic: 
-          - not: HVAC Heating Efficiency|Shared Heating
-          - not: HVAC Cooling Efficiency|Shared Cooling
+          - HVAC Has Shared System|None
           - HVAC Has Ducts|Yes
           - HVAC Heating Type|Non-Ducted Heating
-          - not: HVAC Heating Type And Fuel|Electricity ASHP
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
 
@@ -319,28 +334,28 @@ references:
       ## ASHP ducted heating ##
       # Natural Gas as backup
       - &fed_min_ashp_exist_backup_shared_ducts_60_ng
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 60% AFUE NG, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 60% AFUE NG, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_76_ng
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 76% AFUE NG, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 76% AFUE NG, 0F-40F switchover band
         apply_logic: 
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_80_ng
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 80% AFUE NG, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 80% AFUE NG, 0F-40F switchover band
         apply_logic: 
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_92-5_ng
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 92.5% AFUE NG, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 92.5% AFUE NG, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
@@ -349,28 +364,28 @@ references:
 
         #Fuel Oil as backup
       - &fed_min_ashp_exist_backup_shared_ducts_60_fo
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 60% AFUE Fuel Oil, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 60% AFUE Fuel Oil, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_76_fo
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 76% AFUE Fuel Oil, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 76% AFUE Fuel Oil, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_80_fo
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 80% AFUE Fuel Oil, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 80% AFUE Fuel Oil, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_92-5_fo
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 92.5% AFUE Fuel Oil, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 92.5% AFUE Fuel Oil, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
@@ -379,28 +394,28 @@ references:
 
         # Propane as backup
       - &fed_min_ashp_exist_backup_shared_ducts_60_propane
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 60% AFUE Propane, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 60% AFUE Propane, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_76_propane
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 76% AFUE Propane, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 76% AFUE Propane, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_80_propane
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 80% AFUE Propane, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 80% AFUE Propane, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_92-5_propane
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 92.5% AFUE Propane, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 92.5% AFUE Propane, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
@@ -409,28 +424,28 @@ references:
       
       # Other Fuel as backup
       - &fed_min_ashp_exist_backup_shared_ducts_60_of
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 60% AFUE Other Fuel, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 60% AFUE Other Fuel, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_76_of
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 76% AFUE Other Fuel, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 76% AFUE Other Fuel, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_80_of
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 80% AFUE Other Fuel, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 80% AFUE Other Fuel, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_92-5_of
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 92.5% AFUE Other Fuel, 5F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, Supplemental Backup Sizing, 92.5% AFUE Other Fuel, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace        
@@ -449,8 +464,7 @@ references:
       - &fed_min_mshp_exist_backup
         option: HVAC Heating Efficiency|MSHP, SEER 14.5, 8.33 HSPF, Separate Backup, Supplemental Backup Sizing, Max Load 
         apply_logic: 
-          - not: HVAC Heating Efficiency|Shared Heating
-          - not: HVAC Cooling Efficiency|Shared Cooling
+          - HVAC Has Shared System|None
           - HVAC Has Ducts|No
           - not: HVAC Heating Type And Fuel|Electricity MSHP
         costs: *costs_mshp_ductless_8-33_HSPF
@@ -769,10 +783,6 @@ upgrades:
     options:
     #### 1.1 Electric Resistance Heating 10 options ####
       - *1_electric_resistance_heating_heating_fuel
-      - *2_electric_resistance_heating_heating_type_and_fuel_boiler       
-      - *3_electric_resistance_heating_heating_type_and_fuel_furnace    
-      - *4_electric_resistance_heating_heating_type_and_fuel_wall_floor_furnace
-      - *5_electric_resistance_heating_heating_type_and_fuel_shared_heating
       - *6_electric_resistance_heating_heating_eff_boiler    
       - *7_electric_resistance_heating_heating_eff_fuel_furnace
       - *8_electric_resistance_heating_heating_eff_wall_floor_furnace
@@ -798,14 +808,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
       - *1_fed_min_ashp_ducted
       - *2_fed_min_mshp_ductless
@@ -829,14 +835,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
       - *1_fed_min_ashp_ducted
       - *2_fed_min_mshp_ductless
@@ -860,14 +862,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
       - *1_high_eff_ashp_ducted
       - *2_high_eff_mshp_ductless
@@ -891,14 +889,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
       - *1_high_eff_ashp_ducted
       - *2_high_eff_mshp_ductless
@@ -922,14 +916,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
       - *1_fed_min_ashp_ducted
       - *2_fed_min_mshp_ductless
@@ -953,14 +943,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
       - *1_high_eff_ashp_ducted
       - *2_high_eff_mshp_ductless
@@ -979,19 +965,15 @@ upgrades:
 
   - upgrade_name: 1.8 BAU Electrification with Existing Fuel Backup
     options:
-    #### 1.0 Common Options For Heat Pump, 12 options ####
-      - *1_heating_fuel
-      - *2_cooling_efficiency_ducted
-      - *3_cooling_efficiency_ductless
-      - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
-      - *6_cooling_setpoint_offset_magnitude_0
-      - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
-      - *9_heating_setpoint_offset_magnitude_0
-      - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp
+    #### 1.0 Common Options For Heat Pump with existing backup, 8 options ####
+      - *hp_exist_bkup_heating_fuel
+      - *hp_exist_bkup_cooling_efficiency_ducted
+      - *hp_exist_bkup_cooling_efficiency_ductless
+      - *hp_exist_bkup_100_percent_conditioned
+      - *hp_exist_bkup_cooling_setpoint_offset_magnitude_0
+      - *hp_exist_bkup_cooling_setpoint_offset_period_none
+      - *hp_exist_bkup_heating_setpoint_offset_magnitude_0
+      - *hp_exist_bkup_heating_setpoint_offset_period_none
     #### 1.3 Federal Minimum Level Heat Pump With Existing Heating Backup  ####
       - *fed_min_ashp_exist_backup_no_shared_ducts
       - *secondary_heating_type_fuel_natural_gas
@@ -1045,14 +1027,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
       - *1_fed_min_ashp_ducted
       - *2_fed_min_mshp_ductless
@@ -1086,14 +1064,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
       - *1_fed_min_ashp_ducted
       - *2_fed_min_mshp_ductless
@@ -1127,14 +1101,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
       - *1_high_eff_ashp_ducted
       - *2_high_eff_mshp_ductless
@@ -1168,14 +1138,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
       - *1_high_eff_ashp_ducted
       - *2_high_eff_mshp_ductless
@@ -1209,14 +1175,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
       - *1_fed_min_ashp_ducted
       - *2_fed_min_mshp_ductless
@@ -1250,14 +1212,10 @@ upgrades:
       - *2_cooling_efficiency_ducted
       - *3_cooling_efficiency_ductless
       - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
       - *6_cooling_setpoint_offset_magnitude_0
       - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
       - *9_heating_setpoint_offset_magnitude_0
       - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp 
     #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
       - *1_high_eff_ashp_ducted
       - *2_high_eff_mshp_ductless
@@ -1286,19 +1244,15 @@ upgrades:
   
   - upgrade_name: 2.7 BAU Electrification with Existing Fuel Backup with Envelope
     options:
-    #### 1.0 Common Options For Heat Pump, 12 options ####
-      - *1_heating_fuel
-      - *2_cooling_efficiency_ducted
-      - *3_cooling_efficiency_ductless
-      - *4_100_percent_conditioned
-      - *5_cooling_setpoint_no_offset
-      - *6_cooling_setpoint_offset_magnitude_0
-      - *7_cooling_setpoint_offset_period_none
-      - *8_heating_setpoint_no_offset
-      - *9_heating_setpoint_offset_magnitude_0
-      - *10_heating_setpoint_offset_period_none
-      - *11_heating_type_and_fuel_ashp 
-      - *12_heating_type_and_fuel_mshp
+    #### 1.0 Common Options For Heat Pump with existing backup, 8 options ####
+      - *hp_exist_bkup_heating_fuel
+      - *hp_exist_bkup_cooling_efficiency_ducted
+      - *hp_exist_bkup_cooling_efficiency_ductless
+      - *hp_exist_bkup_100_percent_conditioned
+      - *hp_exist_bkup_cooling_setpoint_offset_magnitude_0
+      - *hp_exist_bkup_cooling_setpoint_offset_period_none
+      - *hp_exist_bkup_heating_setpoint_offset_magnitude_0
+      - *hp_exist_bkup_heating_setpoint_offset_period_none
     #### 1.3 Federal Minimum Level Heat Pump With Existing Heating Backup  ####
       - *fed_min_ashp_exist_backup_no_shared_ducts
       - *secondary_heating_type_fuel_natural_gas
