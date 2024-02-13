@@ -276,6 +276,10 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['systems_water_heater_tank_volume_gal']
     elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
       cost_mult += hpxml['systems_mechanical_ventilation_flow_rate_cfm']
+    elsif cost_mult_type == 'Flow Rate, Heating Air (cfm)'
+      cost_mult += hpxml['systems_heating_air_flow_rate_cfm']
+    elsif cost_mult_type == 'Flow Rate, Cooling Air (cfm)'
+      cost_mult += hpxml['systems_cooling_air_flow_rate_cfm']
     end
     return cost_mult
   end # end get_cost_multiplier

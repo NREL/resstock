@@ -86,6 +86,8 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     bldg_outputs[BO::SystemsHeatPumpBackupCapacity] = BaseOutput.new
     bldg_outputs[BO::SystemsWaterHeaterVolume] = BaseOutput.new
     bldg_outputs[BO::SystemsMechanicalVentilationFlowRate] = BaseOutput.new
+    bldg_outputs[BO::SystemsHeatingAirflow] = BaseOutput.new
+    bldg_outputs[BO::SystemsCoolingAirflow] = BaseOutput.new
 
     hpxml.buildings.each do |hpxml_bldg|
       # Building outputs
@@ -282,6 +284,34 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
         next unless ventilation_fan.used_for_whole_building_ventilation
 
         bldg_output += ventilation_fan.flow_rate.to_f
+      end
+    elsif bldg_type == BO::SystemsHeatingAirflow
+      hpxml_bldg.heating_systems.each do |heating_system|
+        next if heating_system.distribution_system.nil?
+        next if heating_system.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
+
+        bldg_output += heating_system.heating_airflow_cfm.to_f
+      end
+
+      hpxml_bldg.heat_pumps.each do |heat_pump|
+        next if heat_pump.distribution_system.nil?
+        next if heat_pump.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
+
+        bldg_output += heat_pump.heating_airflow_cfm.to_f
+      end
+    elsif bldg_type == BO::SystemsCoolingAirflow
+      hpxml_bldg.cooling_systems.each do |cooling_system|
+        next if cooling_system.distribution_system.nil?
+        next if cooling_system.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
+
+        bldg_output += cooling_system.cooling_airflow_cfm.to_f
+      end
+
+      hpxml_bldg.heat_pumps.each do |heat_pump|
+        next if heat_pump.distribution_system.nil?
+        next if heat_pump.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
+
+        bldg_output += heat_pump.cooling_airflow_cfm.to_f
       end
     end
     return bldg_output
