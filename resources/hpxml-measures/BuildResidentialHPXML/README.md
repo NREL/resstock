@@ -2607,6 +2607,71 @@ The heat load served fraction of the second heating system. Ignored if this heat
 
 <br/>
 
+**HVAC Distribution: Blower Fan Efficiency**
+
+The blower fan efficiency at maximum fan speed. Applies only to Furnace heating system, central air conditioner and mini-split cooling systems, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems'>HPXML Heating Systems</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooling-systems'>HPXML Cooling Systems</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heat-pumps'>HPXML Heat Pumps</a>) is used.
+
+- **Name:** ``hvac_distribution_fan_watts_per_cfm``
+- **Type:** ``Double``
+
+- **Units:** ``W/CFM``
+
+- **Required:** ``false``
+
+<br/>
+
+**HVAC Distribution: Heating Airflow Rate**
+
+The heating airflow rate. If not provided, the OS-HPXML autosized default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems'>HPXML Heating Systems</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooling-systems'>HPXML Cooling Systems</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heat-pumps'>HPXML Heat Pumps</a>) is used.
+
+- **Name:** ``hvac_distribution_heating_airflow_cfm``
+- **Type:** ``Double``
+
+- **Units:** ``CFM``
+
+- **Required:** ``false``
+
+<br/>
+
+**HVAC Distribution: Cooling Airflow Rate**
+
+The cooling airflow rate. If not provided, the OS-HPXML autosized default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems'>HPXML Heating Systems</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooling-systems'>HPXML Cooling Systems</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heat-pumps'>HPXML Heat Pumps</a>) is used.
+
+- **Name:** ``hvac_distribution_cooling_airflow_cfm``
+- **Type:** ``Double``
+
+- **Units:** ``CFM``
+
+- **Required:** ``false``
+
+<br/>
+
+**HVAC Distribution: Maximum Heating Airflow Rate**
+
+The heating airflow rate used to (a) set the maximum allowed heating airflow rate and (b) adjust blower fan efficiency.
+
+- **Name:** ``hvac_distribution_max_heating_airflow_cfm``
+- **Type:** ``Double``
+
+- **Units:** ``CFM``
+
+- **Required:** ``false``
+
+<br/>
+
+**HVAC Distribution: Maximum Cooling Airflow Rate**
+
+The cooling airflow rate used to (a) set the maximum allowed cooling airflow rate and (b) adjust blower fan efficiency.
+
+- **Name:** ``hvac_distribution_max_cooling_airflow_cfm``
+- **Type:** ``Double``
+
+- **Units:** ``CFM``
+
+- **Required:** ``false``
+
+<br/>
+
 **HVAC Control: Heating Weekday Setpoint Schedule**
 
 Specify the constant or 24-hour comma-separated weekday heating setpoint schedule. Required unless a detailed CSV schedule is provided.

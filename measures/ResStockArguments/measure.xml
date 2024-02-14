@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>5d0f59e2-5f18-42a4-b48d-7f25484b8c6b</version_id>
-  <version_modified>2024-01-25T20:52:36Z</version_modified>
+  <version_id>ae4b2c19-5d5c-4fc7-9f70-ec6eff93245d</version_id>
+  <version_modified>2024-01-30T16:49:31Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -3165,6 +3165,51 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.25</default_value>
+    </argument>
+    <argument>
+      <name>hvac_distribution_fan_watts_per_cfm</name>
+      <display_name>HVAC Distribution: Blower Fan Efficiency</display_name>
+      <description>The blower fan efficiency at maximum fan speed. Applies only to Furnace heating system, central air conditioner and mini-split cooling systems, and air-to-air, mini-split, and ground-to-air heat pumps. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems'&gt;HPXML Heating Systems&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooling-systems'&gt;HPXML Cooling Systems&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heat-pumps'&gt;HPXML Heat Pumps&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>W/CFM</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_distribution_heating_airflow_cfm</name>
+      <display_name>HVAC Distribution: Heating Airflow Rate</display_name>
+      <description>The heating airflow rate. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems'&gt;HPXML Heating Systems&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooling-systems'&gt;HPXML Cooling Systems&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heat-pumps'&gt;HPXML Heat Pumps&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>CFM</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_distribution_cooling_airflow_cfm</name>
+      <display_name>HVAC Distribution: Cooling Airflow Rate</display_name>
+      <description>The cooling airflow rate. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems'&gt;HPXML Heating Systems&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooling-systems'&gt;HPXML Cooling Systems&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heat-pumps'&gt;HPXML Heat Pumps&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>CFM</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_distribution_max_heating_airflow_cfm</name>
+      <display_name>HVAC Distribution: Maximum Heating Airflow Rate</display_name>
+      <description>The heating airflow rate used to (a) set the maximum allowed heating airflow rate and (b) adjust blower fan efficiency.</description>
+      <type>String</type>
+      <units>CFM</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hvac_distribution_max_cooling_airflow_cfm</name>
+      <display_name>HVAC Distribution: Maximum Cooling Airflow Rate</display_name>
+      <description>The cooling airflow rate used to (a) set the maximum allowed cooling airflow rate and (b) adjust blower fan efficiency.</description>
+      <type>String</type>
+      <units>CFM</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>hvac_control_heating_season_period</name>
@@ -7242,6 +7287,24 @@
         </choice>
       </choices>
     </argument>
+    <argument>
+      <name>hvac_distribution_ductwork_restriction</name>
+      <display_name>HVAC Distribution: Ductwork Restriction</display_name>
+      <description>Whether to set maximum allowable airflow rates of the upgraded building equal to airflow rates of the existing building.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs />
   <provenances />
@@ -7260,7 +7323,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>F06A22FF</checksum>
+      <checksum>C6ACB0D6</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -7277,7 +7340,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4E5136C9</checksum>
+      <checksum>71FEA50E</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>

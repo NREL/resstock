@@ -1529,11 +1529,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::ColumnWaterHeater, @hpxml_header.unavailable_periods)
     unit_multiplier = @hpxml_bldg.building_construction.number_of_units
     has_uncond_bsmnt = @hpxml_bldg.has_location(HPXML::LocationBasementUnconditioned)
+    has_cond_bsmnt = @hpxml_bldg.has_location(HPXML::LocationBasementConditioned)
     plantloop_map = {}
     @hpxml_bldg.water_heating_systems.each do |water_heating_system|
       loc_space, loc_schedule = get_space_or_schedule_from_location(water_heating_system.location, model, spaces)
 
-      ec_adj = HotWaterAndAppliances.get_dist_energy_consumption_adjustment(has_uncond_bsmnt, @cfa, @ncfl, water_heating_system, hot_water_distribution)
+      ec_adj = HotWaterAndAppliances.get_dist_energy_consumption_adjustment(has_uncond_bsmnt, has_cond_bsmnt, @cfa, @ncfl, water_heating_system, hot_water_distribution)
 
       sys_id = water_heating_system.id
       if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage

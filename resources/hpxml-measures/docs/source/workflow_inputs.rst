@@ -1538,6 +1538,8 @@ Each central furnace is entered as a ``/HPXML/Building/BuildingDetails/Systems/H
   ``AnnualHeatingEfficiency[Units="AFUE"]/Value``         double   frac       > 0, <= 1        Yes                       Rated efficiency
   ``FractionHeatLoadServed``                              double   frac       >= 0, <= 1 [#]_  See [#]_                  Fraction of heating load served
   ``extension/FanPowerWattsPerCFM``                       double   W/cfm      >= 0             No        See [#]_        Blower fan efficiency at maximum fan speed [#]_
+  ``extension/HeatingAirflowCFM``                         double   cfm        >= 0             No        autosized
+  ``extension/MaxHeatingAirflowCFM``                      double   cfm        >= 0             No
   ``extension/AirflowDefectRatio``                        double   frac       >= -0.9, <= 9    No        0.0             Deviation between design/installed airflows [#]_
   ======================================================  =======  =========  ===============  ========  ==============  ================================================
 
@@ -1578,6 +1580,8 @@ Each wall furnace is entered as a ``/HPXML/Building/BuildingDetails/Systems/HVAC
   ``AnnualHeatingEfficiency[Units="AFUE"]/Value``             double   frac    > 0, <= 1        Yes                       Rated efficiency
   ``FractionHeatLoadServed``                                  double   frac    >= 0, <= 1 [#]_  See [#]_                  Fraction of heating load served
   ``extension/FanPowerWatts``                                 double   W       >= 0             No        0               Fan power
+  ``extension/HeatingAirflowCFM``                             double   cfm     >= 0             No        autosized
+  ``extension/MaxHeatingAirflowCFM``                          double   cfm     >= 0             No
   ==========================================================  =======  ======  ===============  ========  ==============  ================
 
   .. [#] HeatingSystemFuel choices are "electricity", "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "wood", or "wood pellets".
@@ -1605,6 +1609,8 @@ Each floor furnace is entered as a ``/HPXML/Building/BuildingDetails/Systems/HVA
   ``AnnualHeatingEfficiency[Units="AFUE"]/Value``              double   frac    > 0, <= 1        Yes                       Rated efficiency
   ``FractionHeatLoadServed``                                   double   frac    >= 0, <= 1 [#]_  See [#]_                  Fraction of heating load served
   ``extension/FanPowerWatts``                                  double   W       >= 0             No        0               Fan power
+  ``extension/HeatingAirflowCFM``                              double   cfm     >= 0             No        autosized
+  ``extension/MaxHeatingAirflowCFM``                           double   cfm     >= 0             No
   ===========================================================  =======  ======  ===============  ========  ==============  ================
 
   .. [#] HeatingSystemFuel choices are "electricity", "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "wood", or "wood pellets".
@@ -1724,6 +1730,8 @@ Each stove is entered as a ``/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPl
   ``AnnualHeatingEfficiency[Units="Percent"]/Value``    double   frac    > 0, <= 1        Yes                       Efficiency
   ``FractionHeatLoadServed``                            double   frac    >= 0, <= 1 [#]_  See [#]_                  Fraction of heating load served
   ``extension/FanPowerWatts``                           double   W       >= 0             No        40              Fan power
+  ``extension/HeatingAirflowCFM``                       double   cfm     >= 0             No        autosized
+  ``extension/MaxHeatingAirflowCFM``                    double   cfm     >= 0             No
   ====================================================  =======  ======  ===============  ========  ==============  ===================
 
   .. [#] HeatingSystemFuel choices are "electricity", "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "wood", or "wood pellets".
@@ -1749,6 +1757,8 @@ Each space heater is entered as a ``/HPXML/Building/BuildingDetails/Systems/HVAC
   ``AnnualHeatingEfficiency[Units="Percent"]/Value``  double   frac    > 0, <= 1        Yes                       Efficiency
   ``FractionHeatLoadServed``                          double   frac    >= 0, <= 1 [#]_  See [#]_                  Fraction of heating load served
   ``extension/FanPowerWatts``                         double   W       >= 0             No        0               Fan power
+  ``extension/HeatingAirflowCFM``                     double   cfm     >= 0             No        autosized
+  ``extension/MaxHeatingAirflowCFM``                  double   cfm     >= 0             No
   ==================================================  =======  ======  ===============  ========  ==============  ===================
 
   .. [#] HeatingSystemFuel choices are "electricity", "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "wood", or "wood pellets".
@@ -1777,6 +1787,8 @@ Instead of modeling fireplaces as serving a fraction of the heating load, firepl
   ``AnnualHeatingEfficiency[Units="Percent"]/Value``        double   frac    > 0, <= 1        Yes                       Efficiency
   ``FractionHeatLoadServed``                                double   frac    >= 0, <= 1 [#]_  See [#]_                  Fraction of heating load served
   ``extension/FanPowerWatts``                               double   W       >= 0             No        0               Fan power
+  ``extension/HeatingAirflowCFM``                           double   cfm     >= 0             No        autosized
+  ``extension/MaxHeatingAirflowCFM``                        double   cfm     >= 0             No
   ========================================================  =======  ======  ===============  ========  ==============  ===================
 
   .. [#] HeatingSystemFuel choices are "electricity", "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "wood", or "wood pellets".
@@ -1822,6 +1834,8 @@ Each central air conditioner is entered as a ``/HPXML/Building/BuildingDetails/S
   ``SensibleHeatFraction``                                          double   frac         > 0.5, <= 1              No        See [#]_        Sensible heat fraction
   ``CoolingDetailedPerformanceData``                                element                                        No        <none>          Cooling detailed performance data [#]_
   ``extension/FanPowerWattsPerCFM``                                 double   W/cfm        >= 0                     No        See [#]_        Blower fan efficiency at maximum fan speed [#]_
+  ``extension/CoolingAirflowCFM``                                   double   cfm          >= 0                     No        autosized
+  ``extension/MaxCoolingAirflowCFM``                                double   cfm          >= 0                     No
   ``extension/AirflowDefectRatio``                                  double   frac         >= -0.9, <= 9            No        0.0             Deviation between design/installed airflows [#]_
   ``extension/ChargeDefectRatio``                                   double   frac         >= -0.9, <= 9            No        0.0             Deviation between design/installed refrigerant charges [#]_
   ``extension/CrankcaseHeaterPowerWatts``                           double   W            >= 0                     No        50.0            Crankcase heater power
@@ -1972,6 +1986,8 @@ Each mini-split air conditioner is entered as a ``/HPXML/Building/BuildingDetail
   ``SensibleHeatFraction``                                          double    frac    > 0.5, <= 1      No        0.73            Sensible heat fraction
   ``CoolingDetailedPerformanceData``                                element                            No        <none>          Cooling detailed performance data [#]_
   ``extension/FanPowerWattsPerCFM``                                 double    W/cfm   >= 0             No        See [#]_        Blower fan efficiency at maximum fan speed
+  ``extension/CoolingAirflowCFM``                                   double    cfm     >= 0             No        autosized
+  ``extension/MaxCoolingAirflowCFM``                                double    cfm     >= 0             No
   ``extension/AirflowDefectRatio``                                  double    frac    >= -0.9, <= 9    No        0.0             Deviation between design/installed airflows [#]_
   ``extension/ChargeDefectRatio``                                   double    frac    >= -0.9, <= 9    No        0.0             Deviation between design/installed refrigerant charges [#]_
   ``extension/CrankcaseHeaterPowerWatts``                           double    W       >= 0             No        50.0            Crankcase heater power
@@ -2102,6 +2118,10 @@ Each air-to-air heat pump is entered as a ``/HPXML/Building/BuildingDetails/Syst
   ``HeatingDetailedPerformanceData``                                element                                      No        <none>          Heating detailed performance data [#]_
   ``extension/HeatingCapacityRetention[Fraction | Temperature]``    double   frac | F  >= 0, < 1 | <= 17         No        See [#]_        Heating output capacity retention at cold temperature [#]_
   ``extension/FanPowerWattsPerCFM``                                 double   W/cfm     >= 0                      No        See [#]_        Blower fan efficiency at maximum fan speed
+  ``extension/HeatingAirflowCFM``                                   double   cfm       >= 0                      No        autosized
+  ``extension/CoolingAirflowCFM``                                   double   cfm       >= 0                      No        autosized
+  ``extension/MaxHeatingAirflowCFM``                                double   cfm       >= 0                      No
+  ``extension/MaxCoolingAirflowCFM``                                double   cfm       >= 0                      No
   ``extension/AirflowDefectRatio``                                  double   frac      >= -0.9, <= 9             No        0.0             Deviation between design/installed airflows [#]_
   ``extension/ChargeDefectRatio``                                   double   frac      >= -0.9, <= 9             No        0.0             Deviation between design/installed refrigerant charges [#]_
   ``extension/CrankcaseHeaterPowerWatts``                           double   W         >= 0                      No        50.0            Crankcase heater power
@@ -2119,7 +2139,7 @@ Each air-to-air heat pump is entered as a ``/HPXML/Building/BuildingDetails/Syst
   .. [#] Cooling capacity autosized per ACCA Manual J/S based on cooling design load (unless a different HeatPumpSizingMethodology was selected in :ref:`hvac_sizing_control`).
   .. [#] CompressorType choices are "single stage", "two stage", or "variable speed".
   .. [#] If CompressorType not provided, defaults to "single stage" if SEER <= 15, else "two stage" if SEER <= 21, else "variable speed".
-  .. [#] If neither CompressorLockoutTemperature nor BackupHeatingSwitchoverTemperature provided, CompressorLockoutTemperature defaults to 25F if fossil fuel backup otherwise 0F.
+  .. [#] If neither CompressorLockoutTemperature nor BackupHeatingSwitchoverTemperature provided, CompressorLockoutTemperature defaults to 25F if fossil fuel backup otherwise -20F if CompressorType is "variable speed" otherwise 0F.
   .. [#] If SensibleHeatFraction not provided, defaults to 0.73 for single/two stage and 0.78 for variable speed.
   .. [#] BackupType choices are "integrated" or "separate".
          Heat pump backup will only operate during colder temperatures when the heat pump runs out of heating capacity or is disabled due to a switchover/lockout temperature.
@@ -2178,6 +2198,10 @@ Each ``HeatPump`` is expected to represent a single outdoor unit, whether connec
   ``HeatingDetailedPerformanceData``                                element                                       No        <none>          Heating detailed performance data [#]_
   ``extension/HeatingCapacityRetention[Fraction | Temperature]``    double    frac | F  >= 0, < 1 | <= 17         No        See [#]_        Heating output capacity retention at cold temperature [#]_
   ``extension/FanPowerWattsPerCFM``                                 double    W/cfm     >= 0                      No        See [#]_        Blower fan efficiency at maximum fan speed
+  ``extension/HeatingAirflowCFM``                                   double    cfm       >= 0                      No        autosized
+  ``extension/CoolingAirflowCFM``                                   double    cfm       >= 0                      No        autosized
+  ``extension/MaxHeatingAirflowCFM``                                double    cfm       >= 0                      No
+  ``extension/MaxCoolingAirflowCFM``                                double    cfm       >= 0                      No
   ``extension/AirflowDefectRatio``                                  double    frac      >= -0.9, <= 9             No        0.0             Deviation between design/installed airflows [#]_
   ``extension/ChargeDefectRatio``                                   double    frac      >= -0.9, <= 9             No        0.0             Deviation between design/installed refrigerant charges [#]_
   ``extension/CrankcaseHeaterPowerWatts``                           double    W         >= 0                      No        50.0            Crankcase heater power
@@ -2326,6 +2350,10 @@ Each ground-to-air heat pump is entered as a ``/HPXML/Building/BuildingDetails/S
   ``extension/PumpPowerWattsPerTon``               double    W/ton   >= 0             No        See [#]_        Pump power [#]_
   ``extension/SharedLoopWatts``                    double    W       >= 0             See [#]_                  Shared pump power [#]_
   ``extension/FanPowerWattsPerCFM``                double    W/cfm   >= 0             No        See [#]_        Blower fan efficiency at maximum fan speed
+  ``extension/HeatingAirflowCFM``                  double    cfm     >= 0             No        autosized
+  ``extension/CoolingAirflowCFM``                  double    cfm     >= 0             No        autosized
+  ``extension/MaxHeatingAirflowCFM``               double    cfm     >= 0             No
+  ``extension/MaxCoolingAirflowCFM``               double    cfm     >= 0             No
   ``extension/AirflowDefectRatio``                 double    frac    >= -0.9, <= 9    No        0.0             Deviation between design/installed airflows [#]_
   ``extension/ChargeDefectRatio``                  double    frac    >= -0.9, <= 9    No        0.0             Deviation between design/installed refrigerant charges [#]_
   ===============================================  ========  ======  ===============  ========  ==============  ==============================================
@@ -3504,9 +3532,9 @@ A standard hot water distribution system is entered as a ``/HPXML/Building/Build
          
          CFA = conditioned floor area [ft2],
          
-         NCfl = number of conditioned floor levels number of conditioned floor levels in the residence including conditioned basements,
+         NCfl = number of conditioned floor levels in the residence including conditioned basements,
          
-         Bsmnt = presence (1.0) or absence (0.0) of an unconditioned basement in the residence.
+         Bsmnt = presence (1.0) or absence (0.0) of an unconditioned basement in the residence. If a building has both a conditioned and unconditioned basement on the same level, Bsmnt = 0 to avoid double counting.
          
   .. [#] PipingLength is the length of hot water piping from the hot water heater to the farthest hot water fixture, measured longitudinally from plans, assuming the hot water piping does not run diagonally, plus 10 feet of piping for each floor level, plus 5 feet of piping for unconditioned basements (if any).
   .. [#] Additional drain water heat recovery inputs are described in :ref:`water_heater_dwhr`.
@@ -3551,9 +3579,9 @@ An in-unit recirculation hot water distribution system is entered as a ``/HPXML/
          
          CFA = conditioned floor area [ft2],
          
-         NCfl = number of conditioned floor levels number of conditioned floor levels in the residence including conditioned basements,
+         NCfl = number of conditioned floor levels in the residence including conditioned basements,
          
-         Bsmnt = presence (1.0) or absence (0.0) of an unconditioned basement in the residence.
+         Bsmnt = presence (1.0) or absence (0.0) of an unconditioned basement in the residence. If a building has both a conditioned and unconditioned basement on the same level, Bsmnt = 0 to avoid double counting.
          
   .. [#] RecirculationPipingLoopLength is the recirculation loop length including both supply and return sides, measured longitudinally from plans, assuming the hot water piping does not run diagonally, plus 20 feet of piping for each floor level greater than one plus 10 feet of piping for unconditioned basements.
   .. [#] BranchPipingLength is the length of the branch hot water piping from the recirculation loop to the farthest hot water fixture from the recirculation loop, measured longitudinally from plans, assuming the branch hot water piping does not run diagonally.
@@ -3588,9 +3616,9 @@ A shared recirculation hot water distribution system (serving multiple dwelling 
          
          CFA = conditioned floor area [ft2],
          
-         NCfl = number of conditioned floor levels number of conditioned floor levels in the residence including conditioned basements,
+         NCfl = number of conditioned floor levels in the residence including conditioned basements,
          
-         Bsmnt = presence (1.0) or absence (0.0) of an unconditioned basement in the residence.
+         Bsmnt = presence (1.0) or absence (0.0) of an unconditioned basement in the residence. If a building has both a conditioned and unconditioned basement on the same level, Bsmnt = 0 to avoid double counting.
          
   .. [#] PipingLength is the length of hot water piping from the shared recirculation loop to the farthest hot water fixture, measured longitudinally from plans, assuming the hot water piping does not run diagonally, plus 10 feet of piping for each floor level, plus 5 feet of piping for unconditioned basements (if any).
   .. [#] Additional drain water heat recovery inputs are described in :ref:`water_heater_dwhr`.
