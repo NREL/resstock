@@ -3183,6 +3183,17 @@ Multiplier on the hot water usage that can reflect, e.g., high/low usage occupan
 
 <br/>
 
+**General Water Use: Usage Multiplier**
+
+Multiplier on internal gains from general water use (floor mopping, shower evaporation, water films on showers, tubs & sinks surfaces, plant watering, etc.) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-building-occupancy'>HPXML Building Occupancy</a>) is used.
+
+- **Name:** ``general_water_use_usage_multiplier``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
 **Solar Thermal: System Type**
 
 The type of solar thermal system. Use 'none' if there is no solar thermal system.

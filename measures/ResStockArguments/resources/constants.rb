@@ -33,6 +33,7 @@ class Constants
             'misc_plug_loads_television_annual_kwh',
             'misc_plug_loads_television_usage_multiplier',
             'pv_system_num_bedrooms_served',
+            'battery_num_bedrooms_served',
             'occupancy_calculation_type',
             'air_leakage_has_flue_or_chimney_in_conditioned_space',
             'combine_like_surfaces',
