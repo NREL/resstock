@@ -372,6 +372,11 @@
       <sch:assert role='ERROR' test='count(h:extension/h:WeekdayScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/WeekdayScheduleFractions</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:WeekendScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/WeekendScheduleFractions</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:MonthlyScheduleMultipliers) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/MonthlyScheduleMultipliers</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:GeneralWaterUseUsageMultiplier) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/GeneralWaterUseUsageMultiplier</sch:assert>
+      <sch:assert role='ERROR' test='number(h:extension/h:GeneralWaterUseUsageMultiplier) &gt;= 0 or not(h:extension/h:GeneralWaterUseUsageMultiplier)'>Expected extension/GeneralWaterUseUsageMultiplier to be greater than or equal to 0</sch:assert>      
+      <sch:assert role='ERROR' test='count(h:extension/h:GeneralWaterUseWeekdayScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/GeneralWaterUseWeekdayScheduleFractions</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:GeneralWaterUseWeekendScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/GeneralWaterUseWeekendScheduleFractions</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:GeneralWaterUseMonthlyScheduleMultipliers) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/GeneralWaterUseMonthlyScheduleMultipliers</sch:assert>
     </sch:rule>
   </sch:pattern>
 
@@ -902,7 +907,7 @@
       <sch:assert role='ERROR' test='count(h:AnnualHeatingEfficiency[h:Units="AFUE"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualHeatingEfficiency[Units="AFUE"]/Value</sch:assert>
       <sch:assert role='ERROR' test='number(h:AnnualHeatingEfficiency[h:Units="AFUE"]/h:Value) &lt;= 1 or not(h:AnnualHeatingEfficiency[h:Units="AFUE"]/h:Value)'>Expected AnnualHeatingEfficiency[Units="AFUE"]/Value to be less than or equal to 1</sch:assert>
       <sch:assert role='ERROR' test='count(h:FractionHeatLoadServed) = 1 or count(../h:HeatPump/h:BackupSystem) &gt;= 1'>Expected 1 element(s) for xpath: FractionHeatLoadServed</sch:assert> <!-- See [HeatingSystem=HeatPumpBackup] -->
-      <sch:assert role='ERROR' test='count(h:ElectricAuxiliaryEnergy) + count(h:extension/h:SharedLoopWatts) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ElectricAuxiliaryEnergy | extension/SharedLoopWatts</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:SharedLoopWatts) = 1'>Expected 1 element(s) for xpath: extension/SharedLoopWatts</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:SharedLoopWatts) &gt;= 0 or not(h:extension/h:SharedLoopWatts)'>Expected extension/SharedLoopWatts to be greater than or equal to 0</sch:assert>
       <!-- Warnings -->
       <sch:report role='WARN' test='number(h:AnnualHeatingEfficiency[h:Units="AFUE"]/h:Value) &lt; 0.5'>AFUE should typically be greater than or equal to 0.5.</sch:report>
@@ -912,7 +917,7 @@
   <sch:pattern>
     <sch:title>[HeatingSystemType=SharedBoilerWthFanCoil]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACPlant/h:HeatingSystem[h:HeatingSystemType/h:Boiler and h:IsSharedSystem="true" and ../../h:HVACDistribution/h:DistributionSystemType/h:AirDistribution/h:AirDistributionType[text()="fan coil"]]'>
-      <sch:assert role='ERROR' test='count(h:ElectricAuxiliaryEnergy) + count(h:extension/h:FanCoilWatts) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ElectricAuxiliaryEnergy | extension/FanCoilWatts</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:FanCoilWatts) = 1'>Expected 1 element(s) for xpath: extension/FanCoilWatts</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:FanCoilWatts) &gt;= 0 or not(h:extension/h:FanCoilWatts)'>Expected extension/FanCoilWatts to be greater than or equal to 0</sch:assert>
     </sch:rule>
   </sch:pattern>
@@ -2008,6 +2013,9 @@
       <sch:assert role='ERROR' test='count(h:RecirculationPipingLoopLength) &lt;= 1'>Expected 0 or 1 element(s) for xpath: RecirculationPipingLoopLength</sch:assert>
       <sch:assert role='ERROR' test='count(h:BranchPipingLength) &lt;= 1'>Expected 0 or 1 element(s) for xpath: BranchPipingLength</sch:assert>
       <sch:assert role='ERROR' test='count(h:PumpPower) &lt;= 1'>Expected 0 or 1 element(s) for xpath: PumpPower</sch:assert>
+      <sch:assert role='ERROR' test='count(../../h:extension/h:RecirculationPumpWeekdayScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ../../extension/RecirculationPumpWeekdayScheduleFractions</sch:assert>
+      <sch:assert role='ERROR' test='count(../../h:extension/h:RecirculationPumpWeekendScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ../../extension/RecirculationPumpWeekendScheduleFractions</sch:assert>
+      <sch:assert role='ERROR' test='count(../../h:extension/h:RecirculationPumpMonthlyScheduleMultipliers) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ../../extension/RecirculationPumpMonthlyScheduleMultipliers</sch:assert>
     </sch:rule>
   </sch:pattern>
 
@@ -2021,6 +2029,9 @@
       <sch:assert role='ERROR' test='count(h:PumpPower) &lt;= 1'>Expected 0 or 1 element(s) for xpath: PumpPower</sch:assert>
       <sch:assert role='ERROR' test='count(h:ControlType) = 1'>Expected 1 element(s) for xpath: ControlType</sch:assert>
       <sch:assert role='ERROR' test='h:ControlType[text()="manual demand control" or text()="presence sensor demand control" or text()="temperature" or text()="timer" or text()="no control"] or not(h:ControlType)'>Expected ControlType to be 'manual demand control' or 'presence sensor demand control' or 'temperature' or 'timer' or 'no control'</sch:assert>
+      <sch:assert role='ERROR' test='count(../../h:extension/h:RecirculationPumpWeekdayScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ../../extension/RecirculationPumpWeekdayScheduleFractions</sch:assert>
+      <sch:assert role='ERROR' test='count(../../h:extension/h:RecirculationPumpWeekendScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ../../extension/RecirculationPumpWeekendScheduleFractions</sch:assert>
+      <sch:assert role='ERROR' test='count(../../h:extension/h:RecirculationPumpMonthlyScheduleMultipliers) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ../../extension/RecirculationPumpMonthlyScheduleMultipliers</sch:assert>
     </sch:rule>
   </sch:pattern>
 
@@ -2123,6 +2134,7 @@
   <sch:pattern>
     <sch:title>[Battery]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:Batteries/h:Battery'>
+      <sch:assert role='ERROR' test='count(h:IsSharedSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [BatteryType=Shared] -->
       <sch:assert role='ERROR' test='count(h:BatteryType[text()="Li-ion"]) = 1'>Expected 1 element(s) for xpath: BatteryType[text()="Li-ion"]</sch:assert>
       <sch:assert role='ERROR' test='count(h:Location) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Location</sch:assert>
       <sch:assert role='ERROR' test='h:Location[text()="conditioned space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="crawlspace - conditioned" or text()="attic - vented" or text()="attic - unvented" or text()="garage" or text()="outside"] or not(h:Location)'>Expected Location to be 'conditioned space' or 'basement - conditioned' or 'basement - unconditioned' or 'crawlspace - vented' or 'crawlspace - unvented' or 'crawlspace - conditioned' or 'attic - vented' or 'attic - unvented' or 'garage' or 'outside'</sch:assert>
@@ -2137,6 +2149,15 @@
       <sch:assert role='ERROR' test='h:extension/h:LifetimeModel[text()="None" or text()="KandlerSmith"] or not(h:extension/h:LifetimeModel)'>Expected extension/LifetimeModel to be 'None' or 'KandlerSmith'</sch:assert>
       <!-- Warnings -->
       <sch:report role='WARN' test='number(h:RatedPowerOutput) &lt;= 1000 and number(h:RatedPowerOutput) &gt; 0'>Rated power output should typically be greater than or equal to 1000 W.</sch:report>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[BatteryType=Shared]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:Batteries/h:Battery[h:IsSharedSystem="true"]'>
+      <sch:assert role='ERROR' test='count(../../../h:BuildingSummary/h:BuildingConstruction[h:ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]) = 1'>Expected 1 element(s) for xpath: ../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:NumberofBedroomsServed) = 1'>Expected 1 element(s) for xpath: extension/NumberofBedroomsServed</sch:assert>
+      <sch:assert role='ERROR' test='number(h:extension/h:NumberofBedroomsServed) &gt; number(../../../h:BuildingSummary/h:BuildingConstruction/h:NumberofBedrooms) or not(h:extension/h:NumberofBedroomsServed) or not(../../../h:BuildingSummary/h:BuildingConstruction/h:NumberofBedrooms)'>Expected extension/NumberofBedroomsServed to be greater than ../../../BuildingSummary/BuildingConstruction/NumberofBedrooms</sch:assert>
     </sch:rule>
   </sch:pattern>
 
@@ -2281,6 +2302,9 @@
       <sch:assert role='ERROR' test='count(h:extension/h:WeekdayScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/WeekdayScheduleFractions</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:WeekendScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/WeekendScheduleFractions</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:MonthlyScheduleMultipliers) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/MonthlyScheduleMultipliers</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:ConstantScheduleCoefficients) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/ConstantScheduleCoefficients</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:TemperatureScheduleCoefficients) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/TemperatureScheduleCoefficients</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension[h:WeekdayScheduleFractions | h:WeekendScheduleFractions | h:MonthlyScheduleMultipliers]) + count(h:extension[h:ConstantScheduleCoefficients | h:TemperatureScheduleCoefficients]) &lt;= 1'>Expected either schedule fractions/multipliers or schedule coefficients but not both.</sch:assert>
     </sch:rule>
   </sch:pattern>
 
@@ -2295,6 +2319,8 @@
       <sch:assert role='ERROR' test='count(h:extension/h:WeekdayScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/WeekdayScheduleFractions</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:WeekendScheduleFractions) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/WeekendScheduleFractions</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:MonthlyScheduleMultipliers) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/MonthlyScheduleMultipliers</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:ConstantScheduleCoefficients) + count(h:extension/h:TemperatureScheduleCoefficients) = 0 or count(h:extension/h:ConstantScheduleCoefficients) + count(h:extension/h:TemperatureScheduleCoefficients) = 2'>Expected 0 or 2 element(s) for xpath: extension/ConstantScheduleCoefficients | extension/TemperatureScheduleCoefficients</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension[h:WeekdayScheduleFractions | h:WeekendScheduleFractions | h:MonthlyScheduleMultipliers]) + count(h:extension[h:ConstantScheduleCoefficients | h:TemperatureScheduleCoefficients]) &lt;= 1'>Expected either schedule fractions/multipliers or schedule coefficients but not both.</sch:assert>
     </sch:rule>
   </sch:pattern>
 

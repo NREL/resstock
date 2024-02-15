@@ -139,9 +139,8 @@ class Airflow
     return 0.1 # Assumption
   end
 
-  def self.get_default_mech_vent_fan_power(vent_fan)
-    # 301-2019: Table 4.2.2(1b)
-    # Returns fan power in W/cfm
+  def self.get_default_mech_vent_fan_power(vent_fan, eri_version)
+    # Returns fan power in W/cfm, based on ANSI 301
     if vent_fan.is_shared_system
       return 1.00 # Table 4.2.2(1) Note (n)
     elsif [HPXML::MechVentTypeSupply, HPXML::MechVentTypeExhaust].include? vent_fan.fan_type
@@ -151,7 +150,11 @@ class Airflow
     elsif [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include? vent_fan.fan_type
       return 1.00
     elsif [HPXML::MechVentTypeCFIS].include? vent_fan.fan_type
-      return 0.50
+      if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2022')
+        return 0.58
+      else
+        return 0.50
+      end
     else
       fail "Unexpected fan_type: '#{fan_type}'."
     end
@@ -219,7 +222,7 @@ class Airflow
     sla, _ach50, _nach, _volume, height, a_ext = get_values_from_air_infiltration_measurements(hpxml_bldg, cfa, weather)
 
     nl = get_infiltration_NL_from_SLA(sla, height)
-    q_inf = nl * weather.data.WSF * cfa / 7.3 # Effective annual average infiltration rate, cfm, eq. 4.5a
+    q_inf = get_infiltration_Qinf_from_NL(nl, weather, cfa)
 
     q_tot = get_mech_vent_qtot_cfm(nbeds, cfa)
 
@@ -406,8 +409,7 @@ class Airflow
     neutral_level = 0.5
     hor_lk_frac = 0.0
     c_w, c_s = calc_wind_stack_coeffs(site, hor_lk_frac, neutral_level, @conditioned_space, infil_height)
-    max_oa_hr = 0.0115 # From BA HSP
-    max_oa_rh = 0.7 # From BA HSP
+    max_oa_hr = 0.0115 # From ANSI 301-2022
 
     # Program
     vent_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
@@ -419,14 +421,23 @@ class Airflow
     vent_program.addLine("Set Pbar = #{@pbar_sensor.name}")
     vent_program.addLine('Set Phiout = (@RhFnTdbWPb Tout Wout Pbar)')
     vent_program.addLine("Set MaxHR = #{max_oa_hr}")
-    vent_program.addLine("Set MaxRH = #{max_oa_rh}")
     if not thermostat.nil?
       # Home has HVAC system (though setpoints may be defaulted); use the average of heating/cooling setpoints to minimize incurring additional heating energy.
       vent_program.addLine("Set Tnvsp = (#{htg_sp_sensor.name} + #{clg_sp_sensor.name}) / 2")
     else
       # No HVAC system; use the average of defaulted heating/cooling setpoints.
-      default_htg_sp = UnitConversions.convert(HVAC.get_default_heating_setpoint(HPXML::HVACControlTypeManual)[0], 'F', 'C')
-      default_clg_sp = UnitConversions.convert(HVAC.get_default_cooling_setpoint(HPXML::HVACControlTypeManual)[0], 'F', 'C')
+      htg_weekday_setpoints, htg_weekend_setpoints = HVAC.get_default_heating_setpoint(HPXML::HVACControlTypeManual, @eri_version)
+      clg_weekday_setpoints, clg_weekend_setpoints = HVAC.get_default_cooling_setpoint(HPXML::HVACControlTypeManual, @eri_version)
+      if htg_weekday_setpoints.split(', ').uniq.size == 1 && htg_weekend_setpoints.split(', ').uniq.size == 1 && htg_weekday_setpoints.split(', ').uniq == htg_weekend_setpoints.split(', ').uniq
+        default_htg_sp = UnitConversions.convert(htg_weekend_setpoints.split(', ').uniq[0].to_f, 'F', 'C')
+      else
+        fail 'Unexpected heating setpoints.'
+      end
+      if clg_weekday_setpoints.split(', ').uniq.size == 1 && clg_weekend_setpoints.split(', ').uniq.size == 1 && clg_weekday_setpoints.split(', ').uniq == clg_weekend_setpoints.split(', ').uniq
+        default_clg_sp = UnitConversions.convert(clg_weekend_setpoints.split(', ').uniq[0].to_f, 'F', 'C')
+      else
+        fail 'Unexpected cooling setpoints.'
+      end
       vent_program.addLine("Set Tnvsp = (#{default_htg_sp} + #{default_clg_sp}) / 2")
     end
     vent_program.addLine("Set NVavail = #{nv_avail_sensor.name}")
@@ -435,7 +446,7 @@ class Airflow
     vent_program.addLine("Set #{whf_flow_actuator.name} = 0") # Init
     vent_program.addLine("Set #{cond_to_zone_flow_rate_actuator.name} = 0") unless whf_zone.nil? # Init
     vent_program.addLine("Set #{whf_elec_actuator.name} = 0") # Init
-    infil_constraints = 'If ((Wout < MaxHR) && (Phiout < MaxRH) && (Tin > Tout) && (Tin > Tnvsp) && (ClgSsnAvail > 0))'
+    infil_constraints = 'If ((Wout < MaxHR) && (Tin > Tout) && (Tin > Tnvsp) && (ClgSsnAvail > 0))'
     if not @hvac_availability_sensor.nil?
       # We are using the availability schedule, but we also constrain the window opening based on temperatures and humidity.
       # We're assuming that if the HVAC is not available, you'd ignore the humidity constraints we normally put on window opening per the old HSP guidance (RH < 70% and w < 0.015).
@@ -2011,6 +2022,11 @@ class Airflow
   def self.get_infiltration_ACH50_from_SLA(sla, n_i, floor_area, volume)
     # Returns the infiltration ACH50 given a SLA.
     return ((sla * floor_area * UnitConversions.convert(1.0, 'ft^2', 'in^2') * 50.0**n_i * 60.0) / (0.283316478 * 4.0**n_i * volume))
+  end
+
+  def self.get_infiltration_Qinf_from_NL(nl, weather, cfa)
+    # Returns the effective annual average infiltration rate in cfm
+    return nl * weather.data.WSF * cfa * 8.202 / 60.0
   end
 
   def self.calc_duct_leakage_at_diff_pressure(q_old, p_old, p_new)

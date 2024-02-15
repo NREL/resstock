@@ -2128,16 +2128,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     recirculation_control_type_choices = OpenStudio::StringVector.new
-    recirculation_control_type_choices << HPXML::DHWRecirControlTypeNone
-    recirculation_control_type_choices << HPXML::DHWRecirControlTypeTimer
-    recirculation_control_type_choices << HPXML::DHWRecirControlTypeTemperature
-    recirculation_control_type_choices << HPXML::DHWRecirControlTypeSensor
-    recirculation_control_type_choices << HPXML::DHWRecirControlTypeManual
+    recirculation_control_type_choices << HPXML::DHWRecircControlTypeNone
+    recirculation_control_type_choices << HPXML::DHWRecircControlTypeTimer
+    recirculation_control_type_choices << HPXML::DHWRecircControlTypeTemperature
+    recirculation_control_type_choices << HPXML::DHWRecircControlTypeSensor
+    recirculation_control_type_choices << HPXML::DHWRecircControlTypeManual
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('hot_water_distribution_recirc_control_type', recirculation_control_type_choices, false)
     arg.setDisplayName('Hot Water Distribution: Recirculation Control Type')
     arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the type of hot water recirculation control, if any.")
-    arg.setDefaultValue(HPXML::DHWRecirControlTypeNone)
+    arg.setDefaultValue(HPXML::DHWRecircControlTypeNone)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hot_water_distribution_recirc_piping_length', false)
@@ -2203,6 +2203,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_fixtures_usage_multiplier', false)
     arg.setDisplayName('Hot Water Fixtures: Usage Multiplier')
     arg.setDescription("Multiplier on the hot water usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-water-fixtures'>HPXML Water Fixtures</a>) is used.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('general_water_use_usage_multiplier', false)
+    arg.setDisplayName('General Water Use: Usage Multiplier')
+    arg.setDescription("Multiplier on internal gains from general water use (floor mopping, shower evaporation, water films on showers, tubs & sinks surfaces, plant watering, etc.) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-building-occupancy'>HPXML Building Occupancy</a>) is used.")
     args << arg
 
     solar_thermal_system_type_choices = OpenStudio::StringVector.new
@@ -2450,6 +2455,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Battery: Round Trip Efficiency')
     arg.setDescription("The round trip efficiency of the lithium ion battery. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-batteries'>HPXML Batteries</a>) is used.")
     arg.setUnits('Frac')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('battery_num_bedrooms_served', false)
+    arg.setDisplayName('Battery: Number of Bedrooms Served')
+    arg.setDescription("Number of bedrooms served by the lithium ion battery. Required if #{HPXML::ResidentialTypeSFA} or #{HPXML::ResidentialTypeApartment}. Used to apportion battery charging/discharging to the unit of a SFA/MF building.")
+    arg.setUnits('#')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('lighting_present', true)
@@ -4314,6 +4325,9 @@ class HPXMLFile
   def self.set_building_occupancy(hpxml_bldg, args)
     if args[:geometry_unit_num_occupants].is_initialized
       hpxml_bldg.building_occupancy.number_of_residents = args[:geometry_unit_num_occupants].get
+    end
+    if args[:general_water_use_usage_multiplier].is_initialized
+      hpxml_bldg.building_occupancy.general_water_use_usage_multiplier = args[:general_water_use_usage_multiplier].get
     end
   end
 
@@ -6401,13 +6415,22 @@ class HPXMLFile
       round_trip_efficiency = args[:battery_round_trip_efficiency].get
     end
 
+    if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include? args[:geometry_unit_type]
+      if args[:battery_num_bedrooms_served].get > args[:geometry_unit_num_bedrooms]
+        is_shared_system = true
+        number_of_bedrooms_served = args[:battery_num_bedrooms_served].get
+      end
+    end
+
     hpxml_bldg.batteries.add(id: "Battery#{hpxml_bldg.batteries.size + 1}",
                              type: HPXML::BatteryTypeLithiumIon,
                              location: location,
                              rated_power_output: rated_power_output,
                              nominal_capacity_kwh: nominal_capacity_kwh,
                              usable_capacity_kwh: usable_capacity_kwh,
-                             round_trip_efficiency: round_trip_efficiency)
+                             round_trip_efficiency: round_trip_efficiency,
+                             is_shared_system: is_shared_system,
+                             number_of_bedrooms_served: number_of_bedrooms_served)
   end
 
   def self.set_lighting(hpxml_bldg, args)

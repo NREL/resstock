@@ -43,12 +43,12 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
-    assert_in_delta(2454, kwh_yr, 1.0)
+    assert_in_delta(2457, kwh_yr, 1.0)
     assert_equal(0, therm_yr)
 
     # Check television
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscTelevision)
-    assert_in_delta(619, kwh_yr, 1.0)
+    assert_in_delta(620, kwh_yr, 1.0)
     assert_equal(0, therm_yr)
 
     # Check others
@@ -75,12 +75,12 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
-    assert_in_delta(2454, kwh_yr, 1.0)
+    assert_in_delta(2457, kwh_yr, 1.0)
     assert_equal(0, therm_yr)
 
     # Check television
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscTelevision)
-    assert_in_delta(619, kwh_yr, 1.0)
+    assert_in_delta(620, kwh_yr, 1.0)
     assert_equal(0, therm_yr)
 
     # Check vehicle
@@ -136,12 +136,12 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
-    assert_in_delta(2454, kwh_yr, 1.0)
+    assert_in_delta(2457, kwh_yr, 1.0)
     assert_equal(0, therm_yr)
 
     # Check television
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscTelevision)
-    assert_in_delta(619, kwh_yr, 1.0)
+    assert_in_delta(620, kwh_yr, 1.0)
     assert_equal(0, therm_yr)
 
     # Check vehicle
@@ -197,7 +197,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
-    assert_in_delta(2454, kwh_yr, 1.0)
+    assert_in_delta(2457, kwh_yr, 1.0)
     assert_equal(0, therm_yr)
 
     # Check television
@@ -258,7 +258,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
-    assert_in_delta(2454, kwh_yr, 1.0)
+    assert_in_delta(2457, kwh_yr, 1.0)
     assert_equal(0, therm_yr)
 
     # Check television
@@ -319,7 +319,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
-    assert_in_delta(2454, kwh_yr, 1.0)
+    assert_in_delta(2457, kwh_yr, 1.0)
     assert_equal(0, therm_yr)
 
     # Check television

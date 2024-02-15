@@ -602,6 +602,12 @@ class ReportSimulationOutputTest < Minitest::Test
     actual_annual_rows = _get_actual_annual_rows(annual_csv)
     assert_equal(expected_annual_rows.sort, actual_annual_rows.keys.sort)
     _check_runner_registered_values_and_measure_xml_outputs(actual_annual_rows)
+
+    # Verify refrigerator energy use correctly impacted by ambient temperature
+    hpxml = HPXML.new(hpxml_path: args_hash['hpxml_path'])
+    actual_fridge_energy_use = actual_annual_rows["End Use: #{FT::Elec}: #{EUT::Refrigerator} (MBtu)"]
+    rated_fridge_energy_use = UnitConversions.convert(hpxml.buildings[0].refrigerators[0].rated_annual_kwh, 'kWh', 'MBtu')
+    assert_in_epsilon(0.93, actual_fridge_energy_use / rated_fridge_energy_use, 0.1)
   end
 
   def test_annual_only2
