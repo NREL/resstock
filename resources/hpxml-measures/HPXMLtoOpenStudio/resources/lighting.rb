@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Lighting
-  def self.apply(runner, model, epw_file, spaces, lighting_groups, lighting, eri_version, schedules_file, cfa,
+  def self.apply(runner, model, spaces, lighting_groups, lighting, eri_version, schedules_file, cfa,
                  unavailable_periods, unit_multiplier)
     ltg_locns = [HPXML::LocationInterior, HPXML::LocationExterior, HPXML::LocationGarage]
     ltg_types = [HPXML::LightingTypeCFL, HPXML::LightingTypeLFL, HPXML::LightingTypeLED]
@@ -70,18 +70,11 @@ class Lighting
       end
       if interior_sch.nil?
         interior_unavailable_periods = Schedule.get_unavailable_periods(runner, interior_col_name, unavailable_periods)
-        if not lighting.interior_weekday_fractions.nil?
-          interior_sch = MonthWeekdayWeekendSchedule.new(model, interior_obj_name + ' schedule', lighting.interior_weekday_fractions, lighting.interior_weekend_fractions, lighting.interior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, unavailable_periods: interior_unavailable_periods)
-        else
-          lighting_sch = get_schedule(epw_file)
-          interior_sch = HourlyByMonthSchedule.new(model, interior_obj_name + ' schedule', lighting_sch, lighting_sch, Constants.ScheduleTypeLimitsFraction, unavailable_periods: interior_unavailable_periods)
-        end
-
-        if lighting.interior_weekday_fractions.nil?
-          design_level = interior_sch.calc_design_level(interior_sch.maxval * int_kwh)
-        else
-          design_level = interior_sch.calc_design_level_from_daily_kwh(int_kwh / 365.0)
-        end
+        interior_weekday_sch = lighting.interior_weekday_fractions
+        interior_weekend_sch = lighting.interior_weekend_fractions
+        interior_monthly_sch = lighting.interior_monthly_multipliers
+        interior_sch = MonthWeekdayWeekendSchedule.new(model, interior_obj_name + ' schedule', interior_weekday_sch, interior_weekend_sch, interior_monthly_sch, Constants.ScheduleTypeLimitsFraction, unavailable_periods: interior_unavailable_periods)
+        design_level = interior_sch.calc_design_level_from_daily_kwh(int_kwh / 365.0)
         interior_sch = interior_sch.schedule
       else
         runner.registerWarning("Both '#{interior_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !lighting.interior_weekday_fractions.nil?
@@ -333,115 +326,5 @@ class Lighting
     end
 
     return grg_kwh
-  end
-
-  def self.get_schedule(epw_file)
-    # Sunrise and sunset hours
-    sunrise_hour = []
-    sunset_hour = []
-    std_long = -epw_file.timeZone * 15
-    normalized_hourly_lighting = [[1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24]]
-    for month in 0..11
-      if epw_file.latitude < 51.49
-        m_num = month + 1
-        jul_day = m_num * 30 - 15
-        if not ((m_num < 4) || (m_num > 10))
-          offset = 1
-        else
-          offset = 0
-        end
-        declination = 23.45 * Math.sin(0.9863 * (284 + jul_day) * 0.01745329)
-        deg_rad = Math::PI / 180
-        rad_deg = 1 / deg_rad
-        b = (jul_day - 1) * 0.9863
-        equation_of_time = (0.01667 * (0.01719 + 0.42815 * Math.cos(deg_rad * b) - 7.35205 * Math.sin(deg_rad * b) - 3.34976 * Math.cos(deg_rad * (2 * b)) - 9.37199 * Math.sin(deg_rad * (2 * b))))
-        sunset_hour_angle = rad_deg * Math.acos(-1 * Math.tan(deg_rad * epw_file.latitude) * Math.tan(deg_rad * declination))
-        sunrise_hour[month] = offset + (12.0 - 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + epw_file.longitude) / 15
-        sunset_hour[month] = offset + (12.0 + 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + epw_file.longitude) / 15
-      else
-        sunrise_hour = [8.125726064, 7.449258072, 6.388688653, 6.232405257, 5.27722936, 4.84705384, 5.127512162, 5.860163988, 6.684378904, 7.521267411, 7.390441945, 8.080667697]
-        sunset_hour = [16.22214058, 17.08642353, 17.98324493, 19.83547864, 20.65149672, 21.20662992, 21.12124777, 20.37458274, 19.25834757, 18.08155615, 16.14359164, 15.75571306]
-      end
-    end
-
-    june_kws = [0.060, 0.040, 0.035, 0.025, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.025, 0.030, 0.030, 0.025, 0.020, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.020, 0.020, 0.020, 0.025, 0.025, 0.030, 0.030, 0.035, 0.045, 0.060, 0.085, 0.125, 0.145, 0.130, 0.105, 0.080]
-    lighting_seasonal_multiplier = Schedule.LightingInteriorMonthlyMultipliers.split(',').map { |v| v.to_f }
-    amplConst1 = 0.929707907917098
-    sunsetLag1 = 2.45016230615269
-    stdDevCons1 = 1.58679810983444
-    amplConst2 = 1.1372291802273
-    sunsetLag2 = 20.1501965859073
-    stdDevCons2 = 2.36567663279954
-
-    monthly_kwh_per_day = []
-    days_m = Constants.NumDaysInMonths(1999) # Intentionally excluding leap year designation
-    wtd_avg_monthly_kwh_per_day = 0
-    for monthNum in 1..12
-      month = monthNum - 1
-      monthHalfHourKWHs = [0]
-      for hourNum in 0..9
-        monthHalfHourKWHs[hourNum] = june_kws[hourNum]
-      end
-      for hourNum in 9..17
-        hour = (hourNum + 1.0) * 0.5
-        monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[8] - (0.15 / (2 * Math::PI)) * Math.sin((2 * Math::PI) * (hour - 4.5) / 3.5) + (0.15 / 3.5) * (hour - 4.5)) * lighting_seasonal_multiplier[month]
-      end
-      for hourNum in 17..29
-        hour = (hourNum + 1.0) * 0.5
-        monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[16] - (-0.02 / (2 * Math::PI)) * Math.sin((2 * Math::PI) * (hour - 8.5) / 5.5) + (-0.02 / 5.5) * (hour - 8.5)) * lighting_seasonal_multiplier[month]
-      end
-      for hourNum in 29..45
-        hour = (hourNum + 1.0) * 0.5
-        monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[28] + amplConst1 * Math.exp((-1.0 * (hour - (sunset_hour[month] + sunsetLag1))**2) / (2.0 * ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1)**2)) / ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1 * (2.0 * Math::PI)**0.5))
-      end
-      for hourNum in 45..46
-        hour = (hourNum + 1.0) * 0.5
-        temp1 = (monthHalfHourKWHs[44] + amplConst1 * Math.exp((-1.0 * (hour - (sunset_hour[month] + sunsetLag1))**2) / (2.0 * ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1)**2)) / ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1 * (2.0 * Math::PI)**0.5))
-        temp2 = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - sunsetLag2)**2) / (2.0 * stdDevCons2**2)) / (stdDevCons2 * (2.0 * Math::PI)**0.5))
-        if sunsetLag2 < sunset_hour[month] + sunsetLag1
-          monthHalfHourKWHs[hourNum] = [temp1, temp2].min
-        else
-          monthHalfHourKWHs[hourNum] = [temp1, temp2].max
-        end
-      end
-      for hourNum in 46..47
-        hour = (hourNum + 1) * 0.5
-        monthHalfHourKWHs[hourNum] = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - sunsetLag2)**2) / (2.0 * stdDevCons2**2)) / (stdDevCons2 * (2.0 * Math::PI)**0.5))
-      end
-
-      sum_kWh = 0.0
-      for timenum in 0..47
-        sum_kWh += monthHalfHourKWHs[timenum]
-      end
-      for hour in 0..23
-        ltg_hour = (monthHalfHourKWHs[hour * 2] + monthHalfHourKWHs[hour * 2 + 1]).to_f
-        normalized_hourly_lighting[month][hour] = ltg_hour / sum_kWh
-        monthly_kwh_per_day[month] = sum_kWh / 2.0
-      end
-      wtd_avg_monthly_kwh_per_day += monthly_kwh_per_day[month] * days_m[month] / 365.0
-    end
-
-    # Calculate normalized monthly lighting fractions
-    seasonal_multiplier = []
-    sumproduct_seasonal_multiplier = 0
-    normalized_monthly_lighting = seasonal_multiplier
-    for month in 0..11
-      seasonal_multiplier[month] = (monthly_kwh_per_day[month] / wtd_avg_monthly_kwh_per_day)
-      sumproduct_seasonal_multiplier += seasonal_multiplier[month] * days_m[month]
-    end
-
-    for month in 0..11
-      normalized_monthly_lighting[month] = seasonal_multiplier[month] * days_m[month] / sumproduct_seasonal_multiplier
-    end
-
-    # Calculate schedule values
-    lighting_sch = [[], [], [], [], [], [], [], [], [], [], [], []]
-    for month in 0..11
-      for hour in 0..23
-        lighting_sch[month][hour] = normalized_monthly_lighting[month] * normalized_hourly_lighting[month][hour] / days_m[month]
-      end
-    end
-
-    return lighting_sch
   end
 end

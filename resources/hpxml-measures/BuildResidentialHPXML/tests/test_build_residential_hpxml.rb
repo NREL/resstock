@@ -562,7 +562,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['water_heater_num_units_served'] = 1
       args['hot_water_distribution_system_type'] = HPXML::DHWDistTypeStandard
       args['hot_water_distribution_standard_piping_length'] = 50
-      args['hot_water_distribution_recirc_control_type'] = HPXML::DHWRecirControlTypeNone
+      args['hot_water_distribution_recirc_control_type'] = HPXML::DHWRecircControlTypeNone
       args['hot_water_distribution_recirc_piping_length'] = 50
       args['hot_water_distribution_recirc_branch_piping_length'] = 50
       args['hot_water_distribution_recirc_pump_power'] = 50
