@@ -4679,12 +4679,22 @@ Hot water fixture usage and flow levels.
 Created by
 **********
 
-manually created
+``sources/other/tsv_maker.py``
 
 Source
 ******
 
-- \Engineering Judgement
+- \Field data from a demand management program with 1700 residential electric resistance water heaters in the Northeast U.S.
+
+
+Assumption
+**********
+
+- \A lognormal distribution was shown to match the distribution of annual energy consumption.
+
+- \For the lognormal distribution the average multiplier is 0.8 and the standard deviation is 0.2.
+
+- \Low, Medium, and High usage is assigned based on the lower 25th percent, middle 50th percent, and upper 25th percent. The bins do not align perfectly with these bins so the lower users are a total of 25 percent, the medium users are 47 percent, and the high users are 28 percent of the stock.
 
 
 Arguments
