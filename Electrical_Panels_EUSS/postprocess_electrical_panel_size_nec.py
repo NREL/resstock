@@ -320,6 +320,7 @@ def _fixed_load_water_heater(row):
     if row["completed_status"] != "Success":
         return np.nan
 
+    # TODO: water heater in unit -- if discounting here, need it removed from peak load
     if (row["build_existing_model.water_heater_in_unit"] == "Yes") & ((
         row["build_existing_model.water_heater_fuel"] == "Electricity")|(
         "Electric" in row["build_existing_model.water_heater_efficiency"]
@@ -346,8 +347,8 @@ def _fixed_load_dishwasher(row):
         or "290" in row["build_existing_model.dishwasher"]
         or "318" in row["build_existing_model.dishwasher"]
     ):
-        return 1440 * 0.99
-    return 1400 * 0.99
+        return 1800 * 0.99
+    return 1440 * 0.99
 
 def _fixed_load_garbage_disposal(row):
     """
@@ -435,24 +436,7 @@ def _special_load_electric_dryer(row):
 
 def _special_load_electric_range(row): 
     """ Assuming a single electric range (combined oven/stovetop) for each dwelling unit """
-    if row["completed_status"] != "Success":
-        return np.nan
-
-    if "Electric" not in row["build_existing_model.cooking_range"] or row["build_existing_model.cooking_range"]=="None":
-        range_power = 0
-
-    if "Induction" in row["build_existing_model.cooking_range"]:
-        # range-oven: 10-13.6kW rating (240V, 40A) or 8.4kW (240V, 50A) or 8kW (240V, 40A)
-        # cooktop: 11-12kW rating (240V, 30/50A) or 15.4kW rating (240V, 40A), 7.2-8.6kW (240V, 30/45A)
-        # electric wall oven: 4.5kW (120V, 30A or 240V, 20/30A)
-        # For induction cooktop + electric wall oven = 11+0.65*4.5 = 14kW 
-        range_power = 12000  # 40*240 or 14000 #TODO: This should be the full nameplate rating (max connected load) of an electric induction range
-
-    ## Electric, non-induction
-    # range-oven: 10-12.1-13.5kW (240V, 40A)
-    # cooktop: 9.2kW (240V, 40A), 7.7-10.5kW (240V, 40/50A), 7.4kW (240V, 40A)
-    # For cooktop + wall oven = 11+0.65*4.5 = 14kW or 0.65*(8+4.5) = 8kW
-    range_power = 12000  # or 12500 #TODO: This should be the full nameplate rating (max connected load) of an electric non-induction range
+    range_power = _special_load_electric_range_nameplate(row)
 
     if range_power <= 12000:
         range_power_w_df = min(range_power, 8000)
@@ -463,9 +447,33 @@ def _special_load_electric_range(row):
     
     return range_power_w_df
 
+
+def _special_load_electric_range_nameplate(row): 
+    """ Assuming a single electric range (combined oven/stovetop) for each dwelling unit """
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    if "Electric" not in row["build_existing_model.cooking_range"] or row["build_existing_model.cooking_range"]=="None":
+        return 0
+
+    if "Induction" in row["build_existing_model.cooking_range"]:
+        # range-oven: 10-13.6kW rating (240V, 40A) or 8.4kW (240V, 50A) or 8kW (240V, 40A)
+        # cooktop: 11-12kW rating (240V, 30/50A) or 15.4kW rating (240V, 40A), 7.2-8.6kW (240V, 30/45A)
+        # electric wall oven: 4.5kW (120V, 30A or 240V, 20/30A)
+        # For induction cooktop + electric wall oven = 11+0.65*4.5 = 14kW 
+        return 12000  # 40*240 or 14000 #TODO: This should be the full nameplate rating (max connected load) of an electric induction range
+
+    ## Electric, non-induction
+    # range-oven: 10-12.1-13.5kW (240V, 40A)
+    # cooktop: 9.2kW (240V, 40A), 7.7-10.5kW (240V, 40/50A), 7.4kW (240V, 40A)
+    # For cooktop + wall oven = 11+0.65*4.5 = 14kW or 0.65*(8+4.5) = 8kW
+    return 12000  # or 12500 #TODO: This should be the full nameplate rating (max connected load) of an electric non-induction range
+
+
 def hvac_heating_conversion(nom_heat_cap, system_type=None):
     """ 
     Relationship between either minimum breaker or minimum circuit amp (x voltage) and nameplate capacity
+    nominal conditions refer to AHRI standard conditions: 47F?
     Args :
         nom_heat_cap : float
             nominal heating capacity in kbtu/h
@@ -484,6 +492,7 @@ def hvac_heating_conversion(nom_heat_cap, system_type=None):
 def hvac_cooling_conversion(nom_cool_cap, system_type=None):
     """ 
     Relationship between either minimum breaker or minimum circuit amp (x voltage) and nameplate capacity
+    nominal conditions refer to AHRI standard conditions: 95F?
     Args :
         nom_cool_cap : float
             nominal cooling capacity in kbtu/h
@@ -503,25 +512,9 @@ def hvac_cooling_conversion(nom_cool_cap, system_type=None):
 
     return nom_cool_cap * KBTU_H_TO_W
 
-def _special_load_space_conditioning(row):
-    """Heating or Air Conditioning. NEC 220-19.
-    Take the larger between heating and cooling. Demand Factor = 1
-    Include the air handler when using either one. (guessing humidifier too?)
-    For heat pumps, include the compressor and the max. amount of electric heat which can be energized with the compressor running
-
-    1 Btu/h = 0.29307103866W
-
-    Returns:
-        max(loads) : int
-            special_load_for_heating_or_cooling
-        cooling_motor : float
-            size of cooling motor,
-            = size_cooling_system_primary if central
-            = approximate size of window AC if not central
-            = 0 when heating is max load
-    """
+def _special_load_space_heating(row):
     if row["completed_status"] != "Success":
-        return np.nan, np.nan
+        return np.nan
 
     if ((row["build_existing_model.heating_fuel"] == "Electricity") | (
         "ASHP" in row["build_existing_model.hvac_heating_efficiency"]
@@ -543,7 +536,7 @@ def _special_load_space_conditioning(row):
         system_cols = [
             row["build_existing_model.hvac_heating_type"],
             row["build_existing_model.hvac_secondary_heating_efficiency"],
-            "Electric",
+            "Electric", # TODO this depends on package
             ]
 
         heating_load = sum(
@@ -556,6 +549,13 @@ def _special_load_space_conditioning(row):
     if row["build_existing_model.hvac_has_ducts"] == "Yes":
         heating_load += hvac_fan_motor
 
+    return heating_load
+
+
+def _special_load_space_cooling(row):
+    if row["completed_status"] != "Success":
+        return np.nan, False
+
     cooling_load = hvac_cooling_conversion(
         row["upgrade_costs.size_cooling_system_primary_k_btu_h"],
         system_type=row["build_existing_model.hvac_heating_type"]
@@ -565,16 +565,41 @@ def _special_load_space_conditioning(row):
     if row["build_existing_model.hvac_has_ducts"] == "Yes":
         cooling_load += hvac_fan_motor + hvac_blower_motor
         cooling_is_window_unit = False
+
+    if cooling_is_window_unit:
+        cooling_motor /= (int(row["build_existing_model.bedrooms"]) + 1)
+    
+    return cooling_load, cooling_motor
+
+
+def _special_load_space_conditioning(row):
+    """Heating or Air Conditioning. NEC 220-19.
+    Take the larger between heating and cooling. Demand Factor = 1
+    Include the air handler when using either one. (guessing humidifier too?)
+    For heat pumps, include the compressor and the max. amount of electric heat which can be energized with the compressor running
+
+    1 Btu/h = 0.29307103866W
+
+    Returns:
+        max(loads) : int
+            special_load_for_heating_or_cooling
+        cooling_motor : float
+            size of cooling motor,
+            = size_cooling_system_primary if central
+            = approximate size of window AC if not central
+            = 0 when heating is max load
+    """
+    if row["completed_status"] != "Success":
+        return np.nan, np.nan
+
+    heating_load = _special_load_space_heating(row)
+    cooling_load, cooling_motor = _special_load_space_cooling(row)
     
     # combine
     loads = np.array([heating_load, cooling_load])
 
-    if cooling_is_window_unit:
-        cooling_motor /= (int(row["build_existing_model.bedrooms"]) + 1)
-    else:
-        cooling_motor = cooling_load
-
     return max(loads), cooling_motor # Always include cooling motor in largest motor at 25%
+
 
 def _special_load_motor(row):
     """Largest motor (only one). NEC 220-14, 430-24
@@ -595,6 +620,7 @@ def _special_load_motor(row):
     )
 
     return 0.25 * motor_size
+
 
 def _special_load_pool_heater(row, apply_df=True): # This is a continuous load so 125% factor must be applied
     """NEC 680.9
@@ -735,7 +761,8 @@ def optional_special_load_space_conditioning(row, new_load_calc=False):
 
     if row["build_existing_model.hvac_has_ducts"] == "Yes":
             AC_load += hvac_fan_motor + hvac_blower_motor
-        
+    
+    # TODO: shared efficiency -- if not being counted, remove load from peak
     if ((row["build_existing_model.heating_fuel"] == "Electricity") | (
             "ASHP" in row["build_existing_model.hvac_heating_efficiency"]
             ) | (
@@ -840,14 +867,17 @@ def min_amperage_nec_optional(df, new_load_calc=False):
 
     return total_demand_load / voltage_service
 
-def min_amperage_main_breaker(x):
-    """Convert min_amperage_nec_standard into standard panel size
+def standard_amperage(x):
+    """Convert min_amp_col into standard panel size
     http://www.naffainc.com/x/CB2/Elect/EHtmFiles/StdPanelSizes.htm
     """
     if pd.isnull(x):
         return np.nan
 
-    standard_sizes = np.array([100, 125, 150, 200, 300, 400, 600]) # it is not permitted to size service below 100 A (NEC 230.79(C))
+    standard_sizes = np.array([
+        50, 100, 125, 150, 200, 225,
+        250])
+    standard_sizes = np.append(standard_sizes, np.arange(300, 1250, 50))
     factors = standard_sizes / x
 
     cond = standard_sizes[factors >= 1]
@@ -860,11 +890,22 @@ def min_amperage_main_breaker(x):
 
     return cond[0]
 
+
+def get_standard_amperage(df, min_amp_col, standard_amp_col):
+    # Convert min_amp_col into standard panel size
+    df[standard_amp_col] = df[min_amp_col].apply(lambda x: standard_amperage(x))
+
+    # Clip standard amp for SFD: it is not permitted to size service disconnect below 100 A for SFD (NEC 230.79(C))
+    cond = df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"
+    df.loc[cond, standard_amp_col] = df.loc[cond, standard_amp_col].clip(100)
+
+    return df
+
 def read_file(filename, low_memory=True):
     """ If file is large, use low_memory=False"""
     filename = Path(filename)
     if filename.suffix == ".csv":
-        df = pd.read_csv(filename, low_memory=low_memory)
+        df = pd.read_csv(filename, low_memory=low_memory, keep_default_na=False)
     elif filename.suffix == ".parquet":
         df = pd.read_parquet(filename)
     else:
@@ -874,9 +915,9 @@ def read_file(filename, low_memory=True):
 
 def bin_panel_sizes(df_column):
     df_out = df_column.copy()
-    df_out[df_column < 100] = "<100"
-    df_out[(df_column>100) & (df_column<200)] = "101-199"
-    df_out[df_column>200] = "200+"
+    df_out.loc[df_column<100] = "<100"
+    df_out.loc[(df_column>100) & (df_column<200)] = "101-199"
+    df_out.loc[df_column>200] = "200+"
     df_out = df_out.astype(str)
 
     return df_out
@@ -962,6 +1003,48 @@ def main(filename: str = None, plot_only=False, sfd_only=False, explode_result=F
     generate_plots(df, output_dir, sfd_only=sfd_only)
 
 
+def main_existing_load(filename: str = None):
+    ext = ""
+    if filename is None:
+        ext = "_test"
+        filename = (
+            Path(__file__).resolve().parent
+            / "test_data"
+            / "euss1_2018_results_up00_400plus.csv" # "euss1_2018_results_up00_100.csv"
+        )
+    else:
+        filename = Path(filename)
+
+    output_filename = filename.parent / (filename.stem + "__existing_load" + ".csv")
+        
+    df = read_file(filename, low_memory=False)
+
+    # reduce df
+    peak_cols = [
+                    "report_simulation_output.peak_electricity_summer_total_w",
+                    "report_simulation_output.peak_electricity_winter_total_w",
+                    "qoi_report.qoi_peak_magnitude_use_kw",
+                ]
+    cols_to_keep = [
+        "building_id", "completed_status", "build_existing_model.sample_weight", 
+        "report_simulation_output.unmet_hours_cooling_hr", "report_simulation_output.unmet_hours_heating_hr"
+        ]
+    cols_to_keep += get_housing_char_cols(search=False, get_ami=False)+peak_cols+[col for col in df.columns if col.startswith("upgrade_costs.")]
+    df = df[cols_to_keep]
+
+    # --- NEW LOAD calc: existing loads ---
+    # NEC 220.83 - optional method
+    new_hvac_loads = pd.Series(False, index=df.index)
+    df = apply_existing_load_total_220_83(df, new_hvac_loads, n_kit=2, n_ldr=1)
+
+    # NEC 220.87 - load study
+    df = apply_existing_load_total_220_87(df)
+
+    # --- save to file ---
+    df.to_csv(output_filename, index=False)
+    print(f"File output to: {output_filename}")
+
+
 def generate_plots(df, output_dir, sfd_only=False):
     plot_output(df, output_dir)
     # plot_output_saturation(df, "std_m_nec_electrical_panel_amp", output_dir, sfd_only=sfd_only)
@@ -984,9 +1067,7 @@ def apply_standard_method(dfi):
 
         # df["nec_min_amp"] = df.apply(lambda x: min_amperage_nec_standard(x, n_kit="auto", n_ldr="auto"), axis=1) # this is daisy-ed
         df["std_m_nec_min_amp"] = df["std_m_demand_load_total_VA"] / 240
-        df["std_m_nec_electrical_panel_amp"] = df["std_m_nec_min_amp"].apply(
-            lambda x: min_amperage_main_breaker(x)
-        )
+        df = get_standard_amperage(df, "std_m_nec_min_amp", "std_m_nec_electrical_panel_amp")
         df["std_m_nec_binned_panel_amp"] = bin_panel_sizes(df["std_m_nec_electrical_panel_amp"])
 
         return df
@@ -1026,10 +1107,7 @@ def apply_standard_method_exploded(dfi):
         # Total
         df["std_m_demand_load_total_VA"] = df[["std_m_demand_load_general_VA", "std_m_demand_load_fixed_VA", "std_m_demand_load_special_VA"]].sum(axis=1)
         df["std_m_nec_min_amp"] = df["std_m_demand_load_total_VA"] / 240
-        df["std_m_nec_electrical_panel_amp"] = df["std_m_nec_min_amp"].apply(
-            lambda x: min_amperage_main_breaker(x)
-        )
-
+        df = get_standard_amperage(df, "std_m_nec_min_amp", "std_m_nec_electrical_panel_amp")
         df["std_m_nec_binned_panel_amp"] = bin_panel_sizes(df["std_m_nec_electrical_panel_amp"])
 
         return df
@@ -1046,11 +1124,75 @@ def apply_optional_method(dfi, new_load_calc=False):
         df["opt_m_demand_load_total_VA"] = df[["opt_m_demand_load_general_VA", "opt_m_demand_load_space_cond_VA"]].sum(axis=1)
 
         df["opt_m_nec_min_amp"] = df["opt_m_demand_load_total_VA"] / 240
-        df["opt_m_nec_electrical_panel_amp"] = df["opt_m_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
-
+        df = get_standard_amperage(df, "opt_m_nec_min_amp", "opt_m_nec_electrical_panel_amp")
         df["opt_m_nec_binned_panel_amp"] = bin_panel_sizes(df["opt_m_nec_electrical_panel_amp"])
 
         return df
+
+
+### -------- new load calcs --------
+def apply_existing_load_total_220_83(dfi, new_hvac_loads: pd.Series, n_kit=2, n_ldr=1):
+    """
+    Use NEC 220.83 (A) (has_new_hvac_load=False) for existing + additional new loads calc 
+    where additional AC or space-heating IS NOT being installed
+    
+    Use NEC 220.83 (B) (has_new_hvac_load=True) where additional AC or space-heating IS being installed
+
+    new_hvac_loads: pd.Series indicating where dfi rows has new electric HVAC loads
+    """
+
+    df = dfi.copy()
+    
+
+    df.loc[new_hvac_loads, "existing_load_total_VA"] = df.loc[new_hvac_loads].apply(lambda x: existing_load_total_220_83(x, n_kit=n_kit, n_ldr=n_ldr, has_new_hvac_load=True), axis=1)
+    df.loc[~new_hvac_loads, "existing_load_total_VA"] = df.loc[~new_hvac_loads].apply(lambda x: existing_load_total_220_83(x, n_kit=n_kit, n_ldr=n_ldr, has_new_hvac_load=False), axis=1)
+    df["existing_amp_220_83"] = df["existing_load_total_VA"] / 240
+
+    return df
+
+
+def existing_load_total_220_83(row, n_kit=2, n_ldr=1, has_new_hvac_load=False):
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    hvac_load, _ = _special_load_space_conditioning(row)
+
+    other_loads = sum(
+        [
+            _general_load_lighting(row),
+            _general_load_kitchen(row, n=n_kit),
+            _general_load_laundry(row, n=n_ldr),
+            _fixed_load_water_heater(row),
+            _fixed_load_dishwasher(row),
+            _fixed_load_garbage_disposal(row),
+            _fixed_load_garbage_compactor(row),
+            _fixed_load_hot_tub_spa(row),
+            _fixed_load_well_pump(row),
+            _special_load_electric_dryer(row),
+            _special_load_electric_range_nameplate(row),
+            _special_load_pool_heater(row),
+            _special_load_pool_pump(row),
+            _special_load_EVSE(row)
+        ]
+    ) # no largest motor load
+
+    threshold_load = 8000 # kVA
+    if has_new_hvac_load:
+        # 100% HVAC load + 100% of 1st 8kVA other_loads + 40% of remainder other_loads
+        total_loads = hvac_load + apply_demand_factor_to_general_load_optm(other_loads, threshold_load=threshold_load)
+
+    else:
+        # 100% of 1st 8kVA all loads + 40% of remainder loads
+        total_loads = apply_demand_factor_to_general_load_optm(hvac_load + other_loads, threshold_load=threshold_load)
+
+    return total_loads
+
+
+def apply_existing_load_total_220_87(df):
+    df["existing_amp_220_87"] = df["qoi_report.qoi_peak_magnitude_use_kw"] * 1000 / 240 * 1.25 # amp
+    df.loc[df["build_existing_model.vacancy_status"]=="Vacant", "existing_amp_220_87"] = np.nan
+
+    return df
 
 
 if __name__ == "__main__":
@@ -1085,6 +1227,17 @@ if __name__ == "__main__":
         default=False,
         help="Whether to export intermediate calculations as part of the results",
     )
+    parser.add_argument(
+        "-e",
+        "--existing_load",
+        action="store_true",
+        default=False,
+        help="Run NEC 220.83 and 220.87 for existing load calculations, overrides all other flags",
+    )
 
     args = parser.parse_args()
-    main(args.filename, plot_only=args.plot_only, sfd_only=args.sfd_only, explode_result=args.explode_result)
+
+    if args.existing_load:
+        main_existing_load(args.filename)
+    else:
+        main(args.filename, plot_only=args.plot_only, sfd_only=args.sfd_only, explode_result=args.explode_result)

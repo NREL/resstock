@@ -15,7 +15,7 @@ local_dir = Path(__file__).resolve().parent
 panel_column_name = "predicted_panel_amp"
 
 def load_model():
-    model_file = local_dir / "prelim_panel_model.p"
+    model_file = local_dir / "model_prelim" / "prelim_panel_model.p"
     model = pickle.load(open(model_file, "rb"))
     model.feature_names = [
         "sqft",
@@ -182,7 +182,7 @@ def create_input_tsv(model):
 
     ## -- save to tsv file --
     print("** Electrical Panel Amp TSV exported: ")
-    df.to_csv(local_dir / "Electrical Panel Amp prelim.tsv", sep="\t", index=False, lineterminator="\r\n")
+    df.to_csv(local_dir / "model_prelim" / "Electrical Panel Amp.tsv", sep="\t", index=False, lineterminator="\r\n")
 
     return df
 
@@ -268,8 +268,8 @@ def apply_model_to_results(df, model, predict_proba=False, retain_proba=False):
     
 
 def validate_model_with_dummy_data(model):
-    df = pd.read_excel(local_dir / "helper files" / "model_input_example.xlsx", sheet_name="inputs", header=1)
-    output = pd.read_excel(local_dir / "helper files" / "model_input_example.xlsx", sheet_name="outputs", dtype=str)
+    df = pd.read_excel(local_dir / "model_prelim" / "model_input_example.xlsx", sheet_name="inputs", header=1)
+    output = pd.read_excel(local_dir / "model_prelim" / "model_input_example.xlsx", sheet_name="outputs", dtype=str)
 
     # -- check predicted values against dummy data --
     panel_amp = model.predict(df[model.feature_names], check_input=True)

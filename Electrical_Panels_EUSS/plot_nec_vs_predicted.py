@@ -10,8 +10,8 @@ from plotting_functions import _plot_bar
 nec_file = Path("/Users/lliu2/Documents/Documents_Files/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00_clean__nec_panels.csv")
 pd_file = Path("/Users/lliu2/Documents/Documents_Files/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00_clean__predicted_panels_probablistically_assigned.csv")
 
-df = pd.read_csv(nec_file, low_memory=False)
-dfp = pd.read_csv(pd_file, low_memory=False)
+df = pd.read_csv(nec_file, low_memory=False, keep_default_na=False)
+dfp = pd.read_csv(pd_file, low_memory=False, keep_default_na=False)
 df = df.join(dfp.set_index(["building_id"])["predicted_panel_amp"], on="building_id")
 del dfp
 

@@ -156,7 +156,7 @@ def create_input_tsv(model, dummy_data_file):
     df = df.groupby(dep_cols)[panel_labels].sum().reset_index()
 
     ## -- save to tsv file --
-    tsv_file = local_dir / "Electrical Panel Amp.tsv"
+    tsv_file = local_dir / "model_final" /  "Electrical Panel Amp.tsv"
     df.to_csv(tsv_file, sep="\t", index=False, lineterminator="\r\n")
     print(f"** Electrical Panel Amp TSV exported to: {tsv_file}")
 
@@ -282,7 +282,7 @@ def validate_model_with_dummy_data(model, dummy_data_file, raise_error=False):
     df["expected"] = truth
     df["predicted"] = predicted
     df_error = df.loc[df["predicted"]!=df["expected"]]
-    df_error_file = local_dir / "check.csv"
+    df_error_file = local_dir / "model_final" / "check.csv"
     df_error.to_csv(df_error_file)
     msg2 = f"Dataframe subset with discrepancy is exported to: {df_error_file}"
 
@@ -429,8 +429,8 @@ def main(filename=None, predict_proba=False, retain_proba=False, validate_model=
         filename = Path(filename)
 
     # Load model
-    model_file = local_dir / "final_panel_model_custom_delta_80.p"
-    dummy_data_file = local_dir / "final_model_data_inputs_v2.xlsx"
+    model_file = local_dir / "model_final" / "final_panel_model_custom_delta_80.p"
+    dummy_data_file = local_dir / "model_final" / "final_model_data_inputs_v2.xlsx"
 
     feature_names = pd.read_excel(dummy_data_file, sheet_name="inputs", header=1, nrows=2).columns.tolist()[:-1]
     model = load_model(model_file, feature_names)
