@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 import re
 
+import pandas as pd
 
 def plot_output(df, output_dir=None, sfd_only=False):
     print(f"Plots output to: {output_dir}")
@@ -173,6 +174,27 @@ def _plot_bar_stacked(df, groupby_cols, output_dir=None, sfd_only=False):
         fig.savefig(output_dir / f"stacked_bar_{metric}.png", dpi=400, bbox_inches="tight")
     plt.close()
 
+def _plot_box(df, metric_col, by_col, output_dir=None, sfd_only=False):
+    if sfd_only:
+        cond = df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"
+        dfi = df.loc[cond, ["building_id", metric_col, by_col]].reset_index(drop=True)
+    else:
+        dfi = df[["building_id", metric_col, by_col]].copy()
+
+    # sort by_col
+    by_vars = dfi[by_col].unique()
+    try:
+        by_vars = sorted(by_vars, key=extract_left_edge)
+    except:
+        breakpoint()
+    dfi[by_col] = pd.Categorical(dfi[by_col], ordered=True, categories=by_vars)
+
+    fig, ax = plt.subplots()
+    dfi.boxplot(column=metric_col, by=by_col, rot=45, ax=ax)
+    if output_dir is not None:
+        fig.savefig(output_dir / f"box_plot_{metric_col}_by_{by_col}.png", dpi=400, bbox_inches="tight")
+    plt.close()
+
 def extract_left_edge(val):
     # for sorting things like AMI
     if val is None:
@@ -180,7 +202,7 @@ def extract_left_edge(val):
     if not isinstance(val, str):
         return val
     first = val[0]
-    if re.search(r"\d", val) or first in ["<", ">"] or first.isdigit():
+    if first in ["<", ">"] or first.isdigit():
         vals = [int(x) for x in re.split("\-| |\%|\<|\+|\>|s|th|p|A|B|C| ", val) if re.match("\d", x)]
         if len(vals) > 0:
             num = vals[0]
