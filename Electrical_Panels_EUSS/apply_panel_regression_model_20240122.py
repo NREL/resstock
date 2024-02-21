@@ -24,7 +24,9 @@ def load_model(model_file: Path, feature_names: list[str] | None = None):
     return model
 
 
-def create_input_tsv(model, dummy_data_file: Path, tsv_file: Path | None = None):
+def create_input_tsv(
+    model, dummy_data_file: Path, tsv_file: Path | None = None
+) -> pd.DataFrame:
     """Create input tsv from model,
     Missing fields are handled by duplicating predictions from fields that are similar to the missing fields
     E.g., fuel oil and other fuels is copied from the combined results of non-electric fuels
@@ -372,7 +374,7 @@ def create_input_tsv(model, dummy_data_file: Path, tsv_file: Path | None = None)
     return df
 
 
-def undummify_input_data(df: pd.DataFrame, input_options: dict):
+def undummify_input_data(df: pd.DataFrame, input_options: dict) -> pd.DataFrame:
     # undummy categorical columns
     cat_cols = [x for x in df.columns if x not in ["sqft", "dummy"]]
     dfd = undummify(df[cat_cols])
@@ -390,7 +392,7 @@ def undummify_input_data(df: pd.DataFrame, input_options: dict):
     return dfd
 
 
-def undummify(df: pd.DataFrame, prefix_sep: str = "__"):
+def undummify(df: pd.DataFrame, prefix_sep: str = "__") -> pd.DataFrame:
     cols2collapse = {
         item.split(prefix_sep)[0]: (prefix_sep in item) for item in df.columns
     }
@@ -411,7 +413,7 @@ def undummify(df: pd.DataFrame, prefix_sep: str = "__"):
     return undummified_df
 
 
-def apply_special_mapping(dfi: pd.DataFrame, model_num: str):
+def apply_special_mapping(dfi: pd.DataFrame, model_num: str) -> pd.DataFrame:
     if model_num == "16574":
         # for newer tsv
         dfi["heating_fuel_simp"] = dfi["heating_fuel_simp"].map(
@@ -510,7 +512,9 @@ def apply_special_mapping(dfi: pd.DataFrame, model_num: str):
     return dfi
 
 
-def apply_tsv_to_results(df: pd.DataFrame, tsv_file: Path, retain_proba: bool = False):
+def apply_tsv_to_results(
+    df: pd.DataFrame, tsv_file: Path, retain_proba: bool = False
+) -> pd.DataFrame:
     """Apply tsv (derived from model) to ResStock result dataframe
     Args :
         df : pd.DataFrame
@@ -560,7 +564,9 @@ def apply_tsv_to_results(df: pd.DataFrame, tsv_file: Path, retain_proba: bool = 
     return pd.concat([df, panel_amp], axis=1)
 
 
-def apply_model_to_results(df: pd.DataFrame, model, retain_proba: bool = False):
+def apply_model_to_results(
+    df: pd.DataFrame, model, retain_proba: bool = False
+) -> pd.DataFrame:
     """Apply regression model to ResStock result dataframe
     Args :
         df : pd.DataFrame
@@ -688,7 +694,7 @@ def extract_left_edge(val):
     if not isinstance(val, str):
         return val
     first = val[0]
-    if re.search(r"\d", val) or first in ["<", ">"] or first.isdigit():
+    if first in ["<", ">"] or first.isdigit():
         vals = [
             int(x)
             for x in re.split("\-| |\%|\<|\+|\>|s|th|p|A|B|C| ", val)
@@ -704,7 +710,7 @@ def extract_left_edge(val):
     return val
 
 
-def sort_index(df: pd.DataFrame, axis: str = "index", **kwargs):
+def sort_index(df: pd.DataFrame, axis: str = "index", **kwargs) -> pd.DataFrame:
     """axis: ['index', 'columns']"""
     if axis in [0, "index"]:
         try:
@@ -843,7 +849,7 @@ def _plot_bar_stacked(
     plt.close()
 
 
-def read_file(filename: Path, low_memory: bool = True, **kwargs):
+def read_file(filename: str | Path, low_memory: bool = True, **kwargs) -> pd.DataFrame:
     """If file is large, use low_memory=False"""
     filename = Path(filename)
     if filename.suffix == ".csv":
