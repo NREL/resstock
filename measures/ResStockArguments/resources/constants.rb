@@ -28,6 +28,7 @@ class Constants
             'heating_system_airflow_defect_ratio',
             'cooling_system_airflow_defect_ratio',
             'cooling_system_charge_defect_ratio',
+            'heat_pump_backup_sizing_methodology',
             'heat_pump_airflow_defect_ratio',
             'heat_pump_charge_defect_ratio',
             'misc_plug_loads_television_annual_kwh',
