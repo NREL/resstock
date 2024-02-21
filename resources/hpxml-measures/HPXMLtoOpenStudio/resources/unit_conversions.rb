@@ -118,7 +118,7 @@ class UnitConversions
     ['psi', 'pa'] => 6.89475729 * 1000.0,
 
     # Angles
-    ['rad', 'deg'] => 57.29578,
+    ['rad', 'deg'] => 180.0 / Math::PI,
 
     # R-Value
     ['hr*ft^2*f/btu', 'm^2*k/w'] => 0.1761,
