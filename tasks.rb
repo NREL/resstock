@@ -1325,21 +1325,25 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.heat_pumps[0].number_of_units_served = 6
       hpxml_bldg.heat_pumps[0].pump_watts_per_ton = 0.0
     end
-    if hpxml_file.include? 'shared-boiler'
-      hpxml_bldg.heating_systems[0].shared_loop_watts = 600
-    end
-    if hpxml_file.include?('chiller') || hpxml_file.include?('cooling-tower')
-      hpxml_bldg.cooling_systems[0].shared_loop_watts = 600
-    end
-    if hpxml_file.include? 'shared-ground-loop'
-      hpxml_bldg.heat_pumps[0].shared_loop_watts = 600
-    end
-    if hpxml_file.include? 'fan-coil'
-      if hpxml_file.include? 'boiler'
-        hpxml_bldg.heating_systems[0].fan_coil_watts = 150
+    if hpxml_file.include? 'eae'
+      hpxml_bldg.heating_systems[0].electric_auxiliary_energy = 500.0
+    else
+      if hpxml_file.include? 'shared-boiler'
+        hpxml_bldg.heating_systems[0].shared_loop_watts = 600
       end
-      if hpxml_file.include? 'chiller'
-        hpxml_bldg.cooling_systems[0].fan_coil_watts = 150
+      if hpxml_file.include?('chiller') || hpxml_file.include?('cooling-tower')
+        hpxml_bldg.cooling_systems[0].shared_loop_watts = 600
+      end
+      if hpxml_file.include? 'shared-ground-loop'
+        hpxml_bldg.heat_pumps[0].shared_loop_watts = 600
+      end
+      if hpxml_file.include? 'fan-coil'
+        if hpxml_file.include? 'boiler'
+          hpxml_bldg.heating_systems[0].fan_coil_watts = 150
+        end
+        if hpxml_file.include? 'chiller'
+          hpxml_bldg.cooling_systems[0].fan_coil_watts = 150
+        end
       end
     end
     if hpxml_file.include? 'install-quality'

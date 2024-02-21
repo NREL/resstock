@@ -2002,16 +2002,65 @@ class HVAC
     return ef_input, water_removal_rate_input
   end
 
-  def self.get_default_in_unit_boiler_eae(boiler_fuel)
-    # Electric auxiliary energy, from ANSI/RESNET/ICC 301-2022 Addendum C Standard
-    if [HPXML::FuelTypeNaturalGas,
-        HPXML::FuelTypePropane,
-        HPXML::FuelTypeElectricity,
-        HPXML::FuelTypeWoodCord,
-        HPXML::FuelTypeWoodPellets].include? boiler_fuel
-      return 170.0 # kWh/yr
-    else
-      return 330.0 # kWh/yr
+  def self.get_default_boiler_eae(heating_system)
+    if heating_system.heating_system_type != HPXML::HVACTypeBoiler
+      return
+    end
+    if not heating_system.electric_auxiliary_energy.nil?
+      return heating_system.electric_auxiliary_energy
+    end
+
+    # From ANSI/RESNET/ICC 301-2019 Standard
+    fuel = heating_system.heating_system_fuel
+
+    if heating_system.is_shared_system
+      distribution_system = heating_system.distribution_system
+      distribution_type = distribution_system.distribution_system_type
+
+      if not heating_system.shared_loop_watts.nil?
+        sp_kw = UnitConversions.convert(heating_system.shared_loop_watts, 'W', 'kW')
+        n_dweq = heating_system.number_of_units_served.to_f
+        if distribution_system.air_type == HPXML::AirTypeFanCoil
+          aux_in = UnitConversions.convert(heating_system.fan_coil_watts, 'W', 'kW')
+        else
+          aux_in = 0.0 # ANSI/RESNET/ICC 301-2019 Section 4.4.7.2
+        end
+        # ANSI/RESNET/ICC 301-2019 Equation 4.4-5
+        return (((sp_kw / n_dweq) + aux_in) * 2080.0).round(2) # kWh/yr
+      elsif distribution_type == HPXML::HVACDistributionTypeHydronic
+        # kWh/yr, per ANSI/RESNET/ICC 301-2019 Table 4.5.2(5)
+        if distribution_system.hydronic_type == HPXML::HydronicTypeWaterLoop # Shared boiler w/ WLHP
+          return 265.0
+        else # Shared boiler w/ baseboard/radiators/etc
+          return 220.0
+        end
+      elsif distribution_type == HPXML::HVACDistributionTypeAir
+        if distribution_system.air_type == HPXML::AirTypeFanCoil # Shared boiler w/ fan coil
+          return 438.0
+        end
+      end
+
+    else # In-unit boilers
+
+      if [HPXML::FuelTypeNaturalGas,
+          HPXML::FuelTypePropane,
+          HPXML::FuelTypeElectricity,
+          HPXML::FuelTypeWoodCord,
+          HPXML::FuelTypeWoodPellets].include? fuel
+        return 170.0 # kWh/yr
+      elsif [HPXML::FuelTypeOil,
+             HPXML::FuelTypeOil1,
+             HPXML::FuelTypeOil2,
+             HPXML::FuelTypeOil4,
+             HPXML::FuelTypeOil5or6,
+             HPXML::FuelTypeDiesel,
+             HPXML::FuelTypeKerosene,
+             HPXML::FuelTypeCoal,
+             HPXML::FuelTypeCoalAnthracite,
+             HPXML::FuelTypeCoalBituminous,
+             HPXML::FuelTypeCoke].include? fuel
+        return 330.0 # kWh/yr
+      end
     end
   end
 
@@ -3401,17 +3450,6 @@ class HVAC
       applied = true
       distribution_system = heating_system.distribution_system
       hydronic_type = distribution_system.hydronic_type
-
-      if heating_system.heating_system_type == HPXML::HVACTypeBoiler
-        sp_kw = UnitConversions.convert(heating_system.shared_loop_watts, 'W', 'kW')
-        n_dweq = heating_system.number_of_units_served.to_f
-        if distribution_system.air_type == HPXML::AirTypeFanCoil
-          aux_in = UnitConversions.convert(heating_system.fan_coil_watts, 'W', 'kW')
-        else
-          aux_in = 0.0
-        end
-        heating_system.electric_auxiliary_energy = (((sp_kw / n_dweq) + aux_in) * 2080.0).round(2) # kWh/yr
-      end
 
       if heating_system.heating_system_type == HPXML::HVACTypeBoiler && hydronic_type.to_s == HPXML::HydronicTypeWaterLoop
 

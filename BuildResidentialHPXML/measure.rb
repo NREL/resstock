@@ -1244,6 +1244,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heat_pump_sizing_choices << HPXML::HeatPumpSizingHERS
     heat_pump_sizing_choices << HPXML::HeatPumpSizingMaxLoad
 
+    heat_pump_backup_sizing_choices = OpenStudio::StringVector.new
+    heat_pump_backup_sizing_choices << HPXML::HeatPumpBackupSizingEmergency
+    heat_pump_backup_sizing_choices << HPXML::HeatPumpBackupSizingSupplemental
+
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_type', heat_pump_type_choices, true)
     arg.setDisplayName('Heat Pump: Type')
     arg.setDescription("The type of heat pump. Use 'none' if there is no heat pump.")
@@ -1362,6 +1366,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_sizing_methodology', heat_pump_sizing_choices, false)
     arg.setDisplayName('Heat Pump: Sizing Methodology')
     arg.setDescription("The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-hvac-sizing-control'>HPXML HVAC Sizing Control</a>) is used.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_backup_sizing_methodology', heat_pump_backup_sizing_choices, false)
+    arg.setDisplayName('Heat Pump: Backup Sizing Methodology')
+    arg.setDescription("The auto-sizing methodology to use when the heat pump backup capacity is not provided. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-hvac-sizing-control'>HPXML HVAC Sizing Control</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_is_ducted', false)
@@ -4375,6 +4384,10 @@ class HPXMLFile
 
     if args[:heat_pump_sizing_methodology].is_initialized
       hpxml_bldg.header.heat_pump_sizing_methodology = args[:heat_pump_sizing_methodology].get
+    end
+
+    if args[:heat_pump_backup_sizing_methodology].is_initialized
+      hpxml_bldg.header.heat_pump_backup_sizing_methodology = args[:heat_pump_backup_sizing_methodology].get
     end
 
     if args[:window_natvent_availability].is_initialized

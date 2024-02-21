@@ -481,7 +481,7 @@ Design loads can also be found in the ``in.xml`` file.
    HVAC Design Load: Heating: Infiltration/Ventilation (Btu/h)            Heating design load for infiltration/ventilation
    HVAC Design Load: Cooling Sensible: Total (Btu/h)                      Total sensible cooling design load
    HVAC Design Load: Cooling Sensible: Ducts (Btu/h)                      Sensible cooling design load for ducts
-   HVAC Design Load: Cooling Sensible: Windows (Btu/h)                    Sensible cooling design load for windows
+   HVAC Design Load: Cooling Sensible: Windows (Btu/h)                    Sensible cooling design load for windows [#]_
    HVAC Design Load: Cooling Sensible: Skylights (Btu/h)                  Sensible cooling design load for skylights
    HVAC Design Load: Cooling Sensible: Doors (Btu/h)                      Sensible cooling design load for doors
    HVAC Design Load: Cooling Sensible: Walls (Btu/h)                      Sensible cooling design load for walls
@@ -496,6 +496,8 @@ Design loads can also be found in the ``in.xml`` file.
    HVAC Design Load: Cooling Latent: Infiltration/Ventilation (Btu/h)     Latent cooling design load for infiltration/ventilation
    HVAC Design Load: Cooling Latent: Internal Gains (Btu/h)               Latent cooling design load for internal gains
    =====================================================================  ====================
+
+   .. [#] Includes any Adequate Exposure Diversity (AED) excursion from windows/skylights.
 
 .. _timeseries_outputs:
 
