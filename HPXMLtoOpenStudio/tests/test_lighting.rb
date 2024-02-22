@@ -27,6 +27,13 @@ class HPXMLtoOpenStudioLightingTest < Minitest::Test
       kwh_yr = UnitConversions.convert(hrs * ltg.exteriorLightsDefinition.designLevel * ltg.multiplier, 'Wh', 'kWh')
       return kwh_yr
     end
+    model.getElectricEquipments.each do |ee|
+      next unless ee.name.to_s.include?(name)
+
+      hrs = Schedule.annual_equivalent_full_load_hrs(model.yearDescription.get.assumedYear, ee.schedule.get)
+      kwh_yr = UnitConversions.convert(hrs * ee.designLevel.get * ee.multiplier * ee.space.get.multiplier, 'Wh', 'kWh')
+      return kwh_yr
+    end
     return 0.0
   end
 
@@ -103,6 +110,22 @@ class HPXMLtoOpenStudioLightingTest < Minitest::Test
 
     # Check exterior lighting
     assert_equal(0.0, get_kwh_per_year(model, Constants.ObjectNameLightingExterior))
+  end
+
+  def test_ceiling_fan
+    # Efficiency
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-lighting-ceiling-fans.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+
+    assert_in_delta(154, get_kwh_per_year(model, Constants.ObjectNameCeilingFan), 1.0)
+
+    # Label energy use
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-lighting-ceiling-fans-label-energy-use.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+
+    assert_in_delta(200, get_kwh_per_year(model, Constants.ObjectNameCeilingFan), 1.0)
   end
 
   def _test_measure(args_hash)
