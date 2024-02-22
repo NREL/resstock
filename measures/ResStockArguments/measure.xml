@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>96ebd525-b327-438a-a7d1-89b5d5c2d279</version_id>
-  <version_modified>2024-02-15T18:59:59Z</version_modified>
+  <version_id>ec8b389b-58c8-4971-a8e5-11bfb0783b40</version_id>
+  <version_modified>2024-02-22T20:33:06Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -2723,6 +2723,29 @@
         <choice>
           <value>MaxLoad</value>
           <display_name>MaxLoad</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_backup_sizing_methodology</name>
+      <display_name>Heat Pump: Backup Sizing Methodology</display_name>
+      <description>The auto-sizing methodology to use when the heat pump backup capacity is not provided. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control'&gt;HPXML HVAC Sizing Control&lt;/a&gt;) is used.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>emergency</value>
+          <display_name>emergency</display_name>
+        </choice>
+        <choice>
+          <value>supplemental</value>
+          <display_name>supplemental</display_name>
         </choice>
       </choices>
     </argument>
@@ -6206,9 +6229,18 @@
       </choices>
     </argument>
     <argument>
+      <name>ceiling_fan_label_energy_use</name>
+      <display_name>Ceiling Fan: Label Energy Use</display_name>
+      <description>The label average energy use of the ceiling fan(s). If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans'&gt;HPXML Ceiling Fans&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>W</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>ceiling_fan_efficiency</name>
       <display_name>Ceiling Fan: Efficiency</display_name>
-      <description>The efficiency rating of the ceiling fan(s) at medium speed. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans'&gt;HPXML Ceiling Fans&lt;/a&gt;) is used.</description>
+      <description>The efficiency rating of the ceiling fan(s) at medium speed. Only used if Label Energy Use not provided. If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans'&gt;HPXML Ceiling Fans&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>CFM/W</units>
       <required>false</required>
@@ -7269,7 +7301,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>8A0AB09B</checksum>
+      <checksum>4CBD7D82</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
