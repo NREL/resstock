@@ -406,7 +406,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.dishwashers[0].location = adjacent_to
       hpxml_bldg.refrigerators[0].location = adjacent_to
       hpxml_bldg.cooking_ranges[0].location = adjacent_to
-    elsif ['base-bldgtype-mf-unit-adjacent-to-multiple.xml'].include? hpxml_file
+    elsif ['base-bldgtype-mf-unit-adjacent-to-multiple.xml',
+           'base-bldgtype-mf-unit-adjacent-to-multiple-hvac-none.xml'].include? hpxml_file
       wall = hpxml_bldg.walls.select { |w|
                w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
                  w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
@@ -1325,21 +1326,25 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.heat_pumps[0].number_of_units_served = 6
       hpxml_bldg.heat_pumps[0].pump_watts_per_ton = 0.0
     end
-    if hpxml_file.include? 'shared-boiler'
-      hpxml_bldg.heating_systems[0].shared_loop_watts = 600
-    end
-    if hpxml_file.include?('chiller') || hpxml_file.include?('cooling-tower')
-      hpxml_bldg.cooling_systems[0].shared_loop_watts = 600
-    end
-    if hpxml_file.include? 'shared-ground-loop'
-      hpxml_bldg.heat_pumps[0].shared_loop_watts = 600
-    end
-    if hpxml_file.include? 'fan-coil'
-      if hpxml_file.include? 'boiler'
-        hpxml_bldg.heating_systems[0].fan_coil_watts = 150
+    if hpxml_file.include? 'eae'
+      hpxml_bldg.heating_systems[0].electric_auxiliary_energy = 500.0
+    else
+      if hpxml_file.include? 'shared-boiler'
+        hpxml_bldg.heating_systems[0].shared_loop_watts = 600
       end
-      if hpxml_file.include? 'chiller'
-        hpxml_bldg.cooling_systems[0].fan_coil_watts = 150
+      if hpxml_file.include?('chiller') || hpxml_file.include?('cooling-tower')
+        hpxml_bldg.cooling_systems[0].shared_loop_watts = 600
+      end
+      if hpxml_file.include? 'shared-ground-loop'
+        hpxml_bldg.heat_pumps[0].shared_loop_watts = 600
+      end
+      if hpxml_file.include? 'fan-coil'
+        if hpxml_file.include? 'boiler'
+          hpxml_bldg.heating_systems[0].fan_coil_watts = 150
+        end
+        if hpxml_file.include? 'chiller'
+          hpxml_bldg.cooling_systems[0].fan_coil_watts = 150
+        end
       end
     end
     if hpxml_file.include? 'install-quality'
@@ -2114,7 +2119,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     # -------------- #
 
     # Logic that can only be applied based on the file name
-    if ['base-lighting-ceiling-fans.xml'].include? hpxml_file
+    if ['base-lighting-ceiling-fans.xml',
+        'base-lighting-ceiling-fans-label-energy-use.xml'].include? hpxml_file
       hpxml_bldg.ceiling_fans[0].weekday_fractions = '0.057, 0.057, 0.057, 0.057, 0.057, 0.057, 0.057, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.057, 0.057, 0.057, 0.057, 0.057, 0.057'
       hpxml_bldg.ceiling_fans[0].weekend_fractions = '0.057, 0.057, 0.057, 0.057, 0.057, 0.057, 0.057, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.057, 0.057, 0.057, 0.057, 0.057, 0.057'
       hpxml_bldg.ceiling_fans[0].monthly_multipliers = '0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0'

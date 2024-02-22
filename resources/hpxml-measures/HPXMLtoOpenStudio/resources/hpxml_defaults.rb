@@ -223,6 +223,11 @@ class HPXMLDefaults
       hpxml_bldg.header.heat_pump_sizing_methodology_isdefaulted = true
     end
 
+    if hpxml_bldg.header.heat_pump_backup_sizing_methodology.nil? && (hpxml_bldg.heat_pumps.size > 0)
+      hpxml_bldg.header.heat_pump_backup_sizing_methodology = HPXML::HeatPumpBackupSizingEmergency
+      hpxml_bldg.header.heat_pump_backup_sizing_methodology_isdefaulted = true
+    end
+
     if hpxml_bldg.header.allow_increased_fixed_capacities.nil?
       hpxml_bldg.header.allow_increased_fixed_capacities = false
       hpxml_bldg.header.allow_increased_fixed_capacities_isdefaulted = true
@@ -1326,14 +1331,24 @@ class HPXMLDefaults
       heat_pump.backup_heating_lockout_temp_isdefaulted = true
     end
 
-    # Default in-unit boiler EAE
+    # Default electric resistance distribution
+    hpxml_bldg.heating_systems.each do |heating_system|
+      next unless heating_system.heating_system_type == HPXML::HVACTypeElectricResistance
+      next unless heating_system.electric_resistance_distribution.nil?
+
+      heating_system.electric_resistance_distribution = HPXML::ElectricResistanceDistributionBaseboard
+      heating_system.electric_resistance_distribution_isdefaulted = true
+    end
+
+    # Default boiler EAE
     hpxml_bldg.heating_systems.each do |heating_system|
       next unless heating_system.electric_auxiliary_energy.nil?
-      next unless heating_system.heating_system_type == HPXML::HVACTypeBoiler
-      next if heating_system.is_shared_system
 
       heating_system.electric_auxiliary_energy_isdefaulted = true
-      heating_system.electric_auxiliary_energy = HVAC.get_default_in_unit_boiler_eae(heating_system.heating_system_fuel)
+      heating_system.electric_auxiliary_energy = HVAC.get_default_boiler_eae(heating_system)
+      heating_system.shared_loop_watts = nil
+      heating_system.shared_loop_motor_efficiency = nil
+      heating_system.fan_coil_watts = nil
     end
 
     # Default AC/HP sensible heat ratio
@@ -2776,10 +2791,9 @@ class HPXMLDefaults
     return if hpxml_bldg.ceiling_fans.size == 0
 
     ceiling_fan = hpxml_bldg.ceiling_fans[0]
-    if ceiling_fan.efficiency.nil?
-      medium_cfm = 3000.0
-      ceiling_fan.efficiency = medium_cfm / HVAC.get_default_ceiling_fan_power()
-      ceiling_fan.efficiency_isdefaulted = true
+    if ceiling_fan.efficiency.nil? && ceiling_fan.label_energy_use.nil?
+      ceiling_fan.label_energy_use = HVAC.get_default_ceiling_fan_power()
+      ceiling_fan.label_energy_use_isdefaulted = true
     end
     if ceiling_fan.count.nil?
       ceiling_fan.count = HVAC.get_default_ceiling_fan_quantity(nbeds)
@@ -3124,186 +3138,9 @@ class HPXMLDefaults
   end
 
   def self.apply_hvac_sizing(runner, hpxml_bldg, weather, cfa)
-    hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml_bldg)
-
     # Calculate building design loads and equipment capacities/airflows
-    bldg_design_loads, all_hvac_sizing_values = HVACSizing.calculate(runner, weather, hpxml_bldg, cfa, hvac_systems)
-
-    hvacpl = hpxml_bldg.hvac_plant
-    tol = 10 # Btuh
-
-    # Assign heating design loads to HPXML object
-    hvacpl.hdl_total = Float(bldg_design_loads.Heat_Tot.round)
-    hvacpl.hdl_walls = Float(bldg_design_loads.Heat_Walls.round)
-    hvacpl.hdl_ceilings = Float(bldg_design_loads.Heat_Ceilings.round)
-    hvacpl.hdl_roofs = Float(bldg_design_loads.Heat_Roofs.round)
-    hvacpl.hdl_floors = Float(bldg_design_loads.Heat_Floors.round)
-    hvacpl.hdl_slabs = Float(bldg_design_loads.Heat_Slabs.round)
-    hvacpl.hdl_windows = Float(bldg_design_loads.Heat_Windows.round)
-    hvacpl.hdl_skylights = Float(bldg_design_loads.Heat_Skylights.round)
-    hvacpl.hdl_doors = Float(bldg_design_loads.Heat_Doors.round)
-    hvacpl.hdl_infilvent = Float(bldg_design_loads.Heat_InfilVent.round)
-    hvacpl.hdl_ducts = Float(bldg_design_loads.Heat_Ducts.round)
-    hdl_sum = (hvacpl.hdl_walls + hvacpl.hdl_ceilings + hvacpl.hdl_roofs +
-               hvacpl.hdl_floors + hvacpl.hdl_slabs + hvacpl.hdl_windows +
-               hvacpl.hdl_skylights + hvacpl.hdl_doors + hvacpl.hdl_infilvent +
-               hvacpl.hdl_ducts)
-    if (hdl_sum - hvacpl.hdl_total).abs > tol
-      fail 'Heating design loads do not sum to total.'
-    end
-
-    # Assign cooling sensible design loads to HPXML object
-    hvacpl.cdl_sens_total = Float(bldg_design_loads.Cool_Sens.round)
-    hvacpl.cdl_sens_walls = Float(bldg_design_loads.Cool_Walls.round)
-    hvacpl.cdl_sens_ceilings = Float(bldg_design_loads.Cool_Ceilings.round)
-    hvacpl.cdl_sens_roofs = Float(bldg_design_loads.Cool_Roofs.round)
-    hvacpl.cdl_sens_floors = Float(bldg_design_loads.Cool_Floors.round)
-    hvacpl.cdl_sens_slabs = 0.0
-    hvacpl.cdl_sens_windows = Float(bldg_design_loads.Cool_Windows.round)
-    hvacpl.cdl_sens_skylights = Float(bldg_design_loads.Cool_Skylights.round)
-    hvacpl.cdl_sens_doors = Float(bldg_design_loads.Cool_Doors.round)
-    hvacpl.cdl_sens_infilvent = Float(bldg_design_loads.Cool_InfilVent_Sens.round)
-    hvacpl.cdl_sens_ducts = Float(bldg_design_loads.Cool_Ducts_Sens.round)
-    hvacpl.cdl_sens_intgains = Float(bldg_design_loads.Cool_IntGains_Sens.round)
-    cdl_sens_sum = (hvacpl.cdl_sens_walls + hvacpl.cdl_sens_ceilings +
-                    hvacpl.cdl_sens_roofs + hvacpl.cdl_sens_floors +
-                    hvacpl.cdl_sens_slabs + hvacpl.cdl_sens_windows +
-                    hvacpl.cdl_sens_skylights + hvacpl.cdl_sens_doors +
-                    hvacpl.cdl_sens_infilvent + hvacpl.cdl_sens_ducts +
-                    hvacpl.cdl_sens_intgains)
-    if (cdl_sens_sum - hvacpl.cdl_sens_total).abs > tol
-      fail 'Cooling sensible design loads do not sum to total.'
-    end
-
-    # Assign cooling latent design loads to HPXML object
-    hvacpl.cdl_lat_total = Float(bldg_design_loads.Cool_Lat.round)
-    hvacpl.cdl_lat_ducts = Float(bldg_design_loads.Cool_Ducts_Lat.round)
-    hvacpl.cdl_lat_infilvent = Float(bldg_design_loads.Cool_InfilVent_Lat.round)
-    hvacpl.cdl_lat_intgains = Float(bldg_design_loads.Cool_IntGains_Lat.round)
-    cdl_lat_sum = (hvacpl.cdl_lat_ducts + hvacpl.cdl_lat_infilvent +
-                   hvacpl.cdl_lat_intgains)
-    if (cdl_lat_sum - hvacpl.cdl_lat_total).abs > tol
-      fail 'Cooling latent design loads do not sum to total.'
-    end
-
-    # Assign sizing values to HPXML objects
-    all_hvac_sizing_values.each do |hvac_system, hvac_sizing_values|
-      htg_sys = hvac_system[:heating]
-      clg_sys = hvac_system[:cooling]
-
-      # Heating system
-      if not htg_sys.nil?
-
-        # Heating capacities
-        if htg_sys.heating_capacity.nil? || ((htg_sys.heating_capacity - hvac_sizing_values.Heat_Capacity).abs >= 1.0)
-          scaling_factor = Float(hvac_sizing_values.Heat_Capacity.round) / htg_sys.heating_capacity unless htg_sys.heating_capacity.nil?
-          # Heating capacity @ 17F
-          if htg_sys.is_a? HPXML::HeatPump
-            if (not htg_sys.heating_capacity.nil?) && (not htg_sys.heating_capacity_17F.nil?)
-              # Fixed value entered; scale w/ heating_capacity in case allow_increased_fixed_capacities=true
-              htg_cap_17f = htg_sys.heating_capacity_17F * scaling_factor
-              if (htg_sys.heating_capacity_17F - htg_cap_17f).abs >= 1.0
-                htg_sys.heating_capacity_17F = Float(htg_cap_17f.round)
-                htg_sys.heating_capacity_17F_isdefaulted = true
-              end
-            end
-          end
-          if not htg_sys.heating_detailed_performance_data.empty?
-            # Fixed values entered; Scale w/ heating_capacity in case allow_increased_fixed_capacities=true
-            htg_sys.heating_detailed_performance_data.each do |dp|
-              next if dp.capacity.nil? # using autosized values, process later
-
-              htg_cap_dp = dp.capacity * scaling_factor
-              if (dp.capacity - htg_cap_dp).abs >= 1.0
-                dp.capacity = Float(htg_cap_dp.round)
-                dp.capacity_isdefaulted = true
-              end
-            end
-          end
-          htg_sys.heating_capacity = Float(hvac_sizing_values.Heat_Capacity.round)
-          htg_sys.heating_capacity_isdefaulted = true
-        end
-        if htg_sys.is_a? HPXML::HeatPump
-          if htg_sys.backup_type.nil?
-            htg_sys.backup_heating_capacity = 0.0
-          elsif htg_sys.backup_type == HPXML::HeatPumpBackupTypeIntegrated
-            if htg_sys.backup_heating_capacity.nil? || ((htg_sys.backup_heating_capacity - hvac_sizing_values.Heat_Capacity_Supp).abs >= 1.0)
-              htg_sys.backup_heating_capacity = Float(hvac_sizing_values.Heat_Capacity_Supp.round)
-              htg_sys.backup_heating_capacity_isdefaulted = true
-            end
-          end
-        end
-
-        # Heating airflow
-        if not (htg_sys.is_a?(HPXML::HeatingSystem) &&
-                [HPXML::HVACTypeBoiler,
-                 HPXML::HVACTypeElectricResistance].include?(htg_sys.heating_system_type))
-          htg_sys.heating_airflow_cfm = Float(hvac_sizing_values.Heat_Airflow.round)
-          htg_sys.heating_airflow_cfm_isdefaulted = true
-        end
-
-        # Heating GSHP loop
-        if htg_sys.is_a? HPXML::HeatPump
-          htg_sys.additional_properties.GSHP_G_Functions = hvac_sizing_values.GSHP_G_Functions
-
-          geothermal_loop = htg_sys.geothermal_loop
-          if not geothermal_loop.nil?
-            if geothermal_loop.loop_flow.nil?
-              geothermal_loop.loop_flow = hvac_sizing_values.GSHP_Loop_flow
-              geothermal_loop.loop_flow_isdefaulted = true
-            end
-            if geothermal_loop.num_bore_holes.nil?
-              geothermal_loop.num_bore_holes = hvac_sizing_values.GSHP_Bore_Holes
-              geothermal_loop.num_bore_holes_isdefaulted = true
-            end
-            if geothermal_loop.bore_length.nil?
-              geothermal_loop.bore_length = hvac_sizing_values.GSHP_Bore_Depth
-              geothermal_loop.bore_length_isdefaulted = true
-            end
-            if geothermal_loop.bore_config.nil?
-              geothermal_loop.bore_config = hvac_sizing_values.GSHP_Bore_Config
-              geothermal_loop.bore_config_isdefaulted = true
-            end
-          end
-        end
-      end
-
-      # Cooling system
-      next if clg_sys.nil?
-
-      # Cooling capacities
-      if clg_sys.cooling_capacity.nil? || ((clg_sys.cooling_capacity - hvac_sizing_values.Cool_Capacity).abs >= 1.0)
-        if not clg_sys.cooling_detailed_performance_data.empty?
-          scaling_factor = Float(hvac_sizing_values.Cool_Capacity.round) / clg_sys.cooling_capacity unless clg_sys.cooling_capacity.nil?
-          # Fixed values entered; Scale w/ cooling_capacity in case allow_increased_fixed_capacities=true
-          clg_sys.cooling_detailed_performance_data.each do |dp|
-            next if dp.capacity.nil? # using autosized values
-
-            clg_cap_dp = dp.capacity * scaling_factor
-            if (dp.capacity - clg_cap_dp).abs >= 1.0
-              dp.capacity = Float(clg_cap_dp.round)
-              dp.capacity_isdefaulted = true
-            end
-          end
-        end
-        clg_sys.cooling_capacity = Float(hvac_sizing_values.Cool_Capacity.round)
-        clg_sys.cooling_capacity_isdefaulted = true
-      end
-      # Integrated heating system capacities
-      if (clg_sys.is_a? HPXML::CoolingSystem) && clg_sys.has_integrated_heating
-        if clg_sys.integrated_heating_system_capacity.nil? || ((clg_sys.integrated_heating_system_capacity - hvac_sizing_values.Heat_Capacity).abs >= 1.0)
-          clg_sys.integrated_heating_system_capacity = Float(hvac_sizing_values.Heat_Capacity.round)
-          clg_sys.integrated_heating_system_capacity_isdefaulted = true
-        end
-        clg_sys.integrated_heating_system_airflow_cfm = Float(hvac_sizing_values.Heat_Airflow.round)
-        clg_sys.integrated_heating_system_airflow_cfm_isdefaulted = true
-      end
-      clg_sys.additional_properties.cooling_capacity_sensible = Float(hvac_sizing_values.Cool_Capacity_Sens.round)
-
-      # Cooling airflow
-      clg_sys.cooling_airflow_cfm = Float(hvac_sizing_values.Cool_Airflow.round)
-      clg_sys.cooling_airflow_cfm_isdefaulted = true
-    end
+    hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml_bldg)
+    HVACSizing.calculate(runner, weather, hpxml_bldg, cfa, hvac_systems)
   end
 
   def self.get_azimuth_from_orientation(orientation)
