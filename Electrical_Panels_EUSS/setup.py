@@ -29,13 +29,15 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires=">=3.10",
     install_requires=[
-        "pandas<2",
+        "pandas",
         "ipython",
         "pyarrow",
         "scipy",
         "openpyxl",
         "matplotlib",
-        "scikit-learn==0.24.2",
+        "scikit-learn",
+        "seaborn",
+        # "scikit-learn==0.24.2",
         "xgboost==2.0.1",
     ], # pip install -e .
     extras_require={
