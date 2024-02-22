@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>ec8b389b-58c8-4971-a8e5-11bfb0783b40</version_id>
-  <version_modified>2024-02-22T20:33:06Z</version_modified>
+  <version_id>bff8d5c1-2e23-47a2-9c76-c464640e462e</version_id>
+  <version_modified>2024-02-22T20:58:56Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -12,49 +12,31 @@
   <modeler_description>Passes in all arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.</modeler_description>
   <arguments>
     <argument>
-      <name>schedules_vacancy_period</name>
-      <display_name>Schedules: Vacancy Period</display_name>
-      <description>Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).</description>
+      <name>schedules_vacancy_periods</name>
+      <display_name>Schedules: Vacancy Periods</display_name>
+      <description>Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>schedules_power_outage_period</name>
-      <display_name>Schedules: Power Outage Period</display_name>
-      <description>Specifies the power outage period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).</description>
+      <name>schedules_power_outage_periods</name>
+      <display_name>Schedules: Power Outage Periods</display_name>
+      <description>Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>schedules_power_outage_window_natvent_availability</name>
-      <display_name>Schedules: Power Outage Period Window Natural Ventilation Availability</display_name>
-      <description>The availability of the natural ventilation schedule during the outage period.</description>
-      <type>Choice</type>
+      <name>schedules_power_outage_periods_window_natvent_availability</name>
+      <display_name>Schedules: Power Outage Periods Window Natural Ventilation Availability</display_name>
+      <description>The availability of the natural ventilation schedule during the power outage periods. Valid choices are 'regular schedule', 'always available', 'always unavailable'. If multiple periods, use a comma-separated list.</description>
+      <type>String</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>regular schedule</value>
-          <display_name>regular schedule</display_name>
-        </choice>
-        <choice>
-          <value>always available</value>
-          <display_name>always available</display_name>
-        </choice>
-        <choice>
-          <value>always unavailable</value>
-          <display_name>always unavailable</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>simulation_control_daylight_saving_enabled</name>
@@ -7301,7 +7283,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>4CBD7D82</checksum>
+      <checksum>03241F20</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
