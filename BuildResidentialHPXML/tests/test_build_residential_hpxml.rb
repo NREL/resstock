@@ -69,6 +69,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'extra-battery-crawlspace.xml' => 'base-sfd.xml',
       'extra-battery-attic.xml' => 'base-sfd.xml',
       'extra-detailed-performance-autosize.xml' => 'base-sfd.xml',
+      'extra-power-outage-periods.xml' => 'base-sfd.xml',
 
       'extra-sfa-atticroof-flat.xml' => 'base-sfa.xml',
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
@@ -185,6 +186,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-sfd-with-shared-system.xml' => 'base-sfd.xml',
       'error-rim-joist-height-but-no-assembly-r.xml' => 'base-sfd.xml',
       'error-rim-joist-assembly-r-but-no-height.xml' => 'base-sfd.xml',
+      'error-power-outage-args-not-all-same-size.xml' => 'base-sfd.xml',
+      'error-power-outage-window-natvent-invalid.xml' => 'base-sfd.xml',
       'error-heating-perf-data-not-all-specified.xml' => 'base-sfd.xml',
       'error-heating-perf-data-not-all-same-size.xml' => 'base-sfd.xml',
       'error-cooling-perf-data-not-all-specified.xml' => 'base-sfd.xml',
@@ -249,6 +252,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-sfd-with-shared-system.xml' => ['Specified a shared system for a single-family detached unit.'],
       'error-rim-joist-height-but-no-assembly-r.xml' => ['Specified a rim joist height but no rim joist assembly R-value.'],
       'error-rim-joist-assembly-r-but-no-height.xml' => ['Specified a rim joist assembly R-value but no rim joist height.'],
+      'error-power-outage-args-not-all-same-size.xml' => ['One power outage periods schedule argument does not have enough comma-separated elements specified.'],
+      'error-power-outage-window-natvent-invalid.xml' => ["Window natural ventilation availability 'invalid' during a power outage is invalid."],
       'error-heating-perf-data-not-all-specified.xml' => ['Did not specify all required heating detailed performance data arguments.'],
       'error-heating-perf-data-not-all-same-size.xml' => ['One or more detailed heating performance data arguments does not have enough comma-separated elements specified.'],
       'error-cooling-perf-data-not-all-specified.xml' => ['Did not specify all required cooling detailed performance data arguments.'],
@@ -720,9 +725,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
     elsif ['base-sfd-header.xml'].include? hpxml_file
       args['software_info_program_used'] = 'Program'
       args['software_info_program_version'] = '1'
-      args['schedules_vacancy_period'] = 'Jan 2 - Jan 5'
-      args['schedules_power_outage_period'] = 'Feb 10 - Feb 12'
-      args['schedules_power_outage_window_natvent_availability'] = HPXML::ScheduleAvailable
+      args['schedules_vacancy_periods'] = 'Jan 2 - Jan 5'
+      args['schedules_power_outage_periods'] = 'Feb 10 - Feb 12'
+      args['schedules_power_outage_periods_window_natvent_availability'] = HPXML::ScheduleAvailable
       args['simulation_control_run_period'] = 'Jan 1 - Dec 31'
       args['simulation_control_run_period_calendar_year'] = 2007
       args['simulation_control_temperature_capacitance_multiplier'] = 1.0
@@ -949,6 +954,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['hvac_perf_data_cooling_max_speed_capacities'] = '1.0, 1.11'
       args['hvac_perf_data_cooling_min_speed_cops'] = '4.47, 6.34'
       args['hvac_perf_data_cooling_max_speed_cops'] = '2.71, 3.53'
+    elsif ['extra-power-outage-periods.xml'].include? hpxml_file
+      args['schedules_power_outage_periods'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
+      args['schedules_power_outage_periods_window_natvent_availability'] = "#{HPXML::ScheduleRegular}, #{HPXML::ScheduleAvailable}"
     elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
       args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
       args['ducts_supply_leakage_to_outside_value'] = 0.0
@@ -1196,6 +1204,11 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args.delete('rim_joist_assembly_r')
     elsif ['error-rim-joist-assembly-r-but-no-height.xml'].include? hpxml_file
       args.delete('geometry_rim_joist_height')
+    elsif ['error-power-outage-args-not-all-same-size.xml'].include? hpxml_file
+      args['schedules_power_outage_periods'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
+      args['schedules_power_outage_periods_window_natvent_availability'] = HPXML::ScheduleRegular
+    elsif ['error-power-outage-window-natvent-invalid.xml'].include? hpxml_file
+      args['schedules_power_outage_periods_window_natvent_availability'] = 'invalid'
     elsif ['error-heating-perf-data-not-all-specified.xml'].include? hpxml_file
       args['hvac_perf_data_heating_outdoor_temperatures'] = '47.0'
     elsif ['error-heating-perf-data-not-all-same-size.xml'].include? hpxml_file

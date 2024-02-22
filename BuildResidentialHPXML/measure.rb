@@ -69,24 +69,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative paths of csv files containing user-specified detailed schedules. If multiple files, use a comma-separated list.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_vacancy_period', false)
-    arg.setDisplayName('Schedules: Vacancy Period')
-    arg.setDescription('Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_vacancy_periods', false)
+    arg.setDisplayName('Schedules: Vacancy Periods')
+    arg.setDescription('Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_power_outage_period', false)
-    arg.setDisplayName('Schedules: Power Outage Period')
-    arg.setDescription('Specifies the power outage period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_power_outage_periods', false)
+    arg.setDisplayName('Schedules: Power Outage Periods')
+    arg.setDescription('Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.')
     args << arg
 
-    natvent_availability_choices = OpenStudio::StringVector.new
-    natvent_availability_choices << HPXML::ScheduleRegular
-    natvent_availability_choices << HPXML::ScheduleAvailable
-    natvent_availability_choices << HPXML::ScheduleUnavailable
-
-    arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('schedules_power_outage_window_natvent_availability', natvent_availability_choices, false)
-    arg.setDisplayName('Schedules: Power Outage Period Window Natural Ventilation Availability')
-    arg.setDescription('The availability of the natural ventilation schedule during the outage period.')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_power_outage_periods_window_natvent_availability', false)
+    arg.setDisplayName('Schedules: Power Outage Periods Window Natural Ventilation Availability')
+    arg.setDescription("The availability of the natural ventilation schedule during the power outage periods. Valid choices are '#{[HPXML::ScheduleRegular, HPXML::ScheduleAvailable, HPXML::ScheduleUnavailable].join("', '")}'. If multiple periods, use a comma-separated list.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', false)
@@ -3496,6 +3491,22 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = args[:rim_joist_assembly_r].is_initialized && !args[:geometry_rim_joist_height].is_initialized
     errors << 'Specified a rim joist assembly R-value but no rim joist height.' if error
 
+    if args[:schedules_power_outage_periods].is_initialized && args[:schedules_power_outage_periods_window_natvent_availability].is_initialized
+      schedules_power_outage_periods_lengths = [args[:schedules_power_outage_periods].get.count(','),
+                                                args[:schedules_power_outage_periods_window_natvent_availability].get.count(',')]
+
+      error = (schedules_power_outage_periods_lengths.uniq.size != 1)
+      errors << 'One power outage periods schedule argument does not have enough comma-separated elements specified.' if error
+    end
+
+    if args[:schedules_power_outage_periods_window_natvent_availability].is_initialized
+      natvent_availabilities = args[:schedules_power_outage_periods_window_natvent_availability].get.split(',').map(&:strip)
+      natvent_availabilities.each do |natvent_availability|
+        error = ![HPXML::ScheduleRegular, HPXML::ScheduleAvailable, HPXML::ScheduleUnavailable].include?(natvent_availability)
+        errors << "Window natural ventilation availability '#{natvent_availability}' during a power outage is invalid." if error
+      end
+    end
+
     hvac_perf_data_heating_args_initialized = [args[:hvac_perf_data_heating_outdoor_temperatures].is_initialized,
                                                args[:hvac_perf_data_heating_min_speed_capacities].is_initialized,
                                                args[:hvac_perf_data_heating_max_speed_capacities].is_initialized,
@@ -3846,22 +3857,32 @@ class HPXMLFile
       hpxml.header.whole_sfa_or_mf_building_sim = args[:whole_sfa_or_mf_building_sim].get
     end
 
-    if args[:schedules_vacancy_period].is_initialized
-      begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Schedule.parse_date_time_range(args[:schedules_vacancy_period].get)
+    if args[:schedules_vacancy_periods].is_initialized
+      schedules_vacancy_periods = args[:schedules_vacancy_periods].get.split(',').map(&:strip)
+      schedules_vacancy_periods.each do |schedules_vacancy_period|
+        begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Schedule.parse_date_time_range(schedules_vacancy_period)
 
-      if not unavailable_period_exists(hpxml, 'Vacancy', begin_month, begin_day, begin_hour, end_month, end_day, end_hour)
-        hpxml.header.unavailable_periods.add(column_name: 'Vacancy', begin_month: begin_month, begin_day: begin_day, begin_hour: begin_hour, end_month: end_month, end_day: end_day, end_hour: end_hour, natvent_availability: HPXML::ScheduleUnavailable)
+        if not unavailable_period_exists(hpxml, 'Vacancy', begin_month, begin_day, begin_hour, end_month, end_day, end_hour)
+          hpxml.header.unavailable_periods.add(column_name: 'Vacancy', begin_month: begin_month, begin_day: begin_day, begin_hour: begin_hour, end_month: end_month, end_day: end_day, end_hour: end_hour, natvent_availability: HPXML::ScheduleUnavailable)
+        end
       end
     end
-    if args[:schedules_power_outage_period].is_initialized
-      begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Schedule.parse_date_time_range(args[:schedules_power_outage_period].get)
+    if args[:schedules_power_outage_periods].is_initialized
+      schedules_power_outage_periods = args[:schedules_power_outage_periods].get.split(',').map(&:strip)
 
-      if args[:schedules_power_outage_window_natvent_availability].is_initialized
-        natvent_availability = args[:schedules_power_outage_window_natvent_availability].get
+      natvent_availabilities = []
+      if args[:schedules_power_outage_periods_window_natvent_availability].is_initialized
+        natvent_availabilities = args[:schedules_power_outage_periods_window_natvent_availability].get.split(',').map(&:strip)
       end
 
-      if not unavailable_period_exists(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour, natvent_availability)
-        hpxml.header.unavailable_periods.add(column_name: 'Power Outage', begin_month: begin_month, begin_day: begin_day, begin_hour: begin_hour, end_month: end_month, end_day: end_day, end_hour: end_hour, natvent_availability: natvent_availability)
+      schedules_power_outage_periods = schedules_power_outage_periods.zip(natvent_availabilities)
+      schedules_power_outage_periods.each do |schedules_power_outage_period|
+        outage_period, natvent_availability = schedules_power_outage_period
+        begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Schedule.parse_date_time_range(outage_period)
+
+        if not unavailable_period_exists(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour, natvent_availability)
+          hpxml.header.unavailable_periods.add(column_name: 'Power Outage', begin_month: begin_month, begin_day: begin_day, begin_hour: begin_hour, end_month: end_month, end_day: end_day, end_hour: end_hour, natvent_availability: natvent_availability)
+        end
       end
     end
 
