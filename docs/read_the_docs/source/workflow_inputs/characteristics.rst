@@ -4717,6 +4717,12 @@ Arguments
      - Double
      - "auto"
      - Multiplier on the hot water usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Water Fixtures <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-water-fixtures>`_) is used.
+   * - ``general_water_use_usage_multiplier``
+     - false
+     - 
+     - Double
+     - "auto"
+     - Multiplier on internal gains from general water use (floor mopping, shower evaporation, water films on showers, tubs & sinks surfaces, plant watering, etc.) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Building Occupancy <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-building-occupancy>`_) is used.
 
 .. _household_has_tribal_persons:
 
