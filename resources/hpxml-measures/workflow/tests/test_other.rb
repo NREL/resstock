@@ -114,9 +114,9 @@ class WorkflowOtherTest < Minitest::Test
       # Check stochastic.csv headers
       schedules = CSV.read(File.join(File.dirname(xml), 'run', 'stochastic.csv'), headers: true)
       if debug
-        assert(schedules.headers.include?(SchedulesFile::ColumnSleeping))
+        assert(schedules.headers.include?(SchedulesFile::Columns[:Sleeping].name))
       else
-        refute(schedules.headers.include?(SchedulesFile::ColumnSleeping))
+        refute(schedules.headers.include?(SchedulesFile::Columns[:Sleeping].name))
       end
 
       # Cleanup

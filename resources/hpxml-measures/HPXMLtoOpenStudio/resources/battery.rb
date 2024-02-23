@@ -5,8 +5,8 @@ class Battery
     charging_schedule = nil
     discharging_schedule = nil
     if not schedules_file.nil?
-      charging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnBatteryCharging)
-      discharging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnBatteryDischarging)
+      charging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:BatteryCharging].name)
+      discharging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:BatteryDischarging].name)
     end
 
     if pv_systems.empty? && charging_schedule.nil? && discharging_schedule.nil?
