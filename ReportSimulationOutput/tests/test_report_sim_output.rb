@@ -782,7 +782,7 @@ class ReportSimulationOutputTest < Minitest::Test
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsEndUses
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsEndUses + ["End Use: #{FT::Elec}: #{EUT::HotWaterRecircPump}"]
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
