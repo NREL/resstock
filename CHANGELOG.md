@@ -7,6 +7,9 @@ Features
 - Include additional 2022 Cambium 25-year LRMER emissions data ([#1194](https://github.com/NREL/resstock/pull/1194))
 - Add optional switch to BuildExistingModel (defaulted to false) for modeling whole SFA/MF buildings ([#1200](https://github.com/NREL/resstock/pull/1200))
 - Update hot water usage multipliers based on field data rather than engineering judgement ([#1210](https://github.com/NREL/resstock/pull/1210))
+- Allow definition of multiple unavailable periods (i.e., vacancy, power outage) ([#1209](https://github.com/NREL/resstock/pull/1209))
+- Add ability to set either an "emergency" or "supplemental" heat pump backup sizing methodology ([#1209](https://github.com/NREL/resstock/pull/1209))
+- Refrigerator energy use is now affected by its ambient temperature using hourly constant and temperature coefficients from ANSI/RESNET/ICC 301-2022 Addendum C ([#1209](https://github.com/NREL/resstock/pull/1209))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
