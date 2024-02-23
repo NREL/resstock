@@ -34,19 +34,7 @@ class ScheduleGenerator
   end
 
   def self.export_columns
-    return [SchedulesFile::ColumnOccupants,
-            SchedulesFile::ColumnLightingInterior,
-            SchedulesFile::ColumnLightingGarage,
-            SchedulesFile::ColumnCookingRange,
-            SchedulesFile::ColumnDishwasher,
-            SchedulesFile::ColumnClothesWasher,
-            SchedulesFile::ColumnClothesDryer,
-            SchedulesFile::ColumnCeilingFan,
-            SchedulesFile::ColumnPlugLoadsOther,
-            SchedulesFile::ColumnPlugLoadsTV,
-            SchedulesFile::ColumnHotWaterDishwasher,
-            SchedulesFile::ColumnHotWaterClothesWasher,
-            SchedulesFile::ColumnHotWaterFixtures]
+    return SchedulesFile::Columns.values.select { |c| c.can_be_stochastic }.map { |c| c.name }
   end
 
   def schedules
@@ -61,10 +49,10 @@ class ScheduleGenerator
     end
 
     if @column_names.nil?
-      @column_names = SchedulesFile.ColumnNames
+      @column_names = SchedulesFile::Columns.values.map { |c| c.name }
     end
 
-    invalid_columns = (@column_names - SchedulesFile.ColumnNames)
+    invalid_columns = (@column_names - SchedulesFile::Columns.values.map { |c| c.name })
     invalid_columns.each do |invalid_column|
       @runner.registerError("Invalid column name specified: '#{invalid_column}'.")
     end
@@ -185,16 +173,16 @@ class ScheduleGenerator
         away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / args[:geometry_num_occupants]
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / args[:geometry_num_occupants]
         active_occupancy_percentage = 1 - (away_schedule[-1] + sleep_schedule[-1])
-        @schedules[SchedulesFile::ColumnPlugLoadsOther][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_weekday_sch, plugload_weekend_sch, plugload_monthly_multiplier, month, is_weekday, minute, active_occupancy_percentage)
-        @schedules[SchedulesFile::ColumnLightingInterior][day * @steps_in_day + step] = scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
-        @schedules[SchedulesFile::ColumnCeilingFan][day * @steps_in_day + step] = get_value_from_daily_sch(ceiling_fan_weekday_sch, ceiling_fan_weekend_sch, ceiling_fan_monthly_multiplier, month, is_weekday, minute, active_occupancy_percentage)
+        @schedules[SchedulesFile::Columns[:PlugLoadsOther].name][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_weekday_sch, plugload_weekend_sch, plugload_monthly_multiplier, month, is_weekday, minute, active_occupancy_percentage)
+        @schedules[SchedulesFile::Columns[:LightingInterior].name][day * @steps_in_day + step] = scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
+        @schedules[SchedulesFile::Columns[:CeilingFan].name][day * @steps_in_day + step] = get_value_from_daily_sch(ceiling_fan_weekday_sch, ceiling_fan_weekend_sch, ceiling_fan_monthly_multiplier, month, is_weekday, minute, active_occupancy_percentage)
       end
     end
-    @schedules[SchedulesFile::ColumnPlugLoadsOther] = normalize(@schedules[SchedulesFile::ColumnPlugLoadsOther])
-    @schedules[SchedulesFile::ColumnPlugLoadsTV] = @schedules[SchedulesFile::ColumnPlugLoadsOther]
-    @schedules[SchedulesFile::ColumnLightingInterior] = normalize(@schedules[SchedulesFile::ColumnLightingInterior])
-    @schedules[SchedulesFile::ColumnLightingGarage] = @schedules[SchedulesFile::ColumnLightingInterior]
-    @schedules[SchedulesFile::ColumnCeilingFan] = normalize(@schedules[SchedulesFile::ColumnCeilingFan])
+    @schedules[SchedulesFile::Columns[:PlugLoadsOther].name] = normalize(@schedules[SchedulesFile::Columns[:PlugLoadsOther].name])
+    @schedules[SchedulesFile::Columns[:PlugLoadsTV].name] = @schedules[SchedulesFile::Columns[:PlugLoadsOther].name]
+    @schedules[SchedulesFile::Columns[:LightingInterior].name] = normalize(@schedules[SchedulesFile::Columns[:LightingInterior].name])
+    @schedules[SchedulesFile::Columns[:LightingGarage].name] = @schedules[SchedulesFile::Columns[:LightingInterior].name]
+    @schedules[SchedulesFile::Columns[:CeilingFan].name] = normalize(@schedules[SchedulesFile::Columns[:CeilingFan].name])
 
     # Generate the Sink Schedule
     # 1. Find indexes (minutes) when at least one occupant can have sink event (they aren't sleeping or absent)
@@ -542,52 +530,52 @@ class ScheduleGenerator
     dw_activity_sch = apply_monthly_offsets(array: dw_activity_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     dw_activity_sch = aggregate_array(dw_activity_sch, @minutes_per_step)
     dw_peak_flow = dw_activity_sch.max
-    @schedules[SchedulesFile::ColumnHotWaterDishwasher] = dw_activity_sch.map { |flow| flow / dw_peak_flow }
+    @schedules[SchedulesFile::Columns[:HotWaterDishwasher].name] = dw_activity_sch.map { |flow| flow / dw_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_activity_sch = cw_activity_sch.rotate(random_offset)
     cw_activity_sch = apply_monthly_offsets(array: cw_activity_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     cw_activity_sch = aggregate_array(cw_activity_sch, @minutes_per_step)
     cw_peak_flow = cw_activity_sch.max
-    @schedules[SchedulesFile::ColumnHotWaterClothesWasher] = cw_activity_sch.map { |flow| flow / cw_peak_flow }
+    @schedules[SchedulesFile::Columns[:HotWaterClothesWasher].name] = cw_activity_sch.map { |flow| flow / cw_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cooking_power_sch = cooking_power_sch.rotate(random_offset)
     cooking_power_sch = apply_monthly_offsets(array: cooking_power_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     cooking_power_sch = aggregate_array(cooking_power_sch, @minutes_per_step)
     cooking_peak_power = cooking_power_sch.max
-    @schedules[SchedulesFile::ColumnCookingRange] = cooking_power_sch.map { |power| power / cooking_peak_power }
+    @schedules[SchedulesFile::Columns[:CookingRange].name] = cooking_power_sch.map { |power| power / cooking_peak_power }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_power_sch = cw_power_sch.rotate(random_offset)
     cw_power_sch = apply_monthly_offsets(array: cw_power_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     cw_power_sch = aggregate_array(cw_power_sch, @minutes_per_step)
     cw_peak_power = cw_power_sch.max
-    @schedules[SchedulesFile::ColumnClothesWasher] = cw_power_sch.map { |power| power / cw_peak_power }
+    @schedules[SchedulesFile::Columns[:ClothesWasher].name] = cw_power_sch.map { |power| power / cw_peak_power }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cd_power_sch = cd_power_sch.rotate(random_offset)
     cd_power_sch = apply_monthly_offsets(array: cd_power_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     cd_power_sch = aggregate_array(cd_power_sch, @minutes_per_step)
     cd_peak_power = cd_power_sch.max
-    @schedules[SchedulesFile::ColumnClothesDryer] = cd_power_sch.map { |power| power / cd_peak_power }
+    @schedules[SchedulesFile::Columns[:ClothesDryer].name] = cd_power_sch.map { |power| power / cd_peak_power }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_power_sch = dw_power_sch.rotate(random_offset)
     dw_power_sch = apply_monthly_offsets(array: dw_power_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     dw_power_sch = aggregate_array(dw_power_sch, @minutes_per_step)
     dw_peak_power = dw_power_sch.max
-    @schedules[SchedulesFile::ColumnDishwasher] = dw_power_sch.map { |power| power / dw_peak_power }
+    @schedules[SchedulesFile::Columns[:Dishwasher].name] = dw_power_sch.map { |power| power / dw_peak_power }
 
-    @schedules[SchedulesFile::ColumnOccupants] = away_schedule.map { |i| 1.0 - i }
+    @schedules[SchedulesFile::Columns[:Occupants].name] = away_schedule.map { |i| 1.0 - i }
 
     if @debug
-      @schedules[SchedulesFile::ColumnSleeping] = sleep_schedule
+      @schedules[SchedulesFile::Columns[:Sleeping].name] = sleep_schedule
     end
 
-    @schedules[SchedulesFile::ColumnHotWaterFixtures] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
-    fixtures_peak_flow = @schedules[SchedulesFile::ColumnHotWaterFixtures].max
-    @schedules[SchedulesFile::ColumnHotWaterFixtures] = @schedules[SchedulesFile::ColumnHotWaterFixtures].map { |flow| flow / fixtures_peak_flow }
+    @schedules[SchedulesFile::Columns[:HotWaterFixtures].name] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
+    fixtures_peak_flow = @schedules[SchedulesFile::Columns[:HotWaterFixtures].name].max
+    @schedules[SchedulesFile::Columns[:HotWaterFixtures].name] = @schedules[SchedulesFile::Columns[:HotWaterFixtures].name].map { |flow| flow / fixtures_peak_flow }
 
     return true
   end
@@ -754,7 +742,7 @@ class ScheduleGenerator
   end
 
   def export(schedules_path:)
-    (SchedulesFile.ColumnNames - @column_names).each do |col_to_remove|
+    (SchedulesFile::Columns.values.map { |c| c.name } - @column_names).each do |col_to_remove|
       @schedules.delete(col_to_remove)
     end
     CSV.open(schedules_path, 'w') do |csv|

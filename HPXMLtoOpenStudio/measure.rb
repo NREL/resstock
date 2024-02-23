@@ -445,7 +445,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     add_num_occupants(model, runner, spaces)
 
     # HVAC
-    @hvac_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::ColumnHVAC, @hpxml_header.unavailable_periods)
+    @hvac_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::Columns[:HVAC].name, @hpxml_header.unavailable_periods)
     airloop_map = {} # Map of HPXML System ID -> AirLoopHVAC (or ZoneHVACFourPipeFanCoil)
     add_ideal_system(model, spaces, epw_path)
     add_cooling_system(model, weather, spaces, airloop_map)
@@ -1530,7 +1530,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
 
     # Water Heater
-    unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::ColumnWaterHeater, @hpxml_header.unavailable_periods)
+    unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::Columns[:WaterHeater].name, @hpxml_header.unavailable_periods)
     unit_multiplier = @hpxml_bldg.building_construction.number_of_units
     has_uncond_bsmnt = @hpxml_bldg.has_location(HPXML::LocationBasementUnconditioned)
     has_cond_bsmnt = @hpxml_bldg.has_location(HPXML::LocationBasementConditioned)
@@ -1938,7 +1938,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # Create HVAC availability sensor
     hvac_availability_sensor = nil
     if not @hvac_unavailable_periods.empty?
-      avail_sch = ScheduleConstant.new(model, SchedulesFile::ColumnHVAC, 1.0, Constants.ScheduleTypeLimitsFraction, unavailable_periods: @hvac_unavailable_periods)
+      avail_sch = ScheduleConstant.new(model, SchedulesFile::Columns[:HVAC].name, 1.0, Constants.ScheduleTypeLimitsFraction, unavailable_periods: @hvac_unavailable_periods)
 
       hvac_availability_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
       hvac_availability_sensor.setName('hvac availability s')

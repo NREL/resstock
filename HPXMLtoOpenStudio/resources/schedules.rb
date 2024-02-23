@@ -1310,7 +1310,6 @@ class Schedule
   def self.unavailable_period_applies(runner, schedule_name, col_name)
     if @unavailable_periods_csv_data.nil?
       @unavailable_periods_csv_data = get_unavailable_periods_csv_data
-
     end
     @unavailable_periods_csv_data.each do |csv_row|
       next if csv_row['Schedule Name'] != schedule_name
@@ -1326,9 +1325,9 @@ class Schedule
       end
       if applies == 1
         if not runner.nil?
-          if schedule_name == SchedulesFile::ColumnHVAC
+          if schedule_name == SchedulesFile::Columns[:HVAC].name
             runner.registerWarning('It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.')
-          elsif schedule_name == SchedulesFile::ColumnWaterHeater
+          elsif schedule_name == SchedulesFile::Columns[:WaterHeater].name
             runner.registerWarning('It is not possible to eliminate all water heater energy use (e.g. parasitics) in EnergyPlus during an unavailable period.')
           end
         end
@@ -1381,51 +1380,65 @@ class Schedule
 end
 
 class SchedulesFile
-  # Constants
-  ColumnOccupants = 'occupants'
-  ColumnLightingInterior = 'lighting_interior'
-  ColumnLightingExterior = 'lighting_exterior'
-  ColumnLightingGarage = 'lighting_garage'
-  ColumnLightingExteriorHoliday = 'lighting_exterior_holiday'
-  ColumnCookingRange = 'cooking_range'
-  ColumnRefrigerator = 'refrigerator'
-  ColumnExtraRefrigerator = 'extra_refrigerator'
-  ColumnFreezer = 'freezer'
-  ColumnDishwasher = 'dishwasher'
-  ColumnClothesWasher = 'clothes_washer'
-  ColumnClothesDryer = 'clothes_dryer'
-  ColumnCeilingFan = 'ceiling_fan'
-  ColumnPlugLoadsOther = 'plug_loads_other'
-  ColumnPlugLoadsTV = 'plug_loads_tv'
-  ColumnPlugLoadsVehicle = 'plug_loads_vehicle'
-  ColumnPlugLoadsWellPump = 'plug_loads_well_pump'
-  ColumnFuelLoadsGrill = 'fuel_loads_grill'
-  ColumnFuelLoadsLighting = 'fuel_loads_lighting'
-  ColumnFuelLoadsFireplace = 'fuel_loads_fireplace'
-  ColumnPoolPump = 'pool_pump'
-  ColumnPoolHeater = 'pool_heater'
-  ColumnPermanentSpaPump = 'permanent_spa_pump'
-  ColumnPermanentSpaHeater = 'permanent_spa_heater'
-  ColumnHotWaterDishwasher = 'hot_water_dishwasher'
-  ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
-  ColumnHotWaterFixtures = 'hot_water_fixtures'
-  ColumnGeneralWaterUse = 'general_water_use'
-  ColumnHotWaterRecirculationPump = 'hot_water_recirculation_pump'
-  ColumnSleeping = 'sleeping'
-  ColumnHeatingSetpoint = 'heating_setpoint'
-  ColumnCoolingSetpoint = 'cooling_setpoint'
-  ColumnWaterHeaterSetpoint = 'water_heater_setpoint'
-  ColumnWaterHeaterOperatingMode = 'water_heater_operating_mode'
-  ColumnBattery = 'battery'
-  ColumnBatteryCharging = 'battery_charging'
-  ColumnBatteryDischarging = 'battery_discharging'
-  ColumnHVAC = 'hvac'
-  ColumnWaterHeater = 'water_heater'
-  ColumnDehumidifier = 'dehumidifier'
-  ColumnKitchenFan = 'kitchen_fan'
-  ColumnBathFan = 'bath_fan'
-  ColumnHouseFan = 'house_fan'
-  ColumnWholeHouseFan = 'whole_house_fan'
+  class Column
+    def initialize(name, used_by_unavailable_periods, can_be_stochastic, type)
+      @name = name
+      @used_by_unavailable_periods = used_by_unavailable_periods
+      @can_be_stochastic = can_be_stochastic
+      @type = type
+    end
+    attr_accessor(:name, :used_by_unavailable_periods, :can_be_stochastic, :type)
+  end
+
+  # Define all schedule columns
+  # Columns may be used for A) detailed schedule CSVs (e.g., occupants), B) unavailable
+  # periods CSV (e.g., hvac), and/or C) EnergyPlus-specific schedules (e.g., battery_charging).
+  Columns = {
+    Occupants: Column.new('occupants', true, true, :frac),
+    LightingInterior: Column.new('lighting_interior', true, true, :frac),
+    LightingExterior: Column.new('lighting_exterior', true, false, :frac),
+    LightingGarage: Column.new('lighting_garage', true, true, :frac),
+    LightingExteriorHoliday: Column.new('lighting_exterior_holiday', true, false, :frac),
+    CookingRange: Column.new('cooking_range', true, true, :frac),
+    Refrigerator: Column.new('refrigerator', true, false, :frac),
+    ExtraRefrigerator: Column.new('extra_refrigerator', true, false, :frac),
+    Freezer: Column.new('freezer', true, false, :frac),
+    Dishwasher: Column.new('dishwasher', true, true, :frac),
+    ClothesWasher: Column.new('clothes_washer', true, true, :frac),
+    ClothesDryer: Column.new('clothes_dryer', true, true, :frac),
+    CeilingFan: Column.new('ceiling_fan', true, true, :frac),
+    PlugLoadsOther: Column.new('plug_loads_other', true, true, :frac),
+    PlugLoadsTV: Column.new('plug_loads_tv', true, true, :frac),
+    PlugLoadsVehicle: Column.new('plug_loads_vehicle', true, false, :frac),
+    PlugLoadsWellPump: Column.new('plug_loads_well_pump', true, false, :frac),
+    FuelLoadsGrill: Column.new('fuel_loads_grill', true, false, :frac),
+    FuelLoadsLighting: Column.new('fuel_loads_lighting', true, false, :frac),
+    FuelLoadsFireplace: Column.new('fuel_loads_fireplace', true, false, :frac),
+    PoolPump: Column.new('pool_pump', true, false, :frac),
+    PoolHeater: Column.new('pool_heater', true, false, :frac),
+    PermanentSpaPump: Column.new('permanent_spa_pump', true, false, :frac),
+    PermanentSpaHeater: Column.new('permanent_spa_heater', true, false, :frac),
+    HotWaterDishwasher: Column.new('hot_water_dishwasher', false, true, :frac),
+    HotWaterClothesWasher: Column.new('hot_water_clothes_washer', false, true, :frac),
+    HotWaterFixtures: Column.new('hot_water_fixtures', true, true, :frac),
+    HotWaterRecirculationPump: Column.new('hot_water_recirculation_pump', true, false, :frac),
+    GeneralWaterUse: Column.new('general_water_use', true, false, :frac),
+    Sleeping: Column.new('sleeping', false, false, nil),
+    HeatingSetpoint: Column.new('heating_setpoint', false, false, :setpoint),
+    CoolingSetpoint: Column.new('cooling_setpoint', false, false, :setpoint),
+    WaterHeaterSetpoint: Column.new('water_heater_setpoint', false, false, :setpoint),
+    WaterHeaterOperatingMode: Column.new('water_heater_operating_mode', false, false, :zero_or_one),
+    Battery: Column.new('battery', false, false, :neg_one_to_one),
+    BatteryCharging: Column.new('battery_charging', false, false, nil),
+    BatteryDischarging: Column.new('battery_discharging', false, false, nil),
+    HVAC: Column.new('hvac', true, false, nil),
+    WaterHeater: Column.new('water_heater', true, false, nil),
+    Dehumidifier: Column.new('dehumidifier', true, false, nil),
+    KitchenFan: Column.new('kitchen_fan', true, false, nil),
+    BathFan: Column.new('bath_fan', true, false, nil),
+    HouseFan: Column.new('house_fan', true, false, nil),
+    WholeHouseFan: Column.new('whole_house_fan', true, false, nil),
+  }
 
   def initialize(runner: nil,
                  schedules_paths:,
@@ -1436,7 +1449,7 @@ class SchedulesFile
 
     @year = year
     import(schedules_paths)
-    battery_schedules
+    create_battery_charging_discharging_schedules
     expand_schedules
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_unavailable_periods(runner, unavailable_periods)
@@ -1468,6 +1481,7 @@ class SchedulesFile
       columns = CSV.read(schedules_path).transpose
       columns.each do |col|
         col_name = col[0]
+        column = Columns.values.find { |c| c.name == col_name }
 
         values = col[1..-1].reject { |v| v.nil? }
 
@@ -1481,19 +1495,19 @@ class SchedulesFile
           fail "Schedule column name '#{col_name}' is duplicated. [context: #{schedules_path}]"
         end
 
-        if max_value_one[col_name]
+        if column.type == :frac
           if values.max > 1.01 || values.max < 0.99 # Allow some imprecision
             fail "Schedule max value for column '#{col_name}' must be 1. [context: #{schedules_path}]"
           end
         end
 
-        if min_value_zero[col_name]
+        if column.type == :frac
           if values.min < 0
             fail "Schedule min value for column '#{col_name}' must be non-negative. [context: #{schedules_path}]"
           end
         end
 
-        if value_neg_one_to_one[col_name]
+        if column.type == :neg_one_to_one
           if values.min < -1
             fail "Schedule value for column '#{col_name}' must be greater than or equal to -1. [context: #{schedules_path}]"
           end
@@ -1502,7 +1516,7 @@ class SchedulesFile
           end
         end
 
-        if only_zeros_and_ones[col_name]
+        if column.type == :zero_or_one
           if values.any? { |v| v != 0 && v != 1 }
             fail "Schedule value for column '#{col_name}' must be either 0 or 1. [context: #{schedules_path}]"
           end
@@ -1761,28 +1775,26 @@ class SchedulesFile
 
       @tmp_schedules.keys.each do |schedule_name|
         next if column_names.include? schedule_name
-        next if SchedulesFile.OperatingModeColumnNames.include?(schedule_name)
-        next if SchedulesFile.BatteryColumnNames.include?(schedule_name)
 
         schedule_name2 = schedule_name
-        if [SchedulesFile::ColumnHotWaterDishwasher].include?(schedule_name)
-          schedule_name2 = SchedulesFile::ColumnDishwasher
-        elsif [SchedulesFile::ColumnHotWaterClothesWasher].include?(schedule_name)
-          schedule_name2 = SchedulesFile::ColumnClothesWasher
-        elsif [SchedulesFile::ColumnHeatingSetpoint, SchedulesFile::ColumnCoolingSetpoint].include?(schedule_name)
-          schedule_name2 = SchedulesFile::ColumnHVAC
-        elsif [SchedulesFile::ColumnWaterHeaterSetpoint].include?(schedule_name)
-          schedule_name2 = SchedulesFile::ColumnWaterHeater
+        if [SchedulesFile::Columns[:HotWaterDishwasher].name].include?(schedule_name)
+          schedule_name2 = SchedulesFile::Columns[:Dishwasher].name
+        elsif [SchedulesFile::Columns[:HotWaterClothesWasher].name].include?(schedule_name)
+          schedule_name2 = SchedulesFile::Columns[:ClothesWasher].name
+        elsif [SchedulesFile::Columns[:HeatingSetpoint].name, SchedulesFile::Columns[:CoolingSetpoint].name].include?(schedule_name)
+          schedule_name2 = SchedulesFile::Columns[:HVAC].name
+        elsif [SchedulesFile::Columns[:WaterHeaterSetpoint].name].include?(schedule_name)
+          schedule_name2 = SchedulesFile::Columns[:WaterHeater].name
         end
 
         # Skip those unaffected
         next unless Schedule.unavailable_period_applies(runner, schedule_name2, column_name)
 
         @tmp_schedules[column_name].each_with_index do |_ts, i|
-          if schedule_name == ColumnWaterHeaterSetpoint
+          if schedule_name == SchedulesFile::Columns[:WaterHeaterSetpoint].name
             # Temperature of tank < 2C indicates of possibility of freeze.
             @tmp_schedules[schedule_name][i] = UnitConversions.convert(2.0, 'C', 'F') if @tmp_schedules[column_name][i] == 1.0
-          elsif ![SchedulesFile::ColumnHeatingSetpoint, SchedulesFile::ColumnCoolingSetpoint].include?(schedule_name)
+          elsif ![SchedulesFile::Columns[:HeatingSetpoint].name, SchedulesFile::Columns[:CoolingSetpoint].name].include?(schedule_name)
             @tmp_schedules[schedule_name][i] *= (1.0 - @tmp_schedules[column_name][i])
           end
         end
@@ -1791,12 +1803,13 @@ class SchedulesFile
   end
 
   def convert_setpoints
-    return if @tmp_schedules.keys.none? { |k| SchedulesFile.SetpointColumnNames.include?(k) }
+    setpoint_col_names = Columns.values.select { |c| c.type == :setpoint }.map { |c| c.name }
+    return if @tmp_schedules.keys.none? { |k| setpoint_col_names.include?(k) }
 
     col_names = @tmp_schedules.keys
 
     @tmp_schedules[col_names[0]].each_with_index do |_ts, i|
-      SchedulesFile.SetpointColumnNames.each do |setpoint_col_name|
+      setpoint_col_names.each do |setpoint_col_name|
         next unless col_names.include?(setpoint_col_name)
 
         @tmp_schedules[setpoint_col_name][i] = UnitConversions.convert(@tmp_schedules[setpoint_col_name][i], 'f', 'c').round(4)
@@ -1804,139 +1817,19 @@ class SchedulesFile
     end
   end
 
-  def battery_schedules
-    return if !@schedules.keys.include?(SchedulesFile::ColumnBattery)
+  def create_battery_charging_discharging_schedules
+    battery_col_name = Columns[:Battery].name
+    return if !@schedules.keys.include?(battery_col_name)
 
-    @schedules[SchedulesFile::ColumnBatteryCharging] = Array.new(@schedules[SchedulesFile::ColumnBattery].size, 0)
-    @schedules[SchedulesFile::ColumnBatteryDischarging] = Array.new(@schedules[SchedulesFile::ColumnBattery].size, 0)
-    @schedules[SchedulesFile::ColumnBattery].each_with_index do |_ts, i|
-      if @schedules[SchedulesFile::ColumnBattery][i] > 0
-        @schedules[SchedulesFile::ColumnBatteryCharging][i] = @schedules[SchedulesFile::ColumnBattery][i]
-      elsif @schedules[SchedulesFile::ColumnBattery][i] < 0
-        @schedules[SchedulesFile::ColumnBatteryDischarging][i] = -1 * @schedules[SchedulesFile::ColumnBattery][i]
+    @schedules[SchedulesFile::Columns[:BatteryCharging].name] = Array.new(@schedules[battery_col_name].size, 0)
+    @schedules[SchedulesFile::Columns[:BatteryDischarging].name] = Array.new(@schedules[battery_col_name].size, 0)
+    @schedules[battery_col_name].each_with_index do |_ts, i|
+      if @schedules[battery_col_name][i] > 0
+        @schedules[SchedulesFile::Columns[:BatteryCharging].name][i] = @schedules[battery_col_name][i]
+      elsif @schedules[battery_col_name][i] < 0
+        @schedules[SchedulesFile::Columns[:BatteryDischarging].name][i] = -1 * @schedules[battery_col_name][i]
       end
     end
-    @schedules.delete(SchedulesFile::ColumnBattery)
-  end
-
-  def self.ColumnNames
-    return SchedulesFile.OccupancyColumnNames + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames + SchedulesFile.BatteryColumnNames
-  end
-
-  def self.OccupancyColumnNames
-    return [
-      ColumnOccupants,
-      ColumnLightingInterior,
-      ColumnLightingExterior,
-      ColumnLightingGarage,
-      ColumnLightingExteriorHoliday,
-      ColumnCookingRange,
-      ColumnRefrigerator,
-      ColumnExtraRefrigerator,
-      ColumnFreezer,
-      ColumnDishwasher,
-      ColumnClothesWasher,
-      ColumnClothesDryer,
-      ColumnCeilingFan,
-      ColumnPlugLoadsOther,
-      ColumnPlugLoadsTV,
-      ColumnPlugLoadsVehicle,
-      ColumnPlugLoadsWellPump,
-      ColumnFuelLoadsGrill,
-      ColumnFuelLoadsLighting,
-      ColumnFuelLoadsFireplace,
-      ColumnPoolPump,
-      ColumnPoolHeater,
-      ColumnPermanentSpaPump,
-      ColumnPermanentSpaHeater,
-      ColumnHotWaterDishwasher,
-      ColumnHotWaterClothesWasher,
-      ColumnHotWaterFixtures,
-      ColumnHotWaterRecirculationPump
-    ]
-  end
-
-  def self.HVACSetpointColumnNames
-    return [
-      ColumnHeatingSetpoint,
-      ColumnCoolingSetpoint
-    ]
-  end
-
-  def self.WaterHeaterColumnNames
-    return [
-      ColumnWaterHeaterSetpoint,
-      ColumnWaterHeaterOperatingMode
-    ]
-  end
-
-  def self.SetpointColumnNames
-    return [
-      ColumnHeatingSetpoint,
-      ColumnCoolingSetpoint,
-      ColumnWaterHeaterSetpoint
-    ]
-  end
-
-  def self.OperatingModeColumnNames
-    return [
-      ColumnWaterHeaterOperatingMode
-    ]
-  end
-
-  def self.BatteryColumnNames
-    return [
-      ColumnBattery,
-      ColumnBatteryCharging,
-      ColumnBatteryDischarging
-    ]
-  end
-
-  def max_value_one
-    max_value_one = {}
-    column_names = SchedulesFile.ColumnNames
-    column_names.each do |column_name|
-      max_value_one[column_name] = true
-      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name) || SchedulesFile.BatteryColumnNames.include?(column_name)
-        max_value_one[column_name] = false
-      end
-    end
-    return max_value_one
-  end
-
-  def min_value_zero
-    min_value_zero = {}
-    column_names = SchedulesFile.ColumnNames
-    column_names.each do |column_name|
-      min_value_zero[column_name] = true
-      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name) || SchedulesFile.BatteryColumnNames.include?(column_name)
-        min_value_zero[column_name] = false
-      end
-    end
-    return min_value_zero
-  end
-
-  def value_neg_one_to_one
-    value_neg_one_to_one = {}
-    column_names = SchedulesFile.ColumnNames
-    column_names.each do |column_name|
-      value_neg_one_to_one[column_name] = false
-      if column_name == SchedulesFile::ColumnBattery
-        value_neg_one_to_one[column_name] = true
-      end
-    end
-    return value_neg_one_to_one
-  end
-
-  def only_zeros_and_ones
-    only_zeros_and_ones = {}
-    column_names = SchedulesFile.ColumnNames
-    column_names.each do |column_name|
-      only_zeros_and_ones[column_name] = false
-      if SchedulesFile.OperatingModeColumnNames.include?(column_name)
-        only_zeros_and_ones[column_name] = true
-      end
-    end
-    return only_zeros_and_ones
+    @schedules.delete(battery_col_name)
   end
 end

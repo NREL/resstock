@@ -62,7 +62,7 @@ class Lighting
 
       # Create schedule
       interior_sch = nil
-      interior_col_name = SchedulesFile::ColumnLightingInterior
+      interior_col_name = SchedulesFile::Columns[:LightingInterior].name
       interior_obj_name = Constants.ObjectNameLightingInterior
       if not schedules_file.nil?
         design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: interior_col_name, annual_kwh: int_kwh)
@@ -101,7 +101,7 @@ class Lighting
 
       # Create schedule
       garage_sch = nil
-      garage_col_name = SchedulesFile::ColumnLightingGarage
+      garage_col_name = SchedulesFile::Columns[:LightingGarage].name
       garage_obj_name = Constants.ObjectNameLightingGarage
       if not schedules_file.nil?
         design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: garage_col_name, annual_kwh: grg_kwh)
@@ -137,7 +137,7 @@ class Lighting
 
       # Create schedule
       exterior_sch = nil
-      exterior_col_name = SchedulesFile::ColumnLightingExterior
+      exterior_col_name = SchedulesFile::Columns[:LightingExterior].name
       exterior_obj_name = Constants.ObjectNameLightingExterior
       if not schedules_file.nil?
         design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: exterior_col_name, annual_kwh: ext_kwh)
@@ -169,7 +169,7 @@ class Lighting
 
       # Create schedule
       exterior_holiday_sch = nil
-      exterior_holiday_col_name = SchedulesFile::ColumnLightingExteriorHoliday
+      exterior_holiday_col_name = SchedulesFile::Columns[:LightingExteriorHoliday].name
       exterior_holiday_obj_name = Constants.ObjectNameLightingExteriorHoliday
       exterior_holiday_kwh_per_day = lighting.holiday_kwh_per_day * unit_multiplier
       if not schedules_file.nil?
