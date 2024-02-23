@@ -482,12 +482,18 @@ Arguments
      - Boolean
      - "true", "false"
      - Whether there are any ceiling fans.
+   * - ``ceiling_fan_label_energy_use``
+     - false
+     - W
+     - Double
+     - "auto"
+     - The label average energy use of the ceiling fan(s). If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
    * - ``ceiling_fan_efficiency``
      - false
      - CFM/W
      - Double
      - "auto"
-     - The efficiency rating of the ceiling fan(s) at medium speed. If not provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
+     - The efficiency rating of the ceiling fan(s) at medium speed. Only used if Label Energy Use not provided. If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
    * - ``ceiling_fan_quantity``
      - false
      - #
@@ -3548,6 +3554,12 @@ Arguments
      - Choice
      - "auto", "ACCA", "HERS", "MaxLoad"
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
+   * - ``heat_pump_backup_sizing_methodology``
+     - false
+     - 
+     - Choice
+     - "auto", "emergency", "supplemental"
+     - The auto-sizing methodology to use when the heat pump backup capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``heat_pump_is_ducted``
      - false
      - 
@@ -3984,6 +3996,12 @@ Arguments
      - Choice
      - "auto", "ACCA", "HERS", "MaxLoad"
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
+   * - ``heat_pump_backup_sizing_methodology``
+     - false
+     - 
+     - Choice
+     - "auto", "emergency", "supplemental"
+     - The auto-sizing methodology to use when the heat pump backup capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``geothermal_loop_configuration``
      - false
      - 
@@ -6712,6 +6730,12 @@ Arguments
      - Double
      -
      - The number of occupants in the unit. If not provided, an *asset* calculation is performed assuming standard occupancy, in which various end use defaults (e.g., plug loads, appliances, and hot water usage) are calculated based on Number of Bedrooms and Conditioned Floor Area per ANSI/RESNET/ICC 301-2019. If provided, an *operational* calculation is instead performed in which the end use defaults are adjusted using the relationship between Number of Bedrooms and Number of Occupants from RECS 2015.
+   * - ``general_water_use_usage_multiplier``
+     - false
+     - 
+     - Double
+     - "auto"
+     - Multiplier on internal gains from general water use (floor mopping, shower evaporation, water films on showers, tubs & sinks surfaces, plant watering, etc.) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Building Occupancy <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-building-occupancy>`_) is used.
 
 .. _orientation:
 
@@ -7749,12 +7773,12 @@ Arguments
      - Type
      - Choices
      - Description
-   * - ``schedules_vacancy_period``
+   * - ``schedules_vacancy_periods``
      - false
      - 
      - String
      -
-     - Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).
+     - Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.
 
 .. _vintage:
 
