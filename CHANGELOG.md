@@ -7,6 +7,7 @@ Features
 - Include additional 2022 Cambium 25-year LRMER emissions data ([#1194](https://github.com/NREL/resstock/pull/1194))
 - Add optional switch to BuildExistingModel (defaulted to false) for modeling whole SFA/MF buildings ([#1200](https://github.com/NREL/resstock/pull/1200))
 - Update hot water usage multipliers based on field data rather than engineering judgement ([#1210](https://github.com/NREL/resstock/pull/1210))
+- Add Metropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv ([#1212](https://github.com/NREL/resstock/pull/1212))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
