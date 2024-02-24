@@ -813,8 +813,7 @@ def _plot_bar(
     fig, ax = plt.subplots()
     dfi.plot(kind="bar", ax=ax)
     if output_dir is not None:
-        metric_cols
-        metric = "__by__".join(groupby_cols + metric_cols)
+        metric = "__by__".join(groupby_cols + metric_cols).replace("build_existing_model.", "")
         fig.savefig(output_dir / f"bar_{metric}.png", dpi=400, bbox_inches="tight")
         dfi.to_csv(output_dir / f"data__bar_{metric}.csv", index=True)
     plt.close()
@@ -841,7 +840,7 @@ def _plot_bar_stacked(
     ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
     ax.set_title(f"Saturation of {metric_cols[0]}")
     if output_dir is not None:
-        metric = "__by__".join(groupby_cols + metric_cols)
+        metric = "__by__".join(groupby_cols + metric_cols).replace("build_existing_model.", "")
         fig.savefig(
             output_dir / f"stacked_bar_{metric}.png", dpi=400, bbox_inches="tight"
         )

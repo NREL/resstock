@@ -35,9 +35,8 @@ setuptools.setup(
         "scipy",
         "openpyxl",
         "matplotlib",
-        "scikit-learn",
+        "scikit-learn", # ==0.24.2,
         "seaborn",
-        # "scikit-learn==0.24.2",
         "xgboost==2.0.1",
     ], # pip install -e .
     extras_require={

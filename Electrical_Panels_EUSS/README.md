@@ -3,10 +3,15 @@ This branch is under active development and may be subject to change. This branc
 
 ## Environment
 
-Start a conda environment with python>=3.10:
+Create a conda environment with the following:
 
 ```
-conda env create -n panels -f env.yml
+conda env create -n panels -f env.yml 
+conda activate panels
+```
+Note: to create the conda env in a specific folder, use the -p flag, like so:
+```
+conda env create -p <full_path_to_your_envs/panels> -f env.yml 
 conda activate panels
 ```
 
