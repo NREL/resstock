@@ -831,7 +831,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       dishwasher_full_load_operation_hour = (dishwasher_full_load_operation * hour_each_value).to_s
       dishwasher_operation_hour = (dishwasher_operation * hour_each_value).to_s
       dishwasher_event_num = (dishwasher_event_num).to_s
-      register_value(runner, 'dishwaser_full_load_operation_hour', dishwasher_full_load_operation_hour)
+      register_value(runner, 'dishwasher_full_load_operation_hour', dishwasher_full_load_operation_hour)
       register_value(runner, 'dishwasher_operation_hour', dishwasher_operation_hour)
       register_value(runner, 'dishwasher_event_num', dishwasher_event_num)
 

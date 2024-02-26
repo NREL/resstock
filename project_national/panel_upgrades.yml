@@ -3,9 +3,10 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_upgrades
-weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+output_directory: /kfs2/projects/panels/test_run/test_run_20240126
+#weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
+
 
 sampler:
   type: residential_quota
@@ -592,6 +593,12 @@ references:
           - or:
             - Clothes Dryer|Gas
             - Clothes Dryer|Propane
+        costs:
+          - value: 718 # Cheaper of top-ranked electric dryer on Consumer Reports, is full-size
+                       # https://www.homedepot.com/p/GE-7-4-cu-ft-Electric-Dryer-with-Sensor-Dry-in-White-GTD58EBSVWS/324668239
+                       # It is $578 at big box stores as of Feb 2024, $718 = $578 * 1.07 sales tax + $100 delivery/install
+            multiplier: Fixed (1)
+        lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
 
     #### 5 Electric Pool Heater And Hot Tub Spa Heater, 2 options  ####
       - &electric_pool_heaters 
@@ -915,58 +922,6 @@ upgrades:
       - *electric_pool_heaters 
       - *electric_spa_heaters
 
-  - upgrade_name: 1.6. Low-voltage Electrification 
-    options:
-    #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
-      - *heating_fuel
-      - *cooling_efficiency_ducted
-      - *cooling_efficiency_ductless
-      - *100_percent_conditioned
-      - *cooling_setpoint_offset_magnitude_0
-      - *cooling_setpoint_offset_period_none
-      - *heating_setpoint_offset_magnitude_0
-      - *heating_setpoint_offset_period_none
-    #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
-      - *fed_min_ashp_ducted
-      - *fed_min_mshp_ductless
-    #### 2.1 Electric Water Heating, 4 options #### ##TO DO evise it to 120V HPWH
-      - *water_heater_fuel_eff_premium
-      - *water_heater_fuel_eff_standard
-      - *water_heater_fuel_eff_tankless
-    #### 3 Electric Resistance Cooking, 1 option  ####
-      - *electric_resistance_cooking
-    #### 4 Electric Clothes Dryer, 1 options  ####
-      - *clothes_dryer_electric 
-    #### 5 Electric Pool Heater And Hot Tub Spa Heater, 2 options  ####
-      - *electric_pool_heaters 
-      - *electric_spa_heaters 
-
-  - upgrade_name: 1.7. High Efficiency and Low-voltage Electrification  
-    options:
-    #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
-      - *heating_fuel
-      - *cooling_efficiency_ducted
-      - *cooling_efficiency_ductless
-      - *100_percent_conditioned
-      - *cooling_setpoint_offset_magnitude_0
-      - *cooling_setpoint_offset_period_none
-      - *heating_setpoint_offset_magnitude_0
-      - *heating_setpoint_offset_period_none
-    #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
-      - *high_eff_ashp_ducted
-      - *high_eff_mshp_ductless
-    #### 2.2 240V HPWH, 3 options  #### ## TO DO revise to 120V HPWH
-      - *240V_hpwh_50_gal
-      - *240V_hpwh_66_gal
-      - *240V_hpwh_80_gal
-    #### 3 Electric Resistance Cooking, 1 option  ####
-      - *electric_resistance_cooking
-    #### 4 Electric Clothes Dryer, 1 options  ####
-      - *clothes_dryer_electric 
-    #### 5 Electric Pool Heater And Hot Tub Spa Heater, 2 options  ####
-      - *electric_pool_heaters 
-      - *electric_spa_heaters
-
   - upgrade_name: 1.8 BAU Electrification with Existing Fuel Backup
     options:
     #### 1.0 Common Options For Heat Pump with existing backup, 8 options ####
@@ -1174,82 +1129,6 @@ upgrades:
       - *ducts_category6
       - *ducts_category7 
       - *drill_and_fill
-
-  - upgrade_name: 2.5 Low-voltage Electrification with Envelope 
-    options:
-    #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
-      - *heating_fuel
-      - *cooling_efficiency_ducted
-      - *cooling_efficiency_ductless
-      - *100_percent_conditioned
-      - *cooling_setpoint_offset_magnitude_0
-      - *cooling_setpoint_offset_period_none
-      - *heating_setpoint_offset_magnitude_0
-      - *heating_setpoint_offset_period_none
-    #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
-      - *fed_min_ashp_ducted
-      - *fed_min_mshp_ductless
-    #### 2.1 Electric Water Heating, 3 options #### ##TO DO evise it to 120V HPWH
-      - *water_heater_fuel_eff_premium
-      - *water_heater_fuel_eff_standard
-      - *water_heater_fuel_eff_tankless
-    #### 3 Electric Resistance Cooking, 1 option  ####
-      - *electric_resistance_cooking
-    #### 4 Electric Clothes Dryer, 1 options  ####
-      - *clothes_dryer_electric 
-    #### 5 Electric Pool Heater And Hot Tub Spa Heater, 2 options  ####
-      - *electric_pool_heaters 
-      - *electric_spa_heaters
-    #### 6 Envelope, 12 options ####
-      - *attic_insulation_IECC_CZ1A
-      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
-      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B-7AK-8AK
-      - *infiltration_30pct_reduction
-      - *ducts_category1
-      - *ducts_category3
-      - *ducts_category4 
-      - *ducts_category5
-      - *ducts_category6
-      - *ducts_category7 
-      - *drill_and_fill
-
-  - upgrade_name: 2.6 High Efficiency and Low-voltage Electrification with Envelope  
-    options:
-    #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
-      - *heating_fuel
-      - *cooling_efficiency_ducted
-      - *cooling_efficiency_ductless
-      - *100_percent_conditioned
-      - *cooling_setpoint_offset_magnitude_0
-      - *cooling_setpoint_offset_period_none
-      - *heating_setpoint_offset_magnitude_0
-      - *heating_setpoint_offset_period_none
-    #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
-      - *high_eff_ashp_ducted
-      - *high_eff_mshp_ductless
-    #### 2.2 240V HPWH, 3 options  #### ## TO DO revise to 120V HPWH
-      - *240V_hpwh_50_gal
-      - *240V_hpwh_66_gal
-      - *240V_hpwh_80_gal
-    #### 3 Electric Resistance Cooking, 1 option  ####
-      - *electric_resistance_cooking
-    #### 4 Electric Clothes Dryer, 1 options  ####
-      - *clothes_dryer_electric 
-    #### 5 Electric Pool Heater And Hot Tub Spa Heater, 2 options  ####
-      - *electric_pool_heaters 
-      - *electric_spa_heaters
-    #### 6 Envelope, 12 options ####
-      - *attic_insulation_IECC_CZ1A
-      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
-      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B-7AK-8AK
-      - *infiltration_30pct_reduction
-      - *ducts_category1
-      - *ducts_category3
-      - *ducts_category4 
-      - *ducts_category5
-      - *ducts_category6
-      - *ducts_category7 
-      - *drill_and_fill
   
   - upgrade_name: 2.7 BAU Electrification with Existing Fuel Backup with Envelope
     options:
@@ -1319,12 +1198,23 @@ upgrades:
       - *ducts_category7 
       - *drill_and_fill 
   
-eagle:
-  n_jobs: 3
-  minutes_per_sim: 5
-  account: <account you are authorized to use>
-  postprocessing:
-    time: 20
-    n_workers: 1
+kestrel:
+  n_jobs: 40  #240 for 550K
+  minutes_per_sim: 4
+  account: panels
   sampling:
-    time: 10
+    time: 1000
+  postprocessing:
+    time: 2000
+    n_workers: 32
+
+postprocessing:
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: resstock-panels
+      prefix: resstock-panels_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: resstock_panels 
+      max_crawling_time: 1200
