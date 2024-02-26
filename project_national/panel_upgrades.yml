@@ -574,7 +574,7 @@ references:
     #### 3 Electric Resistance Cooking, 1 option  ####
       - &electric_resistance_cooking
         option: Cooking Range|Electric Resistance
-        apply_logic:
+        apply_logic: &logic_cooking
           - or:
             - Cooking Range|Gas
             - Cooking Range|Propane
@@ -589,7 +589,7 @@ references:
     #### 4 Electric Clothes Dryer, 1 option  ####
       - &clothes_dryer_electric 
         option: Clothes Dryer|Electric
-        apply_logic:
+        apply_logic: &logic_dryer
           - or:
             - Clothes Dryer|Gas
             - Clothes Dryer|Propane
@@ -603,7 +603,7 @@ references:
     #### 5 Electric Pool Heater And Hot Tub Spa Heater, 2 options  ####
       - &electric_pool_heaters 
         option: Misc Pool Heater|Electricity
-        apply_logic:
+        apply_logic: &logic_pool_heater
           - or:
             - Misc Pool Heater|Natural Gas
             - Misc Pool Heater|Other Fuel
@@ -615,10 +615,10 @@ references:
         lifetime: 15
       - &electric_spa_heaters 
         option: Misc Hot Tub Spa|Electricity
-        apply_logic:
+        apply_logic: &logic_spa_heater
           - or:
             - Misc Hot Tub Spa|Natural Gas
-            - Misc Pool Heater|Other Fuel
+            - Misc Hot Tub Spa|Other Fuel
         costs:
           - value: 2760 # https://lesliespool.com/raypak-model-0018-e3t-electric-3-series-titanium-pool-spa-heater---18kw---61419-btu-hr/382735.html
                         # installation $310 - varies on state and zip code between 228 and 400 USD
@@ -795,6 +795,50 @@ references:
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
 
+    #### package apply logic #####    
+    package_apply_logic: &with_heat_pump_ele_backup
+      - or:
+        - and:
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not:
+            - HVAC Heating Type And Fuel|Electricity ASHP
+            - HVAC Heating Type And Fuel|Electricity MSHP
+        - not: Water Heater Fuel|Electricity
+        - *logic_cooking
+        - *logic_dryer
+        - *logic_pool_heater
+        - *logic_spa_heater        
+    package_apply_logic: &with_heat_pump_existing_backup
+      - or:
+        - and:
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not:
+            - HVAC Heating Type And Fuel|Electricity ASHP
+            - HVAC Heating Type And Fuel|Electricity MSHP
+          - HVAC Has Shared System|None
+        - not: Water Heater Fuel|Electricity
+        - *logic_cooking
+        - *logic_dryer
+        - *logic_pool_heater
+        - *logic_spa_heater
+    package_apply_logic: &with_heat_pump_ele_backup_hpwh
+      - or:
+        - and:
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not:
+            - HVAC Heating Type And Fuel|Electricity ASHP
+            - HVAC Heating Type And Fuel|Electricity MSHP
+        - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+        - *logic_cooking
+        - *logic_dryer
+        - *logic_pool_heater
+        - *logic_spa_heater
       
 upgrades:
   - upgrade_name: 1.1 Inefficient Electrification
@@ -979,6 +1023,7 @@ upgrades:
       - *electric_spa_heaters 
 
   - upgrade_name: 2.1. BAU Electrification with Envelope 
+    package_apply_logic: *with_heat_pump_ele_backup
     options:
     #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
       - *heating_fuel
@@ -1017,6 +1062,7 @@ upgrades:
       - *drill_and_fill
   
   - upgrade_name: 2.2 BAU Electrification with HPWH with Envelope
+    package_apply_logic: *with_heat_pump_ele_backup_hpwh
     options:
     #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
       - *heating_fuel
@@ -1055,6 +1101,7 @@ upgrades:
       - *drill_and_fill
 
   - upgrade_name: 2.3 High Efficiency Space Heating Electrification with Envelope 
+    package_apply_logic: *with_heat_pump_ele_backup
     options:
     #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
       - *heating_fuel
@@ -1093,6 +1140,7 @@ upgrades:
       - *drill_and_fill
 
   - upgrade_name: 2.4 High Efficiency Space Heating Electrification With HPWH with Envelope  
+    package_apply_logic: *with_heat_pump_ele_backup_hpwh
     options:
     #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
       - *heating_fuel
@@ -1131,6 +1179,7 @@ upgrades:
       - *drill_and_fill
   
   - upgrade_name: 2.7 BAU Electrification with Existing Fuel Backup with Envelope
+    package_apply_logic: *with_heat_pump_existing_backup
     options:
     #### 1.0 Common Options For Heat Pump with existing backup, 8 options ####
       - *hp_exist_bkup_heating_fuel
