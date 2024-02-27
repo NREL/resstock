@@ -3,20 +3,20 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_upgrades_HPs
-weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+output_directory:  /projects/heatpump/test_runs/n_500_20240227_v1
+# weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 5
+    n_datapoints: 500
 
 workflow_generator:
   type: residential_hpxml
   args:
     build_existing_model:
-      simulation_control_timestep: 60
+      simulation_control_timestep: 15
       simulation_control_run_period_begin_month: 1
       simulation_control_run_period_begin_day_of_month: 1
       simulation_control_run_period_end_month: 12
@@ -53,8 +53,34 @@ workflow_generator:
       - measure_dir_name: QOIReport
 
     server_directory_cleanup:
-      retain_in_idf: false
+      retain_in_idf: true
       retain_schedules_csv: false
+
+kestrel:
+  n_jobs: 10
+  minutes_per_sim: 5
+  account: heatpump
+  postprocessing:
+    time: 80
+    n_workers: 1
+  sampling:
+    time: 20
+
+postprocessing:
+  keep_individual_timeseries: true
+  # partition_columns:
+  #   - State
+  #   - County
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: heat-pump-deployment
+      prefix: test_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: heatpumpdeployment
+      max_crawling_time: 1200
+
 
 baseline:
   n_buildings_represented: 139647020 # American Community Survey 2021 5-year, B25001, does not include territories ( 138765649 without AK and HI )
