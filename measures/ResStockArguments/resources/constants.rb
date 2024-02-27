@@ -30,8 +30,6 @@ class Constants
             'cooling_system_charge_defect_ratio',
             'heat_pump_airflow_defect_ratio',
             'heat_pump_charge_defect_ratio',
-            'misc_plug_loads_television_annual_kwh',
-            'misc_plug_loads_television_usage_multiplier',
             'pv_system_num_bedrooms_served',
             'battery_num_bedrooms_served',
             'occupancy_calculation_type',
