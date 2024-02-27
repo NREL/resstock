@@ -41,7 +41,7 @@ class Constants
 
   def self.ERIVersions
     return ['2014', '2014A', '2014AE', '2014AEG', '2019', '2019A',
-            '2019AB', '2019ABC', '2019ABCD']
+            '2019AB', '2019ABC', '2019ABCD', '2022', '2022C']
   end
 
   def self.FacadeFront
@@ -178,6 +178,18 @@ class Constants
 
   def self.ObjectNameFurnace
     return 'furnace'
+  end
+
+  def self.ObjectNameGeneralWaterUse
+    return 'general water use'
+  end
+
+  def self.ObjectNameGeneralWaterUseLatent
+    return 'general water use latent'
+  end
+
+  def self.ObjectNameGeneralWaterUseSensible
+    return 'general water use sensible'
   end
 
   def self.ObjectNameGroundSourceHeatPump
@@ -358,14 +370,6 @@ class Constants
 
   def self.ObjectNameWaterHeaterSetpoint
     return 'water heater setpoint'
-  end
-
-  def self.ObjectNameWaterLatent
-    return 'water latent'
-  end
-
-  def self.ObjectNameWaterSensible
-    return 'water sensible'
   end
 
   def self.ObjectNameWaterHeaterAdjustment
