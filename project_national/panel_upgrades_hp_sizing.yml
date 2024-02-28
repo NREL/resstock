@@ -3,7 +3,7 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /kfs2/projects/panels/test_run/test_run_20240126
+output_directory: /kfs2/projects/panels/test_run/hp_sizing_test_run_20240228
 #weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
@@ -107,7 +107,7 @@ references:
             - *logic_ducted_hvac_no_ashp
             - *logic_ductless_hvac_no_mshp
 
-    #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
+    #### 1.2 Federal Minimum Heat Pump With Electric Backup Max Load, 2 options  ####
       - &fed_min_ashp_ducted
         option: HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, Max Load, Supplemental Backup Sizing # same as base option
         apply_logic:
@@ -148,7 +148,7 @@ references:
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_HP
       
-    #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
+    #### 1.4 High-Efficiency Heat Pump With Electric Backup Max Load, 2 options  ####
       - &high_eff_ashp_ducted
         option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Max Load, Supplemental Backup Sizing
         apply_logic:
@@ -188,6 +188,52 @@ references:
           - value: 369.43
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_HP
+    
+    #### 1.2 Federal Minimum Heat Pump With Electric Backup HERS, 2 options  ####
+      - &fed_min_ashp_ducted_hers
+        option: HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, HERS, Supplemental Backup Sizing # same as base option
+        apply_logic:
+          - HVAC Has Ducts|Yes
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not: HVAC Heating Type And Fuel|Electricity ASHP
+        costs: *costs_ashp_ducted_8-82_HSPF
+        lifetime: *lifetime_HP
+
+      - &fed_min_mshp_ductless_hers
+        option: HVAC Heating Efficiency|MSHP, SEER 14.5, 8.33 HSPF, HERS, Supplemental Backup Sizing # federal minimum is SEER 14.3, but 14.5 is lowest SEER in baseline ResStock
+        apply_logic:
+          - HVAC Has Ducts|No
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not: HVAC Heating Type And Fuel|Electricity MSHP
+        costs: *costs_mshp_ductless_8-33_HSPF
+        lifetime: *lifetime_HP
+      
+    #### 1.4 High-Efficiency Heat Pump With Electric Backup HERS, 2 options  ####
+      - &high_eff_ashp_ducted_hers
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, HERS, Supplemental Backup Sizing
+        apply_logic:
+          - HVAC Has Ducts|Yes
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not: HVAC Heating Type And Fuel|Electricity ASHP
+        costs: *costs_ashp_ducted_SEER_20_11_HSPF
+        lifetime: *lifetime_HP
+
+      - &high_eff_mshp_ductless_hers
+        option: HVAC Heating Efficiency|MSHP, SEER 20, 11 HSPF, CCHP, HERS, Supplemental Backup Sizing
+        apply_logic:
+          - HVAC Has Ducts|No
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not: HVAC Heating Type And Fuel|Electricity MSHP
+        costs: *costs_mshp_ductless_SEER_20_11_HSPF
+        lifetime: *lifetime_HP
       
 upgrades:
   - upgrade_name: Federal Minimum Heat Pump With Electric Backup MaxLoad Sizing
@@ -219,6 +265,36 @@ upgrades:
     #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
       - *high_eff_ashp_ducted
       - *high_eff_mshp_ductless
+      
+  - upgrade_name: Federal Minimum Heat Pump With Electric Backup HERS Sizing
+    options:
+    #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
+      - *heating_fuel
+      - *cooling_efficiency_ducted
+      - *cooling_efficiency_ductless
+      - *100_percent_conditioned
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+    #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
+      - *fed_min_ashp_ducted_hers
+      - *fed_min_mshp_ductless_hers
+  
+  - upgrade_name: High-Efficiency Heat Pump With Electric Backup HERS Sizing
+    options:
+    #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
+      - *heating_fuel
+      - *cooling_efficiency_ducted
+      - *cooling_efficiency_ductless
+      - *100_percent_conditioned
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+    #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
+      - *high_eff_ashp_ducted_hers
+      - *high_eff_mshp_ductless_hers
 
 kestrel:
   n_jobs: 40  #240 for 550K
