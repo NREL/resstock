@@ -7146,6 +7146,12 @@ Arguments
      - Type
      - Choices
      - Description
+   * - ``misc_plug_loads_television_2_usage_multiplier``
+     - true
+     - 
+     - Double
+     -
+     - Additional multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.
    * - ``misc_plug_loads_other_2_usage_multiplier``
      - true
      - 
@@ -7198,6 +7204,18 @@ Arguments
      - Boolean
      - "true", "false"
      - Whether there are televisions.
+   * - ``misc_plug_loads_television_annual_kwh``
+     - false
+     - kWh/yr
+     - Double
+     - "auto"
+     - The annual energy consumption of the television plug loads. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
+   * - ``misc_plug_loads_television_usage_multiplier``
+     - false
+     - 
+     - Double
+     - "auto"
+     - Multiplier on the television energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
    * - ``misc_plug_loads_other_annual_kwh``
      - false
      - kWh/yr
