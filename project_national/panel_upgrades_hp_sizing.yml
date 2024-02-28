@@ -1,0 +1,242 @@
+schema_version: '0.3'
+os_version: 3.7.0
+os_sha: d5269793f1
+buildstock_directory: ../ # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /kfs2/projects/panels/test_run/test_run_20240126
+#weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
+
+
+sampler:
+  type: precomputed
+  args:
+    sample_file: buildstock_hp_sizing.csv
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 15
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    simulation_output_report:
+      timeseries_frequency: timestep
+      include_timeseries_total_consumptions: true
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_emission_fuels: true
+      include_timeseries_emission_end_uses: true
+      include_timeseries_hot_water_uses: true
+      include_timeseries_total_loads: true
+      include_timeseries_component_loads: true
+      include_timeseries_unmet_hours: true
+      include_timeseries_zone_temperatures: true
+      include_timeseries_airflows: true
+      include_timeseries_weather: true
+      include_timeseries_resilience: true
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+baseline:
+  n_buildings_represented: 140382740 # American Community Survey 2022 5-year, B25001, contiguous US + AK
+
+references:
+
+    options:
+    #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
+      - &heating_fuel
+        option: Heating Fuel|Electricity
+        apply_logic:
+          - not: Heating Fuel|None
+          - not: Heating Fuel|Electricity
+      - &cooling_efficiency_ducted
+        option: HVAC Cooling Efficiency|Ducted Heat Pump
+        apply_logic: &logic_ducted_hvac_no_ashp
+          - HVAC Has Ducts|Yes
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not: HVAC Heating Type And Fuel|Electricity ASHP      
+      - &cooling_efficiency_ductless
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+        apply_logic: &logic_ductless_hvac_no_mshp
+          - HVAC Has Ducts|No
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not: HVAC Heating Type And Fuel|Electricity MSHP
+      - &100_percent_conditioned
+        option: HVAC Cooling Partial Space Conditioning|100% Conditioned
+        apply_logic:
+          - or:
+            - *logic_ducted_hvac_no_ashp
+            - *logic_ductless_hvac_no_mshp
+      - &cooling_setpoint_offset_magnitude_0
+        option: Cooling Setpoint Offset Magnitude|0F
+        apply_logic:
+          - or:
+            - *logic_ducted_hvac_no_ashp
+            - *logic_ductless_hvac_no_mshp      
+      - &cooling_setpoint_offset_period_none
+        option: Cooling Setpoint Offset Period|None
+        apply_logic:
+          - or:
+            - *logic_ducted_hvac_no_ashp
+            - *logic_ductless_hvac_no_mshp
+      - &heating_setpoint_offset_magnitude_0
+        option: Heating Setpoint Offset Magnitude|0F
+        apply_logic:
+          - or:
+            - *logic_ducted_hvac_no_ashp
+            - *logic_ductless_hvac_no_mshp     
+      - &heating_setpoint_offset_period_none
+        option: Heating Setpoint Offset Period|None
+        apply_logic:
+          - or:
+            - *logic_ducted_hvac_no_ashp
+            - *logic_ductless_hvac_no_mshp
+
+    #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
+      - &fed_min_ashp_ducted
+        option: HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, Max Load, Supplemental Backup Sizing # same as base option
+        apply_logic:
+          - HVAC Has Ducts|Yes
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not: HVAC Heating Type And Fuel|Electricity ASHP
+        costs: &costs_ashp_ducted_8-82_HSPF
+        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+          - value: 3680.19 # for HSPF 8.82
+            multiplier: Fixed (1)
+          - value: 167.64
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_HP 15
+
+      - &fed_min_mshp_ductless
+        option: HVAC Heating Efficiency|MSHP, SEER 14.5, 8.33 HSPF, Max Load, Supplemental Backup Sizing # federal minimum is SEER 14.3, but 14.5 is lowest SEER in baseline ResStock
+        apply_logic:
+          - HVAC Has Ducts|No
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not: HVAC Heating Type And Fuel|Electricity MSHP
+        costs: &costs_mshp_ductless_8-33_HSPF
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
+        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
+          - value: 2679.52
+            multiplier: Fixed (1)
+          - value: 347.97
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: *lifetime_HP
+      
+    #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
+      - &high_eff_ashp_ducted
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Max Load, Supplemental Backup Sizing
+        apply_logic:
+          - HVAC Has Ducts|Yes
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not: HVAC Heating Type And Fuel|Electricity ASHP
+        costs: &costs_ashp_ducted_SEER_20_11_HSPF
+        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+          - value: 10229.58 # for HSPF 11
+            multiplier: Fixed (1)
+          - value: 167.64
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: *lifetime_HP
+
+      - &high_eff_mshp_ductless
+        option: HVAC Heating Efficiency|MSHP, SEER 20, 11 HSPF, CCHP, Max Load, Supplemental Backup Sizing
+        apply_logic:
+          - HVAC Has Ducts|No
+          - not:
+            - Heating Fuel|None
+            - HVAC Cooling Type|None
+          - not: HVAC Heating Type And Fuel|Electricity MSHP
+        costs: &costs_mshp_ductless_SEER_20_11_HSPF
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
+        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
+          - value: 2844.81
+            multiplier: Fixed (1)
+          - value: 369.43
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: *lifetime_HP
+      
+upgrades:
+  - upgrade_name: Federal Minimum Heat Pump With Electric Backup MaxLoad Sizing
+    options:
+    #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
+      - *heating_fuel
+      - *cooling_efficiency_ducted
+      - *cooling_efficiency_ductless
+      - *100_percent_conditioned
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+    #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
+      - *fed_min_ashp_ducted
+      - *fed_min_mshp_ductless
+  
+  - upgrade_name: High-Efficiency Heat Pump With Electric Backup MaxLoad Sizing
+    options:
+    #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
+      - *heating_fuel
+      - *cooling_efficiency_ducted
+      - *cooling_efficiency_ductless
+      - *100_percent_conditioned
+      - *cooling_setpoint_offset_magnitude_0
+      - *cooling_setpoint_offset_period_none
+      - *heating_setpoint_offset_magnitude_0
+      - *heating_setpoint_offset_period_none
+    #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
+      - *high_eff_ashp_ducted
+      - *high_eff_mshp_ductless
+
+kestrel:
+  n_jobs: 40  #240 for 550K
+  minutes_per_sim: 4
+  account: panels
+  sampling:
+    time: 1000
+  postprocessing:
+    time: 2000
+    n_workers: 32
+
+postprocessing:
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: resstock-panels
+      prefix: resstock-panels_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: resstock_panels 
+      max_crawling_time: 1200
