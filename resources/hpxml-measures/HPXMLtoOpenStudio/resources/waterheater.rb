@@ -87,7 +87,7 @@ class Waterheater
     if not schedules_file.nil?
       # To handle variable setpoints, need one schedule that gets sensed and a new schedule that gets actuated
       # Sensed schedule
-      setpoint_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnWaterHeaterSetpoint)
+      setpoint_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
       if not setpoint_schedule.nil?
         Schedule.set_schedule_type_limits(model, setpoint_schedule, Constants.ScheduleTypeLimitsTemperature)
 
@@ -102,7 +102,7 @@ class Waterheater
 
       control_setpoint_schedule = setpoint_schedule
     else
-      runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterSetpoint}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
+      runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterSetpoint].name}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
     end
 
     airflow_rate = 181.0 # cfm
@@ -970,7 +970,7 @@ class Waterheater
 
     op_mode_schedule = nil
     if not schedules_file.nil?
-      op_mode_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnWaterHeaterOperatingMode)
+      op_mode_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterOperatingMode].name)
     end
 
     # Sensor on op_mode_schedule
@@ -981,7 +981,7 @@ class Waterheater
       op_mode_sensor.setName("#{obj_name_hpwh} op_mode")
       op_mode_sensor.setKeyName(op_mode_schedule.name.to_s)
 
-      runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterOperatingMode}' schedule file and operating mode provided; the latter will be ignored.") if !op_mode.nil?
+      runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterOperatingMode].name}' schedule file and operating mode provided; the latter will be ignored.") if !op_mode.nil?
     end
 
     t_offset = 9.0 # deg-C
@@ -1753,13 +1753,13 @@ class Waterheater
   def self.configure_mixed_tank_setpoint_schedule(new_heater, schedules_file, t_set_c, model, runner, unavailable_periods)
     new_schedule = nil
     if not schedules_file.nil?
-      new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnWaterHeaterSetpoint)
+      new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
     end
     if new_schedule.nil? # constant
       new_schedule = ScheduleConstant.new(model, Constants.ObjectNameWaterHeaterSetpoint, t_set_c, Constants.ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
       new_schedule = new_schedule.schedule
     else
-      runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterSetpoint}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
+      runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterSetpoint].name}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
     end
     if new_heater.setpointTemperatureSchedule.is_initialized
       new_heater.setpointTemperatureSchedule.get.remove
@@ -1770,13 +1770,13 @@ class Waterheater
   def self.configure_stratified_tank_setpoint_schedules(new_heater, schedules_file, t_set_c, model, runner, unavailable_periods)
     new_schedule = nil
     if not schedules_file.nil?
-      new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnWaterHeaterSetpoint)
+      new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
     end
     if new_schedule.nil? # constant
       new_schedule = ScheduleConstant.new(model, Constants.ObjectNameWaterHeaterSetpoint, t_set_c, Constants.ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
       new_schedule = new_schedule.schedule
     else
-      runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterSetpoint}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
+      runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterSetpoint].name}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
     end
     new_heater.heater1SetpointTemperatureSchedule.remove
     new_heater.heater2SetpointTemperatureSchedule.remove

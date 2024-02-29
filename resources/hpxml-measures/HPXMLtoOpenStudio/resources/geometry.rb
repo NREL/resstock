@@ -528,7 +528,7 @@ class Geometry
 
     # Create schedule
     people_sch = nil
-    people_col_name = SchedulesFile::ColumnOccupants
+    people_col_name = SchedulesFile::Columns[:Occupants].name
     if not schedules_file.nil?
       people_sch = schedules_file.create_schedule_file(model, col_name: people_col_name)
     end
