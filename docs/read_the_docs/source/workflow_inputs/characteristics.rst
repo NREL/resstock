@@ -1490,6 +1490,31 @@ Arguments
      -
      - Path of the EPW file.
 
+.. _county_metro_status:
+
+County Metro Status
+-------------------
+
+Description
+***********
+
+The Metro Status of the county that the sample is located, based on MSA and MicroSA.
+
+Created by
+**********
+
+``sources/spatial/tsv_maker.py``
+
+Source
+******
+
+- \Spatial definitions are from the U.S. Census Bureau as of July 1, 2015.
+
+- \Unit counts are from the American Community Survey 5-yr 2016.
+
+- \County-MSA crosswalk comes from the Quarterly Census of Employment and Wages NAICS-based data between 2013-2022 by the U.S. Bureau of Labor Statistics (https://www.bls.gov/cew/classifications/areas/county-msa-csa-crosswalk.htm)
+
+
 .. _county_and_puma:
 
 County and PUMA
@@ -5833,6 +5858,35 @@ Arguments
      - "auto"
      - The fan power of the whole house fan. If not provided, the OS-HPXML default (see `HPXML Whole House Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-whole-house-fans>`_) is used.
 
+.. _metropolitan_and_micropolitan_statistical_area:
+
+Metropolitan and Micropolitan Statistical Area
+----------------------------------------------
+
+Description
+***********
+
+The U.S. Metropolitan Statistical Area (MSA) or Micropolitan Statistical Area (MicroSA) that the sample is located.
+
+Created by
+**********
+
+``sources/spatial/tsv_maker.py``
+
+Source
+******
+
+- \Spatial definitions are from the U.S. Census Bureau as of July 1, 2015.
+
+- \Unit counts are from the American Community Survey 5-yr 2016.
+
+- \County-MSA crosswalk comes from the Quarterly Census of Employment and Wages NAICS-based data between 2013-2022 by the U.S. Bureau of Labor Statistics (https://www.bls.gov/cew/classifications/areas/county-msa-csa-crosswalk.htm)
+
+- \According to the U.S. Census, each metropolitan statistical area must have at least one urban area of 50,000 or more inhabitants
+
+- \According to the U.S. Census, each micropolitan statistical area must have at least one urban area of at least 10,000 but less than 50,000 population.
+
+
 .. _misc_extra_refrigerator:
 
 Misc Extra Refrigerator
@@ -7685,6 +7739,27 @@ Arguments
      - Choice
      - "auto", "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"
      - State code of the home address.
+
+.. _state_metro_median_income:
+
+State Metro Median Income
+-------------------------
+
+Description
+***********
+
+State Metro median income of the household occupying the dwelling unit.             This is different from State Median Income in that the Income Limits are differentiated by Metro and             Nonmetro portions of the state.
+
+Created by
+**********
+
+``sources/pums/pums2019_5yrs/tsv_maker.py``
+
+Source
+******
+
+- \% State Metro Median Income is calculated using annual household income in 2019USD (continuous, not binned) from 2019-5yrs PUMS data and 2019 state median income (SMI) by metro/nonmetro area from HUD. A County Metro Status-differentiated Income Limits table is derived from the SMI by adjusting for household size only, which is consistent with how HUD's published State Income Limits table is generated.
+
 
 .. _tenure:
 
