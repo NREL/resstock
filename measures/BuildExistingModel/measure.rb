@@ -333,7 +333,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../existing.xml')
 
     # Optional whole SFA/MF building simulation
-    whole_sfa_or_mf_building_sim = false
+    whole_sfa_or_mf_building_sim = true
     geometry_building_num_units = 1
     if whole_sfa_or_mf_building_sim
       resstock_arguments_runner.result.stepValues.each do |step_value|
@@ -350,6 +350,18 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       num_units_modeled = [geometry_building_num_units, max_num_units_modeled].min
       unit_multipliers = split_into(geometry_building_num_units, num_units_modeled)
     end
+
+    # AddSharedHPWH measure
+    register_value(runner, 'num_units_modeled', num_units_modeled)
+    geometry_num_floors_above_grade = bldg_data['Geometry Stories']
+    geometry_corridor_position = bldg_data['Corridor']
+
+    # shared_hpwh_type = 'none'
+    shared_hpwh_type = 'hpwh'
+    # shared_hpwh_type = 'space-heating hpwh'
+
+    # shared_hpwh_fuel_type = HPXML::FuelTypeElectricity
+    shared_hpwh_fuel_type = HPXML::FuelTypeNaturalGas
 
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     (1..num_units_modeled).each do |unit_number|
@@ -389,6 +401,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"
       end
+      # additional_properties << "geometry_building_num_units=#{geometry_building_num_units}"
+      additional_properties << "geometry_num_floors_above_grade=#{geometry_num_floors_above_grade}"
+      additional_properties << "geometry_corridor_position=#{['Double-Loaded Interior', 'Double Exterior'].include?(geometry_corridor_position)}"
+      additional_properties << "shared_hpwh_type=#{shared_hpwh_type}"
+      additional_properties << "shared_hpwh_fuel_type=#{shared_hpwh_fuel_type}"
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
