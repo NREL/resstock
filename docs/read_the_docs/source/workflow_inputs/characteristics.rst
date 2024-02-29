@@ -8105,7 +8105,7 @@ Assumption
 
 - \H2OMAIN does not apply to multi-family, therefore Water heater location for multi-family with in-unit water heater is taken after the combined distribution of other builing types.
 
-- \Per expert judgement, water heaters can not be outside or in vented spaces for IECC Climate Zones 4-8 due to pipe-freezing risk.
+- \out-of-unit water heater is assumed to be in Conditioned Mechanical Room. Per expert judgement, water heaters can not be outside or in vented spaces for IECC Climate Zones 4-8 due to pipe-freezing risk.
 
 - \Where samples < 10, data is aggregated in the following order:
 
