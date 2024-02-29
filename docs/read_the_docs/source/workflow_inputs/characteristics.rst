@@ -1498,7 +1498,7 @@ County Metro Status
 Description
 ***********
 
-The Metro Status of the county that the sample is located, based on MSA.
+The Metro Status of the county that the sample is located, based on MSA and MicroSA.
 
 Created by
 **********
@@ -5858,15 +5858,15 @@ Arguments
      - "auto"
      - The fan power of the whole house fan. If not provided, the OS-HPXML default (see `HPXML Whole House Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-whole-house-fans>`_) is used.
 
-.. _metropolitan_statistical_area:
+.. _metropolitan_and_micropolitan_statistical_area:
 
-Metropolitan Statistical Area
------------------------------
+Metropolitan and Micropolitan Statistical Area
+----------------------------------------------
 
 Description
 ***********
 
-The U.S. Metropolitan Statistical Area (MSA) that the sample is located.
+The U.S. Metropolitan Statistical Area (MSA) or Micropolitan Statistical Area (MicroSA) that the sample is located.
 
 Created by
 **********
@@ -5881,6 +5881,10 @@ Source
 - \Unit counts are from the American Community Survey 5-yr 2016.
 
 - \County-MSA crosswalk comes from the Quarterly Census of Employment and Wages NAICS-based data between 2013-2022 by the U.S. Bureau of Labor Statistics (https://www.bls.gov/cew/classifications/areas/county-msa-csa-crosswalk.htm)
+
+- \According to the U.S. Census, each metropolitan statistical area must have at least one urban area of 50,000 or more inhabitants
+
+- \According to the U.S. Census, each micropolitan statistical area must have at least one urban area of at least 10,000 but less than 50,000 population.
 
 
 .. _misc_extra_refrigerator:
