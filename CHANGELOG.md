@@ -10,7 +10,7 @@ Features
 - Allow definition of multiple unavailable periods (i.e., vacancy, power outage) ([#1209](https://github.com/NREL/resstock/pull/1209))
 - Add ability to set either an "emergency" or "supplemental" heat pump backup sizing methodology ([#1209](https://github.com/NREL/resstock/pull/1209))
 - Refrigerator energy use is now affected by its ambient temperature using hourly constant and temperature coefficients from ANSI/RESNET/ICC 301-2022 Addendum C ([#1209](https://github.com/NREL/resstock/pull/1209))
-- Add Metropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv ([#1212](https://github.com/NREL/resstock/pull/1212))
+- Add Metropolitan and Micropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv ([#1212](https://github.com/NREL/resstock/pull/1212))
 
 
 Fixes
