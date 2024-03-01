@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>de0e30ab-3bb4-41e5-ad00-abf50a094dc5</version_id>
-  <version_modified>2024-02-22T18:12:31Z</version_modified>
+  <version_id>25345a1b-6a7c-4b96-9769-cf93b96f8b1c</version_id>
+  <version_modified>2024-02-29T20:47:21Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -2287,6 +2287,14 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>heating_system_heating_autosizing_factor</name>
+      <display_name>Heating System: Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>heating_system_fraction_heat_load_served</name>
       <display_name>Heating System: Fraction Heat Load Served</display_name>
       <description>The heating load served by the heating system.</description>
@@ -2422,6 +2430,14 @@
       <description>The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner'&gt;Central Air Conditioner&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner'&gt;Room Air Conditioner&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner'&gt;Packaged Terminal Air Conditioner&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#evaporative-cooler'&gt;Evaporative Cooler&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner'&gt;Mini-Split Air Conditioner&lt;/a&gt;) is used.</description>
       <type>Double</type>
       <units>Btu/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_cooling_autosizing_factor</name>
+      <display_name>Cooling System: Cooling Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>Double</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2690,6 +2706,14 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>heat_pump_heating_autosizing_factor</name>
+      <display_name>Heat Pump: Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>heat_pump_heating_capacity_retention_fraction</name>
       <display_name>Heat Pump: Heating Capacity Retention Fraction</display_name>
       <description>The output heating capacity of the heat pump at a user-specified temperature (e.g., 17F or 5F) divided by the above nominal heating capacity. Applies to all heat pump types except ground-to-air. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump'&gt;Air-to-Air Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump'&gt;Mini-Split Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump'&gt;Packaged Terminal Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle'&gt;Room Air Conditioner w/ Reverse Cycle&lt;/a&gt;) is used.</description>
@@ -2713,6 +2737,14 @@
       <description>The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump'&gt;Air-to-Air Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump'&gt;Mini-Split Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump'&gt;Packaged Terminal Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle'&gt;Room Air Conditioner w/ Reverse Cycle&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump'&gt;Ground-to-Air Heat Pump&lt;/a&gt;) is used.</description>
       <type>Double</type>
       <units>Btu/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_cooling_autosizing_factor</name>
+      <display_name>Heat Pump: Cooling Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>Double</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2767,6 +2799,14 @@
           <display_name>separate</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_backup_heating_autosizing_factor</name>
+      <display_name>Heat Pump: Backup Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, 1.0 is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Factor.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heat_pump_backup_fuel</name>
@@ -3274,6 +3314,14 @@
       <description>The output heating capacity of the second heating system. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems'&gt;HPXML Heating Systems&lt;/a&gt;) is used.</description>
       <type>Double</type>
       <units>Btu/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heating_system_2_heating_autosizing_factor</name>
+      <display_name>Heating System 2: Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>Double</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -7162,7 +7210,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>BD2232F1</checksum>
+      <checksum>1CCAB8CA</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -7179,7 +7227,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>776E5EEC</checksum>
+      <checksum>EAE0515D</checksum>
     </file>
     <file>
       <filename>geometry.rb</filename>
