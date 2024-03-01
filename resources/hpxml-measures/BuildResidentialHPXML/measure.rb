@@ -1102,6 +1102,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Btu/hr')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_heating_autosizing_factor', false)
+    arg.setDisplayName('Heating System: Heating Autosizing Factor')
+    arg.setDescription('The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_fraction_heat_load_served', true)
     arg.setDisplayName('Heating System: Fraction Heat Load Served')
     arg.setDescription('The heating load served by the heating system.')
@@ -1154,6 +1159,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Cooling System: Cooling Capacity')
     arg.setDescription("The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see <a href='#{docs_base_url}#central-air-conditioner'>Central Air Conditioner</a>, <a href='#{docs_base_url}#room-air-conditioner'>Room Air Conditioner</a>, <a href='#{docs_base_url}#packaged-terminal-air-conditioner'>Packaged Terminal Air Conditioner</a>, <a href='#{docs_base_url}#evaporative-cooler'>Evaporative Cooler</a>, <a href='#{docs_base_url}#mini-split-air-conditioner'>Mini-Split Air Conditioner</a>) is used.")
     arg.setUnits('Btu/hr')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_autosizing_factor', false)
+    arg.setDisplayName('Cooling System: Cooling Autosizing Factor')
+    arg.setDescription('The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_fraction_cool_load_served', true)
@@ -1290,6 +1300,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Btu/hr')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_autosizing_factor', false)
+    arg.setDisplayName('Heat Pump: Heating Autosizing Factor')
+    arg.setDescription('The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_capacity_retention_fraction', false)
     arg.setDisplayName('Heat Pump: Heating Capacity Retention Fraction')
     arg.setDescription("The output heating capacity of the heat pump at a user-specified temperature (e.g., 17F or 5F) divided by the above nominal heating capacity. Applies to all heat pump types except #{HPXML::HVACTypeHeatPumpGroundToAir}. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#air-to-air-heat-pump'>Air-to-Air Heat Pump</a>, <a href='#{docs_base_url}#mini-split-heat-pump'>Mini-Split Heat Pump</a>, <a href='#{docs_base_url}#packaged-terminal-heat-pump'>Packaged Terminal Heat Pump</a>, <a href='#{docs_base_url}#room-air-conditioner-w-reverse-cycle'>Room Air Conditioner w/ Reverse Cycle</a>) is used.")
@@ -1306,6 +1321,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Heat Pump: Cooling Capacity')
     arg.setDescription("The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default (see <a href='#{docs_base_url}#air-to-air-heat-pump'>Air-to-Air Heat Pump</a>, <a href='#{docs_base_url}#mini-split-heat-pump'>Mini-Split Heat Pump</a>, <a href='#{docs_base_url}#packaged-terminal-heat-pump'>Packaged Terminal Heat Pump</a>, <a href='#{docs_base_url}#room-air-conditioner-w-reverse-cycle'>Room Air Conditioner w/ Reverse Cycle</a>, <a href='#{docs_base_url}#ground-to-air-heat-pump'>Ground-to-Air Heat Pump</a>) is used.")
     arg.setUnits('Btu/hr')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_cooling_autosizing_factor', false)
+    arg.setDisplayName('Heat Pump: Cooling Autosizing Factor')
+    arg.setDescription('The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_fraction_heat_load_served', true)
@@ -1332,6 +1352,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Heat Pump: Backup Type')
     arg.setDescription("The backup type of the heat pump. If '#{HPXML::HeatPumpBackupTypeIntegrated}', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If '#{HPXML::HeatPumpBackupTypeSeparate}', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.")
     arg.setDefaultValue(HPXML::HeatPumpBackupTypeIntegrated)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_backup_heating_autosizing_factor', false)
+    arg.setDisplayName('Heat Pump: Backup Heating Autosizing Factor')
+    arg.setDescription("The scaling factor applied to the auto-sizing methodology if Backup Type is '#{HPXML::HeatPumpBackupTypeIntegrated}'. If not provided, 1.0 is used. If Backup Type is '#{HPXML::HeatPumpBackupTypeSeparate}', use Heating System 2: Heating Autosizing Factor.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_backup_fuel', heat_pump_backup_fuel_choices, true)
@@ -1573,6 +1598,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Heating System 2: Heating Capacity')
     arg.setDescription("The output heating capacity of the second heating system. If not provided, the OS-HPXML autosized default (see <a href='#{docs_base_url}#hpxml-heating-systems'>HPXML Heating Systems</a>) is used.")
     arg.setUnits('Btu/hr')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_2_heating_autosizing_factor', false)
+    arg.setDisplayName('Heating System 2: Heating Autosizing Factor')
+    arg.setDescription('The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_2_fraction_heat_load_served', true)
@@ -5132,6 +5162,10 @@ class HPXMLFile
       heating_capacity = args[:heating_system_heating_capacity].get
     end
 
+    if args[:heating_system_heating_autosizing_factor].is_initialized
+      heating_autosizing_factor = args[:heating_system_heating_autosizing_factor].get
+    end
+
     if [HPXML::HVACTypeElectricResistance].include? heating_system_type
       heating_system_fuel = HPXML::FuelTypeElectricity
     else
@@ -5178,6 +5212,7 @@ class HPXMLFile
                                    heating_system_type: heating_system_type,
                                    heating_system_fuel: heating_system_fuel,
                                    heating_capacity: heating_capacity,
+                                   heating_autosizing_factor: heating_autosizing_factor,
                                    fraction_heat_load_served: fraction_heat_load_served,
                                    heating_efficiency_afue: heating_efficiency_afue,
                                    heating_efficiency_percent: heating_efficiency_percent,
@@ -5196,6 +5231,10 @@ class HPXMLFile
 
     if args[:cooling_system_cooling_capacity].is_initialized
       cooling_capacity = args[:cooling_system_cooling_capacity].get
+    end
+
+    if args[:cooling_system_cooling_autosizing_factor].is_initialized
+      cooling_autosizing_factor = args[:cooling_system_cooling_autosizing_factor].get
     end
 
     if args[:cooling_system_cooling_compressor_type].is_initialized
@@ -5262,6 +5301,7 @@ class HPXMLFile
                                    cooling_system_type: cooling_system_type,
                                    cooling_system_fuel: HPXML::FuelTypeElectricity,
                                    cooling_capacity: cooling_capacity,
+                                   cooling_autosizing_factor: cooling_autosizing_factor,
                                    fraction_cool_load_served: args[:cooling_system_fraction_cool_load_served],
                                    compressor_type: compressor_type,
                                    cooling_shr: cooling_shr,
@@ -5325,12 +5365,20 @@ class HPXMLFile
       heating_capacity = args[:heat_pump_heating_capacity].get
     end
 
+    if args[:heat_pump_heating_autosizing_factor].is_initialized
+      heating_autosizing_factor = args[:heat_pump_heating_autosizing_factor].get
+    end
+
     if args[:heat_pump_heating_capacity_retention_fraction].is_initialized
       heating_capacity_retention_fraction = args[:heat_pump_heating_capacity_retention_fraction].get
     end
 
     if args[:heat_pump_heating_capacity_retention_temp].is_initialized
       heating_capacity_retention_temp = args[:heat_pump_heating_capacity_retention_temp].get
+    end
+
+    if args[:heat_pump_backup_heating_autosizing_factor].is_initialized
+      backup_heating_autosizing_factor = args[:heat_pump_backup_heating_autosizing_factor].get
     end
 
     if args[:heat_pump_backup_type] == HPXML::HeatPumpBackupTypeIntegrated
@@ -5372,6 +5420,10 @@ class HPXMLFile
 
     if args[:heat_pump_cooling_capacity].is_initialized
       cooling_capacity = args[:heat_pump_cooling_capacity].get
+    end
+
+    if args[:heat_pump_cooling_autosizing_factor].is_initialized
+      cooling_autosizing_factor = args[:heat_pump_cooling_autosizing_factor].get
     end
 
     if args[:heat_pump_cooling_compressor_type].is_initialized
@@ -5431,12 +5483,15 @@ class HPXMLFile
                               heat_pump_type: heat_pump_type,
                               heat_pump_fuel: HPXML::FuelTypeElectricity,
                               heating_capacity: heating_capacity,
+                              heating_autosizing_factor: heating_autosizing_factor,
+                              backup_heating_autosizing_factor: backup_heating_autosizing_factor,
                               heating_capacity_retention_fraction: heating_capacity_retention_fraction,
                               heating_capacity_retention_temp: heating_capacity_retention_temp,
                               compressor_type: compressor_type,
                               compressor_lockout_temp: compressor_lockout_temp,
                               cooling_shr: cooling_shr,
                               cooling_capacity: cooling_capacity,
+                              cooling_autosizing_factor: cooling_autosizing_factor,
                               fraction_heat_load_served: fraction_heat_load_served,
                               fraction_cool_load_served: fraction_cool_load_served,
                               backup_type: backup_type,
@@ -5607,6 +5662,10 @@ class HPXMLFile
       heating_capacity = args[:heating_system_2_heating_capacity].get
     end
 
+    if args[:heating_system_2_heating_autosizing_factor].is_initialized
+      heating_autosizing_factor = args[:heating_system_2_heating_autosizing_factor].get
+    end
+
     if args[:heating_system_2_fuel] == HPXML::HVACTypeElectricResistance
       heating_system_fuel = HPXML::FuelTypeElectricity
     else
@@ -5631,6 +5690,7 @@ class HPXMLFile
                                    heating_system_type: heating_system_type,
                                    heating_system_fuel: heating_system_fuel,
                                    heating_capacity: heating_capacity,
+                                   heating_autosizing_factor: heating_autosizing_factor,
                                    fraction_heat_load_served: fraction_heat_load_served,
                                    heating_efficiency_afue: heating_efficiency_afue,
                                    heating_efficiency_percent: heating_efficiency_percent)
