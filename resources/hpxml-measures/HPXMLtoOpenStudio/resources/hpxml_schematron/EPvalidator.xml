@@ -178,8 +178,12 @@
   <sch:pattern>
     <sch:title>[BuildingSite]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:Site'>
+      <sch:assert role='ERROR' test='count(h:Address/h:CityMunicipality) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Address/CityMunicipality</sch:assert>
       <sch:assert role='ERROR' test='count(h:Address/h:StateCode) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Address/StateCode</sch:assert>
       <sch:assert role='ERROR' test='count(h:Address/h:ZipCode) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Address/ZipCode</sch:assert>
+      <sch:assert role='ERROR' test='count(h:GeoLocation/h:Latitude) &lt;= 1'>Expected 0 or 1 element(s) for xpath: GeoLocation/Latitude</sch:assert>
+      <sch:assert role='ERROR' test='count(h:GeoLocation/h:Longitude) &lt;= 1'>Expected 0 or 1 element(s) for xpath: GeoLocation/Longitude</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Elevation) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Elevation</sch:assert>
       <sch:assert role='ERROR' test='count(h:TimeZone/h:UTCOffset) &lt;= 1'>Expected 0 or 1 element(s) for xpath: TimeZone/UTCOffset</sch:assert>
       <sch:assert role='ERROR' test='count(h:TimeZone/h:DSTObserved) &lt;= 1'>Expected 0 or 1 element(s) for xpath: TimeZone/DSTObserved</sch:assert> <!-- See [DaylightSaving] -->
     </sch:rule>

@@ -1540,12 +1540,12 @@ class HVAC
     return months
   end
 
-  def self.get_default_heating_and_cooling_seasons(weather)
+  def self.get_default_heating_and_cooling_seasons(weather, latitude)
     # Calculates heating/cooling seasons from BAHSP definition
 
     monthly_temps = weather.data.MonthlyAvgDrybulbs
     heat_design_db = weather.design.HeatingDrybulb
-    is_southern_hemisphere = (weather.header.Latitude < 0)
+    is_southern_hemisphere = (latitude < 0)
 
     # create basis lists with zero for every month
     cooling_season_temp_basis = Array.new(monthly_temps.length, 0.0)

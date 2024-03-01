@@ -404,19 +404,26 @@ HPXML Building Site
 
 Building site information can be entered in ``/HPXML/Building/Site``.
 
-  =======================================  ========  =====  ===========  ========  ========  ===============
-  Element                                  Type      Units  Constraints  Required  Default   Description
-  =======================================  ========  =====  ===========  ========  ========  ===============
-  ``SiteID``                               id                            Yes                 Unique identifier
-  ``Address/StateCode``                    string                        No        See [#]_  State/territory where the home is located
-  ``Address/ZipCode``                      string           See [#]_     No                  ZIP Code where the home is located
-  ``TimeZone/UTCOffset``                   double           See [#]_     No        See [#]_  Difference in decimal hours between the home's time zone and UTC
-  ``TimeZone/DSTObserved``                 boolean                       No        true      Daylight saving time observed?
-  =======================================  ========  =====  ===========  ========  ========  ===============
+  =======================================  ========  =====  ===============  ========  ========  ===============
+  Element                                  Type      Units  Constraints      Required  Default   Description
+  =======================================  ========  =====  ===============  ========  ========  ===============
+  ``SiteID``                               id                                Yes                 Unique identifier
+  ``Address/CityMunicipality``             string                            No        See [#]_  Address city/municipality (not used in the energy model)
+  ``Address/StateCode``                    string                            No        See [#]_  Address state/territory
+  ``Address/ZipCode``                      string           See [#]_         No                  Address ZIP Code (not used in the energy model)
+  ``GeoLocation/Latitude``                 double    deg    >= -90, <= 90    No        See [#]_  Site latitude (negative for southern hemisphere)
+  ``GeoLocation/Longitude``                double    deg    >= -180, <= 180  No        See [#]_  Site longitude (negative for western hemisphere)
+  ``Elevation``                            double    ft     >= 0             No        See [#]_  Site elevation
+  ``TimeZone/UTCOffset``                   double           >= -12, <= 14    No        See [#]_  Difference in decimal hours between the home's time zone and UTC
+  ``TimeZone/DSTObserved``                 boolean                           No        true      Daylight saving time observed?
+  =======================================  ========  =====  ===============  ========  ========  ===============
 
+  .. [#] If CityMunicipality not provided, defaults according to the EPW weather file header.
   .. [#] If StateCode not provided, defaults according to the EPW weather file header.
   .. [#] ZipCode can be defined as the standard 5 number postal code, or it can have the additional 4 number code separated by a hyphen.
-  .. [#] UTCOffset ranges from -12 to 14.
+  .. [#] If Latitude not provided, defaults according to the EPW weather file header.
+  .. [#] If Longitude not provided, defaults according to the EPW weather file header.
+  .. [#] If Elevation not provided, defaults according to the EPW weather file header.
   .. [#] If UTCOffset not provided, defaults according to the EPW weather file header.
 
 If daylight saving time is observed, additional information can be specified in ``/HPXML/Building/Site/TimeZone/extension``.
@@ -657,7 +664,14 @@ Frequency of schedule values do not need to match the simulation timestep.
 For example, hourly schedules can be used with a 10-minute simulation timestep, or 10-minute schedules can be used with an hourly simulation timestep.
 
 A detailed stochastic occupancy schedule CSV file can also be automatically generated for you (see "Can Be Stochastically Generated" above for applicable columns); see the :ref:`usage_instructions` for the commands.
-Inputs for the stochastic schedule generator are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
+Inputs for the stochastic schedule generator are entered in:
+
+- ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents``
+- ``/HPXML/Building/Site/Address/StateCode`` (optional)
+- ``/HPXML/Building/Site/GeoLocation/Latitude`` (optional)
+- ``/HPXML/Building/Site/GeoLocation/Longitude`` (optional)
+- ``/HPXML/Building/Site/TimeZone/UTCOffset`` (optional)
+
 See :ref:`buildingoccupancy` and :ref:`buildingsite` for more information.
 
 .. warning::
