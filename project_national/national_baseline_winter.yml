@@ -3,14 +3,14 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /kfs2/projects/redlineres/winter_boston_tcm_1 #/kfs2/projects/redlineres/summer_tcm_1
+output_directory: /kfs2/projects/redlineres/tcm/winter_boston_tcm_1
 #weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
-weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: precomputed
   args:
-    sample_file: buildstock_boston.csv
+    sample_file: resilience_buildstock_boston.csv
 
 workflow_generator:
   type: residential_hpxml
@@ -76,12 +76,23 @@ upgrades:
     options:
       - &summer_outage
         option: Power Outage|Winter
-eagle:
-  n_jobs: 4
-  minutes_per_sim: 20
-  account: panels
-  postprocessing:
-    time: 20
-    n_workers: 1
+kestrel:
+  n_jobs: 20
+  minutes_per_sim: 2
+  account: redlineres
   sampling:
-    time: 20
+    time: 60
+  postprocessing:
+    time: 1000
+    n_workers: 16
+
+postprocessing:
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: redlineres
+      prefix: redlineres_TCM
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: redlineres
+      max_crawling_time: 1200
