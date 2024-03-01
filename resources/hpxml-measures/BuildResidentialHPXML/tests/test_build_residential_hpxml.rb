@@ -68,6 +68,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'extra-water-heater-attic.xml' => 'base-sfd.xml',
       'extra-battery-crawlspace.xml' => 'base-sfd.xml',
       'extra-battery-attic.xml' => 'base-sfd.xml',
+      'extra-detailed-performance-autosize.xml' => 'base-sfd.xml',
+      'extra-power-outage-periods.xml' => 'base-sfd.xml',
 
       'extra-sfa-atticroof-flat.xml' => 'base-sfa.xml',
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
@@ -184,6 +186,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-sfd-with-shared-system.xml' => 'base-sfd.xml',
       'error-rim-joist-height-but-no-assembly-r.xml' => 'base-sfd.xml',
       'error-rim-joist-assembly-r-but-no-height.xml' => 'base-sfd.xml',
+      'error-power-outage-args-not-all-same-size.xml' => 'base-sfd.xml',
+      'error-power-outage-window-natvent-invalid.xml' => 'base-sfd.xml',
       'error-heating-perf-data-not-all-specified.xml' => 'base-sfd.xml',
       'error-heating-perf-data-not-all-same-size.xml' => 'base-sfd.xml',
       'error-cooling-perf-data-not-all-specified.xml' => 'base-sfd.xml',
@@ -248,6 +252,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-sfd-with-shared-system.xml' => ['Specified a shared system for a single-family detached unit.'],
       'error-rim-joist-height-but-no-assembly-r.xml' => ['Specified a rim joist height but no rim joist assembly R-value.'],
       'error-rim-joist-assembly-r-but-no-height.xml' => ['Specified a rim joist assembly R-value but no rim joist height.'],
+      'error-power-outage-args-not-all-same-size.xml' => ['One power outage periods schedule argument does not have enough comma-separated elements specified.'],
+      'error-power-outage-window-natvent-invalid.xml' => ["Window natural ventilation availability 'invalid' during a power outage is invalid."],
       'error-heating-perf-data-not-all-specified.xml' => ['Did not specify all required heating detailed performance data arguments.'],
       'error-heating-perf-data-not-all-same-size.xml' => ['One or more detailed heating performance data arguments does not have enough comma-separated elements specified.'],
       'error-cooling-perf-data-not-all-specified.xml' => ['Did not specify all required cooling detailed performance data arguments.'],
@@ -341,9 +347,13 @@ class BuildResidentialHPXMLTest < Minitest::Test
 
           flunk "Error: Did not successfully generate #{hpxml_file}."
         end
-
         hpxml_path = File.absolute_path(File.join(@output_path, hpxml_file))
-        hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
+        hpxml = HPXML.new(hpxml_path: hpxml_path)
+        if hpxml.errors.size > 0
+          puts hpxml.errors.to_s
+          puts "\nError: Did not successfully validate #{hpxml_file}."
+          exit!
+        end
         hpxml.header.xml_generated_by = 'build_residential_hpxml_test.rb'
         hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
 
@@ -356,7 +366,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
         puts errors.to_s
         puts "\nError: Did not successfully validate #{hpxml_file}."
         exit!
-      rescue Exception
+      rescue Exception => e
+        puts "#{e.message}\n#{e.backtrace.join("\n")}"
         flunk "Error: Did not successfully generate #{hpxml_file}"
       end
     end
@@ -556,7 +567,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['water_heater_num_units_served'] = 1
       args['hot_water_distribution_system_type'] = HPXML::DHWDistTypeStandard
       args['hot_water_distribution_standard_piping_length'] = 50
-      args['hot_water_distribution_recirc_control_type'] = HPXML::DHWRecirControlTypeNone
+      args['hot_water_distribution_recirc_control_type'] = HPXML::DHWRecircControlTypeNone
       args['hot_water_distribution_recirc_piping_length'] = 50
       args['hot_water_distribution_recirc_branch_piping_length'] = 50
       args['hot_water_distribution_recirc_pump_power'] = 50
@@ -656,6 +667,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['permanent_spa_heater_type'] = HPXML::HeaterTypeElectricResistance
     elsif ['base-sfd2.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfd.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-sfa.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
       args['geometry_unit_cfa'] = 1800.0
@@ -672,8 +684,10 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
     elsif ['base-sfa2.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfa.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-sfa3.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfa2.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-mf.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
       args['geometry_unit_cfa'] = 900.0
@@ -701,16 +715,19 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['air_leakage_type'] = HPXML::InfiltrationTypeUnitTotal
     elsif ['base-mf2.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-mf3.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf2.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-mf4.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-mf3.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     elsif ['base-sfd-header.xml'].include? hpxml_file
       args['software_info_program_used'] = 'Program'
       args['software_info_program_version'] = '1'
-      args['schedules_vacancy_period'] = 'Jan 2 - Jan 5'
-      args['schedules_power_outage_period'] = 'Feb 10 - Feb 12'
-      args['schedules_power_outage_window_natvent_availability'] = HPXML::ScheduleAvailable
+      args['schedules_vacancy_periods'] = 'Jan 2 - Jan 5'
+      args['schedules_power_outage_periods'] = 'Feb 10 - Feb 12'
+      args['schedules_power_outage_periods_window_natvent_availability'] = HPXML::ScheduleAvailable
       args['simulation_control_run_period'] = 'Jan 1 - Dec 31'
       args['simulation_control_run_period_calendar_year'] = 2007
       args['simulation_control_temperature_capacitance_multiplier'] = 1.0
@@ -723,6 +740,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['utility_bill_scenario_names'] = 'Bills'
     elsif ['base-sfd-header-no-duplicates.xml'].include? hpxml_file
       args['existing_hpxml_path'] = File.join(File.dirname(__FILE__), 'extra_files/base-sfd-header.xml')
+      args['whole_sfa_or_mf_building_sim'] = true
     end
 
     # Extras
@@ -915,6 +933,30 @@ class BuildResidentialHPXMLTest < Minitest::Test
     elsif ['extra-battery-attic.xml'].include? hpxml_file
       args['battery_present'] = true
       args['battery_location'] = HPXML::LocationAttic
+    elsif ['extra-detailed-performance-autosize.xml'].include? hpxml_file
+      args['heating_system_type'] = 'none'
+      args['cooling_system_type'] = 'none'
+      args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
+      args['heat_pump_heating_efficiency'] = 10.0
+      args['heat_pump_cooling_efficiency'] = 17.25
+      args['heat_pump_cooling_compressor_type'] = HPXML::HVACCompressorTypeVariableSpeed
+      args['heat_pump_cooling_sensible_heat_fraction'] = 0.78
+      args.delete('heat_pump_heating_capacity')
+      args.delete('heat_pump_cooling_capacity')
+      args['hvac_perf_data_capacity_type'] = 'Normalized capacity fractions'
+      args['hvac_perf_data_heating_outdoor_temperatures'] = '47.0, 17.0, 5.0'
+      args['hvac_perf_data_heating_min_speed_capacities'] = '0.28, 0.12, 0.05'
+      args['hvac_perf_data_heating_max_speed_capacities'] = '1.0, 0.69, 0.55'
+      args['hvac_perf_data_heating_min_speed_cops'] = '4.73, 1.84, 0.81'
+      args['hvac_perf_data_heating_max_speed_cops'] = '3.44, 2.66, 2.28'
+      args['hvac_perf_data_cooling_outdoor_temperatures'] = '95.0, 82.0'
+      args['hvac_perf_data_cooling_min_speed_capacities'] = '0.325, 0.37'
+      args['hvac_perf_data_cooling_max_speed_capacities'] = '1.0, 1.11'
+      args['hvac_perf_data_cooling_min_speed_cops'] = '4.47, 6.34'
+      args['hvac_perf_data_cooling_max_speed_cops'] = '2.71, 3.53'
+    elsif ['extra-power-outage-periods.xml'].include? hpxml_file
+      args['schedules_power_outage_periods'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
+      args['schedules_power_outage_periods_window_natvent_availability'] = "#{HPXML::ScheduleRegular}, #{HPXML::ScheduleAvailable}"
     elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
       args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
       args['ducts_supply_leakage_to_outside_value'] = 0.0
@@ -1162,6 +1204,11 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args.delete('rim_joist_assembly_r')
     elsif ['error-rim-joist-assembly-r-but-no-height.xml'].include? hpxml_file
       args.delete('geometry_rim_joist_height')
+    elsif ['error-power-outage-args-not-all-same-size.xml'].include? hpxml_file
+      args['schedules_power_outage_periods'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
+      args['schedules_power_outage_periods_window_natvent_availability'] = HPXML::ScheduleRegular
+    elsif ['error-power-outage-window-natvent-invalid.xml'].include? hpxml_file
+      args['schedules_power_outage_periods_window_natvent_availability'] = 'invalid'
     elsif ['error-heating-perf-data-not-all-specified.xml'].include? hpxml_file
       args['hvac_perf_data_heating_outdoor_temperatures'] = '47.0'
     elsif ['error-heating-perf-data-not-all-same-size.xml'].include? hpxml_file

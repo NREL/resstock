@@ -555,17 +555,6 @@ class RunOSWs
     puts "Wrote: #{csv_out}"
     return csv_out
   end
-
-  def self._rm_path(path)
-    if Dir.exist?(path)
-      FileUtils.rm_r(path)
-    end
-    while true
-      break if not Dir.exist?(path)
-
-      sleep(0.01)
-    end
-  end
 end
 
 class Version

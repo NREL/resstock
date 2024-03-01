@@ -1128,7 +1128,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     cooling_system = hpxml_bldg.cooling_systems[0]
     program_values = _check_install_quality_multispeed_ratio(cooling_system, model)
     [1.088, 1.088].each_with_index do |rated_airflow_ratio, i|
-      assert_in_epsilon(rated_airflow_ratio, program_values['FF_AF_clg'][i])
+      assert_in_epsilon(rated_airflow_ratio, program_values['FF_AF_clg'][i], 0.01)
     end
   end
 
@@ -1141,7 +1141,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     cooling_system = hpxml_bldg.cooling_systems[0]
     program_values = _check_install_quality_multispeed_ratio(cooling_system, model)
     [0.936, 0.936].each_with_index do |rated_airflow_ratio, i|
-      assert_in_epsilon(rated_airflow_ratio, program_values['FF_AF_clg'][i])
+      assert_in_epsilon(rated_airflow_ratio, program_values['FF_AF_clg'][i], 0.01)
     end
   end
 
@@ -1211,7 +1211,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     cooling_system = hpxml_bldg.cooling_systems[0]
     program_values = _check_install_quality_multispeed_ratio(cooling_system, model)
     [0.936, 0.936].each_with_index do |rated_airflow_ratio, i|
-      assert_in_epsilon(rated_airflow_ratio, program_values['FF_AF_clg'][i])
+      assert_in_epsilon(rated_airflow_ratio, program_values['FF_AF_clg'][i], 0.01)
     end
   end
 
@@ -1302,6 +1302,34 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     # Check cooling coil
     clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
     assert_in_epsilon(crankcase_heater_watts, clg_coil.crankcaseHeaterCapacity, 0.01)
+  end
+
+  def test_ceiling_fan
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-lighting-ceiling-fans.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+
+    # Get HPXML values
+    hvac_control = hpxml_bldg.hvac_controls[0]
+    cooling_setpoint_temp = hvac_control.cooling_setpoint_temp
+    ceiling_fan_cooling_setpoint_temp_offset = hvac_control.ceiling_fan_cooling_setpoint_temp_offset
+
+    # Check ceiling fan months
+    assert_equal(1, model.getThermostatSetpointDualSetpoints.size)
+    thermostat = model.getThermostatSetpointDualSetpoints[0]
+
+    cooling_schedule = thermostat.coolingSetpointTemperatureSchedule.get.to_ScheduleRuleset.get
+    assert_equal(3, cooling_schedule.scheduleRules.size)
+
+    rule = cooling_schedule.scheduleRules[1] # cooling months
+    assert_equal(6, rule.startDate.get.monthOfYear.value)
+    assert_equal(1, rule.startDate.get.dayOfMonth)
+    assert_equal(9, rule.endDate.get.monthOfYear.value)
+    assert_equal(30, rule.endDate.get.dayOfMonth)
+    day_schedule = rule.daySchedule
+    values = day_schedule.values
+    assert_equal(1, values.size)
+    assert_in_epsilon(cooling_setpoint_temp + ceiling_fan_cooling_setpoint_temp_offset, UnitConversions.convert(values[0], 'C', 'F'), 0.01)
   end
 
   def _test_measure(args_hash)

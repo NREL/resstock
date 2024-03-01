@@ -602,6 +602,12 @@ class ReportSimulationOutputTest < Minitest::Test
     actual_annual_rows = _get_actual_annual_rows(annual_csv)
     assert_equal(expected_annual_rows.sort, actual_annual_rows.keys.sort)
     _check_runner_registered_values_and_measure_xml_outputs(actual_annual_rows)
+
+    # Verify refrigerator energy use correctly impacted by ambient temperature
+    hpxml = HPXML.new(hpxml_path: args_hash['hpxml_path'])
+    actual_fridge_energy_use = actual_annual_rows["End Use: #{FT::Elec}: #{EUT::Refrigerator} (MBtu)"]
+    rated_fridge_energy_use = UnitConversions.convert(hpxml.buildings[0].refrigerators[0].rated_annual_kwh, 'kWh', 'MBtu')
+    assert_in_epsilon(0.93, actual_fridge_energy_use / rated_fridge_energy_use, 0.1)
   end
 
   def test_annual_only2
@@ -776,7 +782,7 @@ class ReportSimulationOutputTest < Minitest::Test
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsEndUses
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsEndUses + ["End Use: #{FT::Elec}: #{EUT::HotWaterRecircPump}"]
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
@@ -924,8 +930,7 @@ class ReportSimulationOutputTest < Minitest::Test
   end
 
   def test_timeseries_hourly_zone_temperatures_whole_mf_building
-    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-multiple-mf-units.xml'),
-                  'building_id' => 'ALL',
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-bldgtype-mf-whole-building.xml'),
                   'skip_validation' => true,
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_zone_temperatures' => true }
@@ -1192,14 +1197,15 @@ class ReportSimulationOutputTest < Minitest::Test
   end
 
   def test_timeseries_hourly_runperiod_1month
-    expected_values = { 'hourly' => 28 * 24,
-                        'monthly' => 1 }
+    expected_values = { 'hourly' => 30 * 24, # Feb 15 - Mar 15, w/ leap day
+                        'monthly' => 2 } # Feb, Mar
 
     expected_values.each do |timeseries_frequency, expected_value|
       args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-runperiod-1-month.xml'),
                     'skip_validation' => true,
                     'timeseries_frequency' => timeseries_frequency,
-                    'include_timeseries_fuel_consumptions' => true }
+                    'include_timeseries_fuel_consumptions' => true,
+                    'include_timeseries_emission_fuels' => true }
       annual_csv, timeseries_csv = _test_measure(args_hash)
       assert(File.exist?(annual_csv))
       assert(File.exist?(timeseries_csv))

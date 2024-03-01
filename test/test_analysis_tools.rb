@@ -37,7 +37,7 @@ class TestTools < Minitest::Test
       buildstockbatch_path = results_csvs[0]
       buildstockbatch = CSV.read(buildstockbatch_path, headers: true)
 
-      run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-AllUpgrades.csv")
+      run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-PackageUpgrade.csv")
       run_analysis = CSV.read(run_analysis_path, headers: true)
 
       buildstockbatch_extras = buildstockbatch.headers - run_analysis.headers
@@ -45,11 +45,11 @@ class TestTools < Minitest::Test
       buildstockbatch_extras -= ['simulation_output_report.applicable'] # buildstockbatch contains simulation_output_report.applicable (old workflow)
       buildstockbatch_extras -= ['upgrade_costs.option_04_name'] # buildstockbatch writes this because another upgrade (Lighting) has 4 options; see https://github.com/NREL/buildstockbatch/pull/271
       if project == 'national'
-        # buildstockbatch has these column even though it's all null (because of join with baseline?)
+        # buildstockbatch has these columns even though they're all null (because of join with baseline?)
         buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_heating_lb']
         buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_hot_water_lb']
       elsif project == 'testing'
-        # buildstockbatch has these column even though it's all null (because of join with baseline?)
+        # buildstockbatch has these columns even though they're all null (because of join with baseline?)
         buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_fuel_oil_heating_lb']
         buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_fuel_oil_total_lb']
         buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_heating_lb']
@@ -109,7 +109,7 @@ class TestTools < Minitest::Test
       buildstockbatch_path = results_csvs[0]
       buildstockbatch = CSV.read(buildstockbatch_path, headers: true)
 
-      run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-AllUpgrades.csv")
+      run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-PackageUpgrade.csv")
       run_analysis = CSV.read(run_analysis_path, headers: true)
 
       columns.each do |col|

@@ -11,38 +11,36 @@ Passes in all arguments from the options lookup, processes them, and then regist
 ## Arguments
 
 
-**Schedules: Vacancy Period**
+**Schedules: Vacancy Periods**
 
-Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).
+Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.
 
-- **Name:** ``schedules_vacancy_period``
+- **Name:** ``schedules_vacancy_periods``
 - **Type:** ``String``
 
 - **Required:** ``false``
 
 <br/>
 
-**Schedules: Power Outage Period**
+**Schedules: Power Outage Periods**
 
-Specifies the power outage period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).
+Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.
 
-- **Name:** ``schedules_power_outage_period``
+- **Name:** ``schedules_power_outage_periods``
 - **Type:** ``String``
 
 - **Required:** ``false``
 
 <br/>
 
-**Schedules: Power Outage Period Window Natural Ventilation Availability**
+**Schedules: Power Outage Periods Window Natural Ventilation Availability**
 
-The availability of the natural ventilation schedule during the outage period.
+The availability of the natural ventilation schedule during the power outage periods. Valid choices are 'regular schedule', 'always available', 'always unavailable'. If multiple periods, use a comma-separated list.
 
-- **Name:** ``schedules_power_outage_window_natvent_availability``
-- **Type:** ``Choice``
+- **Name:** ``schedules_power_outage_periods_window_natvent_availability``
+- **Type:** ``String``
 
 - **Required:** ``false``
-
-- **Choices:** `auto`, `regular schedule`, `always available`, `always unavailable`
 
 <br/>
 
@@ -1905,6 +1903,19 @@ The auto-sizing methodology to use when the heat pump capacity is not provided. 
 
 <br/>
 
+**Heat Pump: Backup Sizing Methodology**
+
+The auto-sizing methodology to use when the heat pump backup capacity is not provided. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control'>HPXML HVAC Sizing Control</a>) is used.
+
+- **Name:** ``heat_pump_backup_sizing_methodology``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `auto`, `emergency`, `supplemental`
+
+<br/>
+
 **Heat Pump: Is Ducted**
 
 Whether the heat pump is ducted or not. Only used for mini-split. It's assumed that air-to-air and ground-to-air are ducted, and packaged terminal heat pump and room air conditioner with reverse cycle are not ducted. If not provided, assumes not ducted.
@@ -1938,7 +1949,7 @@ Type of capacity values for detailed performance data if available. Applies only
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `Absolute capacities`
+- **Choices:** `auto`, `Absolute capacities`, `Normalized capacity fractions`
 
 <br/>
 
@@ -2440,7 +2451,7 @@ The type of the mechanical ventilation. Use 'none' if there is no mechanical ven
 
 **Mechanical Ventilation: Flow Rate**
 
-The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan'>Whole Ventilation Fan</a>) is used.
+The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans'>HPXML Mechanical Ventilation Fans</a>) is used.
 
 - **Name:** ``mech_vent_flow_rate``
 - **Type:** ``String``
@@ -2451,7 +2462,7 @@ The flow rate of the mechanical ventilation. If not provided, the OS-HPXML defau
 
 **Mechanical Ventilation: Hours In Operation**
 
-The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan'>Whole Ventilation Fan</a>) is used.
+The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans'>HPXML Mechanical Ventilation Fans</a>) is used.
 
 - **Name:** ``mech_vent_hours_in_operation``
 - **Type:** ``String``
@@ -2501,7 +2512,7 @@ The Unadjusted or Adjusted sensible recovery efficiency of the mechanical ventil
 
 **Mechanical Ventilation: Fan Power**
 
-The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan'>Whole Ventilation Fan</a>) is used.
+The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans'>HPXML Mechanical Ventilation Fans</a>) is used.
 
 - **Name:** ``mech_vent_fan_power``
 - **Type:** ``String``
@@ -2697,7 +2708,7 @@ The fan power of the second mechanical ventilation.
 
 **Kitchen Fans: Quantity**
 
-The quantity of the kitchen fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan'>Local Ventilation Fan</a>) is used.
+The quantity of the kitchen fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.
 
 - **Name:** ``kitchen_fans_quantity``
 - **Type:** ``String``
@@ -2708,7 +2719,7 @@ The quantity of the kitchen fans. If not provided, the OS-HPXML default (see <a 
 
 **Kitchen Fans: Flow Rate**
 
-The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan'>Local Ventilation Fan</a>) is used.
+The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.
 
 - **Name:** ``kitchen_fans_flow_rate``
 - **Type:** ``String``
@@ -2719,7 +2730,7 @@ The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see <a 
 
 **Kitchen Fans: Hours In Operation**
 
-The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan'>Local Ventilation Fan</a>) is used.
+The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.
 
 - **Name:** ``kitchen_fans_hours_in_operation``
 - **Type:** ``String``
@@ -2730,7 +2741,7 @@ The hours in operation of the kitchen fan. If not provided, the OS-HPXML default
 
 **Kitchen Fans: Fan Power**
 
-The fan power of the kitchen fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan'>Local Ventilation Fan</a>) is used.
+The fan power of the kitchen fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.
 
 - **Name:** ``kitchen_fans_power``
 - **Type:** ``String``
@@ -2741,7 +2752,7 @@ The fan power of the kitchen fan. If not provided, the OS-HPXML default (see <a 
 
 **Kitchen Fans: Start Hour**
 
-The start hour of the kitchen fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan'>Local Ventilation Fan</a>) is used.
+The start hour of the kitchen fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.
 
 - **Name:** ``kitchen_fans_start_hour``
 - **Type:** ``String``
@@ -2752,7 +2763,7 @@ The start hour of the kitchen fan. If not provided, the OS-HPXML default (see <a
 
 **Bathroom Fans: Quantity**
 
-The quantity of the bathroom fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan'>Local Ventilation Fan</a>) is used.
+The quantity of the bathroom fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.
 
 - **Name:** ``bathroom_fans_quantity``
 - **Type:** ``String``
@@ -2763,7 +2774,7 @@ The quantity of the bathroom fans. If not provided, the OS-HPXML default (see <a
 
 **Bathroom Fans: Flow Rate**
 
-The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan'>Local Ventilation Fan</a>) is used.
+The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.
 
 - **Name:** ``bathroom_fans_flow_rate``
 - **Type:** ``String``
@@ -2774,7 +2785,7 @@ The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see <
 
 **Bathroom Fans: Hours In Operation**
 
-The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan'>Local Ventilation Fan</a>) is used.
+The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.
 
 - **Name:** ``bathroom_fans_hours_in_operation``
 - **Type:** ``String``
@@ -2785,7 +2796,7 @@ The hours in operation of the bathroom fans. If not provided, the OS-HPXML defau
 
 **Bathroom Fans: Fan Power**
 
-The fan power of the bathroom fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan'>Local Ventilation Fan</a>) is used.
+The fan power of the bathroom fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.
 
 - **Name:** ``bathroom_fans_power``
 - **Type:** ``String``
@@ -2796,7 +2807,7 @@ The fan power of the bathroom fans. If not provided, the OS-HPXML default (see <
 
 **Bathroom Fans: Start Hour**
 
-The start hour of the bathroom fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan'>Local Ventilation Fan</a>) is used.
+The start hour of the bathroom fans. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans'>HPXML Local Ventilation Fans</a>) is used.
 
 - **Name:** ``bathroom_fans_start_hour``
 - **Type:** ``String``
@@ -2818,7 +2829,7 @@ Whether there is a whole house fan.
 
 **Whole House Fan: Flow Rate**
 
-The flow rate of the whole house fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-house-fan'>Whole House Fan</a>) is used.
+The flow rate of the whole house fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-whole-house-fans'>HPXML Whole House Fans</a>) is used.
 
 - **Name:** ``whole_house_fan_flow_rate``
 - **Type:** ``String``
@@ -2829,7 +2840,7 @@ The flow rate of the whole house fan. If not provided, the OS-HPXML default (see
 
 **Whole House Fan: Fan Power**
 
-The fan power of the whole house fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-house-fan'>Whole House Fan</a>) is used.
+The fan power of the whole house fan. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-whole-house-fans'>HPXML Whole House Fans</a>) is used.
 
 - **Name:** ``whole_house_fan_power``
 - **Type:** ``String``
@@ -3071,7 +3082,7 @@ If the distribution system is Recirculation, the type of hot water recirculation
 
 **Hot Water Distribution: Recirculation Piping Length**
 
-If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation'>Recirculation</a>) is used.
+If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit'>Recirculation (In-Unit)</a>) is used.
 
 - **Name:** ``hot_water_distribution_recirc_piping_length``
 - **Type:** ``String``
@@ -3082,7 +3093,7 @@ If the distribution system is Recirculation, the length of the recirculation pip
 
 **Hot Water Distribution: Recirculation Branch Piping Length**
 
-If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation'>Recirculation</a>) is used.
+If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit'>Recirculation (In-Unit)</a>) is used.
 
 - **Name:** ``hot_water_distribution_recirc_branch_piping_length``
 - **Type:** ``String``
@@ -3093,7 +3104,7 @@ If the distribution system is Recirculation, the length of the recirculation bra
 
 **Hot Water Distribution: Recirculation Pump Power**
 
-If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation'>Recirculation</a>) is used.
+If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit'>Recirculation (In-Unit)</a>) is used.
 
 - **Name:** ``hot_water_distribution_recirc_pump_power``
 - **Type:** ``String``
@@ -3177,6 +3188,17 @@ Whether the sink fixture is low flow.
 Multiplier on the hot water usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-water-fixtures'>HPXML Water Fixtures</a>) is used.
 
 - **Name:** ``water_fixtures_usage_multiplier``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**General Water Use: Usage Multiplier**
+
+Multiplier on internal gains from general water use (floor mopping, shower evaporation, water films on showers, tubs & sinks surfaces, plant watering, etc.) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-building-occupancy'>HPXML Building Occupancy</a>) is used.
+
+- **Name:** ``general_water_use_usage_multiplier``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -4372,9 +4394,20 @@ Whether there are any ceiling fans.
 
 <br/>
 
+**Ceiling Fan: Label Energy Use**
+
+The label average energy use of the ceiling fan(s). If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans'>HPXML Ceiling Fans</a>) is used.
+
+- **Name:** ``ceiling_fan_label_energy_use``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
 **Ceiling Fan: Efficiency**
 
-The efficiency rating of the ceiling fan(s) at medium speed. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans'>HPXML Ceiling Fans</a>) is used.
+The efficiency rating of the ceiling fan(s) at medium speed. Only used if Label Energy Use not provided. If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans'>HPXML Ceiling Fans</a>) is used.
 
 - **Name:** ``ceiling_fan_efficiency``
 - **Type:** ``String``

@@ -223,31 +223,31 @@ Arguments
      - #
      - Integer
      - "auto"
-     - The quantity of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The quantity of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_flow_rate``
      - false
      - CFM
      - Double
      - "auto"
-     - The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_hours_in_operation``
      - false
      - hrs/day
      - Double
      - "auto"
-     - The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_power``
      - false
      - W
      - Double
      - "auto"
-     - The fan power of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The fan power of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_start_hour``
      - false
      - hr
      - Integer
      - "auto"
-     - The start hour of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The start hour of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
 
 .. _battery:
 
@@ -482,12 +482,18 @@ Arguments
      - Boolean
      - "true", "false"
      - Whether there are any ceiling fans.
+   * - ``ceiling_fan_label_energy_use``
+     - false
+     - W
+     - Double
+     - "auto"
+     - The label average energy use of the ceiling fan(s). If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
    * - ``ceiling_fan_efficiency``
      - false
      - CFM/W
      - Double
      - "auto"
-     - The efficiency rating of the ceiling fan(s) at medium speed. If not provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
+     - The efficiency rating of the ceiling fan(s) at medium speed. Only used if Label Energy Use not provided. If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
    * - ``ceiling_fan_quantity``
      - false
      - #
@@ -1483,6 +1489,31 @@ Arguments
      - String
      -
      - Path of the EPW file.
+
+.. _county_metro_status:
+
+County Metro Status
+-------------------
+
+Description
+***********
+
+The Metro Status of the county that the sample is located, based on MSA and MicroSA.
+
+Created by
+**********
+
+``sources/spatial/tsv_maker.py``
+
+Source
+******
+
+- \Spatial definitions are from the U.S. Census Bureau as of July 1, 2015.
+
+- \Unit counts are from the American Community Survey 5-yr 2016.
+
+- \County-MSA crosswalk comes from the Quarterly Census of Employment and Wages NAICS-based data between 2013-2022 by the U.S. Bureau of Labor Statistics (https://www.bls.gov/cew/classifications/areas/county-msa-csa-crosswalk.htm)
+
 
 .. _county_and_puma:
 
@@ -3548,6 +3579,12 @@ Arguments
      - Choice
      - "auto", "ACCA", "HERS", "MaxLoad"
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
+   * - ``heat_pump_backup_sizing_methodology``
+     - false
+     - 
+     - Choice
+     - "auto", "emergency", "supplemental"
+     - The auto-sizing methodology to use when the heat pump backup capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``heat_pump_is_ducted``
      - false
      - 
@@ -3560,72 +3597,6 @@ Arguments
      - Double
      - "auto"
      - Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-air, mini-split, packaged terminal heat pump and room air conditioner with reverse cycle. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_) is used.
-   * - ``hvac_perf_data_capacity_type``
-     - false
-     - Absolute capacities
-     - Choice
-     - "auto", "Absolute capacities"
-     - Type of capacity values for detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps).
-   * - ``hvac_perf_data_heating_outdoor_temperatures``
-     - false
-     - deg-F
-     - String
-     -
-     - Outdoor temperatures of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). One of the outdoor temperatures must be 47 deg-F. At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_heating_min_speed_capacities``
-     - false
-     - Btu/hr or Frac
-     - String
-     -
-     - Minimum speed capacities of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_heating_max_speed_capacities``
-     - false
-     - Btu/hr or Frac
-     - String
-     -
-     - Maximum speed capacities of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_heating_min_speed_cops``
-     - false
-     - W/W
-     - String
-     -
-     - Minimum speed efficiency COP values of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_heating_max_speed_cops``
-     - false
-     - W/W
-     - String
-     -
-     - Maximum speed efficiency COP values of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_cooling_outdoor_temperatures``
-     - false
-     - deg-F
-     - String
-     -
-     - Outdoor temperatures of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). One of the outdoor temperatures must be 95 deg-F. At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_cooling_min_speed_capacities``
-     - false
-     - Btu/hr or Frac
-     - String
-     -
-     - Minimum speed capacities of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_cooling_max_speed_capacities``
-     - false
-     - Btu/hr or Frac
-     - String
-     -
-     - Maximum speed capacities of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_cooling_min_speed_cops``
-     - false
-     - W/W
-     - String
-     -
-     - Minimum speed efficiency COP values of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_cooling_max_speed_cops``
-     - false
-     - W/W
-     - String
-     -
-     - Maximum speed efficiency COP values of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
    * - ``geothermal_loop_configuration``
      - false
      - 
@@ -4050,72 +4021,12 @@ Arguments
      - Choice
      - "auto", "ACCA", "HERS", "MaxLoad"
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
-   * - ``hvac_perf_data_capacity_type``
+   * - ``heat_pump_backup_sizing_methodology``
      - false
-     - Absolute capacities
+     - 
      - Choice
-     - "auto", "Absolute capacities"
-     - Type of capacity values for detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps).
-   * - ``hvac_perf_data_heating_outdoor_temperatures``
-     - false
-     - deg-F
-     - String
-     -
-     - Outdoor temperatures of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). One of the outdoor temperatures must be 47 deg-F. At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_heating_min_speed_capacities``
-     - false
-     - Btu/hr or Frac
-     - String
-     -
-     - Minimum speed capacities of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_heating_max_speed_capacities``
-     - false
-     - Btu/hr or Frac
-     - String
-     -
-     - Maximum speed capacities of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_heating_min_speed_cops``
-     - false
-     - W/W
-     - String
-     -
-     - Minimum speed efficiency COP values of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_heating_max_speed_cops``
-     - false
-     - W/W
-     - String
-     -
-     - Maximum speed efficiency COP values of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_cooling_outdoor_temperatures``
-     - false
-     - deg-F
-     - String
-     -
-     - Outdoor temperatures of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). One of the outdoor temperatures must be 95 deg-F. At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_cooling_min_speed_capacities``
-     - false
-     - Btu/hr or Frac
-     - String
-     -
-     - Minimum speed capacities of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_cooling_max_speed_capacities``
-     - false
-     - Btu/hr or Frac
-     - String
-     -
-     - Maximum speed capacities of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_cooling_min_speed_cops``
-     - false
-     - W/W
-     - String
-     -
-     - Minimum speed efficiency COP values of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
-   * - ``hvac_perf_data_cooling_max_speed_cops``
-     - false
-     - W/W
-     - String
-     -
-     - Maximum speed efficiency COP values of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). At least two performance data points are required using a comma-separated list.
+     - "auto", "emergency", "supplemental"
+     - The auto-sizing methodology to use when the heat pump backup capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``geothermal_loop_configuration``
      - false
      - 
@@ -4760,19 +4671,19 @@ Arguments
      - ft
      - Double
      - "auto"
-     - If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
+     - If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default (see `Recirculation (In-Unit) <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit>`_) is used.
    * - ``hot_water_distribution_recirc_branch_piping_length``
      - false
      - ft
      - Double
      - "auto"
-     - If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
+     - If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see `Recirculation (In-Unit) <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit>`_) is used.
    * - ``hot_water_distribution_recirc_pump_power``
      - false
      - W
      - Double
      - "auto"
-     - If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
+     - If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default (see `Recirculation (In-Unit) <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit>`_) is used.
    * - ``hot_water_distribution_pipe_r``
      - false
      - h-ft^2-R/Btu
@@ -4811,12 +4722,22 @@ Hot water fixture usage and flow levels.
 Created by
 **********
 
-manually created
+``sources/other/tsv_maker.py``
 
 Source
 ******
 
-- \Engineering Judgement
+- \Field data from a demand management program with 1700 residential electric resistance water heaters in the Northeast U.S.
+
+
+Assumption
+**********
+
+- \A lognormal distribution was shown to match the distribution of annual energy consumption.
+
+- \For the lognormal distribution the average multiplier is 0.8 and the standard deviation is 0.2.
+
+- \Low, Medium, and High usage is assigned based on the lower 25th percent, middle 50th percent, and upper 25th percent. The bins do not align perfectly with these bins so the lower users are a total of 25 percent, the medium users are 47 percent, and the high users are 28 percent of the stock.
 
 
 Arguments
@@ -5797,13 +5718,13 @@ Arguments
      - CFM
      - Double
      - "auto"
-     - The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
+     - The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see `HPXML Mechanical Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans>`_) is used.
    * - ``mech_vent_hours_in_operation``
      - false
      - hrs/day
      - Double
      - "auto"
-     - The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
+     - The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see `HPXML Mechanical Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans>`_) is used.
    * - ``mech_vent_recovery_efficiency_type``
      - true
      - 
@@ -5827,7 +5748,7 @@ Arguments
      - W
      - Double
      - "auto"
-     - The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
+     - The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see `HPXML Mechanical Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans>`_) is used.
    * - ``mech_vent_num_units_served``
      - true
      - #
@@ -5929,13 +5850,42 @@ Arguments
      - CFM
      - Double
      - "auto"
-     - The flow rate of the whole house fan. If not provided, the OS-HPXML default (see `Whole House Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-house-fan>`_) is used.
+     - The flow rate of the whole house fan. If not provided, the OS-HPXML default (see `HPXML Whole House Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-whole-house-fans>`_) is used.
    * - ``whole_house_fan_power``
      - false
      - W
      - Double
      - "auto"
-     - The fan power of the whole house fan. If not provided, the OS-HPXML default (see `Whole House Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-house-fan>`_) is used.
+     - The fan power of the whole house fan. If not provided, the OS-HPXML default (see `HPXML Whole House Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-whole-house-fans>`_) is used.
+
+.. _metropolitan_and_micropolitan_statistical_area:
+
+Metropolitan and Micropolitan Statistical Area
+----------------------------------------------
+
+Description
+***********
+
+The U.S. Metropolitan Statistical Area (MSA) or Micropolitan Statistical Area (MicroSA) that the sample is located.
+
+Created by
+**********
+
+``sources/spatial/tsv_maker.py``
+
+Source
+******
+
+- \Spatial definitions are from the U.S. Census Bureau as of July 1, 2015.
+
+- \Unit counts are from the American Community Survey 5-yr 2016.
+
+- \County-MSA crosswalk comes from the Quarterly Census of Employment and Wages NAICS-based data between 2013-2022 by the U.S. Bureau of Labor Statistics (https://www.bls.gov/cew/classifications/areas/county-msa-csa-crosswalk.htm)
+
+- \According to the U.S. Census, each metropolitan statistical area must have at least one urban area of 50,000 or more inhabitants
+
+- \According to the U.S. Census, each micropolitan statistical area must have at least one urban area of at least 10,000 but less than 50,000 population.
+
 
 .. _misc_extra_refrigerator:
 
@@ -6834,6 +6784,12 @@ Arguments
      - Double
      -
      - The number of occupants in the unit. If not provided, an *asset* calculation is performed assuming standard occupancy, in which various end use defaults (e.g., plug loads, appliances, and hot water usage) are calculated based on Number of Bedrooms and Conditioned Floor Area per ANSI/RESNET/ICC 301-2019. If provided, an *operational* calculation is instead performed in which the end use defaults are adjusted using the relationship between Number of Bedrooms and Number of Occupants from RECS 2015.
+   * - ``general_water_use_usage_multiplier``
+     - false
+     - 
+     - Double
+     - "auto"
+     - Multiplier on internal gains from general water use (floor mopping, shower evaporation, water films on showers, tubs & sinks surfaces, plant watering, etc.) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Building Occupancy <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-building-occupancy>`_) is used.
 
 .. _orientation:
 
@@ -7432,31 +7388,31 @@ Arguments
      - #
      - Integer
      - "auto"
-     - The quantity of the kitchen fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The quantity of the kitchen fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_flow_rate``
      - false
      - CFM
      - Double
      - "auto"
-     - The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_hours_in_operation``
      - false
      - hrs/day
      - Double
      - "auto"
-     - The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_power``
      - false
      - W
      - Double
      - "auto"
-     - The fan power of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The fan power of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_start_hour``
      - false
      - hr
      - Integer
      - "auto"
-     - The start hour of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The start hour of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
 
 .. _refrigerator:
 
@@ -7784,6 +7740,27 @@ Arguments
      - "auto", "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"
      - State code of the home address.
 
+.. _state_metro_median_income:
+
+State Metro Median Income
+-------------------------
+
+Description
+***********
+
+State Metro median income of the household occupying the dwelling unit.             This is different from State Median Income in that the Income Limits are differentiated by Metro and             Nonmetro portions of the state.
+
+Created by
+**********
+
+``sources/pums/pums2019_5yrs/tsv_maker.py``
+
+Source
+******
+
+- \% State Metro Median Income is calculated using annual household income in 2019USD (continuous, not binned) from 2019-5yrs PUMS data and 2019 state median income (SMI) by metro/nonmetro area from HUD. A County Metro Status-differentiated Income Limits table is derived from the SMI by adjusting for household size only, which is consistent with how HUD's published State Income Limits table is generated.
+
+
 .. _tenure:
 
 Tenure
@@ -7871,12 +7848,12 @@ Arguments
      - Type
      - Choices
      - Description
-   * - ``schedules_vacancy_period``
+   * - ``schedules_vacancy_periods``
      - false
      - 
      - String
      -
-     - Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).
+     - Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.
 
 .. _vintage:
 
@@ -8203,7 +8180,7 @@ Assumption
 
 - \H2OMAIN does not apply to multi-family, therefore Water heater location for multi-family with in-unit water heater is taken after the combined distribution of other builing types.
 
-- \Per expert judgement, water heaters can not be outside or in vented spaces for IECC Climate Zones 4-8 due to pipe-freezing risk.
+- \out-of-unit water heater is assumed to be in Conditioned Mechanical Room. Per expert judgement, water heaters can not be outside or in vented spaces for IECC Climate Zones 4-8 due to pipe-freezing risk.
 
 - \Where samples < 10, data is aggregated in the following order:
 

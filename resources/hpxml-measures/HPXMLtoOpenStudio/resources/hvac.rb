@@ -823,7 +823,7 @@ class HVAC
     control_zone.setZoneControlHumidistat(humidistat)
 
     # Availability Schedule
-    dehum_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::ColumnDehumidifier, unavailable_periods)
+    dehum_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::Columns[:Dehumidifier].name, unavailable_periods)
     avail_sch = ScheduleConstant.new(model, obj_name + ' schedule', 1.0, Constants.ScheduleTypeLimitsFraction, unavailable_periods: dehum_unavailable_periods)
     avail_sch = avail_sch.schedule
 
@@ -847,15 +847,20 @@ class HVAC
   def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, conditioned_space, schedules_file,
                               unavailable_periods)
     obj_name = Constants.ObjectNameCeilingFan
-    medium_cfm = 3000.0 # From ANSI 301-2019
     hrs_per_day = 10.5 # From ANSI 301-2019
     cfm_per_w = ceiling_fan.efficiency
+    label_energy_use = ceiling_fan.label_energy_use
     count = ceiling_fan.count
-    annual_kwh = UnitConversions.convert(count * medium_cfm / cfm_per_w * hrs_per_day * 365.0, 'Wh', 'kWh')
+    if !label_energy_use.nil? # priority if both provided
+      annual_kwh = UnitConversions.convert(count * label_energy_use * hrs_per_day * 365.0, 'Wh', 'kWh')
+    elsif !cfm_per_w.nil?
+      medium_cfm = get_default_ceiling_fan_medium_cfm()
+      annual_kwh = UnitConversions.convert(count * medium_cfm / cfm_per_w * hrs_per_day * 365.0, 'Wh', 'kWh')
+    end
 
     # Create schedule
     ceiling_fan_sch = nil
-    ceiling_fan_col_name = SchedulesFile::ColumnCeilingFan
+    ceiling_fan_col_name = SchedulesFile::Columns[:CeilingFan].name
     if not schedules_file.nil?
       annual_kwh *= Schedule.CeilingFanMonthlyMultipliers(weather: weather).split(',').map(&:to_f).sum(0.0) / 12.0
       ceiling_fan_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: ceiling_fan_col_name, annual_kwh: annual_kwh)
@@ -893,23 +898,23 @@ class HVAC
     heating_sch = nil
     cooling_sch = nil
     if not schedules_file.nil?
-      heating_sch = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnHeatingSetpoint)
+      heating_sch = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:HeatingSetpoint].name)
     end
     if not schedules_file.nil?
-      cooling_sch = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnCoolingSetpoint)
+      cooling_sch = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:CoolingSetpoint].name)
     end
 
     # permit mixing detailed schedules with simple schedules
     if heating_sch.nil?
       htg_weekday_setpoints, htg_weekend_setpoints = get_heating_setpoints(hvac_control, year)
     else
-      runner.registerWarning("Both '#{SchedulesFile::ColumnHeatingSetpoint}' schedule file and heating setpoint temperature provided; the latter will be ignored.") if !hvac_control.heating_setpoint_temp.nil?
+      runner.registerWarning("Both '#{SchedulesFile::Columns[:HeatingSetpoint].name}' schedule file and heating setpoint temperature provided; the latter will be ignored.") if !hvac_control.heating_setpoint_temp.nil?
     end
 
     if cooling_sch.nil?
       clg_weekday_setpoints, clg_weekend_setpoints = get_cooling_setpoints(hvac_control, has_ceiling_fan, year, weather)
     else
-      runner.registerWarning("Both '#{SchedulesFile::ColumnCoolingSetpoint}' schedule file and cooling setpoint temperature provided; the latter will be ignored.") if !hvac_control.cooling_setpoint_temp.nil?
+      runner.registerWarning("Both '#{SchedulesFile::Columns[:CoolingSetpoint].name}' schedule file and cooling setpoint temperature provided; the latter will be ignored.") if !hvac_control.cooling_setpoint_temp.nil?
     end
 
     # only deal with deadband issue if both schedules are simple
@@ -1059,36 +1064,40 @@ class HVAC
     return clg_weekday_setpoints, clg_weekend_setpoints
   end
 
-  def self.get_default_heating_setpoint(control_type)
+  def self.get_default_heating_setpoint(control_type, eri_version)
     # Per ANSI/RESNET/ICC 301
-    htg_sp = 68.0 # F
-    htg_setback_sp = nil
-    htg_setback_hrs_per_week = nil
-    htg_setback_start_hr = nil
+    htg_weekday_setpoints = '68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68'
+    htg_weekend_setpoints = '68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68'
     if control_type == HPXML::HVACControlTypeProgrammable
-      htg_setback_sp = 66.0 # F
-      htg_setback_hrs_per_week = 7 * 7 # 11 p.m. to 5:59 a.m., 7 days a week
-      htg_setback_start_hr = 23 # 11 p.m.
+      if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2022')
+        htg_weekday_setpoints = '66, 66, 66, 66, 66, 67, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
+        htg_weekend_setpoints = '66, 66, 66, 66, 66, 67, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
+      else
+        htg_weekday_setpoints = '66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
+        htg_weekend_setpoints = '66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
+      end
     elsif control_type != HPXML::HVACControlTypeManual
       fail "Unexpected control type #{control_type}."
     end
-    return htg_sp, htg_setback_sp, htg_setback_hrs_per_week, htg_setback_start_hr
+    return htg_weekday_setpoints, htg_weekend_setpoints
   end
 
-  def self.get_default_cooling_setpoint(control_type)
+  def self.get_default_cooling_setpoint(control_type, eri_version)
     # Per ANSI/RESNET/ICC 301
-    clg_sp = 78.0 # F
-    clg_setup_sp = nil
-    clg_setup_hrs_per_week = nil
-    clg_setup_start_hr = nil
+    clg_weekday_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78'
+    clg_weekend_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78'
     if control_type == HPXML::HVACControlTypeProgrammable
-      clg_setup_sp = 80.0 # F
-      clg_setup_hrs_per_week = 6 * 7 # 9 a.m. to 2:59 p.m., 7 days a week
-      clg_setup_start_hr = 9 # 9 a.m.
+      if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2022')
+        clg_weekday_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 79, 78, 78, 78, 78, 78, 78, 78, 78, 78'
+        clg_weekend_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 79, 78, 78, 78, 78, 78, 78, 78, 78, 78'
+      else
+        clg_weekday_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 80, 78, 78, 78, 78, 78, 78, 78, 78, 78'
+        clg_weekend_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 80, 78, 78, 78, 78, 78, 78, 78, 78, 78'
+      end
     elsif control_type != HPXML::HVACControlTypeManual
       fail "Unexpected control type #{control_type}."
     end
-    return clg_sp, clg_setup_sp, clg_setup_hrs_per_week, clg_setup_start_hr
+    return clg_weekday_setpoints, clg_weekend_setpoints
   end
 
   def self.get_default_heating_capacity_retention(compressor_type, hspf = nil)
@@ -1230,13 +1239,13 @@ class HVAC
   def self.set_heat_curves_central_air_source(heating_system, use_cop = false)
     htg_ap = heating_system.additional_properties
     htg_ap.heat_rated_cfm_per_ton = get_default_heat_cfm_per_ton(heating_system.compressor_type, use_cop)
-    heating_capacity_retention_temp, heating_capacity_retention_fraction = get_heating_capacity_retention(heating_system)
     htg_ap.heat_cap_fflow_spec, htg_ap.heat_eir_fflow_spec = get_heat_cap_eir_fflow_spec(heating_system.compressor_type)
     htg_ap.heat_capacity_ratios = get_heat_capacity_ratios(heating_system)
     set_heat_c_d(heating_system)
 
     hspf = heating_system.heating_efficiency_hspf
     if heating_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
+      heating_capacity_retention_temp, heating_capacity_retention_fraction = get_heating_capacity_retention(heating_system)
       htg_ap.heat_cap_ft_spec, htg_ap.heat_eir_ft_spec = get_heat_cap_eir_ft_spec(heating_system.compressor_type, heating_capacity_retention_temp, heating_capacity_retention_fraction)
       if not use_cop
         htg_ap.heat_rated_cops = [0.0353 * hspf**2 + 0.0331 * hspf + 0.9447] # Regression based on inverse model
@@ -1247,6 +1256,7 @@ class HVAC
       end
 
     elsif heating_system.compressor_type == HPXML::HVACCompressorTypeTwoStage
+      heating_capacity_retention_temp, heating_capacity_retention_fraction = get_heating_capacity_retention(heating_system)
       htg_ap.heat_cap_ft_spec, htg_ap.heat_eir_ft_spec = get_heat_cap_eir_ft_spec(heating_system.compressor_type, heating_capacity_retention_temp, heating_capacity_retention_fraction)
       htg_ap.heat_rated_airflow_rate = htg_ap.heat_rated_cfm_per_ton[-1]
       htg_ap.heat_fan_speed_ratios = calc_fan_speed_ratios(htg_ap.heat_capacity_ratios, htg_ap.heat_rated_cfm_per_ton, htg_ap.heat_rated_airflow_rate)
@@ -1507,6 +1517,11 @@ class HVAC
   def self.get_default_ceiling_fan_power()
     # Per ANSI/RESNET/ICC 301
     return 42.6 # W
+  end
+
+  def self.get_default_ceiling_fan_medium_cfm()
+    # From ANSI 301-2019
+    return 3000.0 # cfm
   end
 
   def self.get_default_ceiling_fan_quantity(nbeds)
@@ -2056,7 +2071,6 @@ class HVAC
              HPXML::FuelTypeCoke].include? fuel
         return 330.0 # kWh/yr
       end
-
     end
   end
 
@@ -3503,6 +3517,7 @@ class HVAC
     end
 
     hpxml_bldg.heating_systems.each do |heating_system|
+      next if heating_system.is_heat_pump_backup_system # Will be processed later
       if is_attached_heating_and_cooling_systems(hpxml_bldg, heating_system, heating_system.attached_cooling_system)
         next # Already processed with cooling
       end
@@ -3517,6 +3532,13 @@ class HVAC
     hpxml_bldg.heat_pumps.sort_by { |hp| hp.backup_system_idref.to_s }.each do |heat_pump|
       hvac_systems << { cooling: heat_pump,
                         heating: heat_pump }
+    end
+
+    hpxml_bldg.heating_systems.each do |heating_system|
+      next unless heating_system.is_heat_pump_backup_system
+
+      hvac_systems << { cooling: nil,
+                        heating: heating_system }
     end
 
     return hvac_systems
@@ -3549,13 +3571,17 @@ class HVAC
       hp_sys.backup_heating_capacity = [hp_sys.backup_heating_capacity, min_capacity].max unless hp_sys.backup_heating_capacity.nil?
       if not hp_sys.heating_detailed_performance_data.empty?
         hp_sys.heating_detailed_performance_data.each do |dp|
+          next if dp.capacity.nil?
+
           speed = dp.capacity_description == HPXML::CapacityDescriptionMinimum ? 1 : 2
           dp.capacity = [dp.capacity, min_capacity * speed].max
         end
       end
-      next unless not hp_sys.cooling_detailed_performance_data.empty?
+      next if hp_sys.cooling_detailed_performance_data.empty?
 
       hp_sys.cooling_detailed_performance_data.each do |dp|
+        next if dp.capacity.nil?
+
         speed = dp.capacity_description == HPXML::CapacityDescriptionMinimum ? 1 : 2
         dp.capacity = [dp.capacity, min_capacity * speed].max
       end
