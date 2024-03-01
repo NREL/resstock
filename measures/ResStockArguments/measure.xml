@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>02272342-40e1-4b56-a80a-4ff565d8bca6</version_id>
-  <version_modified>2024-03-01T16:47:09Z</version_modified>
+  <version_id>72efda0b-d9e0-49ab-b114-ac6fc2bb58bf</version_id>
+  <version_modified>2024-03-01T19:23:30Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -221,15 +221,6 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>site_zip_code</name>
-      <display_name>Site: Zip Code</display_name>
-      <description>Zip code of the home address.</description>
-      <type>String</type>
-      <units></units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
       <name>site_iecc_zone</name>
       <display_name>Site: IECC Zone</display_name>
       <description>IECC zone of the home address.</description>
@@ -325,9 +316,18 @@
       </choices>
     </argument>
     <argument>
+      <name>site_city</name>
+      <display_name>Site: City</display_name>
+      <description>City/municipality of the home address.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>site_state_code</name>
       <display_name>Site: State Code</display_name>
-      <description>State code of the home address.</description>
+      <description>State code of the home address. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
       <type>Choice</type>
       <units></units>
       <required>false</required>
@@ -544,11 +544,47 @@
       </choices>
     </argument>
     <argument>
+      <name>site_zip_code</name>
+      <display_name>Site: Zip Code</display_name>
+      <description>Zip code of the home address.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>site_time_zone_utc_offset</name>
       <display_name>Site: Time Zone UTC Offset</display_name>
-      <description>Time zone UTC offset of the home address. Must be between -12 and 14.</description>
+      <description>Time zone UTC offset of the home address. Must be between -12 and 14. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>site_elevation</name>
+      <display_name>Site: Elevation</display_name>
+      <description>Elevation of the home address. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>ft</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>site_latitude</name>
+      <display_name>Site: Latitude</display_name>
+      <description>Latitude of the home address. Must be between -90 and 90. Use negative values for southern hemisphere. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>deg</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>site_longitude</name>
+      <display_name>Site: Longitude</display_name>
+      <description>Longitude of the home address. Must be between -180 and 180. Use negative values for the western hemisphere. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>deg</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -7283,7 +7319,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>03241F20</checksum>
+      <checksum>E180628E</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
