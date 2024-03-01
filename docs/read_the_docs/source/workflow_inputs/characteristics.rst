@@ -1,6 +1,6 @@
 .. _housing_characteristics:
 
-Housing Characteristics
+Housing Characteristics Distributions
 =======================
 
 Each parameter sampled by the national project is listed alphabetically as its own subsection below.
