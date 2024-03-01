@@ -1102,9 +1102,9 @@ class HPXML < Object
                    :batteries, :clothes_washers, :clothes_dryers, :dishwashers, :refrigerators,
                    :freezers, :dehumidifiers, :cooking_ranges, :ovens, :lighting_groups, :lighting,
                    :ceiling_fans, :pools, :permanent_spas, :portable_spas, :plug_loads, :fuel_loads]
-    ATTRS = [:building_id, :site_id, :state_code, :zip_code, :time_zone_utc_offset, :egrid_region,
-             :egrid_subregion, :cambium_region_gea, :dst_enabled, :dst_begin_month,
-             :dst_begin_day, :dst_end_month, :dst_end_day, :event_type]
+    ATTRS = [:building_id, :site_id, :city, :state_code, :zip_code, :time_zone_utc_offset, :egrid_region,
+             :egrid_subregion, :cambium_region_gea, :dst_enabled, :dst_begin_month, :dst_begin_day,
+             :dst_end_month, :dst_end_day, :event_type, :elevation, :latitude, :longitude]
 
     attr_accessor(*CLASS_ATTRS)
     attr_accessor(*ATTRS)
@@ -1121,7 +1121,7 @@ class HPXML < Object
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
       XMLHelper.add_attribute(building_building_id, 'id', @building_id)
-      if (not @state_code.nil?) || (not @zip_code.nil?) || (not @time_zone_utc_offset.nil?) || (not @egrid_region.nil?) || (not @egrid_subregion.nil?) || (not @cambium_region_gea.nil?) || (not @dst_enabled.nil?) || (not @dst_begin_month.nil?) || (not @dst_begin_day.nil?) || (not @dst_end_month.nil?) || (not @dst_end_day.nil?)
+      if (not @state_code.nil?) || (not @zip_code.nil?) || (not @city.nil?) || (not @time_zone_utc_offset.nil?) || (not @egrid_region.nil?) || (not @egrid_subregion.nil?) || (not @cambium_region_gea.nil?) || (not @dst_enabled.nil?) || (not @dst_begin_month.nil?) || (not @dst_begin_day.nil?) || (not @dst_end_month.nil?) || (not @dst_end_day.nil?)
         building_site = XMLHelper.add_element(building, 'Site')
         building_site_id = XMLHelper.add_element(building_site, 'SiteID')
         if @site_id.nil?
@@ -1134,11 +1134,18 @@ class HPXML < Object
         else
           XMLHelper.add_attribute(building_site_id, 'id', @site_id)
         end
-        if (not @state_code.nil?) || (not @zip_code.nil?)
+        if (not @state_code.nil?) || (not @zip_code.nil?) || (not @city.nil?)
           address = XMLHelper.add_element(building_site, 'Address')
+          XMLHelper.add_element(address, 'CityMunicipality', @city, :string, @city_isdefaulted) unless @city.nil?
           XMLHelper.add_element(address, 'StateCode', @state_code, :string, @state_code_isdefaulted) unless @state_code.nil?
           XMLHelper.add_element(address, 'ZipCode', @zip_code, :string) unless @zip_code.nil?
         end
+        if (not @latitude.nil?) || (not @longitude.nil?)
+          geo_location = XMLHelper.add_element(building_site, 'GeoLocation')
+          XMLHelper.add_element(geo_location, 'Latitude', @latitude, :float, @latitude_isdefaulted) unless @latitude.nil?
+          XMLHelper.add_element(geo_location, 'Longitude', @longitude, :float, @longitude_isdefaulted) unless @longitude.nil?
+        end
+        XMLHelper.add_element(building_site, 'Elevation', @elevation, :float, @elevation_isdefaulted) unless @elevation.nil?
         if not @egrid_region.nil?
           XMLHelper.add_element(building_site, 'eGridRegion', @egrid_region, :string, @egrid_region_isdefaulted)
         end
@@ -1224,6 +1231,10 @@ class HPXML < Object
         @site_id = HPXML::get_id(building, 'Site/SiteID')
         @state_code = XMLHelper.get_value(building, 'Site/Address/StateCode', :string)
         @zip_code = XMLHelper.get_value(building, 'Site/Address/ZipCode', :string)
+        @city = XMLHelper.get_value(building, 'Site/Address/CityMunicipality', :string)
+        @latitude = XMLHelper.get_value(building, 'Site/GeoLocation/Latitude', :float)
+        @longitude = XMLHelper.get_value(building, 'Site/GeoLocation/Longitude', :float)
+        @elevation = XMLHelper.get_value(building, 'Site/Elevation', :float)
         @egrid_region = XMLHelper.get_value(building, 'Site/eGridRegion', :string)
         @egrid_subregion = XMLHelper.get_value(building, 'Site/eGridSubregion', :string)
         @cambium_region_gea = XMLHelper.get_value(building, 'Site/CambiumRegionGEA', :string)

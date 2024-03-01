@@ -160,11 +160,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('ft^2/hr')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('site_zip_code', false)
-    arg.setDisplayName('Site: Zip Code')
-    arg.setDescription('Zip code of the home address.')
-    args << arg
-
     site_iecc_zone_choices = OpenStudio::StringVector.new
     Constants.IECCZones.each do |iz|
       site_iecc_zone_choices << iz
@@ -175,6 +170,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('IECC zone of the home address.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('site_city', false)
+    arg.setDisplayName('Site: City')
+    arg.setDescription('City/municipality of the home address.')
+    args << arg
+
     site_state_code_choices = OpenStudio::StringVector.new
     Constants.StateCodesMap.keys.each do |sc|
       site_state_code_choices << sc
@@ -182,13 +182,36 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('site_state_code', site_state_code_choices, false)
     arg.setDisplayName('Site: State Code')
-    arg.setDescription('State code of the home address.')
+    arg.setDescription("State code of the home address. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('site_zip_code', false)
+    arg.setDisplayName('Site: Zip Code')
+    arg.setDescription('Zip code of the home address.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_time_zone_utc_offset', false)
     arg.setDisplayName('Site: Time Zone UTC Offset')
-    arg.setDescription('Time zone UTC offset of the home address. Must be between -12 and 14.')
+    arg.setDescription("Time zone UTC offset of the home address. Must be between -12 and 14. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
     arg.setUnits('hr')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_elevation', false)
+    arg.setDisplayName('Site: Elevation')
+    arg.setDescription("Elevation of the home address. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
+    arg.setUnits('ft')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_latitude', false)
+    arg.setDisplayName('Site: Latitude')
+    arg.setDescription("Latitude of the home address. Must be between -90 and 90. Use negative values for southern hemisphere. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
+    arg.setUnits('deg')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_longitude', false)
+    arg.setDisplayName('Site: Longitude')
+    arg.setDescription("Longitude of the home address. Must be between -180 and 180. Use negative values for the western hemisphere. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
+    arg.setUnits('deg')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
@@ -4275,8 +4298,24 @@ class HPXMLFile
       zip_code = args[:site_zip_code].get
     end
 
+    if args[:site_city].is_initialized
+      city = args[:site_city].get
+    end
+
     if args[:site_state_code].is_initialized
       state_code = args[:site_state_code].get
+    end
+
+    if args[:site_elevation].is_initialized
+      elevation = args[:site_elevation].get
+    end
+
+    if args[:site_latitude].is_initialized
+      latitude = args[:site_latitude].get
+    end
+
+    if args[:site_longitude].is_initialized
+      longitude = args[:site_longitude].get
     end
 
     if args[:site_time_zone_utc_offset].is_initialized
@@ -4297,9 +4336,13 @@ class HPXMLFile
     hpxml.buildings.add(building_id: 'MyBuilding',
                         site_id: 'SiteID',
                         event_type: 'proposed workscope',
-                        zip_code: zip_code,
+                        city: city,
                         state_code: state_code,
+                        zip_code: zip_code,
                         time_zone_utc_offset: time_zone_utc_offset,
+                        elevation: elevation,
+                        latitude: latitude,
+                        longitude: longitude,
                         dst_enabled: dst_enabled,
                         dst_begin_month: dst_begin_month,
                         dst_begin_day: dst_begin_day,
@@ -5927,6 +5970,8 @@ class HPXMLFile
   def self.set_hvac_control(hpxml, hpxml_bldg, args, epw_file, weather)
     return if (args[:heating_system_type] == 'none') && (args[:cooling_system_type] == 'none') && (args[:heat_pump_type] == 'none')
 
+    latitude = HPXMLDefaults.get_default_latitude(args[:site_latitude].is_initialized ? args[:site_latitude].get : nil, epw_file)
+
     # Heating
     if hpxml_bldg.total_fraction_heat_load_served > 0
 
@@ -5942,7 +5987,7 @@ class HPXMLFile
       if args[:hvac_control_heating_season_period].is_initialized
         hvac_control_heating_season_period = args[:hvac_control_heating_season_period].get
         if hvac_control_heating_season_period == HPXML::BuildingAmerica
-          heating_months, _cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+          heating_months, _cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, latitude)
           sim_calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
           begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(heating_months, sim_calendar_year)
         else
@@ -5975,7 +6020,7 @@ class HPXMLFile
       if args[:hvac_control_cooling_season_period].is_initialized
         hvac_control_cooling_season_period = args[:hvac_control_cooling_season_period].get
         if hvac_control_cooling_season_period == HPXML::BuildingAmerica
-          _heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+          _heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, latitude)
           sim_calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
           begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(cooling_months, sim_calendar_year)
         else
@@ -6411,7 +6456,8 @@ class HPXMLFile
       collector_loop_type = args[:solar_thermal_collector_loop_type]
       collector_type = args[:solar_thermal_collector_type]
       collector_azimuth = args[:solar_thermal_collector_azimuth]
-      collector_tilt = Geometry.get_absolute_tilt(args[:solar_thermal_collector_tilt], args[:geometry_roof_pitch], epw_file)
+      latitude = HPXMLDefaults.get_default_latitude(args[:site_latitude].is_initialized ? args[:site_latitude].get : nil, epw_file)
+      collector_tilt = Geometry.get_absolute_tilt(args[:solar_thermal_collector_tilt], args[:geometry_roof_pitch], latitude)
       collector_frta = args[:solar_thermal_collector_rated_optical_efficiency]
       collector_frul = args[:solar_thermal_collector_rated_thermal_losses]
 
@@ -6467,12 +6513,16 @@ class HPXMLFile
         end
       end
 
+      array_azimuth = [args[:pv_system_array_azimuth], args[:pv_system_2_array_azimuth]][i]
+      latitude = HPXMLDefaults.get_default_latitude(args[:site_latitude].is_initialized ? args[:site_latitude].get : nil, epw_file)
+      array_tilt = Geometry.get_absolute_tilt([args[:pv_system_array_tilt], args[:pv_system_2_array_tilt]][i], args[:geometry_roof_pitch], latitude)
+
       hpxml_bldg.pv_systems.add(id: "PVSystem#{hpxml_bldg.pv_systems.size + 1}",
                                 location: location,
                                 module_type: module_type,
                                 tracking: tracking,
-                                array_azimuth: [args[:pv_system_array_azimuth], args[:pv_system_2_array_azimuth]][i],
-                                array_tilt: Geometry.get_absolute_tilt([args[:pv_system_array_tilt], args[:pv_system_2_array_tilt]][i], args[:geometry_roof_pitch], epw_file),
+                                array_azimuth: array_azimuth,
+                                array_tilt: array_tilt,
                                 max_power_output: max_power_output,
                                 system_losses_fraction: system_losses_fraction,
                                 is_shared_system: is_shared_system,

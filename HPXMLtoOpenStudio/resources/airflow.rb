@@ -116,7 +116,7 @@ class Airflow
                                                   infil_volume, infil_height, unavailable_periods)
     apply_infiltration_and_ventilation_fans(model, weather, hpxml_bldg.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             has_flue_chimney_in_cond_space, conditioned_ach50, conditioned_const_ach, infil_volume, infil_height,
-                                            vented_attic, vented_crawl, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl, unavailable_periods)
+                                            vented_attic, vented_crawl, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl, unavailable_periods, hpxml_bldg.elevation)
   end
 
   def self.get_default_fraction_of_windows_operable()
@@ -1777,7 +1777,7 @@ class Airflow
 
   def self.apply_infiltration_ventilation_to_conditioned(model, site, vent_fans_mech, conditioned_ach50, conditioned_const_ach, infil_volume, infil_height, weather,
                                                          vent_fans_kitchen, vent_fans_bath, vented_dryers, has_flue_chimney_in_cond_space, clg_ssn_sensor, schedules_file,
-                                                         vent_fans_cfis_suppl, unavailable_periods)
+                                                         vent_fans_cfis_suppl, unavailable_periods, elevation)
     # Categorize fans into different types
     vent_mech_preheat = vent_fans_mech.select { |vent_mech| (not vent_mech.preheating_efficiency_cop.nil?) }
     vent_mech_precool = vent_fans_mech.select { |vent_mech| (not vent_mech.precooling_efficiency_cop.nil?) }
@@ -1823,7 +1823,7 @@ class Airflow
     infil_program.setName(Constants.ObjectNameInfiltration + ' program')
 
     # Calculate infiltration without adjustment by ventilation
-    apply_infiltration_to_conditioned(site, conditioned_ach50, conditioned_const_ach, infil_program, weather, has_flue_chimney_in_cond_space, infil_volume, infil_height)
+    apply_infiltration_to_conditioned(site, conditioned_ach50, conditioned_const_ach, infil_program, weather, has_flue_chimney_in_cond_space, infil_volume, infil_height, elevation)
 
     # Common variable and load actuators across multiple mech vent calculations, create only once
     fan_sens_load_actuator, fan_lat_load_actuator = setup_mech_vent_vars_actuators(model: model, program: infil_program)
@@ -1861,7 +1861,7 @@ class Airflow
 
   def self.apply_infiltration_and_ventilation_fans(model, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                    has_flue_chimney_in_cond_space, conditioned_ach50, conditioned_const_ach, infil_volume, infil_height, vented_attic,
-                                                   vented_crawl, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl, unavailable_periods)
+                                                   vented_crawl, clg_ssn_sensor, schedules_file, vent_fans_cfis_suppl, unavailable_periods, elevation)
 
     # Infiltration for unconditioned spaces
     apply_infiltration_to_garage(model, site, conditioned_ach50)
@@ -1874,17 +1874,18 @@ class Airflow
     # Infiltration/ventilation for conditioned space
     apply_infiltration_ventilation_to_conditioned(model, site, vent_fans_mech, conditioned_ach50, conditioned_const_ach, infil_volume, infil_height, weather,
                                                   vent_fans_kitchen, vent_fans_bath, vented_dryers, has_flue_chimney_in_cond_space, clg_ssn_sensor, schedules_file,
-                                                  vent_fans_cfis_suppl, unavailable_periods)
+                                                  vent_fans_cfis_suppl, unavailable_periods, elevation)
   end
 
-  def self.apply_infiltration_to_conditioned(site, conditioned_ach50, conditioned_const_ach, infil_program, weather, has_flue_chimney_in_cond_space, infil_volume, infil_height)
+  def self.apply_infiltration_to_conditioned(site, conditioned_ach50, conditioned_const_ach, infil_program, weather, has_flue_chimney_in_cond_space, infil_volume, infil_height, elevation)
     site_ap = site.additional_properties
 
     if conditioned_ach50.to_f > 0
       # Based on "Field Validation of Algebraic Equations for Stack and
       # Wind Driven Air Infiltration Calculations" by Walker and Wilson (1998)
 
-      outside_air_density = UnitConversions.convert(weather.header.LocalPressure, 'atm', 'Btu/ft^3') / (Gas.Air.r * UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'R'))
+      local_press = Psychrometrics.CalculateLocalPressure(elevation)
+      outside_air_density = UnitConversions.convert(local_press, 'atm', 'Btu/ft^3') / (Gas.Air.r * UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'R'))
 
       n_i = InfilPressureExponent
       conditioned_sla = get_infiltration_SLA_from_ACH50(conditioned_ach50, n_i, @cfa, infil_volume) # Calculate SLA

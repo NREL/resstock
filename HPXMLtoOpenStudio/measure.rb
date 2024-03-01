@@ -193,7 +193,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       add_unmet_hours_output(model, hpxml_osm_map)
       add_loads_output(model, add_component_loads, hpxml_osm_map)
       set_output_files(model)
-      add_additional_properties(model, hpxml, hpxml_osm_map, hpxml_path, building_id, epw_file, hpxml_defaults_path)
+      add_additional_properties(model, hpxml, hpxml_osm_map, hpxml_path, building_id, hpxml_defaults_path)
       # Uncomment to debug EMS
       # add_ems_debug_output(model)
 
@@ -1278,7 +1278,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # Create cooling season schedule
     # Applies to natural ventilation and calculation of component loads, not HVAC equipment
     # Uses BAHSP cooling season, not user-specified cooling season (which may be, e.g., year-round)
-    _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+    _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, @hpxml_bldg.latitude)
 
     clg_season_sch = MonthWeekdayWeekendSchedule.new(model, 'cooling season schedule', Array.new(24, 1), Array.new(24, 1), default_cooling_months, Constants.ScheduleTypeLimitsFraction)
     @clg_ssn_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
@@ -1547,7 +1547,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         plantloop_map[sys_id] = Waterheater.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
         conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
-        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
+        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, @hpxml_bldg.elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
       elsif [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
         plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
       else
@@ -2066,7 +2066,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
   end
 
-  def add_additional_properties(model, hpxml, hpxml_osm_map, hpxml_path, building_id, epw_file, hpxml_defaults_path)
+  def add_additional_properties(model, hpxml, hpxml_osm_map, hpxml_path, building_id, hpxml_defaults_path)
     # Store some data for use in reporting measure
     additionalProperties = model.getBuilding.additionalProperties
     additionalProperties.setFeature('hpxml_path', hpxml_path)
@@ -2083,7 +2083,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
     additionalProperties.setFeature('heated_zones', heated_zones.to_s)
     additionalProperties.setFeature('cooled_zones', cooled_zones.to_s)
-    additionalProperties.setFeature('is_southern_hemisphere', epw_file.latitude < 0)
+    additionalProperties.setFeature('is_southern_hemisphere', hpxml_osm_map.keys[0].latitude < 0)
   end
 
   def add_unmet_hours_output(model, hpxml_osm_map)

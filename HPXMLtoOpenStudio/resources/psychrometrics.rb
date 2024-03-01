@@ -906,4 +906,8 @@ class Psychrometrics
     twb = self.Twb_fT_w_P(runner, tdb, w, p)
     return twb
   end
+
+  def self.CalculateLocalPressure(elevation_ft)
+    return Math::exp(-0.0000368 * elevation_ft) # atm
+  end
 end

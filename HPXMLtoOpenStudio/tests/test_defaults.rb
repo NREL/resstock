@@ -229,7 +229,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.dst_end_month = 10
     hpxml_bldg.dst_end_day = 10
     hpxml_bldg.state_code = 'CA'
+    hpxml_bldg.city = 'CityName'
     hpxml_bldg.time_zone_utc_offset = -8
+    hpxml_bldg.elevation = 1234
+    hpxml_bldg.latitude = 12
+    hpxml_bldg.longitude = -34
     hpxml_bldg.header.natvent_days_per_week = 7
     hpxml_bldg.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingMaxLoad
     hpxml_bldg.header.heat_pump_backup_sizing_methodology = HPXML::HeatPumpBackupSizingSupplemental
@@ -248,7 +252,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.header.manualj_num_occupants = 8
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_building_values(default_hpxml_bldg, false, 3, 3, 10, 10, 'CA', -8, 7, HPXML::HeatPumpSizingMaxLoad, true,
+    _test_default_building_values(default_hpxml_bldg, false, 3, 3, 10, 10, 'CA', 'CityName', -8, 1234, 12, -34, 7, HPXML::HeatPumpSizingMaxLoad, true,
                                   2, 3, 4, 5, 0.0, 100.0, 68.0, 78.0, 0.33, 1600.0, 60.0, 8, HPXML::HeatPumpBackupSizingSupplemental)
 
     # Test defaults - DST not in weather file
@@ -258,7 +262,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.dst_end_month = nil
     hpxml_bldg.dst_end_day = nil
     hpxml_bldg.state_code = nil
+    hpxml_bldg.city = nil
     hpxml_bldg.time_zone_utc_offset = nil
+    hpxml_bldg.elevation = nil
+    hpxml_bldg.latitude = nil
+    hpxml_bldg.longitude = nil
     hpxml_bldg.header.natvent_days_per_week = nil
     hpxml_bldg.header.heat_pump_sizing_methodology = nil
     hpxml_bldg.header.heat_pump_backup_sizing_methodology = nil
@@ -277,7 +285,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.header.manualj_num_occupants = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_building_values(default_hpxml_bldg, true, 3, 12, 11, 5, 'CO', -7, 3, HPXML::HeatPumpSizingHERS, false,
+    _test_default_building_values(default_hpxml_bldg, true, 3, 12, 11, 5, 'CO', 'Denver Intl Ap', -7, 5413.4, 39.83, -104.65, 3, HPXML::HeatPumpSizingHERS, false,
                                   5, 1, 10, 31, 6.8, 91.4, 70.0, 75.0, 0.45, 2400.0, 0.0, 4, HPXML::HeatPumpBackupSizingEmergency)
 
     # Test defaults - DST in weather file
@@ -288,10 +296,14 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.dst_end_month = nil
     hpxml_bldg.dst_end_day = nil
     hpxml_bldg.state_code = nil
+    hpxml_bldg.city = nil
     hpxml_bldg.time_zone_utc_offset = nil
+    hpxml_bldg.elevation = nil
+    hpxml_bldg.latitude = nil
+    hpxml_bldg.longitude = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_building_values(default_hpxml_bldg, true, 3, 11, 11, 4, 'CO', -7, 3, nil, false,
+    _test_default_building_values(default_hpxml_bldg, true, 3, 11, 11, 4, 'CO', 'Boulder', -7, 5300.2, 40.13, -105.22, 3, nil, false,
                                   5, 1, 9, 30, 10.2, 91.4, 70.0, 75.0, 0.45, 2400.0, 0.0, 4, nil)
 
     # Test defaults - southern hemisphere, invalid state code
@@ -302,10 +314,14 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.dst_end_month = nil
     hpxml_bldg.dst_end_day = nil
     hpxml_bldg.state_code = nil
+    hpxml_bldg.city = nil
     hpxml_bldg.time_zone_utc_offset = nil
+    hpxml_bldg.elevation = nil
+    hpxml_bldg.latitude = nil
+    hpxml_bldg.longitude = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_building_values(default_hpxml_bldg, true, 3, 12, 11, 5, nil, 2, 3, nil, false,
+    _test_default_building_values(default_hpxml_bldg, true, 3, 12, 11, 5, '-', 'CAPE TOWN', 2, 137.8, -33.98, 18.6, 3, nil, false,
                                   12, 1, 4, 30, 41.0, 84.4, 70.0, 75.0, 0.5, 2400.0, 0.0, 4, nil)
   end
 
@@ -4119,8 +4135,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     end
   end
 
-  def _test_default_building_values(hpxml_bldg, dst_enabled, dst_begin_month, dst_begin_day, dst_end_month, dst_end_day,
-                                    state_code, time_zone_utc_offset, natvent_days_per_week, heat_pump_sizing_methodology, allow_increased_fixed_capacities,
+  def _test_default_building_values(hpxml_bldg, dst_enabled, dst_begin_month, dst_begin_day, dst_end_month, dst_end_day, state_code, city, time_zone_utc_offset,
+                                    elevation, latitude, longitude, natvent_days_per_week, heat_pump_sizing_methodology, allow_increased_fixed_capacities,
                                     shading_summer_begin_month, shading_summer_begin_day, shading_summer_end_month, shading_summer_end_day,
                                     manualj_heating_design_temp, manualj_cooling_design_temp, manualj_heating_setpoint, manualj_cooling_setpoint,
                                     manualj_humidity_setpoint, manualj_internal_loads_sensible, manualj_internal_loads_latent, manualj_num_occupants,
@@ -4135,7 +4151,15 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     else
       assert_equal(state_code, hpxml_bldg.state_code)
     end
+    if city.nil?
+      assert_nil(hpxml_bldg.city)
+    else
+      assert_equal(city, hpxml_bldg.city)
+    end
     assert_equal(time_zone_utc_offset, hpxml_bldg.time_zone_utc_offset)
+    assert_equal(elevation, hpxml_bldg.elevation)
+    assert_equal(latitude, hpxml_bldg.latitude)
+    assert_equal(longitude, hpxml_bldg.longitude)
     assert_equal(natvent_days_per_week, hpxml_bldg.header.natvent_days_per_week)
     if heat_pump_sizing_methodology.nil?
       assert_nil(hpxml_bldg.header.heat_pump_sizing_methodology)
