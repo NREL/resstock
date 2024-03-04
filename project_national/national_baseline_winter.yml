@@ -3,7 +3,7 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /kfs2/projects/redlineres/tcm/winter_boston_tcm_1
+output_directory: /kfs2/projects/redlineres/tcm/winter_boston_tcm1_0304
 #weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -83,8 +83,8 @@ kestrel:
   sampling:
     time: 60
   postprocessing:
-    time: 1000
-    n_workers: 16
+    time: 180
+    n_workers: 2
 
 postprocessing:
   aws:
@@ -95,4 +95,4 @@ postprocessing:
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: redlineres
-      max_crawling_time: 1200
+      max_crawling_time: 180
