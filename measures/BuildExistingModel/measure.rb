@@ -405,15 +405,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args[:simulation_control_run_period_calendar_year].get if args[:simulation_control_run_period_calendar_year].is_initialized
 
-      # Autosizing factors
-      autosizing_factor = 1.0
-      measures['BuildResidentialHPXML'][0]['heating_system_heating_autosizing_factor'] = autosizing_factor
-      measures['BuildResidentialHPXML'][0]['heating_system_2_heating_autosizing_factor'] = autosizing_factor
-      measures['BuildResidentialHPXML'][0]['cooling_system_cooling_autosizing_factor'] = autosizing_factor
-      measures['BuildResidentialHPXML'][0]['heat_pump_heating_autosizing_factor'] = autosizing_factor
-      measures['BuildResidentialHPXML'][0]['heat_pump_cooling_autosizing_factor'] = autosizing_factor
-      measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_autosizing_factor'] = autosizing_factor
-
       # Emissions
       if args[:emissions_scenario_names].is_initialized
         if !bldg_data.keys.include?('Generation And Emissions Assessment Region')
