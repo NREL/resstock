@@ -11,5 +11,3 @@ Contents in :ref:`housing_characteristics` are populated based on the national p
 
    dwelling_unit_counts
    characteristics
-   emissions_scenarios
-   utility_bills
