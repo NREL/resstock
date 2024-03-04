@@ -325,13 +325,13 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
       unit_number += 1
 
-      system_upgrades = []
+      hvac_system_upgrades = []
       options.each do |_option_num, option|
         parameter_name, option_name = option.split('|')
 
         options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
         options_measure_args[option_name].each do |_measure_subdir, args_hash|
-          system_upgrades = get_system_upgrades(hpxml_bldg, system_upgrades, args_hash)
+          hvac_system_upgrades = get_hvac_system_upgrades(hpxml_bldg, hvac_system_upgrades, args_hash)
         end
       end
 
@@ -370,20 +370,29 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
-      # Retain HVAC capacities and autosizing factors
-      capacities, autosizing_factors = get_system_capacities_and_autosizing_factors(hpxml_bldg, system_upgrades)
+      # Retain (calculated) HVAC capacities if upgrade is not HVAC system related
+      # Do not retain HVAC autosizing factors and defect ratios if upgrade is HVAC system related
+      capacities, autosizing_factors, defect_ratios = get_hvac_system_values(hpxml_bldg, hvac_system_upgrades)
+
       measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = capacities['heating_system_heating_capacity']
       measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = capacities['heating_system_2_heating_capacity']
       measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = capacities['cooling_system_cooling_capacity']
       measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = capacities['heat_pump_heating_capacity']
       measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = capacities['heat_pump_cooling_capacity']
       measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = capacities['heat_pump_backup_heating_capacity']
+
       measures['BuildResidentialHPXML'][0]['heating_system_heating_autosizing_factor'] = autosizing_factors['heating_system_heating_autosizing_factor']
       measures['BuildResidentialHPXML'][0]['heating_system_2_heating_autosizing_factor'] = autosizing_factors['heating_system_2_heating_autosizing_factor']
       measures['BuildResidentialHPXML'][0]['cooling_system_cooling_autosizing_factor'] = autosizing_factors['cooling_system_cooling_autosizing_factor']
       measures['BuildResidentialHPXML'][0]['heat_pump_heating_autosizing_factor'] = autosizing_factors['heat_pump_heating_autosizing_factor']
       measures['BuildResidentialHPXML'][0]['heat_pump_cooling_autosizing_factor'] = autosizing_factors['heat_pump_cooling_autosizing_factor']
       measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_autosizing_factor'] = autosizing_factors['heat_pump_backup_heating_autosizing_factor']
+
+      measures['BuildResidentialHPXML'][0]['heating_system_airflow_defect_ratio'] = defect_ratios['heating_system_airflow_defect_ratio']
+      measures['BuildResidentialHPXML'][0]['cooling_system_airflow_defect_ratio'] = defect_ratios['cooling_system_airflow_defect_ratio']
+      measures['BuildResidentialHPXML'][0]['cooling_system_charge_defect_ratio'] = defect_ratios['cooling_system_charge_defect_ratio']
+      measures['BuildResidentialHPXML'][0]['heat_pump_airflow_defect_ratio'] = defect_ratios['heat_pump_airflow_defect_ratio']
+      measures['BuildResidentialHPXML'][0]['heat_pump_charge_defect_ratio'] = defect_ratios['heat_pump_charge_defect_ratio']
 
       # Retain Existing Heating System as Heat Pump Backup
       heat_pump_backup_use_existing_system = measures['ResStockArguments'][0]['heat_pump_backup_use_existing_system']
@@ -595,14 +604,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     return values
   end
 
-  def get_system_upgrades(hpxml_bldg, system_upgrades, args_hash)
+  def get_hvac_system_upgrades(hpxml_bldg, hvac_system_upgrades, args_hash)
     args_hash.keys.each do |arg|
       # Detect whether we are upgrading the heating system
       if arg.start_with?('heating_system_') && (not arg.start_with?('heating_system_2_'))
         hpxml_bldg.heating_systems.each do |heating_system|
           next unless heating_system.primary_system
 
-          system_upgrades << heating_system.id
+          hvac_system_upgrades << heating_system.id
         end
       end
 
@@ -611,14 +620,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         hpxml_bldg.heating_systems.each do |heating_system|
           next if heating_system.primary_system
 
-          system_upgrades << heating_system.id
+          hvac_system_upgrades << heating_system.id
         end
       end
 
       # Detect whether we are upgrading the cooling system
       if arg.start_with?('cooling_system_')
         hpxml_bldg.cooling_systems.each do |cooling_system|
-          system_upgrades << cooling_system.id
+          hvac_system_upgrades << cooling_system.id
         end
       end
 
@@ -626,14 +635,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       next unless arg.start_with?('heat_pump_')
 
       hpxml_bldg.heat_pumps.each do |heat_pump|
-        system_upgrades << heat_pump.id
+        hvac_system_upgrades << heat_pump.id
       end
     end
 
-    return system_upgrades
+    return hvac_system_upgrades
   end
 
-  def get_system_capacities_and_autosizing_factors(hpxml_bldg, system_upgrades)
+  def get_hvac_system_values(hpxml_bldg, hvac_system_upgrades)
     capacities = {
       'heating_system_heating_capacity' => nil,
       'heating_system_2_heating_capacity' => nil,
@@ -652,31 +661,42 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       'heat_pump_backup_heating_autosizing_factor' => nil
     }
 
+    defect_ratios = {
+      'heating_system_airflow_defect_ratio' => nil,
+      'cooling_system_airflow_defect_ratio' => nil,
+      'cooling_system_charge_defect_ratio' => nil,
+      'heat_pump_airflow_defect_ratio' => nil,
+      'heat_pump_charge_defect_ratio' => nil
+    }
+
     hpxml_bldg.heating_systems.each do |heating_system|
       next unless heating_system.primary_system
-      next if system_upgrades.include?(heating_system.id)
+      next if hvac_system_upgrades.include?(heating_system.id)
 
       capacities['heating_system_heating_capacity'] = heating_system.heating_capacity
       autosizing_factors['heating_system_heating_autosizing_factor'] = heating_system.heating_autosizing_factor
+      defect_ratios['heating_system_airflow_defect_ratio'] = heating_system.airflow_defect_ratio
     end
 
     hpxml_bldg.heating_systems.each do |heating_system|
       next if heating_system.primary_system
-      next if system_upgrades.include?(heating_system.id)
+      next if hvac_system_upgrades.include?(heating_system.id)
 
       capacities['heating_system_2_heating_capacity'] = heating_system.heating_capacity
       autosizing_factors['heating_system_2_heating_autosizing_factor'] = heating_system.heating_autosizing_factor
     end
 
     hpxml_bldg.cooling_systems.each do |cooling_system|
-      next if system_upgrades.include?(cooling_system.id)
+      next if hvac_system_upgrades.include?(cooling_system.id)
 
       capacities['cooling_system_cooling_capacity'] = cooling_system.cooling_capacity
       autosizing_factors['cooling_system_cooling_autosizing_factor'] = cooling_system.cooling_autosizing_factor
+      defect_ratios['cooling_system_airflow_defect_ratio'] = cooling_system.airflow_defect_ratio
+      defect_ratios['cooling_system_charge_defect_ratio'] = cooling_system.charge_defect_ratio
     end
 
     hpxml_bldg.heat_pumps.each do |heat_pump|
-      next if system_upgrades.include?(heat_pump.id)
+      next if hvac_system_upgrades.include?(heat_pump.id)
 
       capacities['heat_pump_heating_capacity'] = heat_pump.heating_capacity
       capacities['heat_pump_cooling_capacity'] = heat_pump.cooling_capacity
@@ -684,9 +704,11 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       autosizing_factors['heat_pump_heating_autosizing_factor'] = heat_pump.heating_autosizing_factor
       autosizing_factors['heat_pump_cooling_autosizing_factor'] = heat_pump.cooling_autosizing_factor
       autosizing_factors['heat_pump_backup_heating_autosizing_factor'] = heat_pump.backup_heating_autosizing_factor
+      defect_ratios['heat_pump_airflow_defect_ratio'] = heat_pump.airflow_defect_ratio
+      defect_ratios['heat_pump_charge_defect_ratio'] = heat_pump.charge_defect_ratio
     end
 
-    return capacities, autosizing_factors
+    return capacities, autosizing_factors, defect_ratios
   end
 end
 

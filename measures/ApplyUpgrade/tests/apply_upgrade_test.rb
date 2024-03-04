@@ -32,19 +32,19 @@ class ApplyUpgradeTest < Minitest::Test
 
     puts 'Retaining capacities and autosizing factors:'
     _lighting_upgrade(args_hash)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heating_system_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heating_system_2_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _cooling_system_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heat_pump_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     puts 'Retaining existing heating system:'
     expected_values = {}
@@ -88,19 +88,19 @@ class ApplyUpgradeTest < Minitest::Test
 
     puts 'Retaining capacities and autosizing factors:'
     _lighting_upgrade(args_hash)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heating_system_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heating_system_2_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _cooling_system_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heat_pump_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     puts 'Retaining existing heating system:'
     expected_values = {
@@ -150,19 +150,19 @@ class ApplyUpgradeTest < Minitest::Test
 
     puts 'Retaining capacities and autosizing factors:'
     _lighting_upgrade(args_hash)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heating_system_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heating_system_2_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _cooling_system_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heat_pump_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     puts 'Retaining existing heating system:'
     expected_values = {
@@ -212,19 +212,19 @@ class ApplyUpgradeTest < Minitest::Test
 
     puts 'Retaining capacities and autosizing factors:'
     _lighting_upgrade(args_hash)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heating_system_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heating_system_2_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _cooling_system_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     _heat_pump_upgrade(args_hash, expected_capacities, expected_autosizing_factors)
-    _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+    _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
 
     puts 'Retaining existing heating system:'
     expected_values = {
@@ -339,7 +339,7 @@ class ApplyUpgradeTest < Minitest::Test
     assert(success)
   end
 
-  def _test_retaining_capacities_and_autosizing_factors(args_hash, expected_capacities, expected_autosizing_factors)
+  def _test_retaining_hvac_system_values(args_hash, expected_capacities, expected_autosizing_factors)
     this_dir = File.dirname(__FILE__)
     hpxml_path = File.join(this_dir, '../../UpgradeCosts/tests/in.xml')
     hpxml = HPXML.new(hpxml_path: hpxml_path)
@@ -349,8 +349,8 @@ class ApplyUpgradeTest < Minitest::Test
 
     hpxml.buildings.each do |hpxml_bldg|
       # Check for correct capacity values
-      system_upgrades = measure.get_system_upgrades(hpxml_bldg, [], args_hash)
-      actual_capacities, actual_autosizing_factors = measure.get_system_capacities_and_autosizing_factors(hpxml_bldg, system_upgrades)
+      hvac_system_upgrades = measure.get_hvac_system_upgrades(hpxml_bldg, [], args_hash)
+      actual_capacities, actual_autosizing_factors, _ = measure.get_hvac_system_values(hpxml_bldg, hvac_system_upgrades)
 
       expected_capacities.each do |str, val|
         if val.nil?
