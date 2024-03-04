@@ -5,6 +5,9 @@ Features
 - Add flexibility to specify location of the radiant barrier ([#1188](https://github.com/NREL/resstock/pull/1188))
 - Add ability to describe detailed performance data for variable-speed air-source HVAC systems ([#1188](https://github.com/NREL/resstock/pull/1188), [#1200](https://github.com/NREL/resstock/pull/1200))
 - Include additional 2022 Cambium 25-year LRMER emissions data ([#1194](https://github.com/NREL/resstock/pull/1194))
+<<<<<<< HEAD
+- Add Census dwelling unit count by state table in resstock/resources/ folder ([#1193](https://github.com/NREL/resstock/pull/1193))
+=======
 - Add optional switch to BuildExistingModel (defaulted to false) for modeling whole SFA/MF buildings ([#1200](https://github.com/NREL/resstock/pull/1200))
 - Update hot water usage multipliers based on field data rather than engineering judgement ([#1210](https://github.com/NREL/resstock/pull/1210))
 - Allow definition of multiple unavailable periods (i.e., vacancy, power outage) ([#1209](https://github.com/NREL/resstock/pull/1209))
@@ -12,6 +15,7 @@ Features
 - Refrigerator energy use is now affected by its ambient temperature using hourly constant and temperature coefficients from ANSI/RESNET/ICC 301-2022 Addendum C ([#1209](https://github.com/NREL/resstock/pull/1209))
 - Add Metropolitan and Micropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv ([#1212](https://github.com/NREL/resstock/pull/1212))
 
+>>>>>>> origin/develop
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))

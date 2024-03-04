@@ -9,6 +9,5 @@ Contents in :ref:`housing_characteristics` are populated based on the national p
 .. toctree::
    :maxdepth: 2
 
+   dwelling_unit_counts
    characteristics
-   modifying_probability_distributions
-   writing_housing_characteristics
