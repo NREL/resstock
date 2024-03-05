@@ -3,23 +3,23 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/enduse/qc_runs/medium_run_20240301_v1
+output_directory: /kfs2/projects/enduse/production_runs/full_run_20240301_2018
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
 sampler:
   type: precomputed
   args:
-    sample_file: ../buildstock_30k_20240112.csv # relative to file
+    sample_file: ../buildstock_550k_20240112.csv # relative to file
 
 kestrel:
-  n_jobs: 10
-  minutes_per_sim: 5
+  n_jobs: 600 # CHECK for full run, probably want hundreds
+  minutes_per_sim: 10
   account: enduse
   postprocessing:
-    time: 80
-    n_workers: 2
+    time: 240
+    n_workers: 32
   sampling:
-    time: 20
+    time: 60
 
 postprocessing:
   keep_individual_timeseries: true
@@ -30,7 +30,7 @@ postprocessing:
     region_name: us-west-2
     s3:
       bucket: eussrr2
-      prefix: test_runs
+      prefix: production_runs
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: eussrr2
@@ -93,7 +93,7 @@ workflow_generator:
       - measure_dir_name: QOIReport
 
     server_directory_cleanup:
-      retain_in_idf: true
+      retain_in_idf: false
       retain_schedules_csv: false
 
 baseline:
