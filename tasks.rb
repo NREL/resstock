@@ -255,6 +255,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml_bldg.header.manualj_internal_loads_sensible = 4000
     hpxml_bldg.header.manualj_internal_loads_latent = 200
     hpxml_bldg.header.manualj_num_occupants = 5
+    hpxml_bldg.header.manualj_daily_temp_range = HPXML::ManualJDailyTempRangeLow
+    hpxml_bldg.header.manualj_humidity_difference = 30
   end
 
   hpxml.buildings.each do |hpxml_bldg|

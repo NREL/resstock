@@ -50,7 +50,6 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     # Check design
     assert_in_delta(6.8, weather.design.HeatingDrybulb, 0.1)
     assert_in_delta(91.8, weather.design.CoolingDrybulb, 0.1)
-    assert_in_delta(60.1, weather.design.CoolingWetbulb, 0.1)
     assert_in_delta(0.0061, weather.design.CoolingHumidityRatio, 0.0001)
     assert_in_delta(27.4, weather.design.DailyTemperatureRange, 0.1)
 
@@ -92,7 +91,6 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     # Check design
     assert_in_delta(63.3, weather.design.HeatingDrybulb, 0.1)
     assert_in_delta(89.1, weather.design.CoolingDrybulb, 0.1)
-    assert_in_delta(73.6, weather.design.CoolingWetbulb, 0.1)
     assert_in_delta(0.0141, weather.design.CoolingHumidityRatio, 0.0001)
     assert_in_delta(12.8, weather.design.DailyTemperatureRange, 0.1)
 
@@ -134,7 +132,6 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     # Check design
     assert_in_delta(41.0, weather.design.HeatingDrybulb, 0.1)
     assert_in_delta(84.4, weather.design.CoolingDrybulb, 0.1)
-    assert_in_delta(66.2, weather.design.CoolingWetbulb, 0.1)
     assert_in_delta(0.0095, weather.design.CoolingHumidityRatio, 0.0001)
     assert_in_delta(17.1, weather.design.DailyTemperatureRange, 0.1)
 
@@ -176,9 +173,8 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     # Check design
     assert_in_delta(10.2, weather.design.HeatingDrybulb, 0.1)
     assert_in_delta(91.4, weather.design.CoolingDrybulb, 0.1)
-    assert_in_delta(58.0, weather.design.CoolingWetbulb, 0.1)
     assert_in_delta(0.0046, weather.design.CoolingHumidityRatio, 0.0001)
-    assert_in_delta(31.9, weather.design.DailyTemperatureRange, 0.1)
+    assert_in_delta(28.7, weather.design.DailyTemperatureRange, 0.1)
 
     # Check runner
     assert_equal(0, runner.result.stepErrors.size)
