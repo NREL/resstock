@@ -229,6 +229,31 @@ class Psychrometrics
     return h
   end
 
+  def self.h_fT_w(tdb, w)
+    '''
+    Description:
+    ------------
+        Calculate the enthalpy at a given drybulb temperature
+        and humidity ratio.
+
+    Source:
+    -------
+        2009 ASHRAE Handbook
+
+    Inputs:
+    -------
+        Tdb     float      drybulb temperature   (degF)
+        w       float      humidity ratio        (lbm/lbm)
+
+    Outputs:
+    --------
+        h       float      enthalpy              (Btu/lb)
+    '''
+    h = h_fT_w_SI(UnitConversions.convert(tdb, 'F', 'C'), w)
+    h *= UnitConversions.convert(1.0, 'J', 'Btu') * UnitConversions.convert(1.0, 'lbm', 'kg')
+    return h
+  end
+
   def self.w_fT_h_SI(tdb, h)
     '''
     Description:
@@ -905,9 +930,5 @@ class Psychrometrics
     w = w_fT_R_P(tdb, r, p)
     twb = self.Twb_fT_w_P(runner, tdb, w, p)
     return twb
-  end
-
-  def self.CalculateLocalPressure(elevation_ft)
-    return Math::exp(-0.0000368 * elevation_ft) # atm
   end
 end

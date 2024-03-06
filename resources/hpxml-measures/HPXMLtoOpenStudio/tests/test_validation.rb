@@ -128,6 +128,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'hvac-mshp-not-var-speed' => ["Expected CompressorType to be 'variable speed'"],
                             'hvac-shr-low' => ['Expected SensibleHeatFraction to be greater than 0.5'],
                             'hvac-sizing-humidity-setpoint' => ['Expected ManualJInputs/HumiditySetpoint to be less than 1'],
+                            'hvac-sizing-daily-temp-range' => ["Expected ManualJInputs/DailyTemperatureRange to be 'low' or 'medium' or 'high'"],
                             'hvac-negative-crankcase-heater-watts' => ['Expected extension/CrankcaseHeaterPowerWatts to be greater than or equal to 0.0.'],
                             'incomplete-integrated-heating' => ['Expected 1 element(s) for xpath: IntegratedHeatingSystemFractionHeatLoadServed'],
                             'invalid-airflow-defect-ratio' => ['Expected extension/AirflowDefectRatio to be 0'],
@@ -437,6 +438,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['hvac-sizing-humidity-setpoint'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.header.manualj_humidity_setpoint = 50
+      elsif ['hvac-sizing-daily-temp-range'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.header.manualj_daily_temp_range = 'foobar'
       elsif ['hvac-negative-crankcase-heater-watts'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.cooling_systems[0].crankcase_heater_watts = -10

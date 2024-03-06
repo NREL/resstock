@@ -513,6 +513,9 @@ Site information is entered in ``/HPXML/Building/BuildingDetails/BuildingSummary
   Conductivity is used for foundation heat transfer and ground source heat pumps.
   Diffusivity is used for ground source heat pumps.
 
+HPXML Neighbor Buildings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
 For each neighboring building defined, additional information is entered in a ``extension/Neighbors/NeighborBuilding``.
 
   ==============================  =================  ================  ========================  ========  ========  =============================================
@@ -717,16 +720,21 @@ Additional autosizing factor inputs are available at the system level, see :ref:
          If the minimum temperature for the heat pump's compressor (i.e., ``CompressorLockoutTemperature`` or ``BackupHeatingSwitchoverTemperature``) is above the heating design temperature, the two sizing methodologies will give identical results.
   .. [#] If AllowIncreasedFixedCapacities is true, the larger of user-specified fixed capacity and design load will be used (to reduce potential for unmet loads); otherwise user-specified fixed capacity is used.
 
+Manual J Inputs
+~~~~~~~~~~~~~~~
+
 If any HVAC equipment is being autosized (i.e., capacities are not provided), additional inputs for ACCA Manual J can be entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/extension/HVACSizingControl/ManualJInputs``.
 
   =================================  ========  ======  ===========  ========  ============  ============================================
   Element                            Type      Units   Constraints  Required  Default       Description
   =================================  ========  ======  ===========  ========  ============  ============================================
-  ``HeatingDesignTemperature``       double    F                    No        See [#]_      Heating design temperature
-  ``CoolingDesignTemperature``       double    F                    No        See [#]_      Cooling design temperature
+  ``HeatingDesignTemperature``       double    F                    No        See [#]_      Heating outdoor design temperature
+  ``CoolingDesignTemperature``       double    F                    No        See [#]_      Cooling outdoor design temperature
+  ``DailyTemperatureRange``          string            See [#]_     No        See [#]_      Class based on average difference between daily high/low outdoor temperatures during the hottest month
   ``HeatingSetpoint``                double    F                    No        70            Conditioned space heating setpoint [#]_
   ``CoolingSetpoint``                double    F                    No        75            Conditioned space cooling setpoint [#]_
   ``HumiditySetpoint``               double    frac    > 0, < 1     No        See [#]_      Conditioned space relative humidity
+  ``HumidityDifference``             double    grains               No        See [#]_      Difference between absolute humidity of the outdoor/indoor air during the summer
   ``InternalLoadsSensible``          double    Btu/hr               No        See [#]_      Sensible internal loads for cooling design load
   ``InternalLoadsLatent``            double    Btu/hr               No        0             Latent internal loads for cooling design load
   ``NumberofOccupants``              integer                        No        #Beds+1 [#]_  Number of occupants for cooling design load
@@ -736,9 +744,14 @@ If any HVAC equipment is being autosized (i.e., capacities are not provided), ad
          If not available in the EPW header, it is calculated from the 8760 hourly temperatures in the EPW.
   .. [#] If CoolingDesignTemperature not provided, the 1% cooling design temperature is obtained from the DESIGN CONDITIONS header section inside the EPW weather file.
          If not available in the EPW header, it is calculated from the 8760 hourly temperatures in the EPW.
+  .. [#] DailyTemperatureRange choices are "low", "medium", or "high".
+  .. [#] If DailyTemperatureRange not provided, the cooling drybulb temperature range is obtained from the DESIGN CONDITIONS header section inside the EPW weather file.
+         If not available in the EPW header, it is calculated from the 8760 hourly temperatures in the EPW.
   .. [#] Any heating setpoint other than 70F is not in compliance with Manual J.
   .. [#] Any cooling setpoint other than 75F is not in compliance with Manual J.
   .. [#] If HumiditySetpoint not provided, defaults to 0.45 in a dry climate, otherwise 0.5.
+  .. [#] If HumidityDifference not provided, it is calculated from the other inputs/defaults and the cooling humidity ratio.
+         The cooling humidity ratio is calculated from the DESIGN CONDITIONS header section inside the EPW weather file or, if not available, the 8760 hourly temperatures in the EPW.
   .. [#] If InternalLoadsSensible not provided, defaults to 2400 Btu/hr if there is one refrigerator and no freezer, or 3600 Btu/hr if two refrigerators or a freezer.
          This default represents loads that normally occur during the early evening in mid-summer.
          Additional adjustments or custom internal loads can instead be specified here.
@@ -983,7 +996,7 @@ For a multifamily building where the dwelling unit has another dwelling unit abo
   ``Emittance``                           double                               >= 0, <= 1                No         0.90                            Emittance
   ``InteriorFinish/Type``                 string                               See [#]_                  No         See [#]_                        Interior finish material
   ``InteriorFinish/Thickness``            double             in                >= 0                      No         0.5                             Interior finish thickness
-  ``Pitch``                               integer            ?:12              >= 0                      Yes                                        Pitch
+  ``Pitch``                               double             ?/12              >= 0                      Yes                                        Pitch [#]_
   ``RadiantBarrier``                      boolean                                                        No         false                           Presence of radiant barrier [#]_
   ``RadiantBarrierGrade``                 integer                              >= 1, <= 3                No         1                               Radiant barrier installation grade
   ``Insulation/SystemIdentifier``         id                                                             Yes                                        Unique identifier
@@ -1019,6 +1032,8 @@ For a multifamily building where the dwelling unit has another dwelling unit abo
          
   .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
   .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is conditioned space, otherwise "none".
+  .. [#] Pitch is entered as vertical rise in inches for every 12 inches of horizontal run.
+         For example, 6.0 means a 6/12 roof, which has a 26.57-degree roof slope.
   .. [#] RadiantBarrier intended for attic roofs. Model assumes an emittance of 0.05.
   .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
 
@@ -1300,6 +1315,9 @@ Each window or glass door area is entered as a ``/HPXML/Building/BuildingDetails
          The total open window area for natural ventilation is calculated using A) the operable fraction, B) the assumption that 50% of the area of operable windows can be open, and C) the assumption that 20% of that openable area is actually opened by occupants whenever outdoor conditions are favorable for cooling.
   .. [#] AttachedToWall must reference a ``Wall`` or ``FoundationWall``.
 
+Natural Ventilation
+~~~~~~~~~~~~~~~~~~~
+
 If operable windows are defined, the availability of natural ventilation is entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/extension``.
 
   =============================================  ========  =========  ===========  ========  ========  ========================================================
@@ -1309,6 +1327,9 @@ If operable windows are defined, the availability of natural ventilation is ente
   =============================================  ========  =========  ===========  ========  ========  ========================================================
 
   .. [#] Default of 3 days per week (Monday/Wednesday/Friday) is based on `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+
+UFactor/SHGC Lookup
+~~~~~~~~~~~~~~~~~~~
 
 If UFactor and SHGC are not provided and GlassLayers is not "glass block", additional information is entered in ``Window``.
 
@@ -1357,6 +1378,9 @@ If UFactor and SHGC are not provided, they are defaulted as follows:
 
   OpenStudio-HPXML will return an error if the combination of window properties is not in the above table.
 
+HPXML Overhangs
+~~~~~~~~~~~~~~~
+
 If overhangs are specified, additional information is entered in ``Overhangs``.
 
   ============================  ========  ======  ===========  ========  =======  ========================================================
@@ -1403,6 +1427,9 @@ Each skylight is entered as a ``/HPXML/Building/BuildingDetails/Enclosure/Skylig
          Note that a storm window is not allowed for a skylight with U-factor lower than 0.45.
          
   .. [#] AttachedToRoof must reference a ``Roof``.
+
+UFactor/SHGC Lookup
+~~~~~~~~~~~~~~~~~~~
 
 If UFactor and SHGC are not provided and GlassLayers is not "glass block", additional information is entered in ``Skylight``.
 
@@ -2674,6 +2701,9 @@ If any HVAC systems are specified, a single thermostat is entered as a ``/HPXML/
   .. [#] If CoolingSeason not provided, defaults to year-round.
   .. [#] CeilingFanSetpointTempCoolingSeasonOffset should only be used if there are sufficient ceiling fans present to warrant a reduced cooling setpoint.
 
+HPXML HVAC Seasons
+~~~~~~~~~~~~~~~~~~
+
 If a heating and/or cooling season is defined, additional information is entered in ``HVACControl/HeatingSeason`` and/or ``HVACControl/CoolingSeason``.
 
   ===================  ========  =====  ===========  ========  =======  ===========
@@ -2685,17 +2715,12 @@ If a heating and/or cooling season is defined, additional information is entered
   ``EndDayOfMonth``    integer          >= 1, <= 31  Yes                End day
   ===================  ========  =====  ===========  ========  =======  ===========
 
-Thermostat setpoints are additionally entered using either simple inputs or hourly inputs.
+HPXML HVAC Setpoints
+~~~~~~~~~~~~~~~~~~~~
 
-- :ref:`hvac_control_simple`
-- :ref:`hvac_control_hourly`
+Thermostat setpoints are additionally entered using either simple inputs, hourly inputs, or :ref:`schedules_detailed`.
 
-Alternatively, setpoints can be defined using :ref:`schedules_detailed`.
-
-.. _hvac_control_simple:
-
-Simple Inputs
-~~~~~~~~~~~~~
+**Simple Inputs**
 
 To define simple thermostat setpoints, additional information is entered in ``HVACControl``.
 
@@ -2733,10 +2758,7 @@ If there is a cooling temperature setup, additional information is entered in ``
 
   .. [#] TotalSetupHoursperWeekCooling is converted to hrs/day and modeled as a temperature setup every day starting at SetupStartHourCooling.
 
-.. _hvac_control_hourly:
-
-Hourly Inputs
-~~~~~~~~~~~~~~~
+**Hourly Inputs**
 
 To define hourly thermostat setpoints, additional information is entered in ``HVACControl``.
 
@@ -3885,7 +3907,10 @@ Many of the inputs are adopted from the `PVWatts model <https://pvwatts.nrel.gov
   .. [#] NumberofBedroomsServed only required if IsSharedSystem is true.
          PV generation will be apportioned to the dwelling unit using its number of bedrooms divided by the total number of bedrooms served by the PV system per `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNET3012019P1>`_.
 
-In addition, an inverter must be entered as a ``/HPXML/Building/BuildingDetails/Systems/Photovoltaics/Inverter``.
+HPXML Inverters
+~~~~~~~~~~~~~~~
+
+In addition, the PVSystem must be connected to an inverter that is entered as a ``/HPXML/Building/BuildingDetails/Systems/Photovoltaics/Inverter``.
 
   =======================================================  =================  ================  ===================  ========  ========  ============================================
   Element                                                  Type               Units             Constraints          Required  Default   Notes
@@ -4262,41 +4287,13 @@ Lighting and ceiling fans are entered in ``/HPXML/Building/BuildingDetails/Light
 HPXML Lighting
 **************
 
-Lighting can be specified in one of two ways: using 1) lighting type fractions or 2) annual energy consumption values.
 Lighting is described using multiple ``LightingGroup`` elements for each location (interior, exterior, or garage).
 If no LightingGroup elements are provided for a given location (e.g., exterior), the simulation will not include that lighting use.
 
-If specifying **lighting type fractions**, three ``/HPXML/Building/BuildingDetails/Lighting/LightingGroup`` elements (one for each possible ``LightingType``) are entered for each lighting location:
+Lighting can be specified in one of two ways:
 
-  =============================  =======  ======  ===============  ========  =======  ===========================================================================
-  Element                        Type     Units   Constraints      Required  Default  Notes
-  =============================  =======  ======  ===============  ========  =======  ===========================================================================
-  ``SystemIdentifier``           id                                Yes                Unique identifier
-  ``LightingType``               element          See [#]_         Yes                Lighting type
-  ``Location``                   string           See [#]_         Yes                Lighting location [#]_
-  ``FractionofUnitsInLocation``  double   frac    >= 0, <= 1 [#]_  Yes                Fraction of light fixtures in the location with the specified lighting type
-  =============================  =======  ======  ===============  ========  =======  ===========================================================================
-
-  .. [#] LightingType child element choices are ``LightEmittingDiode``, ``CompactFluorescent``, or ``FluorescentTube``.
-  .. [#] Location choices are "interior", "garage", or "exterior".
-  .. [#] Garage lighting is ignored if the building has no garage specified elsewhere.
-  .. [#] The sum of FractionofUnitsInLocation for a given Location (e.g., interior) must be less than or equal to 1.
-         If the fractions sum to less than 1, the remainder is assumed to be incandescent lighting.
-
-  Interior, exterior, and garage lighting energy use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNET3012019P1>`_.
-
-If specifying **annual energy consumption** instead, a single ``/HPXML/Building/BuildingDetails/Lighting/LightingGroup`` element is entered for each lighting location:
-
-  ================================  =======  ======  ===========  ========  ========  ===========================================================================
-  Element                           Type     Units   Constraints  Required  Default   Notes
-  ================================  =======  ======  ===========  ========  ========  ===========================================================================
-  ``SystemIdentifier``              id                            Yes                 Unique identifier
-  ``Location``                      string           See [#]_     Yes                 Lighting location [#]_
-  ``Load[Units="kWh/year"]/Value``  double   kWh/yr  >= 0         Yes                 Lighting energy use
-  ================================  =======  ======  ===========  ========  ========  ===========================================================================
-
-  .. [#] Location choices are "interior", "garage", or "exterior".
-  .. [#] Garage lighting is ignored if the building has no garage specified elsewhere.
+- :ref:`lighting_fractions`
+- :ref:`lighting_annual_energy`
 
 With either lighting specification, additional information can be entered in ``/HPXML/Building/BuildingDetails/Lighting``.
 
@@ -4323,6 +4320,51 @@ With either lighting specification, additional information can be entered in ``/
   .. [#] If GarageMonthlyScheduleMultipliers not provided (or :ref:`schedules_detailed` not used), default values from Table C.3(4) of ANSI/RESNET/ICC 301-2022 Addendum C are used: "1.19, 1.11, 1.02, 0.93, 0.84, 0.80, 0.82, 0.88, 0.98, 1.07, 1.16, 1.20".
   .. [#] If ExteriorWeekdayScheduleFractions or ExteriorWeekendScheduleFractions not provided (and :ref:`schedules_detailed` not used), default values from Table C.3(3) of ANSI/RESNET/ICC 301-2022 Addendum C are used: "0.040, 0.037, 0.037, 0.035, 0.035, 0.039, 0.044, 0.041, 0.031, 0.025, 0.024, 0.024, 0.025, 0.028, 0.030, 0.035, 0.044, 0.056, 0.064, 0.068, 0.070, 0.065, 0.056, 0.047".
   .. [#] If ExteriorMonthlyScheduleMultipliers not provided (or :ref:`schedules_detailed` not used), default values from Table C.3(4) of ANSI/RESNET/ICC 301-2022 Addendum C are used: "1.19, 1.11, 1.02, 0.93, 0.84, 0.80, 0.82, 0.88, 0.98, 1.07, 1.16, 1.20".
+
+.. _lighting_fractions:
+
+Lighting Type Fractions
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If specifying lighting type fractions, three ``/HPXML/Building/BuildingDetails/Lighting/LightingGroup`` elements (one for each possible ``LightingType``) are entered for each lighting location:
+
+  =============================  =======  ======  ===============  ========  =======  ===========================================================================
+  Element                        Type     Units   Constraints      Required  Default  Notes
+  =============================  =======  ======  ===============  ========  =======  ===========================================================================
+  ``SystemIdentifier``           id                                Yes                Unique identifier
+  ``LightingType``               element          See [#]_         Yes                Lighting type
+  ``Location``                   string           See [#]_         Yes                Lighting location [#]_
+  ``FractionofUnitsInLocation``  double   frac    >= 0, <= 1 [#]_  Yes                Fraction of light fixtures in the location with the specified lighting type
+  =============================  =======  ======  ===============  ========  =======  ===========================================================================
+
+  .. [#] LightingType child element choices are ``LightEmittingDiode``, ``CompactFluorescent``, or ``FluorescentTube``.
+  .. [#] Location choices are "interior", "garage", or "exterior".
+  .. [#] Garage lighting is ignored if the building has no garage specified elsewhere.
+  .. [#] The sum of FractionofUnitsInLocation for a given Location (e.g., interior) must be less than or equal to 1.
+         If the fractions sum to less than 1, the remainder is assumed to be incandescent lighting.
+
+  Interior, exterior, and garage lighting energy use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNET3012019P1>`_.
+
+.. _lighting_annual_energy:
+
+Annual Energy Consumption
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If specifying annual energy consumption, a single ``/HPXML/Building/BuildingDetails/Lighting/LightingGroup`` element is entered for each lighting location:
+
+  ================================  =======  ======  ===========  ========  ========  ===========================================================================
+  Element                           Type     Units   Constraints  Required  Default   Notes
+  ================================  =======  ======  ===========  ========  ========  ===========================================================================
+  ``SystemIdentifier``              id                            Yes                 Unique identifier
+  ``Location``                      string           See [#]_     Yes                 Lighting location [#]_
+  ``Load[Units="kWh/year"]/Value``  double   kWh/yr  >= 0         Yes                 Lighting energy use
+  ================================  =======  ======  ===========  ========  ========  ===========================================================================
+
+  .. [#] Location choices are "interior", "garage", or "exterior".
+  .. [#] Garage lighting is ignored if the building has no garage specified elsewhere.
+
+Exterior Holiday Lighting
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If exterior holiday lighting is specified, additional information is entered in ``/HPXML/Building/BuildingDetails/Lighting/extension/ExteriorHolidayLighting``.
 
