@@ -951,8 +951,8 @@ class HVACSizing
     Heating and Cooling Loads: Infiltration & Ventilation
     '''
 
-    sla, _, _, _, _, a_ext = Airflow.get_values_from_air_infiltration_measurements(@hpxml_bldg, @cfa, weather)
-    sla *= a_ext
+    infil_values = Airflow.get_values_from_air_infiltration_measurements(@hpxml_bldg, @cfa, weather)
+    sla = infil_values[:sla] * infil_values[:a_ext]
     ela = sla * @cfa
 
     ncfl_ag = @hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
