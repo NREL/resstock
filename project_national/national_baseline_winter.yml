@@ -3,7 +3,7 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /kfs2/projects/redlineres/tcm/winter_boston_tcm1_0304
+output_directory: /kfs2/projects/redlineres/tcm/winter_boston_tcm1_0305
 #weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -20,7 +20,7 @@ workflow_generator:
       simulation_control_run_period_begin_month: 2
       simulation_control_run_period_begin_day_of_month: 1
       simulation_control_run_period_end_month: 2
-      simulation_control_run_period_end_day_of_month: 284
+      simulation_control_run_period_end_day_of_month: 28
       simulation_control_run_period_calendar_year: 2007
     
     measures:
@@ -74,11 +74,11 @@ baseline:
 upgrades:
   - upgrade_name: Outage only
     options:
-      - &summer_outage
+      - &winter_outage
         option: Power Outage|Winter
 kestrel:
-  n_jobs: 20
-  minutes_per_sim: 2
+  n_jobs: 5
+  minutes_per_sim: 6
   account: redlineres
   sampling:
     time: 60
