@@ -222,7 +222,9 @@ def tiered_bill(euss_results_up):
     for mon in range (6, 10):
         euss_results_up[f'cbill.electricity__tiered__{mon}__usd'] = ""
         for building in range (len(euss_results_up[f'fuel_use__electricity__total__{mon}__kwh'])):
-            if euss_results_up[f'fuel_use__electricity__total__{mon}__kwh'][building] <= price_ele_summer_boundary:
+            if euss_results_up[f'fuel_use__electricity__total__{mon}__kwh'][building] == 0:
+                euss_results_up[f'cbill.electricity__tiered__{mon}__usd'][building] =0
+            elif euss_results_up[f'fuel_use__electricity__total__{mon}__kwh'][building] <= price_ele_summer_boundary:
                 euss_results_up[f'cbill.electricity__tiered__{mon}__usd'][building] =\
                     price_ele_monthly_fixed_charge +\
                     euss_results_up[f'fuel_use__electricity__total__{mon}__kwh'][building]*price_ele_summer_1
@@ -235,7 +237,9 @@ def tiered_bill(euss_results_up):
     for mon in [1, 2, 3, 4, 5, 10, 11, 12]:
         euss_results_up[f'cbill.electricity__tiered__{mon}__usd'] = ""
         for building in range (len(euss_results_up[f'fuel_use__electricity__total__{mon}__kwh'])):
-            if euss_results_up[f'fuel_use__electricity__total__{mon}__kwh'][building] <= price_ele_winter_boundary:
+            if euss_results_up[f'fuel_use__electricity__total__{mon}__kwh'][building] == 0:
+                euss_results_up[f'cbill.electricity__tiered__{mon}__usd'][building] =0
+            elif euss_results_up[f'fuel_use__electricity__total__{mon}__kwh'][building] <= price_ele_winter_boundary:
                 euss_results_up[f'cbill.electricity__tiered__{mon}__usd'][building] =\
                     price_ele_monthly_fixed_charge +\
                     euss_results_up[f'fuel_use__electricity__total__{mon}__kwh'][building]*price_ele_winter_1
@@ -249,7 +253,9 @@ def tiered_bill(euss_results_up):
     for mon in range (1, 13):
         euss_results_up[f'cbill.natural_gas__tiered__{mon}__usd'] = ""
         for building in range (len(euss_results_up[f'fuel_use__natural_gas__total__{mon}__therm'])):
-            if euss_results_up[f'fuel_use__natural_gas__total__{mon}__therm'][building] <= price_gas_boundary_1:
+            if euss_results_up[f'fuel_use__natural_gas__total__{mon}__therm'][building] == 0:
+                euss_results_up[f'cbill.natural_gas__tiered__{mon}__usd'][building] = 0  
+            elif euss_results_up[f'fuel_use__natural_gas__total__{mon}__therm'][building] <= price_gas_boundary_1:
                 euss_results_up[f'cbill.natural_gas__tiered__{mon}__usd'][building] =\
                     price_gas_monthly_fixed_charge +\
                     euss_results_up[f'fuel_use__natural_gas__total__{mon}__therm'][building]*price_gas_1  
