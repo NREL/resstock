@@ -203,16 +203,21 @@ def recaculate_monthly_data(euss_results_up, euss_baseline, building_ids_list, t
         euss_results_recaculate_up = euss_results_up.loc[euss_results_up['building_id'].isin(building_ids_list)]
         euss_results_recaculate_up = euss_results_recaculate_up.reset_index(drop=True)
         for mon in range (1, 13):
-            euss_results_recaculate_up[f'fuel_use__electricity__total__{mon}__kwh'] +=\
+            euss_results_recaculate_up[f'fuel_use__electricity__total__{mon}__kwh'] =\
+                euss_results_recaculate_up[f'fuel_use__electricity__total__{mon}__kwh']+\
                 (euss_baseline_up[f'end_use__electricity__clothes_dryer__{mon}__kwh'].fillna(0) -\
                  euss_results_recaculate_up[f'end_use__electricity__clothes_dryer__{mon}__kwh'].fillna(0)) +\
                 (euss_baseline_up[f'end_use__electricity__range_oven__{mon}__kwh'].fillna(0) -\
                  euss_results_recaculate_up[f'end_use__electricity__range_oven__{mon}__kwh'].fillna(0))
-            euss_results_recaculate_up[f'fuel_use__natural_gas__total__{mon}__therm'] +=\
+            euss_results_recaculate_up[f'fuel_use__natural_gas__total__{mon}__therm'] =\
+                euss_results_recaculate_up[f'fuel_use__natural_gas__total__{mon}__therm']+\
                 (euss_baseline_up[f'end_use__natural_gas__clothes_dryer__{mon}__therm'].fillna(0) -\
                  euss_results_recaculate_up[f'end_use__natural_gas__clothes_dryer__{mon}__therm'].fillna(0)) +\
                 (euss_baseline_up[f'end_use__natural_gas__range_oven__{mon}__therm'].fillna(0) -\
                  euss_results_recaculate_up[f'end_use__natural_gas__range_oven__{mon}__therm'].fillna(0))
+    for mon in range (1, 13):
+        euss_results_recaculate_up[f'fuel_use__electricity__total__{mon}__kwh'] = euss_results_recaculate_up[f'fuel_use__electricity__total__{mon}__kwh'].fillna(0)
+        euss_results_recaculate_up[f'fuel_use__natural_gas__total__{mon}__therm'] = euss_results_recaculate_up[f'fuel_use__natural_gas__total__{mon}__therm'].fillna(0)
     return euss_results_recaculate_up
 
 # calculate the annual tiered bill of electricity and natural gas based on the monthly consumption data
