@@ -3103,52 +3103,6 @@ Arguments
      -
      - Diffusivity of the ground soil. If provided, overrides the previous site and moisture type input.
 
-.. _hvac_cooling_autosizing_factor:
-
-HVAC Cooling Autosizing Factor
-------------------------------
-
-Description
-***********
-
-The cooling scaling factor applied to the auto-sizing methodology (not used in project_national).
-
-Created by
-**********
-
-manually created
-
-Source
-******
-
-- \Assuming no oversizing or undersizing until we have data necessary to characterize all types of systems.
-
-
-Arguments
-*********
-
-.. list-table::
-   :header-rows: 1
-
-   * - Name
-     - Required
-     - Units
-     - Type
-     - Choices
-     - Description
-   * - ``cooling_system_cooling_autosizing_factor``
-     - false
-     - 
-     - Double
-     -
-     - The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
-   * - ``heat_pump_cooling_autosizing_factor``
-     - false
-     - 
-     - Double
-     -
-     - The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
-
 .. _hvac_cooling_efficiency:
 
 HVAC Cooling Efficiency
@@ -3438,64 +3392,6 @@ Source
 
 - \n/a
 
-
-.. _hvac_heating_autosizing_factor:
-
-HVAC Heating Autosizing Factor
-------------------------------
-
-Description
-***********
-
-The heating scaling factor applied to the auto-sizing methodology (not used in project_national).
-
-Created by
-**********
-
-manually created
-
-Source
-******
-
-- \Assuming no oversizing or undersizing until we have data necessary to characterize all types of systems.
-
-
-Arguments
-*********
-
-.. list-table::
-   :header-rows: 1
-
-   * - Name
-     - Required
-     - Units
-     - Type
-     - Choices
-     - Description
-   * - ``heating_system_heating_autosizing_factor``
-     - false
-     - 
-     - Double
-     -
-     - The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
-   * - ``heat_pump_heating_autosizing_factor``
-     - false
-     - 
-     - Double
-     -
-     - The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
-   * - ``heat_pump_backup_heating_autosizing_factor``
-     - false
-     - 
-     - Double
-     -
-     - The scaling factor applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, 1.0 is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Factor.
-   * - ``heating_system_2_heating_autosizing_factor``
-     - false
-     - 
-     - Double
-     -
-     - The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
 
 .. _hvac_heating_efficiency:
 
@@ -4236,27 +4132,6 @@ Source
 ******
 
 - \Assuming no faults until we have data necessary to characterize all types of ACs and heat pumps (https://github.com/NREL/resstock/issues/733).
-
-
-.. _hvac_system_is_scaled:
-
-HVAC System Is Scaled
----------------------
-
-Description
-***********
-
-The presence of the HVAC system having been undersized or oversized (not used in project_national).
-
-Created by
-**********
-
-manually created
-
-Source
-******
-
-- \Assuming no oversizing or undersizing until we have data necessary to characterize all types of systems.
 
 
 .. _hvac_system_single_speed_ac_airflow:
