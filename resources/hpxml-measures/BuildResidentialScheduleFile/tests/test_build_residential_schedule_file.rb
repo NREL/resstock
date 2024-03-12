@@ -44,6 +44,9 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
     assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('TimeZoneUTCOffset=-7.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Latitude=39.83') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Longitude=-104.65') })
 
     sf = SchedulesFile.new(schedules_paths: hpxml.buildings[0].header.schedules_filepaths,
                            year: @year,
@@ -111,6 +114,44 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(error_msgs.any? { |error_msg| error_msg.include?("Invalid column name specified: 'foobar2'.") })
   end
 
+  def test_stochastic_location_detailed
+    hpxml = _create_hpxml('base-location-detailed.xml')
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-stochastic.csv'))
+    hpxml, result = _test_measure()
+
+    info_msgs = result.info.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('stochastic schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?("SimYear=#{@year}") })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('TimeZoneUTCOffset=-7.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Latitude=40.51') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Longitude=-107.55') })
+
+    sf = SchedulesFile.new(schedules_paths: hpxml.buildings[0].header.schedules_filepaths,
+                           year: @year,
+                           output_path: @tmp_schedule_file_path)
+
+    assert_in_epsilon(6689, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:Occupants].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(2062, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:LightingInterior].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(2062, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:LightingGarage].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(534, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:CookingRange].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(213, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:Dishwasher].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(134, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:ClothesWasher].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(151, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:ClothesDryer].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(3250, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:CeilingFan].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(4840, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:PlugLoadsOther].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(4840, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:PlugLoadsTV].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(273, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:HotWaterDishwasher].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(346, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:HotWaterClothesWasher].name, schedules: sf.tmp_schedules), @tol)
+    assert_in_epsilon(887, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:HotWaterFixtures].name, schedules: sf.tmp_schedules), @tol)
+    assert(!sf.schedules.keys.include?(SchedulesFile::Columns[:Sleeping].name))
+  end
+
   def test_stochastic_debug
     hpxml = _create_hpxml('base.xml')
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
@@ -126,6 +167,9 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
     assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('TimeZoneUTCOffset=-7.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Latitude=39.83') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Longitude=-104.65') })
 
     sf = SchedulesFile.new(schedules_paths: hpxml.buildings[0].header.schedules_filepaths,
                            year: @year,
@@ -162,6 +206,9 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(info_msgs.any? { |info_msg| info_msg.include?('State=MD') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('RandomSeed=1') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('TimeZoneUTCOffset=-5.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Latitude=39.17') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Longitude=-76.68') })
 
     sf = SchedulesFile.new(schedules_paths: hpxml.buildings[0].header.schedules_filepaths,
                            year: @year,
@@ -192,6 +239,9 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(info_msgs.any? { |info_msg| info_msg.include?('State=MD') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('RandomSeed=2') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('TimeZoneUTCOffset=-5.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Latitude=39.17') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Longitude=-76.68') })
 
     sf = SchedulesFile.new(schedules_paths: hpxml.buildings[0].header.schedules_filepaths,
                            year: @year,
@@ -227,6 +277,9 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
     assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('TimeZoneUTCOffset=-7.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Latitude=39.83') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Longitude=-104.65') })
 
     sf = SchedulesFile.new(schedules_paths: hpxml.buildings[0].header.schedules_filepaths,
                            year: @year,
@@ -297,6 +350,9 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
     assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('TimeZoneUTCOffset=-7.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Latitude=39.83') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Longitude=-104.65') })
 
     hpxml.buildings.each do |hpxml_bldg|
       sf = SchedulesFile.new(schedules_paths: hpxml_bldg.header.schedules_filepaths,
@@ -376,6 +432,9 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
     assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
     assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('TimeZoneUTCOffset=-7.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Latitude=39.83') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('Longitude=-104.65') })
 
     hpxml.buildings.each do |hpxml_bldg|
       building_id = hpxml_bldg.building_id

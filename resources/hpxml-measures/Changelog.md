@@ -11,18 +11,23 @@ __New Features__
   - Adds schedule inputs for hot water recirculation pumps and general water use internal gains.
   - Updated water heater installation location defaulting to match ANSI 301-2022
   - Updated calculation of hot water piping length for buildings with both conditioned and unconditioned basements to avoid double counting.
+  - Updates how imbalanced infiltration and mechanical ventilation are combined on an hourly basis.
+  - Small change to default flow rate for imbalanced mechanical ventilation systems.
   - `AverageCeilingHeight` now used in natural ACH/CFM infiltration calculations.
 - **Breaking change**: Replaces `BuildingSummary/Site/extension/GroundConductivity` with `BuildingSummary/Site/Soil/Conductivity`.
 - **Breaking change**: Modeling whole SFA/MF buildings is now specified using a `SoftwareInfo/extension/WholeSFAorMFBuildingSimulation=true` element instead of `building-id=ALL` argument.
-- Air source heat pump enhancements:
+- Allows optional building site inputs (`GeoLocation/Latitude`, `GeoLocation/Longitude`, `Elevation`); useful when located far from, or at a very different elevation than, the EPW weather station.
+- Air source heat pump/air conditioner enhancements:
   - Adds heat pump backup autosizing methodology input (`HeatPumpBackupSizingMethodology`) with choices of "emergency" and "supplemental".
-  - Allows autosizing with detailed performance data inputs for variable-speed systems using `CapacityFractionOfNominal`.
-  - Now defaults to -20F for `CompressorLockoutTemperature` for variable-speed systems.
+  - Allows autosizing with detailed performance data inputs for variable-speed HVAC systems using `CapacityFractionOfNominal`.
+  - Adds maximum power ratio detailed schedule for variable-speed HVAC systems to model shedding controls per [AHRI 1380](https://www.ahrinet.org/search-standards/ahri-1380-i-p-demand-response-through-variable-capacity-hvac-systems-residential-and-small).
+  - Now defaults to -20F for `CompressorLockoutTemperature` for variable-speed heat pump systems.
 - Ground source heat pump enhancements:
   - Allows optional detailed inputs related to geothermal loop (`HVACPlant/GeothermalLoop`).
   - Allows optional ground diffusivity input.
   - Updates to using G-Functions from the [G-Function Library for Modeling Vertical Bore Ground Heat Exchanger](https://gdr.openei.org/submissions/1325).
   - Updated heating/cooling performance curves to reflect newer equipment.
+- Allows optional `HeatingAutosizingFactor`, `CoolingAutosizingFactor`, `BackupHeatingAutosizingFactor` inputs to scale HVAC equipment autosizing results.
 - Allows radiant barriers for additional locations (attic gable walls and floor); reduced emissivity due to dust assumed for radiant barriers on attic floor.
 - Adds window and skylight `GlassType` options of "low-e, high-solar-gain" and "low-e, low-solar-gain"; updates U-factor/SHGC lookup tables.
 - BuildResidentialHPXML measure:
@@ -32,7 +37,9 @@ __New Features__
   - Adds heat pump backup sizing methodology input.
   - Add soil and moisture type arguments (for determining ground conductivity and diffusivity) and optional geothermal loop arguments for ground source heat pumps.
   - The "Geometry: Building Number of Units" input is now written to the HPXML `NumberofUnitsInBuilding` element.
-- Miscellaneous Manual J improvements.
+- Manual J design load calculations:
+  - Allow additional outdoor design condition inputs: `DailyTemperatureRange` and `HumidityDifference`.
+  - Miscellaneous improvements.
 - Adds more error-checking for inappropriate inputs (e.g., HVAC SHR=0 or clothes washer IMEF=0).
 - Allow alternative label energy use (W) input for ceiling fans.
 
@@ -42,6 +49,7 @@ __Bugfixes__
 - Fixes error if HPXML has emissions scenario and abbreviated run period.
 - Fixes detailed schedule error-checking where schedules with MAX < 1 were incorrectly allowed.
 - Fixes error if using MF space types (e.g., "other heated space") and the building has no HVAC equipment.
+- Fixes `ManualJInputs/HumiditySetpoint` not being used in the design load calculation.
 
 ## OpenStudio-HPXML v1.7.0
 

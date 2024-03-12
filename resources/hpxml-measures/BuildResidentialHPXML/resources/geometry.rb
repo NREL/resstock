@@ -16,13 +16,13 @@ class Geometry
     return azimuth
   end
 
-  def self.get_absolute_tilt(tilt_str, roof_pitch, epw_file)
+  def self.get_absolute_tilt(tilt_str, roof_pitch, latitude)
     tilt_str = tilt_str.downcase
     if tilt_str.start_with? 'roofpitch'
       roof_angle = Math.atan(roof_pitch / 12.0) * 180.0 / Math::PI
       return Float(eval(tilt_str.gsub('roofpitch', roof_angle.to_s)))
     elsif tilt_str.start_with? 'latitude'
-      return Float(eval(tilt_str.gsub('latitude', epw_file.latitude.to_s)))
+      return Float(eval(tilt_str.gsub('latitude', latitude.to_s)))
     else
       return Float(tilt_str)
     end

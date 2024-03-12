@@ -10,11 +10,11 @@ class HVACSizing
     @cfa = cfa
 
     mj = MJ.new
-    process_site_calcs_and_design_temps(mj, weather)
+    process_site_calcs_and_design_temps(mj, weather, runner)
 
     # Calculate loads for the conditioned thermal zone
     bldg_design_loads = DesignLoads.new
-    process_load_windows_skylights(mj, bldg_design_loads, weather)
+    process_load_windows_skylights(mj, bldg_design_loads)
     process_load_doors(mj, bldg_design_loads)
     process_load_walls(mj, bldg_design_loads)
     process_load_roofs(mj, bldg_design_loads)
@@ -48,6 +48,7 @@ class HVACSizing
       apply_hvac_heat_pump_logic(hvac_sizing_values, hvac_cooling)
       apply_hvac_equipment_adjustments(mj, runner, hvac_sizing_values, weather, hvac_heating, hvac_cooling, hvac_system)
       apply_hvac_installation_quality(mj, hvac_sizing_values, hvac_heating, hvac_cooling)
+      apply_hvac_autosizing_factors(hvac_sizing_values, hvac_heating, hvac_cooling)
       apply_hvac_fixed_capacities(hvac_sizing_values, hvac_heating, hvac_cooling)
       apply_hvac_ground_loop(mj, runner, hvac_sizing_values, weather, hvac_cooling)
       apply_hvac_finalize_airflows(hvac_sizing_values, hvac_heating, hvac_cooling)
@@ -85,7 +86,7 @@ class HVACSizing
     return false
   end
 
-  def self.process_site_calcs_and_design_temps(mj, weather)
+  def self.process_site_calcs_and_design_temps(mj, weather, runner)
     '''
     Site Calculations and Design Temperatures
     '''
@@ -97,45 +98,38 @@ class HVACSizing
     mj.cool_setpoint = @hpxml_bldg.header.manualj_cooling_setpoint
     mj.heat_setpoint = @hpxml_bldg.header.manualj_heating_setpoint
 
-    mj.cool_design_grains = UnitConversions.convert(weather.design.CoolingHumidityRatio, 'lbm/lbm', 'grains')
-
     # Calculate the design temperature differences
     mj.ctd = [@hpxml_bldg.header.manualj_cooling_design_temp - mj.cool_setpoint, 0.0].max
     mj.htd = [mj.heat_setpoint - @hpxml_bldg.header.manualj_heating_design_temp, 0.0].max
 
-    # Calculate the average Daily Temperature Range (DTR) to determine the class (low, medium, high)
-    dtr = weather.design.DailyTemperatureRange
-
-    if dtr < 16.0
-      mj.daily_range_num = 0.0   # Low
-    elsif dtr > 25.0
-      mj.daily_range_num = 2.0   # High
-    else
-      mj.daily_range_num = 1.0   # Medium
-    end
+    # Determine class (low, medium, high) based on average Daily Temperature Range (DTR)
+    mj.daily_range_num = { HPXML::ManualJDailyTempRangeLow => 0,
+                           HPXML::ManualJDailyTempRangeMedium => 1,
+                           HPXML::ManualJDailyTempRangeHigh => 2 }[@hpxml_bldg.header.manualj_daily_temp_range]
 
     # Altitude Correction Factors (ACF) taken from Table 10A (sea level - 12,000 ft)
     acfs = [1.0, 0.97, 0.93, 0.89, 0.87, 0.84, 0.80, 0.77, 0.75, 0.72, 0.69, 0.66, 0.63]
 
     # Calculate the altitude correction factor (ACF) for the site
-    alt_cnt = (weather.header.Altitude / 1000.0).to_i
-    mj.acf = MathTools.interp2(weather.header.Altitude, alt_cnt * 1000.0, (alt_cnt + 1.0) * 1000.0, acfs[alt_cnt], acfs[alt_cnt + 1])
+    alt_cnt = (@hpxml_bldg.elevation / 1000.0).to_i
+    mj.acf = MathTools.interp2(@hpxml_bldg.elevation, alt_cnt * 1000.0, (alt_cnt + 1.0) * 1000.0, acfs[alt_cnt], acfs[alt_cnt + 1])
 
-    # Calculate the interior humidity in Grains and enthalpy in Btu/lb for cooling
-    cool_setpoint_c = UnitConversions.convert(mj.cool_setpoint, 'F', 'C')
-    pwsat = 6.11 * 10**(7.5 * cool_setpoint_c / (237.3 + cool_setpoint_c)) / 10.0 # kPa, using https://www.weather.gov/media/epz/wxcalc/vaporPressure.pdf
-    rh_indoor_cooling = 0.5 # Manual J is vague on the indoor RH but uses 50% in its examples
-    hr_indoor_cooling = (0.62198 * rh_indoor_cooling * pwsat) / (UnitConversions.convert(weather.header.LocalPressure, 'atm', 'kPa') - rh_indoor_cooling * pwsat)
-    mj.cool_indoor_grains = UnitConversions.convert(hr_indoor_cooling, 'lbm/lbm', 'grains')
-    mj.cool_indoor_wetbulb = Psychrometrics.Twb_fT_R_P(nil, mj.cool_setpoint, rh_indoor_cooling, UnitConversions.convert(weather.header.LocalPressure, 'atm', 'psi'))
+    mj.p_atm = UnitConversions.convert(Psychrometrics.Pstd_fZ(@hpxml_bldg.elevation), 'psi', 'atm')
 
-    db_indoor_degC = UnitConversions.convert(mj.cool_setpoint, 'F', 'C')
-    mj.cool_indoor_enthalpy = (1.006 * db_indoor_degC + hr_indoor_cooling * (2501.0 + 1.86 * db_indoor_degC)) * UnitConversions.convert(1.0, 'kJ', 'Btu') * UnitConversions.convert(1.0, 'lbm', 'kg')
-    mj.cool_outdoor_wetbulb = weather.design.CoolingWetbulb
+    # Calculate interior/outdoor wetbulb temperature for cooling
+    mj.cool_indoor_wetbulb = Psychrometrics.Twb_fT_R_P(nil, mj.cool_setpoint, @hpxml_bldg.header.manualj_humidity_setpoint, UnitConversions.convert(mj.p_atm, 'atm', 'psi'))
+    mj.cool_outdoor_wetbulb = Psychrometrics.Twb_fT_w_P(runner, @hpxml_bldg.header.manualj_cooling_design_temp, weather.design.CoolingHumidityRatio, UnitConversions.convert(mj.p_atm, 'atm', 'psi'))
+
+    # Design Grains (DG), difference between absolute humidity of the outdoor air and outdoor humidity of the indoor air
+    mj.cool_design_grains = @hpxml_bldg.header.manualj_humidity_difference
+
+    # Calculate indoor enthalpy in Btu/lb for cooling
+    hr_indoor_cooling = calculate_indoor_hr(@hpxml_bldg.header.manualj_humidity_setpoint, mj.cool_setpoint, mj.p_atm)
+    mj.cool_indoor_enthalpy = Psychrometrics.h_fT_w(mj.cool_setpoint, hr_indoor_cooling)
 
     # Inside air density
     avg_setpoint = (mj.cool_setpoint + mj.heat_setpoint) / 2.0
-    mj.inside_air_dens = UnitConversions.convert(weather.header.LocalPressure, 'atm', 'Btu/ft^3') / (Gas.Air.r * UnitConversions.convert(avg_setpoint, 'F', 'R'))
+    mj.inside_air_dens = UnitConversions.convert(mj.p_atm, 'atm', 'Btu/ft^3') / (Gas.Air.r * UnitConversions.convert(avg_setpoint, 'F', 'R'))
 
     # Design Temperatures
 
@@ -171,6 +165,30 @@ class HVACSizing
         mj.cool_design_temps[location] = process_design_temp_cooling(mj, weather, location)
         mj.heat_design_temps[location] = process_design_temp_heating(mj, weather, location)
       end
+    end
+  end
+
+  def self.calculate_indoor_hr(cool_indoor_rh, cool_indoor_setpoint, p_atm)
+    cool_setpoint_c = UnitConversions.convert(cool_indoor_setpoint, 'F', 'C')
+    pwsat = 6.11 * 10**(7.5 * cool_setpoint_c / (237.3 + cool_setpoint_c)) / 10.0 # kPa, using https://www.weather.gov/media/epz/wxcalc/vaporPressure.pdf
+    hr_indoor_cooling = (0.62198 * cool_indoor_rh * pwsat) / (UnitConversions.convert(p_atm, 'atm', 'kPa') - cool_indoor_rh * pwsat)
+    return hr_indoor_cooling
+  end
+
+  def self.calculate_design_grains(hr_outdoor_cooling, hr_indoor_cooling)
+    cool_outdoor_grains = UnitConversions.convert(hr_outdoor_cooling, 'lbm/lbm', 'grains')
+    cool_indoor_grains = UnitConversions.convert(hr_indoor_cooling, 'lbm/lbm', 'grains')
+    cool_design_grains = cool_outdoor_grains - cool_indoor_grains
+    return cool_design_grains
+  end
+
+  def self.determine_daily_temperature_range_class(daily_temperature_range)
+    if daily_temperature_range < 16.0
+      return HPXML::ManualJDailyTempRangeLow
+    elsif daily_temperature_range > 25.0
+      return HPXML::ManualJDailyTempRangeHigh
+    else
+      return HPXML::ManualJDailyTempRangeMedium
     end
   end
 
@@ -325,7 +343,7 @@ class HVACSizing
     return cool_temp
   end
 
-  def self.process_load_windows_skylights(mj, bldg_design_loads, weather)
+  def self.process_load_windows_skylights(mj, bldg_design_loads)
     '''
     Heating and Cooling Loads: Windows & Skylights
     '''
@@ -412,7 +430,7 @@ class HVACSizing
     psf_lat_horiz = nil
     slm_hr_lat = []
     slm_avg_lat = []
-    latitude = weather.header.Latitude.to_f
+    latitude = @hpxml_bldg.latitude
     for cnt in 0..8 # S/SW/W/NW/N/NE/E/SE/S
       # psf/psf_horiz
       if latitude <= psf_lats[0]
@@ -627,11 +645,11 @@ class HVACSizing
     Heating and Cooling Loads: Doors
     '''
 
-    if mj.daily_range_num == 0.0
+    if mj.daily_range_num == 0
       cltd = mj.ctd + 15.0
-    elsif mj.daily_range_num == 1.0
+    elsif mj.daily_range_num == 1
       cltd = mj.ctd + 11.0
-    elsif mj.daily_range_num == 2.0
+    elsif mj.daily_range_num == 2
       cltd = mj.ctd + 6.0
     end
 
@@ -933,8 +951,8 @@ class HVACSizing
     Heating and Cooling Loads: Infiltration & Ventilation
     '''
 
-    sla, _, _, _, _, a_ext = Airflow.get_values_from_air_infiltration_measurements(@hpxml_bldg, @cfa, weather)
-    sla *= a_ext
+    infil_values = Airflow.get_values_from_air_infiltration_measurements(@hpxml_bldg, @cfa, weather)
+    sla = infil_values[:sla] * infil_values[:a_ext]
     ela = sla * @cfa
 
     ncfl_ag = @hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
@@ -974,7 +992,7 @@ class HVACSizing
     bldg_design_loads.Heat_InfilVent = 1.1 * mj.acf * cfm_Heating * mj.htd
 
     bldg_design_loads.Cool_InfilVent_Sens = 1.1 * mj.acf * cfm_cool_load_sens * mj.ctd
-    bldg_design_loads.Cool_InfilVent_Lat = 0.68 * mj.acf * cfm_cool_load_lat * (mj.cool_design_grains - mj.cool_indoor_grains)
+    bldg_design_loads.Cool_InfilVent_Lat = 0.68 * mj.acf * cfm_cool_load_lat * mj.cool_design_grains
   end
 
   def self.process_load_internal_gains(bldg_design_loads)
@@ -1236,7 +1254,7 @@ class HVACSizing
     dse_As, dse_Ar, supply_r, return_r, dse_Tamb_s, dse_Tamb_r, dse_Fregain_s, dse_Fregain_r = duct_values
 
     # Calculate the air enthalpy in the return duct location for DSE calculations
-    dse_h_r = (1.006 * UnitConversions.convert(dse_Tamb_r, 'F', 'C') + weather.design.CoolingHumidityRatio * (2501.0 + 1.86 * UnitConversions.convert(dse_Tamb_r, 'F', 'C'))) * UnitConversions.convert(1.0, 'kJ', 'Btu') * UnitConversions.convert(1.0, 'lbm', 'kg')
+    dse_h_r = Psychrometrics.h_fT_w(dse_Tamb_r, weather.design.CoolingHumidityRatio)
 
     # Initialize for the iteration
     delta = 1
@@ -1850,6 +1868,21 @@ class HVACSizing
     end
   end
 
+  def self.apply_hvac_autosizing_factors(hvac_sizing_values, hvac_heating, hvac_cooling)
+    if not hvac_cooling.nil?
+      hvac_sizing_values.Cool_Capacity *= hvac_cooling.cooling_autosizing_factor
+      hvac_sizing_values.Cool_Airflow *= hvac_cooling.cooling_autosizing_factor
+      hvac_sizing_values.Cool_Capacity_Sens *= hvac_cooling.cooling_autosizing_factor
+    end
+    if not hvac_heating.nil?
+      hvac_sizing_values.Heat_Capacity *= hvac_heating.heating_autosizing_factor
+      hvac_sizing_values.Heat_Airflow *= hvac_heating.heating_autosizing_factor
+    end
+    if (hvac_cooling.is_a? HPXML::HeatPump) && (hvac_cooling.backup_type == HPXML::HeatPumpBackupTypeIntegrated)
+      hvac_sizing_values.Heat_Capacity_Supp *= hvac_cooling.backup_heating_autosizing_factor
+    end
+  end
+
   def self.apply_hvac_fixed_capacities(hvac_sizing_values, hvac_heating, hvac_cooling)
     '''
     Fixed Sizing Equipment
@@ -2332,7 +2365,7 @@ class HVACSizing
 
   def self.calculate_sensible_latent_split(mj, return_leakage_cfm, cool_load_tot, cool_load_lat)
     # Calculate the latent duct leakage load (Manual J accounts only for return duct leakage)
-    dse_cool_load_latent = [0.0, 0.68 * mj.acf * return_leakage_cfm * (mj.cool_design_grains - mj.cool_indoor_grains)].max
+    dse_cool_load_latent = [0.0, 0.68 * mj.acf * return_leakage_cfm * mj.cool_design_grains].max
 
     # Calculate final latent and load
     cool_load_lat += dse_cool_load_latent
@@ -2447,7 +2480,7 @@ class HVACSizing
     return true_az
   end
 
-  def self.get_space_ua_values(location, weather)
+  def self.get_space_ua_values(mj, location, weather)
     if HPXML::conditioned_locations.include? location
       fail 'Method should not be called for a conditioned space.'
     end
@@ -2526,14 +2559,14 @@ class HVACSizing
     end
     volume = Geometry.calculate_zone_volume(@hpxml_bldg, location)
     infiltration_cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
-    outside_air_density = UnitConversions.convert(weather.header.LocalPressure, 'atm', 'Btu/ft^3') / (Gas.Air.r * UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'R'))
+    outside_air_density = UnitConversions.convert(mj.p_atm, 'atm', 'Btu/ft^3') / (Gas.Air.r * UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'R'))
     space_UAs[HPXML::LocationOutside] += infiltration_cfm * outside_air_density * Gas.Air.cp * UnitConversions.convert(1.0, 'hr', 'min')
 
     return space_UAs
   end
 
   def self.calculate_space_design_temps(mj, location, weather, conditioned_design_temp, design_db, ground_db, is_cooling_for_unvented_attic_roof_insulation = false)
-    space_UAs = get_space_ua_values(location, weather)
+    space_UAs = get_space_ua_values(mj, location, weather)
 
     # Calculate space design temp from space UAs
     design_temp = nil
@@ -2805,7 +2838,7 @@ class HVACSizing
     r_value_grout = 1.0 / grout_conductivity / beta_0 / ((bore_diameter / hvac_cooling_ap.pipe_od)**beta_1)
     r_value_bore = r_value_grout + pipe_r_value / 2.0 # Note: Convection resistance is negligible when calculated against Glhepro (Jeffrey D. Spitler, 2000)
 
-    is_southern_hemisphere = (weather.header.Latitude < 0)
+    is_southern_hemisphere = (@hpxml_bldg.latitude < 0)
 
     if is_southern_hemisphere
       heating_month = 6 # July
@@ -3269,8 +3302,8 @@ class MJ
   def initialize
   end
   attr_accessor(:daily_range_temp_adjust, :cool_setpoint, :heat_setpoint, :cool_design_grains, :ctd, :htd,
-                :daily_range_num, :acf, :cool_indoor_grains, :cool_indoor_wetbulb, :cool_indoor_enthalpy,
-                :cool_outdoor_wetbulb, :inside_air_dens, :cool_design_temps, :heat_design_temps)
+                :daily_range_num, :acf, :cool_indoor_wetbulb, :cool_indoor_enthalpy, :cool_outdoor_wetbulb,
+                :inside_air_dens, :cool_design_temps, :heat_design_temps, :p_atm)
 end
 
 class DesignLoads

@@ -65,6 +65,7 @@ The following properties are retained:
 - fuel type
 - efficiency
 - capacity
+- autosizing factor
 
 For example:
 
