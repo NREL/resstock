@@ -7250,6 +7250,12 @@ Arguments
      - Type
      - Choices
      - Description
+   * - ``misc_plug_loads_television_2_usage_multiplier``
+     - true
+     - 
+     - Double
+     -
+     - Additional multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.
    * - ``misc_plug_loads_other_2_usage_multiplier``
      - true
      - 
@@ -7302,6 +7308,18 @@ Arguments
      - Boolean
      - "true", "false"
      - Whether there are televisions.
+   * - ``misc_plug_loads_television_annual_kwh``
+     - false
+     - kWh/yr
+     - Double
+     - "auto"
+     - The annual energy consumption of the television plug loads. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
+   * - ``misc_plug_loads_television_usage_multiplier``
+     - false
+     - 
+     - Double
+     - "auto"
+     - Multiplier on the television energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Plug Loads <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads>`_) is used.
    * - ``misc_plug_loads_other_annual_kwh``
      - false
      - kWh/yr
@@ -7810,6 +7828,35 @@ Source
 
 - \% State Metro Median Income is calculated using annual household income in 2019USD (continuous, not binned) from 2019-5yrs PUMS data and 2019 state median income (SMI) by metro/nonmetro area from HUD. A County Metro Status-differentiated Income Limits table is derived from the SMI by adjusting for household size only, which is consistent with how HUD's published State Income Limits table is generated.
 
+
+.. _television:
+
+Television
+----------
+
+Created by
+**********
+
+manually created
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``misc_plug_loads_television_quantity``
+     - true
+     - 
+     - Integer
+     -
+     - Total number of televisions.
 
 .. _tenure:
 
