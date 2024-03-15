@@ -617,6 +617,25 @@ Assumption
 - \The value 'Not in a census Place' designates the fraction of dwelling units not in a Census Place according to the 2010 Census.
 
 
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``site_city``
+     - false
+     - 
+     - String
+     -
+     - City/municipality of the home address.
+
 .. _clothes_dryer:
 
 Clothes Dryer
@@ -1481,8 +1500,8 @@ Arguments
      - false
      - hr
      - Double
-     -
-     - Time zone UTC offset of the home address. Must be between -12 and 14.
+     - "auto"
+     - Time zone UTC offset of the home address. Must be between -12 and 14. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``weather_station_epw_filepath``
      - true
      - 
@@ -6962,6 +6981,37 @@ Source
 - \Unit counts are from the American Community Survey 5-yr 2016.
 
 
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``site_elevation``
+     - false
+     - ft
+     - Double
+     - "auto"
+     - Elevation of the home address. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
+   * - ``site_latitude``
+     - false
+     - deg
+     - Double
+     - "auto"
+     - Latitude of the home address. Must be between -90 and 90. Use negative values for southern hemisphere. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
+   * - ``site_longitude``
+     - false
+     - deg
+     - Double
+     - "auto"
+     - Longitude of the home address. Must be between -180 and 180. Use negative values for the western hemisphere. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
+
 .. _puma_metro_status:
 
 PUMA Metro Status
@@ -7756,7 +7806,7 @@ Arguments
      - 
      - Choice
      - "auto", "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"
-     - State code of the home address.
+     - State code of the home address. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
 
 .. _state_metro_median_income:
 

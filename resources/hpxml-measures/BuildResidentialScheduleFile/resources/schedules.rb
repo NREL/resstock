@@ -5,7 +5,6 @@ require 'matrix'
 
 class ScheduleGenerator
   def initialize(runner:,
-                 epw_file:,
                  state:,
                  column_names: nil,
                  random_seed: nil,
@@ -19,7 +18,6 @@ class ScheduleGenerator
                  debug:,
                  **)
     @runner = runner
-    @epw_file = epw_file
     @state = state
     @column_names = column_names
     @random_seed = random_seed
@@ -145,7 +143,7 @@ class ScheduleGenerator
     ceiling_fan_weekend_sch = Schedule.validate_values(Constants.CeilingFanWeekendFractions, 24, 'weekend')
     ceiling_fan_monthly_multiplier = Schedule.validate_values(Constants.PlugLoadsOtherMonthlyMultipliers, 12, 'monthly')
 
-    sch = get_building_america_lighting_schedule(@epw_file)
+    sch = get_building_america_lighting_schedule(args[:time_zone_utc_offset], args[:latitude], args[:longitude])
     interior_lighting_schedule = []
     num_days_in_months = Constants.NumDaysInMonths(@sim_year)
     for month in 0..11
@@ -808,14 +806,14 @@ class ScheduleGenerator
     return weights.size - 1 # If the prob weight don't sum to n, return last index
   end
 
-  def get_building_america_lighting_schedule(epw_file)
+  def get_building_america_lighting_schedule(time_zone_utc_offset, latitude, longitude)
     # Sunrise and sunset hours
     sunrise_hour = []
     sunset_hour = []
-    std_long = -epw_file.timeZone * 15
+    std_long = -time_zone_utc_offset * 15
     normalized_hourly_lighting = [[1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24]]
     for month in 0..11
-      if epw_file.latitude < 51.49
+      if latitude < 51.49
         m_num = month + 1
         jul_day = m_num * 30 - 15
         if not ((m_num < 4) || (m_num > 10))
@@ -828,9 +826,9 @@ class ScheduleGenerator
         rad_deg = 1 / deg_rad
         b = (jul_day - 1) * 0.9863
         equation_of_time = (0.01667 * (0.01719 + 0.42815 * Math.cos(deg_rad * b) - 7.35205 * Math.sin(deg_rad * b) - 3.34976 * Math.cos(deg_rad * (2 * b)) - 9.37199 * Math.sin(deg_rad * (2 * b))))
-        sunset_hour_angle = rad_deg * Math.acos(-1 * Math.tan(deg_rad * epw_file.latitude) * Math.tan(deg_rad * declination))
-        sunrise_hour[month] = offset + (12.0 - 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + epw_file.longitude) / 15
-        sunset_hour[month] = offset + (12.0 + 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + epw_file.longitude) / 15
+        sunset_hour_angle = rad_deg * Math.acos(-1 * Math.tan(deg_rad * latitude) * Math.tan(deg_rad * declination))
+        sunrise_hour[month] = offset + (12.0 - 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + longitude) / 15
+        sunset_hour[month] = offset + (12.0 + 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + longitude) / 15
       else
         sunrise_hour = [8.125726064, 7.449258072, 6.388688653, 6.232405257, 5.27722936, 4.84705384, 5.127512162, 5.860163988, 6.684378904, 7.521267411, 7.390441945, 8.080667697]
         sunset_hour = [16.22214058, 17.08642353, 17.98324493, 19.83547864, 20.65149672, 21.20662992, 21.12124777, 20.37458274, 19.25834757, 18.08155615, 16.14359164, 15.75571306]

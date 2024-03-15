@@ -28,9 +28,9 @@ class HPXMLDefaults
     apply_building_occupancy(hpxml_bldg, schedules_file)
     apply_building_construction(hpxml_bldg, cfa, nbeds)
     apply_climate_and_risk_zones(hpxml_bldg, epw_file)
-    apply_infiltration(hpxml_bldg)
     apply_attics(hpxml_bldg)
     apply_foundations(hpxml_bldg)
+    apply_infiltration(hpxml_bldg)
     apply_roofs(hpxml_bldg)
     apply_rim_joists(hpxml_bldg)
     apply_walls(hpxml_bldg)
@@ -173,6 +173,11 @@ class HPXMLDefaults
       hpxml_bldg.header.manualj_cooling_design_temp_isdefaulted = true
     end
 
+    if hpxml_bldg.header.manualj_daily_temp_range.nil?
+      hpxml_bldg.header.manualj_daily_temp_range = HVACSizing.determine_daily_temperature_range_class(weather.design.DailyTemperatureRange)
+      hpxml_bldg.header.manualj_daily_temp_range_isdefaulted = true
+    end
+
     if hpxml_bldg.header.manualj_heating_setpoint.nil?
       hpxml_bldg.header.manualj_heating_setpoint = 70.0 # deg-F, per Manual J
       hpxml_bldg.header.manualj_heating_setpoint_isdefaulted = true
@@ -185,10 +190,20 @@ class HPXMLDefaults
 
     if hpxml_bldg.header.manualj_humidity_setpoint.nil?
       hpxml_bldg.header.manualj_humidity_setpoint = 0.5 # 50%
-      if hpxml_bldg.dehumidifiers.size > 0
-        hpxml_bldg.header.manualj_humidity_setpoint = [hpxml_bldg.header.manualj_humidity_setpoint, hpxml_bldg.dehumidifiers[0].rh_setpoint].min
+      p_atm = UnitConversions.convert(Psychrometrics.Pstd_fZ(hpxml_bldg.elevation), 'psi', 'atm')
+      hr_indoor_cooling = HVACSizing.calculate_indoor_hr(hpxml_bldg.header.manualj_humidity_setpoint, hpxml_bldg.header.manualj_cooling_setpoint, p_atm)
+      if HVACSizing.calculate_design_grains(weather.design.CoolingHumidityRatio, hr_indoor_cooling) < 0
+        # Dry summer climate per Manual J 18-1 Design Grains
+        hpxml_bldg.header.manualj_humidity_setpoint = 0.45 # 45%
       end
       hpxml_bldg.header.manualj_humidity_setpoint_isdefaulted = true
+    end
+
+    if hpxml_bldg.header.manualj_humidity_difference.nil?
+      p_atm = UnitConversions.convert(Psychrometrics.Pstd_fZ(hpxml_bldg.elevation), 'psi', 'atm')
+      hr_indoor_cooling = HVACSizing.calculate_indoor_hr(hpxml_bldg.header.manualj_humidity_setpoint, hpxml_bldg.header.manualj_cooling_setpoint, p_atm)
+      hpxml_bldg.header.manualj_humidity_difference = HVACSizing.calculate_design_grains(weather.design.CoolingHumidityRatio, hr_indoor_cooling).round(1)
+      hpxml_bldg.header.manualj_humidity_difference_isdefaulted = true
     end
 
     if hpxml_bldg.header.manualj_internal_loads_sensible.nil?
@@ -235,7 +250,7 @@ class HPXMLDefaults
     if hpxml_bldg.header.shading_summer_begin_month.nil? || hpxml_bldg.header.shading_summer_begin_day.nil? || hpxml_bldg.header.shading_summer_end_month.nil? || hpxml_bldg.header.shading_summer_end_day.nil?
       if not weather.nil?
         # Default based on Building America seasons
-        _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+        _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, hpxml_bldg.latitude)
         begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(default_cooling_months, hpxml_header.sim_calendar_year)
         if not begin_month.nil? # Check if no summer
           hpxml_bldg.header.shading_summer_begin_month = begin_month
@@ -439,19 +454,6 @@ class HPXMLDefaults
   end
 
   def self.apply_building(hpxml_bldg, epw_file)
-    if (not epw_file.nil?) && hpxml_bldg.state_code.nil?
-      state_province_region = epw_file.stateProvinceRegion.upcase
-      if /^[A-Z]{2}$/.match(state_province_region)
-        hpxml_bldg.state_code = state_province_region
-        hpxml_bldg.state_code_isdefaulted = true
-      end
-    end
-
-    if (not epw_file.nil?) && hpxml_bldg.time_zone_utc_offset.nil?
-      hpxml_bldg.time_zone_utc_offset = epw_file.timeZone
-      hpxml_bldg.time_zone_utc_offset_isdefaulted = true
-    end
-
     if hpxml_bldg.site.soil_type.nil? && hpxml_bldg.site.ground_conductivity.nil? && hpxml_bldg.site.ground_diffusivity.nil?
       hpxml_bldg.site.soil_type = HPXML::SiteSoilTypeUnknown
       hpxml_bldg.site.soil_type_isdefaulted = true
@@ -531,27 +533,60 @@ class HPXMLDefaults
       hpxml_bldg.dst_enabled_isdefaulted = true
     end
 
-    if hpxml_bldg.dst_enabled && (not epw_file.nil?)
-      if hpxml_bldg.dst_begin_month.nil? || hpxml_bldg.dst_begin_day.nil? || hpxml_bldg.dst_end_month.nil? || hpxml_bldg.dst_end_day.nil?
-        if epw_file.daylightSavingStartDate.is_initialized && epw_file.daylightSavingEndDate.is_initialized
-          # Use weather file DST dates if available
-          dst_start_date = epw_file.daylightSavingStartDate.get
-          dst_end_date = epw_file.daylightSavingEndDate.get
-          hpxml_bldg.dst_begin_month = dst_start_date.monthOfYear.value
-          hpxml_bldg.dst_begin_day = dst_start_date.dayOfMonth
-          hpxml_bldg.dst_end_month = dst_end_date.monthOfYear.value
-          hpxml_bldg.dst_end_day = dst_end_date.dayOfMonth
-        else
-          # Roughly average US dates according to https://en.wikipedia.org/wiki/Daylight_saving_time_in_the_United_States
-          hpxml_bldg.dst_begin_month = 3
-          hpxml_bldg.dst_begin_day = 12
-          hpxml_bldg.dst_end_month = 11
-          hpxml_bldg.dst_end_day = 5
+    if not epw_file.nil?
+
+      if hpxml_bldg.state_code.nil?
+        hpxml_bldg.state_code = get_default_state_code(hpxml_bldg.state_code, epw_file)
+        hpxml_bldg.state_code_isdefaulted = true
+      end
+
+      if hpxml_bldg.city.nil?
+        hpxml_bldg.city = epw_file.city
+        hpxml_bldg.city_isdefaulted = true
+      end
+
+      if hpxml_bldg.time_zone_utc_offset.nil?
+        hpxml_bldg.time_zone_utc_offset = get_default_time_zone(hpxml_bldg.time_zone_utc_offset, epw_file)
+        hpxml_bldg.time_zone_utc_offset_isdefaulted = true
+      end
+
+      if hpxml_bldg.dst_enabled
+        if hpxml_bldg.dst_begin_month.nil? || hpxml_bldg.dst_begin_day.nil? || hpxml_bldg.dst_end_month.nil? || hpxml_bldg.dst_end_day.nil?
+          if epw_file.daylightSavingStartDate.is_initialized && epw_file.daylightSavingEndDate.is_initialized
+            # Use weather file DST dates if available
+            dst_start_date = epw_file.daylightSavingStartDate.get
+            dst_end_date = epw_file.daylightSavingEndDate.get
+            hpxml_bldg.dst_begin_month = dst_start_date.monthOfYear.value
+            hpxml_bldg.dst_begin_day = dst_start_date.dayOfMonth
+            hpxml_bldg.dst_end_month = dst_end_date.monthOfYear.value
+            hpxml_bldg.dst_end_day = dst_end_date.dayOfMonth
+          else
+            # Roughly average US dates according to https://en.wikipedia.org/wiki/Daylight_saving_time_in_the_United_States
+            hpxml_bldg.dst_begin_month = 3
+            hpxml_bldg.dst_begin_day = 12
+            hpxml_bldg.dst_end_month = 11
+            hpxml_bldg.dst_end_day = 5
+          end
+          hpxml_bldg.dst_begin_month_isdefaulted = true
+          hpxml_bldg.dst_begin_day_isdefaulted = true
+          hpxml_bldg.dst_end_month_isdefaulted = true
+          hpxml_bldg.dst_end_day_isdefaulted = true
         end
-        hpxml_bldg.dst_begin_month_isdefaulted = true
-        hpxml_bldg.dst_begin_day_isdefaulted = true
-        hpxml_bldg.dst_end_month_isdefaulted = true
-        hpxml_bldg.dst_end_day_isdefaulted = true
+      end
+
+      if hpxml_bldg.elevation.nil?
+        hpxml_bldg.elevation = UnitConversions.convert(epw_file.elevation, 'm', 'ft').round(1)
+        hpxml_bldg.elevation_isdefaulted = true
+      end
+
+      if hpxml_bldg.latitude.nil?
+        hpxml_bldg.latitude = get_default_latitude(hpxml_bldg.latitude, epw_file)
+        hpxml_bldg.latitude_isdefaulted = true
+      end
+
+      if hpxml_bldg.longitude.nil?
+        hpxml_bldg.longitude = get_default_longitude(hpxml_bldg.longitude, epw_file)
+        hpxml_bldg.longitude_isdefaulted = true
       end
     end
   end
@@ -630,17 +665,14 @@ class HPXMLDefaults
 
   def self.apply_building_construction(hpxml_bldg, cfa, nbeds)
     cond_crawl_volume = hpxml_bldg.inferred_conditioned_crawlspace_volume()
-    if hpxml_bldg.building_construction.conditioned_building_volume.nil? && hpxml_bldg.building_construction.average_ceiling_height.nil?
-      hpxml_bldg.building_construction.average_ceiling_height = 8.0
+    if hpxml_bldg.building_construction.average_ceiling_height.nil?
+      # ASHRAE 62.2 default for average floor to ceiling height
+      hpxml_bldg.building_construction.average_ceiling_height = 8.2
       hpxml_bldg.building_construction.average_ceiling_height_isdefaulted = true
+    end
+    if hpxml_bldg.building_construction.conditioned_building_volume.nil?
       hpxml_bldg.building_construction.conditioned_building_volume = (cfa * hpxml_bldg.building_construction.average_ceiling_height + cond_crawl_volume).round
       hpxml_bldg.building_construction.conditioned_building_volume_isdefaulted = true
-    elsif hpxml_bldg.building_construction.conditioned_building_volume.nil?
-      hpxml_bldg.building_construction.conditioned_building_volume = (cfa * hpxml_bldg.building_construction.average_ceiling_height + cond_crawl_volume).round
-      hpxml_bldg.building_construction.conditioned_building_volume_isdefaulted = true
-    elsif hpxml_bldg.building_construction.average_ceiling_height.nil?
-      hpxml_bldg.building_construction.average_ceiling_height = ((hpxml_bldg.building_construction.conditioned_building_volume - cond_crawl_volume) / cfa).round(2)
-      hpxml_bldg.building_construction.average_ceiling_height_isdefaulted = true
     end
     if hpxml_bldg.building_construction.number_of_bathrooms.nil?
       hpxml_bldg.building_construction.number_of_bathrooms = Float(Waterheater.get_default_num_bathrooms(nbeds)).to_i
@@ -664,27 +696,16 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_infiltration(hpxml_bldg)
-    infil_measurement = Airflow.get_infiltration_measurement_of_interest(hpxml_bldg.air_infiltration_measurements)
-    if infil_measurement.infiltration_volume.nil?
-      infil_measurement.infiltration_volume = hpxml_bldg.building_construction.conditioned_building_volume
-      infil_measurement.infiltration_volume_isdefaulted = true
-    end
-    if infil_measurement.infiltration_height.nil?
-      infil_measurement.infiltration_height = hpxml_bldg.inferred_infiltration_height(infil_measurement.infiltration_volume)
-      infil_measurement.infiltration_height_isdefaulted = true
-    end
-    if infil_measurement.a_ext.nil?
-      if (infil_measurement.infiltration_type == HPXML::InfiltrationTypeUnitTotal) &&
-         [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include?(hpxml_bldg.building_construction.residential_facility_type)
-        tot_cb_area, ext_cb_area = hpxml_bldg.compartmentalization_boundary_areas()
-        infil_measurement.a_ext = (ext_cb_area / tot_cb_area).round(5)
-        infil_measurement.a_ext_isdefaulted = true
+  def self.apply_attics(hpxml_bldg)
+    hpxml_bldg.attics.each do |attic|
+      next unless attic.within_infiltration_volume.nil?
+
+      if [HPXML::AtticTypeUnvented].include? attic.attic_type
+        attic.within_infiltration_volume = false
+        attic.within_infiltration_volume_isdefaulted = true
       end
     end
-  end
 
-  def self.apply_attics(hpxml_bldg)
     return unless hpxml_bldg.has_location(HPXML::LocationAtticVented)
 
     vented_attics = hpxml_bldg.attics.select { |a| a.attic_type == HPXML::AtticTypeVented }
@@ -703,6 +724,16 @@ class HPXMLDefaults
   end
 
   def self.apply_foundations(hpxml_bldg)
+    hpxml_bldg.foundations.each do |foundation|
+      next unless foundation.within_infiltration_volume.nil?
+
+      next unless [HPXML::FoundationTypeBasementUnconditioned,
+                   HPXML::FoundationTypeCrawlspaceUnvented].include? foundation.foundation_type
+
+      foundation.within_infiltration_volume = false
+      foundation.within_infiltration_volume_isdefaulted = true
+    end
+
     if hpxml_bldg.has_location(HPXML::LocationCrawlspaceVented)
       vented_crawls = hpxml_bldg.foundations.select { |f| f.foundation_type == HPXML::FoundationTypeCrawlspaceVented }
       if vented_crawls.empty?
@@ -732,6 +763,26 @@ class HPXMLDefaults
         foundation.belly_wing_skirt_present_isdefaulted = true
         foundation.belly_wing_skirt_present = true
         break
+      end
+    end
+  end
+
+  def self.apply_infiltration(hpxml_bldg)
+    infil_measurement = Airflow.get_infiltration_measurement_of_interest(hpxml_bldg.air_infiltration_measurements)
+    if infil_measurement.infiltration_volume.nil?
+      infil_measurement.infiltration_volume = hpxml_bldg.building_construction.conditioned_building_volume
+      infil_measurement.infiltration_volume_isdefaulted = true
+    end
+    if infil_measurement.infiltration_height.nil?
+      infil_measurement.infiltration_height = hpxml_bldg.inferred_infiltration_height(infil_measurement.infiltration_volume)
+      infil_measurement.infiltration_height_isdefaulted = true
+    end
+    if infil_measurement.a_ext.nil?
+      if (infil_measurement.infiltration_type == HPXML::InfiltrationTypeUnitTotal) &&
+         [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include?(hpxml_bldg.building_construction.residential_facility_type)
+        tot_cb_area, ext_cb_area = hpxml_bldg.compartmentalization_boundary_areas()
+        infil_measurement.a_ext = (ext_cb_area / tot_cb_area).round(5)
+        infil_measurement.a_ext_isdefaulted = true
       end
     end
   end
@@ -1253,6 +1304,34 @@ class HPXMLDefaults
       heat_pump.heating_efficiency_hspf = HVAC.calc_hspf_from_hspf2(heat_pump.heating_efficiency_hspf2, is_ducted).round(2)
       heat_pump.heating_efficiency_hspf_isdefaulted = true
       heat_pump.heating_efficiency_hspf2 = nil
+    end
+
+    # Default HVAC autosizing factors
+    hpxml_bldg.cooling_systems.each do |cooling_system|
+      next unless cooling_system.cooling_autosizing_factor.nil?
+
+      cooling_system.cooling_autosizing_factor = 1.0
+      cooling_system.cooling_autosizing_factor_isdefaulted = true
+    end
+    hpxml_bldg.heating_systems.each do |heating_system|
+      next unless heating_system.heating_autosizing_factor.nil?
+
+      heating_system.heating_autosizing_factor = 1.0
+      heating_system.heating_autosizing_factor_isdefaulted = true
+    end
+    hpxml_bldg.heat_pumps.each do |heat_pump|
+      if heat_pump.heating_autosizing_factor.nil?
+        heat_pump.heating_autosizing_factor = 1.0
+        heat_pump.heating_autosizing_factor_isdefaulted = true
+      end
+      if heat_pump.cooling_autosizing_factor.nil?
+        heat_pump.cooling_autosizing_factor = 1.0
+        heat_pump.cooling_autosizing_factor_isdefaulted = true
+      end
+      if (heat_pump.backup_type == HPXML::HeatPumpBackupTypeIntegrated) && heat_pump.backup_heating_autosizing_factor.nil?
+        heat_pump.backup_heating_autosizing_factor = 1.0
+        heat_pump.backup_heating_autosizing_factor_isdefaulted = true
+      end
     end
 
     # Default AC/HP compressor type
@@ -1989,18 +2068,21 @@ class HPXMLDefaults
         vent_fan.is_shared_system = false
         vent_fan.is_shared_system_isdefaulted = true
       end
+
       if vent_fan.hours_in_operation.nil? && !vent_fan.is_cfis_supplemental_fan?
         vent_fan.hours_in_operation = (vent_fan.fan_type == HPXML::MechVentTypeCFIS) ? 8.0 : 24.0
         vent_fan.hours_in_operation_isdefaulted = true
       end
-      if vent_fan.rated_flow_rate.nil? && vent_fan.tested_flow_rate.nil? && vent_fan.calculated_flow_rate.nil? && vent_fan.delivered_ventilation.nil?
+
+      if vent_fan.flow_rate.nil?
         if hpxml_bldg.ventilation_fans.select { |vf| vf.used_for_whole_building_ventilation && !vf.is_cfis_supplemental_fan? }.size > 1
           fail 'Defaulting flow rates for multiple mechanical ventilation systems is currently not supported.'
         end
 
-        vent_fan.rated_flow_rate = Airflow.get_default_mech_vent_flow_rate(hpxml_bldg, vent_fan, weather, cfa, nbeds).round(1)
+        vent_fan.rated_flow_rate = Airflow.get_default_mech_vent_flow_rate(hpxml_bldg, vent_fan, weather, cfa, nbeds, eri_version).round(1)
         vent_fan.rated_flow_rate_isdefaulted = true
       end
+
       if vent_fan.fan_power.nil?
         vent_fan.fan_power = (vent_fan.flow_rate * Airflow.get_default_mech_vent_fan_power(vent_fan, eri_version)).round(1)
         vent_fan.fan_power_isdefaulted = true
@@ -3235,5 +3317,29 @@ class HPXMLDefaults
       return true
     end
     return false
+  end
+
+  def self.get_default_latitude(latitude, epw_file)
+    return latitude unless latitude.nil?
+
+    return epw_file.latitude
+  end
+
+  def self.get_default_longitude(longitude, epw_file)
+    return longitude unless longitude.nil?
+
+    return epw_file.longitude
+  end
+
+  def self.get_default_time_zone(time_zone, epw_file)
+    return time_zone unless time_zone.nil?
+
+    return epw_file.timeZone
+  end
+
+  def self.get_default_state_code(state_code, epw_file)
+    return state_code unless state_code.nil?
+
+    return epw_file.stateProvinceRegion.upcase
   end
 end
