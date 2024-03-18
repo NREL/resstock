@@ -11,7 +11,8 @@ __New Features__
   - Adds schedule inputs for hot water recirculation pumps and general water use internal gains.
   - Updated water heater installation location defaulting to match ANSI 301-2022
   - Updated calculation of hot water piping length for buildings with both conditioned and unconditioned basements to avoid double counting.
-  - Updates how imbalanced infiltration and mechanical ventilation are combined on an hourly basis.
+  - Updated how imbalanced infiltration and mechanical ventilation are combined on an hourly basis.
+  - Updated handling of duct leakage imbalance induced infiltration.
   - Small change to default flow rate for imbalanced mechanical ventilation systems.
   - `AverageCeilingHeight` now used in natural ACH/CFM infiltration calculations.
 - **Breaking change**: Replaces `BuildingSummary/Site/extension/GroundConductivity` with `BuildingSummary/Site/Soil/Conductivity`.
