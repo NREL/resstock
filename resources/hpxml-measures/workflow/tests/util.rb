@@ -45,6 +45,9 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, t
       elsif hpxml_bldg.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
         # FUTURE: GSHPs currently don't give desired results w/ unit multipliers
         # https://github.com/NREL/OpenStudio-HPXML/issues/1499
+      elsif xml.include? 'max-power-ratio-schedule'
+        # FUTURE: Maximum power ratio schedule currently gives inconsistent component load results w/ unit multipliers
+        # https://github.com/NREL/OpenStudio-HPXML/issues/1610
       elsif hpxml_bldg.batteries.size > 0
         # FUTURE: Batteries currently don't work with whole SFA/MF buildings
         # https://github.com/NREL/OpenStudio-HPXML/issues/1499
@@ -65,8 +68,8 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, t
   end
 
   print "Testing #{File.basename(xml)}...\n"
-  rundir = File.join(File.dirname(__FILE__), "test#{worker_num}")
 
+  rundir = File.join(File.dirname(__FILE__), "test#{worker_num}")
   # Uses 'monthly' to verify timeseries results match annual results via error-checking
   # inside the ReportSimulationOutput measure.
   cli_path = OpenStudio.getOpenStudioCLI
@@ -374,6 +377,10 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     timestep = hpxml_header.timestep.nil? ? 60 : hpxml_header.timestep
     if timestep > 15
       next if message.include?('Timestep: Requested number') && message.include?('is less than the suggested minimum')
+    end
+    # Location doesn't match EPW station
+    if hpxml_path.include? 'base-location-detailed.xml'
+      next if message.include? 'Weather file location will be used rather than entered (IDF) Location object.'
     end
     # TODO: Check why this house produces this warning
     if hpxml_path.include? 'house044.xml'

@@ -193,7 +193,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       add_unmet_hours_output(model, hpxml_osm_map)
       add_loads_output(model, add_component_loads, hpxml_osm_map)
       set_output_files(model)
-      add_additional_properties(model, hpxml, hpxml_osm_map, hpxml_path, building_id, epw_file, hpxml_defaults_path)
+      add_additional_properties(model, hpxml, hpxml_osm_map, hpxml_path, building_id, hpxml_defaults_path)
       # Uncomment to debug EMS
       # add_ems_debug_output(model)
 
@@ -448,7 +448,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     @hvac_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::Columns[:HVAC].name, @hpxml_header.unavailable_periods)
     airloop_map = {} # Map of HPXML System ID -> AirLoopHVAC (or ZoneHVACFourPipeFanCoil)
     add_ideal_system(model, spaces, epw_path)
-    add_cooling_system(model, weather, spaces, airloop_map)
+    add_cooling_system(model, runner, weather, spaces, airloop_map)
     add_heating_system(runner, model, weather, spaces, airloop_map)
     add_heat_pump(runner, model, weather, spaces, airloop_map)
     add_dehumidifiers(runner, model, spaces)
@@ -1278,7 +1278,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # Create cooling season schedule
     # Applies to natural ventilation and calculation of component loads, not HVAC equipment
     # Uses BAHSP cooling season, not user-specified cooling season (which may be, e.g., year-round)
-    _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+    _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, @hpxml_bldg.latitude)
 
     clg_season_sch = MonthWeekdayWeekendSchedule.new(model, 'cooling season schedule', Array.new(24, 1), Array.new(24, 1), default_cooling_months, Constants.ScheduleTypeLimitsFraction)
     @clg_ssn_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
@@ -1547,7 +1547,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         plantloop_map[sys_id] = Waterheater.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
         conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
-        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
+        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, @hpxml_bldg.elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
       elsif [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
         plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
       else
@@ -1570,7 +1570,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     Waterheater.apply_combi_system_EMS(model, @hpxml_bldg.water_heating_systems, plantloop_map)
   end
 
-  def add_cooling_system(model, weather, spaces, airloop_map)
+  def add_cooling_system(model, runner, weather, spaces, airloop_map)
     conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
 
     HVAC.get_hpxml_hvac_systems(@hpxml_bldg).each do |hvac_system|
@@ -1603,9 +1603,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
           HPXML::HVACTypeMiniSplitAirConditioner,
           HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type
 
-        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, cooling_system, heating_system, sequential_cool_load_fracs, sequential_heat_load_fracs,
+        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, cooling_system, heating_system, sequential_cool_load_fracs, sequential_heat_load_fracs,
                                                                  weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
-                                                                 conditioned_zone, @hvac_unavailable_periods)
+                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg)
 
       elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
 
@@ -1648,9 +1648,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       sys_id = heating_system.id
       if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
 
-        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, nil, heating_system, [0], sequential_heat_load_fracs,
+        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, nil, heating_system, [0], sequential_heat_load_fracs,
                                                                  weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
-                                                                 conditioned_zone, @hvac_unavailable_periods)
+                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg)
 
       elsif [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
 
@@ -1710,9 +1710,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
              HPXML::HVACTypeHeatPumpMiniSplit,
              HPXML::HVACTypeHeatPumpPTHP,
              HPXML::HVACTypeHeatPumpRoom].include? heat_pump.heat_pump_type
-        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, heat_pump, heat_pump, sequential_cool_load_fracs, sequential_heat_load_fracs,
+
+        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, heat_pump, heat_pump, sequential_cool_load_fracs, sequential_heat_load_fracs,
                                                                  weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
-                                                                 conditioned_zone, @hvac_unavailable_periods)
+                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg)
       elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
 
         airloop_map[sys_id] = HVAC.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
@@ -2066,7 +2067,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
   end
 
-  def add_additional_properties(model, hpxml, hpxml_osm_map, hpxml_path, building_id, epw_file, hpxml_defaults_path)
+  def add_additional_properties(model, hpxml, hpxml_osm_map, hpxml_path, building_id, hpxml_defaults_path)
     # Store some data for use in reporting measure
     additionalProperties = model.getBuilding.additionalProperties
     additionalProperties.setFeature('hpxml_path', hpxml_path)
@@ -2083,7 +2084,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
     additionalProperties.setFeature('heated_zones', heated_zones.to_s)
     additionalProperties.setFeature('cooled_zones', cooled_zones.to_s)
-    additionalProperties.setFeature('is_southern_hemisphere', epw_file.latitude < 0)
+    additionalProperties.setFeature('is_southern_hemisphere', hpxml_osm_map.keys[0].latitude < 0)
   end
 
   def add_unmet_hours_output(model, hpxml_osm_map)

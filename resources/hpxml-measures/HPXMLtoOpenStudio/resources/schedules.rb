@@ -1432,6 +1432,7 @@ class SchedulesFile
     BatteryCharging: Column.new('battery_charging', false, false, nil),
     BatteryDischarging: Column.new('battery_discharging', false, false, nil),
     HVAC: Column.new('hvac', true, false, nil),
+    HVACMaximumPowerRatio: Column.new('hvac_maximum_power_ratio', false, false, :frac),
     WaterHeater: Column.new('water_heater', true, false, nil),
     Dehumidifier: Column.new('dehumidifier', true, false, nil),
     KitchenFan: Column.new('kitchen_fan', true, false, nil),

@@ -143,7 +143,6 @@ def apply_hpxml_modification_ashrae_140(hpxml)
     # --------------------- #
 
     hpxml_bldg.site.azimuth_of_front_of_home = nil
-    hpxml_bldg.building_construction.average_ceiling_height = nil
 
     # --------------- #
     # HPXML Enclosure #
@@ -255,6 +254,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml_bldg.header.manualj_internal_loads_sensible = 4000
     hpxml_bldg.header.manualj_internal_loads_latent = 200
     hpxml_bldg.header.manualj_num_occupants = 5
+    hpxml_bldg.header.manualj_daily_temp_range = HPXML::ManualJDailyTempRangeLow
+    hpxml_bldg.header.manualj_humidity_difference = 30
   end
 
   hpxml.buildings.each do |hpxml_bldg|
@@ -1609,6 +1610,25 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                 cooling_shr: 0.73,
                                 primary_cooling_system: true,
                                 primary_heating_system: true)
+    elsif ['base-hvac-air-to-air-heat-pump-var-speed-max-power-ratio-schedule-two-systems.xml'].include? hpxml_file
+      hpxml_bldg.heat_pumps << hpxml_bldg.heat_pumps[0].dup
+      hpxml_bldg.heat_pumps[-1].id += "#{hpxml_bldg.hvac_distributions.size}"
+      hpxml_bldg.heat_pumps[-1].primary_cooling_system = false
+      hpxml_bldg.heat_pumps[-1].primary_heating_system = false
+      hpxml_bldg.heat_pumps[0].fraction_heat_load_served = 0.7
+      hpxml_bldg.heat_pumps[0].fraction_cool_load_served = 0.7
+      hpxml_bldg.heat_pumps[-1].fraction_heat_load_served = 0.3
+      hpxml_bldg.heat_pumps[-1].fraction_cool_load_served = 0.3
+      hpxml_bldg.hvac_distributions.add(id: "HVACDistribution#{hpxml_bldg.hvac_distributions.size + 1}",
+                                        distribution_system_type: HPXML::HVACDistributionTypeAir,
+                                        air_type: HPXML::AirTypeRegularVelocity)
+      hpxml_bldg.hvac_distributions[-1].duct_leakage_measurements << hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[0].dup
+      hpxml_bldg.hvac_distributions[-1].duct_leakage_measurements << hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].dup
+      hpxml_bldg.hvac_distributions[-1].ducts << hpxml_bldg.hvac_distributions[0].ducts[0].dup
+      hpxml_bldg.hvac_distributions[-1].ducts << hpxml_bldg.hvac_distributions[0].ducts[1].dup
+      hpxml_bldg.hvac_distributions[-1].ducts[0].id = "Ducts#{hpxml_bldg.hvac_distributions[0].ducts.size + 1}"
+      hpxml_bldg.hvac_distributions[-1].ducts[1].id = "Ducts#{hpxml_bldg.hvac_distributions[0].ducts.size + 2}"
+      hpxml_bldg.heat_pumps[-1].distribution_system_idref = hpxml_bldg.hvac_distributions[-1].id
     elsif ['base-mechvent-multiple.xml',
            'base-bldgtype-mf-unit-shared-mechvent-multiple.xml'].include? hpxml_file
       hpxml_bldg.hvac_distributions.add(id: "HVACDistribution#{hpxml_bldg.hvac_distributions.size + 1}",
@@ -2359,6 +2379,13 @@ if ARGV[0].to_sym == :update_hpxmls
   # Reformat real_homes HPXMLs
   puts 'Reformatting real_homes HPXMLs...'
   Dir['workflow/real_homes/*.xml'].each do |hpxml_path|
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    XMLHelper.write_file(hpxml.to_doc, hpxml_path)
+  end
+
+  # Reformat ACCA_Examples HPXMLs
+  puts 'Reformatting ACCA_Examples HPXMLs...'
+  Dir['workflow/tests/ACCA_Examples/*.xml'].each do |hpxml_path|
     hpxml = HPXML.new(hpxml_path: hpxml_path)
     XMLHelper.write_file(hpxml.to_doc, hpxml_path)
   end

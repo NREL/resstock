@@ -322,7 +322,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # Get the absolute paths relative to this meta measure in the run directory
+    # Run the ResStockArguments measure
     resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
     if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
       register_logs(runner, resstock_arguments_runner)

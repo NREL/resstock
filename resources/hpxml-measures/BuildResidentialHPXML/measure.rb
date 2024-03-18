@@ -160,11 +160,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('ft^2/hr')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('site_zip_code', false)
-    arg.setDisplayName('Site: Zip Code')
-    arg.setDescription('Zip code of the home address.')
-    args << arg
-
     site_iecc_zone_choices = OpenStudio::StringVector.new
     Constants.IECCZones.each do |iz|
       site_iecc_zone_choices << iz
@@ -175,6 +170,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('IECC zone of the home address.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('site_city', false)
+    arg.setDisplayName('Site: City')
+    arg.setDescription('City/municipality of the home address.')
+    args << arg
+
     site_state_code_choices = OpenStudio::StringVector.new
     Constants.StateCodesMap.keys.each do |sc|
       site_state_code_choices << sc
@@ -182,13 +182,36 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('site_state_code', site_state_code_choices, false)
     arg.setDisplayName('Site: State Code')
-    arg.setDescription('State code of the home address.')
+    arg.setDescription("State code of the home address. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('site_zip_code', false)
+    arg.setDisplayName('Site: Zip Code')
+    arg.setDescription('Zip code of the home address.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_time_zone_utc_offset', false)
     arg.setDisplayName('Site: Time Zone UTC Offset')
-    arg.setDescription('Time zone UTC offset of the home address. Must be between -12 and 14.')
+    arg.setDescription("Time zone UTC offset of the home address. Must be between -12 and 14. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
     arg.setUnits('hr')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_elevation', false)
+    arg.setDisplayName('Site: Elevation')
+    arg.setDescription("Elevation of the home address. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
+    arg.setUnits('ft')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_latitude', false)
+    arg.setDisplayName('Site: Latitude')
+    arg.setDescription("Latitude of the home address. Must be between -90 and 90. Use negative values for southern hemisphere. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
+    arg.setUnits('deg')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_longitude', false)
+    arg.setDisplayName('Site: Longitude')
+    arg.setDescription("Longitude of the home address. Must be between -180 and 180. Use negative values for the western hemisphere. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-site'>HPXML Site</a>) is used.")
+    arg.setUnits('deg')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
@@ -1102,6 +1125,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Btu/hr')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_heating_autosizing_factor', false)
+    arg.setDisplayName('Heating System: Heating Autosizing Factor')
+    arg.setDescription('The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_fraction_heat_load_served', true)
     arg.setDisplayName('Heating System: Fraction Heat Load Served')
     arg.setDescription('The heating load served by the heating system.')
@@ -1154,6 +1182,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Cooling System: Cooling Capacity')
     arg.setDescription("The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see <a href='#{docs_base_url}#central-air-conditioner'>Central Air Conditioner</a>, <a href='#{docs_base_url}#room-air-conditioner'>Room Air Conditioner</a>, <a href='#{docs_base_url}#packaged-terminal-air-conditioner'>Packaged Terminal Air Conditioner</a>, <a href='#{docs_base_url}#evaporative-cooler'>Evaporative Cooler</a>, <a href='#{docs_base_url}#mini-split-air-conditioner'>Mini-Split Air Conditioner</a>) is used.")
     arg.setUnits('Btu/hr')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_autosizing_factor', false)
+    arg.setDisplayName('Cooling System: Cooling Autosizing Factor')
+    arg.setDescription('The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_fraction_cool_load_served', true)
@@ -1290,6 +1323,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Btu/hr')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_autosizing_factor', false)
+    arg.setDisplayName('Heat Pump: Heating Autosizing Factor')
+    arg.setDescription('The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_capacity_retention_fraction', false)
     arg.setDisplayName('Heat Pump: Heating Capacity Retention Fraction')
     arg.setDescription("The output heating capacity of the heat pump at a user-specified temperature (e.g., 17F or 5F) divided by the above nominal heating capacity. Applies to all heat pump types except #{HPXML::HVACTypeHeatPumpGroundToAir}. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#air-to-air-heat-pump'>Air-to-Air Heat Pump</a>, <a href='#{docs_base_url}#mini-split-heat-pump'>Mini-Split Heat Pump</a>, <a href='#{docs_base_url}#packaged-terminal-heat-pump'>Packaged Terminal Heat Pump</a>, <a href='#{docs_base_url}#room-air-conditioner-w-reverse-cycle'>Room Air Conditioner w/ Reverse Cycle</a>) is used.")
@@ -1306,6 +1344,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Heat Pump: Cooling Capacity')
     arg.setDescription("The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default (see <a href='#{docs_base_url}#air-to-air-heat-pump'>Air-to-Air Heat Pump</a>, <a href='#{docs_base_url}#mini-split-heat-pump'>Mini-Split Heat Pump</a>, <a href='#{docs_base_url}#packaged-terminal-heat-pump'>Packaged Terminal Heat Pump</a>, <a href='#{docs_base_url}#room-air-conditioner-w-reverse-cycle'>Room Air Conditioner w/ Reverse Cycle</a>, <a href='#{docs_base_url}#ground-to-air-heat-pump'>Ground-to-Air Heat Pump</a>) is used.")
     arg.setUnits('Btu/hr')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_cooling_autosizing_factor', false)
+    arg.setDisplayName('Heat Pump: Cooling Autosizing Factor')
+    arg.setDescription('The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_fraction_heat_load_served', true)
@@ -1332,6 +1375,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Heat Pump: Backup Type')
     arg.setDescription("The backup type of the heat pump. If '#{HPXML::HeatPumpBackupTypeIntegrated}', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If '#{HPXML::HeatPumpBackupTypeSeparate}', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.")
     arg.setDefaultValue(HPXML::HeatPumpBackupTypeIntegrated)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_backup_heating_autosizing_factor', false)
+    arg.setDisplayName('Heat Pump: Backup Heating Autosizing Factor')
+    arg.setDescription("The scaling factor applied to the auto-sizing methodology if Backup Type is '#{HPXML::HeatPumpBackupTypeIntegrated}'. If not provided, 1.0 is used. If Backup Type is '#{HPXML::HeatPumpBackupTypeSeparate}', use Heating System 2: Heating Autosizing Factor.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_backup_fuel', heat_pump_backup_fuel_choices, true)
@@ -1573,6 +1621,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Heating System 2: Heating Capacity')
     arg.setDescription("The output heating capacity of the second heating system. If not provided, the OS-HPXML autosized default (see <a href='#{docs_base_url}#hpxml-heating-systems'>HPXML Heating Systems</a>) is used.")
     arg.setUnits('Btu/hr')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_2_heating_autosizing_factor', false)
+    arg.setDisplayName('Heating System 2: Heating Autosizing Factor')
+    arg.setDescription('The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_2_fraction_heat_load_served', true)
@@ -4245,8 +4298,24 @@ class HPXMLFile
       zip_code = args[:site_zip_code].get
     end
 
+    if args[:site_city].is_initialized
+      city = args[:site_city].get
+    end
+
     if args[:site_state_code].is_initialized
       state_code = args[:site_state_code].get
+    end
+
+    if args[:site_elevation].is_initialized
+      elevation = args[:site_elevation].get
+    end
+
+    if args[:site_latitude].is_initialized
+      latitude = args[:site_latitude].get
+    end
+
+    if args[:site_longitude].is_initialized
+      longitude = args[:site_longitude].get
     end
 
     if args[:site_time_zone_utc_offset].is_initialized
@@ -4267,9 +4336,13 @@ class HPXMLFile
     hpxml.buildings.add(building_id: 'MyBuilding',
                         site_id: 'SiteID',
                         event_type: 'proposed workscope',
-                        zip_code: zip_code,
+                        city: city,
                         state_code: state_code,
+                        zip_code: zip_code,
                         time_zone_utc_offset: time_zone_utc_offset,
+                        elevation: elevation,
+                        latitude: latitude,
+                        longitude: longitude,
                         dst_enabled: dst_enabled,
                         dst_begin_month: dst_begin_month,
                         dst_begin_day: dst_begin_day,
@@ -5132,6 +5205,10 @@ class HPXMLFile
       heating_capacity = args[:heating_system_heating_capacity].get
     end
 
+    if args[:heating_system_heating_autosizing_factor].is_initialized
+      heating_autosizing_factor = args[:heating_system_heating_autosizing_factor].get
+    end
+
     if [HPXML::HVACTypeElectricResistance].include? heating_system_type
       heating_system_fuel = HPXML::FuelTypeElectricity
     else
@@ -5178,6 +5255,7 @@ class HPXMLFile
                                    heating_system_type: heating_system_type,
                                    heating_system_fuel: heating_system_fuel,
                                    heating_capacity: heating_capacity,
+                                   heating_autosizing_factor: heating_autosizing_factor,
                                    fraction_heat_load_served: fraction_heat_load_served,
                                    heating_efficiency_afue: heating_efficiency_afue,
                                    heating_efficiency_percent: heating_efficiency_percent,
@@ -5196,6 +5274,10 @@ class HPXMLFile
 
     if args[:cooling_system_cooling_capacity].is_initialized
       cooling_capacity = args[:cooling_system_cooling_capacity].get
+    end
+
+    if args[:cooling_system_cooling_autosizing_factor].is_initialized
+      cooling_autosizing_factor = args[:cooling_system_cooling_autosizing_factor].get
     end
 
     if args[:cooling_system_cooling_compressor_type].is_initialized
@@ -5262,6 +5344,7 @@ class HPXMLFile
                                    cooling_system_type: cooling_system_type,
                                    cooling_system_fuel: HPXML::FuelTypeElectricity,
                                    cooling_capacity: cooling_capacity,
+                                   cooling_autosizing_factor: cooling_autosizing_factor,
                                    fraction_cool_load_served: args[:cooling_system_fraction_cool_load_served],
                                    compressor_type: compressor_type,
                                    cooling_shr: cooling_shr,
@@ -5325,12 +5408,20 @@ class HPXMLFile
       heating_capacity = args[:heat_pump_heating_capacity].get
     end
 
+    if args[:heat_pump_heating_autosizing_factor].is_initialized
+      heating_autosizing_factor = args[:heat_pump_heating_autosizing_factor].get
+    end
+
     if args[:heat_pump_heating_capacity_retention_fraction].is_initialized
       heating_capacity_retention_fraction = args[:heat_pump_heating_capacity_retention_fraction].get
     end
 
     if args[:heat_pump_heating_capacity_retention_temp].is_initialized
       heating_capacity_retention_temp = args[:heat_pump_heating_capacity_retention_temp].get
+    end
+
+    if args[:heat_pump_backup_heating_autosizing_factor].is_initialized
+      backup_heating_autosizing_factor = args[:heat_pump_backup_heating_autosizing_factor].get
     end
 
     if args[:heat_pump_backup_type] == HPXML::HeatPumpBackupTypeIntegrated
@@ -5372,6 +5463,10 @@ class HPXMLFile
 
     if args[:heat_pump_cooling_capacity].is_initialized
       cooling_capacity = args[:heat_pump_cooling_capacity].get
+    end
+
+    if args[:heat_pump_cooling_autosizing_factor].is_initialized
+      cooling_autosizing_factor = args[:heat_pump_cooling_autosizing_factor].get
     end
 
     if args[:heat_pump_cooling_compressor_type].is_initialized
@@ -5431,12 +5526,15 @@ class HPXMLFile
                               heat_pump_type: heat_pump_type,
                               heat_pump_fuel: HPXML::FuelTypeElectricity,
                               heating_capacity: heating_capacity,
+                              heating_autosizing_factor: heating_autosizing_factor,
+                              backup_heating_autosizing_factor: backup_heating_autosizing_factor,
                               heating_capacity_retention_fraction: heating_capacity_retention_fraction,
                               heating_capacity_retention_temp: heating_capacity_retention_temp,
                               compressor_type: compressor_type,
                               compressor_lockout_temp: compressor_lockout_temp,
                               cooling_shr: cooling_shr,
                               cooling_capacity: cooling_capacity,
+                              cooling_autosizing_factor: cooling_autosizing_factor,
                               fraction_heat_load_served: fraction_heat_load_served,
                               fraction_cool_load_served: fraction_cool_load_served,
                               backup_type: backup_type,
@@ -5607,6 +5705,10 @@ class HPXMLFile
       heating_capacity = args[:heating_system_2_heating_capacity].get
     end
 
+    if args[:heating_system_2_heating_autosizing_factor].is_initialized
+      heating_autosizing_factor = args[:heating_system_2_heating_autosizing_factor].get
+    end
+
     if args[:heating_system_2_fuel] == HPXML::HVACTypeElectricResistance
       heating_system_fuel = HPXML::FuelTypeElectricity
     else
@@ -5631,6 +5733,7 @@ class HPXMLFile
                                    heating_system_type: heating_system_type,
                                    heating_system_fuel: heating_system_fuel,
                                    heating_capacity: heating_capacity,
+                                   heating_autosizing_factor: heating_autosizing_factor,
                                    fraction_heat_load_served: fraction_heat_load_served,
                                    heating_efficiency_afue: heating_efficiency_afue,
                                    heating_efficiency_percent: heating_efficiency_percent)
@@ -5867,6 +5970,8 @@ class HPXMLFile
   def self.set_hvac_control(hpxml, hpxml_bldg, args, epw_file, weather)
     return if (args[:heating_system_type] == 'none') && (args[:cooling_system_type] == 'none') && (args[:heat_pump_type] == 'none')
 
+    latitude = HPXMLDefaults.get_default_latitude(args[:site_latitude].is_initialized ? args[:site_latitude].get : nil, epw_file)
+
     # Heating
     if hpxml_bldg.total_fraction_heat_load_served > 0
 
@@ -5882,7 +5987,7 @@ class HPXMLFile
       if args[:hvac_control_heating_season_period].is_initialized
         hvac_control_heating_season_period = args[:hvac_control_heating_season_period].get
         if hvac_control_heating_season_period == HPXML::BuildingAmerica
-          heating_months, _cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+          heating_months, _cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, latitude)
           sim_calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
           begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(heating_months, sim_calendar_year)
         else
@@ -5915,7 +6020,7 @@ class HPXMLFile
       if args[:hvac_control_cooling_season_period].is_initialized
         hvac_control_cooling_season_period = args[:hvac_control_cooling_season_period].get
         if hvac_control_cooling_season_period == HPXML::BuildingAmerica
-          _heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+          _heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, latitude)
           sim_calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
           begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(cooling_months, sim_calendar_year)
         else
@@ -6351,7 +6456,8 @@ class HPXMLFile
       collector_loop_type = args[:solar_thermal_collector_loop_type]
       collector_type = args[:solar_thermal_collector_type]
       collector_azimuth = args[:solar_thermal_collector_azimuth]
-      collector_tilt = Geometry.get_absolute_tilt(args[:solar_thermal_collector_tilt], args[:geometry_roof_pitch], epw_file)
+      latitude = HPXMLDefaults.get_default_latitude(args[:site_latitude].is_initialized ? args[:site_latitude].get : nil, epw_file)
+      collector_tilt = Geometry.get_absolute_tilt(args[:solar_thermal_collector_tilt], args[:geometry_roof_pitch], latitude)
       collector_frta = args[:solar_thermal_collector_rated_optical_efficiency]
       collector_frul = args[:solar_thermal_collector_rated_thermal_losses]
 
@@ -6407,12 +6513,16 @@ class HPXMLFile
         end
       end
 
+      array_azimuth = [args[:pv_system_array_azimuth], args[:pv_system_2_array_azimuth]][i]
+      latitude = HPXMLDefaults.get_default_latitude(args[:site_latitude].is_initialized ? args[:site_latitude].get : nil, epw_file)
+      array_tilt = Geometry.get_absolute_tilt([args[:pv_system_array_tilt], args[:pv_system_2_array_tilt]][i], args[:geometry_roof_pitch], latitude)
+
       hpxml_bldg.pv_systems.add(id: "PVSystem#{hpxml_bldg.pv_systems.size + 1}",
                                 location: location,
                                 module_type: module_type,
                                 tracking: tracking,
-                                array_azimuth: [args[:pv_system_array_azimuth], args[:pv_system_2_array_azimuth]][i],
-                                array_tilt: Geometry.get_absolute_tilt([args[:pv_system_array_tilt], args[:pv_system_2_array_tilt]][i], args[:geometry_roof_pitch], epw_file),
+                                array_azimuth: array_azimuth,
+                                array_tilt: array_tilt,
                                 max_power_output: max_power_output,
                                 system_losses_fraction: system_losses_fraction,
                                 is_shared_system: is_shared_system,
