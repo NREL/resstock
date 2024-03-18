@@ -17,7 +17,8 @@ Cooling Setpoint Has Offset,2.0,0.0,manually created,Presence of a cooling setpo
 Cooling Setpoint Offset Magnitude,4.0,1.0,manually created,The magnitude of cooling setpoint offset.
 Cooling Setpoint Offset Period,56.0,1.0,manually created,The period and offset for the dwelling unit's cooling setpoint. Default for the day is from 9am to 5pm and for the night is 10pm to 7am.
 Corridor,5.0,1.0,manually created,Type of corridor attached to multi-family units.
-County,4.0,0.0,sources\spatial\tsv_maker.py,The U.S. County that the sample is located.
+County,5.0,0.0,sources\spatial\tsv_maker.py,The U.S. County that the sample is located.
+Custom State,2.0,1.0,sources\aris\tsv_maker.py,A custom selection of states to be able to have more fine tuned probability distributionin states where we have more data
 Dehumidifier,4.0,0.0,manually created,"Presence, water removal rate, and humidity setpoint of the dehumidifier."
 Dishwasher,3.0,0.0,sources\recs\recs2020\tsv_maker.py,The presence and rated efficiency of the dishwasher.
 Dishwasher Usage Level,3.0,0.0,sources\other\tsv_maker.py,Dishwasher energy usage level multiplier.
@@ -27,7 +28,7 @@ Duct Leakage and Insulation,14.0,1.0,sources\other\tsv_maker.py,Duct insulation 
 Duct Location,7.0,2.0,sources\other\tsv_maker.py,Location of Duct System
 Eaves,4.0,0.0,manually created,Depth of roof eaves.
 Electric Vehicle,3.0,0.0,manually created,Electric vehicle usage and efficiency (not used in project_national).
-Generation And Emissions Assessment Region,4.0,1.0,sources\spatial\tsv_maker.py,The generation and carbon emissions assessment region that the sample is located.
+Generation And Emissions Assessment Region,5.0,1.0,sources\spatial\tsv_maker.py,The generation and carbon emissions assessment region that the sample is located.
 Geometry Attic Type,4.0,2.0,sources\recs\recs2020\tsv_maker.py,The dwelling unit attic type.
 Geometry Building Horizontal Location MF,5.0,2.0,sources\recs\recs2009\tsv_maker.py,"Location of the single-family attached unit horizontally within the building (left, middle, right)."
 Geometry Building Horizontal Location SFA,4.0,1.0,manually created,"Location of the single-family attached unit horizontally within the building (left, middle, right)."
@@ -51,14 +52,15 @@ Ground Thermal Conductivity,8.0,0.0,sources\smu\tsv_maker.py,The thermal conduct
 HVAC Cooling Efficiency,12.0,2.0,sources\recs\recs2020\tsv_maker.py,The presence and efficiency of primary cooling system in the dwelling unit.
 HVAC Cooling Partial Space Conditioning,8.0,1.0,sources\recs\recs2009\tsv_maker.py,The fraction of the finished floor area that the cooling system provides cooling.
 HVAC Cooling Type,6.0,1.0,sources\recs\recs2020\tsv_maker.py,The presence and type of primary cooling system in the dwelling unit.
-HVAC Has Ducts,3.0,3.0,sources\recs\recs2020\tsv_maker.py,The presence of ducts in the dwelling unit.
+HVAC Has Ducts,3.0,4.0,sources\recs\recs2020\tsv_maker.py,The presence of ducts in the dwelling unit.
 HVAC Has Shared System,5.0,3.0,sources\recs\recs2020\tsv_maker.py,The presence of an HVAC system shared between multiple dwelling units.
 HVAC Heating Efficiency,21.0,3.0,sources\recs\recs2020\tsv_maker.py,The presence and efficiency of the primary heating system in the dwelling unit.
 HVAC Heating Type,5.0,1.0,sources\recs\recs2020\tsv_maker.py,The presence and type of the primary heating system in the dwelling unit.
 HVAC Heating Type And Fuel,25.0,2.0,sources\recs\recs2020\tsv_maker.py,"The presence, type, and fuel of primary heating system."
-HVAC Secondary Heating Efficiency,4.0,1.0,manually created,Efficiency of the secondary heating system.
-HVAC Secondary Heating Fuel,5.0,1.0,manually created,Secondary HVAC system heating type and fuel.
-HVAC Secondary Heating Partial Space Conditioning,6.0,1.0,manually created,Fraction of heat load served by the secondary heating system.
+HVAC Secondary Heating Efficiency,10.0,3.0,sources\aris\tsv_maker.py,The efficiency and type of the heating system.
+HVAC Secondary Heating Fuel,7.0,0.0,sources\aris\tsv_maker.py,Secondary Heating Fuel for the dwelling unit
+HVAC Secondary Heating Partial Space Conditioning,7.0,3.0,sources\aris\tsv_maker.py,The fraction of heating load served by secondary heating system
+HVAC Secondary Heating Type,3.0,2.0,sources\aris\tsv_maker.py,The efficiency and type of the heating system.
 HVAC Shared Efficiencies,7.0,2.0,sources\recs\recs2020\tsv_maker.py,The presence and efficiency of the shared HVAC system.
 HVAC System Is Faulted,2.0,0.0,manually created,The presence of the HVAC system having a fault (not used in project_national).
 HVAC System Single Speed AC Airflow,13.0,1.0,manually created,Single speed central and room air conditioner actual air flow rates.
@@ -66,7 +68,7 @@ HVAC System Single Speed AC Charge,8.0,1.0,manually created,Central and room air
 HVAC System Single Speed ASHP Airflow,13.0,1.0,manually created,Single speed air source heat pump actual air flow rates.
 HVAC System Single Speed ASHP Charge,8.0,1.0,manually created,Air source heat pump deviation between design/installed charge.
 Has PV,2.0,0.0,sources\dpv\tsv_maker.py,The dwelling unit has a rooftop photovoltaic system.
-Heating Fuel,6.0,0.0,sources\pums\pums2019_5yrs\tsv_maker.py,The primary fuel used for heating the dwelling unit.
+Heating Fuel,7.0,0.0,sources\pums\pums2019_5yrs\tsv_maker.py,The primary fuel used for heating the dwelling unit.
 Heating Setpoint,20.0,0.0,manually created,Baseline heating setpoint with no offset applied.
 Heating Setpoint Has Offset,2.0,0.0,manually created,Presence of a heating setpoint offset.
 Heating Setpoint Offset Magnitude,4.0,1.0,manually created,Magnitude of the heating setpoint offset.
@@ -106,14 +108,14 @@ PV Orientation,9.0,1.0,sources\dpv\tsv_maker.py,The orientation of the photovolt
 PV System Size,8.0,1.0,sources\dpv\tsv_maker.py,The size of the photovoltaic system.
 Plug Load Diversity,7.0,0.0,manually created,Plug load diversity multiplier intended to add variation in plug load profiles across all simulations.
 Plug Loads,31.0,0.0,sources\recs\recs2015\tsv_maker.py,Plug load usage level which is varied by Census Division RECS and Building Type RECS.
-REEDS Balancing Area,4.0,1.0,sources\spatial\tsv_maker.py,The Regional Energy Deployment System Model (ReEDS) balancing area that the sample is located.
+REEDS Balancing Area,5.0,1.0,sources\spatial\tsv_maker.py,The Regional Energy Deployment System Model (ReEDS) balancing area that the sample is located.
 Radiant Barrier,3.0,1.0,manually created,Presence of radiant barrier in the attic (not modeled in project_national).
 Range Spot Vent Hour,24.0,0.0,manually created,Range spot ventilation daily start hour.
 Refrigerator,9.0,1.0,sources\recs\recs2020\tsv_maker.py,The presence and rated efficiency of the primary refrigerator.
 Refrigerator Usage Level,3.0,0.0,sources\other\tsv_maker.py,Refrigerator energy usage level multiplier.
 Roof Material,7.0,1.0,sources\recs\recs2020\tsv_maker.py,Roof material and color.
 Solar Hot Water,7.0,1.0,manually created,"Presence, size, and location of solar hot water system (not modeled in project_national)."
-State,4.0,1.0,sources\spatial\tsv_maker.py,The U.S. State the sample is located.
+State,5.0,1.0,sources\spatial\tsv_maker.py,The U.S. State the sample is located.
 Tenure,3.0,1.0,sources\pums\pums2019_5yrs\tsv_maker.py,The tenancy (owner or renter) of the household occupying the dwelling unit.
 Vacancy Status,2.0,0.0,sources\pums\pums2019_5yrs\tsv_maker.py,The vacancy status (occupied or vacant) of the dwelling unit.
 Water Heater Efficiency,15.0,0.0,sources\recs\recs2020\tsv_maker.py,"The efficiency, type, and heating fuel of water heater."
