@@ -103,10 +103,10 @@ class TestRunAnalysis < Minitest::Test
       next if _expected_warning_message(message, 'Could not find state average fuel oil rate based on')
       next if _expected_warning_message(message, "Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       next if _expected_warning_message(message, 'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units. [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0]')
-
+      next if _expected_warning_message(message, 'Not calculating emissions because an electricity filepath for at least one emissions scenario could not be located.') # these are AK/HI samples
+      next if _expected_warning_message(message, 'Could not find State=AK')  # these are AK samples
       if !testing
         next if _expected_warning_message(message, 'No design condition info found; calculating design conditions from EPW weather data.')
-        next if _expected_warning_message(message, 'Not calculating emissions because an electricity filepath for at least one emissions scenario could not be located.') # these are AK/HI samples
         next if _expected_warning_message(message, 'The garage pitch was changed to accommodate garage ridge >= house ridge')
       end
       if testing

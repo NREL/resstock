@@ -666,9 +666,9 @@ Assumption
 
   - \[1] State coarsened to Census Division RECS without AK, HI
 
-  - \[2] Heating Fuel coarsened to Other Fuel and Propane combined
+  - \[2] Heating Fuel coarsened to Other Fuel, Wood and Propane combined
 
-  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, and Propane combined
+  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, Wood and Propane combined
 
   - \[4] Geometry Building Type RECS coarsened to SF/MF/MH
 
@@ -1076,9 +1076,9 @@ Assumption
 
   - \[1] State coarsened to Census Division RECS with AK/HI separate
 
-  - \[2] Heating Fuel coarsened to Other Fuel and Propane combined
+  - \[2] Heating Fuel coarsened to Other Fuel, Wood and Propane combined
 
-  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, and Propane combined
+  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, Wood and Propane combined
 
   - \[4] Geometry Building Type RECS coarsened to SF/MF/MH
 
@@ -1556,6 +1556,21 @@ Source
 
 - \Unit counts are from the American Community Survey 5-yr 2016.
 
+
+.. _custom_state:
+
+Custom State
+------------
+
+Description
+***********
+
+A custom selection of states to be able to have more fine tuned probability distributionin states where we have more data
+
+Created by
+**********
+
+``sources/aris/tsv_maker.py``
 
 .. _dehumidifier:
 
@@ -3284,12 +3299,14 @@ The presence and type of primary cooling system in the dwelling unit.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
 
 - \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -3300,6 +3317,12 @@ Assumption
 - \1) HVAC Heating type: Non-ducted heating and None2) Geometry building SF: Mobile, Single family attached, Single family detached3) Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units4) Vintage Lump: 20yrs binsHomes having ducted heat pump for heating and electricity fuel is assumed to haveducted heat pump for cooling (seperating from central AC category)
 
 - \Homes having non-ducted heat pump for heating is assumed to have non-ducted heat pumpfor cooling
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, we are not modelling any central and room AC.
+
+- \For Alaska, cooling systems are never shared.
 
 
 .. _hvac_has_ducts:
@@ -3406,7 +3429,7 @@ The presence and efficiency of the primary heating system in the dwelling unit.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
@@ -3416,6 +3439,8 @@ Source
 - \Shipment data based on CAC-ASHP-shipments-table.tsv and furnace-shipments-table.tsv
 
 - \Efficiency data based on expanded_HESC_HVAC_efficiencies.tsv combined with age of equipment data from RECS
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -3433,7 +3458,17 @@ Assumption
 
 - \For 'other' heating system types, we assign them to Electric Baseboard if fuel is Electric, and assign them to Wall/Floor Furnace if fuel is natural_gas, fuel_oil or propane.
 
-- \For Other Fuel, the lowest efficiency systems are assumed.
+- \For Other Fuel and Wood, the lowest efficiency systems are assumed.
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, electric space heaters are modelled as electric baseboards.
+
+- \For Alaska, Toyo/monitor direct-vent devices and other fuel space heaters are not modeled.
+
+- \For Alaska, fireplace and stoves are not modeled.
+
+- \For Alaska, heat pumps are assumed to be non-ducted air source heat pumps.
 
 
 Arguments
@@ -3696,12 +3731,14 @@ The presence and type of the primary heating system in the dwelling unit.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
 
 - \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -3709,7 +3746,9 @@ Assumption
 
 - \Due to low sample sizes, fallback rules applied with lumping of
 
-- \1) Heating fuel lump: Fuel oil, Propane, and Other Fuel2) Geometry building SF: Mobile, Single family attached, Single family detached3) Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units4) Vintage Lump: 20yrs bins
+- \1) Heating fuel lump: Fuel oil, Propane, Wood and Other Fuel2) Geometry building SF: Mobile, Single family attached, Single family detached3) Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units4) Vintage Lump: 20yrs bins
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 
 .. _hvac_heating_type_and_fuel:
@@ -3741,17 +3780,31 @@ HVAC Secondary Heating Efficiency
 Description
 ***********
 
-Efficiency of the secondary heating system (not used in project_national).
+The efficiency and type of the heating system.
 
 Created by
 **********
 
-manually created
+``sources/aris/tsv_maker.py``
 
 Source
 ******
 
-- \n/a
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
+
+
+Assumption
+**********
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, electric space heaters are modelled as electric baseboards.
+
+- \For Alaska, Toyo/monitor direct-vent devices and other fuel space heaters are not modeled.
+
+- \For Alaska, fireplace and stoves are not modeled.
+
+- \For Alaska, heat pumps are assumed to be non-ducted air source heat pumps.
 
 
 Arguments
@@ -3799,12 +3852,28 @@ HVAC Secondary Heating Fuel
 Description
 ***********
 
-Secondary HVAC system heating type and fuel (not used in project_national).
+Secondary Heating Fuel for the dwelling unit
 
 Created by
 **********
 
-manually created
+``sources/aris/tsv_maker.py``
+
+Source
+******
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
+
+
+Assumption
+**********
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, all wood is modelled as cord wood.
+
+- \For Alaska, when heating uses more than one fuels, the fuel with highest consumption is considered the primary (heating) fuel, and fuel with second highest usage (provided it is at least 10% of total energy use across all fuels) is considered secondary (heating) fuel - except in case of electric heating, which is always assumed as primary. Rest of the fuels are ignored.
+
 
 Arguments
 *********
@@ -3833,12 +3902,26 @@ HVAC Secondary Heating Partial Space Conditioning
 Description
 ***********
 
-Fraction of heat load served by secondary heating system (not used in project_national).
+The fraction of heating load served by secondary heating system
 
 Created by
 **********
 
-manually created
+``sources/aris/tsv_maker.py``
+
+Source
+******
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
+
+
+Assumption
+**********
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, the fraction of the load served by the secondary heating system is calculated as the ratio of annual energy used by secondary fuel and annual energy used by secondary and primary fuel.
+
 
 Arguments
 *********
@@ -3858,6 +3941,35 @@ Arguments
      - Double
      -
      - The heat load served fraction of the second heating system. Ignored if this heating system serves as a backup system for a heat pump.
+
+.. _hvac_secondary_heating_type:
+
+HVAC Secondary Heating Type
+---------------------------
+
+Description
+***********
+
+The efficiency and type of the heating system.
+
+Created by
+**********
+
+``sources/aris/tsv_maker.py``
+
+Source
+******
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
+
+
+Assumption
+**********
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, all heat pumps are assumed to be non-ducted mini-splits.
+
 
 .. _hvac_shared_efficiencies:
 
@@ -4348,12 +4460,14 @@ The primary fuel used for heating the dwelling unit.
 Created by
 **********
 
-``sources/pums/pums2019_5yrs/tsv_maker.py``
+``sources/pums/pums2019_5yrs/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
 
 - \2019-5yrs Public Use Microdata Samples (PUMS). IPUMS USA, University of Minnesota, www.ipums.org.
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -4362,6 +4476,12 @@ Assumption
 - \In ACS, Heating Fuel is reported for occupied units only. By excluding Vacancy Status as adependency, we assume vacant units share the same Heating Fuel distribution as occupied units. Where sample counts are less than 10, the State average distribution has been inserted. Prior to insertion, the following adjustments have been made to the state distribution so all rows have sample count > 10: 1. Where sample counts < 10 (which consists of Mobile Home and Single-Family Attached only), the Vintage ACS distribution is used instead of Vintage: [CT, DE, ID, MD, ME, MT, ND, NE, NH, NV, RI, SD, UT, VT, WY]
 
 - \2. Remaining Mobile Homes < 10 are replaced by Single-Family Detached + Mobile Homes combined: [DE, RI, SD, VT, WY, and all DC].
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, all wood is modelled as cord wood.
+
+- \For Alaska, when heating uses more than one fuels, the fuel with highest consumption is considered the primary (heating) fuel, and fuel with second highest usage (provided it is at least 10% of total energy use across all fuels) is considered secondary (heating) fuel - except in case of electric heating, which is always assumed as primary. Rest of the fuels are ignored.
 
 
 Arguments
@@ -4936,12 +5056,14 @@ Air leakage rates for the living and garage spaces
 Created by
 **********
 
-``sources/resdb/tsv_maker.py``
+``sources/resdb/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
 
 - \Distributions are based on the cumulative distribution functions from the Residential Diagnostics Database (ResDB), http://resdb.lbl.gov/.
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -4956,6 +5078,10 @@ Assumption
 - \Homes are assumed to not be Weatherization Assistance Program (WAP) qualified and not ENERGY STAR certified.
 
 - \Climate zones 7AK and 8AK are averages of 6A and 6B.
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, Infiltration ACH50 values are calculated based on CFM50 from blower door test and estimated volume of the home.
 
 
 Arguments
@@ -6314,9 +6440,9 @@ Assumption
 
   - \[1] State coarsened to Census Division RECS with AK/HI separate
 
-  - \[2] Heating Fuel coarsened to Other Fuel and Propane combined
+  - \[2] Heating Fuel coarsened to Other Fuel, Wood and Propane combined
 
-  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, and Propane combined
+  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, Wood and Propane combined
 
   - \[4] Geometry Building Type RECS coarsened to SF/MF/MH
 
@@ -8141,12 +8267,14 @@ The water heater fuel type.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
 
 - \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -8161,6 +8289,12 @@ Assumption
   - \[3] Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units
 
   - \[4] State: Census Region[5] State: National
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, wood and coal heating is modeled as other fuel.
+
+- \For Alaska, when a building uses more than one fuel for water heating, the fuel with highest consumption is considered the water heater fuel. Rest of the fuels are ignored.
 
 
 .. _water_heater_in_unit:

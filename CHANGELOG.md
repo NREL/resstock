@@ -17,6 +17,7 @@ Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
 - Reorganize the emissions and utility rates data folders such that their sources and functions are more clear ([#1195](https://github.com/NREL/resstock/pull/1195))
 - Move location of out-of-unit (shared) water heaters to conditioned mechanical room ([#1201](https://github.com/NREL/resstock/pull/1201))
+- Update the Alaska residential stock characterization using the Alaska Retrofit Information System data ([#1214](https://github.com/NREL/resstock/pull/1214))
 
 
 ## ResStock v3.2.0
