@@ -3318,7 +3318,7 @@ Assumption
 
 - \Homes having non-ducted heat pump for heating is assumed to have non-ducted heat pumpfor cooling
 
-- \For Alaska, we are using a field in ARIS that lumps MutiFamily 2-4 units and MultiFamily 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 - \For Alaska, we are not modelling any central and room AC.
 
@@ -3460,7 +3460,7 @@ Assumption
 
 - \For Other Fuel and Wood, the lowest efficiency systems are assumed.
 
-- \For Alaska, we are using a field in ARIS that lumps MutiFamily 2-4 units and MultiFamily 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 - \For Alaska, electric space heaters are modelled as electric baseboards.
 
@@ -3748,7 +3748,7 @@ Assumption
 
 - \1) Heating fuel lump: Fuel oil, Propane, Wood and Other Fuel2) Geometry building SF: Mobile, Single family attached, Single family detached3) Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units4) Vintage Lump: 20yrs bins
 
-- \For Alaska, we are using a field in ARIS that lumps MutiFamily 2-4 units and MultiFamily 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 
 .. _hvac_heating_type_and_fuel:
@@ -3796,7 +3796,7 @@ Source
 Assumption
 **********
 
-- \For Alaska, we are using a field in ARIS that lumps MutiFamily 2-4 units and MultiFamily 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 - \For Alaska, electric space heaters are modelled as electric baseboards.
 
@@ -3868,7 +3868,7 @@ Source
 Assumption
 **********
 
-- \For Alaska, we are using a field in ARIS that lumps MutiFamily 2-4 units and MultiFamily 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 - \For Alaska, all wood is modelled as cord wood.
 
@@ -3918,7 +3918,7 @@ Source
 Assumption
 **********
 
-- \For Alaska, we are using a field in ARIS that lumps MutiFamily 2-4 units and MultiFamily 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 - \For Alaska, the fraction of the load served by the secondary heating system is calculated as the ratio of annual energy used by secondary fuel and annual energy used by secondary and primary fuel.
 
@@ -3966,7 +3966,7 @@ Source
 Assumption
 **********
 
-- \For Alaska, we are using a field in ARIS that lumps MutiFamily 2-4 units and MultiFamily 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 - \For Alaska, all heat pumps are assumed to be non-ducted mini-splits.
 
@@ -4477,7 +4477,7 @@ Assumption
 
 - \2. Remaining Mobile Homes < 10 are replaced by Single-Family Detached + Mobile Homes combined: [DE, RI, SD, VT, WY, and all DC].
 
-- \For Alaska, we are using a field in ARIS that lumps MutiFamily 2-4 units and MultiFamily 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 - \For Alaska, all wood is modelled as cord wood.
 
@@ -5079,7 +5079,7 @@ Assumption
 
 - \Climate zones 7AK and 8AK are averages of 6A and 6B.
 
-- \For Alaska, we are using a field in ARIS that lumps MutiFamily 2-4 units and MultiFamily 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 - \For Alaska, Infiltration ACH50 values are calculated based on CFM50 from blower door test and estimated volume of the home.
 
@@ -8290,7 +8290,7 @@ Assumption
 
   - \[4] State: Census Region[5] State: National
 
-- \For Alaska, we are using a field in ARIS that lumps MutiFamily 2-4 units and MultiFamily 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 - \For Alaska, wood and coal heating is modeled as other fuel.
 
