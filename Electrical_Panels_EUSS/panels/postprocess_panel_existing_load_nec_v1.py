@@ -417,11 +417,19 @@ def hvac_heating_conversion(nom_heat_cap, system_type=None):
             system type
     Returns : 
         W = Amp*V
-    """
+    """ 
     if system_type == "Ducted Heat Pump":
-        return (0.6*nom_heat_cap + 7.2471) * 230
+        heating = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space heating') & (nameplate_power_rating['appliance'] == 'ducted heat pump')]
+        voltage = list(heating['voltage'])[0]
+        coef1 = float(list(heating['amperage'])[0].split(',')[0])
+        coef2 = float(list(heating['amperage'])[0].split(',')[1])
+        return (coef1*nom_heat_cap + coef2) * voltage
     if system_type == "Non-Ducted Heat Pump":
-        return (0.8*nom_heat_cap + 2.2825) * 230
+        heating = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space heating') & (nameplate_power_rating['appliance'] == 'non-ducted heat pump')]
+        voltage = list(heating['voltage'])[0]
+        coef1 = float(list(heating['amperage'])[0].split(',')[0])
+        coef2 = float(list(heating['amperage'])[0].split(',')[1])
+        return (coef1*nom_heat_cap + coef2) * voltage
 
     return nom_heat_cap * KBTU_H_TO_W
 
@@ -439,13 +447,29 @@ def hvac_cooling_conversion(nom_cool_cap, system_type=None):
         W = Amp*V
     """
     if system_type == "Ducted Heat Pump":
-        return (0.6*nom_cool_cap + 7.2471) * 230
+        cooling = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space cooling') & (nameplate_power_rating['appliance'] == 'ducted heat pump')]
+        voltage = list(cooling['voltage'])[0]
+        coef1 = float(list(cooling['amperage'])[0].split(',')[0])
+        coef2 = float(list(cooling['amperage'])[0].split(',')[1])
+        return (coef1*nom_cool_cap + coef2) * voltage
     if system_type == "Non-Ducted Heat Pump":
-        return (1*nom_cool_cap + 0.2909) * 230
+        cooling = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space cooling') & (nameplate_power_rating['appliance'] == 'non-ducted heat pump')]
+        voltage = list(cooling['voltage'])[0]
+        coef1 = float(list(cooling['amperage'])[0].split(',')[0])
+        coef2 = float(list(cooling['amperage'])[0].split(',')[1])
+        return (coef1*nom_cool_cap + coef2) * voltage
     if system_type == "Central AC":
-        return (0.7*nom_cool_cap + 1.8978) * 230
+        cooling = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space cooling') & (nameplate_power_rating['appliance'] == 'central ac')]
+        voltage = list(cooling['voltage'])[0]
+        coef1 = float(list(cooling['amperage'])[0].split(',')[0])
+        coef2 = float(list(cooling['amperage'])[0].split(',')[1])
+        return (coef1*nom_cool_cap + coef2) * voltage
     if system_type == "Room AC":
-        return (0.4*nom_cool_cap + 3.4647) * 230
+        cooling = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space cooling') & (nameplate_power_rating['appliance'] == 'room ac')]
+        voltage = list(cooling['voltage'])[0]
+        coef1 = float(list(cooling['amperage'])[0].split(',')[0])
+        coef2 = float(list(cooling['amperage'])[0].split(',')[1])
+        return (coef1*nom_cool_cap + coef2) * voltage
 
     return nom_cool_cap * KBTU_H_TO_W
 
