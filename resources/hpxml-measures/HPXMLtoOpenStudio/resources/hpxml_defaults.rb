@@ -142,7 +142,9 @@ class HPXMLDefaults
     end
 
     if hpxml_header.temperature_capacitance_multiplier.nil?
-      hpxml_header.temperature_capacitance_multiplier = 1.0
+      # Different than HPXML defaults, based on work from Jeff Maguire and Yueyue
+      # Discussion located in issue 1161 and will likely need to get updated later.
+      hpxml_header.temperature_capacitance_multiplier = 7.0
       hpxml_header.temperature_capacitance_multiplier_isdefaulted = true
     end
 
