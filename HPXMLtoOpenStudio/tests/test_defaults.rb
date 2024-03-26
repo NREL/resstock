@@ -885,7 +885,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     n_windows = default_hpxml_bldg.windows.size
     _test_default_window_values(default_hpxml_bldg, [0.44] * n_windows, [0.55] * n_windows, [0.66] * n_windows, [0.77] * n_windows, [0.5] * n_windows, [123] * n_windows)
 
-    # Test defaults
+    # Test defaults after 301-2022 Addendum C
     hpxml_bldg.windows.each do |window|
       window.fraction_operable = nil
       window.exterior_shading_factor_summer = nil
@@ -898,7 +898,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     n_windows = default_hpxml_bldg.windows.size
-    _test_default_window_values(default_hpxml_bldg, [1.0] * n_windows, [1.0] * n_windows, [0.7] * n_windows, [0.85] * n_windows, [0.67] * n_windows, [225] * n_windows)
+    int_shade_coeff = 0.92 - (0.21 * 0.45)
+    _test_default_window_values(default_hpxml_bldg, [1.0] * n_windows, [1.0] * n_windows, [int_shade_coeff] * n_windows, [int_shade_coeff] * n_windows, [0.67] * n_windows, [225] * n_windows)
   end
 
   def test_windows_properties
