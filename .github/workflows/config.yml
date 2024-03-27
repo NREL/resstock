@@ -8,10 +8,12 @@ on:
   workflow_dispatch:
 
 env:
-  OPENSTUDIO_VER: "3.7.0"
-  OPENSTUDIO_SHA: "d5269793f1"
+  OPENSTUDIO_VER: "3.8.0-beta"
+  OPENSTUDIO_SHA: "ab2d186f5a"
   OPENSTUDIO_PLATFORM: "Ubuntu-20.04-x86_64"
   OPENSTUDIO_EXT: "deb"
+  OPENSTUDIO_URL: "https://github.com/NREL/OpenStudio/releases/download/$OPENSTUDIO_VER"
+  OPENSTUDIO_URL: "http://openstudio-ci-builds.s3-website-us-west-2.amazonaws.com/develop"
 
 jobs:
   format-files:
@@ -144,7 +146,7 @@ jobs:
       - name: Download and Install OpenStudio
         run: |
           export OS_DEBFILE="OpenStudio-$OPENSTUDIO_VER+$OPENSTUDIO_SHA-$OPENSTUDIO_PLATFORM.$OPENSTUDIO_EXT"
-          wget -q https://github.com/NREL/OpenStudio/releases/download/v$OPENSTUDIO_VER/$OS_DEBFILE
+          wget -q $OPENSTUDIO_URL/$OS_DEBFILE
           sudo apt install -y ./$OS_DEBFILE
           openstudio openstudio_version
           which openstudio
