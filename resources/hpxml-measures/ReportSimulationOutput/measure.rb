@@ -1993,12 +1993,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   def get_report_meter_data_timeseries(meter_names, unit_conv, unit_adder, timeseries_frequency)
     return [0.0] * @timestamps.size if meter_names.empty?
 
-    msgpack_timeseries_name = { 'timestep' => 'TimeStep',
+    msgpack_timeseries_name = { 'timestep' => 'Timestep',
                                 'hourly' => 'Hourly',
                                 'daily' => 'Daily',
                                 'monthly' => 'Monthly' }[timeseries_frequency]
-    cols = @msgpackData['MeterData'][msgpack_timeseries_name]['Cols']
-    rows = @msgpackData['MeterData'][msgpack_timeseries_name]['Rows']
+    timeseries_data = @msgpackData['MeterData'][msgpack_timeseries_name]
+    cols = timeseries_data['Cols']
+    rows = timeseries_data['Rows']
     indexes = cols.each_index.select { |i| meter_names.include? cols[i]['Variable'] }
     vals = []
     rows.each_with_index do |row, _idx|

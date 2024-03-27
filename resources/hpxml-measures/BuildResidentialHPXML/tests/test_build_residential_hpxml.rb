@@ -564,7 +564,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['water_heater_standby_loss'] = 0
       args['water_heater_jacket_rvalue'] = 0
       args['water_heater_setpoint_temperature'] = 125
-      args['water_heater_num_units_served'] = 1
+      args['water_heater_num_bedrooms_served'] = 3
       args['hot_water_distribution_system_type'] = HPXML::DHWDistTypeStandard
       args['hot_water_distribution_standard_piping_length'] = 50
       args['hot_water_distribution_recirc_control_type'] = HPXML::DHWRecircControlTypeNone

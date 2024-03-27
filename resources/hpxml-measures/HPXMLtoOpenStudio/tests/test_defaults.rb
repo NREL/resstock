@@ -2682,7 +2682,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems.each do |wh|
       wh.is_shared_system = true
-      wh.number_of_units_served = 2
+      wh.number_of_bedrooms_served = 6
       wh.heating_capacity = 15000.0
       wh.tank_volume = 40.0
       wh.recovery_efficiency = 0.95
@@ -3158,7 +3158,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
-    hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
+    hpxml_bldg.water_heating_systems[0].number_of_bedrooms_served = 18
     hpxml_bldg.clothes_washers[0].location = HPXML::LocationBasementConditioned
     hpxml_bldg.clothes_washers[0].is_shared_appliance = true
     hpxml_bldg.clothes_washers[0].usage_multiplier = 1.5
@@ -3213,7 +3213,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
-    hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
+    hpxml_bldg.water_heating_systems[0].number_of_bedrooms_served = 18
     hpxml_bldg.clothes_dryers[0].location = HPXML::LocationBasementConditioned
     hpxml_bldg.clothes_dryers[0].is_shared_appliance = true
     hpxml_bldg.clothes_dryers[0].combined_energy_factor = 3.33
@@ -3286,7 +3286,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
-    hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
+    hpxml_bldg.water_heating_systems[0].number_of_bedrooms_served = 18
     hpxml_bldg.dishwashers[0].location = HPXML::LocationBasementConditioned
     hpxml_bldg.dishwashers[0].is_shared_appliance = true
     hpxml_bldg.dishwashers[0].usage_multiplier = 1.3
