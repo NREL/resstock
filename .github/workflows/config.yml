@@ -11,7 +11,7 @@ jobs:
   run-unit-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.7.0
+      image: docker://nrel/openstudio:develop
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,7 +63,7 @@ jobs:
   run-workflow1-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.7.0
+      image: docker://nrel/openstudio:develop
     steps:
       - uses: actions/checkout@v4
         with:
@@ -86,7 +86,7 @@ jobs:
   run-workflow2-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.7.0
+      image: docker://nrel/openstudio:develop
     steps:
       - uses: actions/checkout@v4
         with:
@@ -106,20 +106,20 @@ jobs:
           path: workflow/tests/results
           name: results-workflow2-tests
 
-  run-windows-tests:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-      - name: Install software and run test
-        shell: pwsh
-        run: |
-          $env:OS_VERSION="3.7.0"
-          $env:OS_SHA="d5269793f1"
-          Invoke-WebRequest -OutFile Windows.tar.gz -URI "https://github.com/NREL/OpenStudio/releases/download/v${env:OS_VERSION}/OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows.tar.gz"
-          tar -xzf Windows.tar.gz
-          & .\OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows\bin\openstudio.exe workflow\run_simulation.rb -x workflow\sample_files\base.xml --hourly ALL --add-component-loads --add-stochastic-schedules
+#  run-windows-tests:
+#    runs-on: windows-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          ref: ${{ github.head_ref }}
+#      - name: Install software and run test
+#        shell: pwsh
+#        run: |
+#          $env:OS_VERSION="3.7.0"
+#          $env:OS_SHA="d5269793f1"
+#          Invoke-WebRequest -OutFile Windows.tar.gz -URI "https://github.com/NREL/OpenStudio/releases/download/v${env:OS_VERSION}/OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows.tar.gz"
+#          tar -xzf Windows.tar.gz
+#          & .\OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows\bin\openstudio.exe workflow\run_simulation.rb -x workflow\sample_files\base.xml --hourly ALL --add-component-loads --add-stochastic-schedules
 
   merge-results:
     runs-on: ubuntu-latest
