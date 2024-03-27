@@ -82,9 +82,14 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
     des = File.expand_path(File.join(File.dirname(__FILE__), outfile))
     FileUtils.cp(src, des)
 
-    buildstock_csv = CSV.read(des, headers: true)
-    datapoints = buildstock_csv['Building'].map { |x| Integer(x) }
-    n_datapoints = datapoints.size
+    if building_ids.empty?
+      buildstock_csv = CSV.read(des, headers: true)
+      datapoints = buildstock_csv['Building'].map { |x| Integer(x) }
+      n_datapoints = datapoints.size
+    else
+      datapoints = building_ids
+      n_datapoints = `wc -l "#{des}"`.strip.split(' ')[0].to_i - 1
+    end
   end
 
   osw_dir = File.join(results_dir, 'osw')
