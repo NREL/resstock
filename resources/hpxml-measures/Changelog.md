@@ -3,6 +3,8 @@
 __New Features__
 - Updates to HPXML v4.0-rc3.
 - Updates per ANSI/RESNET/ICC 301-2022 w/ Addendum C:
+  - **Breaking change**: Replaces `WaterHeatingSystem/NumberofUnitsServed` with `WaterHeatingSystem/extension/NumberofBedroomsServed` for apportioning shared water heater tank losses.
+  - **Breaking change**: Replaces `HotWaterDistribution/extension/SharedRecirculation/NumberofUnitsServed` with `HotWaterDistribution/extension/SharedRecirculation/NumberofBedroomsServed` for apportioning shared recirculation pump energy.
   - Allows shared batteries (batteries serving multiple dwelling units).
   - Updated default CFIS fan power to 0.58 W/cfm.
   - Removed natural ventilation availability RH constraint; HR constraint remains.
@@ -34,6 +36,7 @@ __New Features__
 - Adds window and skylight `GlassType` options of "low-e, high-solar-gain" and "low-e, low-solar-gain"; updates U-factor/SHGC lookup tables.
 - BuildResidentialHPXML measure:
   - **Breaking change**: Replaces `roof_radiant_barrier`/`roof_radiant_barrier_grade` arguments with `radiant_barrier_attic_location`/`radiant_barrier_grade`.
+  - Allows specifying number of bedrooms served by the water heater which is used for apportioning tank losses; **Breaking change**: Replaces `water_heater_num_units_served` with `water_heater_num_bedrooms_served`.
   - Allows defining multiple unavailable periods; **Breaking change**: arguments renamed to `schedules_vacancy_periods`, `schedules_power_outage_periods`, and `schedules_power_outage_periods_window_natvent_availability`.
   - Adds detailed performance data inputs for variable-speed air source HVAC systems.
   - Adds heat pump backup sizing methodology input.
