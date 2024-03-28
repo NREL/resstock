@@ -561,7 +561,7 @@ class Geometry
     occ_def.setNumberofPeople(num_occ)
     occ_def.setFractionRadiant(occ_rad)
     occ_def.setSensibleHeatFraction(occ_sens)
-    occ_def.setMeanRadiantTemperatureCalculationType('ZoneAveraged')
+    occ_def.setMeanRadiantTemperatureCalculationType('EnclosureAveraged')
     occ_def.setCarbonDioxideGenerationRate(0)
     occ_def.setEnableASHRAE55ComfortWarnings(false)
     occ.setActivityLevelSchedule(activity_sch)

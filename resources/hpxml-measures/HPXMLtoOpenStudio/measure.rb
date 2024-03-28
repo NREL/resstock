@@ -2651,8 +2651,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   def set_output_files(model)
     oj = model.getOutputJSON
     oj.setOptionType('TimeSeriesAndTabular')
-    oj.setOutputJSON(false)
-    oj.setOutputMessagePack(true)
+    oj.setOutputJSON(@debug)
+    oj.setOutputMessagePack(true) # Used by ReportSimulationOutput reporting measure
 
     ocf = model.getOutputControlFiles
     ocf.setOutputAUDIT(@debug)

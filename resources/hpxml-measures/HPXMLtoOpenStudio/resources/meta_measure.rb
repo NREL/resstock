@@ -501,9 +501,7 @@ def report_os_warnings(os_log, rundir)
   File.open(File.join(rundir, 'run.log'), 'a') do |f|
     os_log.logMessages.each do |s|
       next if s.logMessage.include? 'Cannot find current Workflow Step'
-      next if s.logMessage.include? 'Data will be treated as typical (TMY)'
       next if s.logMessage.include? 'WorkflowStepResult value called with undefined stepResult'
-      next if s.logMessage.include?("Object of type 'Schedule:Constant' and named 'Always") && s.logMessage.include?('points to an object named') && s.logMessage.include?('but that object cannot be located')
       next if s.logMessage.include? 'Appears there are no design condition fields in the EPW file'
       next if s.logMessage.include? 'Volume calculation will be potentially inaccurate'
       next if s.logMessage.include? 'Valid instance'
