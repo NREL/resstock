@@ -1368,9 +1368,14 @@ class Constructions
     return imdef
   end
 
-  def self.get_default_interior_shading_factors()
-    summer = 0.70
-    winter = 0.85
+  def self.get_default_interior_shading_factors(eri_version, shgc)
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2022C')
+      summer = 0.92 - (0.21 * shgc)
+      winter = summer
+    else
+      summer = 0.70
+      winter = 0.85
+    end
     return summer, winter
   end
 

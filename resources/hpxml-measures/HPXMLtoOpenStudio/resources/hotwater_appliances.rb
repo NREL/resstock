@@ -356,7 +356,7 @@ class HotWaterAndAppliances
         add_water_use_equipment(model, waste_obj_name, dist_water_peak_flow * gpd_frac * non_solar_fraction, fixtures_schedule, water_use_connections[water_heating_system.id], unit_multiplier, mw_temp_schedule)
 
         # Recirculation pump
-        recirc_pump_annual_kwh = get_hwdist_recirc_pump_energy(hot_water_distribution, fixtures_usage_multiplier)
+        recirc_pump_annual_kwh = get_hwdist_recirc_pump_energy(hot_water_distribution, fixtures_usage_multiplier, nbeds)
         if recirc_pump_annual_kwh > 0
 
           # Create schedule
@@ -1018,7 +1018,7 @@ class HotWaterAndAppliances
     return adjFmix
   end
 
-  def self.get_hwdist_recirc_pump_energy(hot_water_distribution, fixtures_usage_multiplier)
+  def self.get_hwdist_recirc_pump_energy(hot_water_distribution, fixtures_usage_multiplier, nbeds)
     dist_pump_annual_kwh = 0.0
 
     # Annual electricity consumption factor for hot water recirculation system pumps
@@ -1045,7 +1045,7 @@ class HotWaterAndAppliances
     # Shared recirculation system pump energy
     # Assume the fixtures_usage_multiplier only applies for Sensor/Manual control type.
     if hot_water_distribution.has_shared_recirculation
-      n_dweq = hot_water_distribution.shared_recirculation_number_of_units_served
+      n_bdeq = hot_water_distribution.shared_recirculation_number_of_bedrooms_served
       if [HPXML::DHWRecircControlTypeNone,
           HPXML::DHWRecircControlTypeTimer,
           HPXML::DHWRecircControlTypeTemperature].include? hot_water_distribution.shared_recirculation_control_type
@@ -1057,7 +1057,7 @@ class HotWaterAndAppliances
         fail "Unexpected hot water distribution system shared recirculation type: '#{hot_water_distribution.shared_recirculation_control_type}'."
       end
       shared_pump_kw = UnitConversions.convert(hot_water_distribution.shared_recirculation_pump_power, 'W', 'kW')
-      dist_pump_annual_kwh += (shared_pump_kw * op_hrs / n_dweq.to_f)
+      dist_pump_annual_kwh += (shared_pump_kw * op_hrs * nbeds / n_bdeq.to_f)
     end
 
     return dist_pump_annual_kwh

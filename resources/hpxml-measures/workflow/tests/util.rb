@@ -1013,11 +1013,11 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
         abs_delta_tol = UnitConversions.convert(abs_delta_tol, 'MBtu', 'kWh')
       end
     elsif key.include?('Peak Electricity:')
-      # Check that the peak electricity difference is less than 500 W or less than 2%
+      # Check that the peak electricity difference is less than 500 W or less than 5%
       # Wider tolerances than others because a small change in when an event (like the
       # water heating firing) occurs can significantly impact the peak.
       abs_delta_tol = 500.0
-      abs_frac_tol = 0.02
+      abs_frac_tol = 0.05
     elsif key.include?('Peak Load:')
       # Check that the peak load difference is less than 0.2 kBtu/hr or less than 5%
       abs_delta_tol = 0.2

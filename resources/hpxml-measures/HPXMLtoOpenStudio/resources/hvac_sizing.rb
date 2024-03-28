@@ -2540,7 +2540,7 @@ class HVACSizing
 
     # Infiltration UA
     ach = nil
-    if [HPXML::LocationCrawlspaceVented, HPXML::LocationAtticVented].include? location
+    if HPXML::vented_locations.include? location
       # Vented space
       if location == HPXML::LocationCrawlspaceVented
         vented_crawl = @hpxml_bldg.foundations.find { |f| f.foundation_type == HPXML::FoundationTypeCrawlspaceVented }

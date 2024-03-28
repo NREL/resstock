@@ -289,7 +289,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
 
     # recirc
     hot_water_distribution = hpxml_bldg.hot_water_distributions[0]
-    pump_kwh_yr = 8.76 * hot_water_distribution.shared_recirculation_pump_power / hot_water_distribution.shared_recirculation_number_of_units_served
+    pump_kwh_yr = 8.76 * hot_water_distribution.shared_recirculation_pump_power * hpxml_bldg.building_construction.number_of_bedrooms.to_f / hot_water_distribution.shared_recirculation_number_of_bedrooms_served
     assert_in_epsilon(pump_kwh_yr, get_ee_kwh_per_year(model, Constants.ObjectNameHotWaterRecircPump), 0.001)
   end
 

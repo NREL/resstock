@@ -88,6 +88,7 @@ class Constants
             'schedules_random_seed',
             'output_csv_path',
             'hpxml_output_path',
+            'append_output',
             'debug',
             'building_id']
   end

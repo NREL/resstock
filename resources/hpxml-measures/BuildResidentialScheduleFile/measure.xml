@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>build_residential_schedule_file</name>
   <uid>f770b2db-1a9f-4e99-99a7-7f3161a594b1</uid>
-  <version_id>7dd347b4-2557-4600-9fe4-c35c427bbf05</version_id>
-  <version_modified>2024-02-29T22:52:11Z</version_modified>
+  <version_id>88f0b216-fd7b-44ac-bae8-6e65898aa224</version_id>
+  <version_modified>2024-03-14T23:17:21Z</version_modified>
   <xml_checksum>03F02484</xml_checksum>
   <class_name>BuildResidentialScheduleFile</class_name>
   <display_name>Schedule File Builder</display_name>
@@ -30,7 +30,7 @@
     <argument>
       <name>schedules_random_seed</name>
       <display_name>Schedules: Random Seed</display_name>
-      <description>This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.</description>
+      <description>This numeric field is the seed for the random number generator.</description>
       <type>Integer</type>
       <units>#</units>
       <required>false</required>
@@ -53,9 +53,28 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>append_output</name>
+      <display_name>Append Output?</display_name>
+      <description>If true and the output CSV file already exists, appends columns to the file rather than overwriting it. The existing output CSV file must have the same number of rows (i.e., timeseries frequency) as the new columns being appended.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>debug</name>
       <display_name>Debug Mode?</display_name>
-      <description>Applicable when schedules type is stochastic. If true: Write extra state column(s).</description>
+      <description>If true, writes extra column(s) for informational purposes.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -97,7 +116,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>824BFECD</checksum>
+      <checksum>5852D2EF</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -114,7 +133,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>53FA82A5</checksum>
+      <checksum>F6E9B2B0</checksum>
     </file>
     <file>
       <filename>README.md</filename>
@@ -150,7 +169,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>665E2812</checksum>
+      <checksum>49CEA4F9</checksum>
     </file>
     <file>
       <filename>cooking_consumption_dist.csv</filename>
@@ -204,7 +223,7 @@
       <filename>schedules.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>BE50C471</checksum>
+      <checksum>B5E26248</checksum>
     </file>
     <file>
       <filename>schedules_config.md</filename>
@@ -912,7 +931,7 @@
       <filename>test_build_residential_schedule_file.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>3BE20192</checksum>
+      <checksum>8B111B4B</checksum>
     </file>
   </files>
 </measure>

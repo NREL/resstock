@@ -12,6 +12,11 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
   def setup
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
     @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')
+    @tmp_hpxml_path = File.join(@sample_files_path, 'tmp.xml')
+  end
+
+  def teardown
+    File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
   end
 
   def get_eed_for_ventilation(model, ee_name)
@@ -700,6 +705,88 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     infil_volume = hpxml_bldg.air_infiltration_measurements.find { |m| !m.infiltration_volume.nil? }.infiltration_volume
     infil_height = hpxml_bldg.inferred_infiltration_height(infil_volume)
     assert_equal(13.75, infil_height)
+  end
+
+  def test_infiltration_imbalance_induced_infiltration_fractions
+    # Supply = Return
+    args_hash = {}
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = 50.0
+    hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = 50.0
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
+    assert_equal(0.0, program_values['FracOutsideToCond'].sum)
+    assert_equal(0.0, program_values['FracOutsideToDZ'].sum)
+    assert_equal(0.0, program_values['FracCondToOutside'].sum)
+    assert_equal(0.0, program_values['FracDZToOutside'].sum)
+    assert_equal(0.0, program_values['FracDZToCond'].sum)
+    assert_equal(0.0, program_values['FracCondToDZ'].sum)
+
+    # Supply > Return, Vented
+    args_hash = {}
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    hpxml, hpxml_bldg = _create_hpxml('base-atticroof-vented.xml')
+    hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = 75.0
+    hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = 25.0
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
+    assert_equal(1.0, program_values['FracOutsideToCond'].sum)
+    assert_equal(0.0, program_values['FracOutsideToDZ'].sum)
+    assert_equal(0.0, program_values['FracCondToOutside'].sum)
+    assert_equal(1.0, program_values['FracDZToOutside'].sum)
+    assert_equal(0.0, program_values['FracDZToCond'].sum)
+    assert_equal(0.0, program_values['FracCondToDZ'].sum)
+
+    # Supply > Return, Unvented
+    args_hash = {}
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = 75.0
+    hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = 25.0
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
+    assert_equal(0.5, program_values['FracOutsideToCond'].sum)
+    assert_equal(0.0, program_values['FracOutsideToDZ'].sum)
+    assert_equal(0.0, program_values['FracCondToOutside'].sum)
+    assert_equal(0.5, program_values['FracDZToOutside'].sum)
+    assert_equal(0.5, program_values['FracDZToCond'].sum)
+    assert_equal(0.0, program_values['FracCondToDZ'].sum)
+
+    # Supply < Return, Vented
+    args_hash = {}
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    hpxml, hpxml_bldg = _create_hpxml('base-atticroof-vented.xml')
+    hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = 25.0
+    hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = 75.0
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
+    assert_equal(0.0, program_values['FracOutsideToCond'].sum)
+    assert_equal(1.0, program_values['FracOutsideToDZ'].sum)
+    assert_equal(1.0, program_values['FracCondToOutside'].sum)
+    assert_equal(0.0, program_values['FracDZToOutside'].sum)
+    assert_equal(0.0, program_values['FracDZToCond'].sum)
+    assert_equal(0.0, program_values['FracCondToDZ'].sum)
+
+    # Supply < Return, Unvented
+    args_hash = {}
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = 25.0
+    hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = 75.0
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
+    assert_equal(0.0, program_values['FracOutsideToCond'].sum)
+    assert_equal(0.5, program_values['FracOutsideToDZ'].sum)
+    assert_equal(0.5, program_values['FracCondToOutside'].sum)
+    assert_equal(0.0, program_values['FracDZToOutside'].sum)
+    assert_equal(0.0, program_values['FracDZToCond'].sum)
+    assert_equal(0.5, program_values['FracCondToDZ'].sum)
   end
 
   def _test_measure(args_hash)
