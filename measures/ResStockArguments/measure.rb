@@ -400,6 +400,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
+    # Simulation control
+    args[:simulation_control_temperature_capacitance_multiplier] = 7.0
+
     # Conditioned floor area
     if args[:geometry_unit_cfa] == Constants.Auto
       cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 298, # AHS 2021, 1 detached and mobile home weighted average
