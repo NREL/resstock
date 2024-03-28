@@ -17,7 +17,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'Measure that pre-processe s the arguments passed to the BuildResidentialHPXML and BuildResidentialScheduleFile measures.'
+    return 'Measure that pre-processes the arguments passed to the BuildResidentialHPXML and BuildResidentialScheduleFile measures.'
   end
 
   # human readable description of modeling approach

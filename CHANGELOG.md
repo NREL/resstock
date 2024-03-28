@@ -12,7 +12,7 @@ Features
 - Refrigerator energy use is now affected by its ambient temperature using hourly constant and temperature coefficients from ANSI/RESNET/ICC 301-2022 Addendum C ([#1209](https://github.com/NREL/resstock/pull/1209))
 - Add Metropolitan and Micropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv ([#1212](https://github.com/NREL/resstock/pull/1212))
 - Add ability to specify HVAC system autosizing factors for baseline buildings; autosizing factors are retained for upgrade buildings following the same approach for HVAC system capacities ([#1215](https://github.com/NREL/resstock/pull/1215))
-- Update the temperature capacitance multiplier to 7.0 after some resiliance application investigation ([#1223](https://github.com/NREL/resstock/pull/1223))
+- Update the temperature capacitance multiplier to 7.0 after some resilience application investigation ([#1223](https://github.com/NREL/resstock/pull/1223))
 
 
 Fixes
