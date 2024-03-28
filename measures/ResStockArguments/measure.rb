@@ -17,7 +17,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'Measure that pre-processes the arguments passed to the BuildResidentialHPXML and BuildResidentialScheduleFile measures.'
+    return 'Measure that pre-processe s the arguments passed to the BuildResidentialHPXML and BuildResidentialScheduleFile measures.'
   end
 
   # human readable description of modeling approach
@@ -399,6 +399,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
+
+    # Simulation control
+    args[:simulation_control_temperature_capacitance_multiplier] = 7.0
 
     # Conditioned floor area
     if args[:geometry_unit_cfa] == Constants.Auto
