@@ -186,7 +186,7 @@ def _general_load_laundry(row, n=1):
     if row["completed_status"] != "Success":
         return np.nan
     
-    washer = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'washer') & (nameplate_power_rating['appliance'] == 'washer')]
+    washer = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'clothes washer') & (nameplate_power_rating['appliance'] == 'electric')]
     washer_power_rating = list(washer['volt-amps'])[0]
     
     if n == "auto":
@@ -214,8 +214,11 @@ def _fixed_load_water_heater(row):
     water_heater_electric = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'water heater') & (nameplate_power_rating['appliance'] == 'electric')]
     water_heater_electric_power_rating = list(water_heater_electric['volt-amps'])[0]
 
-    water_heater_electric_tankless = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'water heater') & (nameplate_power_rating['appliance'] == 'electric tankless')]
-    water_heater_electric_tankless_power_rating = list(water_heater_electric_tankless['volt-amps'])[0]
+    water_heater_electric_tankless_1bath = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'water heater') & (nameplate_power_rating['appliance'] == 'electric tankless, one bathroom')]
+    water_heater_electric_tankless_1bath_power_rating = list(water_heater_electric_tankless_1bath['volt-amps'])[0]
+
+    water_heater_electric_tankless_more_1bath = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'water heater') & (nameplate_power_rating['appliance'] == 'electric tankless, more than one bathroom')]
+    water_heater_electric_tankless_more_1bath_power_rating = list(water_heater_electric_tankless_more_1bath['volt-amps'])[0]
 
     water_heater_heat_pump = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'water heater') & (nameplate_power_rating['appliance'] == 'heat pump')]
     water_heater_heat_pump_power_rating = list(water_heater_heat_pump['volt-amps'])[0]
@@ -226,7 +229,10 @@ def _fixed_load_water_heater(row):
         "Electric" in row["build_existing_model.water_heater_efficiency"]
         )):
         if row["build_existing_model.water_heater_efficiency"] == "Electric Tankless":
-            return water_heater_electric_tankless_power_rating # 18-36k
+            if row["build_existing_model.bedrooms"] in [1,2]:
+                return water_heater_electric_tankless_1bath_power_rating 
+            if row["build_existing_model.bedrooms"] in [3,4,5]:
+                return water_heater_electric_tankless_more_1bath_power_rating
         if "Heat Pump" in row["build_existing_model.water_heater_efficiency"]:
             return water_heater_heat_pump_power_rating
         return water_heater_electric_power_rating
@@ -241,21 +247,12 @@ def _fixed_load_dishwasher(row):
     if row["completed_status"] != "Success":
         return np.nan
     
-    dishwasher_less_255kwh = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'dishwasher') & (nameplate_power_rating['appliance'] == 'electric, less or equal 255 rated kWh')]
-    dishwasher_less_255kwh_power_rating = list(dishwasher_less_255kwh['volt-amps'])[0]
-
-    dishwasher_more_255kwh = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'dishwasher') & (nameplate_power_rating['appliance'] == 'electric, more than 255 rated kWh')]
-    dishwasher_more_255kwh_power_rating = list(dishwasher_more_255kwh['volt-amps'])[0]
+    dishwasher = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'dishwasher') & (nameplate_power_rating['appliance'] == 'electric')]
+    dishwasher_power_rating = list(dishwasher['volt-amps'])[0]
 
     if row["build_existing_model.dishwasher"] == "None":
         return 0
-    if (
-        "270" in row["build_existing_model.dishwasher"]
-        or "290" in row["build_existing_model.dishwasher"]
-        or "318" in row["build_existing_model.dishwasher"]
-    ):
-        return dishwasher_more_255kwh_power_rating
-    return dishwasher_less_255kwh_power_rating
+    return dishwasher_power_rating
 
 
 def _fixed_load_garbage_disposal(row):
@@ -406,7 +403,7 @@ def _special_load_electric_range_nameplate(row):
     return range_elctric_power_rating  # or 12500 #TODO: This should be the full nameplate rating (max connected load) of an electric non-induction range
 
 
-def hvac_heating_conversion(nom_heat_cap, system_type=None):
+def hvac_heating_conversion(nom_heat_cap, system_type=None, heating_eff):
     """ 
     Relationship between either minimum breaker or minimum circuit amp (x voltage) and nameplate capacity
     nominal conditions refer to AHRI standard conditions: 47F?
@@ -423,7 +420,9 @@ def hvac_heating_conversion(nom_heat_cap, system_type=None):
         voltage = list(heating['voltage'])[0]
         coef1 = float(list(heating['amperage'])[0].split(',')[0])
         coef2 = float(list(heating['amperage'])[0].split(',')[1])
-        return (coef1*nom_heat_cap + coef2) * voltage
+        intercept = float(list(heating['amperage'])[0].split(',')[2])
+        seer = list(heating_eff)[0].split(',')  
+        return (coef1*nom_heat_cap + coef2 + intercept) * voltage
     if system_type == "Non-Ducted Heat Pump":
         heating = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space heating') & (nameplate_power_rating['appliance'] == 'non-ducted heat pump')]
         voltage = list(heating['voltage'])[0]
@@ -500,9 +499,11 @@ def _special_load_space_heating(row):
             row["build_existing_model.hvac_secondary_heating_efficiency"],
             "Electric", # TODO this depends on package
             ]
+        
+        heating_eff = row["build_existing_model.hvac_heating_efficiency"]
 
         heating_load = sum(
-            [hvac_heating_conversion(x, system_type=y) for x, y in zip(heating_cols, system_cols)]
+            [hvac_heating_conversion(x, system_type=y, heating_eff) for x, y in zip(heating_cols, system_cols)]
         )
     else:
         heating_load = 0
@@ -666,8 +667,10 @@ def optional_special_load_space_conditioning(row, new_load_calc=False):
             ]
         fractions = [1, 0.65, 0.65]
 
+        heating_eff = row["build_existing_model.hvac_heating_efficiency"]
+
         heating_load = sum(
-            [hvac_heating_conversion(x, system_type=y)*z for x, y, z in zip(heating_cols, system_cols, fractions)]
+            [hvac_heating_conversion(x, system_type=y, heating_eff)*z for x, y, z in zip(heating_cols, system_cols, fractions)]
         )
     else:
         heating_load = 0
@@ -678,7 +681,8 @@ def optional_special_load_space_conditioning(row, new_load_calc=False):
         # only applies to "Electric Baseboard, 100% Efficiency"
         sep_controlled_heaters = hvac_heating_conversion(
                 row["upgrade_costs.size_heating_system_primary_k_btu_h"],
-                row["build_existing_model.hvac_heating_type"]
+                row["build_existing_model.hvac_heating_type"],
+                row["build_existing_model.hvac_heating_efficiency"]
                 )
         if new_load_calc:
             demand_factor_sch_less_than_four = 1
