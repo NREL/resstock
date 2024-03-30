@@ -403,7 +403,7 @@ def _special_load_electric_range_nameplate(row):
     return range_elctric_power_rating  # or 12500 #TODO: This should be the full nameplate rating (max connected load) of an electric non-induction range
 
 
-def hvac_heating_conversion(nom_heat_cap, system_type=None, heating_eff):
+def hvac_heating_conversion(nom_heat_cap, heating_eff, system_type=None):
     """ 
     Relationship between either minimum breaker or minimum circuit amp (x voltage) and nameplate capacity
     nominal conditions refer to AHRI standard conditions: 47F?
@@ -412,28 +412,32 @@ def hvac_heating_conversion(nom_heat_cap, system_type=None, heating_eff):
             nominal heating capacity in kbtu/h
         system_type : str
             system type
+        heating_eff : str
+            heating efficiency
     Returns : 
         W = Amp*V
     """ 
-    if system_type == "Ducted Heat Pump":
+    if system_type == "Ducted Heat Pump" and ('ASHP' in heating_eff):
         heating = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space heating') & (nameplate_power_rating['appliance'] == 'ducted heat pump')]
         voltage = list(heating['voltage'])[0]
         coef1 = float(list(heating['amperage'])[0].split(',')[0])
         coef2 = float(list(heating['amperage'])[0].split(',')[1])
         intercept = float(list(heating['amperage'])[0].split(',')[2])
-        seer = list(heating_eff)[0].split(',')  
-        return (coef1*nom_heat_cap + coef2 + intercept) * voltage
-    if system_type == "Non-Ducted Heat Pump":
+        seer = float(heating_eff.split(',')[1].split(' ')[2])   
+        return (coef1*nom_heat_cap + coef2*seer + intercept) * voltage
+    if system_type == "Non-Ducted Heat Pump"and ('MSHP' in heating_eff):
         heating = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space heating') & (nameplate_power_rating['appliance'] == 'non-ducted heat pump')]
         voltage = list(heating['voltage'])[0]
         coef1 = float(list(heating['amperage'])[0].split(',')[0])
         coef2 = float(list(heating['amperage'])[0].split(',')[1])
-        return (coef1*nom_heat_cap + coef2) * voltage
+        intercept = float(list(heating['amperage'])[0].split(',')[2])
+        seer = float(heating_eff.split(',')[1].split(' ')[2])   
+        return (coef1*nom_heat_cap + coef2*seer + intercept) * voltage
 
     return nom_heat_cap * KBTU_H_TO_W
 
 
-def hvac_cooling_conversion(nom_cool_cap, system_type=None):
+def hvac_cooling_conversion(nom_cool_cap, heating_eff, cooling_eff, system_type=None):
     """ 
     Relationship between either minimum breaker or minimum circuit amp (x voltage) and nameplate capacity
     nominal conditions refer to AHRI standard conditions: 95F?
@@ -445,30 +449,39 @@ def hvac_cooling_conversion(nom_cool_cap, system_type=None):
     Returns : 
         W = Amp*V
     """
-    if system_type == "Ducted Heat Pump":
+    if system_type == "Ducted Heat Pump" and ('ASHP' in heating_eff):
         cooling = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space cooling') & (nameplate_power_rating['appliance'] == 'ducted heat pump')]
         voltage = list(cooling['voltage'])[0]
         coef1 = float(list(cooling['amperage'])[0].split(',')[0])
         coef2 = float(list(cooling['amperage'])[0].split(',')[1])
-        return (coef1*nom_cool_cap + coef2) * voltage
-    if system_type == "Non-Ducted Heat Pump":
+        intercept = float(list(cooling['amperage'])[0].split(',')[2])
+        seer = float(heating_eff.split(',')[1].split(' ')[2])   
+        return (coef1*nom_cool_cap + coef2*seer + intercept) * voltage
+    if system_type == "Non-Ducted Heat Pump" and ('MSHP' in heating_eff):
         cooling = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space cooling') & (nameplate_power_rating['appliance'] == 'non-ducted heat pump')]
         voltage = list(cooling['voltage'])[0]
         coef1 = float(list(cooling['amperage'])[0].split(',')[0])
         coef2 = float(list(cooling['amperage'])[0].split(',')[1])
-        return (coef1*nom_cool_cap + coef2) * voltage
+        intercept = float(list(cooling['amperage'])[0].split(',')[2])
+        seer = float(heating_eff.split(',')[1].split(' ')[2])   
+        return (coef1*nom_cool_cap + coef2*seer + intercept) * voltage
     if system_type == "Central AC":
         cooling = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space cooling') & (nameplate_power_rating['appliance'] == 'central ac')]
         voltage = list(cooling['voltage'])[0]
         coef1 = float(list(cooling['amperage'])[0].split(',')[0])
         coef2 = float(list(cooling['amperage'])[0].split(',')[1])
-        return (coef1*nom_cool_cap + coef2) * voltage
+        intercept = float(list(cooling['amperage'])[0].split(',')[2])
+        seer = float(cooling_eff.split(',')[1].split(' ')[2])   
+        return (coef1*nom_cool_cap + coef2*seer + intercept) * voltage
     if system_type == "Room AC":
         cooling = nameplate_power_rating.loc[(nameplate_power_rating['load_category'] == 'space cooling') & (nameplate_power_rating['appliance'] == 'room ac')]
         voltage = list(cooling['voltage'])[0]
         coef1 = float(list(cooling['amperage'])[0].split(',')[0])
         coef2 = float(list(cooling['amperage'])[0].split(',')[1])
-        return (coef1*nom_cool_cap + coef2) * voltage
+        intercept = float(list(cooling['amperage'])[0].split(',')[2])
+        eer = float(cooling_eff.split(',')[1].split(' ')[2])
+        seer =  eer/0.875
+        return (coef1*nom_cool_cap + coef2*seer + intercept) * voltage
 
     return nom_cool_cap * KBTU_H_TO_W
 
@@ -503,7 +516,7 @@ def _special_load_space_heating(row):
         heating_eff = row["build_existing_model.hvac_heating_efficiency"]
 
         heating_load = sum(
-            [hvac_heating_conversion(x, system_type=y, heating_eff) for x, y in zip(heating_cols, system_cols)]
+            [hvac_heating_conversion(x, heating_eff, system_type=y) for x, y in zip(heating_cols, system_cols)]
         )
     else:
         heating_load = 0
@@ -520,6 +533,8 @@ def _special_load_space_cooling(row):
 
     cooling_load = hvac_cooling_conversion(
         row["upgrade_costs.size_cooling_system_primary_k_btu_h"],
+        row["build_existing_model.hvac_heating_efficiency"],
+        row["build_existing_model.hvac_cooling_efficiency"],
         system_type=row["build_existing_model.hvac_heating_type"]
     )
     cooling_motor = cooling_load
@@ -637,6 +652,8 @@ def optional_special_load_space_conditioning(row, new_load_calc=False):
 
     AC_load = hvac_cooling_conversion(
         row["upgrade_costs.size_cooling_system_primary_k_btu_h"],
+        row["build_existing_model.hvac_heating_efficiency"],
+        row["build_existing_model.hvac_cooling_efficiency"],
         row["build_existing_model.hvac_cooling_type"]
         )
 
@@ -670,7 +687,7 @@ def optional_special_load_space_conditioning(row, new_load_calc=False):
         heating_eff = row["build_existing_model.hvac_heating_efficiency"]
 
         heating_load = sum(
-            [hvac_heating_conversion(x, system_type=y, heating_eff)*z for x, y, z in zip(heating_cols, system_cols, fractions)]
+            [hvac_heating_conversion(x, heating_eff, system_type=y,)*z for x, y, z in zip(heating_cols, system_cols, fractions)]
         )
     else:
         heating_load = 0
@@ -681,8 +698,8 @@ def optional_special_load_space_conditioning(row, new_load_calc=False):
         # only applies to "Electric Baseboard, 100% Efficiency"
         sep_controlled_heaters = hvac_heating_conversion(
                 row["upgrade_costs.size_heating_system_primary_k_btu_h"],
-                row["build_existing_model.hvac_heating_type"],
-                row["build_existing_model.hvac_heating_efficiency"]
+                row["build_existing_model.hvac_heating_efficiency"],
+                row["build_existing_model.hvac_heating_type"]
                 )
         if new_load_calc:
             demand_factor_sch_less_than_four = 1
@@ -787,10 +804,10 @@ def generate_plots(df: pd.DataFrame, output_dir: Path, sfd_only: bool = False):
 def apply_existing_load_total_220_83(dfi: pd.DataFrame, new_hvac_loads: pd.Series, n_kit: int = 2, n_ldr: int = 1, explode_result: bool = False) -> pd.DataFrame:
     """
     NEC 220.83 - Load summing method
-    Use NEC 220.83 (A) (has_hvac_load=False) for existing + additional new loads calc 
+    Use NEC 220.83 (A) (has_new_hvac_load=False) for existing + additional new loads calc 
     where additional AC or space-heating IS NOT being installed
     
-    Use NEC 220.83 (B) (has_hvac_load=True) existing + additional new loads calc
+    Use NEC 220.83 (B) (has_new_hvac_load=True) existing + additional new loads calc
     where additional AC or space-heating IS being installed
 
     new_hvac_loads: pd.Series indicating where dfi rows has new electric HVAC loads
@@ -807,7 +824,7 @@ def apply_existing_load_total_220_83(dfi: pd.DataFrame, new_hvac_loads: pd.Serie
         ):
         if cond.sum() > 0:
             df.loc[cond, labels] = df.loc[cond].apply(
-                lambda x: existing_load_total_220_83(x, n_kit=n_kit, n_ldr=n_ldr, has_hvac_load=new_hvac, include_intermediate_results=explode_result), 
+                lambda x: existing_load_total_220_83(x, n_kit=n_kit, n_ldr=n_ldr, has_new_hvac_load=new_hvac, include_intermediate_results=explode_result), 
                 axis=1, result_type=result_type).values
 
     # convert to amp
@@ -840,7 +857,7 @@ def existing_load_total_220_83_labels(include_intermediate_result_labels: bool =
     return total_load_label
 
 
-def existing_load_total_220_83(row, n_kit: int = 2, n_ldr: int = 1, has_hvac_load: bool = False, include_intermediate_results: bool = False) -> float | list[float]:
+def existing_load_total_220_83(row, n_kit: int = 2, n_ldr: int = 1, has_new_hvac_load: bool = False, include_intermediate_results: bool = False) -> float | list[float]:
     """ Load summing method """
     if row["completed_status"] != "Success":
         return np.nan
@@ -865,7 +882,7 @@ def existing_load_total_220_83(row, n_kit: int = 2, n_ldr: int = 1, has_hvac_loa
         ] # no largest motor load
 
     threshold_load = 8000 # VA
-    if row["build_existing_model.hvac_cooling_type"] != "None" or row["build_existing_model.hvac_heating_type"] != "None":
+    if has_new_hvac_load:
         # 100% HVAC load + 100% of 1st 8kVA other_loads + 40% of remainder other_loads
         total_load = hvac_load + apply_demand_factor(sum(other_loads), threshold_load=threshold_load)
 
