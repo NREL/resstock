@@ -16,6 +16,7 @@ class ScheduleGenerator
                  sim_year:,
                  sim_start_day:,
                  debug:,
+                 append_output:,
                  **)
     @runner = runner
     @state = state
@@ -29,6 +30,7 @@ class ScheduleGenerator
     @sim_year = sim_year
     @sim_start_day = sim_start_day
     @debug = debug
+    @append_output = append_output
   end
 
   def self.export_columns
@@ -39,7 +41,8 @@ class ScheduleGenerator
     return @schedules
   end
 
-  def create(args:)
+  def create(args:,
+             weather:)
     @schedules = {}
 
     ScheduleGenerator.export_columns.each do |col_name|
@@ -56,13 +59,14 @@ class ScheduleGenerator
     end
     return false unless invalid_columns.empty?
 
-    success = create_stochastic_schedules(args: args)
+    success = create_stochastic_schedules(args: args, weather: weather)
     return false if not success
 
     return true
   end
 
-  def create_stochastic_schedules(args:)
+  def create_stochastic_schedules(args:,
+                                  weather:)
     # initialize a random number generator
     prng = Random.new(@random_seed)
 
@@ -136,12 +140,15 @@ class ScheduleGenerator
       all_simulated_values << Matrix[*simulated_values]
     end
     # shape of all_simulated_values is [2, 35040, 7] i.e. (geometry_num_occupants, period_in_a_year, number_of_states)
-    plugload_weekday_sch = Schedule.validate_values(Constants.PlugLoadsOtherWeekdayFractions, 24, 'weekday')
-    plugload_weekend_sch = Schedule.validate_values(Constants.PlugLoadsOtherWeekendFractions, 24, 'weekend')
-    plugload_monthly_multiplier = Schedule.validate_values(Constants.PlugLoadsOtherMonthlyMultipliers, 12, 'monthly')
-    ceiling_fan_weekday_sch = Schedule.validate_values(Constants.CeilingFanWeekdayFractions, 24, 'weekday')
-    ceiling_fan_weekend_sch = Schedule.validate_values(Constants.CeilingFanWeekendFractions, 24, 'weekend')
-    ceiling_fan_monthly_multiplier = Schedule.validate_values(Constants.PlugLoadsOtherMonthlyMultipliers, 12, 'monthly')
+    plugload_other_weekday_sch = Schedule.validate_values(Schedule.PlugLoadsOtherWeekdayFractions, 24, 'weekday') # Table C.3(1) of ANSI/RESNET/ICC 301-2022 Addendum C
+    plugload_other_weekend_sch = Schedule.validate_values(Schedule.PlugLoadsOtherWeekendFractions, 24, 'weekend') # Table C.3(1) of ANSI/RESNET/ICC 301-2022 Addendum C
+    plugload_other_monthly_multiplier = Schedule.validate_values(Constants.PlugLoadsOtherMonthlyMultipliers, 12, 'monthly') # Figure 24 of the 2010 BAHSP
+    plugload_tv_weekday_sch = Schedule.validate_values(Constants.PlugLoadsTVWeekdayFractions, 24, 'weekday') # American Time Use Survey
+    plugload_tv_weekend_sch = Schedule.validate_values(Constants.PlugLoadsTVWeekendFractions, 24, 'weekend') # American Time Use Survey
+    plugload_tv_monthly_multiplier = Schedule.validate_values(Constants.PlugLoadsTVMonthlyMultipliers, 12, 'monthly') # American Time Use Survey
+    ceiling_fan_weekday_sch = Schedule.validate_values(Schedule.CeilingFanWeekdayFractions, 24, 'weekday') # Table C.3(5) of ANSI/RESNET/ICC 301-2022 Addendum C
+    ceiling_fan_weekend_sch = Schedule.validate_values(Schedule.CeilingFanWeekendFractions, 24, 'weekend') # Table C.3(5) of ANSI/RESNET/ICC 301-2022 Addendum C
+    ceiling_fan_monthly_multiplier = Schedule.validate_values(Schedule.CeilingFanMonthlyMultipliers(weather: weather), 12, 'monthly') # based on monthly average outdoor temperatures per ANSI/RESNET/ICC 301-2019
 
     sch = get_building_america_lighting_schedule(args[:time_zone_utc_offset], args[:latitude], args[:longitude])
     interior_lighting_schedule = []
@@ -171,13 +178,14 @@ class ScheduleGenerator
         away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / args[:geometry_num_occupants]
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / args[:geometry_num_occupants]
         active_occupancy_percentage = 1 - (away_schedule[-1] + sleep_schedule[-1])
-        @schedules[SchedulesFile::Columns[:PlugLoadsOther].name][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_weekday_sch, plugload_weekend_sch, plugload_monthly_multiplier, month, is_weekday, minute, active_occupancy_percentage)
+        @schedules[SchedulesFile::Columns[:PlugLoadsOther].name][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_other_weekday_sch, plugload_other_weekend_sch, plugload_other_monthly_multiplier, month, is_weekday, minute, active_occupancy_percentage)
+        @schedules[SchedulesFile::Columns[:PlugLoadsTV].name][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_tv_weekday_sch, plugload_tv_weekend_sch, plugload_tv_monthly_multiplier, month, is_weekday, minute, active_occupancy_percentage)
         @schedules[SchedulesFile::Columns[:LightingInterior].name][day * @steps_in_day + step] = scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
         @schedules[SchedulesFile::Columns[:CeilingFan].name][day * @steps_in_day + step] = get_value_from_daily_sch(ceiling_fan_weekday_sch, ceiling_fan_weekend_sch, ceiling_fan_monthly_multiplier, month, is_weekday, minute, active_occupancy_percentage)
       end
     end
     @schedules[SchedulesFile::Columns[:PlugLoadsOther].name] = normalize(@schedules[SchedulesFile::Columns[:PlugLoadsOther].name])
-    @schedules[SchedulesFile::Columns[:PlugLoadsTV].name] = @schedules[SchedulesFile::Columns[:PlugLoadsOther].name]
+    @schedules[SchedulesFile::Columns[:PlugLoadsTV].name] = normalize(@schedules[SchedulesFile::Columns[:PlugLoadsTV].name])
     @schedules[SchedulesFile::Columns[:LightingInterior].name] = normalize(@schedules[SchedulesFile::Columns[:LightingInterior].name])
     @schedules[SchedulesFile::Columns[:LightingGarage].name] = @schedules[SchedulesFile::Columns[:LightingInterior].name]
     @schedules[SchedulesFile::Columns[:CeilingFan].name] = normalize(@schedules[SchedulesFile::Columns[:CeilingFan].name])
@@ -743,11 +751,21 @@ class ScheduleGenerator
     (SchedulesFile::Columns.values.map { |c| c.name } - @column_names).each do |col_to_remove|
       @schedules.delete(col_to_remove)
     end
+    schedule_keys = @schedules.keys
+    schedule_rows = @schedules.values.transpose.map { |row| row.map { |x| '%.3g' % x } }
+    if @append_output && File.exist?(schedules_path)
+      table = CSV.read(schedules_path)
+      if table.size != schedule_rows.size + 1
+        @runner.registerError("Invalid number of rows (#{table.size}) in file.csv. Expected #{schedule_rows.size + 1} rows (including the header row).")
+        return false
+      end
+      schedule_keys = table[0] + schedule_keys
+      schedule_rows = schedule_rows.map.with_index { |row, i| table[i + 1] + row }
+    end
     CSV.open(schedules_path, 'w') do |csv|
-      csv << @schedules.keys
-      rows = @schedules.values.transpose
-      rows.each do |row|
-        csv << row.map { |x| '%.3g' % x }
+      csv << schedule_keys
+      schedule_rows.each do |row|
+        csv << row
       end
     end
     return true
