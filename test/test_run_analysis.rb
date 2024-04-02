@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/version'
 require_relative '../resources/buildstock'
 require_relative '../test/analysis'
 require 'openstudio'
@@ -142,6 +143,9 @@ class TestRunAnalysis < Minitest::Test
     cli_output = `#{@command}`
 
     assert_includes(cli_output, "ResStock v#{Version::ResStock_Version}")
+    assert_includes(cli_output, "OpenStudio-HPXML v#{Version::OS_HPXML_Version}")
+    assert_includes(cli_output, "OpenStudio v#{OpenStudio.openStudioLongVersion}")
+    assert_includes(cli_output, "EnergyPlus v#{OpenStudio.energyPlusVersion}.#{OpenStudio.energyPlusBuildSHA}")
   end
 
   def test_errors_wrong_path
