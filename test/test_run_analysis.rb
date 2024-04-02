@@ -144,6 +144,7 @@ class TestRunAnalysis < Minitest::Test
 
     assert_includes(cli_output, "ResStock v#{Version::ResStock_Version}")
     assert_includes(cli_output, "OpenStudio-HPXML v#{Version::OS_HPXML_Version}")
+    assert_includes(cli_output, "HPXML v#{Version::HPXML_Version}")
     assert_includes(cli_output, "OpenStudio v#{OpenStudio.openStudioLongVersion}")
     assert_includes(cli_output, "EnergyPlus v#{OpenStudio.energyPlusVersion}.#{OpenStudio.energyPlusBuildSHA}")
   end
