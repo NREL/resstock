@@ -5,12 +5,8 @@ class Constants
     return '0.381, 0.297, 0.165, 0.157'
   end
 
-  def self.CeilingFanWeekdayFractions
-    return '0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05'
-  end
-
-  def self.CeilingFanWeekendFractions
-    return '0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05'
+  def self.LightingInteriorMonthlyMultipliers
+    return '1.075, 1.064951905, 1.0375, 1.0, 0.9625, 0.935048095, 0.925, 0.935048095, 0.9625, 1.0, 1.0375, 1.064951905'
   end
 
   def self.SinkDurationProbability
@@ -115,5 +111,21 @@ class Constants
 
   def self.CookingMonthlyMultiplier
     return '1.038, 1.026, 0.976, 0.945, 0.965, 0.947, 0.939, 0.965, 0.967, 1.006, 1.098, 1.129'
+  end
+
+  def self.PlugLoadsOtherMonthlyMultipliers
+    return '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
+  end
+
+  def self.PlugLoadsTVWeekdayFractions
+    return '0.037, 0.018, 0.009, 0.007, 0.011, 0.018, 0.029, 0.040, 0.049, 0.058, 0.065, 0.072, 0.076, 0.086, 0.091, 0.102, 0.127, 0.156, 0.210, 0.294, 0.363, 0.344, 0.208, 0.090'
+  end
+
+  def self.PlugLoadsTVWeekendFractions
+    return '0.044, 0.022, 0.012, 0.008, 0.011, 0.014, 0.024, 0.043, 0.071, 0.094, 0.112, 0.123, 0.132, 0.156, 0.178, 0.196, 0.206, 0.213, 0.251, 0.330, 0.388, 0.358, 0.226, 0.103'
+  end
+
+  def self.PlugLoadsTVMonthlyMultipliers
+    return '1.137, 1.129, 0.961, 0.969, 0.961, 0.993, 0.996, 0.96, 0.993, 0.867, 0.86, 1.137'
   end
 end

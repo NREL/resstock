@@ -114,9 +114,9 @@ class WorkflowOtherTest < Minitest::Test
       # Check stochastic.csv headers
       schedules = CSV.read(File.join(File.dirname(xml), 'run', 'stochastic.csv'), headers: true)
       if debug
-        assert(schedules.headers.include?(SchedulesFile::ColumnSleeping))
+        assert(schedules.headers.include?(SchedulesFile::Columns[:Sleeping].name))
       else
-        refute(schedules.headers.include?(SchedulesFile::ColumnSleeping))
+        refute(schedules.headers.include?(SchedulesFile::Columns[:Sleeping].name))
       end
 
       # Cleanup
@@ -132,24 +132,26 @@ class WorkflowOtherTest < Minitest::Test
       command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\""
       if not invalid_variable_only
         command += ' --hourly ALL'
-        command += " --add-timeseries-output-variable 'Zone People Occupant Count'"
-        command += " --add-timeseries-output-variable 'Zone People Total Heating Energy'"
+        command += " --hourly 'Zone People Occupant Count'"
+        command += " --hourly 'Zone People Total Heating Energy'"
       end
-      command += " --add-timeseries-output-variable 'Foobar Variable'" # Test invalid output variable request
+      command += " --hourly 'Foobar Variable'" # Test invalid output variable request
       system(command, err: File::NULL)
 
       # Check for output files
       assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
       assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+
+      timeseries_output_path = File.join(File.dirname(xml), 'run', 'results_timeseries.csv')
       if not invalid_variable_only
-        assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
+        assert(File.exist? timeseries_output_path)
         # Check timeseries columns exist
-        timeseries_rows = CSV.read(File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
+        timeseries_rows = CSV.read(timeseries_output_path)
         assert_equal(1, timeseries_rows[0].select { |r| r == 'Time' }.size)
         assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Occupant Count: Conditioned Space' }.size)
         assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Total Heating Energy: Conditioned Space' }.size)
       else
-        refute(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
+        refute(File.exist? timeseries_output_path)
       end
 
       # Check run.log has warning about missing Foobar Variable
@@ -157,6 +159,50 @@ class WorkflowOtherTest < Minitest::Test
       log_lines = File.readlines(File.join(File.dirname(xml), 'run', 'run.log')).map(&:strip)
       assert(log_lines.include? "Warning: Request for output variable 'Foobar Variable' returned no key values.")
     end
+  end
+
+  def test_run_simulation_mixed_timeseries_frequencies
+    # Check that we can correctly skip the EnergyPlus simulation and reporting measures
+    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+    xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
+    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --timestep weather --hourly enduses --daily temperatures --monthly ALL --monthly 'Zone People Total Heating Energy'"
+    system(command, err: File::NULL)
+
+    # Check for output files
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries_timestep.csv'))
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries_hourly.csv'))
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries_daily.csv'))
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries_monthly.csv'))
+
+    # Check timeseries columns exist
+    { 'timestep' => ['Weather:'],
+      'hourly' => ['End Use:'],
+      'daily' => ['Temperature:'],
+      'monthly' => ['End Use:', 'Fuel Use:', 'Zone People Total Heating Energy:'] }.each do |freq, col_names|
+      timeseries_rows = CSV.read(File.join(File.dirname(xml), 'run', "results_timeseries_#{freq}.csv"))
+      assert_equal(1, timeseries_rows[0].select { |r| r == 'Time' }.size)
+      col_names.each do |col_name|
+        assert(timeseries_rows[0].select { |r| r.start_with? col_name }.size > 0)
+      end
+    end
+  end
+
+  def test_run_simulation_skip_simulation
+    # Check that we can correctly skip the EnergyPlus simulation and reporting measures
+    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+    xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
+    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --skip-simulation"
+    system(command, err: File::NULL)
+
+    # Check for in.xml HPXML file
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'in.xml'))
+
+    # Check for no idf or output file
+    refute(File.exist? File.join(File.dirname(xml), 'run', 'in.idf'))
+    refute(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
+    refute(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
   end
 
   def test_run_defaulted_in_xml

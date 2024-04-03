@@ -1,5 +1,9 @@
-name: Add issue to project
+name: Add pull request or issue to project
 on:
+  pull_request:
+    types:
+      - opened
+      - reopened
   issues:
     types:
       - opened
@@ -8,10 +12,10 @@ on:
 
 jobs:
   add-to-project:
-    name: Add issue to project
+    name: Add pull request or issue to project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@v0.3.0
+      - uses: actions/add-to-project@v1.0.0
         with:
           project-url: https://github.com/orgs/NREL/projects/78
           github-token: ${{ secrets.GHB_TOKEN }}

@@ -26,11 +26,16 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     results_out = File.join(@results_dir, 'results_sizing.csv')
     File.delete(results_out) if File.exist? results_out
 
+    air_source_hp_types = [HPXML::HVACTypeHeatPumpAirToAir,
+                           HPXML::HVACTypeHeatPumpMiniSplit,
+                           HPXML::HVACTypeHeatPumpPTHP,
+                           HPXML::HVACTypeHeatPumpRoom]
+
     sizing_results = {}
     args_hash = { 'hpxml_path' => File.absolute_path(@tmp_hpxml_path),
                   'skip_validation' => true }
     Dir["#{@sample_files_path}/base-hvac*.xml"].each do |hvac_hpxml|
-      next if hvac_hpxml.include? 'autosize'
+      next if (hvac_hpxml.include? 'autosize')
       next if hvac_hpxml.include? 'detailed-performance' # Autosizing not allowed
 
       { 'USA_CO_Denver.Intl.AP.725650_TMY3.epw' => 'denver',
@@ -41,28 +46,39 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
         hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = epw_path
         _remove_hardsized_capacities(hpxml_bldg)
 
+        hp_backup_sizing_methodologies = [nil]
         if hpxml_bldg.heat_pumps.size > 0
           hp_sizing_methodologies = [HPXML::HeatPumpSizingACCA,
                                      HPXML::HeatPumpSizingHERS,
                                      HPXML::HeatPumpSizingMaxLoad]
+          if hpxml_bldg.heat_pumps.any? { |hp| !hp.backup_type.nil? }
+            hp_backup_sizing_methodologies = [HPXML::HeatPumpBackupSizingEmergency,
+                                              HPXML::HeatPumpBackupSizingSupplemental]
+          end
         else
           hp_sizing_methodologies = [nil]
         end
 
-        hp_capacity_acca, hp_capacity_maxload = nil, nil
-        hp_sizing_methodologies.each do |hp_sizing_methodology|
+        hp_capacity_acca, hp_capacity_maxload = {}, {}
+        hp_backup_capacity_emergency, hp_backup_capacity_supplemental = {}, {}
+        hp_sizing_methodologies.product(hp_backup_sizing_methodologies).each do |hp_sizing_methodology, hp_backup_sizing_methodology|
           test_name = hvac_hpxml.gsub('base-hvac-', "#{location}-hvac-autosize-")
           if not hp_sizing_methodology.nil?
             test_name = test_name.gsub('.xml', "-sizing-methodology-#{hp_sizing_methodology}.xml")
+            if not hp_backup_sizing_methodology.nil?
+              test_name = test_name.gsub('.xml', "-backup-#{hp_backup_sizing_methodology}.xml")
+            end
           end
 
           puts "Testing #{test_name}..."
 
           hpxml_bldg.header.heat_pump_sizing_methodology = hp_sizing_methodology
+          hpxml_bldg.header.heat_pump_backup_sizing_methodology = hp_backup_sizing_methodology
 
           XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
           _autosized_model, _autosized_hpxml, autosized_bldg = _test_measure(args_hash)
 
+          # Get values
           htg_cap, clg_cap, hp_backup_cap = Outputs.get_total_hvac_capacities(autosized_bldg)
           htg_cfm, clg_cfm = Outputs.get_total_hvac_airflows(autosized_bldg)
           sizing_results[test_name] = { 'HVAC Capacity: Heating (Btu/h)' => htg_cap.round(1),
@@ -71,18 +87,33 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
                                         'HVAC Airflow: Heating (cfm)' => htg_cfm.round(1),
                                         'HVAC Airflow: Cooling (cfm)' => clg_cfm.round(1) }
 
-          next unless hpxml_bldg.heat_pumps.size == 1
+          next if hpxml_bldg.heat_pumps.size != 1
 
+          # Get more values for heat pump checks
           htg_load = autosized_bldg.hvac_plant.hdl_total
           clg_load = autosized_bldg.hvac_plant.cdl_sens_total + autosized_bldg.hvac_plant.cdl_lat_total
           hp = autosized_bldg.heat_pumps[0]
+          # Test the sizing results before applying autosizing factors
           htg_cap = hp.heating_capacity
+          if hp.backup_type == HPXML::HeatPumpBackupTypeIntegrated
+            htg_backup_cap = hp.backup_heating_capacity
+          elsif hp.backup_type == HPXML::HeatPumpBackupTypeSeparate
+            htg_backup_cap = hp.backup_system.heating_capacity
+          end
           clg_cap = hp.cooling_capacity
           charge_defect_ratio = hp.charge_defect_ratio.to_f
           airflow_defect_ratio = hp.airflow_defect_ratio.to_f
+          if not hp.backup_heating_switchover_temp.nil?
+            min_compressor_temp = hp.backup_heating_switchover_temp
+          elsif not hp.compressor_lockout_temp.nil?
+            min_compressor_temp = hp.compressor_lockout_temp
+          end
 
+          # Check HP capacity
           if hp_sizing_methodology == HPXML::HeatPumpSizingACCA
-            hp_capacity_acca = htg_cap
+            hp_capacity_acca[hp_backup_sizing_methodology] = htg_cap
+          elsif hp_sizing_methodology == HPXML::HeatPumpSizingMaxLoad
+            hp_capacity_maxload[hp_backup_sizing_methodology] = htg_cap
           elsif hp_sizing_methodology == HPXML::HeatPumpSizingHERS
             next if hp.is_dual_fuel
 
@@ -107,15 +138,45 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
                 assert_in_delta(clg_cap, [htg_load, clg_load].max, 1.0)
               end
             end
-          elsif hp_sizing_methodology == HPXML::HeatPumpSizingMaxLoad
-            hp_capacity_maxload = htg_cap
+          end
+
+          # Check HP backup capacity
+          if location == 'denver' && air_source_hp_types.include?(hp.heat_pump_type) && !htg_backup_cap.nil?
+            if hp_backup_sizing_methodology == HPXML::HeatPumpBackupSizingEmergency
+              hp_backup_capacity_emergency[hp_sizing_methodology] = htg_backup_cap
+              if hp.fraction_heat_load_served == 0
+                assert_equal(0, htg_backup_cap)
+              else
+                assert_operator(htg_backup_cap, :>, 0)
+              end
+            elsif hp_backup_sizing_methodology == HPXML::HeatPumpBackupSizingSupplemental
+              hp_backup_capacity_supplemental[hp_sizing_methodology] = htg_backup_cap
+              if hp.fraction_heat_load_served == 0
+                assert_equal(0, htg_backup_cap)
+              elsif hp_sizing_methodology == HPXML::HeatPumpSizingMaxLoad && min_compressor_temp <= autosized_bldg.header.manualj_heating_design_temp
+                assert_equal(0, htg_backup_cap)
+              else
+                assert_operator(htg_backup_cap, :>, 0)
+              end
+            end
           end
         end
 
-        next unless hpxml_bldg.heat_pumps.size == 1
+        next if hpxml_bldg.heat_pumps.size != 1
 
-        # Check that MaxLoad >= >= ACCA for heat pump heating capacity
-        assert_operator(hp_capacity_maxload, :>=, hp_capacity_acca)
+        # Check that MaxLoad >= ACCA for heat pump heating capacity
+        hp_capacity_maxload.keys.each do |hp_backup_sizing_methodology|
+          cap_maxload = hp_capacity_maxload[hp_backup_sizing_methodology]
+          cap_acca = hp_capacity_acca[hp_backup_sizing_methodology]
+          assert_operator(cap_maxload, :>=, cap_acca)
+        end
+
+        # Check that Emergency >= Supplemental for heat pump backup heating capacity
+        hp_backup_capacity_emergency.keys.each do |hp_sizing_methodology|
+          cap_emergency = hp_backup_capacity_emergency[hp_sizing_methodology]
+          cap_supplemental = hp_backup_capacity_supplemental[hp_sizing_methodology]
+          assert_operator(cap_emergency, :>=, cap_supplemental)
+        end
       end
     end
 
@@ -138,15 +199,16 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     end
   end
 
-  def test_acca_block_load_residences
+  def test_manual_j_block_load_residences
     default_tol_btuh = 500
 
-    # Vatilo Residence
+    # Section 7: Vatilo Residence
     # Expected values from Figure 7-4
+    puts 'Testing Vatilo Residence...'
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Vatilo_Residence.xml'))
     _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
-    assert_in_delta(9147, hpxml_bldg.hvac_plant.hdl_ducts, 2000)
+    assert_in_delta(9147, hpxml_bldg.hvac_plant.hdl_ducts, 1500)
     assert_in_delta(4234, hpxml_bldg.hvac_plant.hdl_windows, default_tol_btuh)
     assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_skylights, default_tol_btuh)
     assert_in_delta(574, hpxml_bldg.hvac_plant.hdl_doors, default_tol_btuh)
@@ -156,8 +218,8 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_in_delta(7415, hpxml_bldg.hvac_plant.hdl_slabs, default_tol_btuh)
     assert_in_delta(1498, hpxml_bldg.hvac_plant.hdl_ceilings, default_tol_btuh)
     assert_in_delta(3089, hpxml_bldg.hvac_plant.hdl_infilvent, default_tol_btuh)
-    assert_in_delta(9973, hpxml_bldg.hvac_plant.cdl_sens_ducts, 1500)
-    assert_in_delta(5295, hpxml_bldg.hvac_plant.cdl_sens_windows, 1500)
+    assert_in_delta(9973, hpxml_bldg.hvac_plant.cdl_sens_ducts, 2000)
+    assert_in_delta(6260, hpxml_bldg.hvac_plant.cdl_sens_windows, default_tol_btuh) # AE worksheet, so assumes AED; added AED=965 Btuh to their value since we actually calculate it
     assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_skylights, default_tol_btuh)
     assert_in_delta(456, hpxml_bldg.hvac_plant.cdl_sens_doors, default_tol_btuh)
     assert_in_delta(1715, hpxml_bldg.hvac_plant.cdl_sens_walls, default_tol_btuh)
@@ -166,17 +228,34 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_slabs, default_tol_btuh)
     assert_in_delta(2112, hpxml_bldg.hvac_plant.cdl_sens_ceilings, default_tol_btuh)
     assert_in_delta(769, hpxml_bldg.hvac_plant.cdl_sens_infilvent, default_tol_btuh)
-    assert_in_delta(3090, hpxml_bldg.hvac_plant.cdl_sens_intgains, default_tol_btuh)
+    assert_in_delta(1890, hpxml_bldg.hvac_plant.cdl_sens_intgains, default_tol_btuh)
     assert_in_delta(2488, hpxml_bldg.hvac_plant.cdl_lat_ducts, 1500)
     assert_in_delta(1276, hpxml_bldg.hvac_plant.cdl_lat_infilvent, default_tol_btuh)
     assert_in_delta(600, hpxml_bldg.hvac_plant.cdl_lat_intgains, default_tol_btuh)
 
+    # Vatilo Residence - Improved Ducts
+    puts 'Testing Vatilo Residence - Improved Ducts...'
+    hpxml = HPXML.new(hpxml_path: args_hash['hpxml_path'])
+    hvac_dist = hpxml.buildings[0].hvac_distributions[0]
+    hvac_dist.duct_leakage_measurements.find { |dlm| dlm.duct_type == HPXML::DuctTypeSupply }.duct_leakage_value *= 0.12 / 0.35
+    hvac_dist.duct_leakage_measurements.find { |dlm| dlm.duct_type == HPXML::DuctTypeReturn }.duct_leakage_value *= 0.24 / 0.70
+    hvac_dist.ducts.each do |duct|
+      duct.duct_effective_r_value = 9.0
+    end
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    assert_in_delta(3170, hpxml_bldg.hvac_plant.hdl_ducts, 2000)
+    assert_in_delta(3449, hpxml_bldg.hvac_plant.cdl_sens_ducts, default_tol_btuh)
+    assert_in_delta(563, hpxml_bldg.hvac_plant.cdl_lat_ducts, default_tol_btuh)
+
     # Section 8: Victor Residence
     # Expected values from Figure 8-3
+    puts 'Testing Victor Residence...'
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Victor_Residence.xml'))
     _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
-    assert_in_delta(29137, hpxml_bldg.hvac_plant.hdl_ducts, 12000)
+    assert_in_delta(29137, hpxml_bldg.hvac_plant.hdl_ducts, 3000)
     assert_in_delta(9978, hpxml_bldg.hvac_plant.hdl_windows, default_tol_btuh)
     assert_in_delta(471, hpxml_bldg.hvac_plant.hdl_skylights, default_tol_btuh)
     assert_in_delta(984, hpxml_bldg.hvac_plant.hdl_doors, default_tol_btuh)
@@ -185,8 +264,8 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_in_delta(6044, hpxml_bldg.hvac_plant.hdl_floors, default_tol_btuh)
     assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_slabs, default_tol_btuh)
     assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_ceilings, default_tol_btuh)
-    assert_in_delta(21426, hpxml_bldg.hvac_plant.hdl_infilvent, default_tol_btuh)
-    assert_in_delta(5602, hpxml_bldg.hvac_plant.cdl_sens_ducts, 3000)
+    assert_in_delta(21426, hpxml_bldg.hvac_plant.hdl_infilvent, 1000)
+    assert_in_delta(5602, hpxml_bldg.hvac_plant.cdl_sens_ducts, 3500)
     assert_in_delta(4706, hpxml_bldg.hvac_plant.cdl_sens_windows, default_tol_btuh)
     assert_in_delta(1409, hpxml_bldg.hvac_plant.cdl_sens_skylights, default_tol_btuh)
     assert_in_delta(382, hpxml_bldg.hvac_plant.cdl_sens_doors, default_tol_btuh)
@@ -196,14 +275,31 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_slabs, default_tol_btuh)
     assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_ceilings, default_tol_btuh)
     assert_in_delta(2504, hpxml_bldg.hvac_plant.cdl_sens_infilvent, default_tol_btuh)
-    assert_in_delta(4520, hpxml_bldg.hvac_plant.cdl_sens_intgains, default_tol_btuh)
-    assert_in_delta(6282, hpxml_bldg.hvac_plant.cdl_lat_ducts, 5000)
-    assert_in_delta(4644, hpxml_bldg.hvac_plant.cdl_lat_infilvent, default_tol_btuh)
+    assert_in_delta(3320, hpxml_bldg.hvac_plant.cdl_sens_intgains, default_tol_btuh)
+    assert_in_delta(6282, hpxml_bldg.hvac_plant.cdl_lat_ducts, 4500)
+    assert_in_delta(4644, hpxml_bldg.hvac_plant.cdl_lat_infilvent, 1000)
     assert_in_delta(800, hpxml_bldg.hvac_plant.cdl_lat_intgains, default_tol_btuh)
+
+    # Section 8: Victor Residence - Improved Ducts
+    puts 'Testing Victor Residence - Improved Ducts...'
+    hpxml = HPXML.new(hpxml_path: args_hash['hpxml_path'])
+    hvac_dist = hpxml.buildings[0].hvac_distributions[0]
+    hvac_dist.duct_leakage_measurements.find { |dlm| dlm.duct_type == HPXML::DuctTypeSupply }.duct_leakage_value *= 0.12 / 0.35
+    hvac_dist.duct_leakage_measurements.find { |dlm| dlm.duct_type == HPXML::DuctTypeReturn }.duct_leakage_value *= 0.24 / 0.70
+    hvac_dist.ducts.each do |duct|
+      duct.duct_effective_r_value = 9.0
+    end
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    assert_in_delta(5640, hpxml_bldg.hvac_plant.hdl_ducts, 4500) # Note Manual J Figure 8-1 has a typo
+    assert_in_delta(1263, hpxml_bldg.hvac_plant.cdl_sens_ducts, 2500)
+    assert_in_delta(1442, hpxml_bldg.hvac_plant.cdl_lat_ducts, 1000)
 
     # Section 9: Long Residence
     # Modeled as a fully conditioned basement (e.g., no duct losses) for block load calculation
     # Expected values from Figure 9-3
+    puts 'Testing Long Residence...'
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Long_Residence.xml'))
     _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
@@ -214,7 +310,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_in_delta(16608, hpxml_bldg.hvac_plant.hdl_walls, default_tol_btuh)
     assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_roofs, default_tol_btuh)
     assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_floors, default_tol_btuh)
-    assert_in_delta(2440, hpxml_bldg.hvac_plant.hdl_slabs, default_tol_btuh)
+    assert_in_delta(2440, hpxml_bldg.hvac_plant.hdl_slabs, 1000)
     assert_in_delta(5435, hpxml_bldg.hvac_plant.hdl_ceilings, default_tol_btuh)
     assert_in_delta(6944, hpxml_bldg.hvac_plant.hdl_infilvent, default_tol_btuh)
     assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_ducts, default_tol_btuh)
@@ -231,6 +327,151 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_lat_ducts, default_tol_btuh)
     assert_in_delta(998, hpxml_bldg.hvac_plant.cdl_lat_infilvent, default_tol_btuh)
     assert_in_delta(1200, hpxml_bldg.hvac_plant.cdl_lat_intgains, default_tol_btuh)
+
+    # Section 12: Smith Residence
+    # Expected values from Form J1
+    puts 'Testing Smith Residence...'
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Smith_Residence.xml'))
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    assert_in_delta(2561, hpxml_bldg.hvac_plant.hdl_ducts, 2000)
+    assert_in_delta(9634, hpxml_bldg.hvac_plant.hdl_windows, default_tol_btuh)
+    # assert_in_delta(2994, hpxml_bldg.hvac_plant.hdl_skylights, default_tol_btuh) Skip due to not being able to model skylights w/ shafts
+    assert_in_delta(1118, hpxml_bldg.hvac_plant.hdl_doors, default_tol_btuh)
+    assert_in_delta(17440, hpxml_bldg.hvac_plant.hdl_walls, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_roofs, default_tol_btuh)
+    assert_in_delta(1788, hpxml_bldg.hvac_plant.hdl_floors, default_tol_btuh)
+    assert_in_delta(3692, hpxml_bldg.hvac_plant.hdl_slabs, default_tol_btuh)
+    assert_in_delta(4261, hpxml_bldg.hvac_plant.hdl_ceilings, default_tol_btuh)
+    assert_in_delta(13224, hpxml_bldg.hvac_plant.hdl_infilvent, 1000)
+    assert_in_delta(530, hpxml_bldg.hvac_plant.cdl_sens_ducts, default_tol_btuh)
+    assert_in_delta(6187, hpxml_bldg.hvac_plant.cdl_sens_windows, default_tol_btuh)
+    # assert_in_delta(3780, hpxml_bldg.hvac_plant.cdl_sens_skylights, default_tol_btuh) Skip due to not being able to model skylights w/ shafts
+    assert_in_delta(382, hpxml_bldg.hvac_plant.cdl_sens_doors, default_tol_btuh)
+    assert_in_delta(2669, hpxml_bldg.hvac_plant.cdl_sens_walls, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_roofs, default_tol_btuh)
+    assert_in_delta(352, hpxml_bldg.hvac_plant.cdl_sens_floors, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_slabs, default_tol_btuh)
+    assert_in_delta(2803, hpxml_bldg.hvac_plant.cdl_sens_ceilings, default_tol_btuh)
+    assert_in_delta(1513, hpxml_bldg.hvac_plant.cdl_sens_infilvent, default_tol_btuh)
+    assert_in_delta(3320, hpxml_bldg.hvac_plant.cdl_sens_intgains, default_tol_btuh)
+    assert_in_delta(565, hpxml_bldg.hvac_plant.cdl_lat_ducts, 1500)
+    assert_in_delta(3406, hpxml_bldg.hvac_plant.cdl_lat_infilvent, 1000)
+    assert_in_delta(800, hpxml_bldg.hvac_plant.cdl_lat_intgains, default_tol_btuh)
+
+    # Section 13: Walker Residence
+    # Expected values from Form J1 (Note: it shows Ceiling Option 3 for some reason)
+    puts 'Testing Walker Residence...'
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Walker_Residence.xml'))
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_ducts, default_tol_btuh)
+    assert_in_delta(1608, hpxml_bldg.hvac_plant.hdl_windows, default_tol_btuh)
+    # assert_in_delta(543, hpxml_bldg.hvac_plant.hdl_skylights, default_tol_btuh) Skip due to not being able to model skylights w/ shafts
+    assert_in_delta(264, hpxml_bldg.hvac_plant.hdl_doors, default_tol_btuh)
+    assert_in_delta(1446, hpxml_bldg.hvac_plant.hdl_walls, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_roofs, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_floors, default_tol_btuh)
+    assert_in_delta(2172, hpxml_bldg.hvac_plant.hdl_slabs, default_tol_btuh)
+    assert_in_delta(820, hpxml_bldg.hvac_plant.hdl_ceilings, default_tol_btuh)
+    assert_in_delta(1446, hpxml_bldg.hvac_plant.hdl_infilvent, default_tol_btuh)
+    assert_in_delta(851, hpxml_bldg.hvac_plant.cdl_sens_ducts, 2500)
+    assert_in_delta(1776, hpxml_bldg.hvac_plant.cdl_sens_windows, default_tol_btuh)
+    # assert_in_delta(3182, hpxml_bldg.hvac_plant.cdl_sens_skylights, default_tol_btuh) Skip due to not being able to model skylights w/ shafts
+    assert_in_delta(442, hpxml_bldg.hvac_plant.cdl_sens_doors, default_tol_btuh)
+    assert_in_delta(1173, hpxml_bldg.hvac_plant.cdl_sens_walls, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_roofs, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_floors, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_slabs, default_tol_btuh)
+    assert_in_delta(865, hpxml_bldg.hvac_plant.cdl_sens_ceilings, default_tol_btuh)
+    # assert_in_delta(825, hpxml_bldg.hvac_plant.cdl_sens_infilvent, default_tol_btuh) Skip due to dehumidifying ventilation
+    assert_in_delta(5541, hpxml_bldg.hvac_plant.cdl_sens_intgains, default_tol_btuh)
+    assert_in_delta(655, hpxml_bldg.hvac_plant.cdl_lat_ducts, default_tol_btuh)
+    # assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_lat_infilvent, default_tol_btuh) Skip due to dehumidifying ventilation
+    assert_in_delta(800, hpxml_bldg.hvac_plant.cdl_lat_intgains, default_tol_btuh)
+
+    # Section 13: Walker Residence - Ceiling Option 1
+    puts 'Testing Walker Residence - Ceiling Option 1...'
+    hpxml = HPXML.new(hpxml_path: args_hash['hpxml_path'])
+    hpxml.buildings[0].roofs[0].roof_type = HPXML::RoofTypeAsphaltShingles
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    assert_in_delta(820, hpxml_bldg.hvac_plant.hdl_ceilings, default_tol_btuh)
+    assert_in_delta(2003, hpxml_bldg.hvac_plant.cdl_sens_ceilings, default_tol_btuh)
+
+    # Section 13: Walker Residence - Ceiling Option 2
+    puts 'Testing Walker Residence - Ceiling Option 2...'
+    hpxml = HPXML.new(hpxml_path: args_hash['hpxml_path'])
+    hpxml.buildings[0].roofs[0].roof_type = HPXML::RoofTypeAsphaltShingles
+    hpxml.buildings[0].roofs[0].radiant_barrier = true
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    assert_in_delta(820, hpxml_bldg.hvac_plant.hdl_ceilings, default_tol_btuh)
+    assert_in_delta(1548, hpxml_bldg.hvac_plant.cdl_sens_ceilings, default_tol_btuh)
+
+    # Section 14: Cobb Residence
+    # Expected values from Form J1
+    puts 'Testing Cobb Residence...'
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Cobb_Residence.xml'))
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    # assert_in_delta(499, hpxml_bldg.hvac_plant.hdl_ducts, default_tol_btuh) Skip due to ducts in closed ceiling cavity
+    assert_in_delta(3015, hpxml_bldg.hvac_plant.hdl_windows, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_skylights, default_tol_btuh)
+    assert_in_delta(169, hpxml_bldg.hvac_plant.hdl_doors, default_tol_btuh)
+    assert_in_delta(1975, hpxml_bldg.hvac_plant.hdl_walls, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_roofs, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_floors, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_slabs, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_ceilings, default_tol_btuh)
+    assert_in_delta(1770, hpxml_bldg.hvac_plant.hdl_infilvent, default_tol_btuh)
+    # assert_in_delta(1631, hpxml_bldg.hvac_plant.cdl_sens_ducts, default_tol_btuh) Skip due to ducts in closed ceiling cavity
+    assert_in_delta(13170, hpxml_bldg.hvac_plant.cdl_sens_windows, default_tol_btuh) # Includes 5516 Btuh for AED excursion
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_skylights, default_tol_btuh)
+    assert_in_delta(228, hpxml_bldg.hvac_plant.cdl_sens_doors, default_tol_btuh)
+    assert_in_delta(1236, hpxml_bldg.hvac_plant.cdl_sens_walls, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_roofs, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_floors, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_slabs, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_ceilings, default_tol_btuh)
+    assert_in_delta(764, hpxml_bldg.hvac_plant.cdl_sens_infilvent, default_tol_btuh)
+    assert_in_delta(5224, hpxml_bldg.hvac_plant.cdl_sens_intgains, default_tol_btuh)
+    # assert_in_delta(1189, hpxml_bldg.hvac_plant.cdl_lat_ducts, default_tol_btuh) Skip due to ducts in closed ceiling cavity
+    assert_in_delta(1391, hpxml_bldg.hvac_plant.cdl_lat_infilvent, default_tol_btuh)
+    assert_in_delta(800, hpxml_bldg.hvac_plant.cdl_lat_intgains, default_tol_btuh)
+
+    # Section 15: Bell Residence
+    # Expected values from Form J1
+    puts 'Testing Bell Residence...'
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bell_Residence.xml'))
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    assert_in_delta(1340, hpxml_bldg.hvac_plant.hdl_ducts, 2000)
+    assert_in_delta(10912, hpxml_bldg.hvac_plant.hdl_windows, default_tol_btuh)
+    # assert_in_delta(1981, hpxml_bldg.hvac_plant.hdl_skylights, default_tol_btuh) Skip due to not being able to model skylights w/ shafts
+    assert_in_delta(1538, hpxml_bldg.hvac_plant.hdl_doors, default_tol_btuh)
+    assert_in_delta(3672, hpxml_bldg.hvac_plant.hdl_walls, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_roofs, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.hdl_floors, default_tol_btuh)
+    assert_in_delta(3431, hpxml_bldg.hvac_plant.hdl_slabs, default_tol_btuh)
+    assert_in_delta(1992, hpxml_bldg.hvac_plant.hdl_ceilings, default_tol_btuh)
+    assert_in_delta(3322, hpxml_bldg.hvac_plant.hdl_infilvent, default_tol_btuh)
+    assert_in_delta(1673, hpxml_bldg.hvac_plant.cdl_sens_ducts, default_tol_btuh)
+    assert_in_delta(11654, hpxml_bldg.hvac_plant.cdl_sens_windows, default_tol_btuh) # Excludes 2045 Btuh for AED excursion since skylight is not modeled
+    # assert_in_delta(5514, hpxml_bldg.hvac_plant.cdl_sens_skylights, default_tol_btuh) Skip due to not being able to model skylights w/ shafts
+    assert_in_delta(782, hpxml_bldg.hvac_plant.cdl_sens_doors, default_tol_btuh)
+    assert_in_delta(939, hpxml_bldg.hvac_plant.cdl_sens_walls, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_roofs, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_floors, default_tol_btuh)
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_slabs, default_tol_btuh)
+    assert_in_delta(1796, hpxml_bldg.hvac_plant.cdl_sens_ceilings, default_tol_btuh)
+    assert_in_delta(810, hpxml_bldg.hvac_plant.cdl_sens_infilvent, default_tol_btuh)
+    assert_in_delta(4541, hpxml_bldg.hvac_plant.cdl_sens_intgains, default_tol_btuh)
+    assert_in_delta(64, hpxml_bldg.hvac_plant.cdl_lat_ducts, default_tol_btuh)
+    assert_in_delta(570, hpxml_bldg.hvac_plant.cdl_lat_infilvent, default_tol_btuh)
+    assert_in_delta(1000, hpxml_bldg.hvac_plant.cdl_lat_intgains, default_tol_btuh)
   end
 
   def test_heat_pump_separate_backup_systems
@@ -381,7 +622,123 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     end
   end
 
-  def test_manual_j_sizing_inputs
+  def test_autosizing_factors
+    clg_autosizing_factors = [0.8, 1.2]
+    htg_autosizing_factors = [0.9, 1.7]
+    for caf in clg_autosizing_factors
+      for haf in htg_autosizing_factors
+        args_hash = {}
+        args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+
+        # Test air conditioner + furnace
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.heating_systems[0].heating_capacity = nil
+        hpxml_bldg.cooling_systems[0].cooling_capacity = nil
+        XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+        _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+        htg_cap_orig = hpxml_bldg.heating_systems[0].heating_capacity
+        clg_cap_orig = hpxml_bldg.cooling_systems[0].cooling_capacity
+        # apply autosizing factor
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.heating_systems[0].heating_capacity = nil
+        hpxml_bldg.cooling_systems[0].cooling_capacity = nil
+        hpxml_bldg.heating_systems[0].heating_autosizing_factor = haf
+        hpxml_bldg.cooling_systems[0].cooling_autosizing_factor = caf
+        XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+        _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+        assert_in_epsilon(hpxml_bldg.heating_systems[0].heating_capacity, htg_cap_orig * haf, 0.001)
+        assert_in_epsilon(hpxml_bldg.cooling_systems[0].cooling_capacity, clg_cap_orig * caf, 0.001)
+
+        # Test heat pump
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed.xml')
+        hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
+        hpxml_bldg.heat_pumps[0].heating_capacity = nil
+        hpxml_bldg.heat_pumps[0].cooling_capacity = nil
+        XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+        _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+        htg_cap_orig = hpxml_bldg.heat_pumps[0].heating_capacity
+        clg_cap_orig = hpxml_bldg.heat_pumps[0].cooling_capacity
+        backup_htg_cap_orig = hpxml_bldg.heat_pumps[0].backup_heating_capacity
+        # apply autosizing factor
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed.xml')
+        hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
+        hpxml_bldg.heat_pumps[0].heating_capacity = nil
+        hpxml_bldg.heat_pumps[0].cooling_capacity = nil
+        hpxml_bldg.heat_pumps[0].heating_autosizing_factor = haf
+        # use a reverse factor for backup heating sizing
+        hpxml_bldg.heat_pumps[0].backup_heating_autosizing_factor = (2.0 - haf)
+        hpxml_bldg.heat_pumps[0].cooling_autosizing_factor = caf
+        XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+        _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+        assert_in_epsilon(hpxml_bldg.heat_pumps[0].heating_capacity, htg_cap_orig * haf, 0.001)
+        assert_in_epsilon(hpxml_bldg.heat_pumps[0].backup_heating_capacity, backup_htg_cap_orig * (2.0 - haf), 0.001)
+        assert_in_epsilon(hpxml_bldg.heat_pumps[0].cooling_capacity, clg_cap_orig * caf, 0.001)
+
+        # Test heat pump w/ detailed performance
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-detailed-performance-autosize.xml')
+        hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
+        XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+        _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+        htg_cap_orig = hpxml_bldg.heat_pumps[0].heating_capacity
+        clg_cap_orig = hpxml_bldg.heat_pumps[0].cooling_capacity
+        backup_htg_cap_orig = hpxml_bldg.heat_pumps[0].backup_heating_capacity
+        # apply autosizing factor
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-detailed-performance-autosize.xml')
+        hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
+        hpxml_bldg.heat_pumps[0].heating_capacity = nil
+        hpxml_bldg.heat_pumps[0].cooling_capacity = nil
+        hpxml_bldg.heat_pumps[0].heating_autosizing_factor = haf
+        hpxml_bldg.heat_pumps[0].cooling_autosizing_factor = caf
+        # use a reverse factor for backup heating sizing
+        hpxml_bldg.heat_pumps[0].backup_heating_autosizing_factor = (2.0 - haf)
+        XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+        _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+        assert_in_epsilon(hpxml_bldg.heat_pumps[0].heating_capacity, htg_cap_orig * haf, 0.001)
+        assert_in_epsilon(hpxml_bldg.heat_pumps[0].backup_heating_capacity, backup_htg_cap_orig * (2.0 - haf), 0.001)
+        assert_in_epsilon(hpxml_bldg.heat_pumps[0].cooling_capacity, clg_cap_orig * caf, 0.001)
+
+        # Test allow fixed capacity
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-undersized.xml')
+        hpxml_bldg.header.allow_increased_fixed_capacities = true
+        # apply autosizing factor
+        hpxml_bldg.heating_systems[0].heating_autosizing_factor = haf
+        hpxml_bldg.cooling_systems[0].cooling_autosizing_factor = caf
+        htg_cap = hpxml_bldg.heating_systems[0].heating_capacity
+        clg_cap = hpxml_bldg.cooling_systems[0].cooling_capacity
+        XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+        _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+        assert_operator(hpxml_bldg.heating_systems[0].heating_capacity, :>, htg_cap)
+        assert_operator(hpxml_bldg.cooling_systems[0].cooling_capacity, :>, clg_cap)
+      end
+    end
+
+    # Test heat pump with separate back up heating
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml')
+    hpxml_bldg.heat_pumps[0].heating_capacity = nil
+    hpxml_bldg.heat_pumps[0].cooling_capacity = nil
+    hpxml_bldg.heating_systems[0].heating_capacity = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    htg_cap_orig = hpxml_bldg.heat_pumps[0].heating_capacity
+    clg_cap_orig = hpxml_bldg.heat_pumps[0].cooling_capacity
+    backup_htg_cap_orig = hpxml_bldg.heating_systems[0].heating_capacity
+    # apply autosizing factor
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml')
+    hpxml_bldg.heat_pumps[0].heating_capacity = nil
+    hpxml_bldg.heat_pumps[0].cooling_capacity = nil
+    hpxml_bldg.heating_systems[0].heating_capacity = nil
+    # use a reverse factor for backup heating sizing
+    hpxml_bldg.heat_pumps[0].heating_autosizing_factor = 0.8
+    hpxml_bldg.heat_pumps[0].cooling_autosizing_factor = 1.5
+    hpxml_bldg.heating_systems[0].heating_autosizing_factor = 1.2
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    assert_in_epsilon(hpxml_bldg.heat_pumps[0].heating_capacity, htg_cap_orig * 0.8, 0.001)
+    assert_in_epsilon(hpxml_bldg.heating_systems[0].heating_capacity, backup_htg_cap_orig * 1.2, 0.001)
+    assert_in_epsilon(hpxml_bldg.heat_pumps[0].cooling_capacity, clg_cap_orig * 1.5, 0.001)
+  end
+
+  def test_manual_j_detailed_sizing_inputs
     # Run base
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base.xml'))
@@ -429,46 +786,99 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_operator(test_hpxml_bldg.hvac_plant.cdl_lat_intgains, :>, base_hpxml_bldg.hvac_plant.cdl_lat_intgains)
   end
 
-  def test_slab_f_factor
-    def get_unins_slab()
-      slab = HPXML::Slab.new(nil)
-      slab.thickness = 4.0 # in
-      slab.perimeter_insulation_depth = 0
-      slab.perimeter_insulation_r_value = 0
-      slab.under_slab_insulation_width = 0
-      slab.under_slab_insulation_spans_entire_slab = false
-      slab.under_slab_insulation_r_value = 0
-      return slab
-    end
+  def test_manual_j_slab_f_factor
+    # Check values against MJ8 Table 5A Construction Number 22 (Concrete Slab on Grade Floor)
+    tol = 0.1
 
-    # Uninsulated slab
-    slab = get_unins_slab()
-    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
-    assert_in_epsilon(1.41, f_factor, 0.01)
+    slab = HPXML::Slab.new(nil)
+    slab.thickness = 4.0 # in
+    slab.perimeter_insulation_depth = 0
+    slab.perimeter_insulation_r_value = 0
+    slab.under_slab_insulation_width = 0
+    slab.under_slab_insulation_spans_entire_slab = false
+    slab.under_slab_insulation_r_value = 0
 
-    # R-10, 4ft under slab insulation
-    slab = get_unins_slab()
+    # 22A — No Edge Insulation, No insulation Below Floor, any Floor Cover
+    assert_in_delta(1.358, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(1.180, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
+    assert_in_delta(0.989, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+
+    # 22B — Vertical Board Insulation Covers Slab Edge and Extends Straight Down to Three Feet Below Grade, any Floor Cover
+    slab.perimeter_insulation_depth = 3
+    slab.perimeter_insulation_r_value = 5
+    assert_in_delta(0.589, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.449, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
+    assert_in_delta(0.289, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+
+    slab.perimeter_insulation_r_value = 10
+    assert_in_delta(0.481, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.355, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
+    assert_in_delta(0.210, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+
+    slab.perimeter_insulation_r_value = 15
+    assert_in_delta(0.432, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.314, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
+    assert_in_delta(0.178, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+
+    # 22C — Horizontal Board Insulation Extends Four Feet Under Slab, any Floor Cover
+    slab.perimeter_insulation_depth = 0
+    slab.perimeter_insulation_r_value = 0
     slab.under_slab_insulation_width = 4
+    slab.under_slab_insulation_r_value = 5
+    assert_in_delta(1.266, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(1.135, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
+    assert_in_delta(0.980, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+
     slab.under_slab_insulation_r_value = 10
-    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
-    assert_in_epsilon(1.27, f_factor, 0.01)
+    assert_in_delta(1.221, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(1.108, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
+    assert_in_delta(0.937, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
 
-    # R-20, 4ft perimeter insulation
-    slab = get_unins_slab()
-    slab.perimeter_insulation_depth = 4
-    slab.perimeter_insulation_r_value = 20
-    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
-    assert_in_epsilon(0.39, f_factor, 0.01)
+    slab.under_slab_insulation_r_value = 15
+    assert_in_delta(1.194, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(1.091, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
+    assert_in_delta(0.967, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
 
-    # R-40, whole slab insulation
-    slab = get_unins_slab()
-    slab.under_slab_insulation_spans_entire_slab = true
-    slab.under_slab_insulation_r_value = 40
-    f_factor = HVACSizing.calc_slab_f_value(slab, 1.0)
-    assert_in_epsilon(1.04, f_factor, 0.01)
+    # 22D — Vertical Board Insulation Covers Slab Edge, Turns Under the Slab and Extends Four Feet Horizontally, any Floor Cover
+    slab.under_slab_insulation_width = 4
+    slab.under_slab_insulation_r_value = 5
+    slab.perimeter_insulation_depth = 0.333 # 4" slab
+    slab.perimeter_insulation_r_value = 5
+    assert_in_delta(0.574, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.442, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
+    assert_in_delta(0.287, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+
+    slab.under_slab_insulation_r_value = 10
+    slab.perimeter_insulation_r_value = 10
+    assert_in_delta(0.456, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.343, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
+    assert_in_delta(0.208, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+
+    slab.under_slab_insulation_r_value = 15
+    slab.perimeter_insulation_r_value = 15
+    assert_in_delta(0.401, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.298, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
+    assert_in_delta(0.174, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
   end
 
-  def test_ground_loop
+  def test_manual_j_basement_effective_uvalue
+    # Check values against MJ8 Table 4A Construction Number 21 (Basement Floor)
+    tol = 0.002
+
+    # 21A — No Insulation Below Floor, Any Floor Cover
+    assert_in_delta(0.027, HVACSizing.calc_basement_effective_uvalue(false, 8.0, 20.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.025, HVACSizing.calc_basement_effective_uvalue(false, 8.0, 24.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.022, HVACSizing.calc_basement_effective_uvalue(false, 8.0, 28.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.020, HVACSizing.calc_basement_effective_uvalue(false, 8.0, 32.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+
+    # 21B — Insulation Installed Below Floor, Any Floor Cover
+    assert_in_delta(0.019, HVACSizing.calc_basement_effective_uvalue(true, 8.0, 20.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.017, HVACSizing.calc_basement_effective_uvalue(true, 8.0, 24.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.015, HVACSizing.calc_basement_effective_uvalue(true, 8.0, 28.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_delta(0.014, HVACSizing.calc_basement_effective_uvalue(true, 8.0, 32.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+  end
+
+  def test_gshp_ground_loop
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
 
@@ -504,7 +914,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_in_epsilon(2340.0 / 10, test_hpxml_bldg.geothermal_loops[0].bore_length, 0.01)
   end
 
-  def test_g_function_library_linear_interpolation_example
+  def test_gshp_g_function_library_linear_interpolation_example
     bore_config = HPXML::GeothermalLoopBorefieldConfigurationRectangle
     num_bore_holes = 40
     bore_spacing = UnitConversions.convert(7.0, 'm', 'ft')
@@ -527,7 +937,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     end
   end
 
-  def test_all_g_function_configs_exist
+  def test_gshp_all_g_function_configs_exist
     valid_configs = { HPXML::GeothermalLoopBorefieldConfigurationRectangle => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                       HPXML::GeothermalLoopBorefieldConfigurationOpenRectangle => [8, 10],
                       HPXML::GeothermalLoopBorefieldConfigurationC => [7, 9],

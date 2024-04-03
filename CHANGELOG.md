@@ -6,10 +6,20 @@ Features
 - Add ability to describe detailed performance data for variable-speed air-source HVAC systems ([#1188](https://github.com/NREL/resstock/pull/1188), [#1200](https://github.com/NREL/resstock/pull/1200))
 - Include additional 2022 Cambium 25-year LRMER emissions data ([#1194](https://github.com/NREL/resstock/pull/1194))
 - Add optional switch to BuildExistingModel (defaulted to false) for modeling whole SFA/MF buildings ([#1200](https://github.com/NREL/resstock/pull/1200))
+- Update hot water usage multipliers based on field data rather than engineering judgement ([#1210](https://github.com/NREL/resstock/pull/1210))
+- Allow definition of multiple unavailable periods (i.e., vacancy, power outage) ([#1209](https://github.com/NREL/resstock/pull/1209))
+- Add ability to set either an "emergency" or "supplemental" heat pump backup sizing methodology ([#1209](https://github.com/NREL/resstock/pull/1209))
+- Refrigerator energy use is now affected by its ambient temperature using hourly constant and temperature coefficients from ANSI/RESNET/ICC 301-2022 Addendum C ([#1209](https://github.com/NREL/resstock/pull/1209))
+- Add Metropolitan and Micropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv ([#1212](https://github.com/NREL/resstock/pull/1212))
+- Add ability to specify HVAC system autosizing factors for baseline buildings; autosizing factors are retained for upgrade buildings following the same approach for HVAC system capacities ([#1215](https://github.com/NREL/resstock/pull/1215))
+- Update the stochastic schedule generator to produce updated other/TV plug load and ceiling fan schedules ([#1220](https://github.com/NREL/resstock/pull/1220))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
 - Reorganize the emissions and utility rates data folders such that their sources and functions are more clear ([#1195](https://github.com/NREL/resstock/pull/1195))
+- Move location of out-of-unit (shared) water heaters to conditioned mechanical room ([#1201](https://github.com/NREL/resstock/pull/1201))
+- Update the Alaska residential stock characterization using the Alaska Retrofit Information System data ([#1214](https://github.com/NREL/resstock/pull/1214))
+
 
 ## ResStock v3.2.0
 ###### December 19, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.1...v3.2.0)
