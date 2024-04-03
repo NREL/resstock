@@ -667,7 +667,7 @@ end.parse!
 if options[:version]
   puts "ResStock v#{Version::ResStock_Version}"
   cli_path = OpenStudio.getOpenStudioCLI
-  command = "\"#{cli_path}\" resources/hpxml-measures/workflow/run_simulation.rb -v"
+  command = "\"#{cli_path}\" #{File.dirname(__FILE__)}/../resources/hpxml-measures/workflow/run_simulation.rb -v"
   system(command)
 else
   if not options[:yml]
