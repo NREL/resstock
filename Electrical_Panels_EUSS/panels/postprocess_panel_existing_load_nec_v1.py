@@ -807,8 +807,7 @@ def apply_existing_load_total_220_83(dfi: pd.DataFrame, new_hvac_loads: pd.Serie
     Use NEC 220.83 (A) (has_new_hvac_load=False) for existing + additional new loads calc 
     where additional AC or space-heating IS NOT being installed
     
-    Use NEC 220.83 (B) (has_new_hvac_load=True) existing + additional new loads calc
-    where additional AC or space-heating IS being installed
+    Use NEC 220.83 (B) (has_new_hvac_load=True) where additional AC or space-heating IS being installed
 
     new_hvac_loads: pd.Series indicating where dfi rows has new electric HVAC loads
     """
