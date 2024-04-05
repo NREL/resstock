@@ -3,6 +3,8 @@
 __New Features__
 - Updates to HPXML v4.0-rc3.
 - Updates per ANSI/RESNET/ICC 301-2022 w/ Addendum C:
+  - **Breaking change**: Replaces `WaterHeatingSystem/NumberofUnitsServed` with `WaterHeatingSystem/extension/NumberofBedroomsServed` for apportioning shared water heater tank losses.
+  - **Breaking change**: Replaces `HotWaterDistribution/extension/SharedRecirculation/NumberofUnitsServed` with `HotWaterDistribution/extension/SharedRecirculation/NumberofBedroomsServed` for apportioning shared recirculation pump energy.
   - Allows shared batteries (batteries serving multiple dwelling units).
   - Updated default CFIS fan power to 0.58 W/cfm.
   - Removed natural ventilation availability RH constraint; HR constraint remains.
@@ -11,8 +13,10 @@ __New Features__
   - Adds schedule inputs for hot water recirculation pumps and general water use internal gains.
   - Updated water heater installation location defaulting to match ANSI 301-2022
   - Updated calculation of hot water piping length for buildings with both conditioned and unconditioned basements to avoid double counting.
-  - Updates how imbalanced infiltration and mechanical ventilation are combined on an hourly basis.
+  - Updated how imbalanced infiltration and mechanical ventilation are combined on an hourly basis.
+  - Updated handling of duct leakage imbalance induced infiltration.
   - Small change to default flow rate for imbalanced mechanical ventilation systems.
+  - Updated window default interior shade coefficients to be calculated based on SHGC.
   - `AverageCeilingHeight` now used in natural ACH/CFM infiltration calculations.
 - **Breaking change**: Replaces `BuildingSummary/Site/extension/GroundConductivity` with `BuildingSummary/Site/Soil/Conductivity`.
 - **Breaking change**: Modeling whole SFA/MF buildings is now specified using a `SoftwareInfo/extension/WholeSFAorMFBuildingSimulation=true` element instead of `building-id=ALL` argument.
@@ -32,6 +36,7 @@ __New Features__
 - Adds window and skylight `GlassType` options of "low-e, high-solar-gain" and "low-e, low-solar-gain"; updates U-factor/SHGC lookup tables.
 - BuildResidentialHPXML measure:
   - **Breaking change**: Replaces `roof_radiant_barrier`/`roof_radiant_barrier_grade` arguments with `radiant_barrier_attic_location`/`radiant_barrier_grade`.
+  - Allows specifying number of bedrooms served by the water heater which is used for apportioning tank losses; **Breaking change**: Replaces `water_heater_num_units_served` with `water_heater_num_bedrooms_served`.
   - Allows defining multiple unavailable periods; **Breaking change**: arguments renamed to `schedules_vacancy_periods`, `schedules_power_outage_periods`, and `schedules_power_outage_periods_window_natvent_availability`.
   - Adds detailed performance data inputs for variable-speed air source HVAC systems.
   - Adds heat pump backup sizing methodology input.
@@ -42,6 +47,15 @@ __New Features__
   - Miscellaneous improvements.
 - Adds more error-checking for inappropriate inputs (e.g., HVAC SHR=0 or clothes washer IMEF=0).
 - Allow alternative label energy use (W) input for ceiling fans.
+- Updates to run_simulation.rb script:
+  - Allows requesting timeseries outputs with different frequencies (e.g., `--hourly enduses --monthly temperatures`).
+  - **Breaking change**: Deprecates `--add-timeseries-output-variable`; EnergyPlus output variables can now be requested like other timeseries categories (using e.g. `--hourly 'Zone People Occupant Count'`).
+  - Adds an optional `--skip-simulation` argument that allows skipping the EnergyPlus simulation.
+- BuildResidentialScheduleFile measure:
+  - Allows appending columns to an existing CSV file rather than overwriting.
+  - Other plug load schedules now use Other schedule fractions per ANSI/RESNET/ICC 301-2022 Addendum C.
+  - TV plug load schedules now use TV schedule fractions from the American Time Use Survey and monthly multipliers from the 2010 Building America Analysis Spreadsheets.
+  - Ceiling fan schedules now use ceiling fan schedule fractions and monthly multipliers from ANSI/RESNET/ICC 301-2022 Addendum C.
 
 __Bugfixes__
 - Fixes error if using AllowIncreasedFixedCapacities=true w/ HP detailed performance data.
