@@ -1047,6 +1047,10 @@ class HPXMLDefaults
         slab.thickness = crawl_slab ? 0.0 : 4.0
         slab.thickness_isdefaulted = true
       end
+      if slab.gap_insulation_r_value.nil?
+        slab.gap_insulation_r_value = slab.under_slab_insulation_r_value > 0 ? 5.0 : 0.0
+        slab.gap_insulation_r_value_isdefaulted = true
+      end
       conditioned_slab = HPXML::conditioned_finished_locations.include?(slab.interior_adjacent_to)
       if slab.carpet_r_value.nil?
         slab.carpet_r_value = conditioned_slab ? 2.0 : 0.0

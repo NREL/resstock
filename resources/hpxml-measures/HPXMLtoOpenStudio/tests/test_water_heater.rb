@@ -1059,6 +1059,23 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     assert_in_epsilon(ua, wh.offCycleLossCoefficienttoAmbientTemperature.get, 0.001)
     assert_in_epsilon(t_set, wh.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value, 0.001)
     assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency.get, 0.001)
+
+    # zero bedroom
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-mf-unit-shared-water-heater-recirc-beds-0.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+
+    # Get HPXML values
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+
+    # Expected value
+    ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K') * 1.0 / water_heating_system.number_of_bedrooms_served
+
+    # Check water heater
+    assert_equal(1, model.getWaterHeaterMixeds.size)
+    wh = model.getWaterHeaterMixeds[0]
+    assert_in_epsilon(ua, wh.onCycleLossCoefficienttoAmbientTemperature.get, 0.001)
+    assert_in_epsilon(ua, wh.offCycleLossCoefficienttoAmbientTemperature.get, 0.001)
   end
 
   def test_shared_water_heater_heat_pump

@@ -3531,9 +3531,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = ((args[:water_heater_type] == HPXML::WaterHeaterTypeCombiStorage) || (args[:water_heater_type] == HPXML::WaterHeaterTypeCombiTankless)) && (args[:heating_system_type] != HPXML::HVACTypeBoiler)
     errors << 'Must specify a boiler when modeling an indirect water heater type.' if error
 
-    error = (args[:geometry_unit_num_bedrooms] <= 0)
-    errors << 'Number of bedrooms must be greater than zero.' if error
-
     error = [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type]) && args[:heating_system_type].include?('Shared')
     errors << 'Specified a shared system for a single-family detached unit.' if error
 
