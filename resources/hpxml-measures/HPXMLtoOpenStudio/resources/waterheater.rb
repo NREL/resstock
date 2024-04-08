@@ -60,7 +60,7 @@ class Waterheater
     return loop
   end
 
-  def self.apply_heatpump(model, runner, loc_space, loc_schedule, elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, eri_version, schedules_file, unavailable_periods, unit_multiplier)
+  def self.apply_heatpump(model, runner, loc_space, loc_schedule, elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
     obj_name_hpwh = Constants.ObjectNameWaterHeater
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
     t_set_c = get_t_set_c(water_heating_system.temperature, water_heating_system.water_heater_type)
@@ -113,7 +113,7 @@ class Waterheater
     coil = setup_hpwh_dxcoil(model, runner, water_heating_system, elevation, obj_name_hpwh, airflow_rate, unit_multiplier)
 
     # WaterHeater:Stratified
-    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, bottom_element_setpoint_schedule, top_element_setpoint_schedule, unit_multiplier)
+    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, bottom_element_setpoint_schedule, top_element_setpoint_schedule, unit_multiplier, nbeds)
     loop.addSupplyBranchForComponent(tank)
 
     add_desuperheater(model, runner, water_heating_system, tank, loc_space, loc_schedule, loop, unit_multiplier)
@@ -144,7 +144,7 @@ class Waterheater
     return loop
   end
 
-  def self.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file, unavailable_periods, unit_multiplier)
+  def self.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
 
     boiler, boiler_plant_loop = get_combi_boiler_and_plant_loop(model, water_heating_system.related_hvac_idref)
@@ -161,7 +161,7 @@ class Waterheater
 
       act_vol = calc_storage_tank_actual_vol(water_heating_system.tank_volume, nil)
       a_side = calc_tank_areas(act_vol)[1]
-      ua = calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction)
+      ua = calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction, nbeds)
     else
       ua = 0.0
       act_vol = 1.0
@@ -741,7 +741,7 @@ class Waterheater
     return coil
   end
 
-  def self.setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp, unit_multiplier)
+  def self.setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp, unit_multiplier, nbeds)
     # Calculate some geometry parameters for UA, the location of sensors and heat sources in the tank
     v_actual = calc_storage_tank_actual_vol(water_heating_system.tank_volume, water_heating_system.fuel_type) # gal
     a_tank, a_side = calc_tank_areas(v_actual, UnitConversions.convert(h_tank, 'm', 'ft')) # sqft
@@ -757,6 +757,7 @@ class Waterheater
       tank_ua = 4.7 # Btu/h-R
     end
     tank_ua = apply_tank_jacket(water_heating_system, tank_ua, a_side)
+    tank_ua = apply_shared_adjustment(water_heating_system, tank_ua, nbeds) # shared losses
     u_tank = ((5.678 * tank_ua) / a_tank) * (1.0 - solar_fraction)
 
     v_actual *= unit_multiplier
@@ -1313,7 +1314,7 @@ class Waterheater
     return 4.0 # feet, assumption from BEopt
   end
 
-  def self.calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction)
+  def self.calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction, nbeds = nil)
     standby_loss_units = water_heating_system.standby_loss_units
     standby_loss_value = water_heating_system.standby_loss_value
 
@@ -1333,6 +1334,9 @@ class Waterheater
 
     # jacket
     ua = apply_tank_jacket(water_heating_system, ua, a_side)
+
+    # shared losses
+    ua = apply_shared_adjustment(water_heating_system, ua, nbeds) if !nbeds.nil?
 
     ua *= (1.0 - solar_fraction)
     return ua
@@ -1551,10 +1555,7 @@ class Waterheater
       ua = apply_tank_jacket(water_heating_system, ua, a_side)
     end
     ua *= (1.0 - solar_fraction)
-    if water_heating_system.is_shared_system
-      # Apportion shared water heater energy use due to tank losses to the dwelling unit
-      ua = ua * nbeds.to_f / water_heating_system.number_of_bedrooms_served.to_f
-    end
+    ua = apply_shared_adjustment(water_heating_system, ua, nbeds) # shared losses
     u = ua / surface_area # Btu/hr-ft^2-F
     if eta_c > 1.0
       fail 'A water heater heat source (either burner or element) efficiency of > 1 has been calculated, double check water heater inputs.'
@@ -1591,6 +1592,14 @@ class Waterheater
       ua = ua_pre - water_heating_system.jacket_r_value / (1.0 / u_pre_skin + water_heating_system.jacket_r_value) * u_pre_skin * a_side
     else
       ua = ua_pre
+    end
+    return ua
+  end
+
+  def self.apply_shared_adjustment(water_heating_system, ua, nbeds)
+    if water_heating_system.is_shared_system
+      # Apportion shared water heater energy use due to tank losses to the dwelling unit
+      ua = ua * nbeds.to_f / water_heating_system.number_of_bedrooms_served.to_f
     end
     return ua
   end

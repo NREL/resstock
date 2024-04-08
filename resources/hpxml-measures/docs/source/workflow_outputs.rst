@@ -513,7 +513,7 @@ Depending on the outputs requested, the file may include:
    ===================================  ==================================================================================================================================
    Type                                 Notes
    ===================================  ==================================================================================================================================
-   Total Consumptions                   Energy use for building total.
+   Total Consumptions                   Energy use for building total and net (i.e., subtracts any power produced by PV or generators).
    Fuel Consumptions                    Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
    End Use Consumptions                 Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
    System Use Consumptions              Energy use for each HVAC and water heating system (in kBtu).

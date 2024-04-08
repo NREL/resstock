@@ -1190,9 +1190,8 @@ class Constructions
 
     if foundation.nil?
       # Create Kiva foundation for slab
-      thick = UnitConversions.convert(concrete_thick_in, 'in', 'ft')
       foundation = create_kiva_slab_foundation(model, under_r, under_width,
-                                               gap_r, thick, perimeter_r, perimeter_depth,
+                                               gap_r, perimeter_r, perimeter_depth,
                                                concrete_thick_in, soil_k_in)
     else
       # Kiva foundation (for crawlspace/basement) exists
@@ -1592,8 +1591,7 @@ class Constructions
   end
 
   def self.create_kiva_slab_foundation(model, int_horiz_r, int_horiz_width, int_vert_r,
-                                       int_vert_depth, ext_vert_r, ext_vert_depth,
-                                       concrete_thick_in, soil_k_in)
+                                       ext_vert_r, ext_vert_depth, concrete_thick_in, soil_k_in)
 
     # Create the Foundation:Kiva object for slab foundations
     foundation = OpenStudio::Model::FoundationKiva.new(model)
@@ -1607,10 +1605,10 @@ class Constructions
     end
 
     # Interior vertical insulation
-    if int_vert_r > 0
+    if (int_vert_r > 0) && (concrete_thick_in > 0)
       int_vert_mat = create_insulation_material(model, 'interior vertical ins', int_vert_r)
       foundation.setInteriorVerticalInsulationMaterial(int_vert_mat)
-      foundation.setInteriorVerticalInsulationDepth(UnitConversions.convert(int_vert_depth, 'ft', 'm'))
+      foundation.setInteriorVerticalInsulationDepth(UnitConversions.convert(concrete_thick_in, 'in', 'm'))
     end
 
     # Exterior vertical insulation
