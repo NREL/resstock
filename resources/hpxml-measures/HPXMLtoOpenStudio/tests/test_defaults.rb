@@ -885,7 +885,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     n_windows = default_hpxml_bldg.windows.size
     _test_default_window_values(default_hpxml_bldg, [0.44] * n_windows, [0.55] * n_windows, [0.66] * n_windows, [0.77] * n_windows, [0.5] * n_windows, [123] * n_windows)
 
-    # Test defaults
+    # Test defaults after 301-2022 Addendum C
     hpxml_bldg.windows.each do |window|
       window.fraction_operable = nil
       window.exterior_shading_factor_summer = nil
@@ -898,7 +898,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     n_windows = default_hpxml_bldg.windows.size
-    _test_default_window_values(default_hpxml_bldg, [1.0] * n_windows, [1.0] * n_windows, [0.7] * n_windows, [0.85] * n_windows, [0.67] * n_windows, [225] * n_windows)
+    int_shade_coeff = 0.92 - (0.21 * 0.45)
+    _test_default_window_values(default_hpxml_bldg, [1.0] * n_windows, [1.0] * n_windows, [int_shade_coeff] * n_windows, [int_shade_coeff] * n_windows, [0.67] * n_windows, [225] * n_windows)
   end
 
   def test_windows_properties
@@ -2681,7 +2682,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems.each do |wh|
       wh.is_shared_system = true
-      wh.number_of_units_served = 2
+      wh.number_of_bedrooms_served = 6
       wh.heating_capacity = 15000.0
       wh.tank_volume = 40.0
       wh.recovery_efficiency = 0.95
@@ -3157,7 +3158,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
-    hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
+    hpxml_bldg.water_heating_systems[0].number_of_bedrooms_served = 18
     hpxml_bldg.clothes_washers[0].location = HPXML::LocationBasementConditioned
     hpxml_bldg.clothes_washers[0].is_shared_appliance = true
     hpxml_bldg.clothes_washers[0].usage_multiplier = 1.5
@@ -3212,7 +3213,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
-    hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
+    hpxml_bldg.water_heating_systems[0].number_of_bedrooms_served = 18
     hpxml_bldg.clothes_dryers[0].location = HPXML::LocationBasementConditioned
     hpxml_bldg.clothes_dryers[0].is_shared_appliance = true
     hpxml_bldg.clothes_dryers[0].combined_energy_factor = 3.33
@@ -3285,7 +3286,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
-    hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
+    hpxml_bldg.water_heating_systems[0].number_of_bedrooms_served = 18
     hpxml_bldg.dishwashers[0].location = HPXML::LocationBasementConditioned
     hpxml_bldg.dishwashers[0].is_shared_appliance = true
     hpxml_bldg.dishwashers[0].usage_multiplier = 1.3

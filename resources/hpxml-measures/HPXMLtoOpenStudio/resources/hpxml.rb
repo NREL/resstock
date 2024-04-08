@@ -3015,6 +3015,10 @@ class HPXML < Object
       return (is_exterior && is_thermal_boundary)
     end
 
+    def is_conditioned_and_adjacent_to_multifamily_common_space
+      return (HPXML::is_conditioned(self) && (HPXML::multifamily_common_space_locations.include? @exterior_adjacent_to))
+    end
+
     def is_conditioned
       return HPXML::is_conditioned(self)
     end
@@ -5654,7 +5658,7 @@ class HPXML < Object
              :tank_volume, :fraction_dhw_load_served, :heating_capacity, :energy_factor, :usage_bin,
              :uniform_energy_factor, :first_hour_rating, :recovery_efficiency, :uses_desuperheater, :jacket_r_value,
              :related_hvac_idref, :third_party_certification, :standby_loss_units, :standby_loss_value,
-             :temperature, :is_shared_system, :number_of_units_served, :tank_model_type, :operating_mode]
+             :temperature, :is_shared_system, :number_of_bedrooms_served, :tank_model_type, :operating_mode]
     attr_accessor(*ATTRS)
 
     def related_hvac_system
@@ -5705,7 +5709,6 @@ class HPXML < Object
       XMLHelper.add_element(water_heating_system, 'Location', @location, :string, @location_isdefaulted) unless @location.nil?
       XMLHelper.add_element(water_heating_system, 'YearInstalled', @year_installed, :integer) unless @year_installed.nil?
       XMLHelper.add_element(water_heating_system, 'IsSharedSystem', @is_shared_system, :boolean, @is_shared_system_isdefaulted) unless @is_shared_system.nil?
-      XMLHelper.add_element(water_heating_system, 'NumberofUnitsServed', @number_of_units_served, :integer) unless @number_of_units_served.nil?
       XMLHelper.add_element(water_heating_system, 'PerformanceAdjustment', @performance_adjustment, :float, @performance_adjustment_isdefaulted) unless @performance_adjustment.nil?
       XMLHelper.add_element(water_heating_system, 'ThirdPartyCertification', @third_party_certification, :string) unless @third_party_certification.nil?
       XMLHelper.add_element(water_heating_system, 'TankVolume', @tank_volume, :float, @tank_volume_isdefaulted) unless @tank_volume.nil?
@@ -5733,9 +5736,10 @@ class HPXML < Object
         related_hvac_idref_el = XMLHelper.add_element(water_heating_system, 'RelatedHVACSystem')
         XMLHelper.add_attribute(related_hvac_idref_el, 'idref', @related_hvac_idref)
       end
-      if not @tank_model_type.nil?
+      if (not @tank_model_type.nil?) || (not @number_of_bedrooms_served.nil?)
         extension = XMLHelper.create_elements_as_needed(water_heating_system, ['extension'])
         XMLHelper.add_element(extension, 'TankModelType', @tank_model_type, :string, @tank_model_type_isdefaulted) unless @tank_model_type.nil?
+        XMLHelper.add_element(extension, 'NumberofBedroomsServed', @number_of_bedrooms_served, :integer, @number_of_bedrooms_served_isdefaulted) unless @number_of_bedrooms_served.nil?
       end
     end
 
@@ -5748,7 +5752,6 @@ class HPXML < Object
       @location = XMLHelper.get_value(water_heating_system, 'Location', :string)
       @year_installed = XMLHelper.get_value(water_heating_system, 'YearInstalled', :integer)
       @is_shared_system = XMLHelper.get_value(water_heating_system, 'IsSharedSystem', :boolean)
-      @number_of_units_served = XMLHelper.get_value(water_heating_system, 'NumberofUnitsServed', :integer)
       @performance_adjustment = XMLHelper.get_value(water_heating_system, 'PerformanceAdjustment', :float)
       @third_party_certification = XMLHelper.get_value(water_heating_system, 'ThirdPartyCertification', :string)
       @tank_volume = XMLHelper.get_value(water_heating_system, 'TankVolume', :float)
@@ -5767,6 +5770,7 @@ class HPXML < Object
       @uses_desuperheater = XMLHelper.get_value(water_heating_system, 'UsesDesuperheater', :boolean)
       @related_hvac_idref = HPXML::get_idref(XMLHelper.get_element(water_heating_system, 'RelatedHVACSystem'))
       @tank_model_type = XMLHelper.get_value(water_heating_system, 'extension/TankModelType', :string)
+      @number_of_bedrooms_served = XMLHelper.get_value(water_heating_system, 'extension/NumberofBedroomsServed', :integer)
     end
   end
 
@@ -5788,7 +5792,7 @@ class HPXML < Object
     ATTRS = [:id, :system_type, :pipe_r_value, :standard_piping_length, :recirculation_control_type,
              :recirculation_piping_length, :recirculation_branch_piping_length,
              :recirculation_pump_power, :dwhr_facilities_connected, :dwhr_equal_flow,
-             :dwhr_efficiency, :has_shared_recirculation, :shared_recirculation_number_of_units_served,
+             :dwhr_efficiency, :has_shared_recirculation, :shared_recirculation_number_of_bedrooms_served,
              :shared_recirculation_pump_power, :shared_recirculation_control_type,
              :shared_recirculation_motor_efficiency,
              :recirculation_pump_weekday_fractions, :recirculation_pump_weekend_fractions, :recirculation_pump_monthly_multipliers]
@@ -5838,7 +5842,7 @@ class HPXML < Object
       if @has_shared_recirculation
         extension = XMLHelper.create_elements_as_needed(hot_water_distribution, ['extension'])
         shared_recirculation = XMLHelper.add_element(extension, 'SharedRecirculation')
-        XMLHelper.add_element(shared_recirculation, 'NumberofUnitsServed', @shared_recirculation_number_of_units_served, :integer) unless @shared_recirculation_number_of_units_served.nil?
+        XMLHelper.add_element(shared_recirculation, 'NumberofBedroomsServed', @shared_recirculation_number_of_bedrooms_served, :integer) unless @shared_recirculation_number_of_bedrooms_served.nil?
         XMLHelper.add_element(shared_recirculation, 'PumpPower', @shared_recirculation_pump_power, :float, @shared_recirculation_pump_power_isdefaulted) unless @shared_recirculation_pump_power.nil?
         XMLHelper.add_element(shared_recirculation, 'MotorEfficiency', @shared_recirculation_motor_efficiency, :float) unless @shared_recirculation_motor_efficiency.nil?
         XMLHelper.add_element(shared_recirculation, 'ControlType', @shared_recirculation_control_type, :string) unless @shared_recirculation_control_type.nil?
@@ -5867,7 +5871,7 @@ class HPXML < Object
       @dwhr_efficiency = XMLHelper.get_value(hot_water_distribution, 'DrainWaterHeatRecovery/Efficiency', :float)
       @has_shared_recirculation = XMLHelper.has_element(hot_water_distribution, 'extension/SharedRecirculation')
       if @has_shared_recirculation
-        @shared_recirculation_number_of_units_served = XMLHelper.get_value(hot_water_distribution, 'extension/SharedRecirculation/NumberofUnitsServed', :integer)
+        @shared_recirculation_number_of_bedrooms_served = XMLHelper.get_value(hot_water_distribution, 'extension/SharedRecirculation/NumberofBedroomsServed', :integer)
         @shared_recirculation_pump_power = XMLHelper.get_value(hot_water_distribution, 'extension/SharedRecirculation/PumpPower', :float)
         @shared_recirculation_motor_efficiency = XMLHelper.get_value(hot_water_distribution, 'extension/SharedRecirculation/MotorEfficiency', :float)
         @shared_recirculation_control_type = XMLHelper.get_value(hot_water_distribution, 'extension/SharedRecirculation/ControlType', :string)
@@ -7638,11 +7642,22 @@ class HPXML < Object
     return doc
   end
 
+  def self.vented_locations
+    return [HPXML::LocationAtticVented,
+            HPXML::LocationCrawlspaceVented]
+  end
+
   def self.conditioned_locations
     return [HPXML::LocationConditionedSpace,
             HPXML::LocationBasementConditioned,
             HPXML::LocationCrawlspaceConditioned,
             HPXML::LocationOtherHousingUnit]
+  end
+
+  def self.multifamily_common_space_locations
+    return [HPXML::LocationOtherHeatedSpace,
+            HPXML::LocationOtherMultifamilyBufferSpace,
+            HPXML::LocationOtherNonFreezingSpace]
   end
 
   def self.conditioned_locations_this_unit
