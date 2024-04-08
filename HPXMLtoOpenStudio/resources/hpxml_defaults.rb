@@ -35,7 +35,7 @@ class HPXMLDefaults
     apply_rim_joists(hpxml_bldg)
     apply_walls(hpxml_bldg)
     apply_foundation_walls(hpxml_bldg)
-    apply_floors(hpxml_bldg)
+    apply_floors(runner, hpxml_bldg)
     apply_slabs(hpxml_bldg)
     apply_windows(hpxml_bldg, eri_version)
     apply_skylights(hpxml_bldg)
@@ -988,7 +988,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_floors(hpxml_bldg)
+  def self.apply_floors(runner, hpxml_bldg)
     hpxml_bldg.floors.each do |floor|
       if floor.floor_or_ceiling.nil?
         if floor.is_ceiling
@@ -997,6 +997,19 @@ class HPXMLDefaults
         elsif floor.is_floor
           floor.floor_or_ceiling = HPXML::FloorOrCeilingFloor
           floor.floor_or_ceiling_isdefaulted = true
+        end
+      else
+        floor_is_ceiling = HPXML::is_floor_a_ceiling(floor, false)
+        if not floor_is_ceiling.nil?
+          if (floor.floor_or_ceiling == HPXML::FloorOrCeilingCeiling) && !floor_is_ceiling
+            runner.registerWarning("Floor '#{floor.id}' has FloorOrCeiling=ceiling but it should be floor. The input will be overridden.")
+            floor.floor_or_ceiling = HPXML::FloorOrCeilingFloor
+            floor.floor_or_ceiling_isdefaulted = true
+          elsif (floor.floor_or_ceiling == HPXML::FloorOrCeilingFloor) && floor_is_ceiling
+            runner.registerWarning("Floor '#{floor.id}' has FloorOrCeiling=floor but it should be ceiling. The input will be overridden.")
+            floor.floor_or_ceiling = HPXML::FloorOrCeilingCeiling
+            floor.floor_or_ceiling_isdefaulted = true
+          end
         end
       end
 

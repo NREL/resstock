@@ -1547,9 +1547,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         plantloop_map[sys_id] = Waterheater.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods, unit_multiplier, @nbeds)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
         conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
-        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, @hpxml_bldg.elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
+        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, @hpxml_bldg.elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, @eri_version, @schedules_file, unavailable_periods, unit_multiplier, @nbeds)
       elsif [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
-        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
+        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods, unit_multiplier, @nbeds)
       else
         fail "Unhandled water heater (#{water_heating_system.water_heater_type})."
       end

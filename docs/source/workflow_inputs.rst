@@ -1249,6 +1249,7 @@ Each floor/ceiling surface that is not in contact with the ground (Slab) nor adj
   ``SystemIdentifier``                    id                                   Yes                 Unique identifier
   ``ExteriorAdjacentTo``                  string                  See [#]_     Yes                 Exterior adjacent space type
   ``InteriorAdjacentTo``                  string                  See [#]_     Yes                 Interior adjacent space type
+  ``FloorOrCeiling``                      string                  See [#]_     See [#]_            Floor or ceiling from the perspective of the conditioned space
   ``FloorType``                           element                 See [#]_     Yes                 Floor type (for thermal mass)
   ``Area``                                double    ft2           > 0          Yes                 Gross area
   ``InteriorFinish/Type``                 string                  See [#]_     No        See [#]_  Interior finish material
@@ -1263,22 +1264,14 @@ Each floor/ceiling surface that is not in contact with the ground (Slab) nor adj
          See :ref:`hpxmllocations` for descriptions.
   .. [#] InteriorAdjacentTo choices are "conditioned space", "attic - vented", "attic - unvented", "basement - conditioned", "basement - unconditioned", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", or "garage".
          See :ref:`hpxmllocations` for descriptions.
+  .. [#] FloorOrCeiling choices are "floor" or "ceiling".
+  .. [#] FloorOrCeiling only required for floors adjacent to "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space".
   .. [#] FloorType child element choices are ``WoodFrame``, ``StructuralInsulatedPanel``, ``SteelFrame``, or ``SolidConcrete``.
   .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
   .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is conditioned space and the surface is a ceiling, otherwise "none".
   .. [#] RadiantBarrier intended for attic floors. Model assumes an emittance of 0.5 (reduced effectiveness due to accumulation of dust) per `an ORNL article on radiant barriers <https://web.ornl.gov/sci/buildings/tools/radiant/rb2/>`_.
   .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
          For a manufactured home belly where the area of the belly wrap is different and usually greater than the floor area, the AssemblyEffectiveRValue should be adjusted to account for the surface area of the belly wrap and insulation.
-
-For floors adjacent to "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space", additional information is entered in ``Floor``.
-
-  ======================================  ========  =====  ==============  ========  =======  ==========================================
-  Element                                 Type      Units  Constraints     Required  Default  Notes
-  ======================================  ========  =====  ==============  ========  =======  ==========================================
-  ``FloorOrCeiling``                      string           See [#]_        Yes                Specifies whether a floor or ceiling from the perspective of the conditioned space
-  ======================================  ========  =====  ==============  ========  =======  ==========================================
-
-  .. [#] FloorOrCeiling choices are "floor" or "ceiling".
 
 HPXML Slabs
 ***********
@@ -3506,7 +3499,6 @@ Each heat pump water heater is entered as a ``/HPXML/Building/BuildingDetails/Sy
          
          \- **IECC zones 3-8, unknown**: "basement - unconditioned", "basement - conditioned", "conditioned space"
 
-  .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
   .. [#] The sum of all ``FractionDHWLoadServed`` (across all WaterHeatingSystems) must equal to 1.
   .. [#] FractionDHWLoadServed represents only the fraction of the hot water load associated with the hot water **fixtures**.
          Additional hot water load from clothes washers/dishwashers will be automatically assigned to the appropriate water heater(s).
@@ -3568,17 +3560,18 @@ Combi Boiler w/ Tankless Coil
 
 Each combination boiler w/ tankless coil is entered as a ``/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem``.
 
-  =========================  =======  =====  =======================================  ============  ========  ==================================================
-  Element                    Type     Units  Constraints                              Required      Default   Notes
-  =========================  =======  =====  =======================================  ============  ========  ==================================================
-  ``SystemIdentifier``       id                                                       Yes                     Unique identifier
-  ``WaterHeaterType``        string          space-heating boiler with tankless coil  Yes                     Type of water heater
-  ``Location``               string          See [#]_                                 No            See [#]_  Water heater location
-  ``IsSharedSystem``         boolean                                                  No            false     Whether it serves multiple dwelling units or shared laundry room
-  ``FractionDHWLoadServed``  double   frac   >= 0, <= 1 [#]_                          Yes                     Fraction of hot water load served [#]_
-  ``HotWaterTemperature``    double   F      > 0                                      No            125       Water heater setpoint [#]_
-  ``RelatedHVACSystem``      idref           See [#]_                                 Yes                     ID of boiler
-  =========================  =======  =====  =======================================  ============  ========  ==================================================
+  ====================================  =======  =====  =======================================  ============  ========  ==================================================
+  Element                               Type     Units  Constraints                              Required      Default   Notes
+  ====================================  =======  =====  =======================================  ============  ========  ==================================================
+  ``SystemIdentifier``                  id                                                       Yes                     Unique identifier
+  ``WaterHeaterType``                   string          space-heating boiler with tankless coil  Yes                     Type of water heater
+  ``Location``                          string          See [#]_                                 No            See [#]_  Water heater location
+  ``IsSharedSystem``                    boolean                                                  No            false     Whether it serves multiple dwelling units or shared laundry room
+  ``FractionDHWLoadServed``             double   frac   >= 0, <= 1 [#]_                          Yes                     Fraction of hot water load served [#]_
+  ``HotWaterTemperature``               double   F      > 0                                      No            125       Water heater setpoint [#]_
+  ``RelatedHVACSystem``                 idref           See [#]_                                 Yes                     ID of boiler
+  ``extension/NumberofBedroomsServed``  integer         > NumberofBedrooms                       See [#]_                Number of bedrooms served directly or indirectly
+  ====================================  =======  =====  =======================================  ============  ========  ==================================================
 
   .. [#] Location choices are "conditioned space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space".
          See :ref:`hpxmllocations` for descriptions.
@@ -3588,14 +3581,12 @@ Each combination boiler w/ tankless coil is entered as a ``/HPXML/Building/Build
          
          \- **IECC zones 3-8, unknown**: "basement - unconditioned", "basement - conditioned", "conditioned space"
          
-  .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
   .. [#] The sum of all ``FractionDHWLoadServed`` (across all WaterHeatingSystems) must equal to 1.
   .. [#] FractionDHWLoadServed represents only the fraction of the hot water load associated with the hot water **fixtures**.
          Additional hot water load from clothes washers/dishwashers will be automatically assigned to the appropriate water heater(s).
   .. [#] The water heater setpoint can alternatively be defined using :ref:`schedules_detailed`.
   .. [#] RelatedHVACSystem must reference a ``HeatingSystem`` (Boiler).
   .. [#] NumberofBedroomsServed only required if IsSharedSystem is true.
-         Tank losses will be apportioned to the dwelling unit using its number of bedrooms divided by the total number of bedrooms served by the water heating system per `ANSI/RESNET/ICC 301-2022 <https://codes.iccsafe.org/content/RESNET3012022P1>`_.
 
 .. _water_heater_desuperheater:
 
@@ -3619,7 +3610,7 @@ If the water heater uses a desuperheater, additional information is entered in `
 HPXML Hot Water Distribution
 ****************************
 
-If any water heating systems are provided, a single hot water distribution system can be described:
+If any water heating systems are provided, a single hot water distribution system must be described:
 
 - :ref:`hot_water_dist_standard`
 - :ref:`hot_water_dist_recirc`
