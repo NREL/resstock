@@ -835,18 +835,20 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.slabs[0].carpet_r_value = 1.1
     hpxml_bldg.slabs[0].carpet_fraction = 0.5
     hpxml_bldg.slabs[0].depth_below_grade = 2.0
+    hpxml_bldg.slabs[0].gap_insulation_r_value = 10.0
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 7.0, 1.1, 0.5, nil)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 7.0, 1.1, 0.5, nil, 10.0)
 
     # Test defaults w/ conditioned basement
     hpxml_bldg.slabs[0].thickness = nil
     hpxml_bldg.slabs[0].carpet_r_value = nil
     hpxml_bldg.slabs[0].carpet_fraction = nil
     hpxml_bldg.slabs[0].depth_below_grade = nil
+    hpxml_bldg.slabs[0].gap_insulation_r_value = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, nil)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, nil, 0.0)
 
     # Test defaults w/ crawlspace
     hpxml, hpxml_bldg = _create_hpxml('base-foundation-unvented-crawlspace.xml')
@@ -854,9 +856,10 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.slabs[0].carpet_r_value = nil
     hpxml_bldg.slabs[0].carpet_fraction = nil
     hpxml_bldg.slabs[0].depth_below_grade = nil
+    hpxml_bldg.slabs[0].gap_insulation_r_value = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 0.0, 0.0, 0.0, nil)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 0.0, 0.0, 0.0, nil, 0.0)
 
     # Test defaults w/ slab-on-grade
     hpxml, hpxml_bldg = _create_hpxml('base-foundation-slab.xml')
@@ -864,9 +867,10 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.slabs[0].carpet_r_value = nil
     hpxml_bldg.slabs[0].carpet_fraction = nil
     hpxml_bldg.slabs[0].depth_below_grade = nil
+    hpxml_bldg.slabs[0].gap_insulation_r_value = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, 0.0)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, 0.0, 5.0)
   end
 
   def test_windows
@@ -4329,7 +4333,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     end
   end
 
-  def _test_default_slab_values(slab, thickness, carpet_r_value, carpet_fraction, depth_below_grade)
+  def _test_default_slab_values(slab, thickness, carpet_r_value, carpet_fraction, depth_below_grade, gap_rvalue)
     assert_equal(thickness, slab.thickness)
     assert_equal(carpet_r_value, slab.carpet_r_value)
     assert_equal(carpet_fraction, slab.carpet_fraction)
@@ -4338,6 +4342,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     else
       assert_equal(depth_below_grade, slab.depth_below_grade)
     end
+    assert_equal(gap_rvalue, slab.gap_insulation_r_value)
   end
 
   def _test_default_window_values(hpxml_bldg, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs, fraction_operable, azimuths)

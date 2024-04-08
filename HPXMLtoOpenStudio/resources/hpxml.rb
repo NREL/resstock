@@ -3659,7 +3659,7 @@ class HPXML < Object
              :under_slab_insulation_spans_entire_slab, :depth_below_grade, :carpet_fraction,
              :carpet_r_value, :perimeter_insulation_id, :perimeter_insulation_r_value,
              :under_slab_insulation_id, :under_slab_insulation_r_value, :perimeter_insulation_material,
-             :under_slab_insulation_material]
+             :under_slab_insulation_material, :gap_insulation_r_value]
     attr_accessor(*ATTRS)
 
     def exterior_adjacent_to
@@ -3745,6 +3745,7 @@ class HPXML < Object
       XMLHelper.add_element(layer, 'NominalRValue', @under_slab_insulation_r_value, :float) unless @under_slab_insulation_r_value.nil?
       XMLHelper.add_element(layer, 'InsulationWidth', @under_slab_insulation_width, :float) unless @under_slab_insulation_width.nil?
       XMLHelper.add_element(layer, 'InsulationSpansEntireSlab', @under_slab_insulation_spans_entire_slab, :boolean) unless @under_slab_insulation_spans_entire_slab.nil?
+      XMLHelper.add_extension(slab, 'GapInsulationRValue', @gap_insulation_r_value, :float, @gap_insulation_r_value_isdefaulted) unless @gap_insulation_r_value.nil?
       XMLHelper.add_extension(slab, 'CarpetFraction', @carpet_fraction, :float, @carpet_fraction_isdefaulted) unless @carpet_fraction.nil?
       XMLHelper.add_extension(slab, 'CarpetRValue', @carpet_r_value, :float, @carpet_r_value_isdefaulted) unless @carpet_r_value.nil?
     end
@@ -3781,6 +3782,7 @@ class HPXML < Object
         @under_slab_insulation_width = XMLHelper.get_value(under_slab_insulation, 'Layer/InsulationWidth', :float)
         @under_slab_insulation_spans_entire_slab = XMLHelper.get_value(under_slab_insulation, 'Layer/InsulationSpansEntireSlab', :boolean)
       end
+      @gap_insulation_r_value = XMLHelper.get_value(slab, 'extension/GapInsulationRValue', :float)
       @carpet_fraction = XMLHelper.get_value(slab, 'extension/CarpetFraction', :float)
       @carpet_r_value = XMLHelper.get_value(slab, 'extension/CarpetRValue', :float)
     end

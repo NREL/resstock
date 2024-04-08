@@ -540,10 +540,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # original file (asset calculation).
     if @hpxml_bldg.building_occupancy.number_of_residents.nil?
       @hpxml_bldg.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(@nbeds)
-    end
-
-    # If zero occupants, ensure end uses of interest are zeroed out
-    if (@hpxml_bldg.building_occupancy.number_of_residents == 0) && (not @apply_ashrae140_assumptions)
+    elsif (@hpxml_bldg.building_occupancy.number_of_residents == 0) && (not @apply_ashrae140_assumptions)
+      # If zero occupants, ensure end uses of interest are zeroed out
       @hpxml_header.unavailable_periods.add(column_name: 'Vacancy',
                                             begin_month: @hpxml_header.sim_begin_month,
                                             begin_day: @hpxml_header.sim_begin_day,
@@ -1150,11 +1148,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
       slab_whole_r = 0
     end
-    if slab_under_r + slab_whole_r > 0
-      slab_gap_r = 5.0 # Assume gap insulation when insulation under slab is present
-    else
-      slab_gap_r = 0
-    end
+    slab_gap_r = slab.gap_insulation_r_value
 
     mat_carpet = nil
     if (slab.carpet_fraction > 0) && (slab.carpet_r_value > 0)
