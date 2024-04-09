@@ -3126,7 +3126,7 @@ HVAC Cooling Autosizing Factor
 Description
 ***********
 
-The cooling scaling factor applied to the auto-sizing methodology (not used in project_national).
+The cooling airflow and capacity scaling factor applied to the auto-sizing methodology (not used in project_national).
 
 Created by
 **********
@@ -3136,7 +3136,13 @@ manually created
 Source
 ******
 
-- \Assuming no oversizing or undersizing until we have data necessary to characterize all types of systems.
+- \Engineering Judgment
+
+
+Assumption
+**********
+
+- \HVAC sizing follows ACCA Manual J and Manual S. There is no additional oversizing or undersizing the airflow and capacity of the HVAC system.
 
 
 Arguments
@@ -3470,7 +3476,7 @@ HVAC Heating Autosizing Factor
 Description
 ***********
 
-The heating scaling factor applied to the auto-sizing methodology (not used in project_national).
+The heating airflow and capacity scaling factor applied to the auto-sizing methodology (not used in project_national).
 
 Created by
 **********
@@ -3480,7 +3486,13 @@ manually created
 Source
 ******
 
-- \Assuming no oversizing or undersizing until we have data necessary to characterize all types of systems.
+- \Engineering Judgment
+
+
+Assumption
+**********
+
+- \HVAC sizing follows ACCA Manual J and Manual S. There is no additional oversizing or undersizing the airflow and capacity of the HVAC system.
 
 
 Arguments
@@ -4358,7 +4370,7 @@ HVAC System Is Scaled
 Description
 ***********
 
-The presence of the HVAC system having been undersized or oversized (not used in project_national).
+Whether the HVAC system has been undersized or oversized (not used in project_national).
 
 Created by
 **********
