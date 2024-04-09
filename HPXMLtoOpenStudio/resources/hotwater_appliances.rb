@@ -1057,7 +1057,7 @@ class HotWaterAndAppliances
         fail "Unexpected hot water distribution system shared recirculation type: '#{hot_water_distribution.shared_recirculation_control_type}'."
       end
       shared_pump_kw = UnitConversions.convert(hot_water_distribution.shared_recirculation_pump_power, 'W', 'kW')
-      dist_pump_annual_kwh += (shared_pump_kw * op_hrs * nbeds / n_bdeq.to_f)
+      dist_pump_annual_kwh += (shared_pump_kw * op_hrs * [nbeds.to_f, 1.0].max / n_bdeq.to_f)
     end
 
     return dist_pump_annual_kwh

@@ -32,6 +32,7 @@ __New Features__
   - Updates to using G-Functions from the [G-Function Library for Modeling Vertical Bore Ground Heat Exchanger](https://gdr.openei.org/submissions/1325).
   - Updated heating/cooling performance curves to reflect newer equipment.
 - Allows optional `HeatingAutosizingFactor`, `CoolingAutosizingFactor`, `BackupHeatingAutosizingFactor` inputs to scale HVAC equipment autosizing results.
+- Adds optional `Slab/extension/GapInsulationRValue` input for cases where a slab has horizontal insulation.
 - Allows radiant barriers for additional locations (attic gable walls and floor); reduced emissivity due to dust assumed for radiant barriers on attic floor.
 - Adds window and skylight `GlassType` options of "low-e, high-solar-gain" and "low-e, low-solar-gain"; updates U-factor/SHGC lookup tables.
 - BuildResidentialHPXML measure:
@@ -45,6 +46,7 @@ __New Features__
 - Manual J design load calculations:
   - Allow additional outdoor design condition inputs: `DailyTemperatureRange` and `HumidityDifference`.
   - Miscellaneous improvements.
+- Adds net energy and net electricity timeseries output columns even when there is no PV or generator.
 - Adds more error-checking for inappropriate inputs (e.g., HVAC SHR=0 or clothes washer IMEF=0).
 - Allow alternative label energy use (W) input for ceiling fans.
 - Updates to run_simulation.rb script:
@@ -64,6 +66,9 @@ __Bugfixes__
 - Fixes detailed schedule error-checking where schedules with MAX < 1 were incorrectly allowed.
 - Fixes error if using MF space types (e.g., "other heated space") and the building has no HVAC equipment.
 - Fixes `ManualJInputs/HumiditySetpoint` not being used in the design load calculation.
+- Fixes possible EnergyPlus error when a `Slab` representing a crawlspace dirt floor has perimeter or under slab insulation.
+- Prevents errors due to incorrect `Floor/FloorOrCeiling` input; issues a warning when detected.
+- Apportion shared water heater tank losses for HPWHs and combi systems.
 
 ## OpenStudio-HPXML v1.7.0
 
