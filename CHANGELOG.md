@@ -19,6 +19,7 @@ Fixes
 - Reorganize the emissions and utility rates data folders such that their sources and functions are more clear ([#1195](https://github.com/NREL/resstock/pull/1195))
 - Move location of out-of-unit (shared) water heaters to conditioned mechanical room ([#1201](https://github.com/NREL/resstock/pull/1201))
 - Update the Alaska residential stock characterization using the Alaska Retrofit Information System data ([#1214](https://github.com/NREL/resstock/pull/1214))
+- Enable HVAC airflor and capacity scaling factors to oversize or undersize the equipment. ([#1218](https://github.com/NREL/resstock/pull/1218))
 
 
 ## ResStock v3.2.0
