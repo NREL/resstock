@@ -2463,6 +2463,26 @@
 								<xs:documentation>Number of similar ceiling fans.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
+						<xs:element minOccurs="0" name="LabelEnergyUse" type="HPXMLDoubleGreaterThanZero">
+							<xs:annotation>
+								<xs:documentation>[W] Energy use per the EnergyGuide label</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="LabelAnnualCost" type="HPXMLDoubleGreaterThanZero">
+							<xs:annotation>
+								<xs:documentation>[$] Estimated yearly energy cost per the EnergyGuide label</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="LabelElectricRate" type="HPXMLDoubleGreaterThanZero">
+							<xs:annotation>
+								<xs:documentation>[$/kWh] Electric rate per the EnergyGuide label</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="LabelUsage" type="HPXMLDoubleGreaterThanZero">
+							<xs:annotation>
+								<xs:documentation>[hrs/day] Hours use per day per the EnergyGuide label</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element ref="extension" minOccurs="0"/>
 					</xs:sequence>
 					<xs:attribute name="dataSource" type="DataSource"/>
@@ -5850,6 +5870,11 @@
 						<xs:element maxOccurs="unbounded" minOccurs="0" ref="ExternalResource"/>
 						<xs:element name="Address" type="AddressInformation" minOccurs="0"/>
 						<xs:element minOccurs="0" name="GeoLocation" type="GeoLocationInformation"/>
+						<xs:element minOccurs="0" name="Elevation" type="ElevationType">
+							<xs:annotation>
+								<xs:documentation>[ft]</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element minOccurs="0" name="SchoolDistrict" type="HPXMLString"/>
 						<xs:element minOccurs="0" name="eGridRegion" type="eGridRegions">
 							<xs:annotation>
@@ -11295,6 +11320,18 @@
 	<xs:complexType name="MoisureType">
 		<xs:simpleContent>
 			<xs:extension base="MoistureType_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="ElevationType_simple">
+		<xs:restriction base="xs:double">
+			<xs:minInclusive value="0"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="ElevationType">
+		<xs:simpleContent>
+			<xs:extension base="ElevationType_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>

@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>ae4b2c19-5d5c-4fc7-9f70-ec6eff93245d</version_id>
-  <version_modified>2024-01-30T16:49:31Z</version_modified>
+  <version_id>04186842-d649-4416-85e7-fd630996a9a1</version_id>
+  <version_modified>2024-04-09T17:10:02Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -12,49 +12,31 @@
   <modeler_description>Passes in all arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.</modeler_description>
   <arguments>
     <argument>
-      <name>schedules_vacancy_period</name>
-      <display_name>Schedules: Vacancy Period</display_name>
-      <description>Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).</description>
+      <name>schedules_vacancy_periods</name>
+      <display_name>Schedules: Vacancy Periods</display_name>
+      <description>Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>schedules_power_outage_period</name>
-      <display_name>Schedules: Power Outage Period</display_name>
-      <description>Specifies the power outage period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).</description>
+      <name>schedules_power_outage_periods</name>
+      <display_name>Schedules: Power Outage Periods</display_name>
+      <description>Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>schedules_power_outage_window_natvent_availability</name>
-      <display_name>Schedules: Power Outage Period Window Natural Ventilation Availability</display_name>
-      <description>The availability of the natural ventilation schedule during the outage period.</description>
-      <type>Choice</type>
+      <name>schedules_power_outage_periods_window_natvent_availability</name>
+      <display_name>Schedules: Power Outage Periods Window Natural Ventilation Availability</display_name>
+      <description>The availability of the natural ventilation schedule during the power outage periods. Valid choices are 'regular schedule', 'always available', 'always unavailable'. If multiple periods, use a comma-separated list.</description>
+      <type>String</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>regular schedule</value>
-          <display_name>regular schedule</display_name>
-        </choice>
-        <choice>
-          <value>always available</value>
-          <display_name>always available</display_name>
-        </choice>
-        <choice>
-          <value>always unavailable</value>
-          <display_name>always unavailable</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>simulation_control_daylight_saving_enabled</name>
@@ -239,15 +221,6 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>site_zip_code</name>
-      <display_name>Site: Zip Code</display_name>
-      <description>Zip code of the home address.</description>
-      <type>String</type>
-      <units></units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
       <name>site_iecc_zone</name>
       <display_name>Site: IECC Zone</display_name>
       <description>IECC zone of the home address.</description>
@@ -343,9 +316,18 @@
       </choices>
     </argument>
     <argument>
+      <name>site_city</name>
+      <display_name>Site: City</display_name>
+      <description>City/municipality of the home address.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>site_state_code</name>
       <display_name>Site: State Code</display_name>
-      <description>State code of the home address.</description>
+      <description>State code of the home address. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
       <type>Choice</type>
       <units></units>
       <required>false</required>
@@ -562,11 +544,47 @@
       </choices>
     </argument>
     <argument>
+      <name>site_zip_code</name>
+      <display_name>Site: Zip Code</display_name>
+      <description>Zip code of the home address.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>site_time_zone_utc_offset</name>
       <display_name>Site: Time Zone UTC Offset</display_name>
-      <description>Time zone UTC offset of the home address. Must be between -12 and 14.</description>
+      <description>Time zone UTC offset of the home address. Must be between -12 and 14. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>site_elevation</name>
+      <display_name>Site: Elevation</display_name>
+      <description>Elevation of the home address. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>ft</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>site_latitude</name>
+      <display_name>Site: Latitude</display_name>
+      <description>Latitude of the home address. Must be between -90 and 90. Use negative values for southern hemisphere. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>deg</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>site_longitude</name>
+      <display_name>Site: Longitude</display_name>
+      <description>Longitude of the home address. Must be between -180 and 180. Use negative values for the western hemisphere. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>deg</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2172,6 +2190,15 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>heating_system_heating_autosizing_factor</name>
+      <display_name>Heating System: Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>heating_system_fraction_heat_load_served</name>
       <display_name>Heating System: Fraction Heat Load Served</display_name>
       <description>The heating load served by the heating system.</description>
@@ -2303,6 +2330,15 @@
       <description>The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner'&gt;Central Air Conditioner&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner'&gt;Room Air Conditioner&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner'&gt;Packaged Terminal Air Conditioner&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#evaporative-cooler'&gt;Evaporative Cooler&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner'&gt;Mini-Split Air Conditioner&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Btu/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_cooling_autosizing_factor</name>
+      <display_name>Cooling System: Cooling Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>String</type>
+      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2567,6 +2603,15 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>heat_pump_heating_autosizing_factor</name>
+      <display_name>Heat Pump: Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>heat_pump_heating_capacity_retention_fraction</name>
       <display_name>Heat Pump: Heating Capacity Retention Fraction</display_name>
       <description>The output heating capacity of the heat pump at a user-specified temperature (e.g., 17F or 5F) divided by the above nominal heating capacity. Applies to all heat pump types except ground-to-air. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump'&gt;Air-to-Air Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump'&gt;Mini-Split Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump'&gt;Packaged Terminal Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle'&gt;Room Air Conditioner w/ Reverse Cycle&lt;/a&gt;) is used.</description>
@@ -2590,6 +2635,15 @@
       <description>The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump'&gt;Air-to-Air Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump'&gt;Mini-Split Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump'&gt;Packaged Terminal Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle'&gt;Room Air Conditioner w/ Reverse Cycle&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump'&gt;Ground-to-Air Heat Pump&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Btu/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_cooling_autosizing_factor</name>
+      <display_name>Heat Pump: Cooling Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>String</type>
+      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2644,6 +2698,15 @@
           <display_name>separate</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_backup_heating_autosizing_factor</name>
+      <display_name>Heat Pump: Backup Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, 1.0 is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Factor.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heat_pump_backup_fuel</name>
@@ -2723,6 +2786,29 @@
         <choice>
           <value>MaxLoad</value>
           <display_name>MaxLoad</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_backup_sizing_methodology</name>
+      <display_name>Heat Pump: Backup Sizing Methodology</display_name>
+      <description>The auto-sizing methodology to use when the heat pump backup capacity is not provided. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control'&gt;HPXML HVAC Sizing Control&lt;/a&gt;) is used.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>emergency</value>
+          <display_name>emergency</display_name>
+        </choice>
+        <choice>
+          <value>supplemental</value>
+          <display_name>supplemental</display_name>
         </choice>
       </choices>
     </argument>
@@ -3153,6 +3239,15 @@
       <description>The output heating capacity of the second heating system. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems'&gt;HPXML Heating Systems&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Btu/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heating_system_2_heating_autosizing_factor</name>
+      <display_name>Heating System 2: Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>String</type>
+      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -4303,14 +4398,13 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>water_heater_num_units_served</name>
-      <display_name>Water Heater: Number of Units Served</display_name>
-      <description>Number of dwelling units served (directly or indirectly) by the water heater. Must be 1 if single-family detached. Used to apportion water heater tank losses to the unit.</description>
-      <type>Integer</type>
+      <name>water_heater_num_bedrooms_served</name>
+      <display_name>Water Heater: Number of Bedrooms Served</display_name>
+      <description>Number of bedrooms served (directly or indirectly) by the water heater. Only needed if single-family attached or apartment unit and it is a shared water heater serving multiple dwelling units. Used to apportion water heater tank losses to the unit.</description>
+      <type>String</type>
       <units>#</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>water_heater_uses_desuperheater</name>
@@ -4577,6 +4671,15 @@
       <name>water_fixtures_usage_multiplier</name>
       <display_name>Hot Water Fixtures: Usage Multiplier</display_name>
       <description>Multiplier on the hot water usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-water-fixtures'&gt;HPXML Water Fixtures&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>general_water_use_usage_multiplier</name>
+      <display_name>General Water Use: Usage Multiplier</display_name>
+      <description>Multiplier on internal gains from general water use (floor mopping, shower evaporation, water films on showers, tubs &amp; sinks surfaces, plant watering, etc.) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-building-occupancy'&gt;HPXML Building Occupancy&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
@@ -6242,9 +6345,18 @@
       </choices>
     </argument>
     <argument>
+      <name>ceiling_fan_label_energy_use</name>
+      <display_name>Ceiling Fan: Label Energy Use</display_name>
+      <description>The label average energy use of the ceiling fan(s). If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans'&gt;HPXML Ceiling Fans&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>W</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>ceiling_fan_efficiency</name>
       <display_name>Ceiling Fan: Efficiency</display_name>
-      <description>The efficiency rating of the ceiling fan(s) at medium speed. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans'&gt;HPXML Ceiling Fans&lt;/a&gt;) is used.</description>
+      <description>The efficiency rating of the ceiling fan(s) at medium speed. Only used if Label Energy Use not provided. If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans'&gt;HPXML Ceiling Fans&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>CFM/W</units>
       <required>false</required>
@@ -7323,7 +7435,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>C6ACB0D6</checksum>
+      <checksum>4A58551B</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -7340,13 +7452,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>71FEA50E</checksum>
+      <checksum>10C33D10</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>4211CA6E</checksum>
+      <checksum>A587EDCE</checksum>
     </file>
     <file>
       <filename>resstock_arguments_test.rb</filename>

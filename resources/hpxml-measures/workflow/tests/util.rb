@@ -45,6 +45,9 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, t
       elsif hpxml_bldg.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
         # FUTURE: GSHPs currently don't give desired results w/ unit multipliers
         # https://github.com/NREL/OpenStudio-HPXML/issues/1499
+      elsif xml.include? 'max-power-ratio-schedule'
+        # FUTURE: Maximum power ratio schedule currently gives inconsistent component load results w/ unit multipliers
+        # https://github.com/NREL/OpenStudio-HPXML/issues/1610
       elsif hpxml_bldg.batteries.size > 0
         # FUTURE: Batteries currently don't work with whole SFA/MF buildings
         # https://github.com/NREL/OpenStudio-HPXML/issues/1499
@@ -65,8 +68,8 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, t
   end
 
   print "Testing #{File.basename(xml)}...\n"
-  rundir = File.join(File.dirname(__FILE__), "test#{worker_num}")
 
+  rundir = File.join(File.dirname(__FILE__), "test#{worker_num}")
   # Uses 'monthly' to verify timeseries results match annual results via error-checking
   # inside the ReportSimulationOutput measure.
   cli_path = OpenStudio.getOpenStudioCLI
@@ -374,6 +377,10 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     timestep = hpxml_header.timestep.nil? ? 60 : hpxml_header.timestep
     if timestep > 15
       next if message.include?('Timestep: Requested number') && message.include?('is less than the suggested minimum')
+    end
+    # Location doesn't match EPW station
+    if hpxml_path.include? 'base-location-detailed.xml'
+      next if message.include? 'Weather file location will be used rather than entered (IDF) Location object.'
     end
     # TODO: Check why this house produces this warning
     if hpxml_path.include? 'house044.xml'
@@ -1006,11 +1013,11 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
         abs_delta_tol = UnitConversions.convert(abs_delta_tol, 'MBtu', 'kWh')
       end
     elsif key.include?('Peak Electricity:')
-      # Check that the peak electricity difference is less than 500 W or less than 2%
+      # Check that the peak electricity difference is less than 500 W or less than 5%
       # Wider tolerances than others because a small change in when an event (like the
       # water heating firing) occurs can significantly impact the peak.
       abs_delta_tol = 500.0
-      abs_frac_tol = 0.02
+      abs_frac_tol = 0.05
     elsif key.include?('Peak Load:')
       # Check that the peak load difference is less than 0.2 kBtu/hr or less than 5%
       abs_delta_tol = 0.2

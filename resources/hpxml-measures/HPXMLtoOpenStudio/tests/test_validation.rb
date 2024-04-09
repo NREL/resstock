@@ -105,6 +105,10 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'furnace-invalid-afue' => ['Expected AnnualHeatingEfficiency[Units="AFUE"]/Value to be less than or equal to 1'],
                             'generator-number-of-bedrooms-served' => ['Expected NumberofBedroomsServed to be greater than ../../../../BuildingSummary/BuildingConstruction/NumberofBedrooms [context: /HPXML/Building/BuildingDetails/Systems/extension/Generators/Generator[IsSharedSystem="true"], id: "Generator1"]'],
                             'generator-output-greater-than-consumption' => ['Expected AnnualConsumptionkBtu to be greater than AnnualOutputkWh*3412 [context: /HPXML/Building/BuildingDetails/Systems/extension/Generators/Generator, id: "Generator1"]'],
+                            'heat-pump-backup-sizing' => ["Expected HeatPumpBackupSizingMethodology to be 'emergency' or 'supplemental'"],
+                            'heat-pump-separate-backup-inputs' => ['Expected 0 element(s) for xpath: BackupAnnualHeatingEfficiency',
+                                                                   'Expected 0 element(s) for xpath: BackupHeatingCapacity',
+                                                                   'Expected 0 element(s) for xpath: extension/BackupHeatingAutosizingFactor'],
                             'heat-pump-capacity-17f' => ['Expected HeatingCapacity17F to be less than or equal to HeatingCapacity'],
                             'heat-pump-lockout-temperatures' => ['Expected CompressorLockoutTemperature to be less than or equal to BackupHeatingLockoutTemperature'],
                             'heat-pump-multiple-backup-systems' => ['Expected 0 or 1 element(s) for xpath: HeatPump/BackupSystem [context: /HPXML/Building/BuildingDetails, id: "MyBuilding"]'],
@@ -124,6 +128,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'hvac-mshp-not-var-speed' => ["Expected CompressorType to be 'variable speed'"],
                             'hvac-shr-low' => ['Expected SensibleHeatFraction to be greater than 0.5'],
                             'hvac-sizing-humidity-setpoint' => ['Expected ManualJInputs/HumiditySetpoint to be less than 1'],
+                            'hvac-sizing-daily-temp-range' => ["Expected ManualJInputs/DailyTemperatureRange to be 'low' or 'medium' or 'high'"],
                             'hvac-negative-crankcase-heater-watts' => ['Expected extension/CrankcaseHeaterPowerWatts to be greater than or equal to 0.0.'],
                             'incomplete-integrated-heating' => ['Expected 1 element(s) for xpath: IntegratedHeatingSystemFractionHeatLoadServed'],
                             'invalid-airflow-defect-ratio' => ['Expected extension/AirflowDefectRatio to be 0'],
@@ -184,9 +189,10 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                                                            'Expected 1 element(s) for xpath: ../LightingGroup[LightingType[CompactFluorescent] and Location="garage"]/FractionofUnitsInLocation | Load[Units="kWh/year"]/Value'],
                             'invalid-natvent-availability' => ['Expected extension/NaturalVentilationAvailabilityDaysperWeek to be less than or equal to 7'],
                             'invalid-natvent-availability2' => ['Expected extension/NaturalVentilationAvailabilityDaysperWeek to be greater than or equal to 0'],
-                            'invalid-number-of-bedrooms-served' => ['Expected extension/NumberofBedroomsServed to be greater than ../../../BuildingSummary/BuildingConstruction/NumberofBedrooms [context: /HPXML/Building/BuildingDetails/Systems/Photovoltaics/PVSystem[IsSharedSystem="true"], id: "PVSystem1"]'],
+                            'invalid-number-of-bedrooms-served-pv' => ['Expected extension/NumberofBedroomsServed to be greater than ../../../BuildingSummary/BuildingConstruction/NumberofBedrooms [context: /HPXML/Building/BuildingDetails/Systems/Photovoltaics/PVSystem[IsSharedSystem="true"], id: "PVSystem1"]'],
+                            'invalid-number-of-bedrooms-served-recirc' => ['Expected NumberofBedroomsServed to be greater than ../../../../../BuildingSummary/BuildingConstruction/NumberofBedrooms [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/HotWaterDistribution/extension/SharedRecirculation, id: "HotWaterDistribution1"]'],
+                            'invalid-number-of-bedrooms-served-water-heater' => ['Expected extension/NumberofBedroomsServed to be greater than ../../../BuildingSummary/BuildingConstruction/NumberofBedrooms [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[IsSharedSystem="true"], id: "WaterHeatingSystem1"]'],
                             'invalid-number-of-conditioned-floors' => ['Expected NumberofConditionedFloors to be greater than or equal to NumberofConditionedFloorsAboveGrade [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction, id: "MyBuilding"]'],
-                            'invalid-number-of-units-served' => ['Expected NumberofUnitsServed to be greater than 1 [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[IsSharedSystem="true"], id: "WaterHeatingSystem1"]'],
                             'invalid-pilot-light-heating-system' => ['Expected 1 element(s) for xpath: ../../HeatingSystemFuel[text()!="electricity"]'],
                             'invalid-soil-type' => ["Expected SoilType to be 'sand' or 'silt' or 'clay' or 'loam' or 'gravel' or 'unknown' [context: /HPXML/Building/BuildingDetails/BuildingSummary/Site/Soil, id: \"MyBuilding\"]"],
                             'invalid-shared-vent-in-unit-flowrate' => ['Expected RatedFlowRate to be greater than extension/InUnitFlowRate [context: /HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForWholeBuildingVentilation="true" and IsSharedSystem="true"], id: "VentilationFan1"]'],
@@ -217,7 +223,11 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'multifamily-reference-duct' => ['There are references to "other multifamily buffer space" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
                             'multifamily-reference-surface' => ['There are references to "other heated space" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
                             'multifamily-reference-water-heater' => ['There are references to "other non-freezing space" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
+                            'negative-autosizing-factors' => ['CoolingAutosizingFactor should be greater than 0.0',
+                                                              'HeatingAutosizingFactor should be greater than 0.0',
+                                                              'BackupHeatingAutosizingFactor should be greater than 0.0'],
                             'refrigerator-location' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
+                            'refrigerator-schedule' => ['Expected either schedule fractions/multipliers or schedule coefficients but not both.'],
                             'solar-fraction-one' => ['Expected SolarFraction to be less than 1 [context: /HPXML/Building/BuildingDetails/Systems/SolarThermal/SolarThermalSystem[SolarFraction], id: "SolarThermalSystem1"]'],
                             'water-heater-location' => ['A location is specified as "crawlspace - vented" but no surfaces were found adjacent to this space type.'],
                             'water-heater-location-other' => ["Expected Location to be 'conditioned space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'crawlspace - conditioned' or 'other exterior' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space'"],
@@ -356,6 +366,14 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['generator-output-greater-than-consumption'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-misc-generators.xml')
         hpxml_bldg.generators[0].annual_consumption_kbtu = 1500
+      elsif ['heat-pump-backup-sizing'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed.xml')
+        hpxml_bldg.header.heat_pump_backup_sizing_methodology = 'foobar'
+      elsif ['heat-pump-separate-backup-inputs'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml')
+        hpxml_bldg.heat_pumps[0].backup_heating_capacity = 12345
+        hpxml_bldg.heat_pumps[0].backup_heating_efficiency_afue = 0.8
+        hpxml_bldg.heat_pumps[0].backup_heating_autosizing_factor = 1.2
       elsif ['heat-pump-capacity-17f'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed.xml')
         hpxml_bldg.heat_pumps[0].heating_capacity_17F = hpxml_bldg.heat_pumps[0].heating_capacity + 1000.0
@@ -421,6 +439,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['hvac-sizing-humidity-setpoint'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.header.manualj_humidity_setpoint = 50
+      elsif ['hvac-sizing-daily-temp-range'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.header.manualj_daily_temp_range = 'foobar'
       elsif ['hvac-negative-crankcase-heater-watts'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.cooling_systems[0].crankcase_heater_watts = -10
@@ -545,15 +566,18 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['invalid-natvent-availability2'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.header.natvent_days_per_week = -1
-      elsif ['invalid-number-of-bedrooms-served'].include? error_case
+      elsif ['invalid-number-of-bedrooms-served-pv'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-pv.xml')
         hpxml_bldg.pv_systems[0].number_of_bedrooms_served = 3
+      elsif ['invalid-number-of-bedrooms-served-recirc'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-water-heater-recirc.xml')
+        hpxml_bldg.hot_water_distributions[0].shared_recirculation_number_of_bedrooms_served = 3
+      elsif ['invalid-number-of-bedrooms-served-water-heater'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-water-heater.xml')
+        hpxml_bldg.water_heating_systems[0].number_of_bedrooms_served = 3
       elsif ['invalid-number-of-conditioned-floors'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade = 3
-      elsif ['invalid-number-of-units-served'].include? error_case
-        hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-water-heater.xml')
-        hpxml_bldg.water_heating_systems[0].number_of_units_served = 1
       elsif ['invalid-pilot-light-heating-system'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-floor-furnace-propane-only.xml')
         hpxml_bldg.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
@@ -638,9 +662,18 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['multifamily-reference-water-heater'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.water_heating_systems[0].location = HPXML::LocationOtherNonFreezingSpace
+      elsif ['negative-autosizing-factors'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed-autosize-factor.xml')
+        hpxml_bldg.heat_pumps[0].heating_autosizing_factor = -0.5
+        hpxml_bldg.heat_pumps[0].cooling_autosizing_factor = -1.2
+        hpxml_bldg.heat_pumps[0].backup_heating_autosizing_factor = -0.1
       elsif ['refrigerator-location'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.refrigerators[0].location = HPXML::LocationGarage
+      elsif ['refrigerator-schedule'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.refrigerators[0].weekday_fractions = '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+        hpxml_bldg.refrigerators[0].constant_coefficients = '-0.487, -0.340, -0.370, -0.361, -0.515, -0.684, -0.471, -0.159, -0.079, -0.417, -0.411, -0.386, -0.240, -0.314, -0.160, -0.121, -0.469, -0.412, -0.091, 0.077, -0.118, -0.247, -0.445, -0.544'
       elsif ['solar-fraction-one'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-dhw-solar-fraction.xml')
         hpxml_bldg.solar_thermal_systems[0].solar_fraction = 1.0
@@ -982,6 +1015,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'schedule-detailed-duplicate-columns' => ["Schedule column name 'occupants' is duplicated."],
                             'schedule-detailed-wrong-filename' => ["Schedules file path 'invalid-wrong-filename.csv' does not exist."],
                             'schedule-detailed-wrong-rows' => ["Schedule has invalid number of rows (8759) for column 'occupants'. Must be one of: 8760, 17520, 26280, 35040, 43800, 52560, 87600, 105120, 131400, 175200, 262800, 525600."],
+                            'schedule-file-max-power-ratio-with-unit-multiplier' => ['NumberofUnits greater than 1 is not supported for maximum power ratio schedules of variable speed hvac systems.'],
                             'solar-thermal-system-with-combi-tankless' => ["Water heating system 'WaterHeatingSystem1' connected to solar thermal system 'SolarThermalSystem1' cannot be a space-heating boiler."],
                             'solar-thermal-system-with-desuperheater' => ["Water heating system 'WaterHeatingSystem1' connected to solar thermal system 'SolarThermalSystem1' cannot be attached to a desuperheater."],
                             'solar-thermal-system-with-dhw-indirect' => ["Water heating system 'WaterHeatingSystem1' connected to solar thermal system 'SolarThermalSystem1' cannot be a space-heating boiler."],
@@ -1318,6 +1352,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml_bldg.header.schedules_filepaths[0]))
         File.write(@tmp_csv_path, csv_data[0..-2].map(&:to_csv).join)
         hpxml_bldg.header.schedules_filepaths = [@tmp_csv_path]
+      elsif ['schedule-file-max-power-ratio-with-unit-multiplier'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-mini-split-heat-pump-ducted-max-power-ratio-schedule.xml')
+        hpxml_bldg.building_construction.number_of_units = 2
       elsif ['solar-thermal-system-with-combi-tankless'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-dhw-combi-tankless.xml')
         hpxml_bldg.solar_thermal_systems.add(id: "SolarThermalSystem#{hpxml_bldg.solar_thermal_systems.size + 1}",
@@ -1489,6 +1526,12 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                                                                                   "Both 'hot_water_fixtures' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'hot_water_fixtures' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'hot_water_fixtures' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'general_water_use' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'general_water_use' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'general_water_use' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'hot_water_recirculation_pump' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'hot_water_recirculation_pump' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'hot_water_recirculation_pump' schedule file and monthly multipliers provided; the latter will be ignored.",
                                                                                   "Both 'plug_loads_tv' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'plug_loads_tv' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'plug_loads_tv' schedule file and monthly multipliers provided; the latter will be ignored.",
@@ -1528,10 +1571,19 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                                                                                   "Both 'permanent_spa_heater' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'permanent_spa_heater' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'permanent_spa_heater' schedule file and monthly multipliers provided; the latter will be ignored."],
+                              'schedule-file-and-refrigerators-freezer-coefficients' => ["Both 'refrigerator' schedule file and constant coefficients provided; the latter will be ignored.",
+                                                                                         "Both 'refrigerator' schedule file and temperature coefficients provided; the latter will be ignored.",
+                                                                                         "Both 'extra_refrigerator' schedule file and constant coefficients provided; the latter will be ignored.",
+                                                                                         "Both 'extra_refrigerator' schedule file and temperature coefficients provided; the latter will be ignored.",
+                                                                                         "Both 'freezer' schedule file and constant coefficients provided; the latter will be ignored.",
+                                                                                         "Both 'freezer' schedule file and temperature coefficients provided; the latter will be ignored."],
                               'schedule-file-and-setpoints' => ["Both 'heating_setpoint' schedule file and heating setpoint temperature provided; the latter will be ignored.",
                                                                 "Both 'cooling_setpoint' schedule file and cooling setpoint temperature provided; the latter will be ignored.",
                                                                 "Both 'water_heater_setpoint' schedule file and setpoint temperature provided; the latter will be ignored."],
-                              'schedule-file-and-operating-mode' => ["Both 'water_heater_operating_mode' schedule file and operating mode provided; the latter will be ignored."] }
+                              'schedule-file-and-operating-mode' => ["Both 'water_heater_operating_mode' schedule file and operating mode provided; the latter will be ignored."],
+                              'schedule-file-max-power-ratio-with-single-speed-system' => ['Maximum power ratio schedule is only supported for variable speed systems.'],
+                              'schedule-file-max-power-ratio-with-two-speed-system' => ['Maximum power ratio schedule is only supported for variable speed systems.'],
+                              'schedule-file-max-power-ratio-with-separate-backup-system' => ['Maximum power ratio schedule is only supported for integrated backup system. Schedule is ignored for heating.'] }
 
     all_expected_warnings.each_with_index do |(warning_case, expected_warnings), i|
       puts "[#{i + 1}/#{all_expected_warnings.size}] Testing #{warning_case}..."
@@ -1595,6 +1647,23 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml.header.utility_bill_scenarios.clear # we don't want the propane warning
         hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/occupancy-stochastic.csv')
         hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/occupancy-non-stochastic.csv')
+        hpxml_bldg.hot_water_distributions[0].system_type = HPXML::DHWDistTypeRecirc
+        hpxml_bldg.hot_water_distributions[0].recirculation_control_type = HPXML::DHWRecircControlTypeNone
+        hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekday_fractions = Schedule.RecirculationPumpWithoutControlWeekdayFractions
+        hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekend_fractions = Schedule.RecirculationPumpWithoutControlWeekendFractions
+        hpxml_bldg.hot_water_distributions[0].recirculation_pump_monthly_multipliers = Schedule.RecirculationPumpMonthlyMultipliers
+      elsif ['schedule-file-and-refrigerators-freezer-coefficients'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/occupancy-stochastic.csv')
+        hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/occupancy-non-stochastic.csv')
+        hpxml_bldg.refrigerators[0].constant_coefficients = '-0.487, -0.340, -0.370, -0.361, -0.515, -0.684, -0.471, -0.159, -0.079, -0.417, -0.411, -0.386, -0.240, -0.314, -0.160, -0.121, -0.469, -0.412, -0.091, 0.077, -0.118, -0.247, -0.445, -0.544'
+        hpxml_bldg.refrigerators[0].temperature_coefficients = '0.019, 0.016, 0.017, 0.016, 0.018, 0.021, 0.019, 0.015, 0.015, 0.019, 0.018, 0.018, 0.016, 0.017, 0.015, 0.015, 0.020, 0.020, 0.017, 0.014, 0.016, 0.017, 0.019, 0.020'
+        hpxml_bldg.refrigerators.add(id: "Refrigerator#{hpxml_bldg.refrigerators.size + 1}",
+                                     constant_coefficients: '-0.487, -0.340, -0.370, -0.361, -0.515, -0.684, -0.471, -0.159, -0.079, -0.417, -0.411, -0.386, -0.240, -0.314, -0.160, -0.121, -0.469, -0.412, -0.091, 0.077, -0.118, -0.247, -0.445, -0.544',
+                                     temperature_coefficients: '0.019, 0.016, 0.017, 0.016, 0.018, 0.021, 0.019, 0.015, 0.015, 0.019, 0.018, 0.018, 0.016, 0.017, 0.015, 0.015, 0.020, 0.020, 0.017, 0.014, 0.016, 0.017, 0.019, 0.020')
+        hpxml_bldg.freezers.add(id: "Freezer#{hpxml_bldg.freezers.size + 1}",
+                                constant_coefficients: '-0.487, -0.340, -0.370, -0.361, -0.515, -0.684, -0.471, -0.159, -0.079, -0.417, -0.411, -0.386, -0.240, -0.314, -0.160, -0.121, -0.469, -0.412, -0.091, 0.077, -0.118, -0.247, -0.445, -0.544',
+                                temperature_coefficients: '0.019, 0.016, 0.017, 0.016, 0.018, 0.021, 0.019, 0.015, 0.015, 0.019, 0.018, 0.018, 0.016, 0.017, 0.015, 0.015, 0.020, 0.020, 0.017, 0.014, 0.016, 0.017, 0.019, 0.020')
       elsif ['schedule-file-and-setpoints'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/setpoints.csv')
@@ -1602,6 +1671,15 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['schedule-file-and-operating-mode'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-dhw-tank-heat-pump-operating-mode-heat-pump-only.xml')
         hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/water-heater-operating-modes.csv')
+      elsif ['schedule-file-max-power-ratio-with-single-speed-system'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed.xml')
+        hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/hvac-variable-system-maximum-power-ratios-varied.csv')
+      elsif ['schedule-file-max-power-ratio-with-two-speed-system'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-2-speed.xml')
+        hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/hvac-variable-system-maximum-power-ratios-varied.csv')
+      elsif ['schedule-file-max-power-ratio-with-separate-backup-system'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml')
+        hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/hvac-variable-system-maximum-power-ratios-varied.csv')
       else
         fail "Unhandled case: #{warning_case}."
       end

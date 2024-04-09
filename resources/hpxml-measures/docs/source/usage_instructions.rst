@@ -35,6 +35,8 @@ You can also request generation of timeseries output CSV/JSON/MessagePack files 
 | ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --hourly ALL``
 | Or to request one or more specific monthly output types in JSON format:
 | ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --monthly fuels --monthly temperatures --output-format json``
+| Or to request both monthly and hourly outputs (including an EnergyPlus output variable):
+| ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --monthly fuels --hourly temperatures --hourly 'Zone People Occupant Count'``
 
 | You can also add a detailed schedule as part of the simulation by using:
 | ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --add-stochastic-schedules``
@@ -68,5 +70,6 @@ Outputs
 A variety of high-level annual outputs are conveniently reported in the resulting ``run/results_annual.csv`` (or ``run/results_annual.json`` or ``run/results_annual.msgpack``) file.
 
 When timeseries outputs are requested, they will be found in the ``run/results_timeseries.csv`` (or ``run/results_timeseries.json`` or ``run/results_timeseries.msgpack``) file.
+If multiple timeseries frequencies are requested (e.g., hourly and daily), the timeseries output filenames will include the frequency (e.g., ``run/results_timeseries_daily.csv``).
 
 See :ref:`workflow_outputs` for a description of all available outputs available.

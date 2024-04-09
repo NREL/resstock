@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/version'
 require_relative '../resources/buildstock'
 require_relative '../test/analysis'
 require 'openstudio'
@@ -93,6 +94,9 @@ class TestRunAnalysis < Minitest::Test
       next if _expected_warning_message(message, "Both 'plug_loads_other' schedule file and weekday fractions provided; the latter will be ignored.")
       next if _expected_warning_message(message, "Both 'plug_loads_other' schedule file and weekend fractions provided; the latter will be ignored.")
       next if _expected_warning_message(message, "Both 'plug_loads_other' schedule file and monthly multipliers provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'lighting_interior' schedule file and weekday fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'lighting_interior' schedule file and weekend fractions provided; the latter will be ignored.")
+      next if _expected_warning_message(message, "Both 'lighting_interior' schedule file and monthly multipliers provided; the latter will be ignored.")
       next if _expected_warning_message(message, "Both 'lighting_garage' schedule file and weekday fractions provided; the latter will be ignored.")
       next if _expected_warning_message(message, "Both 'lighting_garage' schedule file and weekend fractions provided; the latter will be ignored.")
       next if _expected_warning_message(message, "Both 'lighting_garage' schedule file and monthly multipliers provided; the latter will be ignored.")
@@ -100,10 +104,11 @@ class TestRunAnalysis < Minitest::Test
       next if _expected_warning_message(message, 'Could not find state average fuel oil rate based on')
       next if _expected_warning_message(message, "Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       next if _expected_warning_message(message, 'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units. [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0]')
+      next if _expected_warning_message(message, 'Not calculating emissions because an electricity filepath for at least one emissions scenario could not be located.') # these are AK/HI samples
+      next if _expected_warning_message(message, 'Could not find State=AK')  # these are AK samples
 
       if !testing
         next if _expected_warning_message(message, 'No design condition info found; calculating design conditions from EPW weather data.')
-        next if _expected_warning_message(message, 'Not calculating emissions because an electricity filepath for at least one emissions scenario could not be located.') # these are AK/HI samples
         next if _expected_warning_message(message, 'The garage pitch was changed to accommodate garage ridge >= house ridge')
       end
       if testing
@@ -138,6 +143,10 @@ class TestRunAnalysis < Minitest::Test
     cli_output = `#{@command}`
 
     assert_includes(cli_output, "ResStock v#{Version::ResStock_Version}")
+    assert_includes(cli_output, "OpenStudio-HPXML v#{Version::OS_HPXML_Version}")
+    assert_includes(cli_output, "HPXML v#{Version::HPXML_Version}")
+    assert_includes(cli_output, "OpenStudio v#{OpenStudio.openStudioLongVersion}")
+    assert_includes(cli_output, "EnergyPlus v#{OpenStudio.energyPlusVersion}.#{OpenStudio.energyPlusBuildSHA}")
   end
 
   def test_errors_wrong_path

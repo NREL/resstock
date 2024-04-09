@@ -1368,9 +1368,14 @@ class Constructions
     return imdef
   end
 
-  def self.get_default_interior_shading_factors()
-    summer = 0.70
-    winter = 0.85
+  def self.get_default_interior_shading_factors(eri_version, shgc)
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2022C')
+      summer = 0.92 - (0.21 * shgc)
+      winter = summer
+    else
+      summer = 0.70
+      winter = 0.85
+    end
     return summer, winter
   end
 
@@ -1699,14 +1704,14 @@ class Constructions
         htg_day_sch = htg_setpoint_sch.to_ScheduleRuleset.get.getDaySchedules(sim_begin_date, sim_begin_date)[0]
         heat_setpoint = UnitConversions.convert(htg_day_sch.values[0], 'C', 'F')
       else
-        heat_setpoint = schedules_file.schedules[SchedulesFile::ColumnHeatingSetpoint][sim_begin_hour]
+        heat_setpoint = schedules_file.schedules[SchedulesFile::Columns[:HeatingSetpoint].name][sim_begin_hour]
       end
       clg_setpoint_sch = setpoint_sch.coolingSetpointTemperatureSchedule.get
       if clg_setpoint_sch.to_ScheduleRuleset.is_initialized
         clg_day_sch = clg_setpoint_sch.to_ScheduleRuleset.get.getDaySchedules(sim_begin_date, sim_begin_date)[0]
         cool_setpoint = UnitConversions.convert(clg_day_sch.values[0], 'C', 'F')
       else
-        cool_setpoint = schedules_file.schedules[SchedulesFile::ColumnCoolingSetpoint][sim_begin_hour]
+        cool_setpoint = schedules_file.schedules[SchedulesFile::Columns[:CoolingSetpoint].name][sim_begin_hour]
       end
 
       # Methodology adapted from https://github.com/NREL/EnergyPlus/blob/b18a2733c3131db808feac44bc278a14b05d8e1f/src/EnergyPlus/HeatBalanceKivaManager.cc#L303-L313
