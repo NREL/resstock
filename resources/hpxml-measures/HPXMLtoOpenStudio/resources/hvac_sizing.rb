@@ -2012,8 +2012,10 @@ class HVACSizing
       hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * @hvac_cooling_shr
       hvac_sizing_values.Cool_Airflow_isdefaulted = false
       if hvac_sizing_values.Heat_Capacity > 0
+        supply_air_temp = hvac_heating.additional_properties.supply_air_temp
+
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Cool_Capacity
-        hvac_sizing_values.Heat_Airflow = calc_airflow_rate_manual_s(mj, hvac_sizing_values.Heat_Capacity, (@supply_air_temp - mj.heat_setpoint), hvac_sizing_values.Heat_Capacity)
+        hvac_sizing_values.Heat_Airflow = calc_airflow_rate_manual_s(mj, hvac_sizing_values.Heat_Capacity, (supply_air_temp - mj.heat_setpoint), hvac_sizing_values.Heat_Capacity)
         hvac_sizing_values.Heat_Airflow_isdefaulted = false
       end
     else # hvac_sizing_values.Heat_Airflow > hvac_sizing_values.Cool_Airflow
@@ -2023,9 +2025,11 @@ class HVACSizing
       hvac_sizing_values.Heat_Capacity *= hvac_sizing_values.Heat_Airflow / prev_airflow
       hvac_sizing_values.Heat_Airflow_isdefaulted = false
       if hvac_sizing_values.Cool_Capacity > 0
+        leaving_air_temp = hvac_cooling.additional_properties.leaving_air_temp
+
         hvac_sizing_values.Cool_Capacity = hvac_sizing_values.Heat_Capacity
         hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * @hvac_cooling_shr
-        hvac_sizing_values.Cool_Airflow = calc_airflow_rate_manual_s(mj, hvac_sizing_values.Cool_Capacity_Sens, (mj.cool_setpoint - @leaving_air_temp), hvac_sizing_values.Cool_Capacity)
+        hvac_sizing_values.Cool_Airflow = calc_airflow_rate_manual_s(mj, hvac_sizing_values.Cool_Capacity_Sens, (mj.cool_setpoint - leaving_air_temp), hvac_sizing_values.Cool_Capacity)
         hvac_sizing_values.Cool_Airflow_isdefaulted = false
       end
     end
@@ -3327,7 +3331,13 @@ class HVACSizing
               [HPXML::HVACTypeBoiler,
                HPXML::HVACTypeElectricResistance].include?(htg_sys.heating_system_type))
         htg_sys.heating_airflow_cfm = Float(hvac_sizing_values.Heat_Airflow.round)
-        htg_sys.heating_airflow_cfm_isdefaulted = true
+        htg_sys.heating_airflow_cfm_isdefaulted = hvac_sizing_values.Heat_Airflow_isdefaulted
+
+        # Blower fan adjustment
+        if not hvac_sizing_values.Adjusted_Fan_Watts_Per_CFM.nil?
+          htg_sys.fan_watts_per_cfm = hvac_sizing_values.Adjusted_Fan_Watts_Per_CFM.round(3)
+          htg_sys.fan_watts_per_cfm_isdefaulted = true
+        end
       end
 
       # Heating geothermal loop
@@ -3391,7 +3401,13 @@ class HVACSizing
 
       # Cooling airflow
       clg_sys.cooling_airflow_cfm = Float(hvac_sizing_values.Cool_Airflow.round)
-      clg_sys.cooling_airflow_cfm_isdefaulted = true
+      clg_sys.cooling_airflow_cfm_isdefaulted = hvac_sizing_values.Cool_Airflow_isdefaulted
+
+      # Blower fan adjustment
+      if not hvac_sizing_values.Adjusted_Fan_Watts_Per_CFM.nil?
+        clg_sys.fan_watts_per_cfm = hvac_sizing_values.Adjusted_Fan_Watts_Per_CFM.round(3)
+        clg_sys.fan_watts_per_cfm_isdefaulted = true
+      end
     end
   end
 

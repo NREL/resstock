@@ -237,10 +237,12 @@ class ReportSimulationOutputTest < Minitest::Test
 
   BaseHPXMLTimeseriesColsEnergy = [
     "Energy Use: #{TE::Total}",
+    "Energy Use: #{TE::Net}",
   ]
 
   BaseHPXMLTimeseriesColsFuels = [
     "Fuel Use: #{FT::Elec}: #{TE::Total}",
+    "Fuel Use: #{FT::Elec}: #{TE::Net}",
     "Fuel Use: #{FT::Gas}: #{TE::Total}",
   ]
 
@@ -570,9 +572,7 @@ class ReportSimulationOutputTest < Minitest::Test
 
   def pv_battery_timeseries_cols
     return ["End Use: #{FT::Elec}: #{EUT::PV}",
-            "End Use: #{FT::Elec}: #{EUT::Battery}",
-            "Energy Use: #{TE::Net}",
-            "Fuel Use: #{FT::Elec}: #{TE::Net}"]
+            "End Use: #{FT::Elec}: #{EUT::Battery}"]
   end
 
   def test_annual_only
@@ -672,7 +672,7 @@ class ReportSimulationOutputTest < Minitest::Test
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsEnergy + ["Energy Use: #{TE::Net}"]
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsEnergy
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
@@ -691,7 +691,7 @@ class ReportSimulationOutputTest < Minitest::Test
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsFuels + ["Fuel Use: #{FT::Elec}: #{TE::Net}"]
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsFuels
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
