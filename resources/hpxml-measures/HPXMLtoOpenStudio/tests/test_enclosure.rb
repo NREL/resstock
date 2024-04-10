@@ -1037,6 +1037,13 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
   def _check_surface(hpxml_surface, os_surface, expected_layer_names, radiant_barrier_emittance = nil)
     os_construction = os_surface.construction.get.to_LayeredConstruction.get
 
+    # Check layers have valid properties
+    for i in 0..os_construction.numLayers - 1
+      layer = os_construction.getLayer(i)
+      assert_operator(layer.thickness, :>, 0)
+      assert_operator(layer.to_OpaqueMaterial.get.thermalConductivity, :>, 0)
+    end
+
     # Check exterior solar absorptance and emittance
     exterior_layer = os_construction.getLayer(0).to_OpaqueMaterial.get
     if hpxml_surface.respond_to? :solar_absorptance
