@@ -2015,7 +2015,7 @@ class Constructions
       constr_sets = [
         SIPConstructionSet.new(10.0, 0.16, 0.0, sheathing_thick_in, 0.5, mat_int_finish, mat_ext_finish),                  # 10" SIP core
         SIPConstructionSet.new(5.0, 0.16, 0.0, sheathing_thick_in, 0.5, mat_int_finish, mat_ext_finish),                   # 5" SIP core
-        SIPConstructionSet.new(1.0, 0.01, 0.0, sheathing_thick_in, 0.0, fallback_mat_int_finish, fallback_mat_ext_finish), # Fallback
+        SIPConstructionSet.new(1.1, 0.01, 0.0, sheathing_thick_in, 0.0, fallback_mat_int_finish, fallback_mat_ext_finish), # Fallback
       ]
       match, constr_set, cavity_r = pick_sip_construction_set(assembly_r, constr_sets, inside_film, outside_film)
 
@@ -2150,10 +2150,10 @@ class Constructions
 
     elsif floor_type == HPXML::FloorTypeSIP
       constr_sets = [
-        SIPConstructionSet.new(16.0, 0.16, 0.0, 0.0, osb_thick_in, mat_int_finish_or_covering, nil), # 16" SIP core
-        SIPConstructionSet.new(12.0, 0.16, 0.0, 0.0, osb_thick_in, mat_int_finish_or_covering, nil), # 12" SIP core
-        SIPConstructionSet.new(8.0, 0.16, 0.0, 0.0, osb_thick_in, mat_int_finish_or_covering, nil),  # 8" SIP core
-        SIPConstructionSet.new(1.0, 0.01, 0.0, 0.0, 0.0, fallback_mat_int_finish_or_covering, nil), # Fallback
+        SIPConstructionSet.new(16.0, 0.08, 0.0, 0.0, osb_thick_in, mat_int_finish_or_covering, nil), # 16" SIP core
+        SIPConstructionSet.new(12.0, 0.08, 0.0, 0.0, osb_thick_in, mat_int_finish_or_covering, nil), # 12" SIP core
+        SIPConstructionSet.new(8.0, 0.08, 0.0, 0.0, osb_thick_in, mat_int_finish_or_covering, nil),  # 8" SIP core
+        SIPConstructionSet.new(1.1, 0.01, 0.0, 0.0, 0.0, fallback_mat_int_finish_or_covering, nil), # Fallback
       ]
       match, constr_set, cavity_r = pick_sip_construction_set(assembly_r, constr_sets, inside_film, outside_film)
 
@@ -2264,7 +2264,7 @@ class Constructions
       end
     end
 
-    return false, constr_sets[-1], 0.0 # Pick fallback construction with minimum R-value
+    return false, constr_sets[-1], 0.1 # Pick fallback construction with minimum R-value
   end
 
   def self.pick_sip_construction_set(assembly_r, constr_sets, inside_film, outside_film)
@@ -2299,7 +2299,7 @@ class Constructions
       end
     end
 
-    return false, constr_sets[-1], 0.0 # Pick fallback construction with minimum R-value
+    return false, constr_sets[-1], 0.1 # Pick fallback construction with minimum R-value
   end
 
   def self.pick_cmu_construction_set(assembly_r, constr_sets, inside_film, outside_film)
