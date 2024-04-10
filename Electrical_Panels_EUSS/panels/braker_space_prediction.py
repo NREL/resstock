@@ -1,10 +1,11 @@
 import pandas as pd
 from get_major_elec_load_count import get_major_elec_load_count
 import pickle
+import numpy as np
+from numpy import random
 
 resstock_baseline_file = "test_data/euss1_2018_results_up00_clean__model_41138__tsv_based__predicted_panels_probablistically_assigned.csv"
 df = pd.read_csv(resstock_baseline_file)
-df = df.head(841)
 model_file = 'breaker_space_model_20240318/breaker_space_model_breaker_min_4_no_outliers.pickle'
 
 df.loc[df["build_existing_model.hvac_heating_type"] == "None", "has_elec_heating_primary"] = 0
@@ -37,16 +38,38 @@ df.loc[~df['predicted_panel_amp'].isin(['200', '201+']),"panel_amp_pre_bin_4__20
 df.loc[df['predicted_panel_amp'].isin(['<100', '100']),"panel_amp_pre_bin_4__lt_100"] = 1
 df.loc[~df['predicted_panel_amp'].isin(['<100', '100']),"panel_amp_pre_bin_4__lt_100"] = 0
 
-df_breaker = df[['const',
+zinb_data = df[['const',
                  'major_elec_load_count',
                  'panel_amp_pre_bin_4__101_199',
                  'panel_amp_pre_bin_4__200_plus',
                  'panel_amp_pre_bin_4__lt_100']].copy()
 
-model=pickle.load(open(model_file,'rb'))
-predictions=model.predict(df_breaker)
 
-df['panel_slots_empty'] = predictions
+with open(model_file, "rb") as f:
+    zinb_model = pickle.load(f)
+
+indep_vars =  [x for x in zinb_data.columns if "panel_slots_empty" not in x]
+
+print(zinb_data.info())
+indep_vars =  [x for x in zinb_data.columns if "panel_slots_empty" not in x]
+print(indep_vars)
+print(zinb_model.summary())
+
+predictions = zinb_model.predict(exog=zinb_data[indep_vars],
+                                 exog_infl=zinb_data[indep_vars],
+                                 which="prob")
+
+predictions["delta"] = (1 - predictions.sum(axis=1)) #24
+for index, row in predictions.iterrows():
+    column_index = random.randint(32)
+    row[column_index] += row["delta"]
+    predictions.at[index, column_index] = row[column_index]
+predictions = predictions.drop(columns=['delta'])
+print(predictions)
+slots = [x for x in range(0,32)]
+predictions["prediction"] = predictions.apply(lambda x: np.random.choice(slots,1,p=x)[0],axis=1)
+
+df['panel_slots_empty'] = predictions["prediction"]
 df = df.drop(columns=['has_elec_heating_primary',
                       'has_cooling',
                       'has_elec_water_heater',
