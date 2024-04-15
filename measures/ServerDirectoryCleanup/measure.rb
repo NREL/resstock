@@ -23,94 +23,94 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
 
   # define the arguments that the user will input
   def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
-    args = OpenStudio::Ruleset::OSArgumentVector.new
+    args = OpenStudio::Measure::OSArgumentVector.new
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_in_osm', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_in_osm', true)
     arg.setDisplayName('Retain in.osm')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_in_idf', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_in_idf', true)
     arg.setDisplayName('Retain in.idf')
     arg.setDefaultValue(true)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_pre_process_idf', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_pre_process_idf', true)
     arg.setDisplayName('Retain pre_process.idf')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_audit', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplusout_audit', true)
     arg.setDisplayName('Retain eplusout.audit')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_bnd', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplusout_bnd', true)
     arg.setDisplayName('Retain eplusout.bnd')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_eio', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplusout_eio', true)
     arg.setDisplayName('Retain eplusout.eio')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_end', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplusout_end', true)
     arg.setDisplayName('Retain eplusout.end')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_err', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplusout_err', true)
     arg.setDisplayName('Retain eplusout.err')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_eso', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplusout_eso', true)
     arg.setDisplayName('Retain eplusout.eso')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_mdd', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplusout_mdd', true)
     arg.setDisplayName('Retain eplusout.mdd')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_mtd', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplusout_mtd', true)
     arg.setDisplayName('Retain eplusout.mtd')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_rdd', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplusout_rdd', true)
     arg.setDisplayName('Retain eplusout.rdd')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_shd', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplusout_shd', true)
     arg.setDisplayName('Retain eplusout.shd')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_msgpack', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplusout_msgpack', true)
     arg.setDisplayName('Retain eplusout.msgpack')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplustbl_htm', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_eplustbl_htm', true)
     arg.setDisplayName('Retain eplustbl.htm')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_stdout_energyplus', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_stdout_energyplus', true)
     arg.setDisplayName('Retain stdout-energyplus')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_stdout_expandobject', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_stdout_expandobject', true)
     arg.setDisplayName('Retain stdout-expandobject.')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_schedules_csv', true)
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('retain_schedules_csv', true)
     arg.setDisplayName('Retain schedules.csv.')
     arg.setDefaultValue(true)
     args << arg
@@ -161,7 +161,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
     debug = runner.getBoolArgumentValue('debug', user_arguments)
 
     if debug
-      in_osm = in_idf = pre_process_idf = eplusout_audit = eplusout_bnd = eplusout_eio = eplusout_end = eplusout_err = eplusout_eso = eplusout_mdd = eplusout_mtd = eplusout_rdd = eplusout_shd = eplusout_msgpack = stdout_energyplus = stdout_expandobject = schedules_csv = true
+      in_osm = in_idf = pre_process_idf = eplusout_audit = eplusout_bnd = eplusout_eio = eplusout_end = eplusout_err = eplusout_eso = eplusout_mdd = eplusout_mtd = eplusout_rdd = eplusout_shd = eplusout_msgpack = eplustbl_htm = stdout_energyplus = stdout_expandobject = schedules_csv = true
     end
 
     Dir.glob('./../in.osm').each do |f|

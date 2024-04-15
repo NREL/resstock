@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<HPXML xmlns='http://hpxmlonline.com/2019/10' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://hpxmlonline.com/2019/10' schemaVersion='4.0'>
+<HPXML xmlns='http://hpxmlonline.com/2023/09' schemaVersion='4.0'>
   <XMLTransactionHeaderInformation>
     <XMLType>HPXML</XMLType>
     <XMLGeneratedBy>tasks.rb</XMLGeneratedBy>
@@ -11,7 +11,6 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
-      <SchedulesFilePath>../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv</SchedulesFilePath>
       <UtilityBillScenarios>
         <UtilityBillScenario>
           <Name>Bills</Name>
@@ -52,6 +51,9 @@
           <ConditionedFloorArea>2700.0</ConditionedFloorArea>
           <ConditionedBuildingVolume>21600.0</ConditionedBuildingVolume>
         </BuildingConstruction>
+        <extension>
+          <SchedulesFilePath>../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv</SchedulesFilePath>
+        </extension>
       </BuildingSummary>
       <ClimateandRiskZones>
         <ClimateZoneIECC>
@@ -114,7 +116,6 @@
             <SolarAbsorptance>0.7</SolarAbsorptance>
             <Emittance>0.92</Emittance>
             <Pitch>6.0</Pitch>
-            <RadiantBarrier>false</RadiantBarrier>
             <Insulation>
               <SystemIdentifier id='Roof1Insulation'/>
               <AssemblyEffectiveRValue>2.3</AssemblyEffectiveRValue>
@@ -140,7 +141,7 @@
           <Wall>
             <SystemIdentifier id='Wall1'/>
             <ExteriorAdjacentTo>outside</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
             <WallType>
               <WoodStud/>
             </WallType>
@@ -205,7 +206,7 @@
           <Floor>
             <SystemIdentifier id='Floor1'/>
             <ExteriorAdjacentTo>attic - unvented</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
             <FloorOrCeiling>ceiling</FloorOrCeiling>
             <FloorType>
               <WoodFrame/>
@@ -354,7 +355,7 @@
           <WaterHeatingSystem>
             <SystemIdentifier id='WaterHeatingSystem1'/>
             <WaterHeaterType>space-heating boiler with storage tank</WaterHeaterType>
-            <Location>living space</Location>
+            <Location>conditioned space</Location>
             <TankVolume>50.0</TankVolume>
             <FractionDHWLoadServed>1.0</FractionDHWLoadServed>
             <RelatedHVACSystem idref='HeatingSystem1'/>
@@ -385,7 +386,7 @@
       <Appliances>
         <ClothesWasher>
           <SystemIdentifier id='ClothesWasher1'/>
-          <Location>living space</Location>
+          <Location>conditioned space</Location>
           <IntegratedModifiedEnergyFactor>1.21</IntegratedModifiedEnergyFactor>
           <RatedAnnualkWh>380.0</RatedAnnualkWh>
           <LabelElectricRate>0.12</LabelElectricRate>
@@ -396,7 +397,7 @@
         </ClothesWasher>
         <ClothesDryer>
           <SystemIdentifier id='ClothesDryer1'/>
-          <Location>living space</Location>
+          <Location>conditioned space</Location>
           <FuelType>electricity</FuelType>
           <CombinedEnergyFactor>3.73</CombinedEnergyFactor>
           <Vented>true</Vented>
@@ -404,7 +405,7 @@
         </ClothesDryer>
         <Dishwasher>
           <SystemIdentifier id='Dishwasher1'/>
-          <Location>living space</Location>
+          <Location>conditioned space</Location>
           <RatedAnnualkWh>307.0</RatedAnnualkWh>
           <PlaceSettingCapacity>12</PlaceSettingCapacity>
           <LabelElectricRate>0.12</LabelElectricRate>
@@ -414,13 +415,13 @@
         </Dishwasher>
         <Refrigerator>
           <SystemIdentifier id='Refrigerator1'/>
-          <Location>living space</Location>
+          <Location>conditioned space</Location>
           <RatedAnnualkWh>650.0</RatedAnnualkWh>
           <PrimaryIndicator>true</PrimaryIndicator>
         </Refrigerator>
         <CookingRange>
           <SystemIdentifier id='CookingRange1'/>
-          <Location>living space</Location>
+          <Location>conditioned space</Location>
           <FuelType>electricity</FuelType>
           <IsInduction>false</IsInduction>
         </CookingRange>

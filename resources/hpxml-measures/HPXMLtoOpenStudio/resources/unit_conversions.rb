@@ -118,7 +118,7 @@ class UnitConversions
     ['psi', 'pa'] => 6.89475729 * 1000.0,
 
     # Angles
-    ['rad', 'deg'] => 57.29578,
+    ['rad', 'deg'] => 180.0 / Math::PI,
 
     # R-Value
     ['hr*ft^2*f/btu', 'm^2*k/w'] => 0.1761,
@@ -132,6 +132,9 @@ class UnitConversions
     # Thermal Conductivity
     ['btu/(hr*ft*r)', 'w/(m*k)'] => 1.731,
     ['btu*in/(hr*ft^2*r)', 'w/(m*k)'] => 0.14425,
+
+    # Thermal Diffusivity
+    ['m^2/s', 'ft^2/hr'] => 38750.1,
 
     # Infiltration
     ['ft^2/(s^2*r)', 'l^2/(s^2*cm^4*k)'] => 0.001672,

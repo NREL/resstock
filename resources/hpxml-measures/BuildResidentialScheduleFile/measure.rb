@@ -49,7 +49,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_random_seed', false)
     arg.setDisplayName('Schedules: Random Seed')
     arg.setUnits('#')
-    arg.setDescription("This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.")
+    arg.setDescription('This numeric field is the seed for the random number generator.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('output_csv_path', true)
@@ -62,10 +62,21 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative output path of the HPXML file. This HPXML file will include the output CSV path.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('append_output', false)
+    arg.setDisplayName('Append Output?')
+    arg.setDescription('If true and the output CSV file already exists, appends columns to the file rather than overwriting it. The existing output CSV file must have the same number of rows (i.e., timeseries frequency) as the new columns being appended.')
+    arg.setDefaultValue(false)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
     arg.setDisplayName('Debug Mode?')
-    arg.setDescription('Applicable when schedules type is stochastic. If true: Write extra state column(s).')
+    arg.setDescription('If true, writes extra column(s) for informational purposes.')
     arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('building_id', false)
+    arg.setDisplayName('BuildingID')
+    arg.setDescription("The ID of the HPXML Building. Only required if there are multiple Building elements in the HPXML file. Use 'ALL' to apply schedules to all the HPXML Buildings (dwelling units) of a multifamily building.")
     args << arg
 
     return args
@@ -97,49 +108,87 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     end
     args[:hpxml_output_path] = hpxml_output_path
 
-    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    args[:building_id] = args[:building_id].is_initialized ? args[:building_id].get : nil
+    args[:debug] = args[:debug].is_initialized ? args[:debug].get : false
+    args[:append_output] = args[:append_output].is_initialized ? args[:append_output].get : false
 
-    # exit if number of occupants is zero
-    if hpxml.building_occupancy.number_of_residents == 0
-      runner.registerInfo('Number of occupants set to zero; skipping generation of stochastic schedules.')
-      return true
+    # random seed
+    if args[:schedules_random_seed].is_initialized
+      args[:random_seed] = args[:schedules_random_seed].get
+      runner.registerInfo("Retrieved the schedules random seed; setting it to #{args[:random_seed]}.")
+    else
+      args[:random_seed] = 1
+      runner.registerInfo('Unable to retrieve the schedules random seed; setting it to 1.')
     end
 
-    # create EpwFile object
-    epw_path = Location.get_epw_path(hpxml, hpxml_path)
-    epw_file = OpenStudio::EpwFile.new(epw_path)
+    epw_path, epw_file, weather = nil, nil, nil
 
-    # create the schedules
-    success = create_schedules(runner, hpxml, epw_file, args)
-    return false if not success
+    output_csv_basename, _ = args[:output_csv_path].split('.csv')
 
-    # modify the hpxml with the schedules path
     doc = XMLHelper.parse_file(hpxml_path)
-    extension = XMLHelper.create_elements_as_needed(XMLHelper.get_element(doc, '/HPXML'), ['SoftwareInfo', 'extension'])
-    schedules_filepaths = XMLHelper.get_values(extension, 'SchedulesFilePath', :string)
-    if !schedules_filepaths.include?(args[:output_csv_path])
-      XMLHelper.add_element(extension, 'SchedulesFilePath', args[:output_csv_path], :string)
-    end
+    hpxml_doc = XMLHelper.get_element(doc, '/HPXML')
+    doc_buildings = XMLHelper.get_elements(hpxml_doc, 'Building')
+    doc_buildings.each_with_index do |building, i|
+      doc_building_id = XMLHelper.get_attribute_value(XMLHelper.get_element(building, 'BuildingID'), 'id')
 
-    # write out the modified hpxml
-    if (hpxml_path != hpxml_output_path) || !schedules_filepaths.include?(args[:output_csv_path])
-      XMLHelper.write_file(doc, hpxml_output_path)
-      runner.registerInfo("Wrote file: #{hpxml_output_path}")
+      next if doc_buildings.size > 1 && args[:building_id] != 'ALL' && args[:building_id] != doc_building_id
+
+      hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: doc_building_id)
+      hpxml_bldg = hpxml.buildings[0]
+
+      if epw_path.nil?
+        epw_path = Location.get_epw_path(hpxml_bldg, hpxml_path)
+        epw_file = OpenStudio::EpwFile.new(epw_path)
+        weather = WeatherProcess.new(epw_path: epw_path, runner: runner, hpxml: hpxml)
+      end
+
+      # deterministically vary schedules across building units
+      args[:random_seed] *= (i + 1)
+
+      # exit if number of occupants is zero
+      if hpxml_bldg.building_occupancy.number_of_residents == 0
+        runner.registerInfo("#{doc_building_id}: Number of occupants set to zero; skipping generation of stochastic schedules.")
+        next
+      end
+
+      # output csv path
+      args[:output_csv_path] = "#{output_csv_basename}.csv"
+      args[:output_csv_path] = "#{output_csv_basename}_#{i + 1}.csv" if i > 0 && args[:building_id] == 'ALL'
+
+      # create the schedules
+      success = create_schedules(runner, hpxml, hpxml_bldg, epw_file, weather, args)
+      return false if not success
+
+      # modify the hpxml with the schedules path
+      extension = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'BuildingSummary', 'extension'])
+      schedules_filepaths = XMLHelper.get_values(extension, 'SchedulesFilePath', :string)
+      if !schedules_filepaths.include?(args[:output_csv_path])
+        XMLHelper.add_element(extension, 'SchedulesFilePath', args[:output_csv_path], :string)
+      end
+      write_modified_hpxml(runner, doc, hpxml_path, hpxml_output_path, schedules_filepaths, args)
     end
 
     return true
   end
 
-  def create_schedules(runner, hpxml, epw_file, args)
+  def write_modified_hpxml(runner, doc, hpxml_path, hpxml_output_path, schedules_filepaths, args)
+    # write out the modified hpxml
+    if (hpxml_path != hpxml_output_path) || !schedules_filepaths.include?(args[:output_csv_path])
+      XMLHelper.write_file(doc, hpxml_output_path)
+      runner.registerInfo("Wrote file: #{hpxml_output_path}")
+    end
+  end
+
+  def create_schedules(runner, hpxml, hpxml_bldg, epw_file, weather, args)
     info_msgs = []
 
     get_simulation_parameters(hpxml, epw_file, args)
-    get_generator_inputs(hpxml, epw_file, args)
+    get_generator_inputs(hpxml_bldg, epw_file, args)
 
     args[:resources_path] = File.join(File.dirname(__FILE__), 'resources')
-    schedule_generator = ScheduleGenerator.new(runner: runner, epw_file: epw_file, **args)
+    schedule_generator = ScheduleGenerator.new(runner: runner, **args)
 
-    success = schedule_generator.create(args: args)
+    success = schedule_generator.create(args: args, weather: weather)
     return false if not success
 
     output_csv_path = args[:output_csv_path]
@@ -155,6 +204,9 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     info_msgs << "State=#{args[:state]}"
     info_msgs << "RandomSeed=#{args[:random_seed]}" if args[:schedules_random_seed].is_initialized
     info_msgs << "GeometryNumOccupants=#{args[:geometry_num_occupants]}"
+    info_msgs << "TimeZoneUTCOffset=#{args[:time_zone_utc_offset]}"
+    info_msgs << "Latitude=#{args[:latitude]}"
+    info_msgs << "Longitude=#{args[:longitude]}"
     info_msgs << "ColumnNames=#{args[:column_names]}" if args[:schedules_column_names].is_initialized
 
     runner.registerInfo("Created stochastic schedule with #{info_msgs.join(', ')}")
@@ -177,26 +229,26 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args[:total_days_in_year] = Constants.NumDaysInYear(calendar_year)
   end
 
-  def get_generator_inputs(hpxml, epw_file, args)
-    args[:state] = 'CO'
-    args[:state] = epw_file.stateProvinceRegion if Constants.StateCodesMap.keys.include?(epw_file.stateProvinceRegion)
-    args[:state] = hpxml.header.state_code if !hpxml.header.state_code.nil?
-
-    args[:random_seed] = args[:schedules_random_seed].get if args[:schedules_random_seed].is_initialized
+  def get_generator_inputs(hpxml_bldg, epw_file, args)
+    state_code = HPXMLDefaults.get_default_state_code(hpxml_bldg.state_code, epw_file)
+    if Constants.StateCodesMap.keys.include?(state_code)
+      args[:state] = state_code
+    else
+      # Unhandled state code, fallback to CO
+      args[:state] = 'CO'
+    end
     args[:column_names] = args[:schedules_column_names].get.split(',').map(&:strip) if args[:schedules_column_names].is_initialized
 
-    if hpxml.building_occupancy.number_of_residents.nil?
-      args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml.building_construction.number_of_bedrooms)
+    if hpxml_bldg.building_occupancy.number_of_residents.nil?
+      args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml_bldg.building_construction.number_of_bedrooms)
     else
-      args[:geometry_num_occupants] = hpxml.building_occupancy.number_of_residents
+      args[:geometry_num_occupants] = hpxml_bldg.building_occupancy.number_of_residents
     end
     args[:geometry_num_occupants] = Float(Integer(args[:geometry_num_occupants]))
 
-    debug = false
-    if args[:debug].is_initialized
-      debug = args[:debug].get
-    end
-    args[:debug] = debug
+    args[:time_zone_utc_offset] = HPXMLDefaults.get_default_time_zone(hpxml_bldg.time_zone_utc_offset, epw_file)
+    args[:latitude] = HPXMLDefaults.get_default_latitude(hpxml_bldg.latitude, epw_file)
+    args[:longitude] = HPXMLDefaults.get_default_longitude(hpxml_bldg.longitude, epw_file)
   end
 end
 

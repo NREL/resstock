@@ -1,0 +1,41 @@
+<%#= README.md.erb is used to auto-generate README.md. %>
+###### (Automatically generated documentation)
+
+# <%= name %>
+
+## Description
+<%= description %>
+
+<%= modelerDescription %>
+
+## Arguments
+
+<% arguments.each do |argument| %>
+**<%= argument[:display_name] %>**
+
+<%= argument[:description] %>
+
+- **Name:** ``<%= argument[:name] %>``
+- **Type:** ``<%= argument[:type] %>``
+<% if argument[:units] %>
+- **Units:** ``<%= argument[:units] %>``
+<% end %>
+- **Required:** ``<%= argument[:required] %>``
+<% if argument[:type] == "Choice" %>
+- **Choices:** `<%= argument[:choice_values].join("`, `") %>`
+<% end %>
+<br/>
+<% end %>
+
+<% if arguments.size == 0 %>
+<%= "This measure does not have any user arguments" %>
+<% end %>
+
+<% if outputs.size > 0 %>
+## Outputs
+All possible measure outputs are listed below. Actual outputs depend on measure argument values provided.
+
+<% outputs.each do |output| %>
+- ``<%= output[:display_name] %>``
+<% end %>
+<% end %>

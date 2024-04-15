@@ -3,11 +3,24 @@
 class Constructions
   # Container class for walls, floors/ceilings, roofs, etc.
 
-  def self.apply_wood_stud_wall(model, surfaces, constr_name,
-                                cavity_r, install_grade, cavity_depth_in, cavity_filled,
-                                framing_factor, mat_int_finish, osb_thick_in,
-                                rigid_r, mat_ext_finish, inside_film, outside_film,
-                                solar_absorptance = nil, emittance = nil)
+  def self.apply_wood_stud_wall(model,
+                                surfaces,
+                                constr_name,
+                                cavity_r,
+                                install_grade,
+                                cavity_depth_in,
+                                cavity_filled,
+                                framing_factor,
+                                mat_int_finish,
+                                osb_thick_in,
+                                rigid_r,
+                                mat_ext_finish,
+                                has_radiant_barrier,
+                                inside_film,
+                                outside_film,
+                                radiant_barrier_grade,
+                                solar_absorptance = nil,
+                                emittance = nil)
 
     return if surfaces.empty?
 
@@ -35,6 +48,10 @@ class Constructions
       rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
       mat_rigid = Material.new(name: 'wall rigid ins', thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
     end
+    mat_rb = nil
+    if has_radiant_barrier
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade, false)
+    end
 
     # Set paths
     gapFactor = get_gap_factor(install_grade, framing_factor, cavity_r)
@@ -56,21 +73,40 @@ class Constructions
     if not mat_int_finish.nil?
       constr.add_layer(mat_int_finish)
     end
+
+    if not mat_rb.nil?
+      constr.add_layer(mat_rb)
+    end
+
     constr.add_layer(inside_film)
 
     constr.set_exterior_material_properties(solar_absorptance, emittance)
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
   end
 
-  def self.apply_double_stud_wall(model, surfaces, constr_name,
-                                  cavity_r, install_grade, stud_depth_in, gap_depth_in,
-                                  framing_factor, framing_spacing, is_staggered,
-                                  mat_int_finish, osb_thick_in, rigid_r,
-                                  mat_ext_finish, inside_film, outside_film,
-                                  solar_absorptance = nil, emittance = nil)
+  def self.apply_double_stud_wall(model,
+                                  surfaces,
+                                  constr_name,
+                                  cavity_r,
+                                  install_grade,
+                                  stud_depth_in,
+                                  gap_depth_in,
+                                  framing_factor,
+                                  framing_spacing,
+                                  is_staggered,
+                                  mat_int_finish,
+                                  osb_thick_in,
+                                  rigid_r,
+                                  mat_ext_finish,
+                                  has_radiant_barrier,
+                                  inside_film,
+                                  outside_film,
+                                  radiant_barrier_grade,
+                                  solar_absorptance = nil,
+                                  emittance = nil)
 
     return if surfaces.empty?
 
@@ -92,6 +128,11 @@ class Constructions
     if rigid_r > 0
       rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
       mat_rigid = Material.new(name: 'wall rigid ins', thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
+    end
+
+    mat_rb = nil
+    if has_radiant_barrier
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade, false)
     end
 
     # Set paths
@@ -129,21 +170,40 @@ class Constructions
     if not mat_int_finish.nil?
       constr.add_layer(mat_int_finish)
     end
+
+    if not mat_rb.nil?
+      constr.add_layer(mat_rb)
+    end
+
     constr.add_layer(inside_film)
 
     constr.set_exterior_material_properties(solar_absorptance, emittance)
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
   end
 
-  def self.apply_cmu_wall(model, surfaces, constr_name,
-                          thick_in, conductivity, density, framing_factor,
-                          furring_r, furring_cavity_depth, furring_spacing,
-                          mat_int_finish, osb_thick_in, rigid_r,
-                          mat_ext_finish, inside_film, outside_film,
-                          solar_absorptance = nil, emittance = nil)
+  def self.apply_cmu_wall(model,
+                          surfaces,
+                          constr_name,
+                          thick_in,
+                          conductivity,
+                          density,
+                          framing_factor,
+                          furring_r,
+                          furring_cavity_depth,
+                          furring_spacing,
+                          mat_int_finish,
+                          osb_thick_in,
+                          rigid_r,
+                          mat_ext_finish,
+                          has_radiant_barrier,
+                          inside_film,
+                          outside_film,
+                          radiant_barrier_grade,
+                          solar_absorptance = nil,
+                          emittance = nil)
 
     return if surfaces.empty?
 
@@ -168,6 +228,10 @@ class Constructions
     if rigid_r > 0
       rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
       mat_rigid = Material.new(name: 'wall rigid ins', thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
+    end
+    mat_rb = nil
+    if has_radiant_barrier
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade, false)
     end
 
     # Set paths
@@ -200,20 +264,36 @@ class Constructions
     if not mat_int_finish.nil?
       constr.add_layer(mat_int_finish)
     end
+    if not mat_rb.nil?
+      constr.add_layer(mat_rb)
+    end
+
     constr.add_layer(inside_film)
 
     constr.set_exterior_material_properties(solar_absorptance, emittance)
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
   end
 
-  def self.apply_icf_wall(model, surfaces, constr_name,
-                          icf_r, ins_thick_in, concrete_thick_in, framing_factor,
-                          mat_int_finish, osb_thick_in, rigid_r,
-                          mat_ext_finish, inside_film, outside_film,
-                          solar_absorptance = nil, emittance = nil)
+  def self.apply_icf_wall(model,
+                          surfaces,
+                          constr_name,
+                          icf_r,
+                          ins_thick_in,
+                          concrete_thick_in,
+                          framing_factor,
+                          mat_int_finish,
+                          osb_thick_in,
+                          rigid_r,
+                          mat_ext_finish,
+                          has_radiant_barrier,
+                          inside_film,
+                          outside_film,
+                          radiant_barrier_grade,
+                          solar_absorptance = nil,
+                          emittance = nil)
 
     return if surfaces.empty?
 
@@ -230,6 +310,11 @@ class Constructions
     if rigid_r > 0
       rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
       mat_rigid = Material.new(name: 'wall rigid ins', thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
+    end
+
+    mat_rb = nil
+    if has_radiant_barrier
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade, false)
     end
 
     # Set paths
@@ -253,20 +338,36 @@ class Constructions
     if not mat_int_finish.nil?
       constr.add_layer(mat_int_finish)
     end
+
+    if not mat_rb.nil?
+      constr.add_layer(mat_rb)
+    end
     constr.add_layer(inside_film)
 
     constr.set_exterior_material_properties(solar_absorptance, emittance)
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
   end
 
-  def self.apply_sip_wall(model, surfaces, constr_name, sip_r,
-                          sip_thick_in, framing_factor, sheathing_thick_in,
-                          mat_int_finish, osb_thick_in, rigid_r,
-                          mat_ext_finish, inside_film, outside_film,
-                          solar_absorptance = nil, emittance = nil)
+  def self.apply_sip_wall(model,
+                          surfaces,
+                          constr_name,
+                          sip_r,
+                          sip_thick_in,
+                          framing_factor,
+                          sheathing_thick_in,
+                          mat_int_finish,
+                          osb_thick_in,
+                          rigid_r,
+                          mat_ext_finish,
+                          has_radiant_barrier,
+                          inside_film,
+                          outside_film,
+                          radiant_barrier_grade,
+                          solar_absorptance = nil,
+                          emittance = nil)
 
     return if surfaces.empty?
 
@@ -287,6 +388,11 @@ class Constructions
     if rigid_r > 0
       rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
       mat_rigid = Material.new(name: 'wall rigid ins', thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
+    end
+
+    mat_rb = nil
+    if has_radiant_barrier
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade, false)
     end
 
     # Set paths
@@ -313,21 +419,39 @@ class Constructions
     if not mat_int_finish.nil?
       constr.add_layer(mat_int_finish)
     end
+
+    if not mat_rb.nil?
+      constr.add_layer(mat_rb)
+    end
+
     constr.add_layer(inside_film)
 
     constr.set_exterior_material_properties(solar_absorptance, emittance)
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
   end
 
-  def self.apply_steel_stud_wall(model, surfaces, constr_name,
-                                 cavity_r, install_grade, cavity_depth,
-                                 cavity_filled, framing_factor, correction_factor,
-                                 mat_int_finish, osb_thick_in, rigid_r,
-                                 mat_ext_finish, inside_film, outside_film,
-                                 solar_absorptance = nil, emittance = nil)
+  def self.apply_steel_stud_wall(model,
+                                 surfaces,
+                                 constr_name,
+                                 cavity_r,
+                                 install_grade,
+                                 cavity_depth,
+                                 cavity_filled,
+                                 framing_factor,
+                                 correction_factor,
+                                 mat_int_finish,
+                                 osb_thick_in,
+                                 rigid_r,
+                                 mat_ext_finish,
+                                 has_radiant_barrier,
+                                 inside_film,
+                                 outside_film,
+                                 radiant_barrier_grade,
+                                 solar_absorptance = nil,
+                                 emittance = nil)
 
     return if surfaces.empty?
 
@@ -356,6 +480,11 @@ class Constructions
       mat_rigid = Material.new(name: 'wall rigid ins', thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
     end
 
+    mat_rb = nil
+    if has_radiant_barrier
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade, false)
+    end
+
     # Set paths
     gapFactor = get_gap_factor(install_grade, framing_factor, cavity_r)
     path_fracs = [1 - gapFactor, gapFactor]
@@ -376,20 +505,37 @@ class Constructions
     if not mat_int_finish.nil?
       constr.add_layer(mat_int_finish)
     end
+
+    if not mat_rb.nil?
+      constr.add_layer(mat_rb)
+    end
+
     constr.add_layer(inside_film)
 
     constr.set_exterior_material_properties(solar_absorptance, emittance)
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
   end
 
-  def self.apply_generic_layered_wall(model, surfaces, constr_name,
-                                      thick_ins, conds, denss, specheats,
-                                      mat_int_finish, osb_thick_in, rigid_r,
-                                      mat_ext_finish, inside_film, outside_film,
-                                      solar_absorptance = nil, emittance = nil)
+  def self.apply_generic_layered_wall(model,
+                                      surfaces,
+                                      constr_name,
+                                      thick_ins,
+                                      conds,
+                                      denss,
+                                      specheats,
+                                      mat_int_finish,
+                                      osb_thick_in,
+                                      rigid_r,
+                                      mat_ext_finish,
+                                      has_radiant_barrier,
+                                      inside_film,
+                                      outside_film,
+                                      radiant_barrier_grade,
+                                      solar_absorptance = nil,
+                                      emittance = nil)
 
     return if surfaces.empty?
 
@@ -424,6 +570,10 @@ class Constructions
       rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
       mat_rigid = Material.new(name: 'wall rigid ins', thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
     end
+    mat_rb = nil
+    if has_radiant_barrier
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade, false)
+    end
 
     # Set paths
     path_fracs = [1]
@@ -446,10 +596,14 @@ class Constructions
     if not mat_int_finish.nil?
       constr.add_layer(mat_int_finish)
     end
+    if not mat_rb.nil?
+      constr.add_layer(mat_rb)
+    end
+
     constr.add_layer(inside_film)
 
     constr.set_exterior_material_properties(solar_absorptance, emittance)
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
@@ -554,7 +708,7 @@ class Constructions
     end
     mat_rb = nil
     if has_radiant_barrier
-      mat_rb = Material.RadiantBarrier(radiant_barrier_grade)
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade, false)
     end
 
     # Set paths
@@ -623,7 +777,7 @@ class Constructions
     end
     mat_rb = nil
     if has_radiant_barrier
-      mat_rb = Material.RadiantBarrier(radiant_barrier_grade)
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade, false)
     end
 
     # Set paths
@@ -662,7 +816,7 @@ class Constructions
                                           cavity_r, install_grade,
                                           framing_factor, joist_height_in,
                                           plywood_thick_in, rigid_r, mat_int_finish_or_covering,
-                                          inside_film, outside_film)
+                                          has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade)
 
     # Interior finish below, open cavity above (e.g., attic floor)
     # Open cavity below, floor covering above (e.g., crawlspace ceiling)
@@ -681,7 +835,12 @@ class Constructions
           addtl_thick_in = rigid_r / 3.0 # Assume roughly R-3 per inch of loose-fill above cavity
           mat_addtl_ins = Material.new(name: 'ceiling loosefill ins', thick_in: addtl_thick_in, mat_base: BaseMaterial.InsulationGenericLoosefill, k_in: addtl_thick_in / rigid_r)
         end
+
         mat_cavity = Material.new(thick_in: joist_height_in, mat_base: BaseMaterial.InsulationGenericLoosefill, k_in: joist_height_in / cavity_r)
+      end
+      mat_rb = nil
+      if has_radiant_barrier
+        mat_rb = Material.RadiantBarrier(radiant_barrier_grade, true)
       end
       mat_framing = Material.new(thick_in: joist_height_in, mat_base: BaseMaterial.Wood)
       mat_gap = Material.AirCavityOpen(joist_height_in)
@@ -693,6 +852,9 @@ class Constructions
       # Define construction
       constr = Construction.new(constr_name, path_fracs)
       constr.add_layer(outside_film)
+      if not mat_rb.nil?
+        constr.add_layer(mat_rb)
+      end
       if not mat_addtl_ins.nil?
         constr.add_layer(mat_addtl_ins)
       end
@@ -724,6 +886,9 @@ class Constructions
       # Define construction
       constr = Construction.new(constr_name, path_fracs)
       constr.add_layer(outside_film)
+      if not mat_rb.nil?
+        constr.add_layer(mat_rb)
+      end
       constr.add_layer([mat_framing, mat_cavity, mat_gap], 'floor stud and cavity')
       if not mat_rigid.nil?
         constr.add_layer(mat_rigid)
@@ -737,7 +902,7 @@ class Constructions
       constr.add_layer(inside_film)
     end
 
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
@@ -747,7 +912,7 @@ class Constructions
                                            cavity_r, install_grade,
                                            framing_factor, correction_factor, joist_height_in,
                                            plywood_thick_in, rigid_r, mat_int_finish_or_covering,
-                                           inside_film, outside_film)
+                                           has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade)
 
     # Interior finish below, open cavity above (e.g., attic floor)
     # Open cavity below, floor covering above (e.g., crawlspace ceiling)
@@ -769,6 +934,10 @@ class Constructions
         end
         mat_cavity = Material.new(thick_in: joist_height_in, mat_base: BaseMaterial.InsulationGenericLoosefill, k_in: joist_height_in / eR)
       end
+      mat_rb = nil
+      if has_radiant_barrier
+        mat_rb = Material.RadiantBarrier(radiant_barrier_grade, true)
+      end
       mat_gap = Material.AirCavityOpen(joist_height_in)
 
       # Set paths
@@ -778,6 +947,9 @@ class Constructions
       # Define construction
       constr = Construction.new(constr_name, path_fracs)
       constr.add_layer(outside_film)
+      if not mat_rb.nil?
+        constr.add_layer(mat_rb)
+      end
       if not mat_addtl_ins.nil?
         constr.add_layer(mat_addtl_ins)
       end
@@ -822,7 +994,7 @@ class Constructions
       constr.add_layer(inside_film)
     end
 
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
@@ -831,8 +1003,8 @@ class Constructions
   def self.apply_sip_floor_ceiling(model, surfaces, constr_name, is_ceiling,
                                    sip_r, sip_thick_in, framing_factor,
                                    mat_int_finish, osb_thick_in, rigid_r,
-                                   mat_ext_finish, inside_film, outside_film,
-                                   solar_absorptance = nil, emittance = nil)
+                                   mat_ext_finish, has_radiant_barrier, inside_film, outside_film,
+                                   radiant_barrier_grade, solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
@@ -859,6 +1031,10 @@ class Constructions
       rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
       mat_rigid = Material.new(name: "#{constr_type} rigid ins", thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
     end
+    mat_rb = nil
+    if has_radiant_barrier
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade, true)
+    end
 
     # Set paths
     spline_frac = 4.0 / 48.0 # One 4" spline for every 48" wide panel
@@ -870,6 +1046,9 @@ class Constructions
     constr.add_layer(outside_film)
     if not mat_ext_finish.nil?
       constr.add_layer(mat_ext_finish)
+    end
+    if not mat_rb.nil?
+      constr.add_layer(mat_rb)
     end
     constr.add_layer([mat_framing_inner_outer, mat_spline, mat_ins_inner_outer], "#{constr_type} spline layer")
     constr.add_layer([mat_framing_middle, mat_ins_middle, mat_ins_middle], "#{constr_type} ins layer")
@@ -886,7 +1065,7 @@ class Constructions
     constr.add_layer(inside_film)
 
     constr.set_exterior_material_properties(solar_absorptance, emittance)
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
@@ -895,8 +1074,8 @@ class Constructions
   def self.apply_generic_layered_floor_ceiling(model, surfaces, constr_name, is_ceiling,
                                                thick_ins, conds, denss, specheats,
                                                mat_int_finish, osb_thick_in, rigid_r,
-                                               mat_ext_finish, inside_film, outside_film,
-                                               solar_absorptance = nil, emittance = nil)
+                                               mat_ext_finish, has_radiant_barrier, inside_film, outside_film,
+                                               radiant_barrier_grade, solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
@@ -937,7 +1116,10 @@ class Constructions
       rigid_thick_in = rigid_r * BaseMaterial.InsulationRigid.k_in
       mat_rigid = Material.new(name: "#{constr_type} rigid ins", thick_in: rigid_thick_in, mat_base: BaseMaterial.InsulationRigid, k_in: rigid_thick_in / rigid_r)
     end
-
+    mat_rb = nil
+    if has_radiant_barrier
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade, true)
+    end
     # Set paths
     path_fracs = [1]
 
@@ -946,6 +1128,9 @@ class Constructions
     constr.add_layer(outside_film)
     if not mat_ext_finish.nil?
       constr.add_layer(mat_ext_finish)
+    end
+    if not mat_rb.nil?
+      constr.add_layer(mat_rb)
     end
     mats.each do |mat|
       constr.add_layer(mat)
@@ -962,7 +1147,7 @@ class Constructions
     constr.add_layer(inside_film)
 
     constr.set_exterior_material_properties(solar_absorptance, emittance)
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
@@ -1090,13 +1275,26 @@ class Constructions
     # Add remaining partition walls within spaces (those without geometric representation)
     # as internal mass object.
     obj_name = 'partition wall mass'
-    imdef = create_os_int_mass_and_def(model, obj_name, spaces[HPXML::LocationLivingSpace], partition_wall_area)
+    imdef = create_os_int_mass_and_def(model, obj_name, spaces[HPXML::LocationConditionedSpace], partition_wall_area)
 
-    apply_wood_stud_wall(model, [imdef], constr_name,
-                         0, 1, 3.5, false, 0.16,
-                         mat_int_finish, 0, 0, mat_int_finish,
+    apply_wood_stud_wall(model,
+                         [imdef],
+                         constr_name,
+                         0,
+                         1,
+                         3.5,
+                         false,
+                         0.16,
+                         mat_int_finish,
+                         0,
+                         0,
+                         mat_int_finish,
+                         false,
                          Material.AirFilmVertical,
-                         Material.AirFilmVertical)
+                         Material.AirFilmVertical,
+                         1,
+                         nil,
+                         nil)
   end
 
   def self.apply_furniture(model, furniture_mass, spaces)
@@ -1118,7 +1316,7 @@ class Constructions
       furnSolarAbsorptance = 0.6
       furnSpecHeat = mat.cp
       furnDensity = mat.rho
-      if location == HPXML::LocationLivingSpace
+      if location == HPXML::LocationConditionedSpace
         furnAreaFraction = furniture_mass.area_fraction
         furnMass = mass_lb_per_sqft
       elsif location == HPXML::LocationBasementUnconditioned
@@ -1132,9 +1330,9 @@ class Constructions
       next if furnAreaFraction.nil?
       next if furnAreaFraction <= 0
 
-      mat_obj_name_space = "#{Constants.ObjectNameFurniture} material #{space.name}"
-      constr_obj_name_space = "#{Constants.ObjectNameFurniture} construction #{space.name}"
-      mass_obj_name_space = "#{Constants.ObjectNameFurniture} mass #{space.name}"
+      mat_obj_name_space = "furniture material #{space.name}"
+      constr_obj_name_space = "furniture construction #{space.name}"
+      mass_obj_name_space = "furniture mass #{space.name}"
 
       furnThickness = UnitConversions.convert(furnMass / (furnDensity * furnAreaFraction), 'ft', 'in')
 
@@ -1170,9 +1368,14 @@ class Constructions
     return imdef
   end
 
-  def self.get_default_interior_shading_factors()
-    summer = 0.70
-    winter = 0.85
+  def self.get_default_interior_shading_factors(eri_version, shgc)
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2022C')
+      summer = 0.92 - (0.21 * shgc)
+      winter = summer
+    else
+      summer = 0.70
+      winter = 0.85
+    end
     return summer, winter
   end
 
@@ -1226,15 +1429,17 @@ class Constructions
       fail "Unexpected #{type.downcase} frame type."
     end
 
-    if [HPXML::WindowGlassTypeClear].include? window_or_skylight.glass_type
+    if [HPXML::WindowGlassTypeClear,
+        HPXML::WindowGlassTypeReflective].include? window_or_skylight.glass_type
       glass_type = 'clear'
     elsif [HPXML::WindowGlassTypeTinted,
            HPXML::WindowGlassTypeTintedReflective].include? window_or_skylight.glass_type
       glass_type = 'tinted'
-    elsif [HPXML::WindowGlassTypeLowE].include? window_or_skylight.glass_type
-      glass_type = 'low_e'
-    elsif [HPXML::WindowGlassTypeReflective].include? window_or_skylight.glass_type
-      glass_type = 'reflective'
+    elsif [HPXML::WindowGlassTypeLowE,
+           HPXML::WindowGlassTypeLowEHighSolarGain].include? window_or_skylight.glass_type
+      glass_type = 'low_e_insulating'
+    elsif [HPXML::WindowGlassTypeLowELowSolarGain].include? window_or_skylight.glass_type
+      glass_type = 'low_e_solar_control'
     else
       fail "Unexpected #{type.downcase} glass type."
     end
@@ -1267,14 +1472,14 @@ class Constructions
                [true, false, 2, 'tinted', 'air'] => [0.81, 0.55], # Double-pane, tinted, aluminum frame
                [true, true, 2, 'tinted', 'air'] => [0.60, 0.55], # Double-pane, tinted, aluminum frame w/ thermal break
                [false, nil, 2, 'tinted', 'air'] => [0.51, 0.46], # Double-pane, tinted, wood or vinyl frame
-               [false, nil, 2, 'low_e', 'air'] => [0.42, 0.52], # Double-pane, insulating low-E, wood or vinyl frame
-               [true, true, 2, 'low_e', 'gas'] => [0.47, 0.62], # Double-pane, insulating low-E, argon gas fill, aluminum frame w/ thermal break
-               [false, nil, 2, 'low_e', 'gas'] => [0.39, 0.52], # Double-pane, insulating low-E, argon gas fill, wood or vinyl frame
-               [true, false, 2, 'reflective', 'air'] => [0.67, 0.37], # Double-pane, solar-control low-E, aluminum frame
-               [true, true, 2, 'reflective', 'air'] => [0.47, 0.37], # Double-pane, solar-control low-E, aluminum frame w/ thermal break
-               [false, nil, 2, 'reflective', 'air'] => [0.39, 0.31], # Double-pane, solar-control low-E, wood or vinyl frame
-               [false, nil, 2, 'reflective', 'gas'] => [0.36, 0.31], # Double-pane, solar-control low-E, argon gas fill, wood or vinyl frame
-               [false, nil, 3, 'low_e', 'gas'] => [0.27, 0.31] }[key] # Triple-pane, insulating low-E, argon gas fill, wood or vinyl frame
+               [false, nil, 2, 'low_e_insulating', 'air'] => [0.42, 0.52], # Double-pane, insulating low-E, wood or vinyl frame
+               [true, true, 2, 'low_e_insulating', 'gas'] => [0.47, 0.62], # Double-pane, insulating low-E, argon gas fill, aluminum frame w/ thermal break
+               [false, nil, 2, 'low_e_insulating', 'gas'] => [0.39, 0.52], # Double-pane, insulating low-E, argon gas fill, wood or vinyl frame
+               [true, false, 2, 'low_e_solar_control', 'air'] => [0.67, 0.37], # Double-pane, solar-control low-E, aluminum frame
+               [true, true, 2, 'low_e_solar_control', 'air'] => [0.47, 0.37], # Double-pane, solar-control low-E, aluminum frame w/ thermal break
+               [false, nil, 2, 'low_e_solar_control', 'air'] => [0.39, 0.31], # Double-pane, solar-control low-E, wood or vinyl frame
+               [false, nil, 2, 'low_e_solar_control', 'gas'] => [0.36, 0.31], # Double-pane, solar-control low-E, argon gas fill, wood or vinyl frame
+               [false, nil, 3, 'low_e_insulating', 'gas'] => [0.27, 0.31] }[key] # Triple-pane, insulating low-E, argon gas fill, wood or vinyl frame
     elsif type.downcase == 'skylight'
       vals = { [true, false, 1, 'clear', 'none'] => [1.98, 0.75], # Single-pane, clear, aluminum frame
                [false, nil, 1, 'clear', 'none'] => [1.47, 0.64], # Single-pane, clear, wood or vinyl frame
@@ -1286,14 +1491,14 @@ class Constructions
                [true, false, 2, 'tinted', 'air'] => [1.30, 0.55], # Double-pane, tinted, aluminum frame
                [true, true, 2, 'tinted', 'air'] => [1.10, 0.55], # Double-pane, tinted, aluminum frame w/ thermal break
                [false, nil, 2, 'tinted', 'air'] => [0.84, 0.46], # Double-pane, tinted, wood or vinyl frame
-               [false, nil, 2, 'low_e', 'air'] => [0.74, 0.52], # Double-pane, insulating low-E, wood or vinyl frame
-               [true, true, 2, 'low_e', 'gas'] => [0.95, 0.62], # Double-pane, insulating low-E, argon gas fill, aluminum frame w/ thermal break
-               [false, nil, 2, 'low_e', 'gas'] => [0.68, 0.52], # Double-pane, insulating low-E, argon gas fill, wood or vinyl frame
-               [true, false, 2, 'reflective', 'air'] => [1.17, 0.37], # Double-pane, solar-control low-E, aluminum frame
-               [true, true, 2, 'reflective', 'air'] => [0.98, 0.37], # Double-pane, solar-control low-E, aluminum frame w/ thermal break
-               [false, nil, 2, 'reflective', 'air'] => [0.71, 0.31], # Double-pane, solar-control low-E, wood or vinyl frame
-               [false, nil, 2, 'reflective', 'gas'] => [0.65, 0.31], # Double-pane, solar-control low-E, argon gas fill, wood or vinyl frame
-               [false, nil, 3, 'low_e', 'gas'] => [0.47, 0.31] }[key] # Triple-pane, insulating low-E, argon gas fill, wood or vinyl frame
+               [false, nil, 2, 'low_e_insulating', 'air'] => [0.74, 0.52], # Double-pane, insulating low-E, wood or vinyl frame
+               [true, true, 2, 'low_e_insulating', 'gas'] => [0.95, 0.62], # Double-pane, insulating low-E, argon gas fill, aluminum frame w/ thermal break
+               [false, nil, 2, 'low_e_insulating', 'gas'] => [0.68, 0.52], # Double-pane, insulating low-E, argon gas fill, wood or vinyl frame
+               [true, false, 2, 'low_e_solar_control', 'air'] => [1.17, 0.37], # Double-pane, solar-control low-E, aluminum frame
+               [true, true, 2, 'low_e_solar_control', 'air'] => [0.98, 0.37], # Double-pane, solar-control low-E, aluminum frame w/ thermal break
+               [false, nil, 2, 'low_e_solar_control', 'air'] => [0.71, 0.31], # Double-pane, solar-control low-E, wood or vinyl frame
+               [false, nil, 2, 'low_e_solar_control', 'gas'] => [0.65, 0.31], # Double-pane, solar-control low-E, argon gas fill, wood or vinyl frame
+               [false, nil, 3, 'low_e_insulating', 'gas'] => [0.47, 0.31] }[key] # Triple-pane, insulating low-E, argon gas fill, wood or vinyl frame
     else
       fail 'Unexpected type.'
     end
@@ -1499,14 +1704,14 @@ class Constructions
         htg_day_sch = htg_setpoint_sch.to_ScheduleRuleset.get.getDaySchedules(sim_begin_date, sim_begin_date)[0]
         heat_setpoint = UnitConversions.convert(htg_day_sch.values[0], 'C', 'F')
       else
-        heat_setpoint = schedules_file.schedules[SchedulesFile::ColumnHeatingSetpoint][sim_begin_hour]
+        heat_setpoint = schedules_file.schedules[SchedulesFile::Columns[:HeatingSetpoint].name][sim_begin_hour]
       end
       clg_setpoint_sch = setpoint_sch.coolingSetpointTemperatureSchedule.get
       if clg_setpoint_sch.to_ScheduleRuleset.is_initialized
         clg_day_sch = clg_setpoint_sch.to_ScheduleRuleset.get.getDaySchedules(sim_begin_date, sim_begin_date)[0]
         cool_setpoint = UnitConversions.convert(clg_day_sch.values[0], 'C', 'F')
       else
-        cool_setpoint = schedules_file.schedules[SchedulesFile::ColumnCoolingSetpoint][sim_begin_hour]
+        cool_setpoint = schedules_file.schedules[SchedulesFile::Columns[:CoolingSetpoint].name][sim_begin_hour]
       end
 
       # Methodology adapted from https://github.com/NREL/EnergyPlus/blob/b18a2733c3131db808feac44bc278a14b05d8e1f/src/EnergyPlus/HeatBalanceKivaManager.cc#L303-L313
@@ -1535,7 +1740,7 @@ class Constructions
       initial_temp = indoor_temp
     else
       # Space temperature assumptions from ASHRAE 152 - Duct Efficiency Calculations.xls, Zone temperatures
-      ground_temp = weather.data.GroundMonthlyTemps[sim_begin_month - 1]
+      ground_temp = weather.data.ShallowGroundMonthlyTemps[sim_begin_month - 1]
       if slab.interior_adjacent_to == HPXML::LocationBasementUnconditioned
         if foundation_ceiling_insulated
           # Insulated ceiling: 75% ground, 25% outdoor, 0% indoor
@@ -1617,103 +1822,59 @@ class Constructions
     constr.create_and_assign_constructions([subsurface], model)
   end
 
-  def self.apply_window_skylight_shading(model, window_or_skylight, index, shading_vertices, parent_surface, sub_surface, shading_group,
-                                         shading_schedules, shading_ems, name, hpxml)
+  def self.apply_window_skylight_shading(model, window_or_skylight, sub_surface, shading_schedules, hpxml_header, hpxml_bldg)
     sf_summer = window_or_skylight.interior_shading_factor_summer * window_or_skylight.exterior_shading_factor_summer
     sf_winter = window_or_skylight.interior_shading_factor_winter * window_or_skylight.exterior_shading_factor_winter
     if (sf_summer < 1.0) || (sf_winter < 1.0)
       # Apply shading
-      # We use a ShadingSurface instead of a Shade so that we perfectly get the result we want.
-      # The latter object is complex and it is essentially impossible to achieve the target reduction in transmitted
-      # solar (due to, e.g., re-reflectance, absorptance, angle modifiers, effects on convection, etc.).
-
-      # Shading surface is used to reduce beam solar and sky diffuse solar
-      shading_surface = OpenStudio::Model::ShadingSurface.new(shading_vertices, model)
-      shading_surface.setName("#{window_or_skylight.id} shading surface")
-      shading_surface.additionalProperties.setFeature('Azimuth', window_or_skylight.azimuth)
-      shading_surface.additionalProperties.setFeature('ParentSurface', parent_surface.name.to_s)
 
       # Determine transmittance values throughout the year
-      trans_values = []
-      num_days_in_year = Constants.NumDaysInYear(hpxml.header.sim_calendar_year)
-      if not hpxml.header.shading_summer_begin_month.nil?
-        summer_start_day_num = Schedule.get_day_num_from_month_day(hpxml.header.sim_calendar_year,
-                                                                   hpxml.header.shading_summer_begin_month,
-                                                                   hpxml.header.shading_summer_begin_day)
-        summer_end_day_num = Schedule.get_day_num_from_month_day(hpxml.header.sim_calendar_year,
-                                                                 hpxml.header.shading_summer_end_month,
-                                                                 hpxml.header.shading_summer_end_day)
+      sf_values = []
+      num_days_in_year = Constants.NumDaysInYear(hpxml_header.sim_calendar_year)
+      if not hpxml_bldg.header.shading_summer_begin_month.nil?
+        summer_start_day_num = Schedule.get_day_num_from_month_day(hpxml_header.sim_calendar_year,
+                                                                   hpxml_bldg.header.shading_summer_begin_month,
+                                                                   hpxml_bldg.header.shading_summer_begin_day)
+        summer_end_day_num = Schedule.get_day_num_from_month_day(hpxml_header.sim_calendar_year,
+                                                                 hpxml_bldg.header.shading_summer_end_month,
+                                                                 hpxml_bldg.header.shading_summer_end_day)
         for i in 0..(num_days_in_year - 1)
           day_num = i + 1
           if summer_end_day_num >= summer_start_day_num
             if (day_num >= summer_start_day_num) && (day_num <= summer_end_day_num)
-              trans_values << [sf_summer] * 24
+              sf_values << [sf_summer] * 24
               next
             end
           else
             if (day_num >= summer_start_day_num) || (day_num <= summer_end_day_num)
-              trans_values << [sf_summer] * 24
+              sf_values << [sf_summer] * 24
               next
             end
           end
           # If we got this far, winter
-          trans_values << [sf_winter] * 24
+          sf_values << [sf_winter] * 24
         end
       else
         # No summer (year-round winter)
-        trans_values = [[sf_winter] * 24] * num_days_in_year
+        sf_values = [[sf_winter] * 24] * num_days_in_year
       end
 
       # Create transmittance schedule
-      if shading_schedules[trans_values].nil?
+      if shading_schedules[sf_values].nil?
         sch_name = "trans schedule winter=#{sf_winter} summer=#{sf_summer}"
-        if trans_values.flatten.uniq.size == 1
-          trans_sch = OpenStudio::Model::ScheduleConstant.new(model)
-          trans_sch.setValue(trans_values[0][0])
-          trans_sch.setName(sch_name)
+        if sf_values.flatten.uniq.size == 1
+          sf_sch = OpenStudio::Model::ScheduleConstant.new(model)
+          sf_sch.setValue(sf_values[0][0])
+          sf_sch.setName(sch_name)
         else
-          trans_sch = HourlyByDaySchedule.new(model, sch_name, trans_values, trans_values, Constants.ScheduleTypeLimitsFraction, false).schedule
+          sf_sch = HourlyByDaySchedule.new(model, sch_name, sf_values, sf_values, Constants.ScheduleTypeLimitsFraction, false).schedule
         end
-        shading_schedules[trans_values] = trans_sch
-      end
-      shading_surface.setTransmittanceSchedule(shading_schedules[trans_values])
-
-      # EMS to actuate view factor to ground
-      sub_surface_type = sub_surface.subSurfaceType.downcase.to_s
-      actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(sub_surface, *EPlus::EMSActuatorSurfaceViewFactorToGround)
-      actuator.setName("#{sub_surface_type}#{index}_actuator")
-
-      if shading_ems[:sensors][trans_values].nil?
-        shading_schedule_name = shading_schedules[trans_values].name.to_s
-        shading_coeff_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-        shading_coeff_sensor.setName("#{sub_surface_type}_shading_coefficient")
-        shading_coeff_sensor.setKeyName(shading_schedule_name)
-        shading_ems[:sensors][trans_values] = shading_coeff_sensor
+        shading_schedules[sf_values] = sf_sch
       end
 
-      default_vf_to_ground = ((1.0 - Math::cos(sub_surface.tilt)) / 2.0).round(2)
-      shading_coeff = shading_ems[:sensors][trans_values].name
-      if shading_ems[:program].nil?
-        program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-        program.setName("#{sub_surface_type}_view_factor_to_ground_program")
-        program.addLine("Set #{actuator.name} = #{default_vf_to_ground}*#{shading_coeff}")
-        shading_ems[:program] = program
-
-        program_cm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-        program_cm.setName("#{program.name} calling manager")
-        program_cm.setCallingPoint('BeginZoneTimestepAfterInitHeatBalance') # https://github.com/NREL/EnergyPlus/pull/8477#discussion_r567320478
-        program_cm.addProgram(program)
-      else
-        shading_ems[:program].addLine("Set #{actuator.name} = #{default_vf_to_ground}*#{shading_coeff}")
-      end
-
-      if shading_group.nil?
-        shading_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-        shading_group.setName(name)
-      end
-      shading_surface.setShadingSurfaceGroup(shading_group)
+      ism = OpenStudio::Model::SurfacePropertyIncidentSolarMultiplier.new(sub_surface)
+      ism.setIncidentSolarMultiplierSchedule(shading_schedules[sf_values])
     end
-    return shading_group
   end
 
   def self.calc_non_cavity_r(film_r, constr_set)
@@ -1734,9 +1895,20 @@ class Constructions
     return non_cavity_r
   end
 
-  def self.apply_wall_construction(runner, model, surfaces, wall_id, wall_type, assembly_r,
-                                   mat_int_finish, inside_film, outside_film, mat_ext_finish,
-                                   solar_absorptance, emittance)
+  def self.apply_wall_construction(runner,
+                                   model,
+                                   surfaces,
+                                   wall_id,
+                                   wall_type,
+                                   assembly_r,
+                                   mat_int_finish,
+                                   has_radiant_barrier,
+                                   inside_film,
+                                   outside_film,
+                                   radiant_barrier_grade,
+                                   mat_ext_finish,
+                                   solar_absorptance,
+                                   emittance)
 
     if mat_ext_finish.nil?
       fallback_mat_ext_finish = nil
@@ -1762,12 +1934,23 @@ class Constructions
       ]
       match, constr_set, cavity_r = pick_wood_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film)
 
-      apply_wood_stud_wall(model, surfaces, "#{wall_id} construction",
-                           cavity_r, install_grade, constr_set.stud.thick_in,
-                           cavity_filled, constr_set.framing_factor,
-                           constr_set.mat_int_finish, constr_set.osb_thick_in,
-                           constr_set.rigid_r, constr_set.mat_ext_finish,
-                           inside_film, outside_film, solar_absorptance,
+      apply_wood_stud_wall(model,
+                           surfaces,
+                           "#{wall_id} construction",
+                           cavity_r,
+                           install_grade,
+                           constr_set.stud.thick_in,
+                           cavity_filled,
+                           constr_set.framing_factor,
+                           constr_set.mat_int_finish,
+                           constr_set.osb_thick_in,
+                           constr_set.rigid_r,
+                           constr_set.mat_ext_finish,
+                           has_radiant_barrier,
+                           inside_film,
+                           outside_film,
+                           radiant_barrier_grade,
+                           solar_absorptance,
                            emittance)
     elsif wall_type == HPXML::WallTypeSteelStud
       install_grade = 1
@@ -1788,8 +1971,8 @@ class Constructions
                             cavity_filled, constr_set.framing_factor,
                             constr_set.corr_factor, constr_set.mat_int_finish,
                             constr_set.osb_thick_in, constr_set.rigid_r,
-                            constr_set.mat_ext_finish, inside_film, outside_film,
-                            solar_absorptance, emittance)
+                            constr_set.mat_ext_finish, has_radiant_barrier, inside_film, outside_film,
+                            radiant_barrier_grade, solar_absorptance, emittance)
     elsif wall_type == HPXML::WallTypeDoubleWoodStud
       install_grade = 1
       is_staggered = false
@@ -1806,7 +1989,8 @@ class Constructions
                              constr_set.framing_spacing, is_staggered,
                              constr_set.mat_int_finish, constr_set.osb_thick_in,
                              constr_set.rigid_r, constr_set.mat_ext_finish,
-                             inside_film, outside_film, solar_absorptance,
+                             has_radiant_barrier, inside_film, outside_film,
+                             radiant_barrier_grade, solar_absorptance,
                              emittance)
     elsif wall_type == HPXML::WallTypeCMU
       density = 119.0 # lb/ft^3
@@ -1825,8 +2009,8 @@ class Constructions
                      constr_set.framing_factor, furring_r,
                      furring_cavity_depth_in, furring_spacing,
                      constr_set.mat_int_finish, constr_set.osb_thick_in,
-                     rigid_r, constr_set.mat_ext_finish, inside_film,
-                     outside_film, solar_absorptance, emittance)
+                     rigid_r, constr_set.mat_ext_finish, has_radiant_barrier, inside_film,
+                     outside_film, radiant_barrier_grade, solar_absorptance, emittance)
     elsif wall_type == HPXML::WallTypeSIP
       sheathing_thick_in = 0.44
 
@@ -1841,8 +2025,8 @@ class Constructions
                      cavity_r, constr_set.thick_in, constr_set.framing_factor,
                      constr_set.sheath_thick_in, constr_set.mat_int_finish,
                      constr_set.osb_thick_in, constr_set.rigid_r,
-                     constr_set.mat_ext_finish, inside_film, outside_film,
-                     solar_absorptance, emittance)
+                     constr_set.mat_ext_finish, has_radiant_barrier, inside_film, outside_film,
+                     radiant_barrier_grade, solar_absorptance, emittance)
     elsif wall_type == HPXML::WallTypeICF
       constr_sets = [
         ICFConstructionSet.new(2.0, 4.0, 0.08, 0.0, 0.5, mat_int_finish, mat_ext_finish),                   # ICF w/4" concrete and 2" rigid ins layers
@@ -1855,7 +2039,8 @@ class Constructions
                      constr_set.concrete_thick_in, constr_set.framing_factor,
                      constr_set.mat_int_finish, constr_set.osb_thick_in,
                      constr_set.rigid_r, constr_set.mat_ext_finish,
-                     inside_film, outside_film, solar_absorptance,
+                     has_radiant_barrier, inside_film, outside_film,
+                     radiant_barrier_grade, solar_absorptance,
                      emittance)
     elsif [HPXML::WallTypeConcrete, HPXML::WallTypeBrick, HPXML::WallTypeAdobe, HPXML::WallTypeStrawBale, HPXML::WallTypeStone, HPXML::WallTypeLog].include? wall_type
       constr_sets = [
@@ -1897,7 +2082,8 @@ class Constructions
                                  thick_ins, conds, denss, specheats,
                                  constr_set.mat_int_finish, constr_set.osb_thick_in,
                                  constr_set.rigid_r, constr_set.mat_ext_finish,
-                                 inside_film, outside_film, solar_absorptance,
+                                 has_radiant_barrier, inside_film, outside_film,
+                                 radiant_barrier_grade, solar_absorptance,
                                  emittance)
     else
       fail "Unexpected wall type '#{wall_type}'."
@@ -1907,7 +2093,8 @@ class Constructions
   end
 
   def self.apply_floor_ceiling_construction(runner, model, surface, floor_id, floor_type, is_ceiling, assembly_r,
-                                            mat_int_finish_or_covering, inside_film, outside_film)
+                                            mat_int_finish_or_covering, has_radiant_barrier, inside_film, outside_film,
+                                            radiant_barrier_grade)
 
     if mat_int_finish_or_covering.nil?
       fallback_mat_int_finish_or_covering = nil
@@ -1939,7 +2126,7 @@ class Constructions
                                      cavity_r, install_grade,
                                      constr_set.framing_factor, constr_set.stud.thick_in,
                                      constr_set.osb_thick_in, constr_set.rigid_r, constr_int_finish_or_covering,
-                                     inside_film, outside_film)
+                                     has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade)
 
     elsif floor_type == HPXML::FloorTypeSteelFrame
       install_grade = 1
@@ -1961,7 +2148,7 @@ class Constructions
                                       cavity_r, install_grade,
                                       constr_set.framing_factor, constr_set.corr_factor, constr_set.cavity_thick_in,
                                       constr_set.osb_thick_in, constr_set.rigid_r, constr_int_finish_or_covering,
-                                      inside_film, outside_film)
+                                      has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade)
 
     elsif floor_type == HPXML::FloorTypeSIP
       constr_sets = [
@@ -1975,7 +2162,7 @@ class Constructions
       apply_sip_floor_ceiling(model, surface, "#{floor_id} construction", is_ceiling,
                               cavity_r, constr_set.thick_in, constr_set.framing_factor,
                               constr_set.mat_int_finish, constr_set.osb_thick_in, constr_set.rigid_r,
-                              constr_set.mat_ext_finish, inside_film, outside_film)
+                              constr_set.mat_ext_finish, has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade)
     elsif floor_type == HPXML::FloorTypeConcrete
       constr_sets = [
         GenericConstructionSet.new(20.0, osb_thick_in, mat_int_finish_or_covering, nil), # w/R-20 rigid
@@ -2000,7 +2187,8 @@ class Constructions
                                           thick_ins, conds, denss, specheats,
                                           constr_set.mat_int_finish, constr_set.osb_thick_in,
                                           constr_set.rigid_r, constr_set.mat_ext_finish,
-                                          inside_film, outside_film)
+                                          has_radiant_barrier, inside_film, outside_film,
+                                          radiant_barrier_grade)
     else
       fail "Unexpected floor type '#{floor_type}'."
     end

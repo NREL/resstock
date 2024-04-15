@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<HPXML xmlns='http://hpxmlonline.com/2019/10' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://hpxmlonline.com/2019/10' schemaVersion='4.0'>
+<HPXML xmlns='http://hpxmlonline.com/2023/09' schemaVersion='4.0'>
   <XMLTransactionHeaderInformation>
     <XMLType>HPXML</XMLType>
     <XMLGeneratedBy>hand</XMLGeneratedBy>
@@ -9,6 +9,13 @@
   <SoftwareInfo/>
   <Building>
     <BuildingID id='MyBuilding'/>
+    <Site>
+      <SiteID id='SiteID'/>
+      <GeoLocation>
+        <Latitude>40.0</Latitude>
+      </GeoLocation>
+      <Elevation>607.0</Elevation>
+    </Site>
     <ProjectStatus>
       <EventType>proposed workscope</EventType>
     </ProjectStatus>
@@ -16,6 +23,9 @@
       <BuildingSummary>
         <Site>
           <SiteType>suburban</SiteType>
+          <Soil>
+            <Conductivity>0.8</Conductivity>
+          </Soil>
         </Site>
         <BuildingConstruction>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
@@ -24,6 +34,22 @@
           <NumberofBedrooms>3</NumberofBedrooms>
           <ConditionedFloorArea>1800.0</ConditionedFloorArea>
         </BuildingConstruction>
+        <extension>
+          <HVACSizingControl>
+            <ManualJInputs>
+              <HeatingDesignTemperature>3.0</HeatingDesignTemperature>
+              <CoolingDesignTemperature>90.0</CoolingDesignTemperature>
+              <DailyTemperatureRange>medium</DailyTemperatureRange>
+              <HeatingSetpoint>70.0</HeatingSetpoint>
+              <CoolingSetpoint>75.0</CoolingSetpoint>
+              <HumiditySetpoint>0.5</HumiditySetpoint>
+              <HumidityDifference>45.0</HumidityDifference>
+              <InternalLoadsSensible>2400.0</InternalLoadsSensible>
+              <InternalLoadsLatent>0.0</InternalLoadsLatent>
+              <NumberofOccupants>4</NumberofOccupants>
+            </ManualJInputs>
+          </HVACSizingControl>
+        </extension>
       </BuildingSummary>
       <ClimateandRiskZones>
         <WeatherStation>
@@ -41,7 +67,7 @@
             <HousePressure>50.0</HousePressure>
             <BuildingAirLeakage>
               <UnitofMeasure>ACH</UnitofMeasure>
-              <AirLeakage>8.5</AirLeakage>
+              <AirLeakage>7.7</AirLeakage>
             </BuildingAirLeakage>
             <InfiltrationVolume>26100.0</InfiltrationVolume>
           </AirInfiltrationMeasurement>
@@ -49,7 +75,7 @@
         <Roofs>
           <Roof>
             <SystemIdentifier id='Roof1'/>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
             <Area>2068.6</Area>
             <RoofType>asphalt or fiberglass shingles</RoofType>
             <SolarAbsorptance>0.92</SolarAbsorptance>
@@ -66,7 +92,7 @@
           <Wall>
             <SystemIdentifier id='Wall1'/>
             <ExteriorAdjacentTo>outside</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
             <WallType>
               <WoodStud/>
             </WallType>
@@ -103,7 +129,7 @@
           <Floor>
             <SystemIdentifier id='Floor1'/>
             <ExteriorAdjacentTo>crawlspace - unvented</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
             <FloorType>
               <WoodFrame/>
             </FloorType>
@@ -145,7 +171,7 @@
             <SHGC>0.56</SHGC>
             <InteriorShading>
               <SystemIdentifier id='Window1InteriorShading'/>
-              <SummerShadingCoefficient>0.6</SummerShadingCoefficient>
+              <SummerShadingCoefficient>0.54</SummerShadingCoefficient>
             </InteriorShading>
             <AttachedToWall idref='Wall1'/>
           </Window>
@@ -169,7 +195,7 @@
             <SHGC>0.67</SHGC>
             <InteriorShading>
               <SystemIdentifier id='Window3InteriorShading'/>
-              <SummerShadingCoefficient>0.6</SummerShadingCoefficient>
+              <SummerShadingCoefficient>0.54</SummerShadingCoefficient>
             </InteriorShading>
             <AttachedToWall idref='Wall1'/>
           </Window>
@@ -181,7 +207,7 @@
             <SHGC>0.56</SHGC>
             <InteriorShading>
               <SystemIdentifier id='Window4InteriorShading'/>
-              <SummerShadingCoefficient>0.6</SummerShadingCoefficient>
+              <SummerShadingCoefficient>0.54</SummerShadingCoefficient>
             </InteriorShading>
             <Overhangs>
               <Depth>1.0</Depth>
@@ -198,7 +224,7 @@
             <SHGC>0.56</SHGC>
             <InteriorShading>
               <SystemIdentifier id='Window5InteriorShading'/>
-              <SummerShadingCoefficient>0.6</SummerShadingCoefficient>
+              <SummerShadingCoefficient>0.54</SummerShadingCoefficient>
             </InteriorShading>
             <Overhangs>
               <Depth>1.0</Depth>
@@ -317,14 +343,14 @@
                 <Ducts>
                   <SystemIdentifier id='Ducts1'/>
                   <DuctType>supply</DuctType>
-                  <DuctInsulationRValue>2.0</DuctInsulationRValue>
+                  <DuctEffectiveRValue>3.0</DuctEffectiveRValue>
                   <DuctLocation>crawlspace - unvented</DuctLocation>
                   <DuctSurfaceArea>516.0</DuctSurfaceArea>
                 </Ducts>
                 <Ducts>
                   <SystemIdentifier id='Ducts2'/>
                   <DuctType>return</DuctType>
-                  <DuctInsulationRValue>2.0</DuctInsulationRValue>
+                  <DuctEffectiveRValue>3.0</DuctEffectiveRValue>
                   <DuctLocation>crawlspace - unvented</DuctLocation>
                   <DuctSurfaceArea>125.0</DuctSurfaceArea>
                 </Ducts>
@@ -338,7 +364,7 @@
             <VentilationFan>
               <SystemIdentifier id='VentilationFan1'/>
               <FanType>balanced</FanType>
-              <RatedFlowRate>30.0</RatedFlowRate>
+              <RatedFlowRate>20.0</RatedFlowRate>
               <UsedForWholeBuildingVentilation>true</UsedForWholeBuildingVentilation>
             </VentilationFan>
           </VentilationFans>
@@ -361,9 +387,14 @@
       </Appliances>
       <MiscLoads>
         <PlugLoad>
-          <SystemIdentifier id='PlugLoad2'/>
+          <SystemIdentifier id='PlugLoad1'/>
           <PlugLoadType>other</PlugLoadType>
         </PlugLoad>
+        <FuelLoad>
+          <SystemIdentifier id='FuelLoad1'/>
+          <FuelLoadType>fireplace</FuelLoadType>
+          <FuelType>natural gas</FuelType>
+        </FuelLoad>
       </MiscLoads>
     </BuildingDetails>
   </Building>

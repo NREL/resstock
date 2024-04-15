@@ -157,8 +157,8 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Electricity: Well Pump (MBtu)
    End Use: Electricity: Pool Heater (MBtu)
    End Use: Electricity: Pool Pump (MBtu)
-   End Use: Electricity: Hot Tub Heater (MBtu)
-   End Use: Electricity: Hot Tub Pump (MBtu)
+   End Use: Electricity: Permanent Spa Heater (MBtu)
+   End Use: Electricity: Permanent Spa Pump (MBtu)
    End Use: Electricity: PV (MBtu)                                   Negative value for any power produced
    End Use: Electricity: Generator (MBtu)                            Negative value for any power produced
    End Use: Electricity: Battery (MBtu)                              Positive value for charging (including efficiency losses); negative value for discharging
@@ -169,7 +169,7 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Natural Gas: Range/Oven (MBtu)
    End Use: Natural Gas: Mech Vent Preheating (MBtu)
    End Use: Natural Gas: Pool Heater (MBtu)
-   End Use: Natural Gas: Hot Tub Heater (MBtu)
+   End Use: Natural Gas: Permanent Spa Heater (MBtu)
    End Use: Natural Gas: Grill (MBtu)
    End Use: Natural Gas: Lighting (MBtu)
    End Use: Natural Gas: Fireplace (MBtu)
@@ -423,8 +423,7 @@ HVAC Capacities
 ~~~~~~~~~~~~~~~
 
 System outputs are listed below.
-Autosized HVAC systems are based on HVAC design temperatures/loads described below.
-Capacities for individual HVAC systems can be found in the `in.xml` file.
+Capacities for individual HVAC systems can be found in the ``in.xml`` file.
 
    ====================================================  ====================
    Type                                                  Notes
@@ -434,11 +433,21 @@ Capacities for individual HVAC systems can be found in the `in.xml` file.
    HVAC Capacity: Heat Pump Backup (Btu/h)               Total HVAC heat pump backup capacity
    ====================================================  ====================
 
+.. note::
+
+  Autosized HVAC systems are based on :ref:`hvac_design_temps` and :ref:`hvac_design_loads`.
+
+  For heat pumps with a minimum compressor lockout temperature greater than the heating design temperature (e.g., a dual-fuel heat pump in a cold climate), the compressor will be sized based on heating design loads calculated at the compressor lockout temperature.
+  This is done to prevent unutilized capacity at temperatures below the compressor lockout temperature.
+  Any heat pump backup will still be based on heating design loads calculated using the heating design temperature.
+  
+.. _hvac_design_temps:
+
 HVAC Design Temperatures
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Design temperatures are used in the design load calculations for autosizing of HVAC equipment; see :ref:`hvac_sizing_control` for how they are derived.
-Design temperatures can also be found in the `in.xml` file.
+Design temperatures can also be found in the ``in.xml`` file.
 
    =====================================================================  ====================
    Type                                                                   Notes
@@ -447,12 +456,14 @@ Design temperatures can also be found in the `in.xml` file.
    HVAC Design Temperature: Cooling (F)                                   1% cooling drybulb temperature
    =====================================================================  ====================
 
+.. _hvac_design_loads:
+
 HVAC Design Loads
 ~~~~~~~~~~~~~~~~~
 
 Design load outputs, used for autosizing of HVAC equipment, are listed below.
-Design loads are based on block load ACCA Manual J calculations using 1%/99% design temperatures.
-Design loads can also be found in the `in.xml` file.
+Design loads are based on block load ACCA Manual J calculations using :ref:`hvac_design_temps`.
+Design loads can also be found in the ``in.xml`` file.
 
    =====================================================================  ====================
    Type                                                                   Notes
@@ -470,7 +481,7 @@ Design loads can also be found in the `in.xml` file.
    HVAC Design Load: Heating: Infiltration/Ventilation (Btu/h)            Heating design load for infiltration/ventilation
    HVAC Design Load: Cooling Sensible: Total (Btu/h)                      Total sensible cooling design load
    HVAC Design Load: Cooling Sensible: Ducts (Btu/h)                      Sensible cooling design load for ducts
-   HVAC Design Load: Cooling Sensible: Windows (Btu/h)                    Sensible cooling design load for windows
+   HVAC Design Load: Cooling Sensible: Windows (Btu/h)                    Sensible cooling design load for windows [#]_
    HVAC Design Load: Cooling Sensible: Skylights (Btu/h)                  Sensible cooling design load for skylights
    HVAC Design Load: Cooling Sensible: Doors (Btu/h)                      Sensible cooling design load for doors
    HVAC Design Load: Cooling Sensible: Walls (Btu/h)                      Sensible cooling design load for walls
@@ -486,6 +497,8 @@ Design loads can also be found in the `in.xml` file.
    HVAC Design Load: Cooling Latent: Internal Gains (Btu/h)               Latent cooling design load for internal gains
    =====================================================================  ====================
 
+   .. [#] Includes any Adequate Exposure Diversity (AED) excursion from windows/skylights.
+
 .. _timeseries_outputs:
 
 Timeseries Outputs
@@ -493,6 +506,7 @@ Timeseries Outputs
 
 OpenStudio-HPXML can optionally generate a timeseries output file.
 The timeseries output file is called ``results_timeseries.csv`` (or ``results_timeseries.json`` or ``results_timeseries.msgpack``) and located in the run directory.
+If multiple timeseries frequencies are requested (e.g., hourly and daily), the timeseries output filenames will include the frequency (e.g., ``run/results_timeseries_daily.csv``).
 
 Depending on the outputs requested, the file may include:
 
@@ -510,11 +524,11 @@ Depending on the outputs requested, the file may include:
    Total Loads                          Heating, cooling, and hot water loads (in kBtu).
    Component Loads                      Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).
    Unmet Hours                          Heating and cooling unmet hours.
-   Zone Temperatures                    Zone temperatures (in deg-F) for each space (e.g., living space, attic, garage, basement, crawlspace, etc.) plus heating/cooling setpoints.
+   Zone Temperatures                    Zone temperatures (in deg-F) for each space (e.g., conditioned space, attic, garage, basement, crawlspace, etc.) plus heating/cooling setpoints.
    Airflows                             Airflow rates (in cfm) for infiltration, mechanical ventilation (including clothes dryer exhaust), natural ventilation, whole house fans.
    Weather                              Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
    Resilience                           Resilience outputs (currently only average resilience hours for battery storage).
-   EnergyPlus Output Variables          These are optional and can be requested with the ReportSimulationOutput ``user_output_variables`` argument.
+   EnergyPlus Output Variables          Any user-specified EnergyPlus output variables (e.g., 'Zone People Occupant Count').
    ===================================  ==================================================================================================================================
 
 Timeseries outputs can be one of the following frequencies: hourly, daily, monthly, or timestep (i.e., equal to the simulation timestep, which defaults to an hour but can be sub-hourly).
@@ -523,7 +537,7 @@ Timestamps in the output use the start-of-period convention unless you have requ
 Additional timestamp columns can be optionally requested that reflect daylight saving time (DST) and/or coordinated universal time (UTC).
 Most outputs will be summed over the hour (e.g., energy) but some will be averaged over the hour (e.g., temperatures, airflows).
 
-Note that if the home is not fully conditioned (e.g., a room air conditioner that only meets 30% of the cooling load), the reported zone temperature for the living space will reflect a fully conditioned home due to the way these systems are modeled in EnergyPlus.
+Note that if the home is not fully conditioned (e.g., a room air conditioner that only meets 30% of the cooling load), the reported zone temperature for the conditioned space will reflect a fully conditioned home due to the way these systems are modeled in EnergyPlus.
 
 .. _bill_outputs:
 
