@@ -66,7 +66,7 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
     # the resources/run_sampling_lib.rb but an absolute path
     create_buildstock_csv(project_directory, n_datapoints, outfile)
     src = File.expand_path(File.join(File.dirname(__FILE__), '../lib/housing_characteristics/buildstock.csv'))
-    buildstock_csv_path = File.join(results_dir, "buildstock.csv")
+    buildstock_csv_path = File.join(results_dir, 'buildstock.csv')
     FileUtils.cp(src, buildstock_csv_path)
 
     return if samplingonly
@@ -494,12 +494,12 @@ def create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir, debug
       puts "Resources directory is outdated: #{lib_resources_dir}"
     end
   elsif debug
-    puts "Creating lib_dir"
+    puts 'Creating lib_dir'
   end
 
   if !redo_needed
     if debug
-      puts "Lib folder is up to date"
+      puts 'Lib folder is up to date'
     end
     return
   end
