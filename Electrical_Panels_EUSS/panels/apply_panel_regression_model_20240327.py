@@ -584,7 +584,6 @@ def apply_tsv_to_results(
         on=res_cols,
         how="left",
     )
-    
 
     assert (
         dff[panel_labels].isna().sum().sum() == 0
@@ -973,7 +972,7 @@ def main(
         filename = Path(filename)
 
     # Model specs
-    model_num = "41906"  # <-- [16574, 10410, 16570, 90298, 41146, 16566, 41138 (for paper), 41906 (for TEA)]
+    model_num = "41138"  # <-- [16574, 10410, 16570, 90298, 41146, 16566, 41138 (for paper), 41906 (for TEA)]
     (
         model_filename,
         data_input_sheetname,
