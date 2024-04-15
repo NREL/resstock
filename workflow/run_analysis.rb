@@ -71,7 +71,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
   outfile = File.join('../lib/housing_characteristics/buildstock.csv')
   if !['precomputed'].include?(cfg['sampler']['type'])
     # TODO: this should write directly to the results_dir...
-    # run_sampling_lib::write_csv should  not take a relative path relative to
+    # run_sampling_lib::write_csv should not take a relative path relative to
     # the resources/run_sampling_lib.rb but an absolute path
     create_buildstock_csv(project_directory, n_datapoints, outfile)
     src = File.expand_path(File.join(File.dirname(__FILE__), '../lib/housing_characteristics/buildstock.csv'))
@@ -82,7 +82,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
 
     datapoints = (1..n_datapoints).to_a
   else
-    # If buildingstock_csv is absolute, just use that
+    # If buildstock_csv_path is absolute: just use that
     # If relative: relative to yml
     buildstock_csv_path = cfg['sampler']['args']['sample_file']
     unless (Pathname.new buildstock_csv_path).absolute?
