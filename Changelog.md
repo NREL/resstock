@@ -69,6 +69,7 @@ __Bugfixes__
 - Fixes possible EnergyPlus error when a `Slab` representing a crawlspace dirt floor has perimeter or under slab insulation.
 - Prevents errors due to incorrect `Floor/FloorOrCeiling` input; issues a warning when detected.
 - Apportion shared water heater tank losses for HPWHs and combi systems.
+- Fixes buried duct effective R-values.
 
 ## OpenStudio-HPXML v1.7.0
 
