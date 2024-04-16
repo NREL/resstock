@@ -17,7 +17,7 @@ from postprocess_electrical_panel_size_nec import (
 	calculate_new_loads,
 	)
 
-from apply_panel_regression_model import (
+from apply_panel_regression_model_yingli import (
 	load_model,
 	apply_model_to_results,
 	sort_index,
@@ -73,7 +73,7 @@ def plot_panel_amps(df_b, groupby_cols, metric_cols, ext, output_dir):
 	dfi = df_b.groupby(groupby_cols+metric_cols)["sample_weight"].sum().unstack()
 	fig, ax = plt.subplots()
 	sort_index(sort_index(dfi, axis=0), axis=1).plot(kind="bar", ax=ax)
-	fig.savefig(output_dir / f"panel_amp_estimate_{ext}.png", dpi=400, bbox_inches="tight")
+	fig.savefig(output_dir / f"{ext}.png", dpi=400, bbox_inches="tight")
 
 
 ## -- main --
@@ -120,8 +120,15 @@ baseline_panel_amp = dff["std_m_nec_min_amp"].apply(lambda x: min_amperage_main_
 baseline_amps.append(baseline_panel_amp)
 
 # [3] LBNL regression model
-model = load_model(Path(__file__).resolve().parent / "prelim_panel_model.p")
+#model = load_model(Path(__file__).resolve().parent / "prelim_panel_model.p")
+model = load_model(Path(__file__).resolve().parent / "model_20240327/final_panel_model_rank_test_f1_weighted_41138.p")
 df_b = apply_model_to_results(df_b, model, predict_proba=False, retain_proba=False)
+df_b.loc[df_b["predicted_panel_amp"] == 0, "predicted_panel_amp"] = "100"
+df_b.loc[df_b["predicted_panel_amp"] == 1, "predicted_panel_amp"] = "101-199"
+df_b.loc[df_b["predicted_panel_amp"] == 2, "predicted_panel_amp"] = "200"
+df_b.loc[df_b["predicted_panel_amp"] == 3, "predicted_panel_amp"] = "200+"
+df_b.loc[df_b["predicted_panel_amp"] == 4, "predicted_panel_amp"] = "<100"
+
 baseline_panel_amp = df_b["predicted_panel_amp"]
 baseline_amps.append(baseline_panel_amp)
 
@@ -151,6 +158,7 @@ else:
 df_b = pd.concat([df_b, baseline_panel_amp.rename("baseline_panel_amp")], axis=1)
 plot_panel_amps(df_b, ["build_existing_model.geometry_building_type_recs"], ["baseline_panel_amp"], "baseline_bldgtype", plotdir)
 plot_panel_amps(df_b, ["build_existing_model.area_median_income"], ["baseline_panel_amp"], "baseline_ami", plotdir)
+plot_panel_amps(df_b, ["completed_status"], ["baseline_panel_amp"], "baseline", plotdir)
 
 ### upgrade
 for i in range(2):
@@ -304,8 +312,9 @@ for i in range(2):
 		# dfu.loc[cond_replace, "new_nec_panel_amp"] = dff.loc[cond_replace, "new_nec_panel_amp"]
 
 		dfu.loc[cond_replace, "new_nec_panel_amp"] = dfu.loc[cond_replace, "new_load_nec_min_amp"].apply(lambda x: min_amperage_main_breaker(x))
-		plot_panel_amps(dfu, ["build_existing_model.geometry_building_type_recs"], ["new_nec_panel_amp"], f"new_load__{upgrade_name}_bldgtype", plotdir)
-		plot_panel_amps(dfu, ["build_existing_model.area_median_income"], ["new_nec_panel_amp"], f"new_load__{upgrade_name}_ami", plotdir)
+		plot_panel_amps(dfu, ["build_existing_model.geometry_building_type_recs"], ["new_nec_panel_amp"], f"nl__{upgrade_name}_bldgtype", plotdir)
+		plot_panel_amps(dfu, ["build_existing_model.area_median_income"], ["new_nec_panel_amp"], f"nl__{upgrade_name}_ami", plotdir)
+		plot_panel_amps(dfu, ["completed_status"], ["new_nec_panel_amp"], f"nl__{upgrade_name}", plotdir)
 
 		
 		# --- NEC 220.87 (Load Study) ---
