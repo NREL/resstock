@@ -4,7 +4,9 @@ import pickle
 import numpy as np
 from numpy import random
 
-resstock_baseline_file = "test_data/euss1_2018_results_up00_clean__model_41138__tsv_based__predicted_panels_probablistically_assigned.csv"
+model = 41906
+#resstock_baseline_file = "test_data/euss1_2018_results_up00_clean__model_41138__tsv_based__predicted_panels_probablistically_assigned.csv"
+resstock_baseline_file = f"test_data/panel_run_30k/results_up00__model_{model}__tsv_based__predicted_panels_probablistically_assigned.csv"
 df = pd.read_csv(resstock_baseline_file)
 model_file = 'breaker_space_model_20240318/breaker_space_model_breaker_min_4_no_outliers.pickle'
 
@@ -32,12 +34,20 @@ for index, row in df.iterrows():
 
 df['const'] = 1
 df['major_elec_load_count'] = load_count_list
-df.loc[df['predicted_panel_amp'].isin(['101-199']),"panel_amp_pre_bin_4__101_199"] = 1
-df.loc[~df['predicted_panel_amp'].isin(['101-199']),"panel_amp_pre_bin_4__101_199"] = 0
-df.loc[df['predicted_panel_amp'].isin(['200', '201+']),"panel_amp_pre_bin_4__200_plus"] = 1
-df.loc[~df['predicted_panel_amp'].isin(['200', '201+']),"panel_amp_pre_bin_4__200_plus"] = 0
-df.loc[df['predicted_panel_amp'].isin(['<100', '100']),"panel_amp_pre_bin_4__lt_100"] = 1
-df.loc[~df['predicted_panel_amp'].isin(['<100', '100']),"panel_amp_pre_bin_4__lt_100"] = 0
+if model == 41138:
+    df.loc[df['predicted_panel_amp'].isin(['101-199']),"panel_amp_pre_bin_4__101_199"] = 1
+    df.loc[~df['predicted_panel_amp'].isin(['101-199']),"panel_amp_pre_bin_4__101_199"] = 0
+    df.loc[df['predicted_panel_amp'].isin(['200', '201+']),"panel_amp_pre_bin_4__200_plus"] = 1
+    df.loc[~df['predicted_panel_amp'].isin(['200', '201+']),"panel_amp_pre_bin_4__200_plus"] = 0
+    df.loc[df['predicted_panel_amp'].isin(['<100', '100']),"panel_amp_pre_bin_4__lt_100"] = 1
+    df.loc[~df['predicted_panel_amp'].isin(['<100', '100']),"panel_amp_pre_bin_4__lt_100"] = 0
+if model == 41906:
+    df.loc[df['predicted_panel_amp'].isin(['101-124', '125', '126-199']),"panel_amp_pre_bin_4__101_199"] = 1
+    df.loc[~df['predicted_panel_amp'].isin(['101-124', '125', '126-199']),"panel_amp_pre_bin_4__101_199"] = 0
+    df.loc[df['predicted_panel_amp'].isin(['200', '201+']),"panel_amp_pre_bin_4__200_plus"] = 1
+    df.loc[~df['predicted_panel_amp'].isin(['200', '201+']),"panel_amp_pre_bin_4__200_plus"] = 0
+    df.loc[df['predicted_panel_amp'].isin(['<100', '100']),"panel_amp_pre_bin_4__lt_100"] = 1
+    df.loc[~df['predicted_panel_amp'].isin(['<100', '100']),"panel_amp_pre_bin_4__lt_100"] = 0
 
 zinb_data = df[['const',
                  'major_elec_load_count',
@@ -72,7 +82,17 @@ predictions["prediction"] = predictions.apply(lambda x: np.random.choice(slots,1
 
 df['panel_slots_empty'] = predictions["prediction"]
 
-df.to_csv('test_data/euss1_2018_results_up00_clean__model_41138__tsv_based__predicted_panels_probablistically_assigned_braker_space.csv')
+df = df.drop(columns=['has_elec_heating_primary',
+                      'has_cooling',
+                      'has_elec_water_heater',
+                      'has_elec_drying',
+                      'has_elec_cooking',
+                      'const',
+                      'panel_amp_pre_bin_4__101_199',
+                      'panel_amp_pre_bin_4__200_plus',
+                      'panel_amp_pre_bin_4__lt_100'])
+
+df.to_csv(f"test_data/panel_run_30k/results_up00__model_{model}__tsv_based__predicted_panels_probablistically_assigned_breaker_space.csv", na_rep='None', index=False)
 
 
 
