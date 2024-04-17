@@ -70,6 +70,7 @@ __Bugfixes__
 - Prevents errors due to incorrect `Floor/FloorOrCeiling` input; issues a warning when detected.
 - Apportion shared water heater tank losses for HPWHs and combi systems.
 - Fixes buried duct effective R-values.
+- Fixes shared boiler default location (which could result in assuming there's a flue in conditioned space impacting infiltration).
 
 ## OpenStudio-HPXML v1.7.0
 

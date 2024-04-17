@@ -514,6 +514,14 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     _test_default_infiltration_values(default_hpxml_bldg, 1350 * 12, false)
+
+    # Test defaults w/ shared system
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-boiler-only-baseboard.xml')
+    hpxml_bldg.heating_systems[0].heating_efficiency_afue = 0.8
+    hpxml_bldg.air_infiltration.has_flue_or_chimney_in_conditioned_space = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_infiltration_values(default_hpxml_bldg, 900 * 8, false)
   end
 
   def test_infiltration_compartmentaliztion_test_adjustment
@@ -2100,6 +2108,12 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     _test_default_hvac_location_values(default_hpxml_bldg.heating_systems[0], HPXML::LocationConditionedSpace)
+
+    # Test defaults -- shared system
+    hpxml, _hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-boiler-only-baseboard.xml')
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_hvac_location_values(default_hpxml_bldg.heating_systems[0], HPXML::LocationOtherHeatedSpace)
   end
 
   def test_hvac_controls
