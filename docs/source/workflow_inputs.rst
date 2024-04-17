@@ -1791,32 +1791,26 @@ Boiler (Shared)
 
 Each shared boiler (serving multiple dwelling units) is entered as a ``/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem``.
 
-  ============================================================  =======  ===========  ===============  ========  ==============  =========================================
-  Element                                                       Type     Units        Constraints      Required  Default         Notes
-  ============================================================  =======  ===========  ===============  ========  ==============  =========================================
-  ``SystemIdentifier``                                          id                                     Yes                       Unique identifier
-  ``UnitLocation``                                              string                See [#]_         No        See [#]_        Location of boiler
-  ``DistributionSystem``                                        idref    See [#]_     Yes                                        ID of attached distribution system
-  ``IsSharedSystem``                                            boolean               true             Yes                       Whether it serves multiple dwelling units
-  ``NumberofUnitsServed``                                       integer               > 1              Yes                       Number of dwelling units served
-  ``HeatingSystemType/Boiler``                                  element                                Yes                       Type of heating system
-  ``HeatingSystemType/Boiler/PilotLight``                       boolean                                No        false           Presence of standing pilot light (older systems)
-  ``HeatingSystemType/Boiler/extension/PilotLightBtuh``         double   Btu/hr       >= 0             No        500             Pilot light burn rate
-  ``HeatingSystemFuel``                                         string                See [#]_         Yes                       Fuel type
-  ``AnnualHeatingEfficiency[Units="AFUE"]/Value``               double   frac         > 0, <= 1        Yes                       Rated efficiency
-  ``FractionHeatLoadServed``                                    double   frac         >= 0, <= 1 [#]_  See [#]_                  Fraction of heating load served
-  ``ElectricAuxiliaryEnergy`` or ``extension/SharedLoopWatts``  double   kWh/yr or W  >= 0             No        See [#]_        Electric auxiliary energy or shared loop power
-  ``ElectricAuxiliaryEnergy`` or ``extension/FanCoilWatts``     double   kWh/yr or W  >= 0             No [#]_                   Electric auxiliary energy or fan coil power
-  ``extension/HeatingAutosizingFactor``                         double   frac         > 0              No        1.0             Heating autosizing scaling factor
-  ============================================================  =======  ===========  ===============  ========  ==============  =========================================
+  ============================================================  =======  ===========  ===============  ========  ==================  =========================================
+  Element                                                       Type     Units        Constraints      Required  Default             Notes
+  ============================================================  =======  ===========  ===============  ========  ==================  =========================================
+  ``SystemIdentifier``                                          id                                     Yes                           Unique identifier
+  ``UnitLocation``                                              string                See [#]_         No        other heated space  Location of boiler
+  ``DistributionSystem``                                        idref    See [#]_     Yes                                            ID of attached distribution system
+  ``IsSharedSystem``                                            boolean               true             Yes                           Whether it serves multiple dwelling units
+  ``NumberofUnitsServed``                                       integer               > 1              Yes                           Number of dwelling units served
+  ``HeatingSystemType/Boiler``                                  element                                Yes                           Type of heating system
+  ``HeatingSystemType/Boiler/PilotLight``                       boolean                                No        false               Presence of standing pilot light (older systems)
+  ``HeatingSystemType/Boiler/extension/PilotLightBtuh``         double   Btu/hr       >= 0             No        500                 Pilot light burn rate
+  ``HeatingSystemFuel``                                         string                See [#]_         Yes                           Fuel type
+  ``AnnualHeatingEfficiency[Units="AFUE"]/Value``               double   frac         > 0, <= 1        Yes                           Rated efficiency
+  ``FractionHeatLoadServed``                                    double   frac         >= 0, <= 1 [#]_  See [#]_                      Fraction of heating load served
+  ``ElectricAuxiliaryEnergy`` or ``extension/SharedLoopWatts``  double   kWh/yr or W  >= 0             No        See [#]_            Electric auxiliary energy or shared loop power
+  ``ElectricAuxiliaryEnergy`` or ``extension/FanCoilWatts``     double   kWh/yr or W  >= 0             No [#]_                       Electric auxiliary energy or fan coil power
+  ``extension/HeatingAutosizingFactor``                         double   frac         > 0              No        1.0                 Heating autosizing scaling factor
+  ============================================================  =======  ===========  ===============  ========  ==================  =========================================
 
   .. [#] UnitLocation choices are "conditioned space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "roof deck", "manufactured home belly", or "unconditioned space".
-  .. [#] If UnitLocation not provided, defaults based on the distribution system:
-         
-         \- **Hydronic**: same default logic as :ref:`waterheatingsystems`
-         
-         \- **DSE**: "conditioned space" if ``FractionHeatLoadServed`` is 1, otherwise "unconditioned space"
-         
   .. [#] HVACDistribution type must be :ref:`hvac_distribution_hydronic` (type: "radiator", "baseboard", "radiant floor", "radiant ceiling", or "water loop") or :ref:`hvac_distribution_air` (type: "fan coil").
          If the shared boiler has "water loop" distribution, a :ref:`hvac_hp_water_loop` must also be specified.
          Note: The choice of hydronic distribution type does not currently affect simulation results; it is currently only used to know if there's an attached water loop heat pump or not.
