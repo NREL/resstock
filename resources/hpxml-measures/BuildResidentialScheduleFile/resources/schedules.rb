@@ -514,7 +514,8 @@ class ScheduleGenerator
     shower_activity_sch = aggregate_array(shower_activity_sch, @minutes_per_step)
     shower_peak_flow = shower_activity_sch.max
     showers = shower_activity_sch.map { |flow| flow / shower_peak_flow }
-    @schedules[SchedulesFile::ColumnHotWaterShowers] = showers
+    @schedules[SchedulesFile::Columns[:HotWaterShowers].name] = showers
+    #@schedules[SchedulesFile::ColumnHotWaterShowers] = showers
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     sink_activity_sch = sink_activity_sch.rotate(-4 * 60 + random_offset) # 4 am shifting

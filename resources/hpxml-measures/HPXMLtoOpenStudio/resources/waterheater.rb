@@ -65,7 +65,7 @@ class Waterheater
     
     hpwh_120V = false
     hpwh_120V_type = 'dedicated'
-    if water_heating_system.uniform_energy_factor > 5.0
+    if water_heating_system.uniform_energy_factor > 4.8
       hpwh_120V = true
       hpwh_120V_type = 'shared' # 'dedicated'
     end
