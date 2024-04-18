@@ -123,6 +123,17 @@ Generates annual unmet hours for heating and cooling.
 
 <br/>
 
+**Generate Annual Output: Unmet Loads**
+
+Generates annual unmet loads for hot water.
+
+- **Name:** ``include_annual_unmet_loads``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
 **Generate Annual Output: Peak Fuels**
 
 Generates annual electricity peaks for summer/winter.
@@ -683,6 +694,12 @@ All possible measure outputs are listed below. Actual outputs depend on measure 
 - ``unmet_hours_heating_hr``
 
 - ``unmet_hours_cooling_hr``
+
+- ``unmet_loads_hot_water_shower_time_hr``
+
+- ``unmet_loads_hot_water_shower_energy_j``
+
+- ``unmet_loads_hot_water_shower_unmet_time_hr``
 
 - ``peak_electricity_winter_total_w``
 

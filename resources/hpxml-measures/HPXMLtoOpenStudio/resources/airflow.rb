@@ -4,7 +4,7 @@ class Airflow
   # Constants
   InfilPressureExponent = 0.65
 
-  def self.apply(model, runner, weather, spaces, hpxml_header, hpxml_bldg, cfa,
+  def self.apply(model, runner, weather, spaces, hpxml_header, hpxml_bldg, cfa, nbeds,
                  ncfl_ag, duct_systems, airloop_map, clg_ssn_sensor, eri_version,
                  frac_windows_operable, apply_ashrae140_assumptions, schedules_file,
                  unavailable_periods, hvac_availability_sensor)
@@ -16,6 +16,7 @@ class Airflow
     @year = hpxml_header.sim_calendar_year
     @conditioned_space = spaces[HPXML::LocationConditionedSpace]
     @conditioned_zone = @conditioned_space.thermalZone.get
+    @nbeds = nbeds
     @ncfl_ag = ncfl_ag
     @eri_version = eri_version
     @apply_ashrae140_assumptions = apply_ashrae140_assumptions
@@ -2174,11 +2175,11 @@ class Airflow
         # Deeply buried      | 18.1 | 19.6 | 21.0
 
         if buried_level == HPXML::DuctBuriedInsulationPartial
-          return 3.46 + 1.05 * nominal_rvalue
+          return 5.83 + 2.0 * nominal_rvalue
         elsif buried_level == HPXML::DuctBuriedInsulationFull
-          return 7.14 + 1.0 * nominal_rvalue
+          return 9.4 + 1.9 * nominal_rvalue
         elsif buried_level == HPXML::DuctBuriedInsulationDeep
-          return 14.94 + 0.76 * nominal_rvalue
+          return 16.67 + 1.45 * nominal_rvalue
         end
       elsif side == HPXML::DuctTypeReturn
         # Equations derived from Table 13 in https://www.nrel.gov/docs/fy13osti/55876.pdf
@@ -2191,11 +2192,11 @@ class Airflow
         # Deeply buried      | 22.8 | 24.7 | 26.6
 
         if buried_level == HPXML::DuctBuriedInsulationPartial
-          return 4.62 + 1.31 * nominal_rvalue
+          return 7.6 + 2.5 * nominal_rvalue
         elsif buried_level == HPXML::DuctBuriedInsulationFull
-          return 8.91 + 1.29 * nominal_rvalue
+          return 11.83 + 2.45 * nominal_rvalue
         elsif buried_level == HPXML::DuctBuriedInsulationDeep
-          return 18.64 + 1.0 * nominal_rvalue
+          return 20.9 + 1.9 * nominal_rvalue
         end
       end
     end

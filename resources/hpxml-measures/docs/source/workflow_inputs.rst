@@ -718,28 +718,23 @@ Additional autosizing factor inputs are available at the system level, see :ref:
   ===================================  ========  =====  ===========  ========  =========  ============================================
   Element                              Type      Units  Constraints  Required  Default    Description
   ===================================  ========  =====  ===========  ========  =========  ============================================
-  ``HeatPumpSizingMethodology``        string           See [#]_     No        HERS       Logic for autosized heat pumps
-  ``HeatPumpBackupSizingMethodology``  string           See [#]_     No        emergency  Logic for autosized heat pump backup
+  ``HeatPumpSizingMethodology``        string           See [#]_     No        HERS       Logic for autosized heat pumps [#]_
+  ``HeatPumpBackupSizingMethodology``  string           See [#]_     No        emergency  Logic for autosized heat pump backup [#]_
   ``AllowIncreasedFixedCapacities``    boolean                       No        false      Logic for fixed capacity HVAC equipment [#]_
   ===================================  ========  =====  ===========  ========  =========  ============================================
 
-  .. [#] HeatPumpSizingMethodology choices are 'ACCA', 'HERS', or 'MaxLoad', and are described as follows:
-  
-         \- **ACCA**: autosized heat pumps have their nominal capacity sized per ACCA Manual J/S based on cooling design loads, with some oversizing allowances for larger heating design loads.
-         
-         \- **HERS**: autosized heat pumps have their nominal capacity sized equal to the larger of heating/cooling design loads.
-         
-         \- **MaxLoad**: autosized heat pumps have their nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's reduced capacity at the design temperature, such that no backup heating should be necessary.
-
-  .. [#] HeatPumpBackupSizingMethodology choices are 'emergency' or 'supplemental', and are described as follows:
-
-         \- **emergency**: heat pump backup capacity will be autosized to meet the ACCA Manual J heating design load.
-         
-         \- **supplemental**: heat pump backup capacity will be autosized to meet the remainder of the ACCA Manual J heating design load not met by the heat pump at the heating design temperature.
-
-         Heat pump backup capacity is often sized for emergency heat so that it can meet the entire design load if the heat pump fails.
+  .. [#] HeatPumpSizingMethodology choices are 'ACCA', 'HERS', or 'MaxLoad'.
+  .. [#] If HeatPumpSizingMethodology is 'ACCA', autosized heat pumps have their nominal capacity sized per ACCA Manual J/S based on cooling design loads, with some oversizing allowances for larger heating design loads.
+         If HeatPumpSizingMethodology is 'HERS', autosized heat pumps have their nominal capacity sized equal to the larger of heating/cooling design loads.
+         If HeatPumpSizingMethodology is 'MaxLoad', autosized heat pumps have their nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's reduced capacity at the design temperature.
+  .. [#] HeatPumpBackupSizingMethodology choices are 'emergency' or 'supplemental'.
+  .. [#] Heat pump backup capacity is often sized for emergency heat so that it can meet the entire design load if the heat pump fails.
          Some contractors/homeowners may choose not to do so, perhaps due to insufficient panel/wiring capacity.
-         Note: If the minimum temperature for the heat pump's compressor (i.e., ``CompressorLockoutTemperature`` or ``BackupHeatingSwitchoverTemperature``) is above the heating design temperature, the two sizing methodologies will give identical results.
+
+         If HeatPumpBackupSizingMethodology is 'emergency', heat pump backup capacity will be autosized to meet the ACCA Manual J heating design load.
+         If HeatPumpBackupSizingMethodology is 'supplemental', heat pump backup capacity will be autosized to meet the remainder of the ACCA Manual J heating design load not met by the heat pump at the heating design temperature.
+
+         If the minimum temperature for the heat pump's compressor (i.e., ``CompressorLockoutTemperature`` or ``BackupHeatingSwitchoverTemperature``) is above the heating design temperature, the two sizing methodologies will give identical results.
   .. [#] If AllowIncreasedFixedCapacities is true, the larger of user-specified fixed capacity and design load will be used (to reduce potential for unmet loads); otherwise user-specified fixed capacity is used.
 
 Manual J Inputs
@@ -867,20 +862,15 @@ Building air leakage is entered in ``/HPXML/Building/BuildingDetails/Enclosure/A
   =====================================  ======  =====  ===========  =========  =========================  ===============================================
   ``SystemIdentifier``                   id                          Yes                                   Unique identifier
   ``TypeOfInfiltrationLeakage``          string         See [#]_     See [#]_                              Type of infiltration leakage
-  ``InfiltrationVolume``                 double  ft3    > 0          No         ConditionedBuildingVolume  Volume associated with infiltration measurement [#]_
+  ``InfiltrationVolume``                 double  ft3    > 0          No         ConditionedBuildingVolume  Volume associated with infiltration measurement
   ``InfiltrationHeight``                 double  ft     > 0          No         See [#]_                   Height associated with infiltration measurement [#]_
   ``extension/Aext``                     double  frac   > 0          No         See [#]_                   Exterior area ratio for SFA/MF dwelling units
   =====================================  ======  =====  ===========  =========  =========================  ===============================================
 
-  .. [#] TypeOfInfiltrationLeakage choices are "unit total" or "unit exterior only", and are described as follows:
-  
-         \- **unit total**: the provided infiltration value represents the total infiltration to the dwelling unit, as measured by a compartmentalization test, in which case it will be adjusted by ``extension/Aext``.
-         
-         \- **unit exterior only**: the provided infiltration value represents the infiltration to the dwelling unit from outside only, as measured by a guarded test.
-
+  .. [#] TypeOfInfiltrationLeakage choices are "unit total" or "unit exterior only".
   .. [#] TypeOfInfiltrationLeakage required if single-family attached or apartment unit.
-  .. [#] InfiltrationVolume can be thought of as the volume of space most impacted by a blower door test.
-         Note that InfiltrationVolume can be larger than ConditionedBuildingVolume as it can include, e.g., attics or basements with access doors/hatches that are open during the blower door test.
+         Use "unit total" if the provided infiltration value represents the total infiltration to the dwelling unit, as measured by a compartmentalization test, in which case it will be adjusted by ``extension/Aext``.
+         Use "unit exterior only" if the provided infiltration value represents the infiltration to the dwelling unit from outside only, as measured by a guarded test.
   .. [#] If InfiltrationHeight not provided, it is inferred from other inputs (e.g., conditioned floor area, number of conditioned floors above-grade, above-grade foundation wall height, etc.).
   .. [#] InfiltrationHeight is defined as the vertical distance between the lowest and highest above-grade points within the pressure boundary, per ASHRAE 62.2.
   .. [#] If Aext not provided and TypeOfInfiltrationLeakage is "unit total", defaults for single-family attached and apartment units to the ratio of exterior (adjacent to outside) envelope surface area to total (adjacent to outside, other dwelling units, or other MF spaces) envelope surface area, as defined by `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNET3012019P1>`_ and `ASHRAE 62.2-2019 <https://www.techstreet.com/ashrae/standards/ashrae-62-2-2019?product_id=2087691>`_.
@@ -1480,8 +1470,7 @@ Each skylight is entered as a ``/HPXML/Building/BuildingDetails/Enclosure/Skylig
   .. [#] Orientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north"
   .. [#] GlassLayers choices are "single-pane", "double-pane", or "triple-pane".
   .. [#] Summer vs winter shading seasons are determined per :ref:`shadingcontrol`.
-  .. [#] GlassType choices are "clear" or "low-e".
-         The ``UFactor`` and ``SHGC`` of the skylight will be adjusted depending on the ``GlassType``, based on correlations derived using `data reported by PNNL <https://labhomes.pnnl.gov/documents/PNNL_24444_Thermal_and_Optical_Properties_Low-E_Storm_Windows_Panels.pdf>`_. 
+  .. [#] GlassType choices are "clear" or "low-e". The ``UFactor`` and ``SHGC`` of the skylight will be adjusted depending on the ``GlassType``, based on correlations derived using `data reported by PNNL <https://labhomes.pnnl.gov/documents/PNNL_24444_Thermal_and_Optical_Properties_Low-E_Storm_Windows_Panels.pdf>`_. 
          
          \- **clear storm windows**: U-factor = U-factor of base window - (0.6435 * U-factor of base window - 0.1533); SHGC = 0.9 * SHGC of base window
          
@@ -1791,26 +1780,32 @@ Boiler (Shared)
 
 Each shared boiler (serving multiple dwelling units) is entered as a ``/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem``.
 
-  ============================================================  =======  ===========  ===============  ========  ==================  =========================================
-  Element                                                       Type     Units        Constraints      Required  Default             Notes
-  ============================================================  =======  ===========  ===============  ========  ==================  =========================================
-  ``SystemIdentifier``                                          id                                     Yes                           Unique identifier
-  ``UnitLocation``                                              string                See [#]_         No        other heated space  Location of boiler
-  ``DistributionSystem``                                        idref    See [#]_     Yes                                            ID of attached distribution system
-  ``IsSharedSystem``                                            boolean               true             Yes                           Whether it serves multiple dwelling units
-  ``NumberofUnitsServed``                                       integer               > 1              Yes                           Number of dwelling units served
-  ``HeatingSystemType/Boiler``                                  element                                Yes                           Type of heating system
-  ``HeatingSystemType/Boiler/PilotLight``                       boolean                                No        false               Presence of standing pilot light (older systems)
-  ``HeatingSystemType/Boiler/extension/PilotLightBtuh``         double   Btu/hr       >= 0             No        500                 Pilot light burn rate
-  ``HeatingSystemFuel``                                         string                See [#]_         Yes                           Fuel type
-  ``AnnualHeatingEfficiency[Units="AFUE"]/Value``               double   frac         > 0, <= 1        Yes                           Rated efficiency
-  ``FractionHeatLoadServed``                                    double   frac         >= 0, <= 1 [#]_  See [#]_                      Fraction of heating load served
-  ``ElectricAuxiliaryEnergy`` or ``extension/SharedLoopWatts``  double   kWh/yr or W  >= 0             No        See [#]_            Electric auxiliary energy or shared loop power
-  ``ElectricAuxiliaryEnergy`` or ``extension/FanCoilWatts``     double   kWh/yr or W  >= 0             No [#]_                       Electric auxiliary energy or fan coil power
-  ``extension/HeatingAutosizingFactor``                         double   frac         > 0              No        1.0                 Heating autosizing scaling factor
-  ============================================================  =======  ===========  ===============  ========  ==================  =========================================
+  ============================================================  =======  ===========  ===============  ========  ==============  =========================================
+  Element                                                       Type     Units        Constraints      Required  Default         Notes
+  ============================================================  =======  ===========  ===============  ========  ==============  =========================================
+  ``SystemIdentifier``                                          id                                     Yes                       Unique identifier
+  ``UnitLocation``                                              string                See [#]_         No        See [#]_        Location of boiler
+  ``DistributionSystem``                                        idref    See [#]_     Yes                                        ID of attached distribution system
+  ``IsSharedSystem``                                            boolean               true             Yes                       Whether it serves multiple dwelling units
+  ``NumberofUnitsServed``                                       integer               > 1              Yes                       Number of dwelling units served
+  ``HeatingSystemType/Boiler``                                  element                                Yes                       Type of heating system
+  ``HeatingSystemType/Boiler/PilotLight``                       boolean                                No        false           Presence of standing pilot light (older systems)
+  ``HeatingSystemType/Boiler/extension/PilotLightBtuh``         double   Btu/hr       >= 0             No        500             Pilot light burn rate
+  ``HeatingSystemFuel``                                         string                See [#]_         Yes                       Fuel type
+  ``AnnualHeatingEfficiency[Units="AFUE"]/Value``               double   frac         > 0, <= 1        Yes                       Rated efficiency
+  ``FractionHeatLoadServed``                                    double   frac         >= 0, <= 1 [#]_  See [#]_                  Fraction of heating load served
+  ``ElectricAuxiliaryEnergy`` or ``extension/SharedLoopWatts``  double   kWh/yr or W  >= 0             No        See [#]_        Electric auxiliary energy or shared loop power
+  ``ElectricAuxiliaryEnergy`` or ``extension/FanCoilWatts``     double   kWh/yr or W  >= 0             No [#]_                   Electric auxiliary energy or fan coil power
+  ``extension/HeatingAutosizingFactor``                         double   frac         > 0              No        1.0             Heating autosizing scaling factor
+  ============================================================  =======  ===========  ===============  ========  ==============  =========================================
 
   .. [#] UnitLocation choices are "conditioned space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "roof deck", "manufactured home belly", or "unconditioned space".
+  .. [#] If UnitLocation not provided, defaults based on the distribution system:
+         
+         \- **Hydronic**: same default logic as :ref:`waterheatingsystems`
+         
+         \- **DSE**: "conditioned space" if ``FractionHeatLoadServed`` is 1, otherwise "unconditioned space"
+         
   .. [#] HVACDistribution type must be :ref:`hvac_distribution_hydronic` (type: "radiator", "baseboard", "radiant floor", "radiant ceiling", or "water loop") or :ref:`hvac_distribution_air` (type: "fan coil").
          If the shared boiler has "water loop" distribution, a :ref:`hvac_hp_water_loop` must also be specified.
          Note: The choice of hydronic distribution type does not currently affect simulation results; it is currently only used to know if there's an attached water loop heat pump or not.
@@ -2449,10 +2444,10 @@ Each ground-to-air heat pump is entered as a ``/HPXML/Building/BuildingDetails/S
   Element                                          Type      Units   Constraints      Required  Default         Notes
   ===============================================  ========  ======  ===============  ========  ==============  ==============================================
   ``SystemIdentifier``                             id                                 Yes                       Unique identifier
-  ``UnitLocation``                                 string            See [#]_         No        See [#]_        Location of air handler
+  ``UnitLocation``                                 string            ground-to-air    No        See [#]_        Location of air handler
   ``DistributionSystem``                           idref             See [#]_         Yes                       ID of attached distribution system
   ``IsSharedSystem``                               boolean                            No        false           Whether it has a shared hydronic circulation loop [#]_
-  ``HeatPumpType``                                 string            ground-to-air    Yes                       Type of heat pump
+  ``HeatPumpType``                                 string            See [#]_         Yes                       Type of heat pump
   ``HeatPumpFuel``                                 string            electricity      Yes                       Fuel type
   ``HeatingCapacity``                              double    Btu/hr  >= 0             No        autosized [#]_  Heating output capacity (excluding any backup heating)
   ``CoolingCapacity``                              double    Btu/hr  >= 0             No        autosized [#]_  Cooling output capacity
@@ -2910,23 +2905,24 @@ Additional information is entered in each ``Ducts``.
          
          \- **Supply, Insulated**: 2.2438 + 0.5619 * DuctInsulationRValue  
          
-         \- **Supply, Partially Buried**: 3.46 + 1.05 * DuctInsulationRValue
+         \- **Supply, Partially Buried**: 5.83 + 2.0 * DuctInsulationRValue
          
-         \- **Supply, Fully Buried**: 7.14 + 1.0 * DuctInsulationRValue
+         \- **Supply, Fully Buried**: 9.4 + 1.9 * DuctInsulationRValue
          
-         \- **Supply, Deeply Buried**: 14.94 + 0.76 * DuctInsulationRValue
+         \- **Supply, Deeply Buried**: 16.67 + 1.45 * DuctInsulationRValue
          
          \- **Return, Insulated**: 2.0388 + 0.7053 * DuctInsulationRValue
          
-         \- **Return, Partially Buried**: 4.62 + 1.31 * DuctInsulationRValue
+         \- **Return, Partially Buried**: 7.6 + 2.5 * DuctInsulationRValue
          
-         \- **Return, Fully Buried**: 8.91 + 1.29 * DuctInsulationRValue
+         \- **Return, Fully Buried**: 11.83 + 2.45 * DuctInsulationRValue
          
-         \- **Return, Deeply Buried**: 18.64 + 1.0 * DuctInsulationRValue       
+         \- **Return, Deeply Buried**: 20.9 + 1.9 * DuctInsulationRValue       
          
          The uninsulated effective R-value is from ASHRAE Handbook of Fundamentals.
          The insulated effective R-values are from `True R-Values of Round Residential Ductwork <https://www.aceee.org/files/proceedings/2006/data/papers/SS06_Panel1_Paper18.pdf>`_.
-         The buried effective R-values are from Table 13 of `Reducing Thermal Losses and Gains With Buried and Encapsulated Ducts <https://www.nrel.gov/docs/fy13osti/55876.pdf>`_., where the average supply and return ducts have diameters of 8-inch and 14-in, respectively.
+         The buried effective R-values are from Table 13 of `Reducing Thermal Losses and Gains With Buried and Encapsulated Ducts <https://www.nrel.gov/docs/fy13osti/55876.pdf>`_.
+         The equations assume that the average supply duct has an 8-inch diameter and the average return duct has a 14-in diameter.
          
   .. [#] DuctBuriedInsulationLevel choices are "not buried", "partially buried", "fully buried", or "deeply buried".
   .. [#] Whether the ducts are buried in, e.g., attic loose-fill insulation.
@@ -4561,7 +4557,7 @@ If not entered, the simulation will not include a pool heater.
          
          \- **electric resistance [kWh/year]**: 8.3 / 0.004 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920) (based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_)
          
-         \- **heat pump [kWh/year]**: (electric resistance [kWh/year]) / 5.0 (based on an average COP of 5 from `Energy Saver <https://www.energy.gov/energysaver/heat-pump-swimming-pool-heaters>`_)
+         \- **heat pump [kWh/year]**: (electric resistance) / 5.0 (based on an average COP of 5 from `Energy Saver <https://www.energy.gov/energysaver/heat-pump-swimming-pool-heaters>`_)
          
          If NumberofResidents provided, this value will be adjusted using the :ref:`buildingoccupancy`.
          
@@ -4684,7 +4680,7 @@ If not entered, the simulation will not include that type of plug load.
          
          \- **electric vehicle charging**: 1666.67 (calculated using AnnualMiles * kWhPerMile / (ChargerEfficiency * BatteryEfficiency) where AnnualMiles=4500, kWhPerMile=0.3, ChargerEfficiency=0.9, and BatteryEfficiency=0.9)
          
-         If NumberofResidents provided, any value based on NumberofBedrooms will be adjusted using the :ref:`buildingoccupancy`.
+         If NumberofResidents provided, this value will be adjusted using the :ref:`buildingoccupancy`.
          
   .. [#] If FracSensible not provided, defaults as:
          

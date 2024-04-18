@@ -3196,10 +3196,7 @@ class HVACSizing
       # Heating backup capacity
       if htg_sys.is_a? HPXML::HeatPump
         if htg_sys.backup_type.nil?
-          if htg_sys.backup_heating_capacity.nil?
-            htg_sys.backup_heating_capacity = 0.0
-            htg_sys.backup_heating_capacity_isdefaulted = true
-          end
+          htg_sys.backup_heating_capacity = 0.0
         elsif htg_sys.backup_type == HPXML::HeatPumpBackupTypeIntegrated
           if htg_sys.backup_heating_capacity.nil? || ((htg_sys.backup_heating_capacity - hvac_sizing_values.Heat_Capacity_Supp).abs >= 1.0)
             htg_sys.backup_heating_capacity = Float(hvac_sizing_values.Heat_Capacity_Supp.round)
