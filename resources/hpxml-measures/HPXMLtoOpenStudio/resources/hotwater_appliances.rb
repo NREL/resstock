@@ -50,8 +50,13 @@ class HotWaterAndAppliances
       cw_power_schedule = nil
       cw_col_name = SchedulesFile::Columns[:ClothesWasher].name
       cw_object_name = Constants.ObjectNameClothesWasher
+      metered_clothes_washer_IMEF = 2.07
+      if clothes_washer.integrated_modified_energy_factor.nil?
+        clothes_washer.integrated_modified_energy_factor = 2.07
+      end 
+      clothes_washer_power_multiplier = metered_clothes_washer_IMEF/clothes_washer.integrated_modified_energy_factor
       if not schedules_file.nil?
-        cw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: cw_col_name, daily_kwh: cw_annual_kwh / 365.0)
+        cw_design_level_w = schedules_file.calc_design_level_from_schedule_max(col_name: cw_col_name) * clothes_washer_power_multiplier
         cw_power_schedule = schedules_file.create_schedule_file(model, col_name: cw_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if cw_power_schedule.nil?
@@ -81,8 +86,17 @@ class HotWaterAndAppliances
       cd_schedule = nil
       cd_col_name = SchedulesFile::Columns[:ClothesDryer].name
       cd_obj_name = Constants.ObjectNameClothesDryer
+      metered_clothes_dryer_CEF = 2.68 
+      if clothes_dryer.combined_energy_factor.nil?
+        clothes_dryer.combined_energy_factor = 2.68
+      end
+      clothes_dryer_power_multiplier = metered_clothes_dryer_CEF/clothes_dryer.combined_energy_factor
       if not schedules_file.nil?
-        cd_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cd_col_name, annual_kwh: cd_annual_kwh)
+        if clothes_dryer.fuel_type == HPXML::FuelTypeElectricity
+          cd_design_level_e = clothes_dryer_power_multiplier * schedules_file.calc_design_level_from_schedule_max(col_name: cd_col_name)
+        else
+          cd_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cd_col_name, annual_kwh: cd_annual_kwh)
+        end
         cd_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: cd_col_name, annual_therm: cd_annual_therm)
         cd_schedule = schedules_file.create_schedule_file(model, col_name: cd_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
@@ -115,8 +129,13 @@ class HotWaterAndAppliances
       dw_power_schedule = nil
       dw_col_name = SchedulesFile::Columns[:Dishwasher].name
       dw_obj_name = Constants.ObjectNameDishwasher
+      metered_dishwasher_rated_annual_kwh = 240
+      if dishwasher.rated_annual_kwh.nil?
+        dishwasher.rated_annual_kwh = 240
+      end 
+      dishwasher_power_multiplier = dishwasher.rated_annual_kwh/metered_dishwasher_rated_annual_kwh
       if not schedules_file.nil?
-        dw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: dw_col_name, daily_kwh: dw_annual_kwh / 365.0)
+        dw_design_level_w = schedules_file.calc_design_level_from_schedule_max(col_name: dw_col_name) * dishwasher_power_multiplier
         dw_power_schedule = schedules_file.create_schedule_file(model, col_name: dw_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if dw_power_schedule.nil?
@@ -225,13 +244,22 @@ class HotWaterAndAppliances
     # Cooking Range energy
     if not cooking_range.nil?
       cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cooking_range, oven, cooking_range.additional_properties.space.nil?)
+      if cooking_range.is_induction
+        burner_ef = 0.91
+      else
+        burner_ef = 1.0
+      end
 
       # Create schedule
       cook_schedule = nil
       cook_col_name = SchedulesFile::Columns[:CookingRange].name
       cook_obj_name = Constants.ObjectNameCookingRange
       if not schedules_file.nil?
-        cook_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cook_col_name, annual_kwh: cook_annual_kwh)
+        if cooking_range.fuel_type == HPXML::FuelTypeElectricity
+          cook_design_level_e = burner_ef * schedules_file.calc_design_level_from_schedule_max(col_name: cook_col_name)
+        else
+          cook_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cook_col_name, annual_kwh: cook_annual_kwh)
+        end
         cook_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: cook_col_name, annual_therm: cook_annual_therm)
         cook_schedule = schedules_file.create_schedule_file(model, col_name: cook_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end

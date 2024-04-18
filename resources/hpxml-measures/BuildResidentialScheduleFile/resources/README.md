@@ -39,7 +39,7 @@ The files are divided into four clusters (cluster0 to cluster3), for 4 occupant 
 
 `<enduse>_consumption_dist.csv`
 
-These files contain the 15-min power consumption kWh samples for the given end use, obtained from RBSA (average 15-min end use kWh for each submetered home; N=number of homes with that end use).
+These files contain the 1-min power kW samples for the given end use, obtained from NREL metered data. The metered range is Whirlpool WFE540H0AS, which is a standard electric range. The metered clothes dryer is Bosch WTG865H4UC, whose CEF=2.68. Metered Clothes washer IMEF= 2.07. Metered dishwasher Annual Energy Use rating is 240 kWh/yr.
 The schedule generator randomly picks one of these values to determine the power level of the appliance schedule.
 
 `<enduse>_duration_dist.csv`
