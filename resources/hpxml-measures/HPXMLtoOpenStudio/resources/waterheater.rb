@@ -62,8 +62,13 @@ class Waterheater
 
   def self.apply_heatpump(model, runner, loc_space, loc_schedule, elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
     # TODO: flag for testing, need to add whether this is 120 V or 240 V, shared or dedicated circuit, to the HPXML files. Extension elements?
-    hpwh_120V = true
-    hpwh_120V_type = 'shared' # 'dedicated'
+    
+    hpwh_120V = false
+    hpwh_120V_type = 'dedicated'
+    if water_heating_system.uniform_energy_factor > 5.0
+      hpwh_120V = true
+      hpwh_120V_type = 'shared' # 'dedicated'
+    end
 
     obj_name_hpwh = Constants.ObjectNameWaterHeater
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
