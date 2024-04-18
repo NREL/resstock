@@ -1351,11 +1351,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
         end
       end
     end
-    if hpxml_file.include? 'install-quality'
-      hpxml_bldg.hvac_systems.each do |hvac_system|
-        hvac_system.fan_watts_per_cfm = 0.365
-      end
-    elsif ['base-hvac-setpoints-daily-setbacks.xml'].include? hpxml_file
+    if ['base-hvac-setpoints-daily-setbacks.xml'].include? hpxml_file
       hpxml_bldg.hvac_controls[0].heating_setback_temp = 66
       hpxml_bldg.hvac_controls[0].heating_setback_hours_per_week = 7 * 7
       hpxml_bldg.hvac_controls[0].heating_setback_start_hour = 23 # 11pm
@@ -1680,7 +1676,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                    location: HPXML::LocationConditionedSpace)
     end
     if ['base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml',
-        'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-furnace.xml'].include? hpxml_file
+        'base-hvac-air-to-air-heat-pump-var-speed-backup-furnace-airflow.xml',
+        'base-hvac-air-to-air-heat-pump-var-speed-backup-furnace-autosize-factor.xml',
+        'base-hvac-air-to-air-heat-pump-var-speed-backup-furnace-autosize-limit.xml'].include? hpxml_file
       # Switch backup boiler with hydronic distribution to backup furnace with air distribution
       hpxml_bldg.heating_systems[0].heating_system_type = HPXML::HVACTypeFurnace
       hpxml_bldg.hvac_distributions[0].distribution_system_type = HPXML::HVACDistributionTypeAir
