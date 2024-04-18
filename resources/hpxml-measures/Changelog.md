@@ -32,7 +32,7 @@ __New Features__
   - Updates to using G-Functions from the [G-Function Library for Modeling Vertical Bore Ground Heat Exchanger](https://gdr.openei.org/submissions/1325).
   - Updated heating/cooling performance curves to reflect newer equipment.
 - Allows optional `HeatingAutosizingFactor`, `CoolingAutosizingFactor`, `BackupHeatingAutosizingFactor` inputs to scale HVAC equipment autosizing results.
-- Adds optional `Slab/extension/GapInsulationRValue` input for cases where a slab has horizontal insulation.
+- Adds optional `Slab/extension/GapInsulationRValue` input for cases where a slab has horizontal (under slab) insulation.
 - Allows radiant barriers for additional locations (attic gable walls and floor); reduced emissivity due to dust assumed for radiant barriers on attic floor.
 - Adds window and skylight `GlassType` options of "low-e, high-solar-gain" and "low-e, low-solar-gain"; updates U-factor/SHGC lookup tables.
 - BuildResidentialHPXML measure:
@@ -69,6 +69,8 @@ __Bugfixes__
 - Fixes possible EnergyPlus error when a `Slab` representing a crawlspace dirt floor has perimeter or under slab insulation.
 - Prevents errors due to incorrect `Floor/FloorOrCeiling` input; issues a warning when detected.
 - Apportion shared water heater tank losses for HPWHs and combi systems.
+- Fixes buried duct effective R-values.
+- Fixes shared boiler default location (which could result in assuming there's a flue in conditioned space impacting infiltration).
 
 ## OpenStudio-HPXML v1.7.0
 
