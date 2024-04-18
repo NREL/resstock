@@ -321,6 +321,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Optional whole SFA/MF building simulation
     whole_sfa_or_mf_building_sim = hpxml.header.whole_sfa_or_mf_building_sim
 
+    # Ductwork restriction
+    ductwork_restriction = measures['ResStockArguments'][0]['hvac_distribution_ductwork_restriction']
+    if ductwork_restriction
+      cfm_per_ton = 400.0
+      baseline_max_airflow_cfm = nil
+      measures_hash = {}
+    end
+
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
       unit_number += 1
@@ -394,14 +402,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['heat_pump_airflow_defect_ratio'] = defect_ratios['heat_pump_airflow_defect_ratio']
       measures['BuildResidentialHPXML'][0]['heat_pump_charge_defect_ratio'] = defect_ratios['heat_pump_charge_defect_ratio']
 
-      # Set maximum HVAC airflows
-      ductwork_restriction = measures['ResStockArguments'][0]['hvac_distribution_ductwork_restriction']
-      if ductwork_restriction
-        airflows = get_airflows(hpxml_bldg)
-        measures['BuildResidentialHPXML'][0]['hvac_distribution_max_heating_airflow_cfm'] = airflows['heating_airflow_cfm']
-        measures['BuildResidentialHPXML'][0]['hvac_distribution_max_cooling_airflow_cfm'] = airflows['cooling_airflow_cfm']
-      end
-
       # Retain Existing Heating System as Heat Pump Backup
       heat_pump_backup_use_existing_system = measures['ResStockArguments'][0]['heat_pump_backup_use_existing_system']
       if heat_pump_backup_use_existing_system == 'true'
@@ -457,6 +457,29 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
             return false
           end
         end
+      end
+
+      # Set autosizing limits
+      if ductwork_restriction
+        air_distribution_airflows = get_air_distribution_airflows(hpxml_bldg)
+        break if air_distribution_airflows.empty?
+
+        if air_distribution_airflows.size > 1
+          runner.registerError('More than one air distribution system in baseline building.')
+          return false
+        end
+
+        air_distribution_airflows = air_distribution_airflows[0]
+        baseline_max_airflow_cfm = air_distribution_airflows.values.max
+        autosizing_limit = UnitConversions.convert(baseline_max_airflow_cfm / cfm_per_ton, 'ton', 'Btu/hr')
+
+        # FIXME do we need to know what the upgrade system is?
+        measures['BuildResidentialHPXML'][0]['heating_system_heating_autosizing_limit'] = autosizing_limit
+        measures['BuildResidentialHPXML'][0]['cooling_system_cooling_autosizing_limit'] = autosizing_limit
+        measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_autosizing_limit'] = autosizing_limit
+        measures['BuildResidentialHPXML'][0]['heating_system_2_heating_autosizing_limit'] = autosizing_limit
+        measures['BuildResidentialHPXML'][0]['heat_pump_heating_autosizing_limit'] = autosizing_limit
+        measures['BuildResidentialHPXML'][0]['heat_pump_cooling_autosizing_limit'] = autosizing_limit
       end
 
       # Get software program used and version
@@ -516,6 +539,53 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         return false
       end
     end # end hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
+
+    # Set adjusted fan power
+    if ductwork_restriction
+      if File.exist?(hpxml_path)
+        hpxml = HPXML.new(hpxml_path: hpxml_path)
+      else
+        runner.registerWarning("ApplyUpgrade measure could not find '#{hpxml_path}'.")
+        return true
+      end
+
+      hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
+        unit_number += 1
+
+        if unit_number == 1
+          measures['BuildResidentialHPXML'][0].delete('existing_hpxml_path')
+        else
+          measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
+        end
+
+        air_distribution_airflows = get_air_distribution_airflows(hpxml_bldg)
+
+        if !baseline_max_airflow_cfm.nil? && !air_distribution_airflows.empty? # i.e., ducted -> ducted
+          if air_distribution_airflows.size > 1
+            runner.registerError('More than one air distribution system in upgrade building.')
+            return false
+          end
+          air_distribution_airflows = air_distribution_airflows[0]
+          upgrade_max_airflow_cfm = air_distribution_airflows.values.max
+
+          fan_watts_per_cfm = get_fan_watts_per_cfm(hpxml_bldg)
+          adjusted_fan_watts_per_cfm = get_adjusted_fan_watts_per_cfm(baseline_max_airflow_cfm, upgrade_max_airflow_cfm, fan_watts_per_cfm)
+          measures['BuildResidentialHPXML'][0]['hvac_distribution_fan_watts_per_cfm'] = adjusted_fan_watts_per_cfm
+        else # not ducted -> ducted; don't set autosizing limits or adjusted fan power
+          measures['BuildResidentialHPXML'][0].delete('heating_system_heating_autosizing_limit')
+          measures['BuildResidentialHPXML'][0].delete('cooling_system_cooling_autosizing_limit')
+          measures['BuildResidentialHPXML'][0].delete('heat_pump_backup_heating_autosizing_limit')
+          measures['BuildResidentialHPXML'][0].delete('heating_system_2_heating_autosizing_limit')
+          measures['BuildResidentialHPXML'][0].delete('heat_pump_heating_autosizing_limit')
+          measures['BuildResidentialHPXML'][0].delete('heat_pump_cooling_autosizing_limit')
+        end
+
+        if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+          register_logs(runner, new_runner)
+          return false
+        end
+      end # end hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
+    end # end ductwork_restriction
 
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path,
@@ -719,35 +789,58 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     return capacities, autosizing_factors, defect_ratios
   end
 
-  def get_airflows(hpxml_bldg)
-    airflows = {
-      'heating_airflow_cfm' => nil,
-      'cooling_airflow_cfm' => nil
-    }
+  def get_air_distribution_airflows(hpxml_bldg)
+    air_distribution_airflows = []
 
-    hpxml_bldg.heating_systems.each do |heating_system|
-      next if heating_system.distribution_system.nil?
-      next if heating_system.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
+    hpxml_bldg.hvac_distributions.each do |hvac_distribution|
+      next if hvac_distribution.distribution_system_type != HPXML::HVACDistributionTypeAir
 
-      airflows['heating_airflow_cfm'] = heating_system.heating_airflow_cfm
+      air_distribution_airflow = {}
+      hvac_distribution.hvac_systems.each do |hvac_system|
+        if hvac_system.is_a?(HPXML::HeatingSystem)
+          if hvac_system.primary_system
+            air_distribution_airflow['heating_system_heating_airflow'] = hvac_system.heating_airflow_cfm
+            air_distribution_airflow['heating_system_heating_airflow'] = 0.0 if air_distribution_airflow['heating_system_heating_airflow'].nil?
+          else
+            air_distribution_airflow['heating_system_2_heating_airflow'] = hvac_system.heating_airflow_cfm
+            air_distribution_airflow['heating_system_2_heating_airflow'] = 0.0 if air_distribution_airflow['heating_system_2_heating_airflow'].nil?
+          end
+        elsif hvac_system.is_a?(HPXML::CoolingSystem)
+          air_distribution_airflow['cooling_system_heating_airflow'] = hvac_system.cooling_airflow_cfm
+          air_distribution_airflow['cooling_system_heating_airflow'] = 0.0 if air_distribution_airflow['cooling_system_heating_airflow'].nil?
+        elsif hvac_system.is_a?(HPXML::HeatPump)
+          air_distribution_airflow['heat_pump_heating_airflow'] = hvac_system.heating_airflow_cfm
+          air_distribution_airflow['heat_pump_heating_airflow'] = 0.0 if air_distribution_airflow['heat_pump_heating_airflow'].nil?
+
+          air_distribution_airflow['heat_pump_cooling_airflow'] = hvac_system.cooling_airflow_cfm
+          air_distribution_airflow['heat_pump_cooling_airflow'] = 0.0 if air_distribution_airflow['heat_pump_cooling_airflow'].nil?
+        end
+      end
+      air_distribution_airflows << air_distribution_airflow
     end
 
-    hpxml_bldg.cooling_systems.each do |cooling_system|
-      next if cooling_system.distribution_system.nil?
-      next if cooling_system.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
+    return air_distribution_airflows
+  end
 
-      airflows['cooling_airflow_cfm'] = cooling_system.cooling_airflow_cfm
+  def get_fan_watts_per_cfm(hpxml_bldg)
+    hpxml_bldg.hvac_distributions.each do |hvac_distribution|
+      next if hvac_distribution.distribution_system_type != HPXML::HVACDistributionTypeAir
+
+      hvac_distribution.hvac_systems.each do |hvac_system|
+        return hvac_system.fan_watts_per_cfm # assume these would all be equal for a given air distribution system?
+      end
     end
+  end
 
-    hpxml_bldg.heat_pumps.each do |heat_pump|
-      next if heat_pump.distribution_system.nil?
-      next if heat_pump.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
+  def get_adjusted_fan_watts_per_cfm(baseline_max_airflow_cfm, upgrade_max_airflow_cfm, fan_watts_per_cfm)
+    v_baseline = baseline_max_airflow_cfm
+    v_upgrade = upgrade_max_airflow_cfm
 
-      airflows['heating_airflow_cfm'] = heat_pump.heating_airflow_cfm
-      airflows['cooling_airflow_cfm'] = heat_pump.cooling_airflow_cfm
-    end
+    p_int = v_baseline * fan_watts_per_cfm
+    p_upgrade = p_int * (v_upgrade / v_baseline)**3
+    adjusted_fan_watts_per_cfm = p_upgrade / v_upgrade
 
-    return airflows
+    return adjusted_fan_watts_per_cfm
   end
 end
 
