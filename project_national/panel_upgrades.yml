@@ -3,7 +3,7 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /kfs2/projects/panels/run/test_run_20240322
+output_directory: /kfs2/projects/panels/run/test_run_100_20240418
 #weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
@@ -11,7 +11,7 @@ weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIP
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 30000
+    n_datapoints: 100
 
 workflow_generator:
   type: residential_hpxml
@@ -632,7 +632,7 @@ references:
 
     #### 2.3 120V HPWH With Shared Circuit  ####
       - &120v_hpwh_50_gal
-        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 120 V
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 120 V Shared
         apply_logic:
           - or:
             - Bedrooms|1
@@ -640,15 +640,15 @@ references:
         costs:
           - value: 2099
             multiplier: Fixed (1)
-      - &120v_hpwh_66_gal
-        option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 120 V
+      - &120v_hpwh_65_gal
+        option: Water Heater Efficiency|Electric Heat Pump, 65 gal, 120 V Shared
         apply_logic:
           - Bedrooms|3
         costs:
           - value: 2499
             multiplier: Fixed (1)
       - &120v_hpwh_80_gal
-        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 120 V
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 120 V Shared
         apply_logic:
           - or:
             - Bedrooms|4
@@ -1071,7 +1071,7 @@ upgrades:
       - *fed_min_mshp_ductless
     #### 2.2 120V HPWH, 3 options  ####
       - *120v_hpwh_50_gal
-      - *120v_hpwh_66_gal
+      - *120v_hpwh_65_gal
       - *120v_hpwh_80_gal
     #### 3 Electric Resistance Cooking, 1 option  ####
       - *electric_resistance_cooking
@@ -1097,7 +1097,7 @@ upgrades:
       - *high_eff_mshp_ductless
     #### 2.2 120V HPWH, 3 options  ####
       - *120v_hpwh_50_gal
-      - *120v_hpwh_66_gal
+      - *120v_hpwh_65_gal
       - *120v_hpwh_80_gal
     #### 3 Electric Resistance Cooking, 1 option  ####
       - *electric_resistance_cooking
@@ -1335,7 +1335,7 @@ upgrades:
       - *fed_min_mshp_ductless
     #### 2.2 120V HPWH, 3 options  ####
       - *120v_hpwh_50_gal
-      - *120v_hpwh_66_gal
+      - *120v_hpwh_65_gal
       - *120v_hpwh_80_gal
     #### 3 Electric Resistance Cooking, 1 option  ####
       - *electric_resistance_cooking
@@ -1373,7 +1373,7 @@ upgrades:
       - *high_eff_mshp_ductless
     #### 2.2 120V HPWH, 3 options  ####
       - *120v_hpwh_50_gal
-      - *120v_hpwh_66_gal
+      - *120v_hpwh_65_gal
       - *120v_hpwh_80_gal
     #### 3 Electric Resistance Cooking, 1 option  ####
       - *electric_resistance_cooking
@@ -1465,13 +1465,13 @@ upgrades:
       - *drill_and_fill 
   
 kestrel:
-  n_jobs: 240
-  minutes_per_sim: 4
+  n_jobs: 20
+  minutes_per_sim: 6
   account: panels
   sampling:
-    time: 100
+    time: 20
   postprocessing:
-    time: 2000 
+    time: 200 
     n_workers: 32 
 
 postprocessing:
@@ -1483,4 +1483,4 @@ postprocessing:
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: resstock_panels 
-      max_crawling_time: 2000
+      max_crawling_time: 200
