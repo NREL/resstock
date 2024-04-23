@@ -30,8 +30,8 @@ class WorkflowSimulations1Test < Minitest::Test
       end
     end
     xmls = xmls[0..split_at_file - 1]
-    all_results = run_simulation_tests(xmls)
+    all_annual_results = run_simulation_tests(xmls)
 
-    _write_results(all_results.sort_by { |k, _v| k.downcase }.to_h, results_out)
+    _write_results(all_annual_results.sort_by { |k, _v| k.downcase }.to_h, results_out)
   end
 end

@@ -663,7 +663,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.roofs[0].azimuth = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_roof_values(default_hpxml_bldg.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.75, HPXML::ColorLight, 0.90, false, nil, HPXML::InteriorFinishGypsumBoard, 0.5, 45)
+    _test_default_roof_values(default_hpxml_bldg.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.75, HPXML::ColorLight, 0.90, nil, nil, HPXML::InteriorFinishGypsumBoard, 0.5, 45)
   end
 
   def test_rim_joists
@@ -4279,7 +4279,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     assert_equal(solar_absorptance, roof.solar_absorptance)
     assert_equal(roof_color, roof.roof_color)
     assert_equal(emittance, roof.emittance)
-    assert_equal(radiant_barrier, roof.radiant_barrier)
+    if not radiant_barrier.nil?
+      assert_equal(radiant_barrier, roof.radiant_barrier)
+    else
+      assert_nil(roof.radiant_barrier)
+    end
     if not radiant_barrier_grade.nil?
       assert_equal(radiant_barrier_grade, roof.radiant_barrier_grade)
     else
