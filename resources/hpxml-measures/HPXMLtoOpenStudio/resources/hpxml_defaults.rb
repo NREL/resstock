@@ -806,8 +806,10 @@ class HPXMLDefaults
         roof.emittance_isdefaulted = true
       end
       if roof.radiant_barrier.nil?
-        roof.radiant_barrier = false
-        roof.radiant_barrier_isdefaulted = true
+        if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include?(roof.interior_adjacent_to)
+          roof.radiant_barrier = false
+          roof.radiant_barrier_isdefaulted = true
+        end
       end
       if roof.radiant_barrier && roof.radiant_barrier_grade.nil?
         roof.radiant_barrier_grade = 1
@@ -923,8 +925,10 @@ class HPXMLDefaults
         wall.interior_finish_thickness_isdefaulted = true
       end
       if wall.radiant_barrier.nil?
-        wall.radiant_barrier = false
-        wall.radiant_barrier_isdefaulted = true
+        if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include?(wall.interior_adjacent_to) || [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include?(wall.exterior_adjacent_to)
+          wall.radiant_barrier = false
+          wall.radiant_barrier_isdefaulted = true
+        end
       end
       if wall.radiant_barrier && wall.radiant_barrier_grade.nil?
         wall.radiant_barrier_grade = 1
@@ -1030,8 +1034,10 @@ class HPXMLDefaults
         floor.interior_finish_thickness_isdefaulted = true
       end
       if floor.radiant_barrier.nil?
-        floor.radiant_barrier = false
-        floor.radiant_barrier_isdefaulted = true
+        if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include?(floor.interior_adjacent_to) || [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include?(floor.exterior_adjacent_to)
+          floor.radiant_barrier = false
+          floor.radiant_barrier_isdefaulted = true
+        end
       end
       if floor.radiant_barrier && floor.radiant_barrier_grade.nil?
         floor.radiant_barrier_grade = 1

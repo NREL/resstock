@@ -78,8 +78,10 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'dhw-invalid-ef-tank' => ['Expected EnergyFactor to be less than 1 [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[WaterHeaterType="storage water heater"], id: "WaterHeatingSystem1"]'],
                             'dhw-invalid-uef-tank-heat-pump' => ['Expected UniformEnergyFactor to be greater than 1 [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[WaterHeaterType="heat pump water heater"], id: "WaterHeatingSystem1"]'],
                             'dishwasher-location' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
-                            'duct-leakage-cfm25' => ['Expected Value to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/DuctLeakageMeasurement/DuctLeakage[Units="CFM25" or Units="CFM50"], id: "HVACDistribution1"]'],
-                            'duct-leakage-cfm50' => ['Expected Value to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/DuctLeakageMeasurement/DuctLeakage[Units="CFM25" or Units="CFM50"], id: "HVACDistribution1"]'],
+                            'duct-leakage-cfm25' => ["The value '-2.0' is less than the minimum value allowed",
+                                                     "The value '-3.0' is less than the minimum value allowed"],
+                            'duct-leakage-cfm50' => ["The value '-2.0' is less than the minimum value allowed",
+                                                     "The value '-3.0' is less than the minimum value allowed"],
                             'duct-leakage-percent' => ['Expected Value to be less than 1 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/DuctLeakageMeasurement/DuctLeakage[Units="Percent"], id: "HVACDistribution1"]'],
                             'duct-location' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
                             'duct-location-unconditioned-space' => ["Expected DuctLocation to be 'conditioned space' or 'basement - conditioned' or 'basement - unconditioned' or 'crawlspace - vented' or 'crawlspace - unvented' or 'crawlspace - conditioned' or 'attic - vented' or 'attic - unvented' or 'garage' or 'exterior wall' or 'under slab' or 'roof deck' or 'outside' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space' or 'manufactured home belly' [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts, id: \"Ducts1\"]",
@@ -126,7 +128,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'hvac-location-heat-pump' => ['A location is specified as "basement - unconditioned" but no surfaces were found adjacent to this space type.'],
                             'hvac-msac-not-var-speed' => ["Expected CompressorType to be 'variable speed'"],
                             'hvac-mshp-not-var-speed' => ["Expected CompressorType to be 'variable speed'"],
-                            'hvac-shr-low' => ['Expected SensibleHeatFraction to be greater than 0.5'],
+                            'hvac-shr-low' => ["The value '0.4' must be greater than '0.5'"],
                             'hvac-sizing-humidity-setpoint' => ['Expected ManualJInputs/HumiditySetpoint to be less than 1'],
                             'hvac-sizing-daily-temp-range' => ["Expected ManualJInputs/DailyTemperatureRange to be 'low' or 'medium' or 'high'"],
                             'hvac-negative-crankcase-heater-watts' => ['Expected extension/CrankcaseHeaterPowerWatts to be greater than or equal to 0.0.'],
@@ -151,7 +153,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'invalid-foundation-wall-properties' => ['Expected DepthBelowGrade to be less than or equal to Height [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall, id: "FoundationWall1"]',
                                                                      'Expected DistanceToBottomOfInsulation to be greater than or equal to DistanceToTopOfInsulation [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer[InstallationType="continuous - exterior" or InstallationType="continuous - interior"], id: "FoundationWall1Insulation"]',
                                                                      'Expected DistanceToBottomOfInsulation to be less than or equal to ../../Height [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer[InstallationType="continuous - exterior" or InstallationType="continuous - interior"], id: "FoundationWall1Insulation"]'],
-                            'invalid-ground-conductivity' => ['Expected Conductivity to be greater than 0'],
+                            'invalid-ground-conductivity' => ["The value '0.0' must be greater than '0'"],
                             'invalid-ground-diffusivity' => ['Expected extension/Diffusivity to be greater than 0'],
                             'invalid-heat-pump-capacity-retention' => ['Expected Fraction to be less than 1',
                                                                        'Expected Temperature to be less than or equal to 17'],
@@ -266,11 +268,11 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['duct-leakage-cfm25'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = -2
-        hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = -2
+        hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = -3
       elsif ['duct-leakage-cfm50'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-ducts-leakage-cfm50.xml')
         hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = -2
-        hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = -2
+        hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = -3
       elsif ['duct-leakage-percent'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_units = HPXML::UnitsPercent
