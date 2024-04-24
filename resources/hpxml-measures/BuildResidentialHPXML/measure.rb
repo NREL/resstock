@@ -1708,12 +1708,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.1)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_leakage_to_outside_value', true)
-    arg.setDisplayName('Ducts: Return Leakage to Outside Value')
-    arg.setDescription('The leakage value to outside for the return ducts.')
-    arg.setDefaultValue(0.1)
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('ducts_supply_location', duct_location_choices, false)
     arg.setDisplayName('Ducts: Supply Location')
     arg.setDescription("The location of the supply ducts. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#air-distribution'>Air Distribution</a>) is used.")
@@ -1721,7 +1715,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_insulation_r', true)
     arg.setDisplayName('Ducts: Supply Insulation R-Value')
-    arg.setDescription('The insulation r-value of the supply ducts excluding air films.')
+    arg.setDescription('The nominal insulation r-value of the supply ducts excluding air films. Use 0 for uninsulated ducts.')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDefaultValue(0)
     args << arg
@@ -1749,6 +1743,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('frac')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_fraction_rectangular', false)
+    arg.setDisplayName('Ducts: Supply Fraction Rectangular')
+    arg.setDescription("The fraction of supply ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#air-distribution'>Air Distribution</a>) is used.")
+    arg.setUnits('frac')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_leakage_to_outside_value', true)
+    arg.setDisplayName('Ducts: Return Leakage to Outside Value')
+    arg.setDescription('The leakage value to outside for the return ducts.')
+    arg.setDefaultValue(0.1)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('ducts_return_location', duct_location_choices, false)
     arg.setDisplayName('Ducts: Return Location')
     arg.setDescription("The location of the return ducts. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#air-distribution'>Air Distribution</a>) is used.")
@@ -1756,7 +1762,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_insulation_r', true)
     arg.setDisplayName('Ducts: Return Insulation R-Value')
-    arg.setDescription('The insulation r-value of the return ducts excluding air films.')
+    arg.setDescription('The nominal insulation r-value of the return ducts excluding air films. Use 0 for uninsulated ducts.')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDefaultValue(0)
     args << arg
@@ -1782,6 +1788,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Ducts: Number of Return Registers')
     arg.setDescription("The number of return registers of the ducts. Only used to calculate default return duct surface area. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#air-distribution'>Air Distribution</a>) is used.")
     arg.setUnits('#')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_fraction_rectangular', false)
+    arg.setDisplayName('Ducts: Return Fraction Rectangular')
+    arg.setDescription("The fraction of return ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#air-distribution'>Air Distribution</a>) is used.")
+    arg.setUnits('frac')
     args << arg
 
     mech_vent_fan_type_choices = OpenStudio::StringVector.new
@@ -5870,6 +5882,17 @@ class HPXMLFile
       ducts_supply_area_fraction = args[:ducts_supply_surface_area_fraction].get
     end
 
+    if args[:ducts_supply_fraction_rectangular].is_initialized
+      ducts_supply_fraction_rectangular = args[:ducts_supply_fraction_rectangular].get
+      if ducts_supply_fraction_rectangular == 0
+        ducts_supply_fraction_rectangular = nil
+        ducts_supply_shape = HPXML::DuctShapeRound
+      elsif ducts_supply_fraction_rectangular == 1
+        ducts_supply_shape = HPXML::DuctShapeRectangular
+        ducts_supply_fraction_rectangular = nil
+      end
+    end
+
     if args[:ducts_return_surface_area].is_initialized
       ducts_return_surface_area = args[:ducts_return_surface_area].get
     end
@@ -5904,13 +5927,26 @@ class HPXMLFile
       ducts_return_buried_insulation_level = args[:ducts_return_buried_insulation_level].get
     end
 
+    if args[:ducts_return_fraction_rectangular].is_initialized
+      ducts_return_fraction_rectangular = args[:ducts_return_fraction_rectangular].get
+      if ducts_return_fraction_rectangular == 0
+        ducts_return_fraction_rectangular = nil
+        ducts_return_shape = HPXML::DuctShapeRound
+      elsif ducts_return_fraction_rectangular == 1
+        ducts_return_shape = HPXML::DuctShapeRectangular
+        ducts_return_fraction_rectangular = nil
+      end
+    end
+
     hvac_distribution.ducts.add(id: "Ducts#{hvac_distribution.ducts.size + 1}",
                                 duct_type: HPXML::DuctTypeSupply,
                                 duct_insulation_r_value: args[:ducts_supply_insulation_r],
                                 duct_buried_insulation_level: ducts_supply_buried_insulation_level,
                                 duct_location: ducts_supply_location,
                                 duct_surface_area: ducts_supply_surface_area,
-                                duct_fraction_area: ducts_supply_area_fraction)
+                                duct_fraction_area: ducts_supply_area_fraction,
+                                duct_shape: ducts_supply_shape,
+                                duct_fraction_rectangular: ducts_supply_fraction_rectangular)
 
     if not ([HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && args[:cooling_system_is_ducted])
       hvac_distribution.ducts.add(id: "Ducts#{hvac_distribution.ducts.size + 1}",
@@ -5919,7 +5955,9 @@ class HPXMLFile
                                   duct_buried_insulation_level: ducts_return_buried_insulation_level,
                                   duct_location: ducts_return_location,
                                   duct_surface_area: ducts_return_surface_area,
-                                  duct_fraction_area: ducts_return_area_fraction)
+                                  duct_fraction_area: ducts_return_area_fraction,
+                                  duct_shape: ducts_return_shape,
+                                  duct_fraction_rectangular: ducts_return_fraction_rectangular)
     end
 
     if (not ducts_supply_area_fraction.nil?) && (ducts_supply_area_fraction < 1)
