@@ -105,6 +105,10 @@ class HPXML < Object
   DuctInsulationMaterialNone = 'None'
   DuctLeakageTotal = 'total'
   DuctLeakageToOutside = 'to outside'
+  DuctShapeRectangular = 'rectangular'
+  DuctShapeRound = 'round'
+  DuctShapeOval = 'oval'
+  DuctShapeOther = 'other'
   DuctTypeReturn = 'return'
   DuctTypeSupply = 'supply'
   DWHRFacilitiesConnectedAll = 'all'
@@ -5464,8 +5468,8 @@ class HPXML < Object
 
   class Duct < BaseElement
     ATTRS = [:id, :duct_type, :duct_insulation_r_value, :duct_insulation_material, :duct_location,
-             :duct_fraction_area, :duct_surface_area, :duct_surface_area_multiplier,
-             :duct_buried_insulation_level, :duct_effective_r_value]
+             :duct_fraction_area, :duct_surface_area, :duct_surface_area_multiplier, :duct_shape,
+             :duct_buried_insulation_level, :duct_effective_r_value, :duct_fraction_rectangular]
     attr_accessor(*ATTRS)
 
     def delete
@@ -5496,7 +5500,9 @@ class HPXML < Object
       XMLHelper.add_element(ducts_el, 'DuctLocation', @duct_location, :string, @duct_location_isdefaulted) unless @duct_location.nil?
       XMLHelper.add_element(ducts_el, 'FractionDuctArea', @duct_fraction_area, :float, @duct_fraction_area_isdefaulted) unless @duct_fraction_area.nil?
       XMLHelper.add_element(ducts_el, 'DuctSurfaceArea', @duct_surface_area, :float, @duct_surface_area_isdefaulted) unless @duct_surface_area.nil?
+      XMLHelper.add_element(ducts_el, 'DuctShape', @duct_shape, :string, @duct_shape_isdefaulted) unless @duct_shape.nil?
       XMLHelper.add_extension(ducts_el, 'DuctSurfaceAreaMultiplier', @duct_surface_area_multiplier, :float, @duct_surface_area_multiplier_isdefaulted) unless @duct_surface_area_multiplier.nil?
+      XMLHelper.add_extension(ducts_el, 'DuctFractionRectangular', @duct_fraction_rectangular, :float, @duct_fraction_rectangular_isdefaulted) unless @duct_fraction_rectangular.nil?
     end
 
     def from_doc(duct)
@@ -5511,7 +5517,9 @@ class HPXML < Object
       @duct_location = XMLHelper.get_value(duct, 'DuctLocation', :string)
       @duct_fraction_area = XMLHelper.get_value(duct, 'FractionDuctArea', :float)
       @duct_surface_area = XMLHelper.get_value(duct, 'DuctSurfaceArea', :float)
+      @duct_shape = XMLHelper.get_value(duct, 'DuctShape', :string)
       @duct_surface_area_multiplier = XMLHelper.get_value(duct, 'extension/DuctSurfaceAreaMultiplier', :float)
+      @duct_fraction_rectangular = XMLHelper.get_value(duct, 'extension/DuctFractionRectangular', :float)
     end
   end
 

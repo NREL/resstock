@@ -1423,7 +1423,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     elsif ['base-hvac-ducts-effective-rvalue.xml'].include? hpxml_file
       hpxml_bldg.hvac_distributions[0].ducts[0].duct_insulation_r_value = nil
       hpxml_bldg.hvac_distributions[0].ducts[1].duct_insulation_r_value = nil
-      hpxml_bldg.hvac_distributions[0].ducts[0].duct_effective_r_value = 4.5
+      hpxml_bldg.hvac_distributions[0].ducts[0].duct_effective_r_value = 4.38
       hpxml_bldg.hvac_distributions[0].ducts[1].duct_effective_r_value = 1.7
     elsif ['base-hvac-multiple.xml'].include? hpxml_file
       hpxml_bldg.hvac_distributions.reverse_each do |hvac_distribution|
