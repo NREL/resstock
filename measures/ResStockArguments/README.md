@@ -2402,17 +2402,6 @@ The leakage value to outside for the supply ducts.
 
 <br/>
 
-**Ducts: Return Leakage to Outside Value**
-
-The leakage value to outside for the return ducts.
-
-- **Name:** ``ducts_return_leakage_to_outside_value``
-- **Type:** ``Double``
-
-- **Required:** ``true``
-
-<br/>
-
 **Ducts: Supply Location**
 
 The location of the supply ducts. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution'>Air Distribution</a>) is used.
@@ -2428,7 +2417,7 @@ The location of the supply ducts. If not provided, the OS-HPXML default (see <a 
 
 **Ducts: Supply Insulation R-Value**
 
-The insulation r-value of the supply ducts excluding air films.
+The nominal insulation r-value of the supply ducts excluding air films. Use 0 for uninsulated ducts.
 
 - **Name:** ``ducts_supply_insulation_r``
 - **Type:** ``Double``
@@ -2474,6 +2463,28 @@ The fraction of supply ducts surface area in the given location. Only used if Su
 
 <br/>
 
+**Ducts: Supply Fraction Rectangular**
+
+The fraction of supply ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution'>Air Distribution</a>) is used.
+
+- **Name:** ``ducts_supply_fraction_rectangular``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Ducts: Return Leakage to Outside Value**
+
+The leakage value to outside for the return ducts.
+
+- **Name:** ``ducts_return_leakage_to_outside_value``
+- **Type:** ``Double``
+
+- **Required:** ``true``
+
+<br/>
+
 **Ducts: Return Location**
 
 The location of the return ducts. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution'>Air Distribution</a>) is used.
@@ -2489,7 +2500,7 @@ The location of the return ducts. If not provided, the OS-HPXML default (see <a 
 
 **Ducts: Return Insulation R-Value**
 
-The insulation r-value of the return ducts excluding air films.
+The nominal insulation r-value of the return ducts excluding air films. Use 0 for uninsulated ducts.
 
 - **Name:** ``ducts_return_insulation_r``
 - **Type:** ``Double``
@@ -2540,6 +2551,17 @@ The fraction of return ducts surface area in the given location. Only used if Su
 The number of return registers of the ducts. Only used to calculate default return duct surface area. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution'>Air Distribution</a>) is used.
 
 - **Name:** ``ducts_number_of_return_registers``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Ducts: Return Fraction Rectangular**
+
+The fraction of return ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution'>Air Distribution</a>) is used.
+
+- **Name:** ``ducts_return_fraction_rectangular``
 - **Type:** ``String``
 
 - **Required:** ``false``
