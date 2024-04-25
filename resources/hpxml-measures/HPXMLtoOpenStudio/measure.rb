@@ -540,10 +540,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # original file (asset calculation).
     if @hpxml_bldg.building_occupancy.number_of_residents.nil?
       @hpxml_bldg.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(@nbeds)
-    end
-
-    # If zero occupants, ensure end uses of interest are zeroed out
-    if (@hpxml_bldg.building_occupancy.number_of_residents == 0) && (not @apply_ashrae140_assumptions)
+    elsif (@hpxml_bldg.building_occupancy.number_of_residents == 0) && (not @apply_ashrae140_assumptions)
+      # If zero occupants, ensure end uses of interest are zeroed out
       @hpxml_header.unavailable_periods.add(column_name: 'Vacancy',
                                             begin_month: @hpxml_header.sim_begin_month,
                                             begin_day: @hpxml_header.sim_begin_day,
@@ -1150,11 +1148,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
       slab_whole_r = 0
     end
-    if slab_under_r + slab_whole_r > 0
-      slab_gap_r = 5.0 # Assume gap insulation when insulation under slab is present
-    else
-      slab_gap_r = 0
-    end
+    slab_gap_r = slab.gap_insulation_r_value
 
     mat_carpet = nil
     if (slab.carpet_fraction > 0) && (slab.carpet_r_value > 0)
@@ -1547,9 +1541,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         plantloop_map[sys_id] = Waterheater.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods, unit_multiplier, @nbeds)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
         conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
-        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, @hpxml_bldg.elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
+        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, @hpxml_bldg.elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, @eri_version, @schedules_file, unavailable_periods, unit_multiplier, @nbeds)
       elsif [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
-        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods, unit_multiplier)
+        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file, unavailable_periods, unit_multiplier, @nbeds)
       else
         fail "Unhandled water heater (#{water_heating_system.water_heater_type})."
       end
@@ -1947,7 +1941,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       hvac_availability_sensor.additionalProperties.setFeature('ObjectType', Constants.ObjectNameHVACAvailabilitySensor)
     end
 
-    Airflow.apply(model, runner, weather, spaces, @hpxml_header, @hpxml_bldg, @cfa, @nbeds,
+    Airflow.apply(model, runner, weather, spaces, @hpxml_header, @hpxml_bldg, @cfa,
                   @ncfl_ag, duct_systems, airloop_map, @clg_ssn_sensor, @eri_version,
                   @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file,
                   @hpxml_header.unavailable_periods, hvac_availability_sensor)
