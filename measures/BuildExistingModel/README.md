@@ -13,7 +13,7 @@ Builds the OpenStudio Model using the sampling csv file, which contains the spec
 
 **Buildstock CSV File Path**
 
-Absolute/relative path of the buildstock CSV file, relative is compared to the lib/housing_characteristics_dir.
+Absolute/relative path of the buildstock CSV file. Relative is compared to the 'lib/housing_characteristics' directory.
 
 - **Name:** ``buildstock_csv_path``
 - **Type:** ``String``

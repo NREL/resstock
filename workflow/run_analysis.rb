@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require 'json'
+require 'optparse'
 require 'parallel'
 require 'pathname'
-require 'optparse'
 require 'time'
 require 'yaml'
 require 'zlib'
@@ -486,14 +486,12 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
 end
 
 def checksum_dir_content(directory_path)
-  files = Dir.glob('**/*', base: directory_path).select { |fn| File.file?(fn) }
+  files = Dir.glob('**/*', base: directory_path).select { |fn| File.file?(File.join(directory_path, fn)) }
   dir_checksum = Zlib::crc32(files.map { |rel_path|
-    [
-      rel_path,
-      File.mtime(File.join(directory_path, rel_path)), # mtime is affected by the copy, but we passed preserve = true
-      File.size(File.join(directory_path, rel_path))
-    ]
-  }.to_s)
+                               [rel_path,
+                                File.mtime(File.join(directory_path, rel_path)), # mtime is affected by the copy, but we passed preserve = true
+                                File.size(File.join(directory_path, rel_path))]
+                             }.to_s)
   return dir_checksum
 end
 
@@ -514,15 +512,16 @@ def create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir, debug
       puts "Resources directory is outdated: #{lib_resources_dir}"
     end
   elsif debug
-    puts 'Creating lib_dir'
+    puts "Creating 'lib' folder."
   end
 
   if !redo_needed
     if debug
-      puts 'Lib folder is up to date'
+      puts "The 'lib' folder is up to date."
     end
     return
   end
+
   FileUtils.rm_rf(lib_dir)
   Dir.mkdir(lib_dir)
 

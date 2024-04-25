@@ -34,7 +34,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('buildstock_csv_path', false)
     arg.setDefaultValue('buildstock.csv')
     arg.setDisplayName('Buildstock CSV File Path')
-    arg.setDescription('Absolute/relative path of the buildstock CSV file, relative is compared to the lib/housing_characteristics_dir.')
+    arg.setDescription("Absolute/relative path of the buildstock CSV file. Relative is compared to the 'lib/housing_characteristics' directory.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('building_id', true)
