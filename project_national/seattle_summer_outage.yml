@@ -3,16 +3,16 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /kfs2/projects/redlineres/durham/winter/run_20240125_v2
+output_directory: /kfs2/projects/redlineres/seattle/summer/run_20240325_v1_seattle_summer
 # weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
-weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2015_FIPS.zip
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2020_FIPS.zip
 
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 5000
+    n_datapoints: 33800
     logic:
-      - County|NC, Durham County
+      - County|WA, King County
     resample: true
 
 workflow_generator:
@@ -20,11 +20,11 @@ workflow_generator:
   args:
     build_existing_model:
       simulation_control_timestep: 15
-      simulation_control_run_period_begin_month: 2
-      simulation_control_run_period_begin_day_of_month: 15
-      simulation_control_run_period_end_month: 3
-      simulation_control_run_period_end_day_of_month: 15
-      simulation_control_run_period_calendar_year: 2015
+      simulation_control_run_period_begin_month: 8
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 8
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2020
 
     # emissions:
     #   - scenario_name: LRMER_MidCase_15
@@ -69,15 +69,15 @@ workflow_generator:
       retain_schedules_csv: false
 
 baseline:
-  n_buildings_represented: 133506 # 0.000956024 * 139647020 from American Community Survey 2021 5-year, B25001, fraction is from options_saturations.csv
+  n_buildings_represented: 919472 # 0.00658426 * 139647020 from American Community Survey 2021 5-year, B25001, fraction is from options_saturations.csv
 
 kestrel:
-  n_jobs: 3
-  minutes_per_sim: 30
+  n_jobs: 10
+  minutes_per_sim: 5
   account: redlineres
   postprocessing:
-    time: 60
-    n_workers: 1
+    time: 120
+    n_workers: 2
   sampling:
     time: 180
 
@@ -85,11 +85,11 @@ postprocessing:
   aws:
     region_name: us-west-2
     s3:
-      bucket: eussrr2
-      prefix: resilience_test
+      bucket: redlineres
+      prefix: resilience_run/seattle_summer/
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
-      database_name: eussrr2
+      database_name: redlineres
       max_crawling_time: 1200
 
 ### -- Upgrades ---
@@ -97,7 +97,7 @@ upgrades:
   - upgrade_name: Outage only
     options:
       - &durham_outage
-        option: Power Outage|Durham Winter
+        option: Power Outage|Seattle Summer
 
   - upgrade_name: Light Touch Envelope
     options:

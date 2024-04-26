@@ -3,7 +3,7 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /kfs2/projects/redlineres/durham/winter/run_20240125_v2
+output_directory: /kfs2/projects/redlineres/durham/summer/run_20240227_v1
 # weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2015_FIPS.zip
 
@@ -20,10 +20,10 @@ workflow_generator:
   args:
     build_existing_model:
       simulation_control_timestep: 15
-      simulation_control_run_period_begin_month: 2
-      simulation_control_run_period_begin_day_of_month: 15
-      simulation_control_run_period_end_month: 3
-      simulation_control_run_period_end_day_of_month: 15
+      simulation_control_run_period_begin_month: 6
+      simulation_control_run_period_begin_day_of_month: 11
+      simulation_control_run_period_end_month: 7
+      simulation_control_run_period_end_day_of_month: 11
       simulation_control_run_period_calendar_year: 2015
 
     # emissions:
@@ -85,11 +85,11 @@ postprocessing:
   aws:
     region_name: us-west-2
     s3:
-      bucket: eussrr2
+      bucket: redlineres
       prefix: resilience_test
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
-      database_name: eussrr2
+      database_name: redlineres
       max_crawling_time: 1200
 
 ### -- Upgrades ---
@@ -97,7 +97,7 @@ upgrades:
   - upgrade_name: Outage only
     options:
       - &durham_outage
-        option: Power Outage|Durham Winter
+        option: Power Outage|Durham Summer
 
   - upgrade_name: Light Touch Envelope
     options:
