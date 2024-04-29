@@ -1,6 +1,7 @@
 ## OpenStudio-HPXML v1.8.0
 
 __New Features__
+- Updates to OpenStudio 3.8/EnergyPlus 24.1.
 - Updates to HPXML v4.0-rc4.
 - Updates per ANSI/RESNET/ICC 301-2022 w/ Addendum C:
   - **Breaking change**: Replaces `WaterHeatingSystem/NumberofUnitsServed` with `WaterHeatingSystem/extension/NumberofBedroomsServed` for apportioning shared water heater tank losses.
