@@ -4,6 +4,7 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'msgpack'
+require 'time'
 require_relative 'resources/util.rb'
 require_relative '../HPXMLtoOpenStudio/resources/constants.rb'
 require_relative '../HPXMLtoOpenStudio/resources/location.rb'
