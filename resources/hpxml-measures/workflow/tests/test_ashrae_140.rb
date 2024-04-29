@@ -20,7 +20,7 @@ class WorkflowASHRAE140Test < Minitest::Test
     Dir["#{ashrae140_dir}/*.xml"].sort.each do |xml|
       xmls << File.absolute_path(xml)
     end
-    all_results, _ = run_simulation_tests(xmls)
+    all_results = run_simulation_tests(xmls)
 
     _write_ashrae_140_results(all_results.sort_by { |k, _v| k.downcase }.to_h, results_out)
   end

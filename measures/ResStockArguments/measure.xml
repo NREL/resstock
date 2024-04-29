@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>3c9d7ca4-f17b-437d-be75-4e07f543004f</version_id>
-  <version_modified>2024-03-28T02:29:55Z</version_modified>
+  <version_id>106a127b-4f0d-448a-87a9-538d2fa6415d</version_id>
+  <version_modified>2024-04-24T22:07:46Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -2190,6 +2190,15 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>heating_system_heating_autosizing_factor</name>
+      <display_name>Heating System: Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>heating_system_fraction_heat_load_served</name>
       <display_name>Heating System: Fraction Heat Load Served</display_name>
       <description>The heating load served by the heating system.</description>
@@ -2321,6 +2330,15 @@
       <description>The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner'&gt;Central Air Conditioner&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner'&gt;Room Air Conditioner&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner'&gt;Packaged Terminal Air Conditioner&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#evaporative-cooler'&gt;Evaporative Cooler&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner'&gt;Mini-Split Air Conditioner&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Btu/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_cooling_autosizing_factor</name>
+      <display_name>Cooling System: Cooling Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>String</type>
+      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2585,6 +2603,15 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>heat_pump_heating_autosizing_factor</name>
+      <display_name>Heat Pump: Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>heat_pump_heating_capacity_retention_fraction</name>
       <display_name>Heat Pump: Heating Capacity Retention Fraction</display_name>
       <description>The output heating capacity of the heat pump at a user-specified temperature (e.g., 17F or 5F) divided by the above nominal heating capacity. Applies to all heat pump types except ground-to-air. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump'&gt;Air-to-Air Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump'&gt;Mini-Split Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump'&gt;Packaged Terminal Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle'&gt;Room Air Conditioner w/ Reverse Cycle&lt;/a&gt;) is used.</description>
@@ -2608,6 +2635,15 @@
       <description>The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump'&gt;Air-to-Air Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump'&gt;Mini-Split Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump'&gt;Packaged Terminal Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle'&gt;Room Air Conditioner w/ Reverse Cycle&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump'&gt;Ground-to-Air Heat Pump&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Btu/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_cooling_autosizing_factor</name>
+      <display_name>Heat Pump: Cooling Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>String</type>
+      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2662,6 +2698,15 @@
           <display_name>separate</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_backup_heating_autosizing_factor</name>
+      <display_name>Heat Pump: Backup Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, 1.0 is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Factor.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heat_pump_backup_fuel</name>
@@ -3198,6 +3243,15 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>heating_system_2_heating_autosizing_factor</name>
+      <display_name>Heating System 2: Heating Autosizing Factor</display_name>
+      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>heating_system_2_fraction_heat_load_served</name>
       <display_name>Heating System 2: Fraction Heat Load Served</display_name>
       <description>The heat load served fraction of the second heating system. Ignored if this heating system serves as a backup system for a heat pump.</description>
@@ -3252,15 +3306,6 @@
       <name>ducts_supply_leakage_to_outside_value</name>
       <display_name>Ducts: Supply Leakage to Outside Value</display_name>
       <description>The leakage value to outside for the supply ducts.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.1</default_value>
-    </argument>
-    <argument>
-      <name>ducts_return_leakage_to_outside_value</name>
-      <display_name>Ducts: Return Leakage to Outside Value</display_name>
-      <description>The leakage value to outside for the return ducts.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -3364,7 +3409,7 @@
     <argument>
       <name>ducts_supply_insulation_r</name>
       <display_name>Ducts: Supply Insulation R-Value</display_name>
-      <description>The insulation r-value of the supply ducts excluding air films.</description>
+      <description>The nominal insulation r-value of the supply ducts excluding air films. Use 0 for uninsulated ducts.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
@@ -3419,6 +3464,24 @@
       <units>frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ducts_supply_fraction_rectangular</name>
+      <display_name>Ducts: Supply Fraction Rectangular</display_name>
+      <description>The fraction of supply ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution'&gt;Air Distribution&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ducts_return_leakage_to_outside_value</name>
+      <display_name>Ducts: Return Leakage to Outside Value</display_name>
+      <description>The leakage value to outside for the return ducts.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.1</default_value>
     </argument>
     <argument>
       <name>ducts_return_location</name>
@@ -3518,7 +3581,7 @@
     <argument>
       <name>ducts_return_insulation_r</name>
       <display_name>Ducts: Return Insulation R-Value</display_name>
-      <description>The insulation r-value of the return ducts excluding air films.</description>
+      <description>The nominal insulation r-value of the return ducts excluding air films. Use 0 for uninsulated ducts.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
@@ -3580,6 +3643,15 @@
       <description>The number of return registers of the ducts. Only used to calculate default return duct surface area. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution'&gt;Air Distribution&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ducts_return_fraction_rectangular</name>
+      <display_name>Ducts: Return Fraction Rectangular</display_name>
+      <description>The fraction of return ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution'&gt;Air Distribution&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -7318,7 +7390,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>5A50B89F</checksum>
+      <checksum>8577760F</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -7341,7 +7413,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>86137592</checksum>
+      <checksum>A587EDCE</checksum>
     </file>
     <file>
       <filename>resstock_arguments_test.rb</filename>

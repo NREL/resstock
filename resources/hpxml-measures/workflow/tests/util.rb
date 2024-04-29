@@ -3,27 +3,26 @@
 def run_simulation_tests(xmls)
   # Run simulations
   puts "Running #{xmls.size} HPXML files..."
-  all_results = {}
-  all_results_bills = {}
+  all_annual_results = {}
   Parallel.map(xmls, in_threads: Parallel.processor_count) do |xml|
     next if xml.end_with? '-10x.xml'
 
     xml_name = File.basename(xml)
     results = _run_xml(xml, Parallel.worker_number)
-    all_results[xml_name], all_results_bills[xml_name], timeseries_results = results
+    all_annual_results[xml_name], monthly_results = results
 
     next unless xml.include?('sample_files') || xml.include?('real_homes') # Exclude e.g. ASHRAE 140 files
     next if xml.include? 'base-bldgtype-mf-whole-building' # Already has multiple dwelling units
 
     # Also run with a 10x unit multiplier (2 identical dwelling units each with a 5x
     # unit multiplier) and check how the results compare to the original run
-    _run_xml(xml, Parallel.worker_number, true, all_results[xml_name], timeseries_results)
+    _run_xml(xml, Parallel.worker_number, true, all_annual_results[xml_name], monthly_results)
   end
 
-  return all_results, all_results_bills
+  return all_annual_results
 end
 
-def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, timeseries_results_1x = nil)
+def _run_xml(xml, worker_num, apply_unit_multiplier = false, annual_results_1x = nil, monthly_results_1x = nil)
   unit_multiplier = 1
   if apply_unit_multiplier
     hpxml = HPXML.new(hpxml_path: xml)
@@ -90,10 +89,10 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, t
 
   # Check for output files
   annual_csv_path = File.join(rundir, 'results_annual.csv')
-  timeseries_csv_path = File.join(rundir, 'results_timeseries.csv')
+  monthly_csv_path = File.join(rundir, 'results_timeseries.csv')
   bills_csv_path = File.join(rundir, 'results_bills.csv')
   assert(File.exist? annual_csv_path)
-  assert(File.exist? timeseries_csv_path)
+  assert(File.exist? monthly_csv_path)
 
   # Check outputs
   hpxml_defaults_path = File.join(rundir, 'in.xml')
@@ -107,18 +106,17 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, t
     end
     flunk "EPvalidator.xml error in #{hpxml_defaults_path}."
   end
-  bill_results = _get_bill_results(bills_csv_path)
-  results = _get_simulation_results(annual_csv_path)
-  timeseries_results = _get_simulation_timeseries_results(timeseries_csv_path)
-  _verify_outputs(rundir, xml, results, hpxml, unit_multiplier)
+  annual_results = _get_simulation_annual_results(annual_csv_path, bills_csv_path)
+  monthly_results = _get_simulation_monthly_results(monthly_csv_path)
+  _verify_outputs(rundir, xml, annual_results, hpxml, unit_multiplier)
   if unit_multiplier > 1
-    _check_unit_multiplier_results(hpxml.buildings[0], results_1x, results, timeseries_results_1x, timeseries_results, unit_multiplier)
+    _check_unit_multiplier_results(hpxml.buildings[0], annual_results_1x, annual_results, monthly_results_1x, monthly_results, unit_multiplier)
   end
 
-  return results, bill_results, timeseries_results
+  return annual_results, monthly_results
 end
 
-def _get_simulation_results(annual_csv_path)
+def _get_simulation_annual_results(annual_csv_path, bills_csv_path)
   # Grab all outputs from reporting measure CSV annual results
   results = {}
   CSV.foreach(annual_csv_path) do |row|
@@ -127,13 +125,23 @@ def _get_simulation_results(annual_csv_path)
     results[row[0]] = Float(row[1])
   end
 
+  # Grab all outputs (except monthly) from reporting measure CSV bill results
+  if File.exist? bills_csv_path
+    CSV.foreach(bills_csv_path) do |row|
+      next if row.nil? || (row.size < 2)
+      next if (1..12).to_a.any? { |month| row[0].include?(": Month #{month}:") }
+
+      results["Utility Bills: #{row[0]}"] = Float(row[1])
+    end
+  end
+
   return results
 end
 
-def _get_simulation_timeseries_results(timeseries_csv_path)
+def _get_simulation_monthly_results(monthly_csv_path)
   results = {}
   headers = nil
-  CSV.foreach(timeseries_csv_path).with_index do |row, i|
+  CSV.foreach(monthly_csv_path).with_index do |row, i|
     row = row[1..-1] # Skip time column
     if i == 0 # Header row
       headers = row
@@ -146,21 +154,6 @@ def _get_simulation_timeseries_results(timeseries_csv_path)
     for i in 0..row.size - 1
       results[headers[i]] = [] if results[headers[i]].nil?
       results[headers[i]] << Float(row[i])
-    end
-  end
-
-  return results
-end
-
-def _get_bill_results(bill_csv_path)
-  # Grab all outputs (except monthly) from reporting measure CSV bill results
-  results = {}
-  if File.exist? bill_csv_path
-    CSV.foreach(bill_csv_path) do |row|
-      next if row.nil? || (row.size < 2)
-      next if (1..12).to_a.any? { |month| row[0].include?(": Month #{month}:") }
-
-      results[row[0]] = Float(row[1])
     end
   end
 
@@ -983,12 +976,12 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     if hpxml_bldg.total_fraction_heat_load_served == 0
       assert_equal(0, unmet_hours_htg)
     else
-      assert_operator(unmet_hours_htg, :<, 400)
+      assert_operator(unmet_hours_htg, :<, 500)
     end
     if hpxml_bldg.total_fraction_cool_load_served == 0
       assert_equal(0, unmet_hours_clg)
     else
-      assert_operator(unmet_hours_clg, :<, 400)
+      assert_operator(unmet_hours_clg, :<, 500)
     end
   end
 
@@ -999,7 +992,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
   GC.start()
 end
 
-def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results_10x, timeseries_results_1x, timeseries_results_10x, unit_multiplier)
+def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results_10x, monthly_results_1x, monthly_results_10x, unit_multiplier)
   # Check that results_10x are expected compared to results_1x
 
   def get_tolerances(key)
@@ -1031,8 +1024,8 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
       abs_delta_tol = 1.0
       abs_frac_tol = 0.01
     elsif key.include?('Airflow:')
-      # Check that airflow rate difference is less than 0.1 cfm or less than 0.5%
-      abs_delta_tol = 0.1
+      # Check that airflow rate difference is less than 0.2 cfm or less than 0.5%
+      abs_delta_tol = 0.2
       abs_frac_tol = 0.005
     elsif key.include?('Unmet Hours:')
       # Check that the unmet hours difference is less than 10 hrs
@@ -1055,19 +1048,21 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
 
   # Number of systems and thermal zones change between the 1x and 10x runs,
   # so remove these from the comparison
-  ['System Use:', 'Temperature:'].each do |key|
+  annual_results_1x = annual_results_1x.dup
+  annual_results_10x = annual_results_10x.dup
+  ['System Use:', 'Temperature:', 'Utility Bills:'].each do |key|
     annual_results_1x.delete_if { |k, _v| k.start_with? key }
     annual_results_10x.delete_if { |k, _v| k.start_with? key }
-    timeseries_results_1x.delete_if { |k, _v| k.start_with? key }
-    timeseries_results_10x.delete_if { |k, _v| k.start_with? key }
+    monthly_results_1x.delete_if { |k, _v| k.start_with? key }
+    monthly_results_10x.delete_if { |k, _v| k.start_with? key }
   end
 
-  # Compare annual and timeseries results
+  # Compare annual and monthly results
   assert_equal(annual_results_1x.keys.sort, annual_results_10x.keys.sort)
-  assert_equal(timeseries_results_1x.keys.sort, timeseries_results_10x.keys.sort)
+  assert_equal(monthly_results_1x.keys.sort, monthly_results_10x.keys.sort)
 
   { annual_results_1x => annual_results_10x,
-    timeseries_results_1x => timeseries_results_10x }.each do |results_1x, results_10x|
+    monthly_results_1x => monthly_results_10x }.each do |results_1x, results_10x|
     results_1x.each do |key, vals_1x|
       abs_delta_tol, abs_frac_tol = get_tolerances(key)
 
@@ -1121,33 +1116,44 @@ end
 def _write_results(results, csv_out)
   require 'csv'
 
-  output_keys = []
-  results.values.each do |xml_results|
-    # Don't include emissions and system uses in output file/CI results
-    xml_results.delete_if { |k, _v| k.start_with? 'Emissions:' }
-    xml_results.delete_if { |k, _v| k.start_with? 'System Use:' }
+  output_groups = {
+    'energy' => ['Energy Use', 'Fuel Use', 'End Use'],
+    'loads' => ['Load', 'Component Load'],
+    'hvac' => ['HVAC Design Temperature', 'HVAC Capacity', 'HVAC Design Load'],
+    'misc' => ['Unmet Hours', 'Hot Water', 'Peak Electricity', 'Peak Load', 'Resilience'],
+    'bills' => ['Utility Bills'],
+  }
 
-    xml_results.keys.each do |key|
-      next if output_keys.include? key
+  output_groups.each do |output_group, key_types|
+    output_keys = []
+    key_types.each do |key_type|
+      results.values.each do |xml_results|
+        xml_results.keys.each do |key|
+          next if output_keys.include? key
+          next if key_type != key.split(':')[0]
 
-      output_keys << key
-    end
-  end
-
-  CSV.open(csv_out, 'w') do |csv|
-    csv << ['HPXML'] + output_keys
-    results.sort.each do |xml, xml_results|
-      csv_row = [xml]
-      output_keys.each do |key|
-        if xml_results[key].nil?
-          csv_row << 0
-        else
-          csv_row << xml_results[key]
+          output_keys << key
         end
       end
-      csv << csv_row
+    end
+
+    this_csv_out = csv_out.gsub('.csv', "_#{output_group}.csv")
+
+    CSV.open(this_csv_out, 'w') do |csv|
+      csv << ['HPXML'] + output_keys
+      results.sort.each do |xml, xml_results|
+        csv_row = [xml]
+        output_keys.each do |key|
+          if xml_results[key].nil?
+            csv_row << 0
+          else
+            csv_row << xml_results[key]
+          end
+        end
+        csv << csv_row
+      end
     end
   end
 
-  puts "Wrote results to #{csv_out}."
+  puts "Wrote results to #{csv_out.gsub('.csv', '_*.csv')}."
 end

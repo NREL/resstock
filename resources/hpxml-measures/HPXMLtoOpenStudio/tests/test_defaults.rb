@@ -514,6 +514,14 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     _test_default_infiltration_values(default_hpxml_bldg, 1350 * 12, false)
+
+    # Test defaults w/ shared system
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-boiler-only-baseboard.xml')
+    hpxml_bldg.heating_systems[0].heating_efficiency_afue = 0.8
+    hpxml_bldg.air_infiltration.has_flue_or_chimney_in_conditioned_space = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_infiltration_values(default_hpxml_bldg, 900 * 8, false)
   end
 
   def test_infiltration_compartmentaliztion_test_adjustment
@@ -655,7 +663,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.roofs[0].azimuth = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_roof_values(default_hpxml_bldg.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.75, HPXML::ColorLight, 0.90, false, nil, HPXML::InteriorFinishGypsumBoard, 0.5, 45)
+    _test_default_roof_values(default_hpxml_bldg.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.75, HPXML::ColorLight, 0.90, nil, nil, HPXML::InteriorFinishGypsumBoard, 0.5, 45)
   end
 
   def test_rim_joists
@@ -835,18 +843,20 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.slabs[0].carpet_r_value = 1.1
     hpxml_bldg.slabs[0].carpet_fraction = 0.5
     hpxml_bldg.slabs[0].depth_below_grade = 2.0
+    hpxml_bldg.slabs[0].gap_insulation_r_value = 10.0
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 7.0, 1.1, 0.5, nil)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 7.0, 1.1, 0.5, nil, 10.0)
 
     # Test defaults w/ conditioned basement
     hpxml_bldg.slabs[0].thickness = nil
     hpxml_bldg.slabs[0].carpet_r_value = nil
     hpxml_bldg.slabs[0].carpet_fraction = nil
     hpxml_bldg.slabs[0].depth_below_grade = nil
+    hpxml_bldg.slabs[0].gap_insulation_r_value = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, nil)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, nil, 0.0)
 
     # Test defaults w/ crawlspace
     hpxml, hpxml_bldg = _create_hpxml('base-foundation-unvented-crawlspace.xml')
@@ -854,9 +864,10 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.slabs[0].carpet_r_value = nil
     hpxml_bldg.slabs[0].carpet_fraction = nil
     hpxml_bldg.slabs[0].depth_below_grade = nil
+    hpxml_bldg.slabs[0].gap_insulation_r_value = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 0.0, 0.0, 0.0, nil)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 0.0, 0.0, 0.0, nil, 0.0)
 
     # Test defaults w/ slab-on-grade
     hpxml, hpxml_bldg = _create_hpxml('base-foundation-slab.xml')
@@ -864,9 +875,10 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.slabs[0].carpet_r_value = nil
     hpxml_bldg.slabs[0].carpet_fraction = nil
     hpxml_bldg.slabs[0].depth_below_grade = nil
+    hpxml_bldg.slabs[0].gap_insulation_r_value = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, 0.0)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, 0.0, 5.0)
   end
 
   def test_windows
@@ -2096,6 +2108,12 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     _test_default_hvac_location_values(default_hpxml_bldg.heating_systems[0], HPXML::LocationConditionedSpace)
+
+    # Test defaults -- shared system
+    hpxml, _hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-boiler-only-baseboard.xml')
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_hvac_location_values(default_hpxml_bldg.heating_systems[0], HPXML::LocationOtherHeatedSpace)
   end
 
   def test_hvac_controls
@@ -2161,6 +2179,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.hvac_distributions[0].ducts[1].duct_insulation_r_value = nil
     hpxml_bldg.hvac_distributions[0].ducts[0].duct_effective_r_value = 1.23
     hpxml_bldg.hvac_distributions[0].ducts[1].duct_effective_r_value = 3.21
+    hpxml_bldg.hvac_distributions[0].ducts[0].duct_fraction_rectangular = 0.33
+    hpxml_bldg.hvac_distributions[0].ducts[1].duct_fraction_rectangular = 0.77
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     expected_supply_locations = [HPXML::LocationAtticUnvented]
@@ -2175,10 +2195,13 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     expected_return_effective_rvalues = [3.21]
     expected_supply_buried_levels = [HPXML::DuctBuriedInsulationPartial]
     expected_return_buried_levels = [HPXML::DuctBuriedInsulationDeep]
+    expected_supply_rect_fracs = [0.33]
+    expected_return_rect_fracs = [0.77]
     expected_n_return_registers = default_hpxml_bldg.building_construction.number_of_conditioned_floors
     _test_default_duct_values(default_hpxml_bldg, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
                               expected_supply_fracs, expected_return_fracs, expected_n_return_registers, expected_supply_area_mults, expected_return_area_mults,
-                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues)
+                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues,
+                              expected_supply_rect_fracs, expected_return_rect_fracs)
 
     # Test defaults w/ conditioned basement
     hpxml_bldg.hvac_distributions[0].number_of_return_registers = nil
@@ -2188,9 +2211,12 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
       duct.duct_surface_area_multiplier = nil
       duct.duct_buried_insulation_level = nil
       duct.duct_effective_r_value = nil
+      duct.duct_fraction_rectangular = nil
     end
     hpxml_bldg.hvac_distributions[0].ducts[0].duct_insulation_r_value = 4
-    hpxml_bldg.hvac_distributions[0].ducts[1].duct_insulation_r_value = 0
+    hpxml_bldg.hvac_distributions[0].ducts[1].duct_insulation_r_value = 8
+    hpxml_bldg.hvac_distributions[0].ducts[0].duct_shape = HPXML::DuctShapeRectangular
+    hpxml_bldg.hvac_distributions[0].ducts[1].duct_shape = HPXML::DuctShapeRound
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     expected_supply_locations = [HPXML::LocationBasementConditioned]
@@ -2203,12 +2229,15 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     expected_return_area_mults = [1.0]
     expected_supply_buried_levels = [HPXML::DuctBuriedInsulationNone]
     expected_return_buried_levels = [HPXML::DuctBuriedInsulationNone]
-    expected_supply_effective_rvalues = [4.5]
-    expected_return_effective_rvalues = [1.7]
+    expected_supply_effective_rvalues = [5.0]
+    expected_return_effective_rvalues = [7.8]
+    expected_supply_rect_fracs = [1.0]
+    expected_return_rect_fracs = [0.0]
     expected_n_return_registers = default_hpxml_bldg.building_construction.number_of_conditioned_floors
     _test_default_duct_values(default_hpxml_bldg, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
                               expected_supply_fracs, expected_return_fracs, expected_n_return_registers, expected_supply_area_mults, expected_return_area_mults,
-                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues)
+                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues,
+                              expected_supply_rect_fracs, expected_return_rect_fracs)
 
     # Test defaults w/ multiple foundations
     hpxml, hpxml_bldg = _create_hpxml('base-foundation-multiple.xml')
@@ -2219,6 +2248,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
       duct.duct_surface_area = nil
       duct.duct_surface_area_multiplier = nil
       duct.duct_buried_insulation_level = nil
+      duct.duct_fraction_rectangular = nil
+      duct.duct_shape = nil
     end
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
@@ -2230,14 +2261,17 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     expected_return_fracs = [1.0]
     expected_supply_area_mults = [1.0]
     expected_return_area_mults = [1.0]
-    expected_supply_effective_rvalues = [4.5]
+    expected_supply_effective_rvalues = [4.4]
     expected_return_effective_rvalues = [1.7]
     expected_supply_buried_levels = [HPXML::DuctBuriedInsulationNone]
     expected_return_buried_levels = [HPXML::DuctBuriedInsulationNone]
+    expected_supply_rect_fracs = [0.25]
+    expected_return_rect_fracs = [1.0]
     expected_n_return_registers = default_hpxml_bldg.building_construction.number_of_conditioned_floors
     _test_default_duct_values(default_hpxml_bldg, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
                               expected_supply_fracs, expected_return_fracs, expected_n_return_registers, expected_supply_area_mults, expected_return_area_mults,
-                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues)
+                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues,
+                              expected_supply_rect_fracs, expected_return_rect_fracs)
 
     # Test defaults w/ foundation exposed to ambient
     hpxml, hpxml_bldg = _create_hpxml('base-foundation-ambient.xml')
@@ -2248,6 +2282,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
       duct.duct_surface_area = nil
       duct.duct_surface_area_multiplier = nil
       duct.duct_buried_insulation_level = nil
+      duct.duct_fraction_rectangular = nil
+      duct.duct_shape = nil
     end
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
@@ -2259,14 +2295,17 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     expected_return_fracs = [1.0]
     expected_supply_area_mults = [1.0]
     expected_return_area_mults = [1.0]
-    expected_supply_effective_rvalues = [4.5]
+    expected_supply_effective_rvalues = [4.4]
     expected_return_effective_rvalues = [1.7]
     expected_supply_buried_levels = [HPXML::DuctBuriedInsulationNone]
     expected_return_buried_levels = [HPXML::DuctBuriedInsulationNone]
+    expected_supply_rect_fracs = [0.25]
+    expected_return_rect_fracs = [1.0]
     expected_n_return_registers = default_hpxml_bldg.building_construction.number_of_conditioned_floors
     _test_default_duct_values(default_hpxml_bldg, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
                               expected_supply_fracs, expected_return_fracs, expected_n_return_registers, expected_supply_area_mults, expected_return_area_mults,
-                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues)
+                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues,
+                              expected_supply_rect_fracs, expected_return_rect_fracs)
 
     # Test defaults w/ building/unit adjacent to other housing unit
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-adjacent-to-other-housing-unit.xml')
@@ -2277,6 +2316,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
       duct.duct_surface_area = nil
       duct.duct_surface_area_multiplier = nil
       duct.duct_buried_insulation_level = nil
+      duct.duct_fraction_rectangular = nil
+      duct.duct_shape = nil
     end
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
@@ -2292,10 +2333,13 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     expected_return_effective_rvalues = [1.7]
     expected_supply_buried_levels = [HPXML::DuctBuriedInsulationNone]
     expected_return_buried_levels = [HPXML::DuctBuriedInsulationNone]
+    expected_supply_rect_fracs = [0.25]
+    expected_return_rect_fracs = [1.0]
     expected_n_return_registers = default_hpxml_bldg.building_construction.number_of_conditioned_floors
     _test_default_duct_values(default_hpxml_bldg, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
                               expected_supply_fracs, expected_return_fracs, expected_n_return_registers, expected_supply_area_mults, expected_return_area_mults,
-                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues)
+                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues,
+                              expected_supply_rect_fracs, expected_return_rect_fracs)
 
     # Test defaults w/ 2-story building
     hpxml, hpxml_bldg = _create_hpxml('base-enclosure-2stories.xml')
@@ -2306,6 +2350,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
       duct.duct_surface_area = nil
       duct.duct_surface_area_multiplier = nil
       duct.duct_buried_insulation_level = nil
+      duct.duct_fraction_rectangular = nil
+      duct.duct_shape = nil
     end
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
@@ -2319,12 +2365,15 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     expected_return_area_mults = [1.0, 1.0, 1.0, 1.0]
     expected_supply_buried_levels = [HPXML::DuctBuriedInsulationNone] * 4
     expected_return_buried_levels = [HPXML::DuctBuriedInsulationNone] * 4
-    expected_supply_effective_rvalues = [4.5] * 4
+    expected_supply_effective_rvalues = [4.4] * 4
     expected_return_effective_rvalues = [1.7] * 4
+    expected_supply_rect_fracs = [0.25] * 4
+    expected_return_rect_fracs = [1.0] * 4
     expected_n_return_registers = default_hpxml_bldg.building_construction.number_of_conditioned_floors
     _test_default_duct_values(default_hpxml_bldg, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
                               expected_supply_fracs, expected_return_fracs, expected_n_return_registers, expected_supply_area_mults, expected_return_area_mults,
-                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues)
+                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues,
+                              expected_supply_rect_fracs, expected_return_rect_fracs)
 
     # Test defaults w/ 1-story building & multiple HVAC systems
     hpxml, hpxml_bldg = _create_hpxml('base-hvac-multiple.xml')
@@ -2338,6 +2387,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
         duct.duct_surface_area = nil
         duct.duct_surface_area_multiplier = nil
         duct.duct_buried_insulation_level = nil
+        duct.duct_fraction_rectangular = nil
+        duct.duct_shape = nil
       end
     end
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
@@ -2352,12 +2403,15 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     expected_return_area_mults = [1.0, 1.0] * default_hpxml_bldg.hvac_distributions.size
     expected_supply_buried_levels = [HPXML::DuctBuriedInsulationNone] * 2 * default_hpxml_bldg.hvac_distributions.size
     expected_return_buried_levels = [HPXML::DuctBuriedInsulationNone] * 2 * default_hpxml_bldg.hvac_distributions.size
-    expected_supply_effective_rvalues = [6.74] * 2 * default_hpxml_bldg.hvac_distributions.size
-    expected_return_effective_rvalues = [4.86] * 2 * default_hpxml_bldg.hvac_distributions.size
+    expected_supply_effective_rvalues = [6.9] * 2 * default_hpxml_bldg.hvac_distributions.size
+    expected_return_effective_rvalues = [5.0] * 2 * default_hpxml_bldg.hvac_distributions.size
+    expected_supply_rect_fracs = [0.25] * 2 * default_hpxml_bldg.hvac_distributions.size
+    expected_return_rect_fracs = [1.0] * 2 * default_hpxml_bldg.hvac_distributions.size
     expected_n_return_registers = default_hpxml_bldg.building_construction.number_of_conditioned_floors
     _test_default_duct_values(default_hpxml_bldg, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
                               expected_supply_fracs, expected_return_fracs, expected_n_return_registers, expected_supply_area_mults, expected_return_area_mults,
-                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues)
+                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues,
+                              expected_supply_rect_fracs, expected_return_rect_fracs)
 
     # Test defaults w/ 2-story building & multiple HVAC systems
     hpxml, hpxml_bldg = _create_hpxml('base-hvac-multiple.xml')
@@ -2372,6 +2426,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
         duct.duct_surface_area = nil
         duct.duct_surface_area_multiplier = nil
         duct.duct_buried_insulation_level = nil
+        duct.duct_fraction_rectangular = nil
+        duct.duct_shape = nil
       end
     end
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
@@ -2386,12 +2442,15 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     expected_return_area_mults = [1.0, 1.0, 1.0, 1.0] * default_hpxml_bldg.hvac_distributions.size
     expected_supply_buried_levels = [HPXML::DuctBuriedInsulationNone] * 4 * default_hpxml_bldg.hvac_distributions.size
     expected_return_buried_levels = [HPXML::DuctBuriedInsulationNone] * 4 * default_hpxml_bldg.hvac_distributions.size
-    expected_supply_effective_rvalues = [6.74] * 4 * default_hpxml_bldg.hvac_distributions.size
-    expected_return_effective_rvalues = [4.86] * 4 * default_hpxml_bldg.hvac_distributions.size
+    expected_supply_effective_rvalues = [6.9] * 4 * default_hpxml_bldg.hvac_distributions.size
+    expected_return_effective_rvalues = [5.0] * 4 * default_hpxml_bldg.hvac_distributions.size
+    expected_supply_rect_fracs = [0.25] * 4 * default_hpxml_bldg.hvac_distributions.size
+    expected_return_rect_fracs = [1.0] * 4 * default_hpxml_bldg.hvac_distributions.size
     expected_n_return_registers = default_hpxml_bldg.building_construction.number_of_conditioned_floors
     _test_default_duct_values(default_hpxml_bldg, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
                               expected_supply_fracs, expected_return_fracs, expected_n_return_registers, expected_supply_area_mults, expected_return_area_mults,
-                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues)
+                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues,
+                              expected_supply_rect_fracs, expected_return_rect_fracs)
 
     # Test defaults w/ 2-story building & multiple HVAC systems & duct area fractions
     hpxml, hpxml_bldg = _create_hpxml('base-hvac-multiple.xml')
@@ -2411,6 +2470,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
         duct.duct_surface_area = nil
         duct.duct_surface_area_multiplier = nil
         duct.duct_buried_insulation_level = nil
+        duct.duct_fraction_rectangular = nil
+        duct.duct_shape = nil
       end
     end
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
@@ -2425,12 +2486,15 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     expected_return_area_mults = [1.0, 1.0] * default_hpxml_bldg.hvac_distributions.size
     expected_supply_buried_levels = [HPXML::DuctBuriedInsulationNone] * 2 * default_hpxml_bldg.hvac_distributions.size
     expected_return_buried_levels = [HPXML::DuctBuriedInsulationNone] * 2 * default_hpxml_bldg.hvac_distributions.size
-    expected_supply_effective_rvalues = [6.74] * 2 * default_hpxml_bldg.hvac_distributions.size
-    expected_return_effective_rvalues = [4.86] * 2 * default_hpxml_bldg.hvac_distributions.size
+    expected_supply_effective_rvalues = [6.9] * 2 * default_hpxml_bldg.hvac_distributions.size
+    expected_return_effective_rvalues = [5.0] * 2 * default_hpxml_bldg.hvac_distributions.size
+    expected_supply_rect_fracs = [0.25] * 2 * default_hpxml_bldg.hvac_distributions.size
+    expected_return_rect_fracs = [1.0] * 2 * default_hpxml_bldg.hvac_distributions.size
     expected_n_return_registers = default_hpxml_bldg.building_construction.number_of_conditioned_floors
     _test_default_duct_values(default_hpxml_bldg, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
                               expected_supply_fracs, expected_return_fracs, expected_n_return_registers, expected_supply_area_mults, expected_return_area_mults,
-                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues)
+                              expected_supply_buried_levels, expected_return_buried_levels, expected_supply_effective_rvalues, expected_return_effective_rvalues,
+                              expected_supply_rect_fracs, expected_return_rect_fracs)
   end
 
   def test_mech_ventilation_fans
@@ -4261,7 +4325,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     assert_equal(solar_absorptance, roof.solar_absorptance)
     assert_equal(roof_color, roof.roof_color)
     assert_equal(emittance, roof.emittance)
-    assert_equal(radiant_barrier, roof.radiant_barrier)
+    if not radiant_barrier.nil?
+      assert_equal(radiant_barrier, roof.radiant_barrier)
+    else
+      assert_nil(roof.radiant_barrier)
+    end
     if not radiant_barrier_grade.nil?
       assert_equal(radiant_barrier_grade, roof.radiant_barrier_grade)
     else
@@ -4329,7 +4397,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     end
   end
 
-  def _test_default_slab_values(slab, thickness, carpet_r_value, carpet_fraction, depth_below_grade)
+  def _test_default_slab_values(slab, thickness, carpet_r_value, carpet_fraction, depth_below_grade, gap_rvalue)
     assert_equal(thickness, slab.thickness)
     assert_equal(carpet_r_value, slab.carpet_r_value)
     assert_equal(carpet_fraction, slab.carpet_fraction)
@@ -4338,6 +4406,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     else
       assert_equal(depth_below_grade, slab.depth_below_grade)
     end
+    assert_equal(gap_rvalue, slab.gap_insulation_r_value)
   end
 
   def _test_default_window_values(hpxml_bldg, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs, fraction_operable, azimuths)
@@ -4833,7 +4902,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def _test_default_duct_values(hpxml_bldg, supply_locations, return_locations, supply_areas, return_areas,
                                 supply_fracs, return_fracs, n_return_registers, supply_area_mults, return_area_mults,
-                                supply_buried_levels, return_buried_levels, supply_effective_rvalues, return_effective_rvalues)
+                                supply_buried_levels, return_buried_levels, supply_effective_rvalues, return_effective_rvalues,
+                                supply_rect_fracs, return_rect_fracs)
     supply_duct_idx = 0
     return_duct_idx = 0
     hpxml_bldg.hvac_distributions.each do |hvac_distribution|
@@ -4848,6 +4918,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
           assert_in_epsilon(supply_area_mults[supply_duct_idx], duct.duct_surface_area_multiplier, 0.01)
           assert_equal(supply_buried_levels[supply_duct_idx], duct.duct_buried_insulation_level)
           assert_in_epsilon(supply_effective_rvalues[supply_duct_idx], duct.duct_effective_r_value, 0.01)
+          assert_equal(supply_rect_fracs[supply_duct_idx], duct.duct_fraction_rectangular)
           supply_duct_idx += 1
         elsif duct.duct_type == HPXML::DuctTypeReturn
           assert_equal(return_locations[return_duct_idx], duct.duct_location)
@@ -4856,6 +4927,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
           assert_in_epsilon(return_area_mults[return_duct_idx], duct.duct_surface_area_multiplier, 0.01)
           assert_equal(return_buried_levels[return_duct_idx], duct.duct_buried_insulation_level)
           assert_in_epsilon(return_effective_rvalues[return_duct_idx], duct.duct_effective_r_value, 0.01)
+          assert_equal(return_rect_fracs[return_duct_idx], duct.duct_fraction_rectangular)
           return_duct_idx += 1
         end
       end

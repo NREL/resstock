@@ -12,17 +12,15 @@ class WorkflowSimulations2Test < Minitest::Test
     results_dir = File.join(File.dirname(__FILE__), 'results')
     FileUtils.mkdir_p results_dir
 
-    results_out = File.join(results_dir, 'results_workflow_simulations2.csv')
-    bills_out = File.join(results_dir, 'results_workflow_simulations2_bills.csv')
-    File.delete(results_out) if File.exist? results_out
-    File.delete(bills_out) if File.exist? bills_out
+    results_out = File.join(results_dir, 'results_simulations2.csv')
+    Dir.glob("#{File.dirname(results_out)}/#{File.basename(results_out).gsub('.csv', '*.csv')}").each { |file| File.delete(file) }
 
     sample_files_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'sample_files'))
     real_homes_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'real_homes'))
 
-    # Run simulations AFTER base-lighting*.xml; the remaining simulations are run using test_simulations1.rb
+    # Run simulations AFTER base-hvac-furnace*.xml; the remaining simulations are run using test_simulations1.rb
     # This distributes the simulations across two CI jobs for faster turnaround time.
-    split_at_file = Dir["#{sample_files_dir}/*.xml"].sort.find_index { |f| f.include? 'base-lighting' }
+    split_at_file = Dir["#{sample_files_dir}/*.xml"].sort.find_index { |f| f.include? 'base-hvac-furnace' }
     fail 'Unexpected error.' if split_at_file.nil?
 
     xmls = []
@@ -32,9 +30,8 @@ class WorkflowSimulations2Test < Minitest::Test
       end
     end
     xmls = xmls[split_at_file..-1]
-    all_results, all_results_bills = run_simulation_tests(xmls)
+    all_annual_results = run_simulation_tests(xmls)
 
-    _write_results(all_results.sort_by { |k, _v| k.downcase }.to_h, results_out)
-    _write_results(all_results_bills.sort_by { |k, _v| k.downcase }.to_h, bills_out)
+    _write_results(all_annual_results.sort_by { |k, _v| k.downcase }.to_h, results_out)
   end
 end

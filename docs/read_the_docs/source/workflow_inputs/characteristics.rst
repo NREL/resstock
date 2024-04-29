@@ -1935,36 +1935,48 @@ Arguments
      - Double
      -
      - The leakage value to outside for the supply ducts.
-   * - ``ducts_return_leakage_to_outside_value``
-     - true
-     - 
-     - Double
-     -
-     - The leakage value to outside for the return ducts.
    * - ``ducts_supply_insulation_r``
      - true
      - h-ft^2-R/Btu
      - Double
      -
-     - The insulation r-value of the supply ducts excluding air films.
+     - The nominal insulation r-value of the supply ducts excluding air films. Use 0 for uninsulated ducts.
    * - ``ducts_supply_buried_insulation_level``
      - false
      - 
      - Choice
      - "auto", "not buried", "partially buried", "fully buried", "deeply buried"
      - Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+   * - ``ducts_supply_fraction_rectangular``
+     - false
+     - frac
+     - Double
+     - "auto"
+     - The fraction of supply ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
+   * - ``ducts_return_leakage_to_outside_value``
+     - true
+     - 
+     - Double
+     -
+     - The leakage value to outside for the return ducts.
    * - ``ducts_return_insulation_r``
      - true
      - h-ft^2-R/Btu
      - Double
      -
-     - The insulation r-value of the return ducts excluding air films.
+     - The nominal insulation r-value of the return ducts excluding air films. Use 0 for uninsulated ducts.
    * - ``ducts_return_buried_insulation_level``
      - false
      - 
      - Choice
      - "auto", "not buried", "partially buried", "fully buried", "deeply buried"
      - Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+   * - ``ducts_return_fraction_rectangular``
+     - false
+     - frac
+     - Double
+     - "auto"
+     - The fraction of return ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
 
 .. _duct_location:
 
@@ -3118,6 +3130,58 @@ Arguments
      -
      - Diffusivity of the ground soil. If provided, overrides the previous site and moisture type input.
 
+.. _hvac_cooling_autosizing_factor:
+
+HVAC Cooling Autosizing Factor
+------------------------------
+
+Description
+***********
+
+The cooling airflow and capacity scaling factor applied to the auto-sizing methodology (not used in project_national).
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+- \Engineering Judgment
+
+
+Assumption
+**********
+
+- \HVAC sizing follows ACCA Manual J and Manual S. There is no additional oversizing or undersizing the airflow and capacity of the HVAC system.
+
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``cooling_system_cooling_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+   * - ``heat_pump_cooling_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+
 .. _hvac_cooling_efficiency:
 
 HVAC Cooling Efficiency
@@ -3415,6 +3479,70 @@ Source
 
 - \n/a
 
+
+.. _hvac_heating_autosizing_factor:
+
+HVAC Heating Autosizing Factor
+------------------------------
+
+Description
+***********
+
+The heating airflow and capacity scaling factor applied to the auto-sizing methodology (not used in project_national).
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+- \Engineering Judgment
+
+
+Assumption
+**********
+
+- \HVAC sizing follows ACCA Manual J and Manual S. There is no additional oversizing or undersizing the airflow and capacity of the HVAC system.
+
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``heating_system_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+   * - ``heat_pump_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+   * - ``heat_pump_backup_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The scaling factor applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, 1.0 is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Factor.
+   * - ``heating_system_2_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
 
 .. _hvac_heating_efficiency:
 
@@ -4244,6 +4372,27 @@ Source
 ******
 
 - \Assuming no faults until we have data necessary to characterize all types of ACs and heat pumps (https://github.com/NREL/resstock/issues/733).
+
+
+.. _hvac_system_is_scaled:
+
+HVAC System Is Scaled
+---------------------
+
+Description
+***********
+
+Whether the HVAC system has been undersized or oversized (not used in project_national).
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+- \Assuming no oversizing or undersizing until we have data necessary to characterize all types of systems.
 
 
 .. _hvac_system_single_speed_ac_airflow:
