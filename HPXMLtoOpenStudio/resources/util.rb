@@ -277,6 +277,7 @@ class UrlResolver
       request = Net::HTTP::Get.new(path, params)
 
       if url.instance_of?(URI::HTTPS)
+        require 'openssl'
         http.use_ssl = true
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
