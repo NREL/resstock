@@ -668,7 +668,7 @@ if options[:version]
   puts "ResStock v#{Version::ResStock_Version}"
   cli_path = OpenStudio.getOpenStudioCLI
   command = "\"#{cli_path}\" #{File.dirname(__FILE__)}/../resources/hpxml-measures/workflow/run_simulation.rb -v"
-  system(command)
+  Open3.capture3(command, :unsetenv_others=>true)
 else
   if not options[:yml]
     puts "Error: YML argument is required. Call #{File.basename(__FILE__)} -h for usage."

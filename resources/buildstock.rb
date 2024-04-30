@@ -456,8 +456,7 @@ class RunOSWs
     command += ' -m' if measures_only
     command += " -w \"#{in_osw}\""
 
-    # `#{command}` # suppresses "RunEnergyPlus: Completed Successfully with xxx" message
-    Open3.capture3(command)
+    Open3.capture3(command, :unsetenv_others=>true) # suppresses "RunEnergyPlus: Completed Successfully with xxx" message
     run_log = File.readlines(File.expand_path(File.join(parent_dir, 'run/run.log')))
     run_log.each do |line|
       next if line.include? 'Cannot find current Workflow Step'
