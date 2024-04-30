@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'csv'
+
 def run_simulation_tests(xmls)
   # Run simulations
   puts "Running #{xmls.size} HPXML files..."
@@ -68,7 +70,7 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, annual_results_1x =
 
   print "Testing #{File.basename(xml)}...\n"
 
-  rundir = File.join(File.dirname(__FILE__), "test#{worker_num}")
+  rundir = File.join(File.dirname(__FILE__), "run#{worker_num}")
   # Uses 'monthly' to verify timeseries results match annual results via error-checking
   # inside the ReportSimulationOutput measure.
   cli_path = OpenStudio.getOpenStudioCLI
@@ -782,29 +784,33 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{door_id}' AND ColumnName='Gross Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
-      assert_in_epsilon(hpxml_value, sql_value, 0.1)
+      assert_in_delta(hpxml_value, sql_value, 0.1)
     end
 
     # R-Value
     next if door.r_value.nil?
 
+    hpxml_value = door.r_value
     if door.is_exterior
       col_name = 'U-Factor with Film'
     else
       col_name = 'U-Factor no Film'
-    end
-    hpxml_value = door.r_value
-    if door.is_interior
-      hpxml_value -= Material.AirFilmVertical.rvalue
-      hpxml_value -= Material.AirFilmVertical.rvalue
+      hpxml_value -= 2 * Material.AirFilmVertical.rvalue
     end
     query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{door_id}' AND ColumnName='#{col_name}' AND Units='W/m2-K'"
     sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
-    assert_in_epsilon(hpxml_value, sql_value, 0.1)
+    assert_in_delta(hpxml_value, sql_value, 0.2)
+  end
+
+  is_warm_climate = false
+  if ['USA_FL_Miami.Intl.AP.722020_TMY3.epw',
+      'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw',
+      'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'].include? hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath
+    is_warm_climate = true
   end
 
   # HVAC Load Fractions
-  if (not hpxml_path.include? 'location-miami') && (not hpxml_path.include? 'location-honolulu') && (not hpxml_path.include? 'location-phoenix')
+  if not is_warm_climate
     htg_energy = results.select { |k, _v| (k.include?(': Heating (MBtu)') || k.include?(': Heating Fans/Pumps (MBtu)')) && !k.include?('Load') }.values.sum(0.0)
     assert_equal(hpxml_bldg.total_fraction_heat_load_served > 0, htg_energy > 0)
   end
@@ -911,13 +917,6 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     elsif related_hvac.respond_to? :heating_system_fuel
       wh_fuels << related_hvac.heating_system_fuel
     end
-  end
-
-  is_warm_climate = false
-  if ['USA_FL_Miami.Intl.AP.722020_TMY3.epw',
-      'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw',
-      'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'].include? hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath
-    is_warm_climate = true
   end
 
   # Fuel consumption checks
@@ -1156,4 +1155,385 @@ def _write_results(results, csv_out)
   end
 
   puts "Wrote results to #{csv_out.gsub('.csv', '_*.csv')}."
+end
+
+# NOTE: Methods below are used by both OS-HPXML & OS-ERI
+
+def _write_ashrae_140_results(all_results, test_results_csv)
+  # Write results to csv
+  all_results = all_results.sort_by { |k, _v| k.downcase }.to_h
+  htg_loads = {}
+  clg_loads = {}
+  CSV.open(test_results_csv, 'w') do |csv|
+    csv << ['Test Case', 'Annual Heating Load [MMBtu]', 'Annual Cooling Load [MMBtu]']
+    all_results.each do |xml, results|
+      next unless xml.include? 'C.xml'
+
+      csv << [xml] + results
+      test_name = File.basename(xml, File.extname(xml))
+      htg_loads[test_name] = results[0]
+    end
+    all_results.each do |xml, results|
+      next unless xml.include? 'L.xml'
+
+      csv << [xml] + results
+      test_name = File.basename(xml, File.extname(xml))
+      clg_loads[test_name] = results[1]
+    end
+  end
+  puts "Wrote results to #{test_results_csv}."
+
+  return htg_loads, clg_loads
+end
+
+def _write_hers_hvac_results(all_results, test_results_csv)
+  # Write results to csv
+  all_results = all_results.sort_by { |k, _v| k.downcase }.to_h
+  hvac_energy = {}
+  CSV.open(test_results_csv, 'w') do |csv|
+    csv << ['Test Case', 'HVAC (kWh or therm)', 'HVAC Fan (kWh)']
+    all_results.each do |xml, results|
+      csv << [xml, results[0], results[1]]
+      test_name = File.basename(xml, File.extname(xml))
+      if xml.include?('HVAC2a') || xml.include?('HVAC2b')
+        hvac_energy[test_name] = results[0] / 10.0 + results[1] / 293.08
+      else
+        hvac_energy[test_name] = results[0] + results[1]
+      end
+    end
+  end
+  puts "Wrote results to #{test_results_csv}."
+
+  return hvac_energy
+end
+
+def _write_hers_dse_results(all_results, test_results_csv)
+  # Write results to csv
+  all_results = all_results.sort_by { |k, _v| k.downcase }.to_h
+  dhw_energy = {}
+  CSV.open(test_results_csv, 'w') do |csv|
+    csv << ['Test Case', 'Heat/Cool (kWh or therm)', 'HVAC Fan (kWh)']
+    all_results.each do |xml, results|
+      next unless ['HVAC3a.xml', 'HVAC3e.xml'].include? xml
+
+      csv << [xml, results[0], results[1]]
+      test_name = File.basename(xml, File.extname(xml))
+      dhw_energy[test_name] = results[0] / 10.0 + results[1] / 293.08
+    end
+    all_results.each do |xml, results|
+      next if ['HVAC3a.xml', 'HVAC3e.xml'].include? xml
+
+      csv << [xml, results[0], results[1]]
+      test_name = File.basename(xml, File.extname(xml))
+      dhw_energy[test_name] = results[0] / 10.0 + results[1] / 293.08
+    end
+  end
+  puts "Wrote results to #{test_results_csv}."
+
+  return dhw_energy
+end
+
+def _write_hers_hot_water_results(all_results, test_results_csv)
+  # Write results to csv
+  all_results = all_results.sort_by { |k, _v| k.downcase }.to_h
+  dhw_energy = {}
+  CSV.open(test_results_csv, 'w') do |csv|
+    csv << ['Test Case', 'DHW Energy (therms)', 'Recirc Pump (kWh)']
+    all_results.each do |xml, result|
+      wh_energy, recirc_energy = result
+      csv << [xml, (wh_energy * 10.0).round(1), (recirc_energy * 293.08).round(1)]
+      test_name = File.basename(xml, File.extname(xml))
+      dhw_energy[test_name] = wh_energy + recirc_energy
+    end
+  end
+  puts "Wrote results to #{test_results_csv}."
+
+  return dhw_energy
+end
+
+def _get_simulation_load_results(results)
+  htg_load = results['Load: Heating: Delivered (MBtu)'].round(2)
+  clg_load = results['Load: Cooling: Delivered (MBtu)'].round(2)
+
+  return htg_load, clg_load
+end
+
+def _get_simulation_hvac_energy_results(results, is_heat, is_electric_heat)
+  if not is_heat
+    hvac = UnitConversions.convert(results["End Use: #{FT::Elec}: #{EUT::Cooling} (MBtu)"], 'MBtu', 'kwh').round(2)
+    hvac_fan = UnitConversions.convert(results["End Use: #{FT::Elec}: #{EUT::CoolingFanPump} (MBtu)"], 'MBtu', 'kwh').round(2)
+  else
+    if is_electric_heat
+      hvac = UnitConversions.convert(results["End Use: #{FT::Elec}: #{EUT::Heating} (MBtu)"], 'MBtu', 'kwh').round(2)
+    else
+      hvac = UnitConversions.convert(results["End Use: #{FT::Gas}: #{EUT::Heating} (MBtu)"], 'MBtu', 'therm').round(2)
+    end
+    hvac_fan = UnitConversions.convert(results["End Use: #{FT::Elec}: #{EUT::HeatingFanPump} (MBtu)"], 'MBtu', 'kwh').round(2)
+  end
+
+  assert_operator(hvac, :>, 0)
+  assert_operator(hvac_fan, :>, 0)
+
+  return hvac.round(2), hvac_fan.round(2)
+end
+
+def _get_simulation_hot_water_results(results)
+  dhw_energy = (results["End Use: #{FT::Gas}: #{EUT::HotWater} (MBtu)"] +
+                results["End Use: #{FT::Elec}: #{EUT::HotWater} (MBtu)"]).round(2)
+  recirc_energy = results["End Use: #{FT::Elec}: #{EUT::HotWaterRecircPump} (MBtu)"].round(2)
+  return dhw_energy, recirc_energy
+end
+
+def _check_ashrae_140_results(htg_loads, clg_loads)
+  # Pub 002-2024
+  htg_min = [48.07, 74.30, 35.98, 39.74, 45.72, 39.13, 42.17, 48.30, 58.15, 121.76, 126.71, 24.59, 27.72, 57.57, 48.33]
+  htg_max = [61.35, 82.96, 48.09, 49.95, 51.97, 55.54, 58.15, 63.40, 74.24, 137.68, 146.84, 81.73, 70.27, 91.66, 56.47]
+  htg_dt_min = [17.53, -16.08, -12.92, -12.14, -10.90, -0.56, -1.96, 8.15, 71.16, 3.20, -25.78, -3.14, 7.79, 5.49]
+  htg_dt_max = [29.62, -9.44, -5.89, 0.24, -3.37, 6.42, 4.54, 15.14, 79.06, 11.26, 22.68, 11.47, 32.01, 38.95]
+  clg_min = [42.50, 47.72, 41.15, 31.54, 21.03, 50.55, 36.63, 52.26, 34.16, 57.07, 50.19]
+  clg_max = [58.66, 61.33, 51.69, 41.85, 29.35, 73.48, 59.72, 68.60, 47.58, 73.51, 60.72]
+  clg_dt_min = [0.69, -8.24, -18.53, -30.58, 7.51, -16.52, 6.75, -12.95, 11.62, 5.12]
+  clg_dt_max = [6.91, -0.22, -9.74, -20.48, 15.77, -11.15, 12.76, -6.58, 17.59, 14.14]
+
+  # Annual Heating Loads
+  assert_operator(htg_loads['L100AC'], :<=, htg_max[0])
+  assert_operator(htg_loads['L100AC'], :>=, htg_min[0])
+  assert_operator(htg_loads['L110AC'], :<=, htg_max[1])
+  assert_operator(htg_loads['L110AC'], :>=, htg_min[1])
+  assert_operator(htg_loads['L120AC'], :<=, htg_max[2])
+  assert_operator(htg_loads['L120AC'], :>=, htg_min[2])
+  assert_operator(htg_loads['L130AC'], :<=, htg_max[3])
+  assert_operator(htg_loads['L130AC'], :>=, htg_min[3])
+  assert_operator(htg_loads['L140AC'], :<=, htg_max[4])
+  assert_operator(htg_loads['L140AC'], :>=, htg_min[4])
+  assert_operator(htg_loads['L150AC'], :<=, htg_max[5])
+  assert_operator(htg_loads['L150AC'], :>=, htg_min[5])
+  assert_operator(htg_loads['L155AC'], :<=, htg_max[6])
+  assert_operator(htg_loads['L155AC'], :>=, htg_min[6])
+  assert_operator(htg_loads['L160AC'], :<=, htg_max[7])
+  assert_operator(htg_loads['L160AC'], :>=, htg_min[7])
+  assert_operator(htg_loads['L170AC'], :<=, htg_max[8])
+  assert_operator(htg_loads['L170AC'], :>=, htg_min[8])
+  assert_operator(htg_loads['L200AC'], :<=, htg_max[9])
+  assert_operator(htg_loads['L200AC'], :>=, htg_min[9])
+  assert_operator(htg_loads['L202AC'], :<=, htg_max[10])
+  assert_operator(htg_loads['L202AC'], :>=, htg_min[10])
+  assert_operator(htg_loads['L302XC'], :<=, htg_max[11])
+  assert_operator(htg_loads['L302XC'], :>=, htg_min[11])
+  assert_operator(htg_loads['L304XC'], :<=, htg_max[12])
+  assert_operator(htg_loads['L304XC'], :>=, htg_min[12])
+  assert_operator(htg_loads['L322XC'], :<=, htg_max[13])
+  assert_operator(htg_loads['L322XC'], :>=, htg_min[13])
+  assert_operator(htg_loads['L324XC'], :<=, htg_max[14])
+  assert_operator(htg_loads['L324XC'], :>=, htg_min[14])
+
+  # Annual Heating Load Deltas
+  assert_operator(htg_loads['L110AC'] - htg_loads['L100AC'], :<=, htg_dt_max[0])
+  assert_operator(htg_loads['L110AC'] - htg_loads['L100AC'], :>=, htg_dt_min[0])
+  assert_operator(htg_loads['L120AC'] - htg_loads['L100AC'], :<=, htg_dt_max[1])
+  assert_operator(htg_loads['L120AC'] - htg_loads['L100AC'], :>=, htg_dt_min[1])
+  assert_operator(htg_loads['L130AC'] - htg_loads['L100AC'], :<=, htg_dt_max[2])
+  assert_operator(htg_loads['L130AC'] - htg_loads['L100AC'], :>=, htg_dt_min[2])
+  assert_operator(htg_loads['L140AC'] - htg_loads['L100AC'], :<=, htg_dt_max[3])
+  assert_operator(htg_loads['L140AC'] - htg_loads['L100AC'], :>=, htg_dt_min[3])
+  assert_operator(htg_loads['L150AC'] - htg_loads['L100AC'], :<=, htg_dt_max[4])
+  assert_operator(htg_loads['L150AC'] - htg_loads['L100AC'], :>=, htg_dt_min[4])
+  assert_operator(htg_loads['L155AC'] - htg_loads['L150AC'], :<=, htg_dt_max[5])
+  assert_operator(htg_loads['L155AC'] - htg_loads['L150AC'], :>=, htg_dt_min[5])
+  assert_operator(htg_loads['L160AC'] - htg_loads['L100AC'], :<=, htg_dt_max[6])
+  assert_operator(htg_loads['L160AC'] - htg_loads['L100AC'], :>=, htg_dt_min[6])
+  assert_operator(htg_loads['L170AC'] - htg_loads['L100AC'], :<=, htg_dt_max[7])
+  assert_operator(htg_loads['L170AC'] - htg_loads['L100AC'], :>=, htg_dt_min[7])
+  assert_operator(htg_loads['L200AC'] - htg_loads['L100AC'], :<=, htg_dt_max[8])
+  assert_operator(htg_loads['L200AC'] - htg_loads['L100AC'], :>=, htg_dt_min[8])
+  assert_operator(htg_loads['L202AC'] - htg_loads['L200AC'], :<=, htg_dt_max[9])
+  assert_operator(htg_loads['L202AC'] - htg_loads['L200AC'], :>=, htg_dt_min[9])
+  assert_operator(htg_loads['L302XC'] - htg_loads['L100AC'], :<=, htg_dt_max[10])
+  assert_operator(htg_loads['L302XC'] - htg_loads['L100AC'], :>=, htg_dt_min[10])
+  assert_operator(htg_loads['L302XC'] - htg_loads['L304XC'], :<=, htg_dt_max[11])
+  assert_operator(htg_loads['L302XC'] - htg_loads['L304XC'], :>=, htg_dt_min[11])
+  assert_operator(htg_loads['L322XC'] - htg_loads['L100AC'], :<=, htg_dt_max[12])
+  assert_operator(htg_loads['L322XC'] - htg_loads['L100AC'], :>=, htg_dt_min[12])
+  assert_operator(htg_loads['L322XC'] - htg_loads['L324XC'], :<=, htg_dt_max[13])
+  assert_operator(htg_loads['L322XC'] - htg_loads['L324XC'], :>=, htg_dt_min[13])
+
+  # Annual Cooling Loads
+  assert_operator(clg_loads['L100AL'], :<=, clg_max[0])
+  assert_operator(clg_loads['L100AL'], :>=, clg_min[0])
+  assert_operator(clg_loads['L110AL'], :<=, clg_max[1])
+  assert_operator(clg_loads['L110AL'], :>=, clg_min[1])
+  assert_operator(clg_loads['L120AL'], :<=, clg_max[2])
+  assert_operator(clg_loads['L120AL'], :>=, clg_min[2])
+  assert_operator(clg_loads['L130AL'], :<=, clg_max[3])
+  assert_operator(clg_loads['L130AL'], :>=, clg_min[3])
+  assert_operator(clg_loads['L140AL'], :<=, clg_max[4])
+  assert_operator(clg_loads['L140AL'], :>=, clg_min[4])
+  assert_operator(clg_loads['L150AL'], :<=, clg_max[5])
+  assert_operator(clg_loads['L150AL'], :>=, clg_min[5])
+  assert_operator(clg_loads['L155AL'], :<=, clg_max[6])
+  assert_operator(clg_loads['L155AL'], :>=, clg_min[6])
+  assert_operator(clg_loads['L160AL'], :<=, clg_max[7])
+  assert_operator(clg_loads['L160AL'], :>=, clg_min[7])
+  assert_operator(clg_loads['L170AL'], :<=, clg_max[8])
+  assert_operator(clg_loads['L170AL'], :>=, clg_min[8])
+  assert_operator(clg_loads['L200AL'], :<=, clg_max[9])
+  assert_operator(clg_loads['L200AL'], :>=, clg_min[9])
+  assert_operator(clg_loads['L202AL'], :<=, clg_max[10])
+  assert_operator(clg_loads['L202AL'], :>=, clg_min[10])
+
+  # Annual Cooling Load Deltas
+  assert_operator(clg_loads['L110AL'] - clg_loads['L100AL'], :<=, clg_dt_max[0])
+  assert_operator(clg_loads['L110AL'] - clg_loads['L100AL'], :>=, clg_dt_min[0])
+  assert_operator(clg_loads['L120AL'] - clg_loads['L100AL'], :<=, clg_dt_max[1])
+  assert_operator(clg_loads['L120AL'] - clg_loads['L100AL'], :>=, clg_dt_min[1])
+  assert_operator(clg_loads['L130AL'] - clg_loads['L100AL'], :<=, clg_dt_max[2])
+  assert_operator(clg_loads['L130AL'] - clg_loads['L100AL'], :>=, clg_dt_min[2])
+  assert_operator(clg_loads['L140AL'] - clg_loads['L100AL'], :<=, clg_dt_max[3])
+  assert_operator(clg_loads['L140AL'] - clg_loads['L100AL'], :>=, clg_dt_min[3])
+  assert_operator(clg_loads['L150AL'] - clg_loads['L100AL'], :<=, clg_dt_max[4])
+  assert_operator(clg_loads['L150AL'] - clg_loads['L100AL'], :>=, clg_dt_min[4])
+  assert_operator(clg_loads['L155AL'] - clg_loads['L150AL'], :<=, clg_dt_max[5])
+  assert_operator(clg_loads['L155AL'] - clg_loads['L150AL'], :>=, clg_dt_min[5])
+  assert_operator(clg_loads['L160AL'] - clg_loads['L100AL'], :<=, clg_dt_max[6])
+  assert_operator(clg_loads['L160AL'] - clg_loads['L100AL'], :>=, clg_dt_min[6])
+  assert_operator(clg_loads['L170AL'] - clg_loads['L100AL'], :<=, clg_dt_max[7])
+  assert_operator(clg_loads['L170AL'] - clg_loads['L100AL'], :>=, clg_dt_min[7])
+  assert_operator(clg_loads['L200AL'] - clg_loads['L100AL'], :<=, clg_dt_max[8])
+  assert_operator(clg_loads['L200AL'] - clg_loads['L100AL'], :>=, clg_dt_min[8])
+  assert_operator(clg_loads['L200AL'] - clg_loads['L202AL'], :<=, clg_dt_max[9])
+  assert_operator(clg_loads['L200AL'] - clg_loads['L202AL'], :>=, clg_dt_min[9])
+end
+
+def _check_hvac_test_results(energy)
+  # Pub 002-2024
+  min = [-24.59, -13.13, -42.73, 59.35]
+  max = [-18.18, -12.60, -15.88, 110.25]
+
+  # Cooling cases
+  assert_operator((energy['HVAC1b'] - energy['HVAC1a']) / energy['HVAC1a'] * 100, :>, min[0])
+  assert_operator((energy['HVAC1b'] - energy['HVAC1a']) / energy['HVAC1a'] * 100, :<, max[0])
+
+  # Gas heating cases
+  assert_operator((energy['HVAC2b'] - energy['HVAC2a']) / energy['HVAC2a'] * 100, :>, min[1])
+  assert_operator((energy['HVAC2b'] - energy['HVAC2a']) / energy['HVAC2a'] * 100, :<, max[1])
+
+  # Electric heating cases
+  assert_operator((energy['HVAC2d'] - energy['HVAC2c']) / energy['HVAC2c'] * 100, :>, min[2])
+  assert_operator((energy['HVAC2d'] - energy['HVAC2c']) / energy['HVAC2c'] * 100, :<, max[2])
+  assert_operator((energy['HVAC2e'] - energy['HVAC2c']) / energy['HVAC2c'] * 100, :>, min[3])
+  assert_operator((energy['HVAC2e'] - energy['HVAC2c']) / energy['HVAC2c'] * 100, :<, max[3])
+end
+
+def _check_dse_test_results(energy)
+  # Pub 002-2024
+  htg_min = [9.45, 3.11, 7.40]
+  htg_max = [25.72, 6.53, 19.77]
+  clg_min = [18.69, 5.23, 16.32]
+  clg_max = [29.39, 8.79, 27.47]
+
+  # Heating cases
+  assert_operator((energy['HVAC3b'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :>, htg_min[0])
+  assert_operator((energy['HVAC3b'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :<, htg_max[0])
+  assert_operator((energy['HVAC3c'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :>, htg_min[1])
+  assert_operator((energy['HVAC3c'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :<, htg_max[1])
+  assert_operator((energy['HVAC3d'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :>, htg_min[2])
+  assert_operator((energy['HVAC3d'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :<, htg_max[2])
+
+  # Cooling cases
+  assert_operator((energy['HVAC3f'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :>, clg_min[0])
+  assert_operator((energy['HVAC3f'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :<, clg_max[0])
+  assert_operator((energy['HVAC3g'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :>, clg_min[1])
+  assert_operator((energy['HVAC3g'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :<, clg_max[1])
+  assert_operator((energy['HVAC3h'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :>, clg_min[2])
+  assert_operator((energy['HVAC3h'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :<, clg_max[2])
+end
+
+def _check_hot_water(energy)
+  # Pub 002-2024
+  mn_min = [19.34, 25.76, 17.20, 24.94, 55.93, 22.61, 20.51]
+  mn_max = [19.88, 26.55, 17.70, 25.71, 57.58, 23.28, 21.09]
+  fl_min = [10.74, 13.37, 8.83, 13.06, 30.84, 12.09, 11.84]
+  fl_max = [11.24, 13.87, 9.33, 13.56, 31.55, 12.59, 12.34]
+  mn_dt_min = [-6.77, 1.92, 0.58, -31.03, 2.95, 5.09]
+  mn_dt_max = [-6.27, 2.42, 1.08, -30.17, 3.45, 5.59]
+  fl_dt_min = [-2.88, 1.67, 0.07, -17.82, 1.04, 1.28]
+  fl_dt_max = [-2.38, 2.17, 0.57, -17.32, 1.54, 1.78]
+  mn_fl_dt_min = [8.37, 12.26, 8.13, 11.75, 25.05, 10.35, 8.46]
+  mn_fl_dt_max = [8.87, 12.77, 8.63, 12.25, 26.04, 10.85, 8.96]
+
+  # Duluth MN cases
+  assert_operator(energy['L100AD-HW-01'], :>, mn_min[0])
+  assert_operator(energy['L100AD-HW-01'], :<, mn_max[0])
+  assert_operator(energy['L100AD-HW-02'], :>, mn_min[1])
+  assert_operator(energy['L100AD-HW-02'], :<, mn_max[1])
+  assert_operator(energy['L100AD-HW-03'], :>, mn_min[2])
+  assert_operator(energy['L100AD-HW-03'], :<, mn_max[2])
+  assert_operator(energy['L100AD-HW-04'], :>, mn_min[3])
+  assert_operator(energy['L100AD-HW-04'], :<, mn_max[3])
+  assert_operator(energy['L100AD-HW-05'], :>, mn_min[4])
+  assert_operator(energy['L100AD-HW-05'], :<, mn_max[4])
+  assert_operator(energy['L100AD-HW-06'], :>, mn_min[5])
+  assert_operator(energy['L100AD-HW-06'], :<, mn_max[5])
+  assert_operator(energy['L100AD-HW-07'], :>, mn_min[6])
+  assert_operator(energy['L100AD-HW-07'], :<, mn_max[6])
+
+  # Miami FL cases
+  assert_operator(energy['L100AM-HW-01'], :>, fl_min[0])
+  assert_operator(energy['L100AM-HW-01'], :<, fl_max[0])
+  assert_operator(energy['L100AM-HW-02'], :>, fl_min[1])
+  assert_operator(energy['L100AM-HW-02'], :<, fl_max[1])
+  assert_operator(energy['L100AM-HW-03'], :>, fl_min[2])
+  assert_operator(energy['L100AM-HW-03'], :<, fl_max[2])
+  assert_operator(energy['L100AM-HW-04'], :>, fl_min[3])
+  assert_operator(energy['L100AM-HW-04'], :<, fl_max[3])
+  assert_operator(energy['L100AM-HW-05'], :>, fl_min[4])
+  assert_operator(energy['L100AM-HW-05'], :<, fl_max[4])
+  assert_operator(energy['L100AM-HW-06'], :>, fl_min[5])
+  assert_operator(energy['L100AM-HW-06'], :<, fl_max[5])
+  assert_operator(energy['L100AM-HW-07'], :>, fl_min[6])
+  assert_operator(energy['L100AM-HW-07'], :<, fl_max[6])
+
+  # MN Delta cases
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AD-HW-02'], :>, mn_dt_min[0])
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AD-HW-02'], :<, mn_dt_max[0])
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AD-HW-03'], :>, mn_dt_min[1])
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AD-HW-03'], :<, mn_dt_max[1])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-04'], :>, mn_dt_min[2])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-04'], :<, mn_dt_max[2])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-05'], :>, mn_dt_min[3])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-05'], :<, mn_dt_max[3])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-06'], :>, mn_dt_min[4])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-06'], :<, mn_dt_max[4])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-07'], :>, mn_dt_min[5])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-07'], :<, mn_dt_max[5])
+
+  # FL Delta cases
+  assert_operator(energy['L100AM-HW-01'] - energy['L100AM-HW-02'], :>, fl_dt_min[0])
+  assert_operator(energy['L100AM-HW-01'] - energy['L100AM-HW-02'], :<, fl_dt_max[0])
+  assert_operator(energy['L100AM-HW-01'] - energy['L100AM-HW-03'], :>, fl_dt_min[1])
+  assert_operator(energy['L100AM-HW-01'] - energy['L100AM-HW-03'], :<, fl_dt_max[1])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-04'], :>, fl_dt_min[2])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-04'], :<, fl_dt_max[2])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-05'], :>, fl_dt_min[3])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-05'], :<, fl_dt_max[3])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-06'], :>, fl_dt_min[4])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-06'], :<, fl_dt_max[4])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-07'], :>, fl_dt_min[5])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-07'], :<, fl_dt_max[5])
+
+  # MN-FL Delta cases
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AM-HW-01'], :>, mn_fl_dt_min[0])
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AM-HW-01'], :<, mn_fl_dt_max[0])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AM-HW-02'], :>, mn_fl_dt_min[1])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AM-HW-02'], :<, mn_fl_dt_max[1])
+  assert_operator(energy['L100AD-HW-03'] - energy['L100AM-HW-03'], :>, mn_fl_dt_min[2])
+  assert_operator(energy['L100AD-HW-03'] - energy['L100AM-HW-03'], :<, mn_fl_dt_max[2])
+  assert_operator(energy['L100AD-HW-04'] - energy['L100AM-HW-04'], :>, mn_fl_dt_min[3])
+  assert_operator(energy['L100AD-HW-04'] - energy['L100AM-HW-04'], :<, mn_fl_dt_max[3])
+  assert_operator(energy['L100AD-HW-05'] - energy['L100AM-HW-05'], :>, mn_fl_dt_min[4])
+  assert_operator(energy['L100AD-HW-05'] - energy['L100AM-HW-05'], :<, mn_fl_dt_max[4])
+  assert_operator(energy['L100AD-HW-06'] - energy['L100AM-HW-06'], :>, mn_fl_dt_min[5])
+  assert_operator(energy['L100AD-HW-06'] - energy['L100AM-HW-06'], :<, mn_fl_dt_max[5])
+  assert_operator(energy['L100AD-HW-07'] - energy['L100AM-HW-07'], :>, mn_fl_dt_min[6])
+  assert_operator(energy['L100AD-HW-07'] - energy['L100AM-HW-07'], :<, mn_fl_dt_max[6])
 end

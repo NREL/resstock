@@ -46,7 +46,7 @@ class HVACSizing
       apply_hvac_heat_pump_logic(hvac_sizing_values, hvac_cooling, frac_heat_load_served, frac_cool_load_served)
       apply_hvac_equipment_adjustments(mj, runner, hvac_sizing_values, weather, hvac_heating, hvac_cooling, hvac_system)
       apply_hvac_installation_quality(mj, hvac_sizing_values, hvac_heating, hvac_cooling, frac_heat_load_served, frac_cool_load_served)
-      apply_hvac_autosizing_factors(hvac_sizing_values, hvac_heating, hvac_cooling)
+      apply_hvac_autosizing_factors_and_limits(hvac_sizing_values, hvac_heating, hvac_cooling)
       apply_hvac_fixed_capacities(hvac_sizing_values, hvac_heating, hvac_cooling)
       apply_hvac_ground_loop(mj, runner, hvac_sizing_values, weather, hvac_cooling)
       apply_hvac_finalize_airflows(hvac_sizing_values, hvac_heating, hvac_cooling)
@@ -1898,18 +1898,39 @@ class HVACSizing
     end
   end
 
-  def self.apply_hvac_autosizing_factors(hvac_sizing_values, hvac_heating, hvac_cooling)
+  def self.apply_hvac_autosizing_factors_and_limits(hvac_sizing_values, hvac_heating, hvac_cooling)
     if not hvac_cooling.nil?
-      hvac_sizing_values.Cool_Capacity *= hvac_cooling.cooling_autosizing_factor
-      hvac_sizing_values.Cool_Airflow *= hvac_cooling.cooling_autosizing_factor
-      hvac_sizing_values.Cool_Capacity_Sens *= hvac_cooling.cooling_autosizing_factor
+      cooling_autosizing_limit = hvac_cooling.cooling_autosizing_limit
+      if cooling_autosizing_limit.nil?
+        cooling_autosizing_limit = 1 / Constants.small
+      end
+
+      cooling_autosizing_factor = [hvac_cooling.cooling_autosizing_factor, cooling_autosizing_limit / hvac_sizing_values.Cool_Capacity].min
+
+      hvac_sizing_values.Cool_Capacity *= cooling_autosizing_factor
+      hvac_sizing_values.Cool_Airflow *= cooling_autosizing_factor
+      hvac_sizing_values.Cool_Capacity_Sens *= cooling_autosizing_factor
     end
     if not hvac_heating.nil?
-      hvac_sizing_values.Heat_Capacity *= hvac_heating.heating_autosizing_factor
-      hvac_sizing_values.Heat_Airflow *= hvac_heating.heating_autosizing_factor
+      heating_autosizing_limit = hvac_heating.heating_autosizing_limit
+      if heating_autosizing_limit.nil?
+        heating_autosizing_limit = 1 / Constants.small
+      end
+
+      heating_autosizing_factor = [hvac_heating.heating_autosizing_factor, heating_autosizing_limit / hvac_sizing_values.Heat_Capacity].min
+
+      hvac_sizing_values.Heat_Capacity *= heating_autosizing_factor
+      hvac_sizing_values.Heat_Airflow *= heating_autosizing_factor
     end
     if (hvac_cooling.is_a? HPXML::HeatPump) && (hvac_cooling.backup_type == HPXML::HeatPumpBackupTypeIntegrated)
-      hvac_sizing_values.Heat_Capacity_Supp *= hvac_cooling.backup_heating_autosizing_factor
+      backup_heating_autosizing_limit = hvac_cooling.backup_heating_autosizing_limit
+      if backup_heating_autosizing_limit.nil?
+        backup_heating_autosizing_limit = 1 / Constants.small
+      end
+
+      backup_heating_autosizing_factor = [hvac_cooling.backup_heating_autosizing_factor, backup_heating_autosizing_limit / hvac_sizing_values.Heat_Capacity_Supp].min
+
+      hvac_sizing_values.Heat_Capacity_Supp *= backup_heating_autosizing_factor
     end
   end
 
