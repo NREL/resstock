@@ -92,6 +92,10 @@ jobs:
         run: |
           rm -f Gemfile.lock && bundle install
       
+      - name: Run run_analysis.rb
+        run: |
+          bundle exec rake workflow:analysis_tests
+      
       - name: Install python
         shell: bash
         run: |
@@ -113,10 +117,6 @@ jobs:
       - name: Generate precomputed buildstocks
         run: |
           python3 test/update_yml_precomputed_files.py
-
-      - name: Run run_analysis.rb
-        run: |
-          bundle exec rake workflow:analysis_tests
 
       - name: Upload precomputed buildstocks
         uses: actions/upload-artifact@v4
