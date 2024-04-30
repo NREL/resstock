@@ -1935,36 +1935,48 @@ Arguments
      - Double
      -
      - The leakage value to outside for the supply ducts.
-   * - ``ducts_return_leakage_to_outside_value``
-     - true
-     - 
-     - Double
-     -
-     - The leakage value to outside for the return ducts.
    * - ``ducts_supply_insulation_r``
      - true
      - h-ft^2-R/Btu
      - Double
      -
-     - The insulation r-value of the supply ducts excluding air films.
+     - The nominal insulation r-value of the supply ducts excluding air films. Use 0 for uninsulated ducts.
    * - ``ducts_supply_buried_insulation_level``
      - false
      - 
      - Choice
      - "auto", "not buried", "partially buried", "fully buried", "deeply buried"
      - Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+   * - ``ducts_supply_fraction_rectangular``
+     - false
+     - frac
+     - Double
+     - "auto"
+     - The fraction of supply ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
+   * - ``ducts_return_leakage_to_outside_value``
+     - true
+     - 
+     - Double
+     -
+     - The leakage value to outside for the return ducts.
    * - ``ducts_return_insulation_r``
      - true
      - h-ft^2-R/Btu
      - Double
      -
-     - The insulation r-value of the return ducts excluding air films.
+     - The nominal insulation r-value of the return ducts excluding air films. Use 0 for uninsulated ducts.
    * - ``ducts_return_buried_insulation_level``
      - false
      - 
      - Choice
      - "auto", "not buried", "partially buried", "fully buried", "deeply buried"
      - Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+   * - ``ducts_return_fraction_rectangular``
+     - false
+     - frac
+     - Double
+     - "auto"
+     - The fraction of return ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
 
 .. _duct_location:
 
