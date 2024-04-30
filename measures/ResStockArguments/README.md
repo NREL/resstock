@@ -5194,17 +5194,6 @@ Reduction (%) on the air exchange rate value.
 
 <br/>
 
-**Plug Loads: Television Quantity**
-
-Total number of televisions.
-
-- **Name:** ``misc_plug_loads_television_quantity``
-- **Type:** ``Integer``
-
-- **Required:** ``true``
-
-<br/>
-
 **Plug Loads: Television Usage Multiplier 2**
 
 Additional multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.

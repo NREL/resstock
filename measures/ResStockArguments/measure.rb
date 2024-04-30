@@ -188,12 +188,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Reduction (%) on the air exchange rate value.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('misc_plug_loads_television_quantity', true)
-    arg.setDisplayName('Plug Loads: Television Quantity')
-    arg.setDescription('Total number of televisions.')
-    arg.setDefaultValue(1)
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_television_2_usage_multiplier', true)
     arg.setDisplayName('Plug Loads: Television Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.')
@@ -468,21 +462,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:misc_plug_loads_other_usage_multiplier] = Float(args[:misc_plug_loads_other_usage_multiplier].to_s) * args[:misc_plug_loads_other_2_usage_multiplier]
     args[:misc_plug_loads_well_pump_usage_multiplier] = Float(args[:misc_plug_loads_well_pump_usage_multiplier].to_s) * args[:misc_plug_loads_well_pump_2_usage_multiplier]
     args[:misc_plug_loads_vehicle_usage_multiplier] = Float(args[:misc_plug_loads_vehicle_usage_multiplier].to_s) * args[:misc_plug_loads_vehicle_2_usage_multiplier]
-
-    # Television
-    if args[:misc_plug_loads_television_annual_kwh].to_s == Constants.Auto
-      if args[:misc_plug_loads_television_quantity] == 0
-        args[:misc_plug_loads_television_annual_kwh] = 0
-      else
-        if [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type])
-          args[:misc_plug_loads_television_annual_kwh] = 25.76 + 23.44 * args[:geometry_unit_num_occupants] + 237.35 * args[:misc_plug_loads_television_quantity] # RECS 2020
-        elsif [HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type])
-          args[:misc_plug_loads_television_annual_kwh] = 1.38 + 8.02 * args[:geometry_unit_num_occupants] + 248.09 * args[:misc_plug_loads_television_quantity] # RECS 2020
-        elsif [HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type])
-          args[:misc_plug_loads_television_annual_kwh] = -18.18 + 27.46 * args[:geometry_unit_num_occupants] + 235.96 * args[:misc_plug_loads_television_quantity] # RECS 2020
-        end
-      end
-    end
 
     # Other
     if args[:misc_plug_loads_other_annual_kwh].to_s == Constants.Auto
