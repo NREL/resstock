@@ -14,6 +14,7 @@ OpenStudio-HPXML documentation
    usage_instructions
    workflow_inputs
    workflow_outputs
+   testing_framework.rst
 
 Indices and tables
 ==================
