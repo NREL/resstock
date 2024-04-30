@@ -9,7 +9,7 @@ require 'time'
 
 require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling_lib'
-require_relative '../resources/util'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/util'
 
 $start_time = Time.now
 
