@@ -258,8 +258,6 @@ end
 # Adapted from https://stackoverflow.com/questions/6934185/ruby-net-http-following-redirects
 class UrlResolver
   def self.fetch(uri_str, outfile, agent = 'curl/7.43.0', max_attempts = 10, timeout = 10)
-    require 'openssl'
-
     attempts = 0
     cookie = nil
 
