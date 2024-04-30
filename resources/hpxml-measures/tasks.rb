@@ -1200,6 +1200,9 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.foundations[0].attached_to_wall_idrefs << hpxml_bldg.walls[-1].id
       hpxml_bldg.foundation_walls[0].delete
     end
+    if ['base-foundation-slab.xml'].include? hpxml_file
+      hpxml_bldg.slabs[0].gap_insulation_r_value = 0.0
+    end
 
     # ---------- #
     # HPXML HVAC #
@@ -1716,11 +1719,15 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.water_heating.water_fixtures_weekend_fractions = '0.012, 0.006, 0.004, 0.005, 0.010, 0.034, 0.078, 0.087, 0.080, 0.067, 0.056, 0.047, 0.040, 0.035, 0.033, 0.031, 0.039, 0.051, 0.060, 0.060, 0.055, 0.048, 0.038, 0.026'
       hpxml_bldg.water_heating.water_fixtures_monthly_multipliers = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
     elsif ['base-bldgtype-mf-unit-shared-water-heater-recirc.xml',
+           'base-bldgtype-mf-unit-shared-water-heater-recirc-beds-0.xml',
            'base-bldgtype-mf-unit-shared-water-heater-recirc-scheduled.xml'].include? hpxml_file
       hpxml_bldg.hot_water_distributions[0].has_shared_recirculation = true
-      hpxml_bldg.hot_water_distributions[0].shared_recirculation_number_of_units_served = 6
+      hpxml_bldg.hot_water_distributions[0].shared_recirculation_number_of_bedrooms_served = 18
       hpxml_bldg.hot_water_distributions[0].shared_recirculation_pump_power = 220
       hpxml_bldg.hot_water_distributions[0].shared_recirculation_control_type = HPXML::DHWRecircControlTypeTimer
+      if hpxml_file == 'base-bldgtype-mf-unit-shared-water-heater-recirc-beds-0.xml'
+        hpxml_bldg.hot_water_distributions[0].shared_recirculation_number_of_bedrooms_served = 6
+      end
     elsif ['base-bldgtype-mf-unit-shared-laundry-room.xml',
            'base-bldgtype-mf-unit-shared-laundry-room-multiple-water-heaters.xml'].include? hpxml_file
       hpxml_bldg.water_heating_systems.reverse_each do |water_heating_system|
@@ -1728,7 +1735,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       end
       hpxml_bldg.water_heating_systems.add(id: "WaterHeatingSystem#{hpxml_bldg.water_heating_systems.size + 1}",
                                            is_shared_system: true,
-                                           number_of_units_served: 6,
+                                           number_of_bedrooms_served: 18,
                                            fuel_type: HPXML::FuelTypeNaturalGas,
                                            water_heater_type: HPXML::WaterHeaterTypeStorage,
                                            location: HPXML::LocationConditionedSpace,
@@ -1741,7 +1748,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       if hpxml_file == 'base-bldgtype-mf-unit-shared-laundry-room-multiple-water-heaters.xml'
         hpxml_bldg.water_heating_systems[0].fraction_dhw_load_served /= 2.0
         hpxml_bldg.water_heating_systems[0].tank_volume /= 2.0
-        hpxml_bldg.water_heating_systems[0].number_of_units_served /= 2.0
+        hpxml_bldg.water_heating_systems[0].number_of_bedrooms_served /= 2.0
         hpxml_bldg.water_heating_systems << hpxml_bldg.water_heating_systems[0].dup
         hpxml_bldg.water_heating_systems[1].id = "WaterHeatingSystem#{hpxml_bldg.water_heating_systems.size}"
       end

@@ -514,6 +514,14 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     _test_default_infiltration_values(default_hpxml_bldg, 1350 * 12, false)
+
+    # Test defaults w/ shared system
+    hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-boiler-only-baseboard.xml')
+    hpxml_bldg.heating_systems[0].heating_efficiency_afue = 0.8
+    hpxml_bldg.air_infiltration.has_flue_or_chimney_in_conditioned_space = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_infiltration_values(default_hpxml_bldg, 900 * 8, false)
   end
 
   def test_infiltration_compartmentaliztion_test_adjustment
@@ -835,18 +843,20 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.slabs[0].carpet_r_value = 1.1
     hpxml_bldg.slabs[0].carpet_fraction = 0.5
     hpxml_bldg.slabs[0].depth_below_grade = 2.0
+    hpxml_bldg.slabs[0].gap_insulation_r_value = 10.0
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 7.0, 1.1, 0.5, nil)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 7.0, 1.1, 0.5, nil, 10.0)
 
     # Test defaults w/ conditioned basement
     hpxml_bldg.slabs[0].thickness = nil
     hpxml_bldg.slabs[0].carpet_r_value = nil
     hpxml_bldg.slabs[0].carpet_fraction = nil
     hpxml_bldg.slabs[0].depth_below_grade = nil
+    hpxml_bldg.slabs[0].gap_insulation_r_value = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, nil)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, nil, 0.0)
 
     # Test defaults w/ crawlspace
     hpxml, hpxml_bldg = _create_hpxml('base-foundation-unvented-crawlspace.xml')
@@ -854,9 +864,10 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.slabs[0].carpet_r_value = nil
     hpxml_bldg.slabs[0].carpet_fraction = nil
     hpxml_bldg.slabs[0].depth_below_grade = nil
+    hpxml_bldg.slabs[0].gap_insulation_r_value = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 0.0, 0.0, 0.0, nil)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 0.0, 0.0, 0.0, nil, 0.0)
 
     # Test defaults w/ slab-on-grade
     hpxml, hpxml_bldg = _create_hpxml('base-foundation-slab.xml')
@@ -864,9 +875,10 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.slabs[0].carpet_r_value = nil
     hpxml_bldg.slabs[0].carpet_fraction = nil
     hpxml_bldg.slabs[0].depth_below_grade = nil
+    hpxml_bldg.slabs[0].gap_insulation_r_value = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, 0.0)
+    _test_default_slab_values(default_hpxml_bldg.slabs[0], 4.0, 2.0, 0.8, 0.0, 5.0)
   end
 
   def test_windows
@@ -885,7 +897,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     n_windows = default_hpxml_bldg.windows.size
     _test_default_window_values(default_hpxml_bldg, [0.44] * n_windows, [0.55] * n_windows, [0.66] * n_windows, [0.77] * n_windows, [0.5] * n_windows, [123] * n_windows)
 
-    # Test defaults
+    # Test defaults after 301-2022 Addendum C
     hpxml_bldg.windows.each do |window|
       window.fraction_operable = nil
       window.exterior_shading_factor_summer = nil
@@ -898,7 +910,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     n_windows = default_hpxml_bldg.windows.size
-    _test_default_window_values(default_hpxml_bldg, [1.0] * n_windows, [1.0] * n_windows, [0.7] * n_windows, [0.85] * n_windows, [0.67] * n_windows, [225] * n_windows)
+    int_shade_coeff = 0.92 - (0.21 * 0.45)
+    _test_default_window_values(default_hpxml_bldg, [1.0] * n_windows, [1.0] * n_windows, [int_shade_coeff] * n_windows, [int_shade_coeff] * n_windows, [0.67] * n_windows, [225] * n_windows)
   end
 
   def test_windows_properties
@@ -2095,6 +2108,12 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     _test_default_hvac_location_values(default_hpxml_bldg.heating_systems[0], HPXML::LocationConditionedSpace)
+
+    # Test defaults -- shared system
+    hpxml, _hpxml_bldg = _create_hpxml('base-bldgtype-mf-unit-shared-boiler-only-baseboard.xml')
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_hvac_location_values(default_hpxml_bldg.heating_systems[0], HPXML::LocationOtherHeatedSpace)
   end
 
   def test_hvac_controls
@@ -2681,7 +2700,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems.each do |wh|
       wh.is_shared_system = true
-      wh.number_of_units_served = 2
+      wh.number_of_bedrooms_served = 6
       wh.heating_capacity = 15000.0
       wh.tank_volume = 40.0
       wh.recovery_efficiency = 0.95
@@ -3157,7 +3176,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
-    hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
+    hpxml_bldg.water_heating_systems[0].number_of_bedrooms_served = 18
     hpxml_bldg.clothes_washers[0].location = HPXML::LocationBasementConditioned
     hpxml_bldg.clothes_washers[0].is_shared_appliance = true
     hpxml_bldg.clothes_washers[0].usage_multiplier = 1.5
@@ -3212,7 +3231,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
-    hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
+    hpxml_bldg.water_heating_systems[0].number_of_bedrooms_served = 18
     hpxml_bldg.clothes_dryers[0].location = HPXML::LocationBasementConditioned
     hpxml_bldg.clothes_dryers[0].is_shared_appliance = true
     hpxml_bldg.clothes_dryers[0].combined_energy_factor = 3.33
@@ -3285,7 +3304,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-bldgtype-sfa-unit.xml')
     hpxml_bldg.water_heating_systems[0].is_shared_system = true
-    hpxml_bldg.water_heating_systems[0].number_of_units_served = 6
+    hpxml_bldg.water_heating_systems[0].number_of_bedrooms_served = 18
     hpxml_bldg.dishwashers[0].location = HPXML::LocationBasementConditioned
     hpxml_bldg.dishwashers[0].is_shared_appliance = true
     hpxml_bldg.dishwashers[0].usage_multiplier = 1.3
@@ -4328,7 +4347,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     end
   end
 
-  def _test_default_slab_values(slab, thickness, carpet_r_value, carpet_fraction, depth_below_grade)
+  def _test_default_slab_values(slab, thickness, carpet_r_value, carpet_fraction, depth_below_grade, gap_rvalue)
     assert_equal(thickness, slab.thickness)
     assert_equal(carpet_r_value, slab.carpet_r_value)
     assert_equal(carpet_fraction, slab.carpet_fraction)
@@ -4337,6 +4356,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     else
       assert_equal(depth_below_grade, slab.depth_below_grade)
     end
+    assert_equal(gap_rvalue, slab.gap_insulation_r_value)
   end
 
   def _test_default_window_values(hpxml_bldg, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs, fraction_operable, azimuths)

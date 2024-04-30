@@ -248,7 +248,6 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-mf-conditioned-attic.xml' => ['Conditioned attic type for apartment units is not currently supported.'],
       'error-dhw-indirect-without-boiler.xml' => ['Must specify a boiler when modeling an indirect water heater type.'],
       'error-conditioned-attic-with-one-floor-above-grade.xml' => ['Units with a conditioned attic must have at least two above-grade floors.'],
-      'error-zero-number-of-bedrooms.xml' => ['Number of bedrooms must be greater than zero.'],
       'error-sfd-with-shared-system.xml' => ['Specified a shared system for a single-family detached unit.'],
       'error-rim-joist-height-but-no-assembly-r.xml' => ['Specified a rim joist height but no rim joist assembly R-value.'],
       'error-rim-joist-assembly-r-but-no-height.xml' => ['Specified a rim joist assembly R-value but no rim joist height.'],
@@ -564,7 +563,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['water_heater_standby_loss'] = 0
       args['water_heater_jacket_rvalue'] = 0
       args['water_heater_setpoint_temperature'] = 125
-      args['water_heater_num_units_served'] = 1
+      args['water_heater_num_bedrooms_served'] = 3
       args['hot_water_distribution_system_type'] = HPXML::DHWDistTypeStandard
       args['hot_water_distribution_standard_piping_length'] = 50
       args['hot_water_distribution_recirc_control_type'] = HPXML::DHWRecircControlTypeNone
@@ -1196,8 +1195,6 @@ class BuildResidentialHPXMLTest < Minitest::Test
     elsif ['error-conditioned-attic-with-one-floor-above-grade.xml'].include? hpxml_file
       args['geometry_attic_type'] = HPXML::AtticTypeConditioned
       args['ceiling_assembly_r'] = 0.0
-    elsif ['error-zero-number-of-bedrooms.xml'].include? hpxml_file
-      args['geometry_unit_num_bedrooms'] = 0
     elsif ['error-sfd-with-shared-system.xml'].include? hpxml_file
       args['heating_system_type'] = "Shared #{HPXML::HVACTypeBoiler} w/ Baseboard"
     elsif ['error-rim-joist-height-but-no-assembly-r.xml'].include? hpxml_file

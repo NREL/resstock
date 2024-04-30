@@ -21,12 +21,6 @@ class Constants
             'geometry_unit_back_wall_is_adiabatic',
             'geometry_unit_num_floors_above_grade',
             'air_leakage_has_flue_or_chimney_in_conditioned_space',
-            'heating_system_heating_autosizing_factor',
-            'heating_system_2_heating_autosizing_factor',
-            'cooling_system_cooling_autosizing_factor',
-            'heat_pump_heating_autosizing_factor',
-            'heat_pump_cooling_autosizing_factor',
-            'heat_pump_backup_heating_autosizing_factor',
             'heating_system_airflow_defect_ratio',
             'cooling_system_airflow_defect_ratio',
             'cooling_system_charge_defect_ratio',
@@ -86,6 +80,7 @@ class Constants
             'schedules_random_seed',
             'output_csv_path',
             'hpxml_output_path',
+            'append_output',
             'debug',
             'building_id']
   end

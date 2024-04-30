@@ -506,13 +506,14 @@ Timeseries Outputs
 
 OpenStudio-HPXML can optionally generate a timeseries output file.
 The timeseries output file is called ``results_timeseries.csv`` (or ``results_timeseries.json`` or ``results_timeseries.msgpack``) and located in the run directory.
+If multiple timeseries frequencies are requested (e.g., hourly and daily), the timeseries output filenames will include the frequency (e.g., ``run/results_timeseries_daily.csv``).
 
 Depending on the outputs requested, the file may include:
 
    ===================================  ==================================================================================================================================
    Type                                 Notes
    ===================================  ==================================================================================================================================
-   Total Consumptions                   Energy use for building total.
+   Total Consumptions                   Energy use for building total and net (i.e., subtracts any power produced by PV or generators).
    Fuel Consumptions                    Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
    End Use Consumptions                 Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
    System Use Consumptions              Energy use for each HVAC and water heating system (in kBtu).
@@ -527,7 +528,7 @@ Depending on the outputs requested, the file may include:
    Airflows                             Airflow rates (in cfm) for infiltration, mechanical ventilation (including clothes dryer exhaust), natural ventilation, whole house fans.
    Weather                              Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
    Resilience                           Resilience outputs (currently only average resilience hours for battery storage).
-   EnergyPlus Output Variables          These are optional and can be requested with the ReportSimulationOutput ``user_output_variables`` argument.
+   EnergyPlus Output Variables          Any user-specified EnergyPlus output variables (e.g., 'Zone People Occupant Count').
    ===================================  ==================================================================================================================================
 
 Timeseries outputs can be one of the following frequencies: hourly, daily, monthly, or timestep (i.e., equal to the simulation timestep, which defaults to an hour but can be sub-hourly).

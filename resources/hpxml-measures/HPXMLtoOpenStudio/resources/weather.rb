@@ -41,7 +41,7 @@ class WeatherProcess
 
     epw_file_data = epw_file.data
 
-    epwHasDesignData = get_design_info_from_epw(epw_file)
+    epwHasDesignData = get_design_info_from_epw(runner, epw_file)
 
     # Timeseries data:
     rowdata = []
@@ -223,18 +223,21 @@ class WeatherProcess
     return wsf.round(2)
   end
 
-  def get_design_info_from_epw(epw_file)
+  def get_design_info_from_epw(runner, epw_file)
     # Retrieve design conditions from weather header
     epw_design_conditions = epw_file.designConditions
     epwHasDesignData = false
     if epw_design_conditions.length > 0
       epwHasDesignData = true
-      epw_design_conditions = epw_design_conditions[0]
-      design.HeatingDrybulb = UnitConversions.convert(epw_design_conditions.heatingDryBulb99, 'C', 'F')
-      design.CoolingDrybulb = UnitConversions.convert(epw_design_conditions.coolingDryBulb1, 'C', 'F')
-      design.DailyTemperatureRange = UnitConversions.convert(epw_design_conditions.coolingDryBulbRange, 'deltaC', 'deltaF')
+      epw_design_condition = epw_design_conditions[0]
+      if epw_design_conditions.length > 1
+        runner.registerWarning("Multiple EPW design conditions found; the first one (#{epw_design_condition.titleOfDesignCondition}) will be used.")
+      end
+      design.HeatingDrybulb = UnitConversions.convert(epw_design_condition.heatingDryBulb99, 'C', 'F')
+      design.CoolingDrybulb = UnitConversions.convert(epw_design_condition.coolingDryBulb1, 'C', 'F')
+      design.DailyTemperatureRange = UnitConversions.convert(epw_design_condition.coolingDryBulbRange, 'deltaC', 'deltaF')
       press_psi = Psychrometrics.Pstd_fZ(UnitConversions.convert(epw_file.elevation, 'm', 'ft'))
-      design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, UnitConversions.convert(epw_design_conditions.coolingMeanCoincidentWetBulb1, 'C', 'F'), press_psi)
+      design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, UnitConversions.convert(epw_design_condition.coolingMeanCoincidentWetBulb1, 'C', 'F'), press_psi)
     end
     return epwHasDesignData
   end
