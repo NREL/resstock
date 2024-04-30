@@ -1532,9 +1532,20 @@ The output heating capacity of the heating system. If not provided, the OS-HPXML
 
 **Heating System: Heating Autosizing Factor**
 
-The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
 
 - **Name:** ``heating_system_heating_autosizing_factor``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Heating System: Heating Autosizing Limit**
+
+The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
+
+- **Name:** ``heating_system_heating_autosizing_limit``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -1639,9 +1650,20 @@ The output cooling capacity of the cooling system. If not provided, the OS-HPXML
 
 **Cooling System: Cooling Autosizing Factor**
 
-The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
 
 - **Name:** ``cooling_system_cooling_autosizing_factor``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Cooling System: Cooling Autosizing Limit**
+
+The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
+
+- **Name:** ``cooling_system_cooling_autosizing_limit``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -1829,9 +1851,20 @@ The output heating capacity of the heat pump. If not provided, the OS-HPXML auto
 
 **Heat Pump: Heating Autosizing Factor**
 
-The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
 
 - **Name:** ``heat_pump_heating_autosizing_factor``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Heat Pump: Heating Autosizing Limit**
+
+The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
+
+- **Name:** ``heat_pump_heating_autosizing_limit``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -1873,9 +1906,20 @@ The output cooling capacity of the heat pump. If not provided, the OS-HPXML auto
 
 **Heat Pump: Cooling Autosizing Factor**
 
-The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
 
 - **Name:** ``heat_pump_cooling_autosizing_factor``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Heat Pump: Cooling Autosizing Limit**
+
+The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
+
+- **Name:** ``heat_pump_cooling_autosizing_limit``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -1934,9 +1978,20 @@ The backup type of the heat pump. If 'integrated', represents e.g. built-in elec
 
 **Heat Pump: Backup Heating Autosizing Factor**
 
-The scaling factor applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, 1.0 is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Factor.
+The capacity scaling factor applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, 1.0 is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Factor.
 
 - **Name:** ``heat_pump_backup_heating_autosizing_factor``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Heat Pump: Backup Heating Autosizing Limit**
+
+The maximum capacity limit applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, no limit is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Limit.
+
+- **Name:** ``heat_pump_backup_heating_autosizing_limit``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -2334,9 +2389,20 @@ The output heating capacity of the second heating system. If not provided, the O
 
 **Heating System 2: Heating Autosizing Factor**
 
-The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
 
 - **Name:** ``heating_system_2_heating_autosizing_factor``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Heating System 2: Heating Autosizing Limit**
+
+The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
+
+- **Name:** ``heating_system_2_heating_autosizing_limit``
 - **Type:** ``String``
 
 - **Required:** ``false``
@@ -2372,6 +2438,17 @@ Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see <
 Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-control'>HPXML HVAC Control</a>) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
 
 - **Name:** ``hvac_control_cooling_season_period``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**HVAC Blower: Fan Efficiency**
+
+The blower fan efficiency at maximum fan speed. Applies only to split (not packaged) systems (i.e., applies to ducted systems as well as ductless mini-split systems). If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems'>HPXML Heating Systems</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooling-systems'>HPXML Cooling Systems</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heat-pumps'>HPXML Heat Pumps</a>) is used.
+
+- **Name:** ``hvac_blower_fan_watts_per_cfm``
 - **Type:** ``String``
 
 - **Required:** ``false``
