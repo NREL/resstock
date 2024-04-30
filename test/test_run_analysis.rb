@@ -4,6 +4,7 @@ require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minite
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/version'
 require_relative '../resources/buildstock'
 require_relative '../test/analysis'
+require 'open3'
 require 'openstudio'
 
 class TestRunAnalysis < Minitest::Test
@@ -140,7 +141,7 @@ class TestRunAnalysis < Minitest::Test
   def test_version
     @command += ' -v'
 
-    cli_output = `#{@command}`
+    cli_output, stderr_str, status = Open3.capture3(@command)
 
     assert_includes(cli_output, "ResStock v#{Version::ResStock_Version}")
     assert_includes(cli_output, "OpenStudio-HPXML v#{Version::OS_HPXML_Version}")
@@ -153,13 +154,13 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/yml_bad_value/testing_baseline.yml'
     @command += yml
 
-    cli_output = `#{@command}`
+    cli_output, stderr_str, status = Open3.capture3(@command)
 
     _assert_and_puts([cli_output], "Error: YML file does not exist at 'test/yml_bad_value/testing_baseline.yml'.")
   end
 
   def test_no_yml_argument
-    cli_output = `#{@command}`
+    cli_output, stderr_str, status = Open3.capture3(@command)
 
     _assert_and_puts([cli_output], 'Error: YML argument is required. Call run_analysis.rb -h for usage.')
   end
@@ -168,7 +169,7 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_bad_value/testing_baseline.yml'
     @command += yml
 
-    cli_output = `#{@command}`
+    cli_output, stderr_str, status = Open3.capture3(@command)
 
     _assert_and_puts([cli_output], 'Failures detected for: 1, 2.')
 
@@ -181,8 +182,8 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_bad_value/testing_baseline.yml'
     @command += yml
 
-    `#{@command}`
-    cli_output = `#{@command}`
+    Open3.capture3(@command)
+    cli_output, stderr_str, status = Open3.capture3(@command)
 
     _assert_and_puts([cli_output], "Error: Output directory 'testing_baseline' already exists.")
   end
@@ -191,7 +192,7 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_resample/testing_baseline.yml'
     @command += yml
 
-    cli_output = `#{@command}`
+    cli_output, stderr_str, status = Open3.capture3(@command)
 
     _assert_and_puts([cli_output], "Error: Not supporting residential_quota_downselect's 'resample' at this time.")
   end
@@ -202,7 +203,7 @@ class TestRunAnalysis < Minitest::Test
 
     FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
-    cli_output = `#{@command}`
+    cli_output, stderr_str, status = Open3.capture3(@command)
 
     _assert_and_puts([cli_output], "Error: Must include 'weather_files_url' or 'weather_files_path' in yml.")
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
@@ -212,7 +213,7 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_downsampler/testing_baseline.yml'
     @command += yml
 
-    cli_output = `#{@command}`
+    cli_output, stderr_str, status = Open3.capture3(@command)
 
     _assert_and_puts([cli_output], "Error: Sampler type 'residential_quota_downsampler' is invalid or not supported.")
   end
@@ -221,7 +222,7 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_missing_key/testing_baseline.yml'
     @command += yml
 
-    cli_output = `#{@command}`
+    cli_output, stderr_str, status = Open3.capture3(@command)
 
     _assert_and_puts([cli_output], "Error: Both 'build_existing_model' and 'simulation_output_report' must be included in yml.")
   end
@@ -230,7 +231,7 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_missing.yml'
     @command += yml
 
-    `#{@command}`
+    Open3.capture3(@command)
     cli_output = File.readlines(File.join(@testing_baseline, 'cli_output.log'))
 
     _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Missing parameters: HVAC Cooling Partial Space Conditioning.')
@@ -240,7 +241,7 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_extra.yml'
     @command += yml
 
-    `#{@command}`
+    Open3.capture3(@command)
     cli_output = File.readlines(File.join(@testing_baseline, 'cli_output.log'))
 
     _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: Extra Parameter.')

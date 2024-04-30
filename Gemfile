@@ -2,12 +2,12 @@
 
 source 'http://rubygems.org'
 
-gem 'oga', '3.2'
+gem 'oga'
 gem 'rake'
 gem 'matrix'
 gem 'minitest', '5.15'
 gem 'minitest-reporters'
-gem 'msgpack', '1.7.2'
+gem 'msgpack'
 gem 'parallel'
 gem 'simplecov'
 gem 'simplecov-html'

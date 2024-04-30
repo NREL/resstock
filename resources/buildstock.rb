@@ -444,6 +444,7 @@ def get_data_for_sample(buildstock_csv_path, building_id, runner)
 end
 
 class RunOSWs
+  require 'open3'
   require 'openstudio'
   require 'csv'
   require 'json'
@@ -455,7 +456,8 @@ class RunOSWs
     command += ' -m' if measures_only
     command += " -w \"#{in_osw}\""
 
-    `#{command}` # suppresses "RunEnergyPlus: Completed Successfully with xxx" message
+    # `#{command}` # suppresses "RunEnergyPlus: Completed Successfully with xxx" message
+    Open3.capture3(command)
     run_log = File.readlines(File.expand_path(File.join(parent_dir, 'run/run.log')))
     run_log.each do |line|
       next if line.include? 'Cannot find current Workflow Step'
