@@ -2,11 +2,10 @@
 
 source 'http://rubygems.org'
 
-gem 'nokogiri', '~> 1.10'
 gem 'oga'
 gem 'rake'
 gem 'matrix'
-gem 'minitest', '~> 5.9'
+gem 'minitest', '5.15'
 gem 'minitest-reporters'
 gem 'msgpack'
 gem 'parallel'
