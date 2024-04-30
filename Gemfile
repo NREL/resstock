@@ -4,6 +4,7 @@ source 'http://rubygems.org'
 
 gem 'oga'
 gem 'rake'
+gem 'matrix'
 gem 'minitest', '5.15'
 gem 'minitest-reporters'
 gem 'msgpack'
