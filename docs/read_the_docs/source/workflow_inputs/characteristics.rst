@@ -8092,35 +8092,6 @@ Source
 - \% State Metro Median Income is calculated using annual household income in 2019USD (continuous, not binned) from 2019-5yrs PUMS data and 2019 state median income (SMI) by metro/nonmetro area from HUD. A County Metro Status-differentiated Income Limits table is derived from the SMI by adjusting for household size only, which is consistent with how HUD's published State Income Limits table is generated.
 
 
-.. _television:
-
-Television
-----------
-
-Created by
-**********
-
-manually created
-
-Arguments
-*********
-
-.. list-table::
-   :header-rows: 1
-
-   * - Name
-     - Required
-     - Units
-     - Type
-     - Choices
-     - Description
-   * - ``misc_plug_loads_television_quantity``
-     - true
-     - 
-     - Integer
-     -
-     - Total number of televisions.
-
 .. _tenure:
 
 Tenure
