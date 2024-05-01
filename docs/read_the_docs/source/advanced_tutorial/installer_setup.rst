@@ -1,15 +1,15 @@
 Installer Setup
 ===============
 
-After you have downloaded the OpenStudio installer, you may want to optionally install Ruby (2.7.2). This will allow you to execute rake tasks contained in the `Rakefile <https://github.com/NREL/resstock/blob/develop/Rakefile>`_. Follow the instructions below for :ref:`windows-setup` or :ref:`mac-setup`.
+After you have downloaded the OpenStudio installer, you may want to optionally install Ruby (3.2.2). This will allow you to execute rake tasks contained in the `Rakefile <https://github.com/NREL/resstock/blob/develop/Rakefile>`_. Follow the instructions below for :ref:`windows-setup` or :ref:`mac-setup`.
 
 .. _windows-setup:
 
 Windows Setup
 -------------
 
-1. Install `Ruby <http://rubyinstaller.org/downloads/archives>`_ (2.7.2). Follow the installation instructions `here <http://nrel.github.io/OpenStudio-user-documentation/getting_started/getting_started/#installation-steps>`_ ("Optional - Install Ruby").
-2. Run ``gem install bundler -v 1.17.1``. 
+1. Install `Ruby <http://rubyinstaller.org/downloads/archives>`_ (3.2.2). Follow the installation instructions `here <http://nrel.github.io/OpenStudio-user-documentation/getting_started/getting_started/#installation-steps>`_ ("Optional - Install Ruby").
+2. Run ``gem install bundler -v 2.4.10``. 
 
 .. note::
 
@@ -17,8 +17,8 @@ Windows Setup
 
 .. literalinclude:: .gemrc
 
-3. Download the DevKit at http://rubyinstaller.org/downloads/ (e.g., DevKit-mingw64-64-4.7.2-20130224-1432-sfx.exe). Choose either the 32-bit or 64-bit version depending on which version of Ruby you installed. Run the installer and extract to a directory (e.g., C:\\RubyDevKit). Go to this directory, run ``ruby dk.rb init``, modify the config.yml file as needed, and finally run ``ruby dk.rb install``.
-4. Run ``bundle install`` from the resstock directory. (If you get an error, check that ``git`` is in your ``PATH`` and that you are using the correct version of Ruby (2.7.2).)
+3. Download the DevKit (e.g., DevKit-mingw64-64-4.7.2-20130224-1432-sfx.exe). Choose either the 32-bit or 64-bit version depending on which version of Ruby you installed. Run the installer and extract to a directory (e.g., C:\\RubyDevKit). Go to this directory, run ``ruby dk.rb init``, modify the config.yml file as needed, and finally run ``ruby dk.rb install``.
+4. Run ``bundle install`` from the resstock directory. (If you get an error, check that ``git`` is in your ``PATH`` and that you are using the correct version of Ruby (3.2.2).)
 
 .. _mac-setup:
 
