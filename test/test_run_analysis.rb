@@ -28,37 +28,37 @@ class TestRunAnalysis < Minitest::Test
   def test_version
     @command += ' -v'
 
-    cli_output, stderr_str, status = Open3.capture3(@command)
+    stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
 
-    assert_includes(cli_output, "ResStock v#{Version::ResStock_Version}")
-    assert_includes(cli_output, "OpenStudio-HPXML v#{Version::OS_HPXML_Version}")
-    assert_includes(cli_output, "HPXML v#{Version::HPXML_Version}")
-    assert_includes(cli_output, "OpenStudio v#{OpenStudio.openStudioLongVersion}")
-    assert_includes(cli_output, "EnergyPlus v#{OpenStudio.energyPlusVersion}.#{OpenStudio.energyPlusBuildSHA}")
+    assert_includes(stdout_str, "ResStock v#{Version::ResStock_Version}")
+    assert_includes(stdout_str, "OpenStudio-HPXML v#{Version::OS_HPXML_Version}")
+    assert_includes(stdout_str, "HPXML v#{Version::HPXML_Version}")
+    assert_includes(stdout_str, "OpenStudio v#{OpenStudio.openStudioLongVersion}")
+    assert_includes(stdout_str, "EnergyPlus v#{OpenStudio.energyPlusVersion}.#{OpenStudio.energyPlusBuildSHA}")
   end
 
   def test_errors_wrong_path
     yml = ' -y test/yml_bad_value/testing_baseline.yml'
     @command += yml
 
-    cli_output, stderr_str, status = Open3.capture3(@command, :unsetenv_others=>true)
+    stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
 
-    _assert_and_puts([cli_output], "Error: YML file does not exist at 'test/yml_bad_value/testing_baseline.yml'.")
+    _assert_and_puts([stdout_str], "Error: YML file does not exist at 'test/yml_bad_value/testing_baseline.yml'.")
   end
 
   def test_no_yml_argument
-    cli_output, stderr_str, status = Open3.capture3(@command, :unsetenv_others=>true)
+    stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
 
-    _assert_and_puts([cli_output], 'Error: YML argument is required. Call run_analysis.rb -h for usage.')
+    _assert_and_puts([stdout_str], 'Error: YML argument is required. Call run_analysis.rb -h for usage.')
   end
 
   def test_errors_bad_value
     yml = ' -y test/tests_yml_files/yml_bad_value/testing_baseline.yml'
     @command += yml
 
-    cli_output, stderr_str, status = Open3.capture3(@command, :unsetenv_others=>true)
+    stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
 
-    _assert_and_puts([cli_output], 'Failures detected for: 1, 2.')
+    _assert_and_puts([stdout_str], 'Failures detected for: 1, 2.')
 
     cli_output_log = File.readlines(File.join(@testing_baseline, 'cli_output.log'))
     _assert_and_puts(cli_output_log, 'ERROR')
@@ -69,19 +69,19 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_bad_value/testing_baseline.yml'
     @command += yml
 
-    Open3.capture3(@command)
-    cli_output, stderr_str, status = Open3.capture3(@command, :unsetenv_others=>true)
+    Open3.capture3(@command, unsetenv_others: true)
+    stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
 
-    _assert_and_puts([cli_output], "Error: Output directory 'testing_baseline' already exists.")
+    _assert_and_puts([stdout_str], "Error: Output directory 'testing_baseline' already exists.")
   end
 
   def test_errors_downselect_resample
     yml = ' -y test/tests_yml_files/yml_resample/testing_baseline.yml'
     @command += yml
 
-    cli_output, stderr_str, status = Open3.capture3(@command, :unsetenv_others=>true)
+    stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
 
-    _assert_and_puts([cli_output], "Error: Not supporting residential_quota_downselect's 'resample' at this time.")
+    _assert_and_puts([stdout_str], "Error: Not supporting residential_quota_downselect's 'resample' at this time.")
   end
 
   def test_errors_weather_files
@@ -90,9 +90,9 @@ class TestRunAnalysis < Minitest::Test
 
     FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
-    cli_output, stderr_str, status = Open3.capture3(@command, :unsetenv_others=>true)
+    stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
 
-    _assert_and_puts([cli_output], "Error: Must include 'weather_files_url' or 'weather_files_path' in yml.")
+    _assert_and_puts([stdout_str], "Error: Must include 'weather_files_url' or 'weather_files_path' in yml.")
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
   end
 
@@ -100,25 +100,25 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_downsampler/testing_baseline.yml'
     @command += yml
 
-    cli_output, stderr_str, status = Open3.capture3(@command, :unsetenv_others=>true)
+    stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
 
-    _assert_and_puts([cli_output], "Error: Sampler type 'residential_quota_downsampler' is invalid or not supported.")
+    _assert_and_puts([stdout_str], "Error: Sampler type 'residential_quota_downsampler' is invalid or not supported.")
   end
 
   def test_errors_missing_key
     yml = ' -y test/tests_yml_files/yml_missing_key/testing_baseline.yml'
     @command += yml
 
-    cli_output, stderr_str, status = Open3.capture3(@command, :unsetenv_others=>true)
+    stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
 
-    _assert_and_puts([cli_output], "Error: Both 'build_existing_model' and 'simulation_output_report' must be included in yml.")
+    _assert_and_puts([stdout_str], "Error: Both 'build_existing_model' and 'simulation_output_report' must be included in yml.")
   end
 
   def test_errors_precomputed_outdated_missing_parameter
     yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_missing.yml'
     @command += yml
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
     cli_output = File.readlines(File.join(@testing_baseline, 'cli_output.log'))
 
     _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Missing parameters: HVAC Cooling Partial Space Conditioning.')
@@ -128,7 +128,7 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_extra.yml'
     @command += yml
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
     cli_output = File.readlines(File.join(@testing_baseline, 'cli_output.log'))
 
     _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: Extra Parameter.')
@@ -139,7 +139,7 @@ class TestRunAnalysis < Minitest::Test
     @command += yml
     @command += ' -m'
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
@@ -151,7 +151,7 @@ class TestRunAnalysis < Minitest::Test
     @command += yml
     @command += ' -s'
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
 
     assert(!File.exist?(File.join(@testing_baseline, 'testing_baseline-Baseline.osw')))
     assert(!File.exist?(File.join(@testing_baseline, 'run1')))
@@ -163,7 +163,7 @@ class TestRunAnalysis < Minitest::Test
     @command += yml
     @command += ' -i 1'
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
@@ -176,7 +176,7 @@ class TestRunAnalysis < Minitest::Test
     @command += ' -n 1'
     @command += ' -k'
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
@@ -190,7 +190,7 @@ class TestRunAnalysis < Minitest::Test
     FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
@@ -204,7 +204,7 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_precomputed/testing_baseline.yml'
     @command += yml
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
 
     cli_output_log = File.join(@testing_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
@@ -228,7 +228,7 @@ class TestRunAnalysis < Minitest::Test
     yml = ' -y test/tests_yml_files/yml_precomputed_weight/testing_baseline.yml'
     @command += yml
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
 
     cli_output_log = File.join(@testing_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
@@ -253,7 +253,7 @@ class TestRunAnalysis < Minitest::Test
     @command += yml
     @command += ' -k'
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
 
     cli_output_log = File.join(@testing_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
@@ -287,7 +287,7 @@ class TestRunAnalysis < Minitest::Test
     @command += yml
     @command += ' -k'
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
 
     cli_output_log = File.join(@national_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
@@ -322,7 +322,7 @@ class TestRunAnalysis < Minitest::Test
     @command += ' -d'
     @command += ' -k'
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
 
     cli_output_log = File.join(@testing_upgrades, 'cli_output.log')
     assert(File.exist?(cli_output_log))
@@ -377,7 +377,7 @@ class TestRunAnalysis < Minitest::Test
     @command += ' -d'
     @command += ' -k'
 
-    Open3.capture3(@command, :unsetenv_others=>true)
+    system(@command)
 
     cli_output_log = File.join(@national_upgrades, 'cli_output.log')
     assert(File.exist?(cli_output_log))
