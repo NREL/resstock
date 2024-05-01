@@ -13,14 +13,14 @@ Features
 - Add Metropolitan and Micropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv ([#1212](https://github.com/NREL/resstock/pull/1212))
 - Add ability to specify HVAC system autosizing factors for baseline buildings; autosizing factors are retained for upgrade buildings following the same approach for HVAC system capacities ([#1215](https://github.com/NREL/resstock/pull/1215))
 - Update the stochastic schedule generator to produce updated other/TV plug load and ceiling fan schedules ([#1220](https://github.com/NREL/resstock/pull/1220))
+- Split out TV plug loads (calculated using an equation based on ANSI/RESNET/ICC 301) from other plug loads (calculated using updated regression equations based on RECS2020) ([#1213](https://github.com/NREL/resstock/pull/1213))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
 - Reorganize the emissions and utility rates data folders such that their sources and functions are more clear ([#1195](https://github.com/NREL/resstock/pull/1195))
 - Move location of out-of-unit (shared) water heaters to conditioned mechanical room ([#1201](https://github.com/NREL/resstock/pull/1201))
 - Update the Alaska residential stock characterization using the Alaska Retrofit Information System data ([#1214](https://github.com/NREL/resstock/pull/1214))
-- Enable HVAC airflor and capacity scaling factors to oversize or undersize the equipment. ([#1218](https://github.com/NREL/resstock/pull/1218))
-
+- Enable HVAC airflow and capacity scaling factors to oversize or undersize the equipment ([#1218](https://github.com/NREL/resstock/pull/1218))
 
 ## ResStock v3.2.0
 ###### December 19, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.1...v3.2.0)
