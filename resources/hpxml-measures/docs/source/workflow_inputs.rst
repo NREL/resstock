@@ -2262,6 +2262,7 @@ Each air-to-air heat pump is entered as a ``/HPXML/Building/BuildingDetails/Syst
   ``extension/HeatingAutosizingFactor``                             double   frac      > 0                       No        1.0             Heating autosizing capacity multiplier
   ``extension/CoolingAutosizingLimit``                              double   Btu/hr    > 0                       No                        Cooling autosizing capacity limit
   ``extension/HeatingAutosizingLimit``                              double   Btu/hr    > 0                       No                        Heating autosizing capacity limit  
+  ``extension/AdvancedDefrostApproach``                             boolean                                      No        false           Whether to apply advanced approach to model defrost
   ================================================================  =======  ========  ========================  ========  ==============  =================================================
 
   .. [#] UnitLocation choices are "conditioned space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "roof deck", "manufactured home belly", or "unconditioned space".
@@ -2342,6 +2343,7 @@ Each ``HeatPump`` is expected to represent a single outdoor unit, whether connec
   ``extension/HeatingAutosizingFactor``                             double    frac      > 0                       No        1.0             Heating autosizing capacity multiplier
   ``extension/CoolingAutosizingLimit``                              double    Btu/hr    > 0                       No                        Cooling autosizing capacity limit
   ``extension/HeatingAutosizingLimit``                              double    Btu/hr    > 0                       No                        Heating autosizing capacity limit
+  ``extension/AdvancedDefrostApproach``                             boolean                                       No        false           Whether to apply advanced approach to model defrost
   ================================================================  ========  ========  ========================  ========  ==============  ==============================================
 
   .. [#] UnitLocation choices are "conditioned space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", "other non-freezing space", "roof deck", "manufactured home belly", or "unconditioned space".
@@ -2407,6 +2409,7 @@ Each packaged terminal heat pump is entered as a ``/HPXML/Building/BuildingDetai
   ``extension/HeatingAutosizingFactor``                            double    frac      > 0                          No        1.0             Heating autosizing capacity multiplier
   ``extension/CoolingAutosizingLimit``                             double    Btu/hr    > 0                          No                        Cooling autosizing capacity limit
   ``extension/HeatingAutosizingLimit``                             double    Btu/hr    > 0                          No                        Heating autosizing capacity limit
+  ``extension/AdvancedDefrostApproach``                            boolean                                          No        false           Whether to apply advanced approach to model defrost
   ===============================================================  ========  ========  ===========================  ========  ==============  ==============================================
 
   .. [#] Heating capacity autosized per ACCA Manual J/S based on heating design load (unless a different HeatPumpSizingMethodology was selected in :ref:`hvac_sizing_control`).
@@ -2451,6 +2454,7 @@ Each room air conditioner with reverse cycle is entered as a ``/HPXML/Building/B
   ``extension/HeatingAutosizingFactor``                            double    frac      > 0                                      No        1.0             Heating autosizing capacity multiplier
   ``extension/CoolingAutosizingLimit``                             double    Btu/hr    > 0                                      No                        Cooling autosizing capacity limit
   ``extension/HeatingAutosizingLimit``                             double    Btu/hr    > 0                                      No                        Heating autosizing capacity limit
+  ``extension/AdvancedDefrostApproach``                            boolean                                                      No        false           Whether to apply advanced approach to model defrost
   ===============================================================  ========  ========  =======================================  ========  ==============  ==============================================
 
   .. [#] Heating capacity autosized per ACCA Manual J/S based on heating design load (unless a different HeatPumpSizingMethodology was selected in :ref:`hvac_sizing_control`).

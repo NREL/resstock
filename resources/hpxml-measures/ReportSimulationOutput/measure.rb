@@ -2881,6 +2881,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           Constants.ObjectNameMechanicalVentilationPreheating => EUT::MechVentPreheat,
           Constants.ObjectNameMechanicalVentilationPrecooling => EUT::MechVentPrecool,
           Constants.ObjectNameWaterHeaterAdjustment => EUT::HotWater,
+          Constants.ObjectNameBackupSuppHeat => EUT::HeatingHeatPumpBackup,
           Constants.ObjectNameBatteryLossesAdjustment => EUT::Battery }.each do |obj_name, eut|
           next unless subcategory.start_with? obj_name
           fail 'Unepected error: multiple matches.' unless end_use.nil?
