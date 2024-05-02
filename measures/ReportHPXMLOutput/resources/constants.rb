@@ -22,6 +22,7 @@ class BO
   SystemsMechanicalVentilationFlowRate = 'Systems: Mechanical Ventilation Flow Rate'
   SystemsHeatingAirflow = 'Systems: Heating Air Flow Rate'
   SystemsCoolingAirflow = 'Systems: Cooling Air Flow Rate'
+  SystemsHeatPumpBackupAirflow = 'Systems: Heat Pump Backup Air Flow Rate'
 
   def self.get_units(bldg_type)
     if bldg_type.include? 'Area'

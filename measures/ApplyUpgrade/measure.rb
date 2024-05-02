@@ -378,10 +378,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
-      # If upgrade is not HVAC system related, then retain:
-      # - HVAC capacities (calculated)
-      # - HVAC autosizing factors
-      # - HVAC defect ratios
+      # Retain (calculated) HVAC capacities if upgrade is not HVAC system related
+      # Do not retain HVAC autosizing factors and defect ratios if upgrade is HVAC system related
       capacities, autosizing_factors, defect_ratios = get_hvac_system_values(hpxml_bldg, hvac_system_upgrades)
 
       measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = capacities['heating_system_heating_capacity']

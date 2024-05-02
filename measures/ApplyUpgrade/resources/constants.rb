@@ -34,8 +34,10 @@ class Constants
       'Size, Heat Pump Backup Primary (kBtu/h)',
       'Size, Water Heater (gal)',
       'Flow Rate, Mechanical Ventilation (cfm)',
-      'Flow Rate, Heating Air (cfm)',
-      'Flow Rate, Cooling Air (cfm)'
+      'Air Flow Rate, Heating System Primary (cfm)',
+      'Air Flow Rate, Heating System Secondary (cfm)',
+      'Air Flow Rate, Cooling System Primary (cfm)',
+      'Air Flow Rate, Heat Pump Backup Primary (cfm)'
     ]
   end
 end

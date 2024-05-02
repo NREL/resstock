@@ -86,8 +86,9 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     bldg_outputs[BO::SystemsHeatPumpBackupCapacity] = BaseOutput.new
     bldg_outputs[BO::SystemsWaterHeaterVolume] = BaseOutput.new
     bldg_outputs[BO::SystemsMechanicalVentilationFlowRate] = BaseOutput.new
-    bldg_outputs[BO::SystemsHeatingAirflow] = BaseOutput.new
     bldg_outputs[BO::SystemsCoolingAirflow] = BaseOutput.new
+    bldg_outputs[BO::SystemsHeatingAirflow] = BaseOutput.new
+    bldg_outputs[BO::SystemsHeatPumpBackupAirflow] = BaseOutput.new
 
     hpxml.buildings.each do |hpxml_bldg|
       # Building outputs
@@ -287,31 +288,29 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
       end
     elsif bldg_type == BO::SystemsHeatingAirflow
       hpxml_bldg.heating_systems.each do |heating_system|
-        next if heating_system.distribution_system.nil?
-        next if heating_system.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
+        next if heating_system.is_heat_pump_backup_system
 
         bldg_output += heating_system.heating_airflow_cfm.to_f
       end
 
       hpxml_bldg.heat_pumps.each do |heat_pump|
-        next if heat_pump.distribution_system.nil?
-        next if heat_pump.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
-
         bldg_output += heat_pump.heating_airflow_cfm.to_f
       end
     elsif bldg_type == BO::SystemsCoolingAirflow
       hpxml_bldg.cooling_systems.each do |cooling_system|
-        next if cooling_system.distribution_system.nil?
-        next if cooling_system.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
-
         bldg_output += cooling_system.cooling_airflow_cfm.to_f
       end
 
       hpxml_bldg.heat_pumps.each do |heat_pump|
-        next if heat_pump.distribution_system.nil?
-        next if heat_pump.distribution_system.distribution_system_type != HPXML::HVACDistributionTypeAir
-
         bldg_output += heat_pump.cooling_airflow_cfm.to_f
+      end
+    elsif bldg_type == BO::SystemsHeatPumpBackupAirflow
+      hpxml_bldg.heat_pumps.each do |heat_pump|
+        if not heat_pump.backup_heating_capacity.nil?
+          bldg_output += heat_pump.heating_airflow_cfm.to_f
+        elsif not heat_pump.backup_system.nil?
+          bldg_output += heat_pump.backup_system.heating_airflow_cfm.to_f
+        end
       end
     end
     return bldg_output
@@ -346,22 +345,44 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     has_secondary_heating_system = false unless has_primary_heating_system
 
     # Set up order of outputs
-    if has_primary_cooling_system && !bldg_outputs.keys.include?("Primary #{BO::SystemsCoolingCapacity}")
-      bldg_outputs["Primary #{BO::SystemsCoolingCapacity}"] = BaseOutput.new
+    if has_primary_cooling_system
+      if !bldg_outputs.keys.include?("Primary #{BO::SystemsCoolingCapacity}")
+        bldg_outputs["Primary #{BO::SystemsCoolingCapacity}"] = BaseOutput.new
+      end
+      if !bldg_outputs.keys.include?("Primary #{BO::SystemsCoolingAirflow}")
+        bldg_outputs["Primary #{BO::SystemsCoolingAirflow}"] = BaseOutput.new
+      end
     end
 
-    if has_primary_heating_system && !bldg_outputs.keys.include?("Primary #{BO::SystemsHeatingCapacity}") && !bldg_outputs.keys.include?("Primary #{BO::SystemsHeatPumpBackupCapacity}")
-      bldg_outputs["Primary #{BO::SystemsHeatingCapacity}"] = BaseOutput.new
-      bldg_outputs["Primary #{BO::SystemsHeatPumpBackupCapacity}"] = BaseOutput.new
+    if has_primary_heating_system
+      if !bldg_outputs.keys.include?("Primary #{BO::SystemsHeatingCapacity}") && !bldg_outputs.keys.include?("Primary #{BO::SystemsHeatPumpBackupCapacity}")
+        bldg_outputs["Primary #{BO::SystemsHeatingCapacity}"] = BaseOutput.new
+        bldg_outputs["Primary #{BO::SystemsHeatPumpBackupCapacity}"] = BaseOutput.new
+      end
+      if !bldg_outputs.keys.include?("Primary #{BO::SystemsHeatingAirflow}") && !bldg_outputs.keys.include?("Primary #{BO::SystemsHeatPumpBackupAirflow}")
+        bldg_outputs["Primary #{BO::SystemsHeatingAirflow}"] = BaseOutput.new
+        bldg_outputs["Primary #{BO::SystemsHeatPumpBackupAirflow}"] = BaseOutput.new
+      end
     end
 
-    if has_secondary_cooling_system && !bldg_outputs.keys.include?("Secondary #{BO::SystemsCoolingCapacity}")
-      bldg_outputs["Secondary #{BO::SystemsCoolingCapacity}"] = BaseOutput.new
+    if has_secondary_cooling_system
+      if !bldg_outputs.keys.include?("Secondary #{BO::SystemsCoolingCapacity}")
+        bldg_outputs["Secondary #{BO::SystemsCoolingCapacity}"] = BaseOutput.new
+      end
+      if !bldg_outputs.keys.include?("Secondary #{BO::SystemsCoolingAirflow}")
+        bldg_outputs["Secondary #{BO::SystemsCoolingAirflow}"] = BaseOutput.new
+      end
     end
 
-    if has_secondary_heating_system && !bldg_outputs.keys.include?("Secondary #{BO::SystemsHeatingCapacity}") && !bldg_outputs.keys.include?("Secondary #{BO::SystemsHeatPumpBackupCapacity}")
-      bldg_outputs["Secondary #{BO::SystemsHeatingCapacity}"] = BaseOutput.new
-      bldg_outputs["Secondary #{BO::SystemsHeatPumpBackupCapacity}"] = BaseOutput.new
+    if has_secondary_heating_system
+      if !bldg_outputs.keys.include?("Secondary #{BO::SystemsHeatingCapacity}") && !bldg_outputs.keys.include?("Secondary #{BO::SystemsHeatPumpBackupCapacity}")
+        bldg_outputs["Secondary #{BO::SystemsHeatingCapacity}"] = BaseOutput.new
+        bldg_outputs["Secondary #{BO::SystemsHeatPumpBackupCapacity}"] = BaseOutput.new
+      end
+      if !bldg_outputs.keys.include?("Secondary #{BO::SystemsHeatingAirflow}") && !bldg_outputs.keys.include?("Secondary #{BO::SystemsHeatPumpBackupAirflow}")
+        bldg_outputs["Secondary #{BO::SystemsHeatingAirflow}"] = BaseOutput.new
+        bldg_outputs["Secondary #{BO::SystemsHeatPumpBackupAirflow}"] = BaseOutput.new
+      end
     end
 
     # Obtain values
@@ -369,10 +390,12 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
       hpxml_bldg.cooling_systems.each do |cooling_system|
         prefix = cooling_system.primary_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsCoolingCapacity}"].output += cooling_system.cooling_capacity
+        bldg_outputs["#{prefix} #{BO::SystemsCoolingAirflow}"].output += cooling_system.cooling_airflow_cfm.to_f
       end
       hpxml_bldg.heat_pumps.each do |heat_pump|
         prefix = heat_pump.primary_cooling_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsCoolingCapacity}"].output += heat_pump.cooling_capacity
+        bldg_outputs["#{prefix} #{BO::SystemsCoolingAirflow}"].output += heat_pump.cooling_airflow_cfm.to_f
       end
     end
 
@@ -382,14 +405,18 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
         prefix = heating_system.primary_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsHeatingCapacity}"].output += heating_system.heating_capacity
+        bldg_outputs["#{prefix} #{BO::SystemsHeatingAirflow}"].output += heating_system.heating_airflow_cfm.to_f
       end
       hpxml_bldg.heat_pumps.each do |heat_pump|
         prefix = heat_pump.primary_heating_system ? 'Primary' : 'Secondary'
         bldg_outputs["#{prefix} #{BO::SystemsHeatingCapacity}"].output += heat_pump.heating_capacity
+        bldg_outputs["#{prefix} #{BO::SystemsHeatingAirflow}"].output += heat_pump.heating_airflow_cfm.to_f
         if not heat_pump.backup_heating_capacity.nil?
           bldg_outputs["#{prefix} #{BO::SystemsHeatPumpBackupCapacity}"].output += heat_pump.backup_heating_capacity
+          bldg_outputs["#{prefix} #{BO::SystemsHeatPumpBackupAirflow}"].output += heat_pump.heating_airflow_cfm.to_f
         elsif not heat_pump.backup_system.nil?
           bldg_outputs["#{prefix} #{BO::SystemsHeatPumpBackupCapacity}"].output += heat_pump.backup_system.heating_capacity
+          bldg_outputs["#{prefix} #{BO::SystemsHeatPumpBackupAirflow}"].output += heat_pump.backup_system.heating_airflow_cfm.to_f
         end
       end
     end
