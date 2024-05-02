@@ -288,7 +288,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if hpxml.keys.include?('primary_systems_cooling_air_flow_rate_cfm')
         cost_mult += hpxml['primary_systems_cooling_air_flow_rate_cfm']
       end
-    elsif cost_mult_type == 'Air Flow Rate, Heat Pump Backup Primary (cmf)'
+    elsif cost_mult_type == 'Air Flow Rate, Heat Pump Backup Primary (cfm)'
       if hpxml.keys.include?('primary_systems_heat_pump_backup_air_flow_rate_cfm')
         cost_mult += hpxml['primary_systems_heat_pump_backup_air_flow_rate_cfm']
       end
