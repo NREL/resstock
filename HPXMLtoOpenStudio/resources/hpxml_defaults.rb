@@ -1429,6 +1429,15 @@ class HPXMLDefaults
       heat_pump.backup_heating_lockout_temp_isdefaulted = true
     end
 
+    # Default advanced defrost
+    hpxml_bldg.heat_pumps.each do |heat_pump|
+      next unless heat_pump.advanced_defrost_approach.nil?
+      next unless [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpRoom, HPXML::HVACTypeHeatPumpPTHP].include? heat_pump.heat_pump_type
+
+      heat_pump.advanced_defrost_approach = false
+      heat_pump.backup_heating_lockout_temp_isdefaulted = true
+    end
+
     # Default electric resistance distribution
     hpxml_bldg.heating_systems.each do |heating_system|
       next unless heating_system.heating_system_type == HPXML::HVACTypeElectricResistance

@@ -1469,6 +1469,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('W')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_advanced_defrost_approach', false)
+    arg.setDisplayName('Heat Pump: Advanced Defrost Approach')
+    arg.setDescription('Whether to apply advanced defrost approach.')
+    args << arg
+
     perf_data_capacity_type_choices = OpenStudio::StringVector.new
     perf_data_capacity_type_choices << 'Absolute capacities'
     perf_data_capacity_type_choices << 'Normalized capacity fractions'
@@ -5584,6 +5589,12 @@ class HPXMLFile
       end
     end
 
+    if args[:heat_pump_advanced_defrost_approach].is_initialized
+      if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include?(heat_pump_type)
+        heat_pump_advanced_defrost_approach = args[:heat_pump_advanced_defrost_approach].get
+      end
+    end
+
     fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
     fraction_cool_load_served = args[:heat_pump_fraction_cool_load_served]
 
@@ -5630,6 +5641,7 @@ class HPXMLFile
                               airflow_defect_ratio: airflow_defect_ratio,
                               charge_defect_ratio: charge_defect_ratio,
                               crankcase_heater_watts: heat_pump_crankcase_heater_watts,
+                              advanced_defrost_approach: heat_pump_advanced_defrost_approach,
                               primary_heating_system: primary_heating_system,
                               primary_cooling_system: primary_cooling_system)
 
