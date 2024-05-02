@@ -1092,7 +1092,8 @@ For a multifamily building where the dwelling unit has another dwelling unit abo
   .. [#] Pitch is entered as vertical rise in inches for every 12 inches of horizontal run.
          For example, 6.0 means a 6/12 roof, which has a 26.57-degree roof slope.
   .. [#] RadiantBarrier intended for attic roofs. Model assumes an emittance of 0.05.
-  .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
+  .. [#] AssemblyEffectiveRValue includes all material layers and interior/exterior air films.
+         It should also include the effects of insulation gaps (installation grading) and/or compressed insulation in cavities per `ANSI/RESNET/ICC 301-2022 <https://codes.iccsafe.org/content/RESNET3012022P1>`_.
 
 HPXML Rim Joists
 ****************
@@ -1135,7 +1136,8 @@ Each rim joist surface (i.e., the perimeter of floor joists typically found betw
          
          \- **reflective**: 0.30
          
-  .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
+  .. [#] AssemblyEffectiveRValue includes all material layers and interior/exterior air films.
+         It should also include the effects of insulation gaps (installation grading) and/or compressed insulation in cavities per `ANSI/RESNET/ICC 301-2022 <https://codes.iccsafe.org/content/RESNET3012022P1>`_.
 
 HPXML Walls
 ***********
@@ -1187,7 +1189,8 @@ Each wall surface is entered as a ``/HPXML/Building/BuildingDetails/Enclosure/Wa
   .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
   .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is conditioned space or basement - conditioned, otherwise "none".
   .. [#] RadiantBarrier intended for attic gable walls. Model assumes an emittance of 0.05.
-  .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
+  .. [#] AssemblyEffectiveRValue includes all material layers and interior/exterior air films.
+         It should also include the effects of insulation gaps (installation grading) and/or compressed insulation in cavities per `ANSI/RESNET/ICC 301-2022 <https://codes.iccsafe.org/content/RESNET3012022P1>`_.
 
 HPXML Foundation Walls
 **********************
@@ -1233,8 +1236,8 @@ Any wall surface in contact with the ground is considered a foundation wall.
   .. [#] Layer[InstallationType="continuous - interior"] only required if AssemblyEffectiveRValue is not provided.
   .. [#] Layer[InstallationType="continuous - exterior"] only required if AssemblyEffectiveRValue is not provided.
   .. [#] AssemblyEffectiveRValue only required if Layer elements are not provided.
-  .. [#] AssemblyEffectiveRValue includes all material layers, interior air film, and insulation installation grade.
-         R-value should **not** include exterior air film (for any above-grade exposure) or any soil thermal resistance.
+  .. [#] AssemblyEffectiveRValue includes all material layers and the interior air film; it should **not** include the exterior air film (for any above-grade exposure) or any soil thermal resistance.
+         It should also include the effects of insulation gaps (installation grading) and/or compressed insulation in cavities per `ANSI/RESNET/ICC 301-2022 <https://codes.iccsafe.org/content/RESNET3012022P1>`_.
 
 If insulation layers are provided, additional information is entered in each ``FoundationWall/Insulation/Layer``.
 
@@ -1280,7 +1283,8 @@ Each floor/ceiling surface that is not in contact with the ground (Slab) nor adj
   .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
   .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is conditioned space and the surface is a ceiling, otherwise "none".
   .. [#] RadiantBarrier intended for attic floors. Model assumes an emittance of 0.5 (reduced effectiveness due to accumulation of dust) per `an ORNL article on radiant barriers <https://web.ornl.gov/sci/buildings/tools/radiant/rb2/>`_.
-  .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
+  .. [#] AssemblyEffectiveRValue includes all material layers and interior/exterior air films.
+         It should also include the effects of insulation gaps (installation grading), compressed insulation in cavities, and/or reduced attic floor insulation thickness at the eaves per `ANSI/RESNET/ICC 301-2022 <https://codes.iccsafe.org/content/RESNET3012022P1>`_.
          For a manufactured home belly where the area of the belly wrap is different and usually greater than the floor area, the AssemblyEffectiveRValue should be adjusted to account for the surface area of the belly wrap and insulation.
 
 HPXML Slabs
