@@ -2094,6 +2094,19 @@ Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-ai
 
 <br/>
 
+**Heat Pump: Advanced Defrost Approach**
+
+Whether to apply advanced defrost approach.
+
+- **Name:** ``heat_pump_advanced_defrost_approach``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
+
+<br/>
+
 **HVAC Detailed Performance Data: Capacity Type**
 
 Type of capacity values for detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps).
