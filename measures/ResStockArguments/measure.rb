@@ -317,7 +317,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     cooling_offset_types << 'night_setup_only'
     cooling_offset_types << 'none'
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('hvac_control_cooling_offset_type', heating_offset_types, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('hvac_control_cooling_offset_type', cooling_offset_types, true)
     arg.setDisplayName('Cooling Setpoint offset schedule type')
     arg.setDescription('Cooling Setpoint offset schedule typ')
     arg.setDefaultValue('none')
