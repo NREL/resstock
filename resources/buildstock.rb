@@ -234,38 +234,6 @@ def get_combination_hashes(tsvfiles, dependencies)
   return combos_hashes
 end
 
-def get_value_from_workflow_step_value(step_value)
-  variant_type = step_value.variantType
-  if variant_type == 'Boolean'.to_VariantType
-    return step_value.valueAsBoolean
-  elsif variant_type == 'Double'.to_VariantType
-    return step_value.valueAsDouble
-  elsif variant_type == 'Integer'.to_VariantType
-    return step_value.valueAsInteger
-  elsif variant_type == 'String'.to_VariantType
-    return step_value.valueAsString
-  end
-end
-
-def get_values_from_runner_past_results(runner, measure_name)
-  require 'openstudio'
-  values = {}
-  success_value = OpenStudio::StepResult.new('Success')
-  runner.workflow.workflowSteps.each do |step|
-    next if not step.result.is_initialized
-
-    step_result = step.result.get
-    next if not step_result.measureName.is_initialized
-    next if step_result.measureName.get != measure_name
-    next if step_result.value != success_value
-
-    step_result.stepValues.each do |step_value|
-      values["#{step_value.name}"] = get_value_from_workflow_step_value(step_value)
-    end
-  end
-  return values
-end
-
 def get_value_from_runner(runner, key_lookup, error_if_missing = true)
   key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
   runner.result.stepValues.each do |step_value|
@@ -372,7 +340,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
     return
   end
 
-  values = get_values_from_runner_past_results(runner, 'build_existing_model')
+  values = Hash[runner.getPastStepValuesForMeasure('build_existing_model').collect { |k, v| [k.to_s, v] }]
   ruby_eval_str = ''
   option_apply_logic.split('||').each do |or_segment|
     or_segment.split('&&').each do |segment|
