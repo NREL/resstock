@@ -86,6 +86,31 @@ upgrades:
       - &hvac_defrost_model_heat_pump_advanced
         option: HVAC Defrost Model|Heat Pump Advanced
 
+  # MSHP base scenario
+  - upgrade_name: MSHP Base
+    package_apply_logic:
+      - HVAC Has Ducts|No
+    options:
+      - &hvac_heating_efficiency_mshp_seer_25_12_pt_7_hspf
+        option: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 30
+      - &hvac_cooling_efficiency_non_ducted_heat_pump
+        option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
+      # - *heat_pump_backup_use_existing_system
+
+  # MSHP w/ defrost model improvements scenario
+  - upgrade_name: MSHP Defrost Model Improvements
+    package_apply_logic:
+      - HVAC Has Ducts|No
+    options:
+      - *hvac_heating_efficiency_mshp_seer_25_12_pt_7_hspf
+      - *hvac_cooling_efficiency_non_ducted_heat_pump
+      # - *heat_pump_backup_use_existing_system
+      - *hvac_defrost_model_heat_pump_advanced
+
 eagle:
   n_jobs: 3
   minutes_per_sim: 5
