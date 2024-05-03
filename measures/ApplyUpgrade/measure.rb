@@ -485,7 +485,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
              ([HPXML::HVACTypeHeatPumpMiniSplit].include?(measures['BuildResidentialHPXML'][0]['heat_pump_type']) && (measures['BuildResidentialHPXML'][0]['heat_pump_is_ducted']) == 'true')
             measures['BuildResidentialHPXML'][0]['heat_pump_heating_autosizing_limit'] = autosizing_limit
             measures['BuildResidentialHPXML'][0]['heat_pump_cooling_autosizing_limit'] = autosizing_limit
-            measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_autosizing_limit'] = autosizing_limit if measures['BuildResidentialHPXML'][0]['heat_pump_backup_type'] == HPXML::HeatPumpBackupTypeIntegrated
           end
           if [HPXML::HVACTypeFurnace].include?(measures['BuildResidentialHPXML'][0]['heating_system_2_type'])
             measures['BuildResidentialHPXML'][0]['heating_system_2_heating_autosizing_limit'] = autosizing_limit
