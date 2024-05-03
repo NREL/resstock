@@ -312,7 +312,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     cooling_offset_types = OpenStudio::StringVector.new
     cooling_offset_types << 'day_setup_only'
     cooling_offset_types << 'day_and_night_setup'
-    cooling_offset_types << 'day_setup_night_setback'
+    cooling_offset_types << 'day_setup_and_night_setback'
     cooling_offset_types << 'night_setback_only'
     cooling_offset_types << 'night_setup_only'
     cooling_offset_types << 'none'
