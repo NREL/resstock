@@ -456,9 +456,7 @@ class RunOSWs
     command += ' -m' if measures_only
     command += " -w \"#{in_osw}\""
 
-    system(command, out: [File.join(parent_dir, 'stdout-openstudio.log'), 'w'], err: [File.join(parent_dir, 'stderr-openstudio.log'), 'w'])
-    FileUtils.mv(File.join(parent_dir, 'stdout-openstudio.log'), File.join(parent_dir, 'run'))
-    FileUtils.mv(File.join(parent_dir, 'stderr-openstudio.log'), File.join(parent_dir, 'run'))
+    system(command, [:out, :err] => File::NULL)
     run_log = File.readlines(File.expand_path(File.join(parent_dir, 'run/run.log')))
     run_log.each do |line|
       next if line.include? 'Cannot find current Workflow Step'
@@ -474,9 +472,6 @@ class RunOSWs
       next if line.include? 'No construction for either surface'
       next if line.include? 'Initial area of other surface'
       next if line.include?('Surface') && line.include?('is adiabatic, removing all sub surfaces')
-
-      # FIXME: remove when fixed in OS CLI
-      next if line.include? "Found error in state 'OpenStudioMeasures' with message: 'Bundler::GemNotFound: Could not find oga-3.4, rake-13.2.1, matrix-0.4.2, minitest-5.15.0, minitest-reporters-1.6.1, msgpack-1.7.2, parallel-1.24.0, simplecov-0.22.0, simplecov-html-0.12.3, rubyzip-2.3.2, ast-2.4.2, ruby-ll-2.1.3, ansi-1.5.0, builder-3.2.4, ruby-progressbar-1.13.0, docile-1.4.0, simplecov_json_formatter-0.1.4 in locally installed gems'"
 
       run_output += line
     end
