@@ -5,6 +5,7 @@ require 'matrix'
 
 class ScheduleGenerator
   def initialize(runner:,
+                 hpxml_bldg:,
                  state:,
                  column_names: nil,
                  random_seed: nil,
@@ -19,6 +20,7 @@ class ScheduleGenerator
                  append_output:,
                  **)
     @runner = runner
+    @hpxml_bldg = hpxml_bldg
     @state = state
     @column_names = column_names
     @random_seed = random_seed
@@ -583,7 +585,85 @@ class ScheduleGenerator
     fixtures_peak_flow = @schedules[SchedulesFile::Columns[:HotWaterFixtures].name].max
     @schedules[SchedulesFile::Columns[:HotWaterFixtures].name] = @schedules[SchedulesFile::Columns[:HotWaterFixtures].name].map { |flow| flow / fixtures_peak_flow }
 
+    fill_hourly_setpoint_schedule("heating", args[:extension_properties], prng)
+    fill_hourly_setpoint_schedule("cooling", args[:extension_properties], prng)
+    repair_schedules(@schedules[SchedulesFile::Columns[:HeatingSetpoint].name],
+                     @schedules[SchedulesFile::Columns[:CoolingSetpoint].name] )
     return true
+  end
+
+  def fill_hourly_setpoint_schedule(hvac_mode, bldg_properties, prng)
+
+    if hvac_mode == 'heating'
+      schedule_column = SchedulesFile::Columns[:HeatingSetpoint].name
+    else
+      schedule_column = SchedulesFile::Columns[:CoolingSetpoint].name
+    end
+    offset_type = bldg_properties["hvac_control_#{hvac_mode}_offset_type"]
+    shift = bldg_properties["hvac_control_#{hvac_mode}_offset_shift"]
+
+    weekend_setpoint = bldg_properties["hvac_control_#{hvac_mode}_weekend_setpoint_temp"].to_f
+    weekend_offset_magnitude = bldg_properties["hvac_control_#{hvac_mode}_weekend_setpoint_offset_magnitude"].to_f
+    weekend_offset_schedule = get_offset_schedules(hvac_mode, offset_type, "weekend")
+
+    weekday_setpoint = bldg_properties["hvac_control_#{hvac_mode}_weekday_setpoint_temp"].to_f
+    weekday_offset_magnitude = bldg_properties["hvac_control_#{hvac_mode}_weekday_setpoint_offset_magnitude"].to_f
+    weekday_offset_schedule = get_offset_schedules(hvac_mode, offset_type, "weekday")
+
+    shift_schedules(prng, shift, weekday_offset_schedule, weekend_offset_schedule)
+
+    @total_days_in_year.times do |day|
+      today = @sim_start_day + day
+      day_of_week = today.wday
+      if [0, 6].include?(day_of_week)
+        offset_schedule = weekday_offset_schedule
+        setpoint = weekend_setpoint
+        offset_magnitude = weekend_offset_magnitude
+      else
+        offset_schedule = weekend_offset_schedule
+        setpoint = weekday_setpoint
+        offset_magnitude = weekday_offset_magnitude
+      end
+
+      @steps_in_day.times do |step|
+        offset = offset_schedule[step]
+        final_setpoint = setpoint + offset * offset_magnitude
+        @schedules[schedule_column][day * @steps_in_day + step] = final_setpoint
+      end
+    end
+  end
+
+  def repair_schedules(heating_schedules, cooling_schedules)
+    # This method ensures that we don't construct a setpoint schedule where the cooling setpoint
+    # is less than the heating setpoint, which would result in an E+ error.
+
+    # Note: It's tempting to adjust the setpoints, e.g., outside of the heating/cooling seasons,
+    # to prevent unmet hours being reported. This is a dangerous idea. These setpoints are used
+    # by natural ventilation, Kiva initialization, and probably other things.
+    heating_days, cooling_days = get_heating_and_cooling_seasons
+    warning = false
+    @total_days_in_year.times do |day|
+      @steps_in_day.times do |step|
+        indx = day * @steps_in_day + step
+        if cooling_schedules[indx] <  heating_schedules[indx]
+          if heating_days[day] == cooling_days[day]  # Either both heating/cooling or neither
+            avg = (cooling_schedules[indx] +  heating_schedules[indx]) / 2.0
+            cooling_schedules[indx] = avg
+            heating_schedules[indx] = avg
+          elsif heating_days[day] == 1
+            cooling_schedules[indx] = heating_schedules[indx]
+          elsif cooling_days[day] == 1
+            heating_schedules[indx] = cooling_schedules[indx]
+          else
+            fail 'HeatingSeason and CoolingSeason, when combined, must span the entire year.'
+          end
+          warning = true
+        end
+      end
+    end
+    if warning
+      @runner.registerWarning('HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
+    end
   end
 
   def aggregate_array(array, group_size)
@@ -933,4 +1013,55 @@ class ScheduleGenerator
 
     return lighting_sch
   end
+
+  def shift_schedules(prng, shift, weekday_offset_schedule, weekend_offset_schedule)
+    if shift == 'auto'
+      max_minutes_shifting = 5 * 60 # Max of +- 5 hours shifting
+      max_step_shifting = (max_minutes_shifting / @minutes_per_step).floor
+      # generate uniform shift from -max_step_shifting to +max_step_shifting
+      step_shift = prng.rand(max_step_shifting * 2 + 1) - max_minutes_shifting
+    else
+      step_shift = ((shift.to_f * 60) / @minutes_per_step).to_i
+    end
+
+    weekday_offset_schedule.rotate(step_shift)
+    weekend_offset_schedule.rotate(step_shift)
+  end
+
+  def get_offset_schedules(hvac_mode, offset_type, day_type)
+    if offset_type == 'none'
+      return [0] * 24
+    end
+    hourly_offset_schedule = Schedule.HVACOffsetMap[hvac_mode][day_type][offset_type]
+    offset_schedule = []
+    # Generate offset schedule in the same resolution as simulation\
+    raise "Offset schedule not found for #{hvac_mode} #{day_type} #{offset_type}" if hourly_offset_schedule.nil?
+    @steps_in_day.times do |step|
+      minute = step * @minutes_per_step
+      hour = (minute / 60).to_i
+      offset = hourly_offset_schedule[hour].to_f
+      offset_schedule << offset
+    end
+    return offset_schedule
+  end
+
+  def get_heating_and_cooling_seasons()
+    return if @hpxml_bldg.hvac_controls.size == 0
+
+    hvac_control = @hpxml_bldg.hvac_controls[0]
+
+    htg_start_month = hvac_control.seasons_heating_begin_month
+    htg_start_day = hvac_control.seasons_heating_begin_day
+    htg_end_month = hvac_control.seasons_heating_end_month
+    htg_end_day = hvac_control.seasons_heating_end_day
+    clg_start_month = hvac_control.seasons_cooling_begin_month
+    clg_start_day = hvac_control.seasons_cooling_begin_day
+    clg_end_month = hvac_control.seasons_cooling_end_month
+    clg_end_day = hvac_control.seasons_cooling_end_day
+
+    heating_days = Schedule.get_daily_season(@sim_year, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
+    cooling_days = Schedule.get_daily_season(@sim_year, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
+    return heating_days, cooling_days
+  end
+
 end

@@ -1173,6 +1173,61 @@ class Schedule
     return '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
   end
 
+  def self.HVACOffsetMap
+    # The hours when set point will be raised (lowered) is marked with 1 (-1)
+    # Raising is called setup and lowering is called setback for both heating and cooling
+    # All buildings will NOT get this exact offset applied.
+    # This offset schedule will further have +- 5 hours horizontal shift based on offset_horizontal_shift argument
+    schedule_map = {
+      "heating" =>
+        {
+          "weekday" =>
+            {
+              "day_setback_only" => '0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0',
+              "day_and_night_setback" => '-1, -1, -1, -1, -1, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1',
+              "night_setback_only" => '-1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1'
+            },
+          "weekend" =>
+            {
+              "day_setback_only" =>  '0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0',
+              "day_and_night_setback" => '-1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1',
+              "night_setback_only" => '-1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1'
+            }
+        },
+      "cooling" =>
+        {
+          "weekday" =>
+            {
+              "day_setup_only" => '0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0',
+              "day_and_night_setup" => '1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1',
+              "day_setup_night_setback" => '-1, -1, -1, -1, -1, -1, -1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, -1, -1',
+              "night_setback_only" => '-1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1',
+              "`night_setup_only`" => '1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1'
+            },
+          "weekend" =>
+            {
+              "day_setup_only" => '0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0',
+              "day_and_night_setup" => '1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1',
+              "day_setup_night_setback" => '-1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1',
+              "night_setback_only" => '-1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1',
+              "night_setup_only" => '1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1'
+            },
+        }
+    }
+    # verify each entry has exactly 24 entries, and convert them to integers
+    schedule_map.each do |system, days|
+      days.each do |day, types|
+        types.each do |type, schedule_string|
+          schedule_array = schedule_string.split(', ').map(&:to_i)
+          raise "Invalid schedule length for #{system} #{day} #{type}. Got #{schedule_array.length} values. Expected 24" unless schedule_array.length == 24
+          schedule_map[system][day][type] = schedule_array
+        end
+      end
+    end
+
+    return schedule_map
+  end
+
   def self.get_day_num_from_month_day(year, month, day)
     # Returns a value between 1 and 365 (or 366 for a leap year)
     # Returns e.g. 32 for month=2 and day=1 (Feb 1)
@@ -1424,8 +1479,8 @@ class SchedulesFile
     HotWaterRecirculationPump: Column.new('hot_water_recirculation_pump', true, false, :frac),
     GeneralWaterUse: Column.new('general_water_use', true, false, :frac),
     Sleeping: Column.new('sleeping', false, false, nil),
-    HeatingSetpoint: Column.new('heating_setpoint', false, false, :setpoint),
-    CoolingSetpoint: Column.new('cooling_setpoint', false, false, :setpoint),
+    HeatingSetpoint: Column.new('heating_setpoint', false, true, :setpoint),
+    CoolingSetpoint: Column.new('cooling_setpoint', false, true, :setpoint),
     WaterHeaterSetpoint: Column.new('water_heater_setpoint', false, false, :setpoint),
     WaterHeaterOperatingMode: Column.new('water_heater_operating_mode', false, false, :zero_or_one),
     Battery: Column.new('battery', false, false, :neg_one_to_one),
