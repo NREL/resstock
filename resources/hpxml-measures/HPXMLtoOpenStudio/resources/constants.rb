@@ -348,6 +348,10 @@ class Constants
     return 'room ac'
   end
 
+  def self.ObjectNameShowers
+    return 'hot_water_showers'
+  end
+
   def self.ObjectNameSolarHotWater
     return 'solar hot water'
   end
@@ -362,6 +366,10 @@ class Constants
 
   def self.ObjectNameUnmetHoursProgram
     return 'unmet hours program'
+  end
+
+  def self.ObjectNameUnmetLoadsProgram
+    return 'unmet loads program'
   end
 
   def self.ObjectNameWaterHeater

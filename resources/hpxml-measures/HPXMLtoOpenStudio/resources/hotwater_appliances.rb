@@ -50,8 +50,13 @@ class HotWaterAndAppliances
       cw_power_schedule = nil
       cw_col_name = SchedulesFile::Columns[:ClothesWasher].name
       cw_object_name = Constants.ObjectNameClothesWasher
+      metered_clothes_washer_IMEF = 2.07
+      if clothes_washer.integrated_modified_energy_factor.nil?
+        clothes_washer.integrated_modified_energy_factor = 2.07
+      end 
+      clothes_washer_power_multiplier = metered_clothes_washer_IMEF/clothes_washer.integrated_modified_energy_factor
       if not schedules_file.nil?
-        cw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: cw_col_name, daily_kwh: cw_annual_kwh / 365.0)
+        cw_design_level_w = schedules_file.calc_design_level_from_schedule_max(col_name: cw_col_name) * clothes_washer_power_multiplier
         cw_power_schedule = schedules_file.create_schedule_file(model, col_name: cw_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if cw_power_schedule.nil?
@@ -81,8 +86,17 @@ class HotWaterAndAppliances
       cd_schedule = nil
       cd_col_name = SchedulesFile::Columns[:ClothesDryer].name
       cd_obj_name = Constants.ObjectNameClothesDryer
+      metered_clothes_dryer_CEF = 2.68 
+      if clothes_dryer.combined_energy_factor.nil?
+        clothes_dryer.combined_energy_factor = 2.68
+      end
+      clothes_dryer_power_multiplier = metered_clothes_dryer_CEF/clothes_dryer.combined_energy_factor
       if not schedules_file.nil?
-        cd_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cd_col_name, annual_kwh: cd_annual_kwh)
+        if clothes_dryer.fuel_type == HPXML::FuelTypeElectricity
+          cd_design_level_e = clothes_dryer_power_multiplier * schedules_file.calc_design_level_from_schedule_max(col_name: cd_col_name)
+        else
+          cd_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cd_col_name, annual_kwh: cd_annual_kwh)
+        end
         cd_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: cd_col_name, annual_therm: cd_annual_therm)
         cd_schedule = schedules_file.create_schedule_file(model, col_name: cd_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
@@ -115,8 +129,13 @@ class HotWaterAndAppliances
       dw_power_schedule = nil
       dw_col_name = SchedulesFile::Columns[:Dishwasher].name
       dw_obj_name = Constants.ObjectNameDishwasher
+      metered_dishwasher_rated_annual_kwh = 240
+      if dishwasher.rated_annual_kwh.nil?
+        dishwasher.rated_annual_kwh = 240
+      end 
+      dishwasher_power_multiplier = dishwasher.rated_annual_kwh/metered_dishwasher_rated_annual_kwh
       if not schedules_file.nil?
-        dw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: dw_col_name, daily_kwh: dw_annual_kwh / 365.0)
+        dw_design_level_w = schedules_file.calc_design_level_from_schedule_max(col_name: dw_col_name) * dishwasher_power_multiplier
         dw_power_schedule = schedules_file.create_schedule_file(model, col_name: dw_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
       if dw_power_schedule.nil?
@@ -225,13 +244,22 @@ class HotWaterAndAppliances
     # Cooking Range energy
     if not cooking_range.nil?
       cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cooking_range, oven, cooking_range.additional_properties.space.nil?)
+      if cooking_range.is_induction
+        burner_ef = 0.91
+      else
+        burner_ef = 1.0
+      end
 
       # Create schedule
       cook_schedule = nil
       cook_col_name = SchedulesFile::Columns[:CookingRange].name
       cook_obj_name = Constants.ObjectNameCookingRange
       if not schedules_file.nil?
-        cook_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cook_col_name, annual_kwh: cook_annual_kwh)
+        if cooking_range.fuel_type == HPXML::FuelTypeElectricity
+          cook_design_level_e = burner_ef * schedules_file.calc_design_level_from_schedule_max(col_name: cook_col_name)
+        else
+          cook_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cook_col_name, annual_kwh: cook_annual_kwh)
+        end
         cook_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: cook_col_name, annual_therm: cook_annual_therm)
         cook_schedule = schedules_file.create_schedule_file(model, col_name: cook_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
       end
@@ -327,26 +355,55 @@ class HotWaterAndAppliances
         runner.registerWarning("Both '#{fixtures_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml_bldg.water_heating.water_fixtures_weekend_fractions.nil?
         runner.registerWarning("Both '#{fixtures_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml_bldg.water_heating.water_fixtures_monthly_multipliers.nil?
       end
+
+      # Create shower schedule, used only for unmet load calculations
+      # Create separate shower schedule: Only used for calculating unmet loads. Shower hot water usage is part of the fixtures usage.
+      showers_schedule = nil
+      showers_col_name = SchedulesFile::Columns[:HotWaterShowers].name
+      if not schedules_file.nil?
+        showers_schedule = schedules_file.create_schedule_file(model, col_name: showers_col_name, schedule_type_limits_name: Constants.ScheduleTypeLimitsFraction)
+      end
+      if showers_schedule.nil?
+        showers_unavailable_periods = Schedule.get_unavailable_periods(runner, showers_col_name, unavailable_periods)
+        showers_weekday_sch = Schedule.ShowersWeekdayFractions # FIXME: should we expose HPXML elements for these? sounds like maybe not.
+        showers_weekend_sch = Schedule.ShowersWeekendFractions
+        showers_monthly_sch = Schedule.ShowersMonthlyMultipliers
+        showers_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameShowers, showers_weekday_sch, showers_weekend_sch, showers_monthly_sch, Constants.ScheduleTypeLimitsFraction, unavailable_periods: showers_unavailable_periods)
+      else
+        runner.registerWarning("Both '#{showers_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !Schedule.ShowersWeekdayFractions.nil?
+        runner.registerWarning("Both '#{showers_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !Schedule.ShowersWeekendFractions.nil?
+        runner.registerWarning("Both '#{showers_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !Schedule.ShowersMonthlyMultipliers.nil?
+      end
     end
 
+    # create an array of peak flow to return
+    shower_peak_flows = {} # used for unmet wh load calculations
     hpxml_bldg.water_heating_systems.each do |water_heating_system|
       non_solar_fraction = 1.0 - Waterheater.get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
 
       gpd_frac = water_heating_system.fraction_dhw_load_served # Fixtures fraction
       if gpd_frac > 0
 
+        # For showers, calculate flow rates but don't add a WaterUse:Equipment object. Shower usage is included in fixtures and only used for tracking unmet loads
         fx_gpd = get_fixtures_gpd(eri_version, nbeds, frac_low_flow_fixtures, daily_mw_fractions, fixtures_usage_multiplier)
+        shower_gpd = get_showers_gpd(eri_version, nbeds, frac_low_flow_fixtures, daily_mw_fractions, fixtures_usage_multiplier)
         w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, has_cond_bsmnt, cfa, ncfl, hot_water_distribution, frac_low_flow_fixtures, fixtures_usage_multiplier)
 
         fx_peak_flow = nil
+        shower_peak_flow = nil
         if not schedules_file.nil?
           fx_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: SchedulesFile::Columns[:HotWaterFixtures].name, daily_water: fx_gpd)
+          shower_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: SchedulesFile::Columns[:HotWaterShowers].name, daily_water: shower_gpd)
           dist_water_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: SchedulesFile::Columns[:HotWaterFixtures].name, daily_water: w_gpd)
         end
         if fx_peak_flow.nil?
           fx_peak_flow = fixtures_schedule_obj.calc_design_level_from_daily_gpm(fx_gpd)
+          shower_peak_flow = showers_schedule_obj.calc_design_level_from_daily_gpm(shower_gpd)
           dist_water_peak_flow = fixtures_schedule_obj.calc_design_level_from_daily_gpm(w_gpd)
         end
+
+        id = water_heating_system.id
+        shower_peak_flows[id] = shower_peak_flow
 
         # Fixtures (showers, sinks, baths)
         add_water_use_equipment(model, fixtures_obj_name, fx_peak_flow * gpd_frac * non_solar_fraction, fixtures_schedule, water_use_connections[water_heating_system.id], unit_multiplier, mw_temp_schedule)
@@ -388,6 +445,14 @@ class HotWaterAndAppliances
         end
       end
 
+      # FIXME: quick fix for tempering valves. Since the tempering valves are set to the setpoint of the normal WH, this only affects 120V Shared HPWHs with higher tank setpoints
+      # TODO: Formal support of tempering valves? Probably requires an HPXML change?
+      t_hot = 125.0 # F
+      hw_temp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      hw_temp_schedule.setName('hot water temperature schedule')
+      hw_temp_schedule.setValue(UnitConversions.convert(t_hot, 'F', 'C'))
+      Schedule.set_schedule_type_limits(model, hw_temp_schedule, Constants.ScheduleTypeLimitsTemperature)
+
       # Clothes washer
       if not clothes_washer.nil?
         gpd_frac = nil
@@ -409,7 +474,7 @@ class HotWaterAndAppliances
             cw_peak_flow = cw_schedule_obj.calc_design_level_from_daily_gpm(cw_gpd)
             water_cw_schedule = cw_schedule_obj.schedule
           end
-          add_water_use_equipment(model, cw_object_name, cw_peak_flow * gpd_frac * non_solar_fraction, water_cw_schedule, water_use_connections[water_heating_system.id], unit_multiplier)
+          add_water_use_equipment(model, cw_object_name, cw_peak_flow * gpd_frac * non_solar_fraction, water_cw_schedule, water_use_connections[water_heating_system.id], unit_multiplier, hw_temp_schedule)
         end
       end
 
@@ -436,7 +501,7 @@ class HotWaterAndAppliances
         dw_peak_flow = dw_schedule_obj.calc_design_level_from_daily_gpm(dw_gpd)
         water_dw_schedule = dw_schedule_obj.schedule
       end
-      add_water_use_equipment(model, dw_obj_name, dw_peak_flow * gpd_frac * non_solar_fraction, water_dw_schedule, water_use_connections[water_heating_system.id], unit_multiplier)
+      add_water_use_equipment(model, dw_obj_name, dw_peak_flow * gpd_frac * non_solar_fraction, water_dw_schedule, water_use_connections[water_heating_system.id], unit_multiplier, hw_temp_schedule)
     end
 
     if not apply_ashrae140_assumptions
@@ -470,6 +535,8 @@ class HotWaterAndAppliances
       add_other_equipment(model, Constants.ObjectNameGeneralWaterUseSensible, conditioned_space, water_design_level_sens, 1.0, 0.0, water_schedule, nil)
       add_other_equipment(model, Constants.ObjectNameGeneralWaterUseLatent, conditioned_space, water_design_level_lat, 0.0, 1.0, water_schedule, nil)
     end
+
+    return shower_peak_flows
   end
 
   def self.get_range_oven_default_values()
@@ -1086,6 +1153,27 @@ class HotWaterAndAppliances
     f_eff = get_fixtures_effectiveness(frac_low_flow_fixtures)
 
     return f_eff * ref_f_gpd * fixtures_usage_multiplier
+  end
+
+  def self.get_showers_gpd(eri_version, nbeds, frac_low_flow_fixtures, daily_mw_fractions, fixtures_usage_multiplier = 1.0)
+    if nbeds < 0.0
+      return 0.0
+    end
+
+    if Constants.ERIVersions.index(eri_version) < Constants.ERIVersions.index('2014A')
+      # Note that the standard only has a total hot water usage, it does not specify a fraction for showers. Assuming showers are 40% of total HW usage (based on BA Benchmark usage)
+      showers_gpd = 0.4 * (30.0 + 10.0 * nbeds) # Table 4.2.2(1) Service water heating systems
+      # Convert to mixed water gpd
+      avg_mw_fraction = daily_mw_fractions.reduce(:+) / daily_mw_fractions.size.to_f
+      return showers_gpd / avg_mw_fraction * fixtures_usage_multiplier
+    end
+
+    # ANSI/RESNET 301-2014 Addendum A-2015
+    # Amendment on Domestic Hot Water (DHW) Systems
+    ref_shower_gpd = 14.0 + 4.67 * nbeds # Based on BA Benchmark shower usage
+    f_eff = get_fixtures_effectiveness(frac_low_flow_fixtures)
+
+    return f_eff * ref_shower_gpd * fixtures_usage_multiplier
   end
 
   def self.get_water_gains_sens_lat(nbeds, general_water_use_usage_multiplier = 1.0)

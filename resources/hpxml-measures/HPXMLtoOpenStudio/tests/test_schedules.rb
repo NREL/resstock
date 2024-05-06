@@ -191,7 +191,7 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
     model.getScheduleFiles.each do |schedule_file|
       schedule_file_names << "#{schedule_file.name}"
     end
-    assert_equal(11, schedule_file_names.size)
+    assert_equal(12, schedule_file_names.size)
 
     schedules_paths = hpxml_bldg.header.schedules_filepaths.collect { |sfp|
       FilePath.check_path(sfp,

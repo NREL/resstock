@@ -1550,10 +1550,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
 
     # Hot water fixtures and appliances
-    HotWaterAndAppliances.apply(model, runner, @hpxml_header, @hpxml_bldg, weather, spaces, hot_water_distribution,
-                                solar_thermal_system, @eri_version, @schedules_file, plantloop_map,
-                                @hpxml_header.unavailable_periods, @hpxml_bldg.building_construction.number_of_units,
-                                @apply_ashrae140_assumptions)
+    showers_peak_flows = HotWaterAndAppliances.apply(model, runner, @hpxml_header, @hpxml_bldg, weather, spaces, hot_water_distribution,
+                                                     solar_thermal_system, @eri_version, @schedules_file, plantloop_map,
+                                                     @hpxml_header.unavailable_periods, @hpxml_bldg.building_construction.number_of_units,
+                                                     @apply_ashrae140_assumptions)
 
     if (not solar_thermal_system.nil?) && (not solar_thermal_system.collector_area.nil?) # Detailed solar water heater
       loc_space, loc_schedule = get_space_or_schedule_from_location(solar_thermal_system.water_heating_system.location, model, spaces)
@@ -1562,6 +1562,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     # Add combi-system EMS program with water use equipment information
     Waterheater.apply_combi_system_EMS(model, @hpxml_bldg.water_heating_systems, plantloop_map)
+
+    # Add unmet wh loads calculation
+    Waterheater.unmet_wh_loads_program(model, @hpxml_bldg.water_heating_systems, plantloop_map, showers_peak_flows)
   end
 
   def add_cooling_system(model, runner, weather, spaces, airloop_map)
@@ -1941,7 +1944,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       hvac_availability_sensor.additionalProperties.setFeature('ObjectType', Constants.ObjectNameHVACAvailabilitySensor)
     end
 
-    Airflow.apply(model, runner, weather, spaces, @hpxml_header, @hpxml_bldg, @cfa,
+    Airflow.apply(model, runner, weather, spaces, @hpxml_header, @hpxml_bldg, @cfa, @nbeds,
                   @ncfl_ag, duct_systems, airloop_map, @clg_ssn_sensor, @eri_version,
                   @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file,
                   @hpxml_header.unavailable_periods, hvac_availability_sensor)

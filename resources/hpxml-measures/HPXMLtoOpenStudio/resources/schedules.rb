@@ -937,6 +937,18 @@ class Schedule
     return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
   end
 
+  def self.ShowersWeekdayFractions
+    return '0.011,	0.005,	0.003,	0.005,	0.014,	0.052,	0.118,	0.117,	0.095,	0.074,	0.06,	0.047,	0.034,	0.029,	0.026,	0.025,	0.03,	0.039,	0.042,	0.042,	0.042,	0.041,	0.029,	0.021'
+  end
+
+  def self.ShowersWeekendFractions
+    return '0.011,	0.005,	0.003,	0.005,	0.014,	0.052,	0.118,	0.117,	0.095,	0.074,	0.06,	0.047,	0.034,	0.029,	0.026,	0.025,	0.03,	0.039,	0.042,	0.042,	0.042,	0.041,	0.029,	0.021'
+  end
+
+  def self.ShowersMonthlyMultipliers
+    return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+  end
+
   def self.GeneralWaterUseWeekdayFractions
     return '0.023, 0.021, 0.021, 0.025, 0.027, 0.038, 0.044, 0.039, 0.037, 0.037, 0.034, 0.035, 0.035, 0.035, 0.039, 0.043, 0.051, 0.064, 0.065, 0.072, 0.073, 0.063, 0.045, 0.034'
   end
@@ -1421,6 +1433,7 @@ class SchedulesFile
     HotWaterDishwasher: Column.new('hot_water_dishwasher', false, true, :frac),
     HotWaterClothesWasher: Column.new('hot_water_clothes_washer', false, true, :frac),
     HotWaterFixtures: Column.new('hot_water_fixtures', true, true, :frac),
+    HotWaterShowers: Column.new('hot_water_showers', true, true, :frac),
     HotWaterRecirculationPump: Column.new('hot_water_recirculation_pump', true, false, :frac),
     GeneralWaterUse: Column.new('general_water_use', true, false, :frac),
     Sleeping: Column.new('sleeping', false, false, nil),
@@ -1453,10 +1466,22 @@ class SchedulesFile
     create_battery_charging_discharging_schedules
     expand_schedules
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
+    normalize_zero_to_one_scale
     set_unavailable_periods(runner, unavailable_periods)
     convert_setpoints
     @output_schedules_path = output_path
     export()
+  end
+
+  def normalize_zero_to_one_scale
+    range_max_value = @tmp_schedules['cooking_range'].max
+    @tmp_schedules['cooking_range'] = @tmp_schedules['cooking_range'].map { |power| power / range_max_value }
+    dishwasher_max_value = @tmp_schedules['dishwasher'].max
+    @tmp_schedules['dishwasher'] = @tmp_schedules['dishwasher'].map { |power| power / dishwasher_max_value }
+    washer_max_value = @tmp_schedules['clothes_washer'].max
+    @tmp_schedules['clothes_washer'] = @tmp_schedules['clothes_washer'].map { |power| power / washer_max_value }
+    dryer_max_value = @tmp_schedules['clothes_dryer'].max
+    @tmp_schedules['clothes_dryer'] = @tmp_schedules['clothes_dryer'].map { |power| power / dryer_max_value }
   end
 
   def nil?
@@ -1496,11 +1521,11 @@ class SchedulesFile
           fail "Schedule column name '#{col_name}' is duplicated. [context: #{schedules_path}]"
         end
 
-        if column.type == :frac
-          if values.max > 1.01 || values.max < 0.99 # Allow some imprecision
-            fail "Schedule max value for column '#{col_name}' must be 1. [context: #{schedules_path}]"
-          end
-        end
+        #if column.type == :frac
+        #  if values.max > 1.01 || values.max < 0.99 # Allow some imprecision
+        #    fail "Schedule max value for column '#{col_name}' must be 1. [context: #{schedules_path}]"
+        #  end
+        #end
 
         if column.type == :frac
           if values.min < 0
@@ -1654,6 +1679,7 @@ class SchedulesFile
       end
     else # Annual
       equiv_full_load_hrs += schedules[col_name].sum / (60.0 / min_per_item)
+      equiv_full_load_hrs = equiv_full_load_hrs / schedules[col_name].max
     end
 
     return equiv_full_load_hrs
@@ -1672,6 +1698,16 @@ class SchedulesFile
     return 0 if ann_equiv_full_load_hrs == 0
 
     design_level = annual_kwh * 1000.0 / ann_equiv_full_load_hrs # W
+
+    return design_level
+  end
+
+  def calc_design_level_from_schedule_max(col_name:)
+    if @schedules[col_name].nil?
+      return
+    end
+
+    design_level = @schedules[col_name].max * 1000 # W
 
     return design_level
   end

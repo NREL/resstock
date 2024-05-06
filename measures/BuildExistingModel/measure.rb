@@ -744,6 +744,161 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    #report sechedule
+    require 'csv'
+    schedule_csv_file_path = measures['BuildResidentialScheduleFile'][0]['output_csv_path']
+
+    # calculate the time that each value represent in hour
+    if File.exist?(schedule_csv_file_path)
+      @tmp_schedules = CSV.table(schedule_csv_file_path)
+      hour_each_value = 8760.0 / @tmp_schedules.length
+
+      cooking_range_max_value = nil
+      cooking_range_full_load_operation = 0
+      cooking_range_operation = 0
+      cooking_range_event_num = 0
+
+      dishwasher_max_value = nil
+      dishwasher_full_load_operation = 0
+      dishwasher_operation = 0
+      dishwasher_event_num = 0
+
+      clothes_washer_max_value = nil
+      clothes_washer_full_load_operation = 0
+      clothes_washer_operation = 0
+      clothes_washer_event_num = 0
+
+      clothes_dryer_max_value = nil
+      clothes_dryer_full_load_operation = 0
+      clothes_dryer_operation = 0
+      clothes_dryer_event_num = 0
+
+      #peak power
+      CSV.foreach(schedule_csv_file_path, headers: true) do |row|
+        cooking_range_column_value = row['cooking_range'].to_f
+        dishwasher_column_value = row['dishwasher'].to_f
+        clothes_washer_column_value = row['clothes_washer'].to_f
+        clothes_dryer_column_value = row['clothes_dryer'].to_f
+
+        if cooking_range_max_value.nil? || cooking_range_column_value > cooking_range_max_value
+          cooking_range_max_value = cooking_range_column_value
+        end
+
+        if dishwasher_max_value.nil? || dishwasher_column_value > dishwasher_max_value
+          dishwasher_max_value = dishwasher_column_value
+        end
+
+        if clothes_washer_max_value.nil? || clothes_washer_column_value > clothes_washer_max_value
+          clothes_washer_max_value = clothes_washer_column_value
+        end
+
+        if clothes_dryer_max_value.nil? || clothes_dryer_column_value > clothes_dryer_max_value
+          clothes_dryer_max_value = clothes_dryer_column_value
+        end
+      end
+
+      #number of events and operation hour
+      cooking_range_previous_row_value = nil
+      dishwasher_previous_row_value = nil
+      clothes_washer_previous_row_value = nil
+      clothes_dryer_previous_row_value = nil
+      CSV.foreach(schedule_csv_file_path, headers: true) do |row|
+        cooking_range_column_value = row['cooking_range'].to_f
+        dishwasher_column_value = row['dishwasher'].to_f
+        clothes_washer_column_value = row['clothes_washer'].to_f
+        clothes_dryer_column_value = row['clothes_dryer'].to_f
+
+        if cooking_range_previous_row_value.nil? 
+          cooking_range_previous_row_value = cooking_range_column_value
+        else
+          if cooking_range_previous_row_value == 0 && cooking_range_column_value > 0
+            cooking_range_event_num += 1
+          end
+        end
+        cooking_range_previous_row_value = cooking_range_column_value
+        if cooking_range_column_value == cooking_range_max_value
+          cooking_range_full_load_operation += 1
+        end
+        if cooking_range_column_value > 0
+          cooking_range_operation += 1
+        end
+
+        if dishwasher_previous_row_value.nil? 
+          dishwasher_previous_row_value = dishwasher_column_value
+        else
+          if dishwasher_previous_row_value == 0 && dishwasher_column_value > 0
+            dishwasher_event_num += 1
+          end
+        end
+        dishwasher_previous_row_value = dishwasher_column_value
+        if dishwasher_column_value == dishwasher_max_value
+          dishwasher_full_load_operation += 1
+        end
+        if dishwasher_column_value > 0
+          dishwasher_operation += 1
+        end
+
+        if clothes_washer_previous_row_value.nil? 
+          clothes_washer_previous_row_value = clothes_washer_column_value
+        else
+          if clothes_washer_previous_row_value == 0 && clothes_washer_column_value > 0
+            clothes_washer_event_num += 1
+          end
+        end
+        clothes_washer_previous_row_value = clothes_washer_column_value
+        if clothes_washer_column_value == clothes_washer_max_value
+          clothes_washer_full_load_operation += 1
+        end
+        if clothes_washer_column_value > 0
+          clothes_washer_operation += 1
+        end
+
+        if clothes_dryer_previous_row_value.nil? 
+          clothes_dryer_previous_row_value = clothes_dryer_column_value
+        else
+          if clothes_dryer_previous_row_value == 0 && clothes_dryer_column_value > 0
+            clothes_dryer_event_num += 1
+          end
+        end
+        clothes_dryer_previous_row_value = clothes_dryer_column_value
+        if clothes_dryer_column_value == clothes_dryer_max_value
+          clothes_dryer_full_load_operation += 1
+        end
+        if clothes_dryer_column_value > 0
+          clothes_dryer_operation += 1
+        end
+      end
+
+      #register outputs
+      cooking_range_full_load_operation_hour = (cooking_range_full_load_operation * hour_each_value).to_s
+      cooking_range_operation_hour = (cooking_range_operation * hour_each_value).to_s
+      cooking_range_event_num = (cooking_range_event_num).to_s
+      register_value(runner, 'cooking_range_full_load_operation_hour', cooking_range_full_load_operation_hour)
+      register_value(runner, 'cooking_range_operation_hour', cooking_range_operation_hour)
+      register_value(runner, 'cooking_range_event_num', cooking_range_event_num)
+
+      dishwasher_full_load_operation_hour = (dishwasher_full_load_operation * hour_each_value).to_s
+      dishwasher_operation_hour = (dishwasher_operation * hour_each_value).to_s
+      dishwasher_event_num = (dishwasher_event_num).to_s
+      register_value(runner, 'dishwasher_full_load_operation_hour', dishwasher_full_load_operation_hour)
+      register_value(runner, 'dishwasher_operation_hour', dishwasher_operation_hour)
+      register_value(runner, 'dishwasher_event_num', dishwasher_event_num)
+
+      clothes_washer_full_load_operation_hour = (clothes_washer_full_load_operation * hour_each_value).to_s
+      clothes_washer_operation_hour = (clothes_washer_operation * hour_each_value).to_s
+      clothes_washer_event_num = (clothes_washer_event_num).to_s
+      register_value(runner, 'clothes_washer_full_load_operation_hour', clothes_washer_full_load_operation_hour)
+      register_value(runner, 'clothes_washer_operation_hour', clothes_washer_operation_hour)
+      register_value(runner, 'clothes_washer_event_num', clothes_washer_event_num)
+
+      clothes_dryer_full_load_operation_hour = (clothes_dryer_full_load_operation * hour_each_value).to_s
+      clothes_dryer_operation_hour = (clothes_dryer_operation * hour_each_value).to_s
+      clothes_dryer_event_num = (clothes_dryer_event_num).to_s
+      register_value(runner, 'clothes_dryer_full_load_operation_hour', clothes_dryer_full_load_operation_hour)
+      register_value(runner, 'clothes_dryer_operation_hour', clothes_dryer_operation_hour)
+      register_value(runner, 'clothes_dryer_event_num', clothes_dryer_event_num)
+    end
+    
     # Copy existing.xml to home.xml for downstream HPXMLtoOpenStudio
     # We need existing.xml (and not just home.xml) for UpgradeCosts
     in_path = File.expand_path('../home.xml')
