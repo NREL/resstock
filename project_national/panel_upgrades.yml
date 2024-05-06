@@ -3,15 +3,18 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /kfs2/projects/panels/run/test_run_30000_20240419
+output_directory: /kfs2/projects/panels/run/full_run_20240505
 #weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
 
 sampler:
-  type: residential_quota
+  type: residential_quota_downselect
   args:
-    n_datapoints: 30000
+    n_datapoints: 550000
+    logic:
+      - not: State|HI
+    resample: true
 
 workflow_generator:
   type: residential_hpxml
@@ -636,14 +639,13 @@ references:
         apply_logic:
           - or:
             - Bedrooms|1
-            - Bedrooms|2
         costs:
           - value: 2099
             multiplier: Fixed (1)
       - &120v_hpwh_65_gal
         option: Water Heater Efficiency|Electric Heat Pump, 65 gal, 120 V Shared
         apply_logic:
-          - Bedrooms|3
+          - Bedrooms|2
         costs:
           - value: 2499
             multiplier: Fixed (1)
@@ -651,6 +653,7 @@ references:
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 120 V Shared
         apply_logic:
           - or:
+            - Bedrooms|3
             - Bedrooms|4
             - Bedrooms|5
         costs:
@@ -1466,13 +1469,13 @@ upgrades:
   
 kestrel:
   n_jobs: 300
-  minutes_per_sim: 6
+  minutes_per_sim: 2
   account: panels
   sampling:
     time: 100
   postprocessing:
     time: 2000 
-    n_workers: 32 
+    n_workers: 20
 
 postprocessing:
   aws:
