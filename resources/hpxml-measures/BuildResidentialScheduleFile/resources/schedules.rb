@@ -1051,7 +1051,7 @@ class ScheduleGenerator
 
   def get_heating_and_cooling_seasons()
     if @hpxml_bldg.hvac_controls.size == 0
-      @runner.registerError("No HVAC control found in the HPXML file #{@hpxml_bldg}")
+      @runner.registerWarning("No HVAC control found in the HPXML file #{@hpxml_bldg}")
       return
     end
 
