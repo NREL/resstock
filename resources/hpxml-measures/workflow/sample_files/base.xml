@@ -54,17 +54,17 @@
         <extension>
           <AdditionalProperties>
             <ceiling_insulation_r>49</ceiling_insulation_r>
-            <hvac_control_heating_weekday_setpoint_temp>68</hvac_control_heating_weekday_setpoint_temp>
-            <hvac_control_heating_weekend_setpoint_temp>68</hvac_control_heating_weekend_setpoint_temp>
-            <hvac_control_heating_weekday_setpoint_offset_magnitude>0</hvac_control_heating_weekday_setpoint_offset_magnitude>
-            <hvac_control_heating_weekend_setpoint_offset_magnitude>0</hvac_control_heating_weekend_setpoint_offset_magnitude>
+            <hvac_control_heating_weekday_setpoint>68</hvac_control_heating_weekday_setpoint>
+            <hvac_control_heating_weekend_setpoint>68</hvac_control_heating_weekend_setpoint>
+            <hvac_control_cooling_weekday_setpoint>78</hvac_control_cooling_weekday_setpoint>
+            <hvac_control_cooling_weekend_setpoint>78</hvac_control_cooling_weekend_setpoint>
+            <hvac_control_heating_weekday_setpoint_offset_magnitude>1</hvac_control_heating_weekday_setpoint_offset_magnitude>
+            <hvac_control_heating_weekend_setpoint_offset_magnitude>1</hvac_control_heating_weekend_setpoint_offset_magnitude>
+            <hvac_control_cooling_weekday_setpoint_offset_magnitude>1</hvac_control_cooling_weekday_setpoint_offset_magnitude>
+            <hvac_control_cooling_weekend_setpoint_offset_magnitude>1</hvac_control_cooling_weekend_setpoint_offset_magnitude>
             <hvac_control_heating_offset_shift>1</hvac_control_heating_offset_shift>
-            <hvac_control_heating_offset_type>day_setback_only</hvac_control_heating_offset_type>
-            <hvac_control_cooling_weekday_setpoint_temp>72</hvac_control_cooling_weekday_setpoint_temp>
-            <hvac_control_cooling_weekend_setpoint_temp>72</hvac_control_cooling_weekend_setpoint_temp>
-            <hvac_control_cooling_weekday_setpoint_offset_magnitude>0</hvac_control_cooling_weekday_setpoint_offset_magnitude>
-            <hvac_control_cooling_weekend_setpoint_offset_magnitude>0</hvac_control_cooling_weekend_setpoint_offset_magnitude>
             <hvac_control_cooling_offset_shift>1</hvac_control_cooling_offset_shift>
+            <hvac_control_heating_offset_type>day_setback_only</hvac_control_heating_offset_type>
             <hvac_control_cooling_offset_type>day_setup_only</hvac_control_cooling_offset_type>
           </AdditionalProperties>
         </extension>
@@ -368,25 +368,20 @@
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
+            <SetpointTempHeatingSeason>68.0</SetpointTempHeatingSeason>
+            <SetpointTempCoolingSeason>78.0</SetpointTempCoolingSeason>
             <HeatingSeason>
-              <BeginMonth dataSource='software'>1</BeginMonth>
-              <BeginDayOfMonth dataSource='software'>1</BeginDayOfMonth>
-              <EndMonth dataSource='software'>12</EndMonth>
-              <EndDayOfMonth dataSource='software'>31</EndDayOfMonth>
+              <BeginMonth>11</BeginMonth>
+              <BeginDayOfMonth>1</BeginDayOfMonth>
+              <EndMonth>5</EndMonth>
+              <EndDayOfMonth>1</EndDayOfMonth>
             </HeatingSeason>
             <CoolingSeason>
-              <BeginMonth dataSource='software'>1</BeginMonth>
-              <BeginDayOfMonth dataSource='software'>1</BeginDayOfMonth>
-              <EndMonth dataSource='software'>12</EndMonth>
-              <EndDayOfMonth dataSource='software'>31</EndDayOfMonth>
+              <BeginMonth>6</BeginMonth>
+              <BeginDayOfMonth>1</BeginDayOfMonth>
+              <EndMonth>10</EndMonth>
+              <EndDayOfMonth>1</EndDayOfMonth>
             </CoolingSeason>
-            <extension>
-              <CeilingFanSetpointTempCoolingSeasonOffset>0.0</CeilingFanSetpointTempCoolingSeasonOffset>
-              <WeekdaySetpointTempsHeatingSeason>72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0</WeekdaySetpointTempsHeatingSeason>
-              <WeekendSetpointTempsHeatingSeason>72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0, 72.0</WeekendSetpointTempsHeatingSeason>
-              <WeekdaySetpointTempsCoolingSeason>75.0, 75.0, 75.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0</WeekdaySetpointTempsCoolingSeason>
-              <WeekendSetpointTempsCoolingSeason>75.0, 75.0, 75.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0</WeekendSetpointTempsCoolingSeason>
-            </extension>
           </HVACControl>
           <HVACDistribution>
             <SystemIdentifier id='HVACDistribution1'/>
