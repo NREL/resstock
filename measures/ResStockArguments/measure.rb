@@ -440,7 +440,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Vintage
-    if args[:vintage] && args[:year_built].to_s == Constants.Auto
+    if !args[:vintage].nil? && args[:year_built].to_s == Constants.Auto
       args[:year_built] = Integer(Float(args[:vintage].gsub(/[^0-9]/, ''))) # strip non-numeric
     end
 
@@ -550,23 +550,23 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # HVAC Faults
-    if args[:heating_system_rated_cfm_per_ton] && args[:heating_system_actual_cfm_per_ton]
+    if !args[:heating_system_rated_cfm_per_ton].nil? && !args[:heating_system_actual_cfm_per_ton].nil?
       args[:heating_system_airflow_defect_ratio] = (args[:heating_system_actual_cfm_per_ton] - args[:heating_system_rated_cfm_per_ton]) / args[:heating_system_rated_cfm_per_ton]
     end
 
-    if args[:cooling_system_rated_cfm_per_ton] && args[:cooling_system_actual_cfm_per_ton]
+    if !args[:cooling_system_rated_cfm_per_ton].nil? && !args[:cooling_system_actual_cfm_per_ton].nil?
       args[:cooling_system_airflow_defect_ratio] = (args[:cooling_system_actual_cfm_per_ton] - args[:cooling_system_rated_cfm_per_ton]) / args[:cooling_system_rated_cfm_per_ton]
     end
 
-    if args[:cooling_system_frac_manufacturer_charge]
+    if !args[:cooling_system_frac_manufacturer_charge].nil?
       args[:cooling_system_charge_defect_ratio] = args[:cooling_system_frac_manufacturer_charge] - 1.0
     end
 
-    if args[:heat_pump_rated_cfm_per_ton] && args[:heat_pump_actual_cfm_per_ton]
+    if !args[:heat_pump_rated_cfm_per_ton].nil? && !args[:heat_pump_actual_cfm_per_ton].nil?
       args[:heat_pump_airflow_defect_ratio] = (args[:heat_pump_actual_cfm_per_ton] - args[:heat_pump_rated_cfm_per_ton]) / args[:cooling_system_rated_cfm_per_ton]
     end
 
-    if args[:heat_pump_frac_manufacturer_charge]
+    if !args[:heat_pump_frac_manufacturer_charge].nil?
       args[:heat_pump_charge_defect_ratio] = args[:heat_pump_frac_manufacturer_charge] - 1.0
     end
 
@@ -702,7 +702,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Infiltration Reduction
-    if args[:air_leakage_percent_reduction]
+    if not args[:air_leakage_percent_reduction].nil?
       args[:air_leakage_value] *= (1.0 - args[:air_leakage_percent_reduction] / 100.0)
     end
 
@@ -714,7 +714,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Adiabatic Floor/Ceiling
-    if args[:geometry_unit_level]
+    if not args[:geometry_unit_level].nil?
       if args[:geometry_unit_level] == 'Bottom'
         if args[:geometry_num_floors_above_grade] > 1 # this could be "bottom" of a 1-story building
           args[:geometry_attic_type] = HPXML::AtticTypeBelowApartment
@@ -730,7 +730,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # Wall Assembly R-Value
     args[:wall_assembly_r] += args[:exterior_finish_r]
 
-    if args[:wall_continuous_exterior_r]
+    if not args[:wall_continuous_exterior_r].nil?
       args[:wall_assembly_r] += args[:wall_continuous_exterior_r]
     end
 
