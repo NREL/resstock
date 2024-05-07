@@ -41,8 +41,9 @@ class MathTools
         z       float      result of biquadratic polynomial
     '''
     if c.length != 6
-      puts 'Error: There must be 6 coefficients in a biquadratic polynomial'
+      fail 'Error: There must be 6 coefficients in a biquadratic polynomial'
     end
+
     z = c[0] + c[1] * x + c[2] * x**2 + c[3] * y + c[4] * y**2 + c[5] * y * x
     return z
   end
@@ -66,8 +67,9 @@ class MathTools
         y       float      result of biquadratic polynomial
     '''
     if c.size != 3
-      puts 'Error: There must be 3 coefficients in a quadratic polynomial'
+      fail 'Error: There must be 3 coefficients in a quadratic polynomial'
     end
+
     y = c[0] + c[1] * x + c[2] * x**2
 
     return y
@@ -94,8 +96,9 @@ class MathTools
         z       float      result of bicubic polynomial
     '''
     if c.size != 10
-      puts 'Error: There must be 10 coefficients in a bicubic polynomial'
+      fail 'Error: There must be 10 coefficients in a bicubic polynomial'
     end
+
     z = c[0] + c[1] * x + c[2] * x**2 + c[3] * y + c[4] * y**2 + c[5] * x * y + \
         c[6] * x**3 + c[7] * y**3 + c[8] * x**2 * y + c[9] * x * y**2
 

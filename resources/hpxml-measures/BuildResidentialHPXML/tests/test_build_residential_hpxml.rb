@@ -349,7 +349,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
         hpxml_path = File.absolute_path(File.join(@output_path, hpxml_file))
         hpxml = HPXML.new(hpxml_path: hpxml_path)
         if hpxml.errors.size > 0
-          puts hpxml.errors.to_s
+          puts hpxml.errors
           puts "\nError: Did not successfully validate #{hpxml_file}."
           exit!
         end
@@ -362,7 +362,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
         errors, _warnings = XMLValidator.validate_against_schema(hpxml_path, schema_validator)
         next unless errors.size > 0
 
-        puts errors.to_s
+        puts errors
         puts "\nError: Did not successfully validate #{hpxml_file}."
         exit!
       rescue Exception => e

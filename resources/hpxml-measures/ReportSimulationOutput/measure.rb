@@ -306,24 +306,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_arguments(runner, arguments, user_arguments)
-    args = get_argument_values(runner, arguments, user_arguments)
-    args.each do |k, val|
-      if val.respond_to?(:is_initialized) && val.is_initialized
-        args[k] = val.get
-      elsif k.start_with?('include_annual')
-        args[k] = true # default if not provided
-      elsif k.start_with?('include_timeseries')
-        args[k] = false # default if not provided
-      else
-        args[k] = nil # default if not provided
-      end
-    end
+    args = runner.getArgumentValues(arguments, user_arguments)
     if args[:timeseries_frequency] == 'none'
       # Override all timeseries arguments
-      args.each do |k, _val|
-        next unless k.start_with?('include_timeseries')
+      args.keys.each do |key|
+        next unless key.start_with?('include_timeseries')
 
-        args[k] = false
+        args[key] = false
       end
     end
     return args
