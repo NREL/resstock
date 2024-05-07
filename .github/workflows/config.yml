@@ -115,17 +115,7 @@ jobs:
           python3 test/update_yml_precomputed_files.py
 
       - name: Run run_analysis.rb
-        run: |
-          sudo apt remove -y '^ghc-8.*'
-          sudo apt remove -y '^dotnet-.*'
-          sudo apt remove -y '^llvm-.*'
-          sudo apt remove -y 'php.*'
-          sudo apt remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
-          sudo apt autoremove -y
-          sudo apt clean
-          sudo rm -rf /usr/local/share/boost/
-          sudo rm -rf /usr/share/dotnet/
-          
+        run: |          
           bundle exec rake workflow:analysis_tests
 
       - name: Upload precomputed buildstocks
