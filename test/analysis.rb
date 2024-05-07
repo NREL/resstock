@@ -59,6 +59,8 @@ def expected_baseline_contents(testing)
     'results_timeseries.csv'
   ]
   contents += [
+    'existing.osw',
+    'existing.xml',
     'in.osm',
     'in.idf'
   ] if testing
