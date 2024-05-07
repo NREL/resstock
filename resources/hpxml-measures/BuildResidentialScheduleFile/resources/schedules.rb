@@ -641,6 +641,10 @@ class ScheduleGenerator
     # to prevent unmet hours being reported. This is a dangerous idea. These setpoints are used
     # by natural ventilation, Kiva initialization, and probably other things.
     heating_days, cooling_days = get_heating_and_cooling_seasons
+    if heating_days.nil? or cooling_days.nil?
+      @runner.registerWarning('Could not find HeatingSeason and CoolingSeason, so HVAC setpoints have not been adjusted.')
+      return
+    end
     warning = false
     @total_days_in_year.times do |day|
       @steps_in_day.times do |step|
@@ -1066,5 +1070,4 @@ class ScheduleGenerator
     cooling_days = Schedule.get_daily_season(@sim_year, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
     return heating_days, cooling_days
   end
-
 end
