@@ -412,7 +412,6 @@ def get_data_for_sample(buildstock_csv_path, building_id, runner)
 end
 
 class RunOSWs
-  # require 'open3'
   require 'openstudio'
   require 'csv'
   require 'json'

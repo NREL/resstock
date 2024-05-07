@@ -251,7 +251,7 @@ class TestRunAnalysis < Minitest::Test
   def test_testing_baseline
     yml = ' -y project_testing/testing_baseline.yml'
     @command += yml
-    @command += ' -k -n 1'
+    @command += ' -k'
 
     system(@command)
 
