@@ -4,6 +4,7 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'msgpack'
+require 'time'
 require_relative '../HPXMLtoOpenStudio/resources/constants.rb'
 require_relative '../HPXMLtoOpenStudio/resources/energyplus.rb'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml.rb'
@@ -305,24 +306,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_arguments(runner, arguments, user_arguments)
-    args = get_argument_values(runner, arguments, user_arguments)
-    args.each do |k, val|
-      if val.respond_to?(:is_initialized) && val.is_initialized
-        args[k] = val.get
-      elsif k.start_with?('include_annual')
-        args[k] = true # default if not provided
-      elsif k.start_with?('include_timeseries')
-        args[k] = false # default if not provided
-      else
-        args[k] = nil # default if not provided
-      end
-    end
+    args = runner.getArgumentValues(arguments, user_arguments)
     if args[:timeseries_frequency] == 'none'
       # Override all timeseries arguments
-      args.each do |k, _val|
-        next unless k.start_with?('include_timeseries')
+      args.keys.each do |key|
+        next unless key.start_with?('include_timeseries')
 
-        args[k] = false
+        args[key] = false
       end
     end
     return args
@@ -1996,8 +1986,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                                 'hourly' => 'Hourly',
                                 'daily' => 'Daily',
                                 'monthly' => 'Monthly' }[timeseries_frequency]
-    cols = @msgpackData['MeterData'][msgpack_timeseries_name]['Cols']
-    rows = @msgpackData['MeterData'][msgpack_timeseries_name]['Rows']
+    timeseries_data = @msgpackData['MeterData'][msgpack_timeseries_name]
+    cols = timeseries_data['Cols']
+    rows = timeseries_data['Rows']
     indexes = cols.each_index.select { |i| meter_names.include? cols[i]['Variable'] }
     vals = []
     rows.each_with_index do |row, _idx|
