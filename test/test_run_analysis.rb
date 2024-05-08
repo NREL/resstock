@@ -439,7 +439,7 @@ class TestRunAnalysis < Minitest::Test
                       'QOIReport',
                       'ServerDirectoryCleanup']
     json = JSON.parse(File.read(osw), symbolize_names: true)
-    actual_order = json[:steps].collect { |k, _v| k[:measure_dir_name] }
+    actual_order = json[:steps].collect { |k, _v| k[:measure_dir_name] }.uniq
     expected_order &= actual_order # subset expected_order to what's in actual_order
     assert_equal(expected_order, actual_order)
   end

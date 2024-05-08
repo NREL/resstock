@@ -446,7 +446,11 @@ class RunOSWs
     result_output = {}
 
     out = File.join(parent_dir, 'out.osw')
-    out = JSON.parse(File.read(File.expand_path(out)))
+    out = File.expand_path(out)
+    return nil, nil, nil, result_output, run_output if !File.exist?(out)
+
+    out = JSON.parse(File.read(out))
+
     started_at = out['started_at']
     completed_at = out['completed_at']
     completed_status = out['completed_status']
