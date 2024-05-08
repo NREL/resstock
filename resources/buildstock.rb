@@ -448,8 +448,7 @@ class RunOSWs
 
     out = File.join(parent_dir, 'out.osw')
     out = File.expand_path(out)
-    raise if !File.exist?(out)
-    # return nil, nil, nil, result_output, run_output if !File.exist?(out)
+    fail if !File.exist?(out)
 
     out = JSON.parse(File.read(out))
 

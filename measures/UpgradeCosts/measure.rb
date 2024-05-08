@@ -70,8 +70,13 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     debug = runner.getBoolArgumentValue('debug', user_arguments)
 
     # Retrieve values from ApplyUpgrade, ReportHPXMLOutput
-    values = { 'apply_upgrade' => Hash[runner.getPastStepValuesForMeasure('apply_upgrade').collect { |k, v| [k.to_s, v] }],
-               'report_hpxml_output' => Hash[runner.getPastStepValuesForMeasure('report_hpxml_output').collect { |k, v| [k.to_s, v] }] }
+    values = {}
+    apply_upgrade = runner.getPastStepValuesForMeasure('apply_upgrade')
+puts apply_upgrade
+    values['apply_upgrade'] = Hash[apply_upgrade.collect { |k, v| [k.to_s, v] }]
+puts values
+    report_hpxml_output = runner.getPastStepValuesForMeasure('report_hpxml_output')
+    values['report_hpxml_output'] = Hash[report_hpxml_output.collect { |k, v| [k.to_s, v] }]
 
     # Report cost multipliers
     existing_hpxml = nil
