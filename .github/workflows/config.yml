@@ -118,6 +118,10 @@ jobs:
         run: |          
           bundle exec rake workflow:analysis_tests
 
+      - name: Run outside bundle
+        run: |
+          openstudio workflow/run_analysis.rb -y project_testing/testing_upgrades.yml -d -k
+
       - name: Upload precomputed buildstocks
         uses: actions/upload-artifact@v4
         with:

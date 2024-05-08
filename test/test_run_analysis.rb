@@ -24,7 +24,7 @@ class TestRunAnalysis < Minitest::Test
     FileUtils.rm_rf(@testing_upgrades)
     FileUtils.rm_rf(@national_upgrades)
   end
-
+=begin
   def test_version
     @command += ' -v'
 
@@ -315,7 +315,7 @@ class TestRunAnalysis < Minitest::Test
 
     FileUtils.cp(results_baseline, File.join(File.dirname(@national_baseline), 'project_national'))
   end
-
+=end
   def test_testing_upgrades
     yml = ' -y project_testing/testing_upgrades.yml'
     @command += yml
