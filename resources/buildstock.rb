@@ -423,7 +423,8 @@ class RunOSWs
     command += ' -m' if measures_only
     command += " -w \"#{in_osw}\""
 
-    system(command, [:out, :err] => File::NULL)
+    # system(command, [:out, :err] => File::NULL)
+    system(command)
     run_log = File.readlines(File.expand_path(File.join(parent_dir, 'run/run.log')))
     run_log.each do |line|
       next if line.include? 'Cannot find current Workflow Step'
@@ -447,7 +448,8 @@ class RunOSWs
 
     out = File.join(parent_dir, 'out.osw')
     out = File.expand_path(out)
-    return nil, nil, nil, result_output, run_output if !File.exist?(out)
+    raise if !File.exist?(out)
+    # return nil, nil, nil, result_output, run_output if !File.exist?(out)
 
     out = JSON.parse(File.read(out))
 
