@@ -1390,6 +1390,18 @@ Arguments
      - Type
      - Choices
      - Description
+   * - ``hvac_control_cooling_offset_shift``
+     - true
+     - hour
+     - Double
+     -
+     - The offset schedule will start +- this much hours from the standard schedule
+   * - ``hvac_control_cooling_offset_type``
+     - true
+     - 
+     - Choice
+     - "day_setup_only", "day_and_night_setup", "day_setup_and_night_setback", "night_setback_only", "night_setup_only", "none"
+     - Cooling Setpoint offset schedule typ
    * - ``hvac_control_cooling_weekday_setpoint_schedule``
      - true
      - 
@@ -4923,6 +4935,18 @@ Arguments
      - Type
      - Choices
      - Description
+   * - ``hvac_control_heating_offset_type``
+     - true
+     - 
+     - Choice
+     - "day_setback_only", "day_and_night_setback", "night_setback_only", "none"
+     - Heating Setpoint offset schedule typ
+   * - ``hvac_control_heating_offset_shift``
+     - true
+     - hour
+     - Double
+     -
+     - The offset schedule will start +- this much hours from the standard schedule
    * - ``hvac_control_heating_weekday_setpoint_schedule``
      - true
      - 
