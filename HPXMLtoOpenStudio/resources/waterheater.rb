@@ -21,10 +21,10 @@ class Waterheater
                                    eta_c: eta_c,
                                    schedules_file: schedules_file,
                                    unavailable_periods: unavailable_periods,
-                                   unit_multiplier: unit_multiplier)
+                                   unit_multiplier: unit_multiplier,
+                                   ec_adj: ec_adj)
     loop.addSupplyBranchForComponent(new_heater)
 
-    add_ec_adj(model, new_heater, ec_adj, loc_space, water_heating_system, unit_multiplier)
     add_desuperheater(model, runner, water_heating_system, new_heater, loc_space, loc_schedule, loop, unit_multiplier)
 
     return loop
@@ -50,11 +50,11 @@ class Waterheater
                                    eta_c: eta_c,
                                    schedules_file: schedules_file,
                                    unavailable_periods: unavailable_periods,
-                                   unit_multiplier: unit_multiplier)
+                                   unit_multiplier: unit_multiplier,
+                                   ec_adj: ec_adj)
 
     loop.addSupplyBranchForComponent(new_heater)
 
-    add_ec_adj(model, new_heater, ec_adj, loc_space, water_heating_system, unit_multiplier)
     add_desuperheater(model, runner, water_heating_system, new_heater, loc_space, loc_schedule, loop, unit_multiplier)
 
     return loop
@@ -110,19 +110,19 @@ class Waterheater
     max_temp = 120.0 # F
 
     # Coil:WaterHeating:AirToWaterHeatPump:Wrapped
-    coil = setup_hpwh_dxcoil(model, runner, water_heating_system, elevation, obj_name_hpwh, airflow_rate, unit_multiplier)
+    coil = setup_hpwh_dxcoil(model, runner, water_heating_system, elevation, obj_name_hpwh, airflow_rate, unit_multiplier, ec_adj)
 
     # WaterHeater:Stratified
-    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, bottom_element_setpoint_schedule, top_element_setpoint_schedule, unit_multiplier, nbeds)
+    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, bottom_element_setpoint_schedule, top_element_setpoint_schedule, unit_multiplier, nbeds, ec_adj)
     loop.addSupplyBranchForComponent(tank)
 
     add_desuperheater(model, runner, water_heating_system, tank, loc_space, loc_schedule, loop, unit_multiplier)
 
     # Fan:SystemModel
-    fan = setup_hpwh_fan(model, water_heating_system, obj_name_hpwh, airflow_rate, unit_multiplier)
+    fan = setup_hpwh_fan(model, water_heating_system, obj_name_hpwh, airflow_rate, unit_multiplier, ec_adj)
 
     # WaterHeater:HeatPump:WrappedCondenser
-    hpwh = setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, control_setpoint_schedule, unit_multiplier)
+    setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, control_setpoint_schedule, unit_multiplier, ec_adj)
 
     # Amb temp & RH sensors, temp sensor shared across programs
     amb_temp_sensor, amb_rh_sensors = get_loc_temp_rh_sensors(model, obj_name_hpwh, loc_schedule, loc_space, conditioned_zone)
@@ -139,8 +139,6 @@ class Waterheater
     program_calling_manager.addProgram(hpwh_ctrl_program)
     program_calling_manager.addProgram(hpwh_inlet_air_program)
 
-    add_ec_adj(model, hpwh, ec_adj, loc_space, water_heating_system, unit_multiplier)
-
     return loop
   end
 
@@ -148,6 +146,7 @@ class Waterheater
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
 
     boiler, boiler_plant_loop = get_combi_boiler_and_plant_loop(model, water_heating_system.related_hvac_idref)
+    boiler.setNominalThermalEfficiency(boiler.nominalThermalEfficiency / ec_adj)
     boiler.setName('combi boiler')
     boiler.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
     boiler.additionalProperties.setFeature('IsCombiBoiler', true) # Used by reporting measure
@@ -215,8 +214,6 @@ class Waterheater
     boiler_plant_loop.setPlantLoopVolume(0.001 * unit_multiplier) # Cannot be auto-calculated because of large default tank source side mfr(set to be overwritten by EMS)
 
     loop.addSupplyBranchForComponent(new_heater)
-
-    add_ec_adj(model, new_heater, ec_adj, loc_space, water_heating_system, unit_multiplier, boiler)
 
     return loop
   end
@@ -631,7 +628,7 @@ class Waterheater
 
   private
 
-  def self.setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, setpoint_schedule, unit_multiplier)
+  def self.setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, setpoint_schedule, unit_multiplier, ec_adj)
     h_condtop = (1.0 - (5.5 / 12.0)) * h_tank # in the 6th node of the tank (counting from top)
     h_condbot = 0.01 * unit_multiplier # bottom node
     h_hpctrl_up = (1.0 - (2.5 / 12.0)) * h_tank # in the 3rd node of the tank
@@ -651,18 +648,16 @@ class Waterheater
     hpwh.setCompressorLocation('Schedule')
     hpwh.setCompressorAmbientTemperatureSchedule(hpwh_tamb)
     hpwh.setFanPlacement('DrawThrough')
-    hpwh.setOnCycleParasiticElectricLoad(0)
-    hpwh.setOffCycleParasiticElectricLoad(0)
+    hpwh.setOnCycleParasiticElectricLoad(0 * ec_adj)
+    hpwh.setOffCycleParasiticElectricLoad(0 * ec_adj)
     hpwh.setParasiticHeatRejectionLocation('Outdoors')
     hpwh.setTankElementControlLogic('MutuallyExclusive')
     hpwh.setControlSensor1HeightInStratifiedTank(h_hpctrl_up)
     hpwh.setControlSensor1Weight(0.75)
     hpwh.setControlSensor2HeightInStratifiedTank(h_hpctrl_low)
-
-    return hpwh
   end
 
-  def self.setup_hpwh_dxcoil(model, runner, water_heating_system, elevation, obj_name_hpwh, airflow_rate, unit_multiplier)
+  def self.setup_hpwh_dxcoil(model, runner, water_heating_system, elevation, obj_name_hpwh, airflow_rate, unit_multiplier, ec_adj)
     # Curves
     hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
     hpwh_cap.setName('HPWH-Cap-fT')
@@ -721,6 +716,7 @@ class Waterheater
         cop = 1.1022 * uef - 0.0877
       end
     end
+    cop /= ec_adj
 
     coil = OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped.new(model)
     coil.setName("#{obj_name_hpwh} coil")
@@ -741,13 +737,13 @@ class Waterheater
     return coil
   end
 
-  def self.setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp, unit_multiplier, nbeds)
+  def self.setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp, unit_multiplier, nbeds, ec_adj)
     # Calculate some geometry parameters for UA, the location of sensors and heat sources in the tank
     v_actual = calc_storage_tank_actual_vol(water_heating_system.tank_volume, water_heating_system.fuel_type) # gal
     a_tank, a_side = calc_tank_areas(v_actual, UnitConversions.convert(h_tank, 'm', 'ft')) # sqft
 
     e_cap = 4.5 # kW
-    parasitics = 3.0 # W
+    parasitics = 3.0 * ec_adj # W
     # Based on Ecotope lab testing of most recent AO Smith HPWHs (series HPTU)
     if water_heating_system.tank_volume <= 58.0
       tank_ua = 3.6 # Btu/h-R
@@ -785,7 +781,7 @@ class Waterheater
     tank.setHeater2Height(h_LE)
     tank.setHeater2DeadbandTemperatureDifference(3.89)
     tank.setHeaterFuelType(EPlus::FuelTypeElectricity)
-    tank.setHeaterThermalEfficiency(1)
+    tank.setHeaterThermalEfficiency(1.0 / ec_adj)
     tank.setOffCycleParasiticFuelConsumptionRate(parasitics)
     tank.setOffCycleParasiticFuelType(EPlus::FuelTypeElectricity)
     tank.setOnCycleParasiticFuelConsumptionRate(parasitics)
@@ -807,8 +803,8 @@ class Waterheater
     return tank
   end
 
-  def self.setup_hpwh_fan(model, water_heating_system, obj_name_hpwh, airflow_rate, unit_multiplier)
-    fan_power = 0.0462 # W/cfm, Based on 1st gen AO Smith HPWH, could be updated but pretty minor impact
+  def self.setup_hpwh_fan(model, water_heating_system, obj_name_hpwh, airflow_rate, unit_multiplier, ec_adj)
+    fan_power = 0.0462 * ec_adj # W/cfm, Based on 1st gen AO Smith HPWH, could be updated but pretty minor impact
     fan = OpenStudio::Model::FanSystemModel.new(model)
     fan.setSpeedControlMethod('Discrete')
     fan.setDesignPowerSizingMethod('PowerPerFlow')
@@ -1348,85 +1344,6 @@ class Waterheater
     return num_baths
   end
 
-  def self.add_ec_adj(model, heater, ec_adj, loc_space, water_heating_system, unit_multiplier, combi_boiler = nil)
-    adjustment = ec_adj - 1.0
-
-    if loc_space.nil? # WH is not in a zone, set the other equipment to be in a random space
-      loc_space = model.getSpaces[0]
-    end
-
-    if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
-      tank = heater.tank
-    else
-      tank = heater
-    end
-    if [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
-      fuel_type = water_heating_system.related_hvac_system.heating_system_fuel
-    else
-      fuel_type = water_heating_system.fuel_type
-    end
-
-    # Add an other equipment object for water heating that will get actuated, has a small initial load but gets overwritten by EMS
-    cnt = model.getOtherEquipments.select { |e| e.endUseSubcategory.start_with? Constants.ObjectNameWaterHeaterAdjustment }.size # Ensure unique meter for each water heater
-    ec_adj_object = HotWaterAndAppliances.add_other_equipment(model, "#{Constants.ObjectNameWaterHeaterAdjustment}#{cnt + 1}", loc_space, 0.01, 0, 0, model.alwaysOnDiscreteSchedule, fuel_type)
-    ec_adj_object.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
-
-    # EMS for calculating the EC_adj
-
-    # Sensors
-    if [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
-      ec_adj_sensor_boiler = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Boiler #{EPlus.fuel_type(fuel_type)} Rate")
-      ec_adj_sensor_boiler.setName("#{combi_boiler.name} energy")
-      ec_adj_sensor_boiler.setKeyName(combi_boiler.name.to_s)
-    else
-      ec_adj_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Heater #{EPlus.fuel_type(fuel_type)} Rate")
-      ec_adj_sensor.setName("#{tank.name} energy")
-      ec_adj_sensor.setKeyName(tank.name.to_s)
-      if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
-        ec_adj_hp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Cooling Coil Water Heating #{EPlus::FuelTypeElectricity} Rate")
-        ec_adj_hp_sensor.setName("#{heater.dXCoil.name} energy")
-        ec_adj_hp_sensor.setKeyName(heater.dXCoil.name.to_s)
-        ec_adj_fan_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Fan #{EPlus::FuelTypeElectricity} Rate")
-        ec_adj_fan_sensor.setName("#{heater.fan.name} energy")
-        ec_adj_fan_sensor.setKeyName(heater.fan.name.to_s)
-      end
-    end
-
-    ec_adj_oncyc_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Heater On Cycle Parasitic #{EPlus::FuelTypeElectricity} Rate")
-    ec_adj_oncyc_sensor.setName("#{tank.name} on cycle parasitic")
-    ec_adj_oncyc_sensor.setKeyName(tank.name.to_s)
-    ec_adj_offcyc_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Heater Off Cycle Parasitic #{EPlus::FuelTypeElectricity} Rate")
-    ec_adj_offcyc_sensor.setName("#{tank.name} off cycle parasitic")
-    ec_adj_offcyc_sensor.setKeyName(tank.name.to_s)
-
-    # Actuators
-    ec_adj_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(ec_adj_object, *EPlus::EMSActuatorOtherEquipmentPower, loc_space)
-    ec_adj_actuator.setName("#{heater.name} ec_adj_act")
-
-    # Program
-    ec_adj_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-    ec_adj_program.setName("#{heater.name} EC_adj")
-    if [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
-      ec_adj_program.addLine("Set dhw_e_cons = #{ec_adj_oncyc_sensor.name} + #{ec_adj_offcyc_sensor.name}")
-      ec_adj_program.addLine("If #{ec_adj_sensor_boiler.name} > 0")
-      ec_adj_program.addLine("  Set dhw_e_cons = dhw_e_cons + #{ec_adj_sensor_boiler.name}")
-      ec_adj_program.addLine('EndIf')
-    elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
-      ec_adj_program.addLine("Set dhw_e_cons = #{ec_adj_sensor.name} + #{ec_adj_oncyc_sensor.name} + #{ec_adj_offcyc_sensor.name} + #{ec_adj_hp_sensor.name} + #{ec_adj_fan_sensor.name}")
-    else
-      ec_adj_program.addLine("Set dhw_e_cons = #{ec_adj_sensor.name} + #{ec_adj_oncyc_sensor.name} + #{ec_adj_offcyc_sensor.name}")
-    end
-    # Since the water heater has been multiplied by the unit_multiplier, and this OtherEquipment object will be adding
-    # load to a thermal zone with an E+ multiplier, we would double-count the multiplier if we didn't divide by it here.
-    ec_adj_program.addLine("Set #{ec_adj_actuator.name} = #{adjustment} * dhw_e_cons / #{unit_multiplier}")
-
-    # Program Calling Manager
-    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-    program_calling_manager.setName("#{heater.name} EC_adj ProgramManager")
-    program_calling_manager.setCallingPoint('EndOfSystemTimestepBeforeHVACReporting')
-    program_calling_manager.addProgram(ec_adj_program)
-  end
-
   def self.get_default_hot_water_temperature(eri_version)
     # Returns hot water temperature in deg-F
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014A')
@@ -1627,7 +1544,7 @@ class Waterheater
     OpenStudio::Model::SetpointManagerScheduled.new(model, new_schedule)
   end
 
-  def self.create_new_heater(name:, water_heating_system: nil, act_vol:, t_set_c: nil, loc_space:, loc_schedule: nil, model:, runner:, u: nil, ua:, eta_c: nil, is_dsh_storage: false, is_combi: false, schedules_file: nil, unavailable_periods: [], unit_multiplier: 1.0)
+  def self.create_new_heater(name:, water_heating_system: nil, act_vol:, t_set_c: nil, loc_space:, loc_schedule: nil, model:, runner:, u: nil, ua:, eta_c: nil, is_dsh_storage: false, is_combi: false, schedules_file: nil, unavailable_periods: [], unit_multiplier: 1.0, ec_adj: 1.0)
     # storage tank doesn't require water_heating_system class argument being passed
     if is_dsh_storage || is_combi
       fuel = nil
@@ -1665,7 +1582,7 @@ class Waterheater
       new_heater.setHeater2Capacity(UnitConversions.convert(cap, 'kBtu/hr', 'W'))
       new_heater.setHeater2Height(UnitConversions.convert(h_tank * 0.733333333, 'ft', 'm')) # node 13; height of upper element based on TRNSYS assumptions for an ERWH
       new_heater.setHeater2DeadbandTemperatureDifference(5.556)
-      new_heater.setHeaterThermalEfficiency(1)
+      new_heater.setHeaterThermalEfficiency(1.0 / ec_adj)
       new_heater.setNumberofNodes(12)
       new_heater.setAdditionalDestratificationConductivity(0)
       new_heater.setUseSideDesignFlowRate(UnitConversions.convert(act_vol, 'gal', 'm^3') / 60.1)
@@ -1679,7 +1596,7 @@ class Waterheater
     else
       new_heater = OpenStudio::Model::WaterHeaterMixed.new(model)
       new_heater.setTankVolume(UnitConversions.convert(act_vol, 'gal', 'm^3'))
-      new_heater.setHeaterThermalEfficiency(eta_c) unless eta_c.nil?
+      new_heater.setHeaterThermalEfficiency(eta_c / ec_adj) unless eta_c.nil?
       configure_mixed_tank_setpoint_schedule(new_heater, schedules_file, t_set_c, model, runner, unavailable_periods)
       new_heater.setMaximumTemperatureLimit(99.0)
       if [HPXML::WaterHeaterTypeTankless, HPXML::WaterHeaterTypeCombiTankless].include? tank_type
@@ -1733,16 +1650,13 @@ class Waterheater
 
     # FUTURE: These are always zero right now; develop smart defaults.
     new_heater.setOffCycleParasiticFuelType(EPlus::FuelTypeElectricity)
-    new_heater.setOffCycleParasiticFuelConsumptionRate(0.0)
+    new_heater.setOffCycleParasiticFuelConsumptionRate(0.0 * ec_adj)
     new_heater.setOffCycleParasiticHeatFractiontoTank(0)
     new_heater.setOnCycleParasiticFuelType(EPlus::FuelTypeElectricity)
-    new_heater.setOnCycleParasiticFuelConsumptionRate(0.0)
+    new_heater.setOnCycleParasiticFuelConsumptionRate(0.0 * ec_adj)
     new_heater.setOnCycleParasiticHeatFractiontoTank(0)
 
     return new_heater
-  end
-
-  def self.set_wh_parasitic_parameters(water_heating_system, water_heater, is_dsh_storage)
   end
 
   def self.set_wh_ambient(loc_space, loc_schedule, wh_obj)
