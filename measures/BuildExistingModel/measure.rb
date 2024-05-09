@@ -396,8 +396,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
                                     'hvac_control_cooling_weekend_setpoint_offset_magnitude',
                                     'hvac_control_cooling_offset_shift',
                                     'hvac_control_cooling_offset_type',
-                                    'hvac_control_heating_offset_type'
-                                    ]
+                                    'hvac_control_heating_offset_type']
       resstock_arguments_to_pass.each do |arg_name|
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"

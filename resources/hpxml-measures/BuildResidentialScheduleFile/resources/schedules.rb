@@ -585,15 +585,14 @@ class ScheduleGenerator
     fixtures_peak_flow = @schedules[SchedulesFile::Columns[:HotWaterFixtures].name].max
     @schedules[SchedulesFile::Columns[:HotWaterFixtures].name] = @schedules[SchedulesFile::Columns[:HotWaterFixtures].name].map { |flow| flow / fixtures_peak_flow }
 
-    fill_hourly_setpoint_schedule("heating", args[:extension_properties], prng)
-    fill_hourly_setpoint_schedule("cooling", args[:extension_properties], prng)
+    fill_hourly_setpoint_schedule('heating', args[:extension_properties], prng)
+    fill_hourly_setpoint_schedule('cooling', args[:extension_properties], prng)
     repair_schedules(@schedules[SchedulesFile::Columns[:HeatingSetpoint].name],
-                     @schedules[SchedulesFile::Columns[:CoolingSetpoint].name] )
+                     @schedules[SchedulesFile::Columns[:CoolingSetpoint].name])
     return true
   end
 
   def fill_hourly_setpoint_schedule(hvac_mode, bldg_properties, prng)
-
     if hvac_mode == 'heating'
       schedule_column = SchedulesFile::Columns[:HeatingSetpoint].name
     else
@@ -604,11 +603,11 @@ class ScheduleGenerator
 
     weekend_setpoint = bldg_properties["hvac_control_#{hvac_mode}_weekend_setpoint_temp"].to_f
     weekend_offset_magnitude = bldg_properties["hvac_control_#{hvac_mode}_weekend_setpoint_offset_magnitude"].to_f
-    weekend_offset_schedule = get_offset_schedules(hvac_mode, offset_type, "weekend")
+    weekend_offset_schedule = get_offset_schedules(hvac_mode, offset_type, 'weekend')
 
     weekday_setpoint = bldg_properties["hvac_control_#{hvac_mode}_weekday_setpoint_temp"].to_f
     weekday_offset_magnitude = bldg_properties["hvac_control_#{hvac_mode}_weekday_setpoint_offset_magnitude"].to_f
-    weekday_offset_schedule = get_offset_schedules(hvac_mode, offset_type, "weekday")
+    weekday_offset_schedule = get_offset_schedules(hvac_mode, offset_type, 'weekday')
 
     shift_schedules(prng, shift, weekday_offset_schedule, weekend_offset_schedule)
 
@@ -641,7 +640,7 @@ class ScheduleGenerator
     # to prevent unmet hours being reported. This is a dangerous idea. These setpoints are used
     # by natural ventilation, Kiva initialization, and probably other things.
     heating_days, cooling_days = get_heating_and_cooling_seasons
-    if heating_days.nil? or cooling_days.nil?
+    if heating_days.nil? || cooling_days.nil?
       @runner.registerWarning('Could not find HeatingSeason and CoolingSeason, so HVAC setpoints have not been adjusted.')
       return
     end
@@ -649,20 +648,20 @@ class ScheduleGenerator
     @total_days_in_year.times do |day|
       @steps_in_day.times do |step|
         indx = day * @steps_in_day + step
-        if cooling_schedules[indx] <  heating_schedules[indx]
-          if heating_days[day] == cooling_days[day]  # Either both heating/cooling or neither
-            avg = (cooling_schedules[indx] +  heating_schedules[indx]) / 2.0
-            cooling_schedules[indx] = avg
-            heating_schedules[indx] = avg
-          elsif heating_days[day] == 1
-            cooling_schedules[indx] = heating_schedules[indx]
-          elsif cooling_days[day] == 1
-            heating_schedules[indx] = cooling_schedules[indx]
-          else
-            fail 'HeatingSeason and CoolingSeason, when combined, must span the entire year.'
-          end
-          warning = true
+        next unless cooling_schedules[indx] < heating_schedules[indx]
+
+        if heating_days[day] == cooling_days[day] # Either both heating/cooling or neither
+          avg = (cooling_schedules[indx] + heating_schedules[indx]) / 2.0
+          cooling_schedules[indx] = avg
+          heating_schedules[indx] = avg
+        elsif heating_days[day] == 1
+          cooling_schedules[indx] = heating_schedules[indx]
+        elsif cooling_days[day] == 1
+          heating_schedules[indx] = cooling_schedules[indx]
+        else
+          fail 'HeatingSeason and CoolingSeason, when combined, must span the entire year.'
         end
+        warning = true
       end
     end
     if warning
@@ -1036,10 +1035,12 @@ class ScheduleGenerator
     if offset_type == 'none'
       return [0] * 24
     end
+
     hourly_offset_schedule = Schedule.HVACOffsetMap[hvac_mode][day_type][offset_type]
     offset_schedule = []
     # Generate offset schedule in the same resolution as simulation\
     raise "Offset schedule not found for #{hvac_mode} #{day_type} #{offset_type}" if hourly_offset_schedule.nil?
+
     @steps_in_day.times do |step|
       minute = step * @minutes_per_step
       hour = (minute / 60).to_i

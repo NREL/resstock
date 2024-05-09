@@ -2,6 +2,8 @@
 
 class Constants
   def self.OccupancyTypesProbabilities
+    # Probability for different occupancy cluster types, Mostly Home, Early Regular Worker, Mostly Away, Regular Worker
+    # these probabilities are derived from ATUS using the k-modes algorithm
     return '0.381, 0.297, 0.165, 0.157'
   end
 
@@ -9,6 +11,9 @@ class Constants
     return '1.075, 1.064951905, 1.0375, 1.0, 0.9625, 0.935048095, 0.925, 0.935048095, 0.9625, 1.0, 1.0375, 1.064951905'
   end
 
+  # probabilities for all water draw events are extracted from DHW event generators
+  # the onset, duration, events_per_cluster_probs, flowrate mean and std could all refer to the DHW event generator excel sheet
+  # ('event characteristics' and 'Start Times' sheet)
   def self.SinkDurationProbability
     return '0.901242, 0.076572, 0.01722, 0.003798, 0.000944, 0.000154, 4.6e-05, 2.2e-05, 2.0e-06'
   end

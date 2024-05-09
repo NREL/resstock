@@ -5356,6 +5356,32 @@ Specify the weekend heating offset magnitude.
 
 <br/>
 
+**Heating Setpoint offset schedule type**
+
+Heating Setpoint offset schedule typ
+
+- **Name:** ``hvac_control_heating_offset_type``
+- **Type:** ``Choice``
+
+- **Required:** ``true``
+
+- **Choices:** `day_setback_only`, `day_and_night_setback`, `night_setback_only`, `none`
+
+<br/>
+
+**Heating Setpoint offset schdule horizontal shift in hours**
+
+The offset schedule will start +- this much hours from the standard schedule
+
+- **Name:** ``hvac_control_heating_offset_shift``
+- **Type:** ``Double``
+
+- **Units:** ``hour``
+
+- **Required:** ``true``
+
+<br/>
+
 **Heating Setpoint: Weekday Schedule**
 
 Specify the 24-hour comma-separated weekday heating schedule of 0s and 1s.
@@ -5438,6 +5464,32 @@ Specify the weekend cooling offset magnitude.
 - **Units:** ``deg-F``
 
 - **Required:** ``true``
+
+<br/>
+
+**Cooling Setpoint offset schedule shift in hours**
+
+The offset schedule will start +- this much hours from the standard schedule
+
+- **Name:** ``hvac_control_cooling_offset_shift``
+- **Type:** ``Double``
+
+- **Units:** ``hour``
+
+- **Required:** ``true``
+
+<br/>
+
+**Cooling Setpoint offset schedule type**
+
+Cooling Setpoint offset schedule typ
+
+- **Name:** ``hvac_control_cooling_offset_type``
+- **Type:** ``Choice``
+
+- **Required:** ``true``
+
+- **Choices:** `day_setup_only`, `day_and_night_setup`, `day_setup_and_night_setback`, `night_setback_only`, `night_setup_only`, `none`
 
 <br/>
 

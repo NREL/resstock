@@ -296,17 +296,16 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_cooling_weekend_setpoint_offset_magnitude', true)
     arg.setDisplayName('Cooling Setpoint: Weekend Offset Magnitude')
     arg.setDescription('Specify the weekend cooling offset magnitude.')
-    arg.setUnits('hour')
+    arg.setUnits('deg-F')
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_cooling_offset_shift', true)
     arg.setDisplayName('Cooling Setpoint offset schedule shift in hours')
     arg.setDescription('The offset schedule will start +- this much hours from the standard schedule')
-    arg.setUnits('deg-F')
+    arg.setUnits('hour')
     arg.setDefaultValue(0)
     args << arg
-
 
     # Choices must match the schedules in: resources/hpxml-measures/HPXMLtoOpenStudio/resources/schedules.rb::HVACOffsetMap
     cooling_offset_types = OpenStudio::StringVector.new
