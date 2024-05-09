@@ -106,6 +106,7 @@ class TesBuildStockBatch < Minitest::Test
     actual_outputs = CSV.read(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv'), headers: true)
     actual_outputs.headers.map { |x| actual_outputs.delete(x) if x.include?('report_utility_bills.bills_2_') }
     actual_outputs.headers.map { |x| actual_outputs.delete(x) if x.include?('report_utility_bills.bills_3_') }
+    actual_outputs.headers.map { |x| actual_outputs.delete(x) if x.include?('server_directory_cleanup.') }
     actual_names = actual_outputs.headers - expected_annual_names
 
     actual_extras = actual_names - expected_names
