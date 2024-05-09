@@ -51,6 +51,7 @@ __New Features__
 - Manual J design load calculations:
   - Allow additional outdoor design condition inputs: `DailyTemperatureRange` and `HumidityDifference`.
   - Miscellaneous improvements.
+- Improves heating/cooling component loads; for timesteps where there is no heating/cooling load, assigns heat transfer to heating or cooling by comparing indoor temperature to the average of heating/cooling setpoints.
 - Adds net energy and net electricity timeseries output columns even when there is no PV or generator.
 - Adds more error-checking for inappropriate inputs (e.g., HVAC SHR=0 or clothes washer IMEF=0).
 - Allow alternative label energy use (W) input for ceiling fans.
