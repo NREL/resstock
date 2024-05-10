@@ -575,7 +575,7 @@ class HPXMLDefaults
       end
 
       if hpxml_bldg.elevation.nil?
-        hpxml_bldg.elevation = UnitConversions.convert(epw_file.elevation, 'm', 'ft').round(1)
+        hpxml_bldg.elevation = UnitConversions.convert([epw_file.elevation, 0.0].max, 'm', 'ft').round(1)
         hpxml_bldg.elevation_isdefaulted = true
       end
 
@@ -1426,6 +1426,15 @@ class HPXMLDefaults
       else
         heat_pump.backup_heating_lockout_temp = 50.0 # deg-F
       end
+      heat_pump.backup_heating_lockout_temp_isdefaulted = true
+    end
+
+    # Default advanced defrost
+    hpxml_bldg.heat_pumps.each do |heat_pump|
+      next unless heat_pump.advanced_defrost_approach.nil?
+      next unless [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpRoom, HPXML::HVACTypeHeatPumpPTHP].include? heat_pump.heat_pump_type
+
+      heat_pump.advanced_defrost_approach = false
       heat_pump.backup_heating_lockout_temp_isdefaulted = true
     end
 

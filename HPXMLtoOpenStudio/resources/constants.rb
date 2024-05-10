@@ -284,6 +284,10 @@ class Constants
     return 'packaged terminal air conditioner'
   end
 
+  def self.ObjectNameBackupSuppHeat
+    return 'back up supp heat'
+  end
+
   def self.ObjectNameMiscGrill
     return 'misc grill'
   end
@@ -370,10 +374,6 @@ class Constants
 
   def self.ObjectNameWaterHeaterSetpoint
     return 'water heater setpoint'
-  end
-
-  def self.ObjectNameWaterHeaterAdjustment
-    return 'water heater energy adjustment'
   end
 
   def self.ObjectNameWaterLoopHeatPump

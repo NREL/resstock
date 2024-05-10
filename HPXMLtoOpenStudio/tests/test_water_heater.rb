@@ -25,7 +25,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 0.773
+    ther_eff = 0.773 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -57,7 +57,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
       fuel = EPlus.fuel_type(water_heating_system.fuel_type)
       ua = UnitConversions.convert(6.476, 'Btu/(hr*F)', 'W/K')
       t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-      ther_eff = 0.762
+      ther_eff = 0.762 / _get_ec_adj(hpxml_bldg, water_heating_system)
       loc = water_heating_system.location
 
       # Check water heater
@@ -89,7 +89,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 0.773
+    ther_eff = 0.773 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -120,7 +120,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 0.773
+    ther_eff = 0.773 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -151,7 +151,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 0.773
+    ther_eff = 0.773 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -182,7 +182,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = UnitConversions.convert(1.335, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -213,7 +213,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = UnitConversions.convert(1.503, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -244,7 +244,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = 0.0
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C')
-    ther_eff = 0.9108
+    ther_eff = 0.9108 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -275,7 +275,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = 0.0
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C')
-    ther_eff = 0.9212
+    ther_eff = 0.9212 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -306,7 +306,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = 0.0
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C')
-    ther_eff = 0.8742
+    ther_eff = 0.8742 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -337,7 +337,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 0.773
+    ther_eff = 0.773 / _get_ec_adj(hpxml_bldg, water_heating_system)
 
     # Check water heater
     assert_equal(1, model.getWaterHeaterMixeds.size)
@@ -367,7 +367,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ua = UnitConversions.convert(1.335, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
     loc = water_heating_system.location
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
 
     # Check water heater
     assert_equal(2, model.getWaterHeaterMixeds.size) # preheat tank + water heater
@@ -405,7 +405,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ua = UnitConversions.convert(1.335, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
     loc = water_heating_system.location
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
 
     # Check water heater
     assert_equal(2, model.getWaterHeaterMixeds.size) # preheat tank + water heater
@@ -443,7 +443,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ua = UnitConversions.convert(1.335, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
     loc = water_heating_system.location
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
 
     # Check water heater
     assert_equal(2, model.getWaterHeaterMixeds.size) # preheat tank + water heater
@@ -485,7 +485,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     hx_eff = 1.0
 
     collector_area = UnitConversions.convert(solar_thermal_system.collector_area, 'ft^2', 'm^2')
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
     iam_coeff2 = 0.3023
     iam_coeff3 = -0.3057
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
@@ -558,7 +558,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     hx_eff = 1.0
 
     collector_area = UnitConversions.convert(solar_thermal_system.collector_area, 'ft^2', 'm^2')
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
     iam_coeff2 = 0.1
     iam_coeff3 = 0
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
@@ -631,7 +631,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     hx_eff = 0.7
 
     collector_area = UnitConversions.convert(solar_thermal_system.collector_area, 'ft^2', 'm^2')
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
     iam_coeff2 = 0.1
     iam_coeff3 = 0
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
@@ -704,7 +704,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     hx_eff = 1.0
 
     collector_area = UnitConversions.convert(solar_thermal_system.collector_area, 'ft^2', 'm^2')
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
     iam_coeff2 = 0.1
     iam_coeff3 = 0
     collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
@@ -778,7 +778,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
 
     collector_area = UnitConversions.convert(solar_thermal_system.collector_area, 'ft^2', 'm^2')
     collector_storage_volume = UnitConversions.convert(solar_thermal_system.storage_volume, 'gal', 'm^3')
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
     storage_tank_volume = 0.2271
     storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
@@ -840,7 +840,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = UnitConversions.convert(1.335, 'Btu/(hr*F)', 'W/K') * 0.35
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -942,8 +942,8 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     u =  0.925
-    ther_eff = 1.0
-    cop = 2.820
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
+    cop = 2.820 / _get_ec_adj(hpxml_bldg, water_heating_system)
     tank_height = 1.598
 
     # Check water heater
@@ -977,8 +977,8 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     u =  1.045
-    ther_eff = 1.0
-    cop = 4.004
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
+    cop = 4.004 / _get_ec_adj(hpxml_bldg, water_heating_system)
     tank_height = 1.0335
 
     # Check water heater
@@ -1014,7 +1014,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = UnitConversions.convert(0.6415, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -1045,7 +1045,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K') * hpxml_bldg.building_construction.number_of_bedrooms.to_f / water_heating_system.number_of_bedrooms_served
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 0.773
+    ther_eff = 0.773 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -1090,8 +1090,8 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     u =  0.1081
-    ther_eff = 1.0
-    cop = 2.820
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
+    cop = 2.820 / _get_ec_adj(hpxml_bldg, water_heating_system)
     tank_height = 2.3495
 
     # Check water heater
@@ -1127,7 +1127,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K') * hpxml_bldg.building_construction.number_of_bedrooms.to_f / water_heating_system.number_of_bedrooms_served
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 0.773
+    ther_eff = 0.773 / _get_ec_adj(hpxml_bldg, water_heating_system)
     loc = water_heating_system.location
 
     # Check water heater
@@ -1155,8 +1155,8 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     u =  1.045
-    ther_eff = 1.0
-    cop = 4.004
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
+    cop = 4.004 / _get_ec_adj(hpxml_bldg, water_heating_system)
     tank_height = 1.0335
 
     # Check water heater
@@ -1191,7 +1191,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     u =  0.0743
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 1.0
+    ther_eff = 1.0 / _get_ec_adj(hpxml_bldg, water_heating_system)
     tank_height = 1.2192
     cap = UnitConversions.convert(water_heating_system.heating_capacity / 1000.0, 'kBtu/hr', 'W')
     loc = water_heating_system.location
@@ -1247,5 +1247,14 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
     return model, hpxml, hpxml.buildings[0]
+  end
+
+  def _get_ec_adj(hpxml_bldg, water_heating_system)
+    has_uncond_bsmnt = hpxml_bldg.has_location(HPXML::LocationBasementUnconditioned)
+    has_cond_bsmnt = hpxml_bldg.has_location(HPXML::LocationBasementConditioned)
+    cfa = hpxml_bldg.building_construction.conditioned_floor_area
+    ncfl = hpxml_bldg.building_construction.number_of_conditioned_floors
+    hot_water_distribution = hpxml_bldg.hot_water_distributions[0]
+    return HotWaterAndAppliances.get_dist_energy_consumption_adjustment(has_uncond_bsmnt, has_cond_bsmnt, cfa, ncfl, water_heating_system, hot_water_distribution)
   end
 end
