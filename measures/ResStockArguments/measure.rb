@@ -387,7 +387,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    args = get_argument_values(runner, arguments(model), user_arguments)
+    args = runner.getArgumentValues(arguments(model), user_arguments)
 
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     arg_names = []
@@ -445,8 +445,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Vintage
-    if args[:vintage].is_initialized && args[:year_built].to_s == Constants.Auto
-      args[:year_built] = Integer(Float(args[:vintage].get.gsub(/[^0-9]/, ''))) # strip non-numeric
+    if !args[:vintage].nil? && args[:year_built].to_s == Constants.Auto
+      args[:year_built] = Integer(Float(args[:vintage].gsub(/[^0-9]/, ''))) # strip non-numeric
     end
 
     # Num Occupants
@@ -555,24 +555,24 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # HVAC Faults
-    if args[:heating_system_rated_cfm_per_ton].is_initialized && args[:heating_system_actual_cfm_per_ton].is_initialized
-      args[:heating_system_airflow_defect_ratio] = (args[:heating_system_actual_cfm_per_ton].get - args[:heating_system_rated_cfm_per_ton].get) / args[:heating_system_rated_cfm_per_ton].get
+    if !args[:heating_system_rated_cfm_per_ton].nil? && !args[:heating_system_actual_cfm_per_ton].nil?
+      args[:heating_system_airflow_defect_ratio] = (args[:heating_system_actual_cfm_per_ton] - args[:heating_system_rated_cfm_per_ton]) / args[:heating_system_rated_cfm_per_ton]
     end
 
-    if args[:cooling_system_rated_cfm_per_ton].is_initialized && args[:cooling_system_actual_cfm_per_ton].is_initialized
-      args[:cooling_system_airflow_defect_ratio] = (args[:cooling_system_actual_cfm_per_ton].get - args[:cooling_system_rated_cfm_per_ton].get) / args[:cooling_system_rated_cfm_per_ton].get
+    if !args[:cooling_system_rated_cfm_per_ton].nil? && !args[:cooling_system_actual_cfm_per_ton].nil?
+      args[:cooling_system_airflow_defect_ratio] = (args[:cooling_system_actual_cfm_per_ton] - args[:cooling_system_rated_cfm_per_ton]) / args[:cooling_system_rated_cfm_per_ton]
     end
 
-    if args[:cooling_system_frac_manufacturer_charge].is_initialized
-      args[:cooling_system_charge_defect_ratio] = args[:cooling_system_frac_manufacturer_charge].get - 1.0
+    if !args[:cooling_system_frac_manufacturer_charge].nil?
+      args[:cooling_system_charge_defect_ratio] = args[:cooling_system_frac_manufacturer_charge] - 1.0
     end
 
-    if args[:heat_pump_rated_cfm_per_ton].is_initialized && args[:heat_pump_actual_cfm_per_ton].is_initialized
-      args[:heat_pump_airflow_defect_ratio] = (args[:heat_pump_actual_cfm_per_ton].get - args[:heat_pump_rated_cfm_per_ton].get) / args[:cooling_system_rated_cfm_per_ton].get
+    if !args[:heat_pump_rated_cfm_per_ton].nil? && !args[:heat_pump_actual_cfm_per_ton].nil?
+      args[:heat_pump_airflow_defect_ratio] = (args[:heat_pump_actual_cfm_per_ton] - args[:heat_pump_rated_cfm_per_ton]) / args[:cooling_system_rated_cfm_per_ton]
     end
 
-    if args[:heat_pump_frac_manufacturer_charge].is_initialized
-      args[:heat_pump_charge_defect_ratio] = args[:heat_pump_frac_manufacturer_charge].get - 1.0
+    if !args[:heat_pump_frac_manufacturer_charge].nil?
+      args[:heat_pump_charge_defect_ratio] = args[:heat_pump_frac_manufacturer_charge] - 1.0
     end
 
     # Error check geometry inputs
@@ -707,8 +707,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Infiltration Reduction
-    if args[:air_leakage_percent_reduction].is_initialized
-      args[:air_leakage_value] *= (1.0 - args[:air_leakage_percent_reduction].get / 100.0)
+    if not args[:air_leakage_percent_reduction].nil?
+      args[:air_leakage_value] *= (1.0 - args[:air_leakage_percent_reduction] / 100.0)
     end
 
     # Num Floors
@@ -719,15 +719,15 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Adiabatic Floor/Ceiling
-    if args[:geometry_unit_level].is_initialized
-      if args[:geometry_unit_level].get == 'Bottom'
+    if not args[:geometry_unit_level].nil?
+      if args[:geometry_unit_level] == 'Bottom'
         if args[:geometry_num_floors_above_grade] > 1 # this could be "bottom" of a 1-story building
           args[:geometry_attic_type] = HPXML::AtticTypeBelowApartment
         end
-      elsif args[:geometry_unit_level].get == 'Middle'
+      elsif args[:geometry_unit_level] == 'Middle'
         args[:geometry_foundation_type] = HPXML::FoundationTypeAboveApartment
         args[:geometry_attic_type] = HPXML::AtticTypeBelowApartment
-      elsif args[:geometry_unit_level].get == 'Top'
+      elsif args[:geometry_unit_level] == 'Top'
         args[:geometry_foundation_type] = HPXML::FoundationTypeAboveApartment
       end
     end
@@ -735,8 +735,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # Wall Assembly R-Value
     args[:wall_assembly_r] += args[:exterior_finish_r]
 
-    if args[:wall_continuous_exterior_r].is_initialized
-      args[:wall_assembly_r] += args[:wall_continuous_exterior_r].get
+    if not args[:wall_continuous_exterior_r].nil?
+      args[:wall_assembly_r] += args[:wall_continuous_exterior_r]
     end
 
     # Rim Joist Assembly R-Value
@@ -766,15 +766,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
     args.each do |arg_name, arg_value|
-      begin
-        if arg_value.is_initialized
-          arg_value = arg_value.get
-        else
-          next
-        end
-      rescue
-      end
-
       if args_to_delete.include?(arg_name) || (arg_value == Constants.Auto)
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end

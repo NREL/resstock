@@ -351,20 +351,6 @@ def get_value_from_workflow_step_value(step_value)
   end
 end
 
-def get_value_from_additional_properties(obj, feature_name)
-  additional_properties = obj.additionalProperties
-  feature_data_type = additional_properties.getFeatureDataType(feature_name).get if additional_properties.getFeatureDataType(feature_name).is_initialized
-  if feature_data_type == 'Boolean'
-    return additional_properties.getFeatureAsBoolean(feature_name).get if additional_properties.getFeatureAsBoolean(feature_name).is_initialized
-  elsif feature_data_type == 'Double'
-    return additional_properties.getFeatureAsDouble(feature_name).get if additional_properties.getFeatureAsDouble(feature_name).is_initialized
-  elsif feature_data_type == 'Integer'
-    return additional_properties.getFeatureAsInteger(feature_name).get if additional_properties.getFeatureAsInteger(feature_name).is_initialized
-  elsif feature_data_type == 'String'
-    return additional_properties.getFeatureAsString(feature_name).get if additional_properties.getFeatureAsString(feature_name).is_initialized
-  end
-end
-
 def run_measure(model, measure, argument_map, runner)
   begin
     # run the measure
@@ -501,9 +487,7 @@ def report_os_warnings(os_log, rundir)
   File.open(File.join(rundir, 'run.log'), 'a') do |f|
     os_log.logMessages.each do |s|
       next if s.logMessage.include? 'Cannot find current Workflow Step'
-      next if s.logMessage.include? 'Data will be treated as typical (TMY)'
       next if s.logMessage.include? 'WorkflowStepResult value called with undefined stepResult'
-      next if s.logMessage.include?("Object of type 'Schedule:Constant' and named 'Always") && s.logMessage.include?('points to an object named') && s.logMessage.include?('but that object cannot be located')
       next if s.logMessage.include? 'Appears there are no design condition fields in the EPW file'
       next if s.logMessage.include? 'Volume calculation will be potentially inaccurate'
       next if s.logMessage.include? 'Valid instance'
@@ -544,39 +528,4 @@ class String
 
     return true
   end
-end
-
-def get_argument_values(runner, arguments, user_arguments)
-  args = {}
-  arguments.each do |argument|
-    key = argument.name.to_sym
-    if argument.required
-      case argument.type
-      when 'Choice'.to_OSArgumentType
-        args[key] = runner.getStringArgumentValue(argument.name, user_arguments)
-      when 'Boolean'.to_OSArgumentType
-        args[key] = runner.getBoolArgumentValue(argument.name, user_arguments)
-      when 'Double'.to_OSArgumentType
-        args[key] = runner.getDoubleArgumentValue(argument.name, user_arguments)
-      when 'Integer'.to_OSArgumentType
-        args[key] = runner.getIntegerArgumentValue(argument.name, user_arguments)
-      when 'String'.to_OSArgumentType
-        args[key] = runner.getStringArgumentValue(argument.name, user_arguments)
-      end
-    else
-      case argument.type
-      when 'Choice'.to_OSArgumentType
-        args[key] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
-      when 'Boolean'.to_OSArgumentType
-        args[key] = runner.getOptionalBoolArgumentValue(argument.name, user_arguments)
-      when 'Double'.to_OSArgumentType
-        args[key] = runner.getOptionalDoubleArgumentValue(argument.name, user_arguments)
-      when 'Integer'.to_OSArgumentType
-        args[key] = runner.getOptionalIntegerArgumentValue(argument.name, user_arguments)
-      when 'String'.to_OSArgumentType
-        args[key] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
-      end
-    end
-  end
-  return args
 end

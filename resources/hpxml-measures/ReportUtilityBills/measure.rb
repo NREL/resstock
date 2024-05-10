@@ -4,6 +4,7 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'msgpack'
+require 'time'
 require_relative 'resources/util.rb'
 require_relative '../HPXMLtoOpenStudio/resources/constants.rb'
 require_relative '../HPXMLtoOpenStudio/resources/location.rb'
@@ -126,22 +127,6 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     return warnings.uniq
   end
 
-  def get_arguments(runner, arguments, user_arguments)
-    args = get_argument_values(runner, arguments, user_arguments)
-    args.each do |k, val|
-      if val.respond_to?(:is_initialized) && val.is_initialized
-        args[k] = val.get
-      elsif k.start_with?('include_annual')
-        args[k] = true # default if not provided
-      elsif k.start_with?('include_monthly')
-        args[k] = true # default if not provided
-      else
-        args[k] = nil # default if not provided
-      end
-    end
-    return args
-  end
-
   # return a vector of IdfObject's to request EnergyPlus objects needed by the run method
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
@@ -235,7 +220,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    args = get_arguments(runner, arguments(model), user_arguments)
+    args = runner.getArgumentValues(arguments(model), user_arguments)
 
     hpxml_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
     hpxml_defaults_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
@@ -442,7 +427,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     # Initial output data w/ Time column(s)
     data = ['Time', nil] + timestamps
 
-    return if (monthly_data.size) == 0
+    return if monthly_data.size == 0
 
     fail 'Unable to obtain timestamps.' if timestamps.empty?
 

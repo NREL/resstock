@@ -1,6 +1,6 @@
 schema_version: '0.3'
-os_version: 3.7.0
-os_sha: d5269793f1
+os_version: 3.8.0-rc2
+os_sha: af997f4fef
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_testing # Relative to buildstock_directory
 output_directory: testing_upgrades
@@ -85,6 +85,13 @@ workflow_generator:
 
     reporting_measures:
       - measure_dir_name: QOIReport
+      - measure_dir_name: ServerDirectoryCleanup # tack this on so we can save some disk space (when using debug: true)
+        arguments:
+          retain_in_osm: true
+          retain_eplusout_err: true
+          retain_eplusout_mtd: true
+          retain_eplusout_rdd: true
+          retain_eplustbl_htm: true
 
     debug: true
 
