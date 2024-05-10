@@ -46,7 +46,7 @@ class HVACSizing
       apply_hvac_heat_pump_logic(hvac_sizing_values, hvac_cooling, frac_heat_load_served, frac_cool_load_served)
       apply_hvac_equipment_adjustments(mj, runner, hvac_sizing_values, weather, hvac_heating, hvac_cooling, hvac_system)
       apply_hvac_installation_quality(mj, hvac_sizing_values, hvac_heating, hvac_cooling, frac_heat_load_served, frac_cool_load_served)
-      apply_hvac_autosizing_factors(hvac_sizing_values, hvac_heating, hvac_cooling)
+      apply_hvac_autosizing_factors_and_limits(hvac_sizing_values, hvac_heating, hvac_cooling)
       apply_hvac_fixed_capacities(hvac_sizing_values, hvac_heating, hvac_cooling)
       apply_hvac_ground_loop(mj, runner, hvac_sizing_values, weather, hvac_cooling)
       apply_hvac_finalize_airflows(hvac_sizing_values, hvac_heating, hvac_cooling)
@@ -1041,7 +1041,6 @@ class HVACSizing
     '''
     HVAC Temperatures
     '''
-
     if not hvac_cooling.nil?
       cooling_type = get_hvac_cooling_type(hvac_cooling)
 
@@ -1236,7 +1235,7 @@ class HVACSizing
       heat_load_prev = heat_load_next
 
       # Calculate the new heating air flow rate
-      heat_cfm = calc_airflow_rate_manual_s(mj, heat_load_next, (supply_air_temp - mj.heat_setpoint))
+      heat_cfm = calc_airflow_rate_manual_s(mj, heat_load_next, (supply_air_temp - mj.heat_setpoint), nil)
 
       dse_Qs, dse_Qr = calc_duct_leakages_cfm25(hvac_heating.distribution_system, heat_cfm)
 
@@ -1278,7 +1277,7 @@ class HVACSizing
     delta = 1
     cool_load_tot_next = init_cool_load_sens + init_cool_load_lat
 
-    cool_cfm = calc_airflow_rate_manual_s(mj, init_cool_load_sens, (mj.cool_setpoint - leaving_air_temp))
+    cool_cfm = calc_airflow_rate_manual_s(mj, init_cool_load_sens, (mj.cool_setpoint - leaving_air_temp), nil)
     _dse_Qs, dse_Qr = calc_duct_leakages_cfm25(hvac_cooling.distribution_system, cool_cfm)
 
     for _iter in 1..50
@@ -1290,7 +1289,7 @@ class HVACSizing
       cool_load_tot = cool_load_lat + cool_load_sens
 
       # Calculate the new cooling air flow rate
-      cool_cfm = calc_airflow_rate_manual_s(mj, cool_load_sens, (mj.cool_setpoint - leaving_air_temp))
+      cool_cfm = calc_airflow_rate_manual_s(mj, cool_load_sens, (mj.cool_setpoint - leaving_air_temp), nil)
 
       dse_Qs, dse_Qr = calc_duct_leakages_cfm25(hvac_cooling.distribution_system, cool_cfm)
 
@@ -1503,8 +1502,8 @@ class HVACSizing
       entering_temp = hvac_cooling_ap.design_chw
       hvac_cooling_speed = get_sizing_speed(hvac_cooling_ap, true)
 
-      # Calculate the air flow rate required for design conditions
-      hvac_sizing_values.Cool_Airflow = calc_airflow_rate_manual_s(mj, hvac_sizing_values.Cool_Load_Sens, (mj.cool_setpoint - leaving_air_temp))
+      # Calculate an initial air flow rate assuming 400 cfm/ton
+      hvac_sizing_values.Cool_Airflow = 400.0 * UnitConversions.convert(hvac_sizing_values.Cool_Load_Sens, 'Btu/hr', 'ton')
 
       # Neglecting the water flow rate for now because it's not available yet. Air flow rate is pre-adjusted values.
       design_wb_temp = UnitConversions.convert(mj.cool_indoor_wetbulb, 'f', 'k')
@@ -1553,7 +1552,8 @@ class HVACSizing
       hvac_sizing_values.Cool_Capacity = hvac_sizing_values.Cool_Load_Tot
       hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Load_Sens
       if mj.cool_setpoint - leaving_air_temp > 0
-        hvac_sizing_values.Cool_Airflow = calc_airflow_rate_manual_s(mj, hvac_sizing_values.Cool_Load_Sens, (mj.cool_setpoint - leaving_air_temp))
+        # See Manual S Section 4-4 Direct Evaporative Cooling: Blower Cfm
+        hvac_sizing_values.Cool_Airflow = calc_airflow_rate_manual_s(mj, hvac_sizing_values.Cool_Load_Sens, (mj.cool_setpoint - leaving_air_temp), nil)
       else
         hvac_sizing_values.Cool_Airflow = @cfa * 2.0 # Use industry rule of thumb sizing method adopted by HEScore
       end
@@ -1621,7 +1621,7 @@ class HVACSizing
 
       hvac_sizing_values.Heat_Capacity_Supp = calculate_heat_pump_backup_load(mj, hvac_heating, hvac_sizing_values.Heat_Load_Supp, hvac_sizing_values.Heat_Capacity, hvac_heating_speed)
       if (heating_type == HPXML::HVACTypeHeatPumpAirToAir) || (heating_type == HPXML::HVACTypeHeatPumpMiniSplit && is_ducted)
-        hvac_sizing_values.Heat_Airflow = calc_airflow_rate_manual_s(mj, hvac_sizing_values.Heat_Capacity, (supply_air_temp - mj.heat_setpoint), hvac_sizing_values.Heat_Capacity)
+        hvac_sizing_values.Heat_Airflow = calc_airflow_rate_manual_s(mj, hvac_sizing_values.Heat_Capacity, (supply_air_temp - mj.heat_setpoint), hvac_sizing_values.Heat_Capacity, hvac_sizing_values.Cool_Airflow)
       else
         hvac_sizing_values.Heat_Airflow = calc_airflow_rate_user(hvac_sizing_values.Heat_Capacity, hvac_heating_ap.heat_rated_cfm_per_ton[hvac_heating_speed], hvac_heating_ap.heat_capacity_ratios[hvac_heating_speed])
       end
@@ -1653,7 +1653,7 @@ class HVACSizing
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
         hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load_Supp
       end
-      hvac_sizing_values.Heat_Airflow = calc_airflow_rate_manual_s(mj, hvac_sizing_values.Heat_Capacity, (supply_air_temp - mj.heat_setpoint))
+      hvac_sizing_values.Heat_Airflow = calc_airflow_rate_manual_s(mj, hvac_sizing_values.Heat_Capacity, (supply_air_temp - mj.heat_setpoint), hvac_sizing_values.Heat_Capacity, hvac_sizing_values.Cool_Airflow)
 
     elsif [HPXML::HVACTypeHeatPumpWaterLoopToAir].include? heating_type
 
@@ -1898,18 +1898,39 @@ class HVACSizing
     end
   end
 
-  def self.apply_hvac_autosizing_factors(hvac_sizing_values, hvac_heating, hvac_cooling)
+  def self.apply_hvac_autosizing_factors_and_limits(hvac_sizing_values, hvac_heating, hvac_cooling)
     if not hvac_cooling.nil?
-      hvac_sizing_values.Cool_Capacity *= hvac_cooling.cooling_autosizing_factor
-      hvac_sizing_values.Cool_Airflow *= hvac_cooling.cooling_autosizing_factor
-      hvac_sizing_values.Cool_Capacity_Sens *= hvac_cooling.cooling_autosizing_factor
+      cooling_autosizing_limit = hvac_cooling.cooling_autosizing_limit
+      if cooling_autosizing_limit.nil?
+        cooling_autosizing_limit = 1 / Constants.small
+      end
+
+      cooling_autosizing_factor = [hvac_cooling.cooling_autosizing_factor, cooling_autosizing_limit / hvac_sizing_values.Cool_Capacity].min
+
+      hvac_sizing_values.Cool_Capacity *= cooling_autosizing_factor
+      hvac_sizing_values.Cool_Airflow *= cooling_autosizing_factor
+      hvac_sizing_values.Cool_Capacity_Sens *= cooling_autosizing_factor
     end
     if not hvac_heating.nil?
-      hvac_sizing_values.Heat_Capacity *= hvac_heating.heating_autosizing_factor
-      hvac_sizing_values.Heat_Airflow *= hvac_heating.heating_autosizing_factor
+      heating_autosizing_limit = hvac_heating.heating_autosizing_limit
+      if heating_autosizing_limit.nil?
+        heating_autosizing_limit = 1 / Constants.small
+      end
+
+      heating_autosizing_factor = [hvac_heating.heating_autosizing_factor, heating_autosizing_limit / hvac_sizing_values.Heat_Capacity].min
+
+      hvac_sizing_values.Heat_Capacity *= heating_autosizing_factor
+      hvac_sizing_values.Heat_Airflow *= heating_autosizing_factor
     end
     if (hvac_cooling.is_a? HPXML::HeatPump) && (hvac_cooling.backup_type == HPXML::HeatPumpBackupTypeIntegrated)
-      hvac_sizing_values.Heat_Capacity_Supp *= hvac_cooling.backup_heating_autosizing_factor
+      backup_heating_autosizing_limit = hvac_cooling.backup_heating_autosizing_limit
+      if backup_heating_autosizing_limit.nil?
+        backup_heating_autosizing_limit = 1 / Constants.small
+      end
+
+      backup_heating_autosizing_factor = [hvac_cooling.backup_heating_autosizing_factor, backup_heating_autosizing_limit / hvac_sizing_values.Heat_Capacity_Supp].min
+
+      hvac_sizing_values.Heat_Capacity_Supp *= backup_heating_autosizing_factor
     end
   end
 
@@ -2268,19 +2289,26 @@ class HVACSizing
     return [tot_unbal_cfm, oa_cfm_preheat, oa_cfm_precool, recirc_cfm_shared, tot_bal_cfm_sens, tot_bal_cfm_lat]
   end
 
-  def self.calc_airflow_rate_manual_s(mj, sens_load_or_capacity, deltaT, rated_capacity_for_cfm_per_ton_limits = nil)
+  def self.calc_airflow_rate_manual_s(mj, sens_load_or_capacity, deltaT, rated_capacity, corresponding_cooling_airflow_rate = nil)
     # Airflow sizing following Manual S based on design calculation
     airflow_rate = sens_load_or_capacity / (1.1 * mj.acf * deltaT)
 
-    if not rated_capacity_for_cfm_per_ton_limits.nil?
-      rated_capacity_tons = UnitConversions.convert(rated_capacity_for_cfm_per_ton_limits, 'Btu/hr', 'ton')
-      # Ensure the air flow rate is in between 200 and 500 cfm/ton.
-      # Reset the air flow rate (with a safety margin), if required.
-      if airflow_rate / rated_capacity_tons > 500
-        airflow_rate = 499.0 * rated_capacity_tons
-      elsif airflow_rate / rated_capacity_tons < 200
-        airflow_rate = 201.0 * rated_capacity_tons
+    if not rated_capacity.nil?
+      # Ensure the air flow rate is between 300 and 400 cfm/ton for typical DX equipment.
+      # Recommendation by Hugh Henderson.
+      rated_capacity_tons = UnitConversions.convert(rated_capacity, 'Btu/hr', 'ton')
+      if airflow_rate / rated_capacity_tons > 400
+        airflow_rate = 400.0 * rated_capacity_tons
+      elsif airflow_rate / rated_capacity_tons < 300
+        airflow_rate = 300.0 * rated_capacity_tons
       end
+    end
+
+    if corresponding_cooling_airflow_rate.to_f > 0
+      # For a heat pump, ensure the heating airflow rate is within 30% of the cooling airflow rate.
+      # Recommendation by Hugh Henderson.
+      airflow_rate = [airflow_rate, 0.7 * corresponding_cooling_airflow_rate].max
+      airflow_rate = [airflow_rate, 1.3 * corresponding_cooling_airflow_rate].min
     end
 
     return airflow_rate
@@ -3196,7 +3224,10 @@ class HVACSizing
       # Heating backup capacity
       if htg_sys.is_a? HPXML::HeatPump
         if htg_sys.backup_type.nil?
-          htg_sys.backup_heating_capacity = 0.0
+          if htg_sys.backup_heating_capacity.nil?
+            htg_sys.backup_heating_capacity = 0.0
+            htg_sys.backup_heating_capacity_isdefaulted = true
+          end
         elsif htg_sys.backup_type == HPXML::HeatPumpBackupTypeIntegrated
           if htg_sys.backup_heating_capacity.nil? || ((htg_sys.backup_heating_capacity - hvac_sizing_values.Heat_Capacity_Supp).abs >= 1.0)
             htg_sys.backup_heating_capacity = Float(hvac_sizing_values.Heat_Capacity_Supp.round)

@@ -514,15 +514,16 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
 
     # Slab
-    slabs_values = [{ perimeter_r: 0.0, under_r: 0.0, under_span: false, layer_names: ['concrete', 'floor covering'] },
-                    { perimeter_r: 5.0, under_r: 0.0, under_span: false, layer_names: ['concrete', 'floor covering', 'exterior vertical ins'] },
-                    { perimeter_r: 20.0, under_r: 0.0, under_span: false, layer_names: ['concrete', 'floor covering', 'exterior vertical ins'] },
-                    { perimeter_r: 0.0, under_r: 5.0, under_span: false, layer_names: ['concrete', 'floor covering', 'interior horizontal ins', 'interior vertical ins'] },
-                    { perimeter_r: 0.0, under_r: 20.0, under_span: false, layer_names: ['concrete', 'floor covering', 'interior horizontal ins', 'interior vertical ins'] },
-                    { perimeter_r: 0.0, under_r: 5.0, under_span: true, layer_names: ['slab rigid ins', 'concrete', 'floor covering', 'interior vertical ins'] },
-                    { perimeter_r: 0.0, under_r: 20.0, under_span: true, layer_names: ['slab rigid ins', 'concrete', 'floor covering', 'interior vertical ins'] },
-                    { perimeter_r: 5.0, under_r: 5.0, under_span: false, layer_names: ['concrete', 'floor covering', 'interior horizontal ins', 'interior vertical ins', 'exterior vertical ins'] },
-                    { perimeter_r: 20.0, under_r: 20.0, under_span: false, layer_names: ['concrete', 'floor covering', 'interior horizontal ins', 'interior vertical ins', 'exterior vertical ins'] }]
+    slabs_values = [{ perimeter_r: 0.0, under_r: 0.0, gap_r: nil, under_span: false, layer_names: ['concrete', 'floor covering'] },
+                    { perimeter_r: 0.0, under_r: 0.0, gap_r: 5.0, under_span: false, layer_names: ['concrete', 'floor covering', 'interior vertical ins'] },
+                    { perimeter_r: 5.0, under_r: 0.0, gap_r: nil, under_span: false, layer_names: ['concrete', 'floor covering', 'exterior vertical ins'] },
+                    { perimeter_r: 20.0, under_r: 0.0, gap_r: nil, under_span: false, layer_names: ['concrete', 'floor covering', 'exterior vertical ins'] },
+                    { perimeter_r: 0.0, under_r: 5.0, gap_r: nil, under_span: false, layer_names: ['concrete', 'floor covering', 'interior horizontal ins', 'interior vertical ins'] },
+                    { perimeter_r: 0.0, under_r: 20.0, gap_r: nil, under_span: false, layer_names: ['concrete', 'floor covering', 'interior horizontal ins', 'interior vertical ins'] },
+                    { perimeter_r: 0.0, under_r: 5.0, gap_r: nil, under_span: true, layer_names: ['slab rigid ins', 'concrete', 'floor covering', 'interior vertical ins'] },
+                    { perimeter_r: 0.0, under_r: 20.0, gap_r: nil, under_span: true, layer_names: ['slab rigid ins', 'concrete', 'floor covering', 'interior vertical ins'] },
+                    { perimeter_r: 5.0, under_r: 5.0, gap_r: nil, under_span: false, layer_names: ['concrete', 'floor covering', 'interior horizontal ins', 'interior vertical ins', 'exterior vertical ins'] },
+                    { perimeter_r: 20.0, under_r: 20.0, gap_r: 20.0, under_span: false, layer_names: ['concrete', 'floor covering', 'interior horizontal ins', 'interior vertical ins', 'exterior vertical ins'] }]
 
     hpxml, hpxml_bldg = _create_hpxml('base-foundation-slab.xml')
     slabs_values.each do |slab_values|
@@ -536,6 +537,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
         hpxml_bldg.slabs[0].under_slab_insulation_width = 2.0
         hpxml_bldg.slabs[0].under_slab_insulation_spans_entire_slab = nil
       end
+      hpxml_bldg.slabs[0].gap_insulation_r_value = slab_values[:gap_r]
 
       XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
       model, hpxml, hpxml_bldg = _test_measure(args_hash)
@@ -1034,6 +1036,13 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
 
   def _check_surface(hpxml_surface, os_surface, expected_layer_names, radiant_barrier_emittance = nil)
     os_construction = os_surface.construction.get.to_LayeredConstruction.get
+
+    # Check layers have valid properties
+    for i in 0..os_construction.numLayers - 1
+      layer = os_construction.getLayer(i)
+      assert_operator(layer.thickness, :>, 0)
+      assert_operator(layer.to_OpaqueMaterial.get.thermalConductivity, :>, 0)
+    end
 
     # Check exterior solar absorptance and emittance
     exterior_layer = os_construction.getLayer(0).to_OpaqueMaterial.get

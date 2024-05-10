@@ -2,7 +2,7 @@
 
 require_relative '../../HPXMLtoOpenStudio/resources/minitest_helper'
 require 'openstudio'
-require 'openstudio/ruleset/ShowRunnerOutput'
+require 'openstudio/measure/ShowRunnerOutput'
 require 'minitest/autorun'
 require_relative '../measure.rb'
 require 'fileutils'
@@ -248,7 +248,6 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-mf-conditioned-attic.xml' => ['Conditioned attic type for apartment units is not currently supported.'],
       'error-dhw-indirect-without-boiler.xml' => ['Must specify a boiler when modeling an indirect water heater type.'],
       'error-conditioned-attic-with-one-floor-above-grade.xml' => ['Units with a conditioned attic must have at least two above-grade floors.'],
-      'error-zero-number-of-bedrooms.xml' => ['Number of bedrooms must be greater than zero.'],
       'error-sfd-with-shared-system.xml' => ['Specified a shared system for a single-family detached unit.'],
       'error-rim-joist-height-but-no-assembly-r.xml' => ['Specified a rim joist height but no rim joist assembly R-value.'],
       'error-rim-joist-assembly-r-but-no-height.xml' => ['Specified a rim joist assembly R-value but no rim joist height.'],
@@ -350,7 +349,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
         hpxml_path = File.absolute_path(File.join(@output_path, hpxml_file))
         hpxml = HPXML.new(hpxml_path: hpxml_path)
         if hpxml.errors.size > 0
-          puts hpxml.errors.to_s
+          puts hpxml.errors
           puts "\nError: Did not successfully validate #{hpxml_file}."
           exit!
         end
@@ -363,7 +362,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
         errors, _warnings = XMLValidator.validate_against_schema(hpxml_path, schema_validator)
         next unless errors.size > 0
 
-        puts errors.to_s
+        puts errors
         puts "\nError: Did not successfully validate #{hpxml_file}."
         exit!
       rescue Exception => e
@@ -1196,8 +1195,6 @@ class BuildResidentialHPXMLTest < Minitest::Test
     elsif ['error-conditioned-attic-with-one-floor-above-grade.xml'].include? hpxml_file
       args['geometry_attic_type'] = HPXML::AtticTypeConditioned
       args['ceiling_assembly_r'] = 0.0
-    elsif ['error-zero-number-of-bedrooms.xml'].include? hpxml_file
-      args['geometry_unit_num_bedrooms'] = 0
     elsif ['error-sfd-with-shared-system.xml'].include? hpxml_file
       args['heating_system_type'] = "Shared #{HPXML::HVACTypeBoiler} w/ Baseboard"
     elsif ['error-rim-joist-height-but-no-assembly-r.xml'].include? hpxml_file

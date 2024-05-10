@@ -92,7 +92,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    args = get_argument_values(runner, arguments(model), user_arguments)
+    args = runner.getArgumentValues(arguments(model), user_arguments)
 
     hpxml_path = args[:hpxml_path]
     unless (Pathname.new hpxml_path).absolute?
@@ -108,13 +108,9 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     end
     args[:hpxml_output_path] = hpxml_output_path
 
-    args[:building_id] = args[:building_id].is_initialized ? args[:building_id].get : nil
-    args[:debug] = args[:debug].is_initialized ? args[:debug].get : false
-    args[:append_output] = args[:append_output].is_initialized ? args[:append_output].get : false
-
     # random seed
-    if args[:schedules_random_seed].is_initialized
-      args[:random_seed] = args[:schedules_random_seed].get
+    if not args[:schedules_random_seed].nil?
+      args[:random_seed] = args[:schedules_random_seed]
       runner.registerInfo("Retrieved the schedules random seed; setting it to #{args[:random_seed]}.")
     else
       args[:random_seed] = 1
@@ -202,12 +198,12 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     info_msgs << "SimYear=#{args[:sim_year]}"
     info_msgs << "MinutesPerStep=#{args[:minutes_per_step]}"
     info_msgs << "State=#{args[:state]}"
-    info_msgs << "RandomSeed=#{args[:random_seed]}" if args[:schedules_random_seed].is_initialized
+    info_msgs << "RandomSeed=#{args[:random_seed]}" if !args[:schedules_random_seed].nil?
     info_msgs << "GeometryNumOccupants=#{args[:geometry_num_occupants]}"
     info_msgs << "TimeZoneUTCOffset=#{args[:time_zone_utc_offset]}"
     info_msgs << "Latitude=#{args[:latitude]}"
     info_msgs << "Longitude=#{args[:longitude]}"
-    info_msgs << "ColumnNames=#{args[:column_names]}" if args[:schedules_column_names].is_initialized
+    info_msgs << "ColumnNames=#{args[:column_names]}" if !args[:schedules_column_names].nil?
 
     runner.registerInfo("Created stochastic schedule with #{info_msgs.join(', ')}")
 
@@ -237,7 +233,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       # Unhandled state code, fallback to CO
       args[:state] = 'CO'
     end
-    args[:column_names] = args[:schedules_column_names].get.split(',').map(&:strip) if args[:schedules_column_names].is_initialized
+    args[:column_names] = args[:schedules_column_names].split(',').map(&:strip) if !args[:schedules_column_names].nil?
 
     if hpxml_bldg.building_occupancy.number_of_residents.nil?
       args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml_bldg.building_construction.number_of_bedrooms)

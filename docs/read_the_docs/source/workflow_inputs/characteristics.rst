@@ -1935,36 +1935,48 @@ Arguments
      - Double
      -
      - The leakage value to outside for the supply ducts.
-   * - ``ducts_return_leakage_to_outside_value``
-     - true
-     - 
-     - Double
-     -
-     - The leakage value to outside for the return ducts.
    * - ``ducts_supply_insulation_r``
      - true
      - h-ft^2-R/Btu
      - Double
      -
-     - The insulation r-value of the supply ducts excluding air films.
+     - The nominal insulation r-value of the supply ducts excluding air films. Use 0 for uninsulated ducts.
    * - ``ducts_supply_buried_insulation_level``
      - false
      - 
      - Choice
      - "auto", "not buried", "partially buried", "fully buried", "deeply buried"
      - Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+   * - ``ducts_supply_fraction_rectangular``
+     - false
+     - frac
+     - Double
+     - "auto"
+     - The fraction of supply ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
+   * - ``ducts_return_leakage_to_outside_value``
+     - true
+     - 
+     - Double
+     -
+     - The leakage value to outside for the return ducts.
    * - ``ducts_return_insulation_r``
      - true
      - h-ft^2-R/Btu
      - Double
      -
-     - The insulation r-value of the return ducts excluding air films.
+     - The nominal insulation r-value of the return ducts excluding air films. Use 0 for uninsulated ducts.
    * - ``ducts_return_buried_insulation_level``
      - false
      - 
      - Choice
      - "auto", "not buried", "partially buried", "fully buried", "deeply buried"
      - Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+   * - ``ducts_return_fraction_rectangular``
+     - false
+     - frac
+     - Double
+     - "auto"
+     - The fraction of return ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
 
 .. _duct_location:
 
@@ -3118,6 +3130,58 @@ Arguments
      -
      - Diffusivity of the ground soil. If provided, overrides the previous site and moisture type input.
 
+.. _hvac_cooling_autosizing_factor:
+
+HVAC Cooling Autosizing Factor
+------------------------------
+
+Description
+***********
+
+The cooling airflow and capacity scaling factor applied to the auto-sizing methodology (not used in project_national).
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+- \Engineering Judgment
+
+
+Assumption
+**********
+
+- \HVAC sizing follows ACCA Manual J and Manual S. There is no additional oversizing or undersizing the airflow and capacity of the HVAC system.
+
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``cooling_system_cooling_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+   * - ``heat_pump_cooling_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+
 .. _hvac_cooling_efficiency:
 
 HVAC Cooling Efficiency
@@ -3195,6 +3259,12 @@ Arguments
      - Double
      -
      - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_, `Evaporative Cooler <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#evaporative-cooler>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
+   * - ``cooling_system_cooling_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``cooling_system_is_ducted``
      - false
      - 
@@ -3360,6 +3430,25 @@ Assumption
 - \None of the shared system options currently modeled (in HVAC Shared Efficiencies) are ducted, therefore where there are discrepancies between HVAC Heating Type, HVAC Cooling Type, and HVAC Has Shared System, HVAC Has Shared System takes precedence. (e.g., Central AC + Ducted Heating + Shared Heating and Cooling = No (Ducts)) (This is a temporary fix and will change when ducted shared system options are introduced.)
 
 
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``hvac_blower_fan_watts_per_cfm``
+     - false
+     - W/CFM
+     - Double
+     - "auto"
+     - The blower fan efficiency at maximum fan speed. Applies only to split (not packaged) systems (i.e., applies to ducted systems as well as ductless mini-split systems). If not provided, the OS-HPXML default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems>`_, `HPXML Cooling Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooling-systems>`_, `HPXML Heat Pumps <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heat-pumps>`_) is used.
+
 .. _hvac_has_shared_system:
 
 HVAC Has Shared System
@@ -3415,6 +3504,70 @@ Source
 
 - \n/a
 
+
+.. _hvac_heating_autosizing_factor:
+
+HVAC Heating Autosizing Factor
+------------------------------
+
+Description
+***********
+
+The heating airflow and capacity scaling factor applied to the auto-sizing methodology (not used in project_national).
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+- \Engineering Judgment
+
+
+Assumption
+**********
+
+- \HVAC sizing follows ACCA Manual J and Manual S. There is no additional oversizing or undersizing the airflow and capacity of the HVAC system.
+
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``heating_system_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+   * - ``heat_pump_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+   * - ``heat_pump_backup_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, 1.0 is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Factor.
+   * - ``heating_system_2_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
 
 .. _hvac_heating_efficiency:
 
@@ -3501,6 +3654,12 @@ Arguments
      - Double
      -
      - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems>`_) is used.
+   * - ``heating_system_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heating_system_fraction_heat_load_served``
      - true
      - Frac
@@ -3561,6 +3720,12 @@ Arguments
      - Double
      -
      - The output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
+   * - ``heat_pump_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heat_pump_heating_capacity_retention_fraction``
      - false
      - Frac
@@ -3579,6 +3744,12 @@ Arguments
      - Double
      -
      - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
+   * - ``heat_pump_cooling_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heat_pump_fraction_heat_load_served``
      - true
      - Frac
@@ -3603,6 +3774,12 @@ Arguments
      - Choice
      - "none", "integrated", "separate"
      - The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.
+   * - ``heat_pump_backup_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, no limit is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Limit.
    * - ``heat_pump_backup_fuel``
      - true
      - 
@@ -3837,6 +4014,12 @@ Arguments
      - Double
      -
      - The output heating capacity of the second heating system. If not provided, the OS-HPXML autosized default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems>`_) is used.
+   * - ``heating_system_2_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heating_system_2_has_flue_or_chimney``
      - true
      - 
@@ -4032,6 +4215,12 @@ Arguments
      - Double
      -
      - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems>`_) is used.
+   * - ``heating_system_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heating_system_fraction_heat_load_served``
      - true
      - Frac
@@ -4062,6 +4251,12 @@ Arguments
      - Double
      -
      - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_, `Evaporative Cooler <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#evaporative-cooler>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
+   * - ``cooling_system_cooling_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``cooling_system_is_ducted``
      - false
      - 
@@ -4104,12 +4299,24 @@ Arguments
      - Double
      -
      - The output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
+   * - ``heat_pump_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heat_pump_cooling_capacity``
      - false
      - Btu/hr
      - Double
      -
      - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
+   * - ``heat_pump_cooling_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heat_pump_fraction_heat_load_served``
      - true
      - Frac
@@ -4128,6 +4335,12 @@ Arguments
      - Choice
      - "none", "integrated", "separate"
      - The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.
+   * - ``heat_pump_backup_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, no limit is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Limit.
    * - ``heat_pump_backup_fuel``
      - true
      - 
@@ -4244,6 +4457,27 @@ Source
 ******
 
 - \Assuming no faults until we have data necessary to characterize all types of ACs and heat pumps (https://github.com/NREL/resstock/issues/733).
+
+
+.. _hvac_system_is_scaled:
+
+HVAC System Is Scaled
+---------------------
+
+Description
+***********
+
+Whether the HVAC system has been undersized or oversized (not used in project_national).
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+- \Assuming no oversizing or undersizing until we have data necessary to characterize all types of systems.
 
 
 .. _hvac_system_single_speed_ac_airflow:
