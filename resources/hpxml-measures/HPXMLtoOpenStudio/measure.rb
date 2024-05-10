@@ -82,28 +82,21 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     Version.check_openstudio_version()
 
-    # assign the user inputs to variables
-    hpxml_path = runner.getStringArgumentValue('hpxml_path', user_arguments)
-    output_dir = runner.getStringArgumentValue('output_dir', user_arguments)
-    add_component_loads = runner.getBoolArgumentValue('add_component_loads', user_arguments)
-    debug = runner.getBoolArgumentValue('debug', user_arguments)
-    skip_validation = runner.getBoolArgumentValue('skip_validation', user_arguments)
-    building_id = runner.getOptionalStringArgumentValue('building_id', user_arguments)
-    building_id = building_id.is_initialized ? building_id.get : nil
+    args = runner.getArgumentValues(arguments(model), user_arguments)
 
-    unless (Pathname.new hpxml_path).absolute?
-      hpxml_path = File.expand_path(hpxml_path)
+    unless (Pathname.new args[:hpxml_path]).absolute?
+      args[:hpxml_path] = File.expand_path(args[:hpxml_path])
     end
-    unless File.exist?(hpxml_path) && hpxml_path.downcase.end_with?('.xml')
-      fail "'#{hpxml_path}' does not exist or is not an .xml file."
+    unless File.exist?(args[:hpxml_path]) && args[:hpxml_path].downcase.end_with?('.xml')
+      fail "'#{args[:hpxml_path]}' does not exist or is not an .xml file."
     end
 
-    unless (Pathname.new output_dir).absolute?
-      output_dir = File.expand_path(output_dir)
+    unless (Pathname.new args[:output_dir]).absolute?
+      args[:output_dir] = File.expand_path(args[:output_dir])
     end
 
     begin
-      if skip_validation
+      if args[:skip_validation]
         schema_validator = nil
         schematron_validator = nil
       else
@@ -113,7 +106,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         schematron_validator = XMLValidator.get_schematron_validator(schematron_path)
       end
 
-      hpxml = HPXML.new(hpxml_path: hpxml_path, schema_validator: schema_validator, schematron_validator: schematron_validator, building_id: building_id)
+      hpxml = HPXML.new(hpxml_path: args[:hpxml_path], schema_validator: schema_validator, schematron_validator: schematron_validator, building_id: args[:building_id])
       hpxml.errors.each do |error|
         runner.registerError(error)
       end
@@ -127,12 +120,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       eri_version = Constants.ERIVersions[-1] if eri_version == 'latest'
 
       # Process weather once upfront
-      epw_path = Location.get_epw_path(hpxml.buildings[0], hpxml_path)
+      epw_path = Location.get_epw_path(hpxml.buildings[0], args[:hpxml_path])
       weather = WeatherProcess.new(epw_path: epw_path, runner: runner, hpxml: hpxml)
       epw_file = OpenStudio::EpwFile.new(epw_path)
       hpxml.buildings.each_with_index do |hpxml_bldg, i|
         next if i == 0
-        next if Location.get_epw_path(hpxml_bldg, hpxml_path) == epw_path
+        next if Location.get_epw_path(hpxml_bldg, args[:hpxml_path]) == epw_path
 
         fail 'Weather station EPW filepath has different values across dwelling units.'
       end
@@ -150,23 +143,23 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
       # Apply HPXML defaults upfront; process schedules & emissions
       hpxml_sch_map = {}
-      check_emissions_references(hpxml.header, hpxml_path)
+      check_emissions_references(hpxml.header, args[:hpxml_path])
       hpxml.buildings.each_with_index do |hpxml_bldg, i|
-        check_schedule_references(hpxml_bldg.header, hpxml_path)
+        check_schedule_references(hpxml_bldg.header, args[:hpxml_path])
         in_schedules_csv = 'in.schedules.csv'
         in_schedules_csv = "in.schedules#{i + 1}.csv" if i > 0
         schedules_file = SchedulesFile.new(runner: runner,
                                            schedules_paths: hpxml_bldg.header.schedules_filepaths,
                                            year: Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file),
                                            unavailable_periods: hpxml.header.unavailable_periods,
-                                           output_path: File.join(output_dir, in_schedules_csv))
+                                           output_path: File.join(args[:output_dir], in_schedules_csv))
         HPXMLDefaults.apply(runner, hpxml, hpxml_bldg, eri_version, weather, epw_file: epw_file, schedules_file: schedules_file)
         hpxml_sch_map[hpxml_bldg] = schedules_file
       end
       validate_emissions_files(hpxml.header)
 
       # Write updated HPXML object (w/ defaults) to file for inspection
-      hpxml_defaults_path = File.join(output_dir, 'in.xml')
+      hpxml_defaults_path = File.join(args[:output_dir], 'in.xml')
       XMLHelper.write_file(hpxml.to_doc, hpxml_defaults_path)
 
       # Create OpenStudio model
@@ -176,10 +169,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         if hpxml.buildings.size > 1
           # Create the model for this single unit
           unit_model = OpenStudio::Model::Model.new
-          create_unit_model(hpxml, hpxml_bldg, runner, unit_model, epw_path, epw_file, weather, debug, schedules_file, eri_version, i + 1)
+          create_unit_model(hpxml, hpxml_bldg, runner, unit_model, epw_path, epw_file, weather, args[:debug], schedules_file, eri_version, i + 1)
           hpxml_osm_map[hpxml_bldg] = unit_model
         else
-          create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, debug, schedules_file, eri_version, i + 1)
+          create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, args[:debug], schedules_file, eri_version, i + 1)
           hpxml_osm_map[hpxml_bldg] = model
         end
       end
@@ -191,20 +184,20 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
       # Output
       add_unmet_hours_output(model, hpxml_osm_map)
-      add_loads_output(model, add_component_loads, hpxml_osm_map)
+      add_loads_output(model, args[:add_component_loads], hpxml_osm_map)
       set_output_files(model)
-      add_additional_properties(model, hpxml, hpxml_osm_map, hpxml_path, building_id, hpxml_defaults_path)
+      add_additional_properties(model, hpxml, hpxml_osm_map, args[:hpxml_path], args[:building_id], hpxml_defaults_path)
       # Uncomment to debug EMS
       # add_ems_debug_output(model)
 
-      if debug
+      if args[:debug]
         # Write OSM file to run dir
-        osm_output_path = File.join(output_dir, 'in.osm')
+        osm_output_path = File.join(args[:output_dir], 'in.osm')
         File.write(osm_output_path, model.to_s)
         runner.registerInfo("Wrote file: #{osm_output_path}")
 
         # Copy EPW file to run dir
-        epw_output_path = File.join(output_dir, 'in.epw')
+        epw_output_path = File.join(args[:output_dir], 'in.epw')
         FileUtils.cp(epw_path, epw_output_path)
       end
     rescue Exception => e
@@ -2648,8 +2641,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   def set_output_files(model)
     oj = model.getOutputJSON
     oj.setOptionType('TimeSeriesAndTabular')
-    oj.setOutputJSON(false)
-    oj.setOutputMessagePack(true)
+    oj.setOutputJSON(@debug)
+    oj.setOutputMessagePack(true) # Used by ReportSimulationOutput reporting measure
 
     ocf = model.getOutputControlFiles
     ocf.setOutputAUDIT(@debug)

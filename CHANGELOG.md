@@ -13,6 +13,8 @@ Features
 - Add Metropolitan and Micropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv ([#1212](https://github.com/NREL/resstock/pull/1212))
 - Add ability to specify HVAC system autosizing factors for baseline buildings; autosizing factors are retained for upgrade buildings following the same approach for HVAC system capacities ([#1215](https://github.com/NREL/resstock/pull/1215))
 - Update the stochastic schedule generator to produce updated other/TV plug load and ceiling fan schedules ([#1220](https://github.com/NREL/resstock/pull/1220))
+- Update to new OS-HPXML defaults for duct insulation; 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts) ([#1233](https://github.com/NREL/resstock/pull/1233))
+- Update to OpenStudio v3.8.0 ([#1225](https://github.com/NREL/resstock/pull/1225))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
