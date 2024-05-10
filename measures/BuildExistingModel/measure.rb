@@ -384,13 +384,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
 
       # Set additional properties
-      # additional_properties = {}
+      additional_properties = {}
       #
       # ['ceiling_insulation_r'].each do |arg_name|
       #   arg_value = measures['ResStockArguments'][0][arg_name]
       #   additional_properties[arg_name] << arg_value
       # end
-      measures['BuildResidentialHPXML'][0]['additional_properties'] = get_resstock_arguments_json(measures['ResStockArguments'][0])
+      # get_resstock_arguments_json(measures['ResStockArguments'][0])
+      measures['BuildResidentialHPXML'][0]['additional_properties'] = get_additional_properties_json(measures['ResStockArguments'][0])
 
       measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
       measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version

@@ -573,7 +573,7 @@ class Version
   end
 end
 
-def get_resstock_arguments_json(resstock_arguments)
+def get_additional_properties_json(resstock_arguments)
   keys_to_include = [
     'ceiling_insulation_r'
   ]

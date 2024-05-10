@@ -7,6 +7,7 @@ require 'openstudio'
 require 'pathname'
 require 'csv'
 require 'oga'
+require 'json'
 Dir["#{File.dirname(__FILE__)}/resources/*.rb"].each do |resource_file|
   require resource_file
 end
@@ -4470,12 +4471,12 @@ class HPXMLFile
     end
 
     if not args[:additional_properties].nil?
-      extension_properties = {}
-      args[:additional_properties].split('|').map(&:strip).each do |additional_property|
-        key, value = additional_property.split('=').map(&:strip)
-        extension_properties[key] = value
-      end
-      hpxml_bldg.header.extension_properties = extension_properties
+      # extension_properties = {}
+      # args[:additional_properties].split('|').map(&:strip).each do |additional_property|
+      #   key, value = additional_property.split('=').map(&:strip)
+      #   extension_properties[key] = value
+      # end
+      hpxml_bldg.header.extension_properties = JSON.parse(args[:additional_properties])
     end
   end
 
