@@ -139,7 +139,7 @@ class ScheduleGenerator
       simulated_values = simulated_values.rotate(-4 * 4) # 4am shifting (4 hours  = 4 * 4 steps of 15 min intervals)
       all_simulated_values << Matrix[*simulated_values]
     end
-    # shape of all_simulated_values is [2, 35040, 7] i.e. (geometry_num_occupants, period_in_a_year, number_of_states)
+    # shape of all_simulated_values is [2, 35040, 7] i.e. (num_occupants, period_in_a_year, number_of_states)
     plugload_other_weekday_sch = Schedule.validate_values(Schedule.PlugLoadsOtherWeekdayFractions, 24, 'weekday') # Table C.3(1) of ANSI/RESNET/ICC 301-2022 Addendum C
     plugload_other_weekend_sch = Schedule.validate_values(Schedule.PlugLoadsOtherWeekendFractions, 24, 'weekend') # Table C.3(1) of ANSI/RESNET/ICC 301-2022 Addendum C
     plugload_other_monthly_multiplier = Schedule.validate_values(Constants.PlugLoadsOtherMonthlyMultipliers, 12, 'monthly') # Figure 24 of the 2010 BAHSP
