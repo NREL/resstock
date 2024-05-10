@@ -3595,8 +3595,9 @@ class HVAC
     defrost_power_fraction = defrost_flow_fraction**3
     power_design = fan_watts_per_cfm * design_airflow_1x
     p_dot_blower = power_design * defrost_power_fraction
+    # Based on manufacturer data for ~70 systems ranging from 1.5 to 5 tons with varying efficiency levels
     p_dot_odu_fan = 44.348 * UnitConversions.convert(nominal_cooling_capacity_1x, 'Btu/hr', 'ton') + 62.452
-    rated_clg_cop = heat_pump.additional_properties.cool_rated_cops[-1] # Fixme: assume highest stage cop?
+    rated_clg_cop = heat_pump.additional_properties.cool_rated_cops[-1]
     q_dot_defrost = UnitConversions.convert(nominal_cooling_capacity_1x, 'Btu/hr', 'W') * capacity_defrost_multiplier
     cop_defrost = rated_clg_cop * cop_defrost_multiplier
     p_dot_defrost = (q_dot_defrost / cop_defrost - p_dot_odu_fan + p_dot_blower) * unit_multiplier # p_dot_defrost is used in coil object, which needs to be scaled up for unit multiplier
@@ -3647,7 +3648,6 @@ class HVAC
     defrost_heat_load_oe_act = OpenStudio::Model::EnergyManagementSystemActuator.new(defrost_heat_load_oe, *EPlus::EMSActuatorOtherEquipmentPower, defrost_heat_load_oe.space.get)
     defrost_heat_load_oe_act.setName("#{defrost_heat_load_oe.name} act")
 
-    # TODO: handle energy output to be categorized to heating
     energyplus_fuel = EPlus.fuel_type(supp_sys_fuel)
     defrost_supp_heat_energy_oed = OpenStudio::Model::OtherEquipmentDefinition.new(model)
     defrost_supp_heat_energy_oed.setName("#{air_loop_unitary.name} supp heat energy def")

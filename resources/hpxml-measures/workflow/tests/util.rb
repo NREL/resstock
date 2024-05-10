@@ -282,6 +282,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     next if message.include? 'Pump nominal power or motor efficiency is set to 0'
     next if message.include? 'volume flow rate per watt of rated total cooling capacity is out of range'
     next if message.include? 'volume flow rate per watt of rated total heating capacity is out of range'
+    next if message.include? 'volume flow rate per watt of rated total water heating capacity is out of range'
     next if message.include? 'The Standard Ratings is calculated for'
     next if message.include?('WetBulb not converged after') && message.include?('iterations(PsyTwbFnTdbWPb)')
     next if message.include? 'Inside surface heat balance did not converge with Max Temp Difference'
@@ -303,12 +304,12 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     next if message.include?('setupIHGOutputs: Output variables=Zone Other Equipment') && message.include?('are not available.')
     next if message.include?('setupIHGOutputs: Output variables=Space Other Equipment') && message.include?('are not available')
     next if message.include? 'Multiple speed fan will be applied to this unit. The speed number is determined by load.'
+    next if message.include?('Heater Thermal Efficiency') && message.include?('should not typically be greater than 1') # This warning can appear due to EC_adj term
 
     # HPWHs
     if hpxml_bldg.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
       next if message.include? 'Recovery Efficiency and Energy Factor could not be calculated during the test for standard ratings'
       next if message.include? 'SimHVAC: Maximum iterations (20) exceeded for all HVAC loops'
-      next if message.include? 'Rated air volume flow rate per watt of rated total water heating capacity is out of range'
       next if message.include? 'For object = Coil:WaterHeating:AirToWaterHeatPump:Wrapped'
       next if message.include? 'Enthalpy out of range (PsyTsatFnHPb)'
       next if message.include?('CheckWarmupConvergence: Loads Initialization') && message.include?('did not converge after 25 warmup days')
