@@ -365,13 +365,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_backup_use_existing_system', false)
-    arg.setDisplayName('Heat Pump: Backup Use Existing System')
-    arg.setDescription('Whether the heat pump uses the existing system as backup.')
+    arg.setDisplayName('Heat Pump Backup: Use Existing System')
+    arg.setDescription('Whether the heat pump uses the existing heating system as backup.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('hvac_distribution_ductwork_restriction', false)
-    arg.setDisplayName('HVAC Distribution: Ductwork Restriction')
-    arg.setDescription('Whether to set maximum allowable airflow rates of the upgraded building equal to airflow rates of the existing building.')
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve', false)
+    arg.setDisplayName('HVAC Distribution: Use Autosizing Limits and Maintain Duct System Curve')
+    arg.setDescription('Whether to (a) set upper limits for autosized capacities and (b) adjust the blower fan efficiency.')
     args << arg
 
     return args

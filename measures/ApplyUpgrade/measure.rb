@@ -322,8 +322,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     whole_sfa_or_mf_building_sim = hpxml.header.whole_sfa_or_mf_building_sim
 
     # Ductwork restriction
-    ductwork_restriction = measures['ResStockArguments'][0]['hvac_distribution_ductwork_restriction']
-    if ductwork_restriction == 'true'
+    use_autosizing_limits_and_maintain_duct_system_curve = measures['ResStockArguments'][0]['hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve']
+    if use_autosizing_limits_and_maintain_duct_system_curve == 'true'
       cfm_per_ton = 400.0
       baseline_max_airflow_cfm = nil
       measures_hash = {}
@@ -459,8 +459,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         end
       end
 
-      # Set autosizing limits
-      if ductwork_restriction == 'true'
+      # Use Autosizing Limits
+      if use_autosizing_limits_and_maintain_duct_system_curve == 'true'
         air_distribution_airflows = get_air_distribution_airflows(hpxml_bldg)
 
         if !air_distribution_airflows.empty?
@@ -550,8 +550,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
     end # end hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
 
-    # Set adjusted fan power
-    if ductwork_restriction == 'true'
+    # Maintain Duct System Curve
+    if use_autosizing_limits_and_maintain_duct_system_curve == 'true'
       if File.exist?(hpxml_path)
         hpxml = HPXML.new(hpxml_path: hpxml_path)
       else
@@ -597,7 +597,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
           return false
         end
       end # end hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
-    end # end ductwork_restriction
+    end # end use_autosizing_limits_and_maintain_duct_system_curve
 
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path,

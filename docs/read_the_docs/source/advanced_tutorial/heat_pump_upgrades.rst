@@ -39,7 +39,7 @@ When defining a heat pump upgrade, the new heat pump can:
 
 - :ref:`replace_the_existing_primary_heating_cooling_system`
 - :ref:`retain_the_existing_primary_heating_system_as_backup`
-- :ref:`use_autosizing_limits_for_ductwork_restriction`
+- :ref:`use_autosizing_limits_and_maintain_duct_system_curve`
 
 .. _replace_the_existing_primary_heating_cooling_system:
 
@@ -117,14 +117,14 @@ Other situations and considerations:
   - it remains secondary if the heat pump upgrade is integrated backup
   - it is removed if the heat pump upgrade is separate backup
 
-.. _use_autosizing_limits_for_ductwork_restriction:
+.. _use_autosizing_limits_and_maintain_duct_system_curve:
 
-Use Autosizing Limits for Ductwork Restriction
-**********************************************
+Use Autosizing Limits and Maintain Duct System Curve
+****************************************************
 
-Use the ``HVAC Distribution|Ductwork Restriction`` option from the lookup.
+Use the ``HVAC Distribution|Use Autosizing Limits and Maintain Duct System Curve`` option from the lookup.
 The (ducted) heat pump's heating/cooling autosized capacity is limited to the maximum of the existing duct system's heating/cooling airflow rate (cfm) divided by 400 cfm/ton.
-Additionally, the blower fan efficiency (W/cfm) is adjusted to account for the duct system becoming more restrictive.
+Additionally, the blower fan efficiency (W/cfm) is adjusted based on baseline model inputs to assume the duct system curve does not change pre and post heat pump installation.
 
 For example:
 
@@ -140,4 +140,4 @@ For example:
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
       - option: HVAC Cooling Efficiency|Ducted Heat Pump
-      - option: HVAC Distribution|Ductwork Restriction
+      - option: HVAC Distribution|Use Autosizing Limits and Maintain Duct System Curve

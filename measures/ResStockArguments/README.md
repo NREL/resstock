@@ -5611,9 +5611,9 @@ The fraction of manufacturer recommended charge of the heat pump.
 
 <br/>
 
-**Heat Pump: Backup Use Existing System**
+**Heat Pump Backup: Use Existing System**
 
-Whether the heat pump uses the existing system as backup.
+Whether the heat pump uses the existing heating system as backup.
 
 - **Name:** ``heat_pump_backup_use_existing_system``
 - **Type:** ``Boolean``
@@ -5622,11 +5622,11 @@ Whether the heat pump uses the existing system as backup.
 
 <br/>
 
-**HVAC Distribution: Ductwork Restriction**
+**HVAC Distribution: Use Autosizing Limits and Maintain Duct System Curve**
 
-Whether to set maximum allowable airflow rates of the upgraded building equal to airflow rates of the existing building.
+Whether to (a) set upper limits for autosized capacities and (b) adjust the blower fan efficiency.
 
-- **Name:** ``hvac_distribution_ductwork_restriction``
+- **Name:** ``hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve``
 - **Type:** ``Boolean``
 
 - **Required:** ``false``
