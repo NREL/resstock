@@ -250,6 +250,11 @@ references:
         option: HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Electricity
         apply_logic:
           - HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Fuel
+        costs:
+        # assume the same as Boiler Baseboards Heating Only, Fuel
+            - value: 85.42
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 24
 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
       - &fed_min_ashp_ducted
@@ -616,6 +621,7 @@ references:
         costs:
           - value: 2712.82 # Median installed cost for 50 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
             multiplier: Fixed (1)
+        lifetime: &hpwh_lifetime 13
       - &240V_hpwh_66_gal
         option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
         apply_logic:
@@ -624,6 +630,7 @@ references:
         costs:
           - value: 3736.48  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
             multiplier: Fixed (1)
+        lifetime: *hpwh_lifetime
       - &240V_hpwh_80_gal
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         apply_logic:
@@ -632,6 +639,7 @@ references:
         costs:
           - value: 4631.88 # Median installed cost for 80 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
             multiplier: Fixed (1)
+        lifetime: *hpwh_lifetime
 
     #### 2.3 120V HPWH With Shared Circuit  ####
       - &120v_hpwh_50_gal
@@ -642,6 +650,7 @@ references:
         costs:
           - value: 2099
             multiplier: Fixed (1)
+        lifetime: *hpwh_lifetime
       - &120v_hpwh_65_gal
         option: Water Heater Efficiency|Electric Heat Pump, 65 gal, 120 V Shared
         apply_logic:
@@ -649,6 +658,7 @@ references:
         costs:
           - value: 2499
             multiplier: Fixed (1)
+        lifetime: *hpwh_lifetime
       - &120v_hpwh_80_gal
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 120 V Shared
         apply_logic:
@@ -659,6 +669,7 @@ references:
         costs:
           - value: 3000
             multiplier: Fixed (1)
+        lifetime: *hpwh_lifetime
 
     #### 3 Electric Resistance Cooking, 1 option  ####
       - &electric_resistance_cooking
