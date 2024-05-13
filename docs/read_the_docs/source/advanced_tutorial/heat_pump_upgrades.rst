@@ -37,14 +37,14 @@ Replacement Scenarios
 
 When defining a heat pump upgrade, the new heat pump can:
 
-- :ref:`replace_the_existing_primary_system`, or
-- :ref:`retain_the_existing_primary_heating_system_as_backup`, or
+- :ref:`replace_the_existing_primary_heating_cooling_system`
+- :ref:`retain_the_existing_primary_heating_system_as_backup`
 - :ref:`use_autosizing_limits_for_ductwork_restriction`
 
-.. _replace_the_existing_primary_system:
+.. _replace_the_existing_primary_heating_cooling_system:
 
-Replace the Existing Primary System
-***********************************
+Replace the Existing Primary Heating/Cooling System
+***************************************************
 
 For example:
 
@@ -123,7 +123,7 @@ Use Autosizing Limits for Ductwork Restriction
 **********************************************
 
 Use the ``HVAC Distribution|Ductwork Restriction`` option from the lookup.
-The heat pump's heating/cooling autosized capacity is limited to the maximum of the existing duct system's heating/cooling airflow rate (cfm) divided by 400 cfm/ton.
+The (ducted) heat pump's heating/cooling autosized capacity is limited to the maximum of the existing duct system's heating/cooling airflow rate (cfm) divided by 400 cfm/ton.
 Additionally, the blower fan efficiency (W/cfm) is adjusted to account for the duct system becoming more restrictive.
 
 For example:
