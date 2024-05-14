@@ -77,13 +77,13 @@ class ScheduleGenerator
     appliance_power_dist_map = read_appliance_power_dist(resources_path: args[:resources_path])
     weekday_monthly_shift_dict = read_monthly_shift_minutes(resources_path: args[:resources_path], daytype: 'weekday')
     weekend_monthly_shift_dict = read_monthly_shift_minutes(resources_path: args[:resources_path], daytype: 'weekend')
-
+    @num_occupants = args[:geometry_num_occupants].to_i
     all_simulated_values = [] # holds the markov-chain state for each of the seven simulated states for each occupant.
     # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     # if geometry_num_occupants = 2, period_in_a_year = 35040,  num_of_states = 7, then
     # shape of all_simulated_values is [2, 35040, 7]
     occupancy_types_probabilities = Schedule.validate_values(Constants.OccupancyTypesProbabilities, 4, 'occupancy types probabilities')
-    for _n in 1..args[:geometry_num_occupants]
+    for _n in 1..@num_occupants
       occ_type_id = weighted_random(prng, occupancy_types_probabilities)
       init_prob_file_weekday = args[:resources_path] + "/weekday/mkv_chain_initial_prob_cluster_#{occ_type_id}.csv"
       initial_prob_weekday = CSV.read(init_prob_file_weekday)
@@ -190,6 +190,7 @@ class ScheduleGenerator
     @schedules[SchedulesFile::Columns[:LightingGarage].name] = @schedules[SchedulesFile::Columns[:LightingInterior].name]
     @schedules[SchedulesFile::Columns[:CeilingFan].name] = normalize(@schedules[SchedulesFile::Columns[:CeilingFan].name])
 
+    fill_ev_battery_schedule(all_simulated_values, args[:extension_properties], prng)
     # Generate the Sink Schedule
     # 1. Find indexes (minutes) when at least one occupant can have sink event (they aren't sleeping or absent)
     # 2. Determine number of cluster per day
@@ -933,4 +934,68 @@ class ScheduleGenerator
 
     return lighting_sch
   end
+
+  def _get_ev_battery_schedule(away_schedule, hours_driven_per_year)
+    total_driving_minutes_per_year = hours_driven_per_year * 60
+
+    expanded_away_schedule = away_schedule.flat_map { |status| [status] * 15 }
+
+    charging_schedule = []
+    discharging_schedule = []
+    driving_minutes_used = 0
+
+    chunk_counts = expanded_away_schedule.chunk(&:itself).map { |value, elements| [value, elements.size] }
+    total_away_minutes = chunk_counts.map {|value, size| value * size}.sum
+
+    chunk_counts.each do |is_away, activity_minutes|
+      if is_away == 1
+        current_chunk_proportion = (1.0 * activity_minutes) / total_away_minutes
+
+        expected_driving_time = (total_driving_minutes_per_year * current_chunk_proportion).round
+        max_driving_time = [expected_driving_time, total_driving_minutes_per_year - driving_minutes_used].min
+
+        max_possible_driving_time = (activity_minutes * 0.8).ceil
+        actual_driving_time = [max_driving_time, max_possible_driving_time].min
+
+        idle_time = activity_minutes - actual_driving_time
+        first_half_driving = (actual_driving_time / 2.0).ceil
+        second_half_driving = actual_driving_time - first_half_driving
+
+        discharging_schedule.concat([-1] * first_half_driving)  # Start driving
+        discharging_schedule.concat([0] * idle_time)            # Idle in the middle
+        discharging_schedule.concat([-1] * second_half_driving) # End driving
+        charging_schedule.concat([0] * activity_minutes)
+
+        driving_minutes_used += actual_driving_time
+      else
+        charging_schedule.concat([1] * activity_minutes)
+        discharging_schedule.concat([0] * activity_minutes)
+      end
+    end
+
+    if driving_minutes_used < total_driving_minutes_per_year
+      @runner.registerError("The occupant has less away hours than hours EV is driven")
+      raise "Insufficient away time for required driving hours"
+    end
+    return charging_schedule, discharging_schedule
+  end
+
+
 end
+  def fill_ev_battery_schedule(markov_chain_simulation_result, bldg_properties, prng)
+    # randomly pick 1 occupant
+    # TODO: determine the occupant based on best match for miles driven and occupant behavior
+    occupant_number = prng.rand(@num_occupants)
+    away_index = 5  # Index of away activity in the markov-chain simulator
+    away_schedule = markov_chain_simulation_result[occupant_number].column(away_index)
+    if bldg_properties.nil?
+      hours_driven_per_year = 500
+    else
+      hours_driven_per_year = bldg_properties['ev_effective_hours_per_year']
+    end
+    charging_schedule, discharging_schedule = _get_ev_battery_schedule(away_schedule, hours_driven_per_year)
+    agg_charging_schedule = aggregate_array(charging_schedule, @minutes_per_step).map { |val| val / 60.0 }
+    agg_discharging_schedule = aggregate_array(discharging_schedule, @minutes_per_step).map { |val| val / 60.0 }
+    @schedules[SchedulesFile::Columns[:BatteryCharging].name] = agg_charging_schedule
+    @schedules[SchedulesFile::Columns[:BatteryDischarging].name] = agg_discharging_schedule
+  end
