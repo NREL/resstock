@@ -15,6 +15,7 @@ Features
 - Update the stochastic schedule generator to produce updated other/TV plug load and ceiling fan schedules ([#1220](https://github.com/NREL/resstock/pull/1220))
 - Update to new OS-HPXML defaults for duct insulation; 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts) ([#1233](https://github.com/NREL/resstock/pull/1233))
 - Update to OpenStudio v3.8.0 ([#1225](https://github.com/NREL/resstock/pull/1225))
+- For ducted HVAC system upgrades, adds the ability to (1) limit the autosized capacity to the maximum of the existing duct system's heating/cooling airflow rates, and (2) adjust the blower fan efficiency to maintain the duct system curve, using only a single option from the lookup ([#1197](https://github.com/NREL/resstock/pull/1197))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))

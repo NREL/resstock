@@ -321,7 +321,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Optional whole SFA/MF building simulation
     whole_sfa_or_mf_building_sim = hpxml.header.whole_sfa_or_mf_building_sim
 
-    # Ductwork restriction
+    # Use Autosizing Limits and Maintain Duct System Curve
     use_autosizing_limits_and_maintain_duct_system_curve = measures['ResStockArguments'][0]['hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve']
     if use_autosizing_limits_and_maintain_duct_system_curve == 'true'
       cfm_per_ton = 400.0
@@ -402,7 +402,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['heat_pump_airflow_defect_ratio'] = defect_ratios['heat_pump_airflow_defect_ratio']
       measures['BuildResidentialHPXML'][0]['heat_pump_charge_defect_ratio'] = defect_ratios['heat_pump_charge_defect_ratio']
 
-      # Retain Existing Heating System as Heat Pump Backup
+      # Retain the Existing Primary Heating System as Heat Pump Backup
       heat_pump_backup_use_existing_system = measures['ResStockArguments'][0]['heat_pump_backup_use_existing_system']
       if heat_pump_backup_use_existing_system == 'true'
         heating_system = get_heating_system(hpxml_bldg)
