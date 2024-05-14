@@ -223,31 +223,31 @@ Arguments
      - #
      - Integer
      - "auto"
-     - The quantity of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The quantity of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_flow_rate``
      - false
      - CFM
      - Double
      - "auto"
-     - The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The flow rate of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_hours_in_operation``
      - false
      - hrs/day
      - Double
      - "auto"
-     - The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The hours in operation of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_power``
      - false
      - W
      - Double
      - "auto"
-     - The fan power of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The fan power of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``bathroom_fans_start_hour``
      - false
      - hr
      - Integer
      - "auto"
-     - The start hour of the bathroom fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The start hour of the bathroom fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
 
 .. _battery:
 
@@ -482,12 +482,18 @@ Arguments
      - Boolean
      - "true", "false"
      - Whether there are any ceiling fans.
+   * - ``ceiling_fan_label_energy_use``
+     - false
+     - W
+     - Double
+     - "auto"
+     - The label average energy use of the ceiling fan(s). If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
    * - ``ceiling_fan_efficiency``
      - false
      - CFM/W
      - Double
      - "auto"
-     - The efficiency rating of the ceiling fan(s) at medium speed. If not provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
+     - The efficiency rating of the ceiling fan(s) at medium speed. Only used if Label Energy Use not provided. If neither Efficiency nor Label Energy Use provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
    * - ``ceiling_fan_quantity``
      - false
      - #
@@ -611,6 +617,25 @@ Assumption
 - \The value 'Not in a census Place' designates the fraction of dwelling units not in a Census Place according to the 2010 Census.
 
 
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``site_city``
+     - false
+     - 
+     - String
+     -
+     - City/municipality of the home address.
+
 .. _clothes_dryer:
 
 Clothes Dryer
@@ -641,9 +666,9 @@ Assumption
 
   - \[1] State coarsened to Census Division RECS without AK, HI
 
-  - \[2] Heating Fuel coarsened to Other Fuel and Propane combined
+  - \[2] Heating Fuel coarsened to Other Fuel, Wood and Propane combined
 
-  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, and Propane combined
+  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, Wood and Propane combined
 
   - \[4] Geometry Building Type RECS coarsened to SF/MF/MH
 
@@ -1051,9 +1076,9 @@ Assumption
 
   - \[1] State coarsened to Census Division RECS with AK/HI separate
 
-  - \[2] Heating Fuel coarsened to Other Fuel and Propane combined
+  - \[2] Heating Fuel coarsened to Other Fuel, Wood and Propane combined
 
-  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, and Propane combined
+  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, Wood and Propane combined
 
   - \[4] Geometry Building Type RECS coarsened to SF/MF/MH
 
@@ -1475,14 +1500,39 @@ Arguments
      - false
      - hr
      - Double
-     -
-     - Time zone UTC offset of the home address. Must be between -12 and 14.
+     - "auto"
+     - Time zone UTC offset of the home address. Must be between -12 and 14. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``weather_station_epw_filepath``
      - true
      - 
      - String
      -
      - Path of the EPW file.
+
+.. _county_metro_status:
+
+County Metro Status
+-------------------
+
+Description
+***********
+
+The Metro Status of the county that the sample is located, based on MSA and MicroSA.
+
+Created by
+**********
+
+``sources/spatial/tsv_maker.py``
+
+Source
+******
+
+- \Spatial definitions are from the U.S. Census Bureau as of July 1, 2015.
+
+- \Unit counts are from the American Community Survey 5-yr 2016.
+
+- \County-MSA crosswalk comes from the Quarterly Census of Employment and Wages NAICS-based data between 2013-2022 by the U.S. Bureau of Labor Statistics (https://www.bls.gov/cew/classifications/areas/county-msa-csa-crosswalk.htm)
+
 
 .. _county_and_puma:
 
@@ -1506,6 +1556,21 @@ Source
 
 - \Unit counts are from the American Community Survey 5-yr 2016.
 
+
+.. _custom_state:
+
+Custom State
+------------
+
+Description
+***********
+
+A custom selection of states to be able to have more fine tuned probability distributionin states where we have more data
+
+Created by
+**********
+
+``sources/aris/tsv_maker.py``
 
 .. _dehumidifier:
 
@@ -1870,36 +1935,48 @@ Arguments
      - Double
      -
      - The leakage value to outside for the supply ducts.
-   * - ``ducts_return_leakage_to_outside_value``
-     - true
-     - 
-     - Double
-     -
-     - The leakage value to outside for the return ducts.
    * - ``ducts_supply_insulation_r``
      - true
      - h-ft^2-R/Btu
      - Double
      -
-     - The insulation r-value of the supply ducts excluding air films.
+     - The nominal insulation r-value of the supply ducts excluding air films. Use 0 for uninsulated ducts.
    * - ``ducts_supply_buried_insulation_level``
      - false
      - 
      - Choice
      - "auto", "not buried", "partially buried", "fully buried", "deeply buried"
      - Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+   * - ``ducts_supply_fraction_rectangular``
+     - false
+     - frac
+     - Double
+     - "auto"
+     - The fraction of supply ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
+   * - ``ducts_return_leakage_to_outside_value``
+     - true
+     - 
+     - Double
+     -
+     - The leakage value to outside for the return ducts.
    * - ``ducts_return_insulation_r``
      - true
      - h-ft^2-R/Btu
      - Double
      -
-     - The insulation r-value of the return ducts excluding air films.
+     - The nominal insulation r-value of the return ducts excluding air films. Use 0 for uninsulated ducts.
    * - ``ducts_return_buried_insulation_level``
      - false
      - 
      - Choice
      - "auto", "not buried", "partially buried", "fully buried", "deeply buried"
      - Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+   * - ``ducts_return_fraction_rectangular``
+     - false
+     - frac
+     - Double
+     - "auto"
+     - The fraction of return ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution>`_) is used.
 
 .. _duct_location:
 
@@ -3053,6 +3130,58 @@ Arguments
      -
      - Diffusivity of the ground soil. If provided, overrides the previous site and moisture type input.
 
+.. _hvac_cooling_autosizing_factor:
+
+HVAC Cooling Autosizing Factor
+------------------------------
+
+Description
+***********
+
+The cooling airflow and capacity scaling factor applied to the auto-sizing methodology (not used in project_national).
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+- \Engineering Judgment
+
+
+Assumption
+**********
+
+- \HVAC sizing follows ACCA Manual J and Manual S. There is no additional oversizing or undersizing the airflow and capacity of the HVAC system.
+
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``cooling_system_cooling_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+   * - ``heat_pump_cooling_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+
 .. _hvac_cooling_efficiency:
 
 HVAC Cooling Efficiency
@@ -3130,6 +3259,12 @@ Arguments
      - Double
      -
      - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_, `Evaporative Cooler <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#evaporative-cooler>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
+   * - ``cooling_system_cooling_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``cooling_system_is_ducted``
      - false
      - 
@@ -3234,12 +3369,14 @@ The presence and type of primary cooling system in the dwelling unit.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
 
 - \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -3250,6 +3387,12 @@ Assumption
 - \1) HVAC Heating type: Non-ducted heating and None2) Geometry building SF: Mobile, Single family attached, Single family detached3) Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units4) Vintage Lump: 20yrs binsHomes having ducted heat pump for heating and electricity fuel is assumed to haveducted heat pump for cooling (seperating from central AC category)
 
 - \Homes having non-ducted heat pump for heating is assumed to have non-ducted heat pumpfor cooling
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, we are not modelling any central and room AC.
+
+- \For Alaska, cooling systems are never shared.
 
 
 .. _hvac_has_ducts:
@@ -3286,6 +3429,25 @@ Assumption
 
 - \None of the shared system options currently modeled (in HVAC Shared Efficiencies) are ducted, therefore where there are discrepancies between HVAC Heating Type, HVAC Cooling Type, and HVAC Has Shared System, HVAC Has Shared System takes precedence. (e.g., Central AC + Ducted Heating + Shared Heating and Cooling = No (Ducts)) (This is a temporary fix and will change when ducted shared system options are introduced.)
 
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``hvac_blower_fan_watts_per_cfm``
+     - false
+     - W/CFM
+     - Double
+     - "auto"
+     - The blower fan efficiency at maximum fan speed. Applies only to split (not packaged) systems (i.e., applies to ducted systems as well as ductless mini-split systems). If not provided, the OS-HPXML default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems>`_, `HPXML Cooling Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooling-systems>`_, `HPXML Heat Pumps <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heat-pumps>`_) is used.
 
 .. _hvac_has_shared_system:
 
@@ -3343,6 +3505,70 @@ Source
 - \n/a
 
 
+.. _hvac_heating_autosizing_factor:
+
+HVAC Heating Autosizing Factor
+------------------------------
+
+Description
+***********
+
+The heating airflow and capacity scaling factor applied to the auto-sizing methodology (not used in project_national).
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+- \Engineering Judgment
+
+
+Assumption
+**********
+
+- \HVAC sizing follows ACCA Manual J and Manual S. There is no additional oversizing or undersizing the airflow and capacity of the HVAC system.
+
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``heating_system_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+   * - ``heat_pump_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+   * - ``heat_pump_backup_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, 1.0 is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Factor.
+   * - ``heating_system_2_heating_autosizing_factor``
+     - false
+     - 
+     - Double
+     -
+     - The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
+
 .. _hvac_heating_efficiency:
 
 HVAC Heating Efficiency
@@ -3356,7 +3582,7 @@ The presence and efficiency of the primary heating system in the dwelling unit.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
@@ -3366,6 +3592,8 @@ Source
 - \Shipment data based on CAC-ASHP-shipments-table.tsv and furnace-shipments-table.tsv
 
 - \Efficiency data based on expanded_HESC_HVAC_efficiencies.tsv combined with age of equipment data from RECS
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -3383,7 +3611,17 @@ Assumption
 
 - \For 'other' heating system types, we assign them to Electric Baseboard if fuel is Electric, and assign them to Wall/Floor Furnace if fuel is natural_gas, fuel_oil or propane.
 
-- \For Other Fuel, the lowest efficiency systems are assumed.
+- \For Other Fuel and Wood, the lowest efficiency systems are assumed.
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, electric space heaters are modelled as electric baseboards.
+
+- \For Alaska, Toyo/monitor direct-vent devices and other fuel space heaters are not modeled.
+
+- \For Alaska, fireplace and stoves are not modeled.
+
+- \For Alaska, heat pumps are assumed to be non-ducted air source heat pumps.
 
 
 Arguments
@@ -3416,6 +3654,12 @@ Arguments
      - Double
      -
      - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems>`_) is used.
+   * - ``heating_system_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heating_system_fraction_heat_load_served``
      - true
      - Frac
@@ -3476,6 +3720,12 @@ Arguments
      - Double
      -
      - The output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
+   * - ``heat_pump_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heat_pump_heating_capacity_retention_fraction``
      - false
      - Frac
@@ -3494,6 +3744,12 @@ Arguments
      - Double
      -
      - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
+   * - ``heat_pump_cooling_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heat_pump_fraction_heat_load_served``
      - true
      - Frac
@@ -3518,6 +3774,12 @@ Arguments
      - Choice
      - "none", "integrated", "separate"
      - The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.
+   * - ``heat_pump_backup_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, no limit is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Limit.
    * - ``heat_pump_backup_fuel``
      - true
      - 
@@ -3548,6 +3810,12 @@ Arguments
      - Choice
      - "auto", "ACCA", "HERS", "MaxLoad"
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
+   * - ``heat_pump_backup_sizing_methodology``
+     - false
+     - 
+     - Choice
+     - "auto", "emergency", "supplemental"
+     - The auto-sizing methodology to use when the heat pump backup capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``heat_pump_is_ducted``
      - false
      - 
@@ -3640,12 +3908,14 @@ The presence and type of the primary heating system in the dwelling unit.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
 
 - \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -3653,7 +3923,9 @@ Assumption
 
 - \Due to low sample sizes, fallback rules applied with lumping of
 
-- \1) Heating fuel lump: Fuel oil, Propane, and Other Fuel2) Geometry building SF: Mobile, Single family attached, Single family detached3) Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units4) Vintage Lump: 20yrs bins
+- \1) Heating fuel lump: Fuel oil, Propane, Wood and Other Fuel2) Geometry building SF: Mobile, Single family attached, Single family detached3) Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units4) Vintage Lump: 20yrs bins
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 
 .. _hvac_heating_type_and_fuel:
@@ -3685,17 +3957,31 @@ HVAC Secondary Heating Efficiency
 Description
 ***********
 
-Efficiency of the secondary heating system (not used in project_national).
+The efficiency and type of the heating system.
 
 Created by
 **********
 
-manually created
+``sources/aris/tsv_maker.py``
 
 Source
 ******
 
-- \n/a
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
+
+
+Assumption
+**********
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, electric space heaters are modelled as electric baseboards.
+
+- \For Alaska, Toyo/monitor direct-vent devices and other fuel space heaters are not modeled.
+
+- \For Alaska, fireplace and stoves are not modeled.
+
+- \For Alaska, heat pumps are assumed to be non-ducted air source heat pumps.
 
 
 Arguments
@@ -3728,6 +4014,12 @@ Arguments
      - Double
      -
      - The output heating capacity of the second heating system. If not provided, the OS-HPXML autosized default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems>`_) is used.
+   * - ``heating_system_2_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heating_system_2_has_flue_or_chimney``
      - true
      - 
@@ -3743,12 +4035,28 @@ HVAC Secondary Heating Fuel
 Description
 ***********
 
-Secondary HVAC system heating type and fuel (not used in project_national).
+Secondary Heating Fuel for the dwelling unit
 
 Created by
 **********
 
-manually created
+``sources/aris/tsv_maker.py``
+
+Source
+******
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
+
+
+Assumption
+**********
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, all wood is modelled as cord wood.
+
+- \For Alaska, when heating uses more than one fuels, the fuel with highest consumption is considered the primary (heating) fuel, and fuel with second highest usage (provided it is at least 10% of total energy use across all fuels) is considered secondary (heating) fuel - except in case of electric heating, which is always assumed as primary. Rest of the fuels are ignored.
+
 
 Arguments
 *********
@@ -3777,12 +4085,26 @@ HVAC Secondary Heating Partial Space Conditioning
 Description
 ***********
 
-Fraction of heat load served by secondary heating system (not used in project_national).
+The fraction of heating load served by secondary heating system
 
 Created by
 **********
 
-manually created
+``sources/aris/tsv_maker.py``
+
+Source
+******
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
+
+
+Assumption
+**********
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, the fraction of the load served by the secondary heating system is calculated as the ratio of annual energy used by secondary fuel and annual energy used by secondary and primary fuel.
+
 
 Arguments
 *********
@@ -3802,6 +4124,35 @@ Arguments
      - Double
      -
      - The heat load served fraction of the second heating system. Ignored if this heating system serves as a backup system for a heat pump.
+
+.. _hvac_secondary_heating_type:
+
+HVAC Secondary Heating Type
+---------------------------
+
+Description
+***********
+
+The efficiency and type of the heating system.
+
+Created by
+**********
+
+``sources/aris/tsv_maker.py``
+
+Source
+******
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
+
+
+Assumption
+**********
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, all heat pumps are assumed to be non-ducted mini-splits.
+
 
 .. _hvac_shared_efficiencies:
 
@@ -3864,6 +4215,12 @@ Arguments
      - Double
      -
      - The output heating capacity of the heating system. If not provided, the OS-HPXML autosized default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems>`_) is used.
+   * - ``heating_system_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heating_system_fraction_heat_load_served``
      - true
      - Frac
@@ -3894,6 +4251,12 @@ Arguments
      - Double
      -
      - The output cooling capacity of the cooling system. If not provided, the OS-HPXML autosized default (see `Central Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#central-air-conditioner>`_, `Room Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner>`_, `Packaged Terminal Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-air-conditioner>`_, `Evaporative Cooler <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#evaporative-cooler>`_, `Mini-Split Air Conditioner <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-air-conditioner>`_) is used.
+   * - ``cooling_system_cooling_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``cooling_system_is_ducted``
      - false
      - 
@@ -3936,12 +4299,24 @@ Arguments
      - Double
      -
      - The output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
+   * - ``heat_pump_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heat_pump_cooling_capacity``
      - false
      - Btu/hr
      - Double
      -
      - The output cooling capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_, `Ground-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#ground-to-air-heat-pump>`_) is used.
+   * - ``heat_pump_cooling_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heat_pump_fraction_heat_load_served``
      - true
      - Frac
@@ -3960,6 +4335,12 @@ Arguments
      - Choice
      - "none", "integrated", "separate"
      - The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.
+   * - ``heat_pump_backup_heating_autosizing_limit``
+     - false
+     - Btu/hr
+     - Double
+     -
+     - The maximum capacity limit applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, no limit is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Limit.
    * - ``heat_pump_backup_fuel``
      - true
      - 
@@ -3984,6 +4365,12 @@ Arguments
      - Choice
      - "auto", "ACCA", "HERS", "MaxLoad"
      - The auto-sizing methodology to use when the heat pump capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
+   * - ``heat_pump_backup_sizing_methodology``
+     - false
+     - 
+     - Choice
+     - "auto", "emergency", "supplemental"
+     - The auto-sizing methodology to use when the heat pump backup capacity is not provided. If not provided, the OS-HPXML default (see `HPXML HVAC Sizing Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-sizing-control>`_) is used.
    * - ``geothermal_loop_configuration``
      - false
      - 
@@ -4070,6 +4457,27 @@ Source
 ******
 
 - \Assuming no faults until we have data necessary to characterize all types of ACs and heat pumps (https://github.com/NREL/resstock/issues/733).
+
+
+.. _hvac_system_is_scaled:
+
+HVAC System Is Scaled
+---------------------
+
+Description
+***********
+
+Whether the HVAC system has been undersized or oversized (not used in project_national).
+
+Created by
+**********
+
+manually created
+
+Source
+******
+
+- \Assuming no oversizing or undersizing until we have data necessary to characterize all types of systems.
 
 
 .. _hvac_system_single_speed_ac_airflow:
@@ -4286,12 +4694,14 @@ The primary fuel used for heating the dwelling unit.
 Created by
 **********
 
-``sources/pums/pums2019_5yrs/tsv_maker.py``
+``sources/pums/pums2019_5yrs/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
 
 - \2019-5yrs Public Use Microdata Samples (PUMS). IPUMS USA, University of Minnesota, www.ipums.org.
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -4300,6 +4710,12 @@ Assumption
 - \In ACS, Heating Fuel is reported for occupied units only. By excluding Vacancy Status as adependency, we assume vacant units share the same Heating Fuel distribution as occupied units. Where sample counts are less than 10, the State average distribution has been inserted. Prior to insertion, the following adjustments have been made to the state distribution so all rows have sample count > 10: 1. Where sample counts < 10 (which consists of Mobile Home and Single-Family Attached only), the Vintage ACS distribution is used instead of Vintage: [CT, DE, ID, MD, ME, MT, ND, NE, NH, NV, RI, SD, UT, VT, WY]
 
 - \2. Remaining Mobile Homes < 10 are replaced by Single-Family Detached + Mobile Homes combined: [DE, RI, SD, VT, WY, and all DC].
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, all wood is modelled as cord wood.
+
+- \For Alaska, when heating uses more than one fuels, the fuel with highest consumption is considered the primary (heating) fuel, and fuel with second highest usage (provided it is at least 10% of total energy use across all fuels) is considered secondary (heating) fuel - except in case of electric heating, which is always assumed as primary. Rest of the fuels are ignored.
 
 
 Arguments
@@ -4628,19 +5044,19 @@ Arguments
      - ft
      - Double
      - "auto"
-     - If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
+     - If the distribution system is Recirculation, the length of the recirculation piping. If not provided, the OS-HPXML default (see `Recirculation (In-Unit) <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit>`_) is used.
    * - ``hot_water_distribution_recirc_branch_piping_length``
      - false
      - ft
      - Double
      - "auto"
-     - If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
+     - If the distribution system is Recirculation, the length of the recirculation branch piping. If not provided, the OS-HPXML default (see `Recirculation (In-Unit) <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit>`_) is used.
    * - ``hot_water_distribution_recirc_pump_power``
      - false
      - W
      - Double
      - "auto"
-     - If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default (see `Recirculation <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation>`_) is used.
+     - If the distribution system is Recirculation, the recirculation pump power. If not provided, the OS-HPXML default (see `Recirculation (In-Unit) <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#recirculation-in-unit>`_) is used.
    * - ``hot_water_distribution_pipe_r``
      - false
      - h-ft^2-R/Btu
@@ -4679,12 +5095,22 @@ Hot water fixture usage and flow levels.
 Created by
 **********
 
-manually created
+``sources/other/tsv_maker.py``
 
 Source
 ******
 
-- \Engineering Judgement
+- \Field data from a demand management program with 1700 residential electric resistance water heaters in the Northeast U.S.
+
+
+Assumption
+**********
+
+- \A lognormal distribution was shown to match the distribution of annual energy consumption.
+
+- \For the lognormal distribution the average multiplier is 0.8 and the standard deviation is 0.2.
+
+- \Low, Medium, and High usage is assigned based on the lower 25th percent, middle 50th percent, and upper 25th percent. The bins do not align perfectly with these bins so the lower users are a total of 25 percent, the medium users are 47 percent, and the high users are 28 percent of the stock.
 
 
 Arguments
@@ -4864,12 +5290,14 @@ Air leakage rates for the living and garage spaces
 Created by
 **********
 
-``sources/resdb/tsv_maker.py``
+``sources/resdb/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
 
 - \Distributions are based on the cumulative distribution functions from the Residential Diagnostics Database (ResDB), http://resdb.lbl.gov/.
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -4884,6 +5312,10 @@ Assumption
 - \Homes are assumed to not be Weatherization Assistance Program (WAP) qualified and not ENERGY STAR certified.
 
 - \Climate zones 7AK and 8AK are averages of 6A and 6B.
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, Infiltration ACH50 values are calculated based on CFM50 from blower door test and estimated volume of the home.
 
 
 Arguments
@@ -5665,13 +6097,13 @@ Arguments
      - CFM
      - Double
      - "auto"
-     - The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
+     - The flow rate of the mechanical ventilation. If not provided, the OS-HPXML default (see `HPXML Mechanical Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans>`_) is used.
    * - ``mech_vent_hours_in_operation``
      - false
      - hrs/day
      - Double
      - "auto"
-     - The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
+     - The hours in operation of the mechanical ventilation. If not provided, the OS-HPXML default (see `HPXML Mechanical Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans>`_) is used.
    * - ``mech_vent_recovery_efficiency_type``
      - true
      - 
@@ -5695,7 +6127,7 @@ Arguments
      - W
      - Double
      - "auto"
-     - The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see `Whole Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-ventilation-fan>`_) is used.
+     - The fan power of the mechanical ventilation. If not provided, the OS-HPXML default (see `HPXML Mechanical Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-mechanical-ventilation-fans>`_) is used.
    * - ``mech_vent_num_units_served``
      - true
      - #
@@ -5797,13 +6229,42 @@ Arguments
      - CFM
      - Double
      - "auto"
-     - The flow rate of the whole house fan. If not provided, the OS-HPXML default (see `Whole House Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-house-fan>`_) is used.
+     - The flow rate of the whole house fan. If not provided, the OS-HPXML default (see `HPXML Whole House Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-whole-house-fans>`_) is used.
    * - ``whole_house_fan_power``
      - false
      - W
      - Double
      - "auto"
-     - The fan power of the whole house fan. If not provided, the OS-HPXML default (see `Whole House Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#whole-house-fan>`_) is used.
+     - The fan power of the whole house fan. If not provided, the OS-HPXML default (see `HPXML Whole House Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-whole-house-fans>`_) is used.
+
+.. _metropolitan_and_micropolitan_statistical_area:
+
+Metropolitan and Micropolitan Statistical Area
+----------------------------------------------
+
+Description
+***********
+
+The U.S. Metropolitan Statistical Area (MSA) or Micropolitan Statistical Area (MicroSA) that the sample is located.
+
+Created by
+**********
+
+``sources/spatial/tsv_maker.py``
+
+Source
+******
+
+- \Spatial definitions are from the U.S. Census Bureau as of July 1, 2015.
+
+- \Unit counts are from the American Community Survey 5-yr 2016.
+
+- \County-MSA crosswalk comes from the Quarterly Census of Employment and Wages NAICS-based data between 2013-2022 by the U.S. Bureau of Labor Statistics (https://www.bls.gov/cew/classifications/areas/county-msa-csa-crosswalk.htm)
+
+- \According to the U.S. Census, each metropolitan statistical area must have at least one urban area of 50,000 or more inhabitants
+
+- \According to the U.S. Census, each micropolitan statistical area must have at least one urban area of at least 10,000 but less than 50,000 population.
+
 
 .. _misc_extra_refrigerator:
 
@@ -6213,9 +6674,9 @@ Assumption
 
   - \[1] State coarsened to Census Division RECS with AK/HI separate
 
-  - \[2] Heating Fuel coarsened to Other Fuel and Propane combined
+  - \[2] Heating Fuel coarsened to Other Fuel, Wood and Propane combined
 
-  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, and Propane combined
+  - \[3] Heating Fuel coarsened to Fuel Oil, Other Fuel, Wood and Propane combined
 
   - \[4] Geometry Building Type RECS coarsened to SF/MF/MH
 
@@ -6702,6 +7163,12 @@ Arguments
      - Double
      -
      - The number of occupants in the unit. If not provided, an *asset* calculation is performed assuming standard occupancy, in which various end use defaults (e.g., plug loads, appliances, and hot water usage) are calculated based on Number of Bedrooms and Conditioned Floor Area per ANSI/RESNET/ICC 301-2019. If provided, an *operational* calculation is instead performed in which the end use defaults are adjusted using the relationship between Number of Bedrooms and Number of Occupants from RECS 2015.
+   * - ``general_water_use_usage_multiplier``
+     - false
+     - 
+     - Double
+     - "auto"
+     - Multiplier on internal gains from general water use (floor mopping, shower evaporation, water films on showers, tubs & sinks surfaces, plant watering, etc.) that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see `HPXML Building Occupancy <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-building-occupancy>`_) is used.
 
 .. _orientation:
 
@@ -6873,6 +7340,37 @@ Source
 
 - \Unit counts are from the American Community Survey 5-yr 2016.
 
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``site_elevation``
+     - false
+     - ft
+     - Double
+     - "auto"
+     - Elevation of the home address. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
+   * - ``site_latitude``
+     - false
+     - deg
+     - Double
+     - "auto"
+     - Latitude of the home address. Must be between -90 and 90. Use negative values for southern hemisphere. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
+   * - ``site_longitude``
+     - false
+     - deg
+     - Double
+     - "auto"
+     - Longitude of the home address. Must be between -180 and 180. Use negative values for the western hemisphere. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
 
 .. _puma_metro_status:
 
@@ -7249,18 +7747,18 @@ Arguments
      - Type
      - Choices
      - Description
-   * - ``roof_radiant_barrier``
-     - true
+   * - ``radiant_barrier_attic_location``
+     - false
      - 
-     - Boolean
-     - "true", "false"
-     - Presence of a radiant barrier in the attic.
-   * - ``roof_radiant_barrier_grade``
+     - Choice
+     - "auto", "none", "Attic roof only", "Attic roof and gable walls", "Attic floor"
+     - The location of the radiant barrier in the attic.
+   * - ``radiant_barrier_grade``
      - false
      - 
      - Choice
      - "auto", "1", "2", "3"
-     - The grade of the radiant barrier. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
+     - The grade of the radiant barrier in the attic. If not provided, the OS-HPXML default (see `HPXML Roofs <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-roofs>`_) is used.
 
 .. _range_spot_vent_hour:
 
@@ -7300,31 +7798,31 @@ Arguments
      - #
      - Integer
      - "auto"
-     - The quantity of the kitchen fans. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The quantity of the kitchen fans. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_flow_rate``
      - false
      - CFM
      - Double
      - "auto"
-     - The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The flow rate of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_hours_in_operation``
      - false
      - hrs/day
      - Double
      - "auto"
-     - The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The hours in operation of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_power``
      - false
      - W
      - Double
      - "auto"
-     - The fan power of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The fan power of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
    * - ``kitchen_fans_start_hour``
      - false
      - hr
      - Integer
      - "auto"
-     - The start hour of the kitchen fan. If not provided, the OS-HPXML default (see `Local Ventilation Fan <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#local-ventilation-fan>`_) is used.
+     - The start hour of the kitchen fan. If not provided, the OS-HPXML default (see `HPXML Local Ventilation Fans <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-local-ventilation-fans>`_) is used.
 
 .. _refrigerator:
 
@@ -7650,7 +8148,28 @@ Arguments
      - 
      - Choice
      - "auto", "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"
-     - State code of the home address.
+     - State code of the home address. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-site>`_) is used.
+
+.. _state_metro_median_income:
+
+State Metro Median Income
+-------------------------
+
+Description
+***********
+
+State Metro median income of the household occupying the dwelling unit.             This is different from State Median Income in that the Income Limits are differentiated by Metro and             Nonmetro portions of the state.
+
+Created by
+**********
+
+``sources/pums/pums2019_5yrs/tsv_maker.py``
+
+Source
+******
+
+- \% State Metro Median Income is calculated using annual household income in 2019USD (continuous, not binned) from 2019-5yrs PUMS data and 2019 state median income (SMI) by metro/nonmetro area from HUD. A County Metro Status-differentiated Income Limits table is derived from the SMI by adjusting for household size only, which is consistent with how HUD's published State Income Limits table is generated.
+
 
 .. _tenure:
 
@@ -7739,12 +8258,12 @@ Arguments
      - Type
      - Choices
      - Description
-   * - ``schedules_vacancy_period``
+   * - ``schedules_vacancy_periods``
      - false
      - 
      - String
      -
-     - Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24).
+     - Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.
 
 .. _vintage:
 
@@ -7938,12 +8457,12 @@ Arguments
      - Double
      - "auto"
      - The setpoint temperature of water heater. If not provided, the OS-HPXML default (see `HPXML Water Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-water-heating-systems>`_) is used.
-   * - ``water_heater_num_units_served``
-     - true
+   * - ``water_heater_num_bedrooms_served``
+     - false
      - #
      - Integer
      -
-     - Number of dwelling units served (directly or indirectly) by the water heater. Must be 1 if single-family detached. Used to apportion water heater tank losses to the unit.
+     - Number of bedrooms served (directly or indirectly) by the water heater. Only needed if single-family attached or apartment unit and it is a shared water heater serving multiple dwelling units. Used to apportion water heater tank losses to the unit.
    * - ``water_heater_uses_desuperheater``
      - false
      - 
@@ -7982,12 +8501,14 @@ The water heater fuel type.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
 
 Source
 ******
 
 - \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -8002,6 +8523,12 @@ Assumption
   - \[3] Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units
 
   - \[4] State: Census Region[5] State: National
+
+- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
+
+- \For Alaska, wood and coal heating is modeled as other fuel.
+
+- \For Alaska, when a building uses more than one fuel for water heating, the fuel with highest consumption is considered the water heater fuel. Rest of the fuels are ignored.
 
 
 .. _water_heater_in_unit:
@@ -8071,7 +8598,7 @@ Assumption
 
 - \H2OMAIN does not apply to multi-family, therefore Water heater location for multi-family with in-unit water heater is taken after the combined distribution of other builing types.
 
-- \Per expert judgement, water heaters can not be outside or in vented spaces for IECC Climate Zones 4-8 due to pipe-freezing risk.
+- \out-of-unit water heater is assumed to be in Conditioned Mechanical Room. Per expert judgement, water heaters can not be outside or in vented spaces for IECC Climate Zones 4-8 due to pipe-freezing risk.
 
 - \Where samples < 10, data is aggregated in the following order:
 

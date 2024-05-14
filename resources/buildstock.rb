@@ -372,7 +372,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
     return
   end
 
-  values = get_values_from_runner_past_results(runner, 'build_existing_model')
+  values = Hash[runner.getPastStepValuesForMeasure('build_existing_model').collect { |k, v| [k.to_s, v] }]
   ruby_eval_str = ''
   option_apply_logic.split('||').each do |or_segment|
     or_segment.split('&&').each do |segment|
@@ -455,13 +455,11 @@ class RunOSWs
     command += ' -m' if measures_only
     command += " -w \"#{in_osw}\""
 
-    `#{command}` # suppresses "RunEnergyPlus: Completed Successfully with xxx" message
+    system(command, [:out, :err] => File::NULL)
     run_log = File.readlines(File.expand_path(File.join(parent_dir, 'run/run.log')))
     run_log.each do |line|
       next if line.include? 'Cannot find current Workflow Step'
-      next if line.include? 'Data will be treated as typical (TMY)'
       next if line.include? 'WorkflowStepResult value called with undefined stepResult'
-      next if line.include?("Object of type 'Schedule:Constant' and named 'Always") && line.include?('points to an object named') && line.include?('but that object cannot be located')
       next if line.include? 'Appears there are no design condition fields in the EPW file'
       next if line.include? 'No valid weather file defined in either the osm or osw.'
       next if line.include? 'EPW file not found'
@@ -480,7 +478,11 @@ class RunOSWs
     result_output = {}
 
     out = File.join(parent_dir, 'out.osw')
-    out = JSON.parse(File.read(File.expand_path(out)))
+    out = File.expand_path(out)
+    fail if !File.exist?(out)
+
+    out = JSON.parse(File.read(out))
+
     started_at = out['started_at']
     completed_at = out['completed_at']
     completed_status = out['completed_status']
@@ -554,17 +556,6 @@ class RunOSWs
 
     puts "Wrote: #{csv_out}"
     return csv_out
-  end
-
-  def self._rm_path(path)
-    if Dir.exist?(path)
-      FileUtils.rm_r(path)
-    end
-    while true
-      break if not Dir.exist?(path)
-
-      sleep(0.01)
-    end
   end
 end
 

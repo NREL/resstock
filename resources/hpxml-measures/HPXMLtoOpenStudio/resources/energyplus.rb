@@ -8,6 +8,7 @@ class EPlus
   EMSActuatorPumpPressureRise = 'Pump', 'Pump Pressure Rise'
   EMSActuatorFanPressureRise = 'Fan', 'Fan Pressure Rise'
   EMSActuatorFanTotalEfficiency = 'Fan', 'Fan Total Efficiency'
+  EMSActuatorUnitarySystemCoilSpeedLevel = 'Coil Speed Control', 'Unitary System DX Coil Speed Value'
   EMSActuatorScheduleConstantValue = 'Schedule:Constant', 'Schedule Value'
   EMSActuatorScheduleYearValue = 'Schedule:Year', 'Schedule Value'
   EMSActuatorScheduleFileValue = 'Schedule:File', 'Schedule Value'

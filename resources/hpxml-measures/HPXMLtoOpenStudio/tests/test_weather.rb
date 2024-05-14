@@ -21,20 +21,7 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     weather = WeatherProcess.new(epw_path: File.join(weather_dir, 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'), runner: runner)
 
-    # Check header
-    assert_equal('Denver Intl Ap', weather.header.City)
-    assert_equal('CO', weather.header.State)
-    assert_equal('USA', weather.header.Country)
-    assert_equal('TMY3', weather.header.DataSource)
-    assert_equal('725650', weather.header.Station)
-    assert_equal(39.83, weather.header.Latitude)
-    assert_equal(-104.65, weather.header.Longitude)
-    assert_equal(-7.0, weather.header.Timezone)
-    assert_in_delta(5413.4, weather.header.Altitude, 0.1)
-    assert_in_delta(0.82, weather.header.LocalPressure, 0.01)
-
     # Check data
-    assert_equal(1, weather.header.RecordsPerHour)
     assert_in_delta(51.6, weather.data.AnnualAvgDrybulb, 0.1)
     assert_in_delta(51.6, weather.data.ShallowGroundAnnualTemp, 0.1)
     assert_in_delta(56.3, weather.data.DeepGroundAnnualTemp, 0.1)
@@ -63,7 +50,6 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     # Check design
     assert_in_delta(6.8, weather.design.HeatingDrybulb, 0.1)
     assert_in_delta(91.8, weather.design.CoolingDrybulb, 0.1)
-    assert_in_delta(60.1, weather.design.CoolingWetbulb, 0.1)
     assert_in_delta(0.0061, weather.design.CoolingHumidityRatio, 0.0001)
     assert_in_delta(27.4, weather.design.DailyTemperatureRange, 0.1)
 
@@ -76,20 +62,7 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     weather = WeatherProcess.new(epw_path: File.join(weather_dir, 'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw'), runner: runner)
 
-    # Check header
-    assert_equal('Honolulu Intl Arpt', weather.header.City)
-    assert_equal('HI', weather.header.State)
-    assert_equal('USA', weather.header.Country)
-    assert_equal('TMY3', weather.header.DataSource)
-    assert_equal('911820', weather.header.Station)
-    assert_equal(21.32, weather.header.Latitude)
-    assert_equal(-157.93, weather.header.Longitude)
-    assert_equal(-10.0, weather.header.Timezone)
-    assert_in_delta(6.6, weather.header.Altitude, 0.1)
-    assert_in_delta(1.0, weather.header.LocalPressure, 0.01)
-
     # Check data
-    assert_equal(1, weather.header.RecordsPerHour)
     assert_in_delta(76.8, weather.data.AnnualAvgDrybulb, 0.1)
     assert_in_delta(76.8, weather.data.ShallowGroundAnnualTemp, 0.1)
     assert_in_delta(81.0, weather.data.DeepGroundAnnualTemp, 0.1)
@@ -118,7 +91,6 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     # Check design
     assert_in_delta(63.3, weather.design.HeatingDrybulb, 0.1)
     assert_in_delta(89.1, weather.design.CoolingDrybulb, 0.1)
-    assert_in_delta(73.6, weather.design.CoolingWetbulb, 0.1)
     assert_in_delta(0.0141, weather.design.CoolingHumidityRatio, 0.0001)
     assert_in_delta(12.8, weather.design.DailyTemperatureRange, 0.1)
 
@@ -131,20 +103,7 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     weather = WeatherProcess.new(epw_path: File.join(weather_dir, 'ZAF_Cape.Town.688160_IWEC.epw'), runner: runner)
 
-    # Check header
-    assert_equal('CAPE TOWN', weather.header.City)
-    assert_equal('-', weather.header.State)
-    assert_equal('ZAF', weather.header.Country)
-    assert_equal('IWEC Data', weather.header.DataSource)
-    assert_equal('688160', weather.header.Station)
-    assert_equal(-33.98, weather.header.Latitude)
-    assert_equal(18.6, weather.header.Longitude)
-    assert_equal(2.0, weather.header.Timezone)
-    assert_in_delta(137.8, weather.header.Altitude, 0.1)
-    assert_in_delta(1.0, weather.header.LocalPressure, 0.01)
-
     # Check data
-    assert_equal(1, weather.header.RecordsPerHour)
     assert_in_delta(61.7, weather.data.AnnualAvgDrybulb, 0.1)
     assert_in_delta(61.7, weather.data.ShallowGroundAnnualTemp, 0.1)
     assert_in_delta(65.8, weather.data.DeepGroundAnnualTemp, 0.1)
@@ -173,7 +132,6 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     # Check design
     assert_in_delta(41.0, weather.design.HeatingDrybulb, 0.1)
     assert_in_delta(84.4, weather.design.CoolingDrybulb, 0.1)
-    assert_in_delta(66.2, weather.design.CoolingWetbulb, 0.1)
     assert_in_delta(0.0095, weather.design.CoolingHumidityRatio, 0.0001)
     assert_in_delta(17.1, weather.design.DailyTemperatureRange, 0.1)
 
@@ -186,20 +144,7 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     weather = WeatherProcess.new(epw_path: File.join(weather_dir, 'US_CO_Boulder_AMY_2012.epw'), runner: runner)
 
-    # Check header
-    assert_equal('Boulder', weather.header.City)
-    assert_equal('CO', weather.header.State)
-    assert_equal('US', weather.header.Country)
-    assert_equal('NSRDB 2.0.1 2012 AMY', weather.header.DataSource)
-    assert_equal('724699', weather.header.Station)
-    assert_equal(40.13, weather.header.Latitude)
-    assert_equal(-105.22, weather.header.Longitude)
-    assert_equal(-7.0, weather.header.Timezone)
-    assert_in_delta(5300.2, weather.header.Altitude, 0.1)
-    assert_in_delta(0.82, weather.header.LocalPressure, 0.01)
-
     # Check data
-    assert_equal(1, weather.header.RecordsPerHour)
     assert_in_delta(49.4, weather.data.AnnualAvgDrybulb, 0.1)
     assert_in_delta(49.4, weather.data.ShallowGroundAnnualTemp, 0.1)
     assert_in_delta(55.2, weather.data.DeepGroundAnnualTemp, 0.1)
@@ -228,9 +173,8 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
     # Check design
     assert_in_delta(10.2, weather.design.HeatingDrybulb, 0.1)
     assert_in_delta(91.4, weather.design.CoolingDrybulb, 0.1)
-    assert_in_delta(58.0, weather.design.CoolingWetbulb, 0.1)
     assert_in_delta(0.0046, weather.design.CoolingHumidityRatio, 0.0001)
-    assert_in_delta(31.9, weather.design.DailyTemperatureRange, 0.1)
+    assert_in_delta(28.7, weather.design.DailyTemperatureRange, 0.1)
 
     # Check runner
     assert_equal(0, runner.result.stepErrors.size)

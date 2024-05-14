@@ -4,6 +4,7 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'msgpack'
+require 'time'
 require_relative 'resources/util.rb'
 require_relative '../HPXMLtoOpenStudio/resources/constants.rb'
 require_relative '../HPXMLtoOpenStudio/resources/location.rb'
@@ -126,22 +127,6 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     return warnings.uniq
   end
 
-  def get_arguments(runner, arguments, user_arguments)
-    args = get_argument_values(runner, arguments, user_arguments)
-    args.each do |k, val|
-      if val.respond_to?(:is_initialized) && val.is_initialized
-        args[k] = val.get
-      elsif k.start_with?('include_annual')
-        args[k] = true # default if not provided
-      elsif k.start_with?('include_monthly')
-        args[k] = true # default if not provided
-      else
-        args[k] = nil # default if not provided
-      end
-    end
-    return args
-  end
-
   # return a vector of IdfObject's to request EnergyPlus objects needed by the run method
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
@@ -169,7 +154,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     @hpxml_buildings = hpxml.buildings
     if @hpxml_header.utility_bill_scenarios.has_detailed_electric_rates
       uses_unit_multipliers = @hpxml_buildings.select { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units > 1 }.size > 0
-      if uses_unit_multipliers || (@hpxml_buildings.size > 1 && building_id == 'ALL')
+      if uses_unit_multipliers || (@hpxml_buildings.size > 1 && hpxml.header.whole_sfa_or_mf_building_sim)
         return result
       end
     end
@@ -235,7 +220,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    args = get_arguments(runner, arguments(model), user_arguments)
+    args = runner.getArgumentValues(arguments(model), user_arguments)
 
     hpxml_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
     hpxml_defaults_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
@@ -247,8 +232,11 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     @hpxml_buildings = hpxml.buildings
     if @hpxml_header.utility_bill_scenarios.has_detailed_electric_rates
       uses_unit_multipliers = @hpxml_buildings.select { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units > 1 }.size > 0
-      if uses_unit_multipliers || @hpxml_buildings.size > 1
-        runner.registerWarning('Cannot currently calculate utility bills based on detailed electric rates for an HPXML with unit multipliers or multiple Building elements.')
+      if uses_unit_multipliers
+        runner.registerWarning('Cannot currently calculate utility bills based on detailed electric rates for an HPXML with unit multipliers.')
+        return false
+      elsif @hpxml_buildings.size > 1 && hpxml.header.whole_sfa_or_mf_building_sim
+        runner.registerWarning('Cannot currently calculate utility bills based on detailed electric rates for a whole SFA/MF building simulation.')
         return false
       end
     end
@@ -439,7 +427,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     # Initial output data w/ Time column(s)
     data = ['Time', nil] + timestamps
 
-    return if (monthly_data.size) == 0
+    return if monthly_data.size == 0
 
     fail 'Unable to obtain timestamps.' if timestamps.empty?
 

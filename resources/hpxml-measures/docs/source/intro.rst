@@ -1,22 +1,24 @@
 Introduction
 ============
 
-The OpenStudio-HPXML repository consists of a simple residential EnergyPlus-based workflow build on top of `OpenStudio measures <http://nrel.github.io/OpenStudio-user-documentation/getting_started/about_measures/>`_.
-The workflow operates using `HPXML building description files <https://hpxml.nrel.gov>`_.
+OpenStudio-HPXML allows running residential EnergyPlus simulations using an `HPXML file <https://hpxml.nrel.gov/>`_ for the building description.
+It is intended to be used by user interfaces or other automated software workflows that automatically produce the HPXML file.
+A `Schematron <http://schematron.com/>`_ document for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
 
-The OpenStudio measures used by the workflow are:
+Capabilities
+------------
 
-#. ``BuildResidentialHPXML``: A measure that generates an HPXML file from a set of building description inputs (including, e.g., simplified geometry inputs).
-#. ``BuildResidentialScheduleFile``: A measure that generates a CSV of detailed schedules (e.g., stochastic occupancy) for use in the simulation.
-#. ``HPXMLtoOpenStudio``: A measure that translates an HPXML file to an OpenStudio model.
-#. ``ReportSimulationOutput``: A reporting measure that generates a variety of simulation-based annual/timeseries outputs in CSV/JSON/MessagePack format.
-#. ``ReportUtilityBills``: A reporting measure that generates utility bill outputs in CSV/JSON/MessagePack format.
+OpenStudio-HPXML capabilities include:
 
-
-Building Type Scope
--------------------
-
-See :ref:`hpxmlbuilding` for information on the types of buildings/simulations that OpenStudio-HPXML supports.
+- Modeling individual dwelling units or whole multifamily buildings; see :ref:`hpxmlbuilding` for more information
+- Modeling a wide range of building technologies
+- HVAC design load calculations and equipment autosizing
+- Occupancy schedules (smooth or stochastic)
+- Utility bill calculations (flat, tiered, time-of-use, real-time pricing, etc.)
+- Emissions calculations (CO2e, etc.)
+- Annual and timeseries outputs (energy, loads, temperatures, etc.)
+- Optional HPXML inputs with transparent defaults
+- Schematron and XSD Schema input validation
 
 Accuracy vs Speed
 -----------------
@@ -35,6 +37,46 @@ There are additional ways that software developers using this workflow can reduc
 - Limit requests for timeseries output (e.g., ``--hourly``, ``--daily``, ``--timestep`` arguments) and limit the number of output variables requested.
 - Avoid using the ``--add-component-loads`` argument if heating/cooling component loads are not of interest.
 - Use the ``--skip-validation`` argument if the HPXML input file has already been validated against the Schema & Schematron documents.
+
+.. _openstudio_measures:
+
+OpenStudio Measures
+-------------------
+
+You can read about OpenStudio measures `here <http://nrel.github.io/OpenStudio-user-documentation/getting_started/about_measures/>`_.
+The OpenStudio measures used by the workflow are:
+
+#. ``BuildResidentialHPXML``: A measure that generates an HPXML file from a set of building description inputs (including, e.g., simplified geometry inputs).
+#. ``BuildResidentialScheduleFile``: A measure that generates a CSV of detailed schedules (e.g., stochastic occupancy) for use in the simulation.
+#. ``HPXMLtoOpenStudio``: A measure that translates an HPXML file to an OpenStudio model.
+#. ``ReportSimulationOutput``: A reporting measure that generates a variety of simulation-based annual/timeseries outputs in CSV/JSON/MessagePack format.
+#. ``ReportUtilityBills``: A reporting measure that generates utility bill outputs in CSV/JSON/MessagePack format.
+
+Geometry
+--------
+
+HPXML files currently do not include detailed 3D geometry (e.g., surface vertices or positions of surfaces relative to each other).
+Rather, surfaces are defined by area and orientation.
+However, HPXML can still handle the most important aspect of geometry -- shading of solar radiation.
+Geometry inputs that affect solar shading include :ref:`overhangs` and :ref:`neighbor_buildings`.
+
+For example, the image below shows the result of translating a single-family detached HPXML file to an OpenStudio model.
+
+.. image:: images/geometry_exploded.png
+   :align: center
+
+Surfaces are shown with the correct area/orientation for heat transfer calculations (but are spread out such that they do not shade one another).
+Shading surfaces, shown in purple, represent neighboring buildings that substantially shade the windows facing left/right.
+
+.. note::
+
+  It is not possible to automatically construct a 3D closed-form geometry from HPXML inputs since the shape of the building (rectangular, L-shaped, etc.) is unknown.
+  Support for 3D geometry may be added to OpenStudio-HPXML in the future.
+
+For illustrative purposes, a 3D representation of the above home (excluding neighboring buildings) is shown below.
+
+.. image:: images/geometry_3d.png
+   :align: center
 
 License
 -------

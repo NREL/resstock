@@ -68,7 +68,7 @@ If true, bypasses HPXML input validation for faster performance. WARNING: This s
 
 **BuildingID**
 
-The ID of the HPXML Building. Only required if there are multiple Building elements in the HPXML file. Use 'ALL' to run all the HPXML Buildings (dwelling units) of a multifamily building in a single model.
+The ID of the HPXML Building. Only required if the HPXML has multiple Building elements and WholeSFAorMFBuildingSimulation is not true.
 
 - **Name:** ``building_id``
 - **Type:** ``String``
