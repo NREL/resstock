@@ -149,7 +149,14 @@ def create_input_tsv(
         expected_missing_cols = {
         "heating_fuel__None"
         }
-
+    elif model.model_num in ["41142", "41910"]:
+        input_cols_map = {
+            "sqft": "sqft",  # numeric
+            "Geometry Building Type RECS": "geometry_building_type_recs_simp",
+            "Heating Fuel": "heating_fuel_simp",
+            "Vintage": "vintage",
+        }
+        expected_missing_cols = {}
     else:
         raise ValueError(f"{model.model_num=} not implemented.")
 
@@ -212,38 +219,39 @@ def create_input_tsv(
 
     # df.to_csv(data_dir / "panel_2_after_vintage.csv") # TODO
 
-    # [2.1] Heating Fuel (None = non-electric)
-    hf_ne = [
-        x
-        for x in dfd.columns
-        if x.startswith("heating_fuel")
-        and not x.endswith("Electricity")
-        and not x.endswith("nan")
-    ]
+    if model.model_num in ["41138", "41906"]:
+        # [2.1] Heating Fuel (None = non-electric)
+        hf_ne = [
+            x
+            for x in dfd.columns
+            if x.startswith("heating_fuel")
+            and not x.endswith("Electricity")
+            and not x.endswith("nan")
+        ]
 
-    df_new = []
-    for col in hf_ne:
-        val = col.split("__")[1]
-        if val == "Other":
-            val = "Other Fuel"
-        dfn = df.loc[df["Dependency=Heating Fuel"] == val].copy()
-        assert len(dfn) > 0, "dfn is empty"
-        dfn["weight"] = dfd[col].sum() / dfd[hf_ne].sum().sum()
-        df_new.append(dfn)
+        df_new = []
+        for col in hf_ne:
+            val = col.split("__")[1]
+            if val == "Other":
+                val = "Other Fuel"
+            dfn = df.loc[df["Dependency=Heating Fuel"] == val].copy()
+            assert len(dfn) > 0, "dfn is empty"
+            dfn["weight"] = dfd[col].sum() / dfd[hf_ne].sum().sum()
+            df_new.append(dfn)
 
-    df_new = pd.concat(df_new, axis=0)
-    df_new[panel_labels] = df_new[panel_labels].mul(df_new["weight"], axis=0)
-    df_new["Dependency=Heating Fuel"] = "None"
-    df_new = df_new.groupby(dep_cols)[panel_labels].sum().reset_index()
+        df_new = pd.concat(df_new, axis=0)
+        df_new[panel_labels] = df_new[panel_labels].mul(df_new["weight"], axis=0)
+        df_new["Dependency=Heating Fuel"] = "None"
+        df_new = df_new.groupby(dep_cols)[panel_labels].sum().reset_index()
 
-    if (df_new[panel_labels].sum(axis=1).round(1) != 1).sum() > 0:
-        print("Error in duplicating rows for Heating Fuel")
-        breakpoint()
+        if (df_new[panel_labels].sum(axis=1).round(1) != 1).sum() > 0:
+            print("Error in duplicating rows for Heating Fuel")
+            breakpoint()
 
-    df = pd.concat(
-        [df.loc[df["Dependency=Heating Fuel"] != "None"], df_new], axis=0
-    )
-    # df.to_csv(data_dir / "panel_3_after_heating_fuel.csv") # TODO
+        df = pd.concat(
+            [df.loc[df["Dependency=Heating Fuel"] != "None"], df_new], axis=0
+        )
+        # df.to_csv(data_dir / "panel_3_after_heating_fuel.csv") # TODO
 
     del dfd
 
@@ -304,16 +312,31 @@ def undummify(df: pd.DataFrame, prefix_sep: str = "__") -> pd.DataFrame:
 
 
 def apply_special_mapping(dfi: pd.DataFrame, model_num: str) -> pd.DataFrame:
-    dfi["heating_fuel"] = dfi["heating_fuel"].map(
-        {
-            "Electricity": "Electricity",
-            "Fuel Oil": "Fuel Oil",
-            "Natural Gas": "Natural Gas",
-            "Other Fuel": "Other",
-            "Propane": "Propane",
-            "None": "None",
-        }
-    )
+    if model_num in ["41138", "41906"]:
+        dfi["heating_fuel"] = dfi["heating_fuel"].map(
+            {
+                "Electricity": "Electricity",
+                "Fuel Oil": "Fuel Oil",
+                "Natural Gas": "Natural Gas",
+                "Other Fuel": "Other",
+                "Propane": "Propane",
+                "None": "None",
+            }
+        )
+    elif model_num in ["41142", "41910"]:
+        dfi["heating_fuel_simp"] = dfi["heating_fuel_simp"].map(
+            {
+                "Electricity": "Electricity",
+                "Fuel Oil": "non_Electricity",
+                "Natural Gas": "non_Electricity",
+                "Other Fuel": "non_Electricity",
+                "Propane": "non_Electricity",
+                "None": "non_Electricity",
+            }
+        )
+    else:
+        raise ValueError(f"{model.model_num=} not implemented.")
+
     dfi["geometry_building_type_recs_simp"] = dfi["geometry_building_type_recs_simp"].map(
         {
             "Mobile Home": "Mobile Home",
@@ -497,7 +520,7 @@ def apply_model_to_results(
 
 def validate_model_with_dummy_data(model, raise_error: bool = False):
     df = pd.read_excel(dummy_data_file, sheet_name=data_input_sheetname, header=0)
-    # drop last col, "truth" amperage
+    # drop last 2 cols, "truth" amperage
     df = df.iloc[:, :-2]
     output = pd.read_excel(dummy_data_file, sheet_name=data_output_sheetname)
 
@@ -517,7 +540,7 @@ def validate_model_with_dummy_data(model, raise_error: bool = False):
     df["expected"] = truth
     df["predicted"] = predicted
     df_error = df.loc[df["predicted"] != df["expected"]]
-    df_error_file = data_dir / "check.csv"
+    df_error_file = data_dir / f"check_model{model.model_num}.csv"
     df_error.to_csv(df_error_file)
     msg2 = f"Dataframe subset with discrepancy is exported to: {df_error_file}"
 
@@ -710,23 +733,30 @@ def get_model_parameters(model):
         3: "201+",
         4: "<100",  # "lt_100",
     }
-    if model == "41138":
-        # Original bins, no upsampling of electric heating
-        model_filename = "final_panel_model_rank_test_f1_weighted_41138.p"
-    elif model == "41906":
-        # Original bins, no upsampling of electric heating
-        model_filename = "final_panel_model_rank_test_f1_weighted_41906.p"
-        output_mapping = {
+    output_mapping2 = {
         0: "100",
         1: "101-124",
         2: "125",
         3: "126-199",
-        4: "200",  # "lt_100",
+        4: "200", 
         5: "201+",
         6: "<100",  # "lt_100",
     }
+    if model == "41138":
+        model_filename = "final_panel_model_rank_test_f1_weighted_41138.p"
+    elif model == "41906":
+        # similar to 41138, with more prediction bins
+        model_filename = "final_panel_model_rank_test_f1_weighted_41906.p"
+        output_mapping = output_mapping2
+    elif model == "41142":
+        # w/ simplified heating fuel
+        model_filename = "final_panel_model_rank_test_f1_weighted_41142.p"
+    elif model == "41910":
+        # similar to 41142, with more prediction bins
+        model_filename = "final_panel_model_rank_test_f1_weighted_41910.p"
+        output_mapping = output_mapping2
     else:
-        raise ValueError(f"Unknown model={model}, valid: [41138, 41906]")
+        raise ValueError(f"Unknown model={model}, valid: [41138, 41906, 41142, 41910]")
 
     data_input_sheetname = f"input_{model}"
     data_output_sheetname = f"output_{model}"
@@ -754,7 +784,7 @@ def main(
         filename = Path(filename)
 
     # Model specs
-    model_num = "41138"  # <-- [41138 (for paper), 41906 (for TEA?, TBD)]
+    model_num = "41910"  # <-- [41138 (for paper), 41906 (for TEA?, TBD), 41142 (simp heat fuel), 41910 (simp heat fuel)]
     (
         model_filename,
         data_input_sheetname,
