@@ -4954,7 +4954,7 @@ class HPXMLFile
                              exterior_shading_factor_winter: args[:window_exterior_shading_winter],
                              exterior_shading_factor_summer: args[:window_exterior_shading_summer],
                              fraction_operable: args[:window_fraction_operable],
-                             wall_idref: wall_idref)
+                             attached_to_wall_idref: wall_idref)
     end
   end
 
@@ -4970,13 +4970,21 @@ class HPXMLFile
       roof_idref = @surface_ids[surface.name.to_s]
       next if roof_idref.nil?
 
+      roof = hpxml_bldg.roofs.find { |roof| roof.id == roof_idref }
+      if roof.interior_adjacent_to != HPXML::LocationConditionedSpace
+        # This is the roof of an attic, so the skylight must have a shaft; attach it to the attic floor as well.
+        floor = hpxml_bldg.floors.find { |floor| floor.interior_adjacent_to == HPXML::LocationConditionedSpace && floor.exterior_adjacent_to == roof.interior_adjacent_to }
+        floor_idref = floor.id
+      end
+
       hpxml_bldg.skylights.add(id: "Skylight#{hpxml_bldg.skylights.size + 1}",
                                area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2'),
                                azimuth: azimuth,
                                ufactor: args[:skylight_ufactor],
                                shgc: args[:skylight_shgc],
                                storm_type: args[:skylight_storm_type],
-                               roof_idref: roof_idref)
+                               attached_to_roof_idref: roof_idref,
+                               attached_to_floor_idref: floor_idref)
     end
   end
 
@@ -4997,7 +5005,7 @@ class HPXMLFile
       next if wall_idref.nil?
 
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: wall_idref,
+                           attached_to_wall_idref: wall_idref,
                            area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2'),
                            azimuth: args[:geometry_unit_orientation],
                            r_value: args[:door_rvalue])
@@ -6554,71 +6562,57 @@ class HPXMLFile
     end
 
     # After surfaces are collapsed, round all areas
-    (hpxml_bldg.roofs +
-     hpxml_bldg.rim_joists +
-     hpxml_bldg.walls +
-     hpxml_bldg.foundation_walls +
-     hpxml_bldg.floors +
-     hpxml_bldg.slabs +
-     hpxml_bldg.windows +
-     hpxml_bldg.skylights +
-     hpxml_bldg.doors).each do |s|
+    (hpxml_bldg.surfaces + hpxml_bldg.subsurfaces).each do |s|
       s.area = s.area.round(1)
     end
   end
 
   def self.renumber_hpxml_ids(hpxml_bldg)
     # Renumber surfaces
-    { hpxml_bldg.walls => 'Wall',
-      hpxml_bldg.foundation_walls => 'FoundationWall',
-      hpxml_bldg.rim_joists => 'RimJoist',
-      hpxml_bldg.floors => 'Floor',
-      hpxml_bldg.roofs => 'Roof',
-      hpxml_bldg.slabs => 'Slab',
-      hpxml_bldg.windows => 'Window',
-      hpxml_bldg.doors => 'Door',
-      hpxml_bldg.skylights => 'Skylight' }.each do |surfs, surf_name|
-      surfs.each_with_index do |surf, i|
-        (hpxml_bldg.attics + hpxml_bldg.foundations).each do |attic_or_fnd|
-          if attic_or_fnd.respond_to?(:attached_to_roof_idrefs) && !attic_or_fnd.attached_to_roof_idrefs.nil? && !attic_or_fnd.attached_to_roof_idrefs.delete(surf.id).nil?
-            attic_or_fnd.attached_to_roof_idrefs << "#{surf_name}#{i + 1}"
-          end
-          if attic_or_fnd.respond_to?(:attached_to_wall_idrefs) && !attic_or_fnd.attached_to_wall_idrefs.nil? && !attic_or_fnd.attached_to_wall_idrefs.delete(surf.id).nil?
-            attic_or_fnd.attached_to_wall_idrefs << "#{surf_name}#{i + 1}"
-          end
-          if attic_or_fnd.respond_to?(:attached_to_rim_joist_idrefs) && !attic_or_fnd.attached_to_rim_joist_idrefs.nil? && !attic_or_fnd.attached_to_rim_joist_idrefs.delete(surf.id).nil?
-            attic_or_fnd.attached_to_rim_joist_idrefs << "#{surf_name}#{i + 1}"
-          end
-          if attic_or_fnd.respond_to?(:attached_to_floor_idrefs) && !attic_or_fnd.attached_to_floor_idrefs.nil? && !attic_or_fnd.attached_to_floor_idrefs.delete(surf.id).nil?
-            attic_or_fnd.attached_to_floor_idrefs << "#{surf_name}#{i + 1}"
-          end
-          if attic_or_fnd.respond_to?(:attached_to_slab_idrefs) && !attic_or_fnd.attached_to_slab_idrefs.nil? && !attic_or_fnd.attached_to_slab_idrefs.delete(surf.id).nil?
-            attic_or_fnd.attached_to_slab_idrefs << "#{surf_name}#{i + 1}"
-          end
-          if attic_or_fnd.respond_to?(:attached_to_foundation_wall_idrefs) && !attic_or_fnd.attached_to_foundation_wall_idrefs.nil? && !attic_or_fnd.attached_to_foundation_wall_idrefs.delete(surf.id).nil?
-            attic_or_fnd.attached_to_foundation_wall_idrefs << "#{surf_name}#{i + 1}"
-          end
+    indexes = {}
+    (hpxml_bldg.surfaces + hpxml_bldg.subsurfaces).each do |surf|
+      surf_name = surf.class.to_s.gsub('HPXML::', '')
+      indexes[surf_name] = 0 if indexes[surf_name].nil?
+      indexes[surf_name] += 1
+      (hpxml_bldg.attics + hpxml_bldg.foundations).each do |attic_or_fnd|
+        if attic_or_fnd.respond_to?(:attached_to_roof_idrefs) && !attic_or_fnd.attached_to_roof_idrefs.nil? && !attic_or_fnd.attached_to_roof_idrefs.delete(surf.id).nil?
+          attic_or_fnd.attached_to_roof_idrefs << "#{surf_name}#{indexes[surf_name]}"
         end
-        (hpxml_bldg.windows + hpxml_bldg.doors).each do |subsurf|
-          if subsurf.respond_to?(:wall_idref) && (subsurf.wall_idref == surf.id)
-            subsurf.wall_idref = "#{surf_name}#{i + 1}"
-          end
+        if attic_or_fnd.respond_to?(:attached_to_wall_idrefs) && !attic_or_fnd.attached_to_wall_idrefs.nil? && !attic_or_fnd.attached_to_wall_idrefs.delete(surf.id).nil?
+          attic_or_fnd.attached_to_wall_idrefs << "#{surf_name}#{indexes[surf_name]}"
         end
-        hpxml_bldg.skylights.each do |subsurf|
-          if subsurf.respond_to?(:roof_idref) && (subsurf.roof_idref == surf.id)
-            subsurf.roof_idref = "#{surf_name}#{i + 1}"
-          end
+        if attic_or_fnd.respond_to?(:attached_to_rim_joist_idrefs) && !attic_or_fnd.attached_to_rim_joist_idrefs.nil? && !attic_or_fnd.attached_to_rim_joist_idrefs.delete(surf.id).nil?
+          attic_or_fnd.attached_to_rim_joist_idrefs << "#{surf_name}#{indexes[surf_name]}"
         end
-        surf.id = "#{surf_name}#{i + 1}"
-        if surf.respond_to? :insulation_id
-          surf.insulation_id = "#{surf_name}#{i + 1}Insulation"
+        if attic_or_fnd.respond_to?(:attached_to_floor_idrefs) && !attic_or_fnd.attached_to_floor_idrefs.nil? && !attic_or_fnd.attached_to_floor_idrefs.delete(surf.id).nil?
+          attic_or_fnd.attached_to_floor_idrefs << "#{surf_name}#{indexes[surf_name]}"
         end
-        if surf.respond_to? :perimeter_insulation_id
-          surf.perimeter_insulation_id = "#{surf_name}#{i + 1}PerimeterInsulation"
+        if attic_or_fnd.respond_to?(:attached_to_slab_idrefs) && !attic_or_fnd.attached_to_slab_idrefs.nil? && !attic_or_fnd.attached_to_slab_idrefs.delete(surf.id).nil?
+          attic_or_fnd.attached_to_slab_idrefs << "#{surf_name}#{indexes[surf_name]}"
         end
-        if surf.respond_to? :under_slab_insulation_id
-          surf.under_slab_insulation_id = "#{surf_name}#{i + 1}UnderSlabInsulation"
+        if attic_or_fnd.respond_to?(:attached_to_foundation_wall_idrefs) && !attic_or_fnd.attached_to_foundation_wall_idrefs.nil? && !attic_or_fnd.attached_to_foundation_wall_idrefs.delete(surf.id).nil?
+          attic_or_fnd.attached_to_foundation_wall_idrefs << "#{surf_name}#{indexes[surf_name]}"
         end
+      end
+      (hpxml_bldg.windows + hpxml_bldg.doors).each do |subsurf|
+        if subsurf.respond_to?(:attached_to_wall_idref) && (subsurf.attached_to_wall_idref == surf.id)
+          subsurf.attached_to_wall_idref = "#{surf_name}#{indexes[surf_name]}"
+        end
+      end
+      hpxml_bldg.skylights.each do |subsurf|
+        if subsurf.respond_to?(:attached_to_roof_idref) && (subsurf.attached_to_roof_idref == surf.id)
+          subsurf.attached_to_roof_idref = "#{surf_name}#{indexes[surf_name]}"
+        end
+      end
+      surf.id = "#{surf_name}#{indexes[surf_name]}"
+      if surf.respond_to? :insulation_id
+        surf.insulation_id = "#{surf_name}#{indexes[surf_name]}Insulation"
+      end
+      if surf.respond_to? :perimeter_insulation_id
+        surf.perimeter_insulation_id = "#{surf_name}#{indexes[surf_name]}PerimeterInsulation"
+      end
+      if surf.respond_to? :under_slab_insulation_id
+        surf.under_slab_insulation_id = "#{surf_name}#{indexes[surf_name]}UnderSlabInsulation"
       end
     end
   end
