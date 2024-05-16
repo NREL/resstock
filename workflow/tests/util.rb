@@ -307,7 +307,6 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     next if message.include?('setupIHGOutputs: Output variables=Zone Other Equipment') && message.include?('are not available.')
     next if message.include?('setupIHGOutputs: Output variables=Space Other Equipment') && message.include?('are not available')
     next if message.include? 'Multiple speed fan will be applied to this unit. The speed number is determined by load.'
-    next if message.include?('Heater Thermal Efficiency') && message.include?('should not typically be greater than 1') # This warning can appear due to EC_adj term
 
     # HPWHs
     if hpxml_bldg.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
