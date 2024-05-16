@@ -8,11 +8,11 @@ on:
   workflow_dispatch:
 
 env:
-  OPENSTUDIO_VER: "3.8.0-rc2"
-  OPENSTUDIO_SHA: "af997f4fef"
+  OPENSTUDIO_VER: "3.8.0-rc3"
+  OPENSTUDIO_SHA: "d8eac889d0"
   OPENSTUDIO_PLATFORM: "Ubuntu-20.04-x86_64"
   OPENSTUDIO_EXT: "deb"
-  OPENSTUDIO_URL: "https://github.com/NREL/OpenStudio/releases/download/v3.8.0-rc2"
+  OPENSTUDIO_URL: "https://github.com/NREL/OpenStudio/releases/download/v3.8.0-rc3"
 
 jobs:
   format-files:
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [format-files]
     container:
-      image: docker://nrel/openstudio:dev-3.8.0-rc2
+      image: docker://nrel/openstudio:3.8.0-rc3
     steps:
       - uses: actions/checkout@v4
         with:
@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests]
     container:
-      image: docker://nrel/openstudio:dev-3.8.0-rc2
+      image: docker://nrel/openstudio:3.8.0-rc3
     steps:
       - uses: actions/checkout@v4
         with:
