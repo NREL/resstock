@@ -370,29 +370,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     line_break = nil
     results_out << [line_break]
 
-    if ['csv'].include? args[:output_format]
-      CSV.open(annual_output_path, 'a') { |csv| results_out.to_a.each { |elem| csv << elem } }
-    elsif ['json', 'msgpack'].include? args[:output_format]
-      h = {}
-      results_out.each do |out|
-        next if out == [line_break]
-
-        if out[0].include? ':'
-          grp, name = out[0].split(':', 2)
-          h[grp] = {} if h[grp].nil?
-          h[grp][name.strip] = out[1]
-        else
-          h[out[0]] = out[1]
-        end
-      end
-
-      if args[:output_format] == 'json'
-        require 'json'
-        File.open(annual_output_path, 'a') { |json| json.write(JSON.pretty_generate(h)) }
-      elsif args[:output_format] == 'msgpack'
-        File.open(annual_output_path, 'a') { |json| h.to_msgpack(json) }
-      end
-    end
+    Outputs.write_results_out_to_file(results_out, args[:output_format], annual_output_path, 'a')
     runner.registerInfo("Wrote annual bills output to #{annual_output_path}.")
 
     results_out.each do |name, value|

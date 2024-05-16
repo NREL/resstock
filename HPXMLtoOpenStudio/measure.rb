@@ -43,10 +43,26 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path for the output files directory.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
-    arg.setDisplayName('Debug Mode?')
-    arg.setDescription('If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.')
-    arg.setDefaultValue(false)
+    format_chs = OpenStudio::StringVector.new
+    format_chs << 'csv'
+    format_chs << 'json'
+    format_chs << 'msgpack'
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('output_format', format_chs, false)
+    arg.setDisplayName('Output Format')
+    arg.setDescription('The file format of the HVAC design load details output.')
+    arg.setDefaultValue('csv')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('annual_output_file_name', false)
+    arg.setDisplayName('Annual Output File Name')
+    arg.setDescription("The name of the file w/ HVAC design loads and capacities. If not provided, defaults to 'results_annual.csv' (or 'results_annual.json' or 'results_annual.msgpack').")
+    arg.setDefaultValue('results_annual')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('design_load_details_output_file_name', false)
+    arg.setDisplayName('Design Load Details Output File Name')
+    arg.setDescription("The name of the file w/ additional HVAC design load details. If not provided, defaults to 'results_design_load_details.csv' (or 'results_design_load_details.json' or 'results_design_load_details.msgpack').")
+    arg.setDefaultValue('results_design_load_details')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
@@ -55,15 +71,21 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('building_id', false)
+    arg.setDisplayName('BuildingID')
+    arg.setDescription('The ID of the HPXML Building. Only required if the HPXML has multiple Building elements and WholeSFAorMFBuildingSimulation is not true.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('skip_validation', false)
     arg.setDisplayName('Skip Validation?')
     arg.setDescription('If true, bypasses HPXML input validation for faster performance. WARNING: This should only be used if the supplied HPXML file has already been validated against the Schema & Schematron documents.')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('building_id', false)
-    arg.setDisplayName('BuildingID')
-    arg.setDescription('The ID of the HPXML Building. Only required if the HPXML has multiple Building elements and WholeSFAorMFBuildingSimulation is not true.')
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
+    arg.setDisplayName('Debug Mode?')
+    arg.setDescription('If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.')
+    arg.setDefaultValue(false)
     args << arg
 
     return args
@@ -94,6 +116,16 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     unless (Pathname.new args[:output_dir]).absolute?
       args[:output_dir] = File.expand_path(args[:output_dir])
     end
+
+    unless File.extname(args[:annual_output_file_name]).length > 0
+      args[:annual_output_file_name] = "#{args[:annual_output_file_name]}.#{args[:output_format]}"
+    end
+    annual_output_file_path = File.join(args[:output_dir], args[:annual_output_file_name])
+
+    unless File.extname(args[:design_load_details_output_file_name]).length > 0
+      args[:design_load_details_output_file_name] = "#{args[:design_load_details_output_file_name]}.#{args[:output_format]}"
+    end
+    design_load_details_output_file_path = File.join(args[:output_dir], args[:design_load_details_output_file_name])
 
     begin
       if args[:skip_validation]
@@ -153,7 +185,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
                                            year: Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file),
                                            unavailable_periods: hpxml.header.unavailable_periods,
                                            output_path: File.join(args[:output_dir], in_schedules_csv))
-        HPXMLDefaults.apply(runner, hpxml, hpxml_bldg, eri_version, weather, epw_file: epw_file, schedules_file: schedules_file)
+        HPXMLDefaults.apply(runner, hpxml, hpxml_bldg, eri_version, weather, epw_file: epw_file, schedules_file: schedules_file,
+                                                                             design_load_details_output_file_path: design_load_details_output_file_path,
+                                                                             output_format: args[:output_format])
         hpxml_sch_map[hpxml_bldg] = schedules_file
       end
       validate_emissions_files(hpxml.header)
@@ -161,6 +195,13 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       # Write updated HPXML object (w/ defaults) to file for inspection
       hpxml_defaults_path = File.join(args[:output_dir], 'in.xml')
       XMLHelper.write_file(hpxml.to_doc, hpxml_defaults_path)
+
+      # Write annual results output file
+      # This is helpful if the user wants to get these results right away (e.g.,
+      # they might be using the run_simulation.rb --skip-simulation argument.
+      results_out = []
+      Outputs.append_sizing_results(hpxml.buildings, results_out)
+      Outputs.write_results_out_to_file(results_out, args[:output_format], annual_output_file_path)
 
       # Create OpenStudio model
       hpxml_osm_map = {}
@@ -433,7 +474,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     add_foundation_walls_slabs(runner, model, weather, spaces)
     add_windows(model, spaces)
     add_doors(model, spaces)
-    add_skylights(model, spaces)
+    add_skylights(runner, model, spaces)
     add_conditioned_floor_area(model, spaces)
     add_thermal_mass(model, spaces)
     Geometry.set_zone_volumes(spaces, @hpxml_bldg, @apply_ashrae140_assumptions)
@@ -826,7 +867,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
   def add_floors(runner, model, spaces)
     @hpxml_bldg.floors.each do |floor|
-      area = floor.area
+      next if floor.net_area < 1.0 # skip modeling net surface area for surfaces comprised entirely of subsurface area
+
+      area = floor.net_area
       width = Math::sqrt(area)
       length = area / width
       if floor.interior_adjacent_to.include?('attic') || floor.exterior_adjacent_to.include?('attic')
@@ -1361,11 +1404,15 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     apply_adiabatic_construction(model, surfaces, 'wall')
   end
 
-  def add_skylights(model, spaces)
+  def add_skylights(runner, model, spaces)
     surfaces = []
     shading_schedules = {}
 
     @hpxml_bldg.skylights.each do |skylight|
+      if not skylight.is_conditioned
+        runner.registerWarning("Skylight '#{skylight.id}' not connected to conditioned space; if it's a skylight with a shaft or sun tunnel, use AttachedToFloor to connect it to conditioned space.")
+      end
+
       tilt = skylight.roof.pitch / 12.0
       width = Math::sqrt(skylight.area)
       length = skylight.area / width
@@ -1383,7 +1430,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       surface.additionalProperties.setFeature('SurfaceType', 'Skylight')
       surface.setName("surface #{skylight.id}")
       surface.setSurfaceType('RoofCeiling')
-      surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace)) # Ensures it is included in Manual J sizing
+      surface.setSpace(create_or_get_space(model, spaces, skylight.roof.interior_adjacent_to))
       surface.setOutsideBoundaryCondition('Outdoors') # cannot be adiabatic because subsurfaces won't be created
       surfaces << surface
 

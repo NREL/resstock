@@ -45,9 +45,6 @@ XMLHelper.write_file(hpxml.to_doc, "out.xml")
 
 '''
 
-# FUTURE: Remove all idref attributes, make object attributes instead
-#         E.g., in class Window, :wall_idref => :wall
-
 class HPXML < Object
   HPXML_ATTRS = [:header, :buildings]
   attr_reader(*HPXML_ATTRS, :doc, :errors, :warnings, :hpxml_path)
@@ -388,6 +385,8 @@ class HPXML < Object
   SolarThermalTypeEvacuatedTube = 'evacuated tube'
   SolarThermalTypeICS = 'integrated collector storage'
   SolarThermalTypeSingleGlazing = 'single glazing black'
+  SpaceFenestrationLoadProcedureStandard = 'standard'
+  SpaceFenestrationLoadProcedurePeak = 'peak'
   SurroundingsOneSide = 'attached on one side'
   SurroundingsTwoSides = 'attached on two sides'
   SurroundingsThreeSides = 'attached on three sides'
@@ -481,6 +480,42 @@ class HPXML < Object
   WindowClassHeavyCommercial = 'heavy commercial'
   WindowClassResidential = 'residential'
   WindowClassLightCommercial = 'light commercial'
+  ZoneTypeConditioned = 'conditioned'
+  ZoneTypeUnconditioned = 'unconditioned'
+
+  # Heating/cooling design load attributes
+  HDL_ATTRS = { hdl_total: 'Total',
+                hdl_ducts: 'Ducts',
+                hdl_windows: 'Windows',
+                hdl_skylights: 'Skylights',
+                hdl_doors: 'Doors',
+                hdl_walls: 'Walls',
+                hdl_roofs: 'Roofs',
+                hdl_floors: 'Floors',
+                hdl_slabs: 'Slabs',
+                hdl_ceilings: 'Ceilings',
+                hdl_infil: 'Infiltration',
+                hdl_vent: 'Ventilation' }
+  CDL_SENS_ATTRS = { cdl_sens_total: 'Total',
+                     cdl_sens_ducts: 'Ducts',
+                     cdl_sens_windows: 'Windows',
+                     cdl_sens_skylights: 'Skylights',
+                     cdl_sens_doors: 'Doors',
+                     cdl_sens_walls: 'Walls',
+                     cdl_sens_roofs: 'Roofs',
+                     cdl_sens_floors: 'Floors',
+                     cdl_sens_slabs: 'Slabs',
+                     cdl_sens_ceilings: 'Ceilings',
+                     cdl_sens_infil: 'Infiltration',
+                     cdl_sens_vent: 'Ventilation',
+                     cdl_sens_intgains: 'InternalLoads',
+                     cdl_sens_aedexcursion: 'AEDExcursion',
+                     cdl_sens_aed_curve: 'AEDCurve' }
+  CDL_LAT_ATTRS = { cdl_lat_total: 'Total',
+                    cdl_lat_ducts: 'Ducts',
+                    cdl_lat_infil: 'Infiltration',
+                    cdl_lat_vent: 'Ventilation',
+                    cdl_lat_intgains: 'InternalLoads' }
 
   def initialize(hpxml_path: nil, schema_validator: nil, schematron_validator: nil, building_id: nil)
     @hpxml_path = hpxml_path
@@ -1136,7 +1171,7 @@ class HPXML < Object
 
   class Building < BaseElement
     CLASS_ATTRS = [:site, :neighbor_buildings, :building_occupancy, :building_construction, :header,
-                   :climate_and_risk_zones, :air_infiltration, :air_infiltration_measurements, :attics,
+                   :climate_and_risk_zones, :zones, :air_infiltration, :air_infiltration_measurements, :attics,
                    :foundations, :roofs, :rim_joists, :walls, :foundation_walls, :floors, :slabs, :windows,
                    :skylights, :doors, :partition_wall_mass, :furniture_mass, :heating_systems,
                    :cooling_systems, :heat_pumps, :geothermal_loops, :hvac_plant, :hvac_controls, :hvac_distributions,
@@ -1221,6 +1256,7 @@ class HPXML < Object
       @building_construction.to_doc(building)
       @header.to_doc(building)
       @climate_and_risk_zones.to_doc(building)
+      @zones.to_doc(building)
       @air_infiltration_measurements.to_doc(building)
       @air_infiltration.to_doc(building)
       @attics.to_doc(building)
@@ -1302,6 +1338,7 @@ class HPXML < Object
       @building_construction = BuildingConstruction.new(self, building)
       @header = BuildingHeader.new(self, building)
       @climate_and_risk_zones = ClimateandRiskZones.new(self, building)
+      @zones = Zones.new(self, building)
       @air_infiltration_measurements = AirInfiltrationMeasurements.new(self, building)
       @air_infiltration = AirInfiltration.new(self, building)
       @attics = Attics.new(self, building)
@@ -1352,13 +1389,21 @@ class HPXML < Object
       @fuel_loads = FuelLoads.new(self, building)
     end
 
+    def surfaces
+      return (@roofs + @rim_joists + @walls + @foundation_walls + @floors + @slabs)
+    end
+
+    def subsurfaces
+      return (@windows + @skylights + @doors)
+    end
+
     def hvac_systems
       return (@heating_systems + @cooling_systems + @heat_pumps)
     end
 
     def has_location(location)
       # Search for surfaces attached to this location
-      (@roofs + @rim_joists + @walls + @foundation_walls + @floors + @slabs).each do |surface|
+      surfaces.each do |surface|
         return true if surface.interior_adjacent_to == location
         return true if surface.exterior_adjacent_to == location
       end
@@ -1430,6 +1475,14 @@ class HPXML < Object
       end
 
       return window_area_operable / window_area_total
+    end
+
+    def conditioned_zones()
+      return zones.select { |z| z.zone_type == ZoneTypeConditioned }
+    end
+
+    def conditioned_spaces()
+      return conditioned_zones.map { |z| z.spaces }.flatten
     end
 
     def primary_hvac_systems()
@@ -1637,6 +1690,19 @@ class HPXML < Object
         errors << "RelatedHVACSystem '#{hvac_system.id}' is attached to multiple water heating systems."
       end
 
+      # Check for HVAC systems on the same distribution system that are attached to different zones
+      @hvac_distributions.each do |hvac_distribution|
+        zone_ids = []
+        hvac_distribution.hvac_systems.each do |hvac_system|
+          next if hvac_system.attached_to_zone_idref.nil?
+
+          zone_ids << hvac_system.attached_to_zone_idref
+        end
+        if zone_ids.uniq.size > 1
+          errors << "HVAC distribution system '#{hvac_distribution.id}' has HVAC systems attached to different zones."
+        end
+      end
+
       # Check for the sum of CFA served by distribution systems <= CFA
       if not @building_construction.conditioned_floor_area.nil?
         air_distributions = @hvac_distributions.select { |dist| dist if HPXML::HVACDistributionTypeAir == dist.distribution_system_type }
@@ -1780,14 +1846,14 @@ class HPXML < Object
 
             # Update subsurface idrefs as appropriate
             (@windows + @doors).each do |subsurf|
-              next unless subsurf.wall_idref == surf2.id
+              next unless subsurf.attached_to_wall_idref == surf2.id
 
-              subsurf.wall_idref = surf.id
+              subsurf.attached_to_wall_idref = surf.id
             end
             @skylights.each do |subsurf|
-              next unless subsurf.roof_idref == surf2.id
+              next unless subsurf.attached_to_roof_idref == surf2.id
 
-              subsurf.roof_idref = surf.id
+              subsurf.attached_to_roof_idref = surf.id
             end
 
             # Remove old surface
@@ -2190,6 +2256,236 @@ class HPXML < Object
 
       @year = XMLHelper.get_value(climate_zone_iecc, 'Year', :integer)
       @zone = XMLHelper.get_value(climate_zone_iecc, 'ClimateZone', :string)
+    end
+  end
+
+  class Zones < BaseArrayElement
+    def add(**kwargs)
+      self << Zone.new(@parent_object, **kwargs)
+    end
+
+    def from_doc(building)
+      return if building.nil?
+
+      XMLHelper.get_elements(building, 'BuildingDetails/Zones/Zone').each do |zone|
+        self << Zone.new(@parent_object, zone)
+      end
+    end
+  end
+
+  class Zone < BaseElement
+    def initialize(hpxml_bldg, *args, **kwargs)
+      @spaces = Spaces.new(hpxml_bldg)
+      super(hpxml_bldg, *args, **kwargs)
+    end
+    ATTRS = [:id, :zone_type, :spaces] + HDL_ATTRS.keys + CDL_SENS_ATTRS.keys + CDL_LAT_ATTRS.keys
+    attr_accessor(*ATTRS)
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def delete
+      hvac_systems.reverse_each do |hvac_system|
+        hvac_system.attached_to_zone_idref = nil
+      end
+      @parent_object.zones.delete(self)
+    end
+
+    def heating_systems
+      return @parent_object.heating_systems.select { |s| s.attached_to_zone_idref == @id }
+    end
+
+    def cooling_systems
+      return @parent_object.cooling_systems.select { |s| s.attached_to_zone_idref == @id }
+    end
+
+    def heat_pumps
+      return @parent_object.heat_pumps.select { |s| s.attached_to_zone_idref == @id }
+    end
+
+    def hvac_systems
+      return @parent_object.hvac_systems.select { |s| s.attached_to_zone_idref == @id }
+    end
+
+    def hvac_distributions
+      return hvac_systems.select { |s| !s.distribution_system.nil? }.map { |s| s.distribution_system }.uniq
+    end
+
+    def floor_area
+      return spaces.map { |space| space.floor_area }.sum
+    end
+
+    def roofs
+      return spaces.map { |space| space.roofs }.flatten
+    end
+
+    def rim_joists
+      return spaces.map { |space| space.rim_joists }.flatten
+    end
+
+    def walls
+      return spaces.map { |space| space.walls }.flatten
+    end
+
+    def foundation_walls
+      return spaces.map { |space| space.foundation_walls }.flatten
+    end
+
+    def floors
+      return spaces.map { |space| space.floors }.flatten
+    end
+
+    def slabs
+      return spaces.map { |space| space.slabs }.flatten
+    end
+
+    def windows
+      return spaces.map { |space| space.windows }.flatten
+    end
+
+    def doors
+      return spaces.map { |space| space.doors }.flatten
+    end
+
+    def skylights
+      return spaces.map { |space| space.skylights }.flatten
+    end
+
+    def surfaces
+      return (roofs + rim_joists + walls + foundation_walls + floors + slabs)
+    end
+
+    def to_doc(building)
+      return if nil?
+
+      zones = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'Zones'])
+      zone = XMLHelper.add_element(zones, 'Zone')
+      sys_id = XMLHelper.add_element(zone, 'SystemIdentifier')
+      XMLHelper.add_attribute(sys_id, 'id', @id)
+      XMLHelper.add_element(zone, 'ZoneType', @zone_type, :string) unless @zone_type.nil?
+      @spaces.to_doc(zone)
+      if (HDL_ATTRS.keys + CDL_SENS_ATTRS.keys + CDL_LAT_ATTRS.keys).map { |key| send(key) }.any?
+        HPXML.design_loads_to_doc(self, zone)
+      end
+    end
+
+    def from_doc(zone)
+      return if zone.nil?
+
+      @id = HPXML::get_id(zone)
+      @zone_type = XMLHelper.get_value(zone, 'ZoneType', :string)
+      @spaces.from_doc(zone)
+      HPXML.design_loads_from_doc(self, zone)
+    end
+  end
+
+  class Spaces < BaseArrayElement
+    def add(**kwargs)
+      self << Space.new(@parent_object, **kwargs)
+    end
+
+    def from_doc(zone)
+      return if zone.nil?
+
+      XMLHelper.get_elements(zone, 'Spaces/Space').each do |space|
+        self << Space.new(@parent_object, space)
+      end
+    end
+  end
+
+  class Space < BaseElement
+    ATTRS = [:id, :floor_area, :manualj_internal_loads_sensible, :manualj_internal_loads_latent,
+             :manualj_num_occupants, :fenestration_load_procedure] + HDL_ATTRS.keys + CDL_SENS_ATTRS.keys + CDL_LAT_ATTRS.keys
+    attr_accessor(*ATTRS)
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def delete
+      surfaces.reverse_each do |surface|
+        surface.attached_to_space_idref = nil
+      end
+      zone.spaces.delete(self)
+    end
+
+    def zone
+      return @parent_object.zones.find { |zone| zone.spaces.include? self }
+    end
+
+    def roofs
+      return @parent_object.roofs.select { |s| s.attached_to_space_idref == @id }
+    end
+
+    def rim_joists
+      return @parent_object.rim_joists.select { |s| s.attached_to_space_idref == @id }
+    end
+
+    def walls
+      return @parent_object.walls.select { |s| s.attached_to_space_idref == @id }
+    end
+
+    def foundation_walls
+      return @parent_object.foundation_walls.select { |s| s.attached_to_space_idref == @id }
+    end
+
+    def floors
+      return @parent_object.floors.select { |s| s.attached_to_space_idref == @id }
+    end
+
+    def slabs
+      return @parent_object.slabs.select { |s| s.attached_to_space_idref == @id }
+    end
+
+    def windows
+      return @parent_object.windows.select { |s| s.wall.attached_to_space_idref == @id }
+    end
+
+    def doors
+      return @parent_object.doors.select { |s| s.wall.attached_to_space_idref == @id }
+    end
+
+    def skylights
+      return @parent_object.skylights.select { |s| s.roof.attached_to_space_idref == @id }
+    end
+
+    def surfaces
+      return (roofs + rim_joists + walls + foundation_walls + floors + slabs)
+    end
+
+    def to_doc(zone)
+      return if nil?
+
+      spaces = XMLHelper.create_elements_as_needed(zone, ['Spaces'])
+      space = XMLHelper.add_element(spaces, 'Space')
+      sys_id = XMLHelper.add_element(space, 'SystemIdentifier')
+      XMLHelper.add_attribute(sys_id, 'id', @id)
+      XMLHelper.add_element(space, 'FloorArea', @floor_area, :float) unless @floor_area.nil?
+      if (not @manualj_internal_loads_sensible.nil?) || (not @manualj_internal_loads_latent.nil?) || (not @manualj_num_occupants.nil?) || (not @fenestration_load_procedure.nil?)
+        mj_extension = XMLHelper.add_extension(space, 'ManualJInputs')
+        XMLHelper.add_element(mj_extension, 'InternalLoadsSensible', @manualj_internal_loads_sensible, :float, @manualj_internal_loads_sensible_isdefaulted) unless @manualj_internal_loads_sensible.nil?
+        XMLHelper.add_element(mj_extension, 'InternalLoadsLatent', @manualj_internal_loads_latent, :float, @manualj_internal_loads_latent_isdefaulted) unless @manualj_internal_loads_latent.nil?
+        XMLHelper.add_element(mj_extension, 'NumberofOccupants', @manualj_num_occupants, :float, @manualj_num_occupants_isdefaulted) unless @manualj_num_occupants.nil?
+        XMLHelper.add_element(mj_extension, 'FenestrationLoadProcedure', @fenestration_load_procedure, :string, @fenestration_load_procedure_isdefaulted) unless @fenestration_load_procedure.nil?
+      end
+      if (HDL_ATTRS.keys + CDL_SENS_ATTRS.keys + CDL_LAT_ATTRS.keys).map { |key| send(key) }.any?
+        HPXML.design_loads_to_doc(self, space)
+      end
+    end
+
+    def from_doc(space)
+      return if space.nil?
+
+      @id = HPXML::get_id(space)
+      @floor_area = XMLHelper.get_value(space, 'FloorArea', :float)
+      @manualj_internal_loads_sensible = XMLHelper.get_value(space, 'extension/ManualJInputs/InternalLoadsSensible', :float)
+      @manualj_internal_loads_latent = XMLHelper.get_value(space, 'extension/ManualJInputs/InternalLoadsLatent', :float)
+      @manualj_num_occupants = XMLHelper.get_value(space, 'extension/ManualJInputs/NumberofOccupants', :float)
+      @fenestration_load_procedure = XMLHelper.get_value(space, 'extension/ManualJInputs/FenestrationLoadProcedure', :string)
+      HPXML.design_loads_from_doc(self, space)
     end
   end
 
@@ -2727,11 +3023,23 @@ class HPXML < Object
              :insulation_continuous_r_value, :radiant_barrier_grade, :insulation_grade,
              :interior_finish_type, :interior_finish_thickness, :framing_factor,
              :framing_size, :framing_spacing, :insulation_cavity_material,
-             :insulation_continuous_material]
+             :insulation_continuous_material, :attached_to_space_idref]
     attr_accessor(*ATTRS)
 
     def skylights
-      return @parent_object.skylights.select { |skylight| skylight.roof_idref == @id }
+      return @parent_object.skylights.select { |skylight| skylight.attached_to_roof_idref == @id }
+    end
+
+    def space
+      return if @attached_to_space_idref.nil?
+
+      @parent_object.zones.each do |z|
+        z.spaces.each do |s|
+          return s if s.id == @attached_to_space_idref
+        end
+      end
+
+      fail "Attached space '#{@attached_to_space_idref}' not found for roof '#{@id}'."
     end
 
     def net_area
@@ -2784,6 +3092,7 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; net_area; rescue StandardError => e; errors << e.message; end
+      begin; space; rescue StandardError => e; errors << e.message; end
       return errors
     end
 
@@ -2794,6 +3103,10 @@ class HPXML < Object
       roof = XMLHelper.add_element(roofs, 'Roof')
       sys_id = XMLHelper.add_element(roof, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
+      if not @attached_to_space_idref.nil?
+        space_attached = XMLHelper.add_element(roof, 'AttachedToSpace')
+        XMLHelper.add_attribute(space_attached, 'idref', @attached_to_space_idref)
+      end
       XMLHelper.add_element(roof, 'InteriorAdjacentTo', @interior_adjacent_to, :string) unless @interior_adjacent_to.nil?
       XMLHelper.add_element(roof, 'Area', @area, :float) unless @area.nil?
       XMLHelper.add_element(roof, 'Orientation', @orientation, :string, @orientation_isdefaulted) unless @orientation.nil?
@@ -2888,6 +3201,7 @@ class HPXML < Object
           @insulation_continuous_material += "/#{material_type}" unless material_type.nil?
         end
       end
+      @attached_to_space_idref = HPXML::get_idref(XMLHelper.get_elements(roof, 'AttachedToSpace')[0])
     end
   end
 
@@ -2909,11 +3223,34 @@ class HPXML < Object
     ATTRS = [:id, :exterior_adjacent_to, :interior_adjacent_to, :area, :orientation, :azimuth, :siding,
              :color, :solar_absorptance, :emittance, :insulation_id, :insulation_assembly_r_value,
              :insulation_cavity_r_value, :insulation_continuous_r_value, :framing_size,
-             :insulation_cavity_material, :insulation_continuous_material]
+             :insulation_cavity_material, :insulation_continuous_material, :attached_to_space_idref]
     attr_accessor(*ATTRS)
+
+    def space
+      return if @attached_to_space_idref.nil?
+
+      @parent_object.zones.each do |z|
+        z.spaces.each do |s|
+          return s if s.id == @attached_to_space_idref
+        end
+      end
+
+      fail "Attached space '#{@attached_to_space_idref}' not found for rim joist '#{@id}'."
+    end
 
     def is_exterior
       if @exterior_adjacent_to == LocationOutside
+        return true
+      end
+
+      return false
+    end
+
+    def is_exposed
+      if HPXML::is_conditioned(self) &&
+         (@exterior_adjacent_to == LocationOutside ||
+          @exterior_adjacent_to == LocationOtherNonFreezingSpace ||
+          @exterior_adjacent_to == LocationGarage)
         return true
       end
 
@@ -2953,6 +3290,7 @@ class HPXML < Object
 
     def check_for_errors
       errors = []
+      begin; space; rescue StandardError => e; errors << e.message; end
       return errors
     end
 
@@ -2963,6 +3301,10 @@ class HPXML < Object
       rim_joist = XMLHelper.add_element(rim_joists, 'RimJoist')
       sys_id = XMLHelper.add_element(rim_joist, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
+      if not @attached_to_space_idref.nil?
+        space_attached = XMLHelper.add_element(rim_joist, 'AttachedToSpace')
+        XMLHelper.add_attribute(space_attached, 'idref', @attached_to_space_idref)
+      end
       XMLHelper.add_element(rim_joist, 'ExteriorAdjacentTo', @exterior_adjacent_to, :string) unless @exterior_adjacent_to.nil?
       XMLHelper.add_element(rim_joist, 'InteriorAdjacentTo', @interior_adjacent_to, :string) unless @interior_adjacent_to.nil?
       XMLHelper.add_element(rim_joist, 'Area', @area, :float) unless @area.nil?
@@ -3037,6 +3379,7 @@ class HPXML < Object
         end
       end
       @framing_size = XMLHelper.get_value(rim_joist, 'FloorJoists/Size', :string)
+      @attached_to_space_idref = HPXML::get_idref(XMLHelper.get_elements(rim_joist, 'AttachedToSpace')[0])
     end
   end
 
@@ -3060,15 +3403,27 @@ class HPXML < Object
              :radiant_barrier_grade, :insulation_id, :insulation_assembly_r_value, :insulation_cavity_r_value,
              :insulation_continuous_r_value, :interior_finish_type, :interior_finish_thickness,
              :attic_wall_type, :framing_factor, :framing_size, :framing_spacing, :insulation_grade,
-             :insulation_cavity_material, :insulation_continuous_material]
+             :insulation_cavity_material, :insulation_continuous_material, :attached_to_space_idref]
     attr_accessor(*ATTRS)
 
     def windows
-      return @parent_object.windows.select { |window| window.wall_idref == @id }
+      return @parent_object.windows.select { |window| window.attached_to_wall_idref == @id }
     end
 
     def doors
-      return @parent_object.doors.select { |door| door.wall_idref == @id }
+      return @parent_object.doors.select { |door| door.attached_to_wall_idref == @id }
+    end
+
+    def space
+      return if @attached_to_space_idref.nil?
+
+      @parent_object.zones.each do |z|
+        z.spaces.each do |s|
+          return s if s.id == @attached_to_space_idref
+        end
+      end
+
+      fail "Attached space '#{@attached_to_space_idref}' not found for wall '#{@id}'."
     end
 
     def net_area
@@ -3086,6 +3441,17 @@ class HPXML < Object
 
     def is_exterior
       if @exterior_adjacent_to == LocationOutside
+        return true
+      end
+
+      return false
+    end
+
+    def is_exposed
+      if HPXML::is_conditioned(self) &&
+         (@exterior_adjacent_to == LocationOutside ||
+          @exterior_adjacent_to == LocationOtherNonFreezingSpace ||
+          @exterior_adjacent_to == LocationGarage)
         return true
       end
 
@@ -3135,6 +3501,7 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; net_area; rescue StandardError => e; errors << e.message; end
+      begin; space; rescue StandardError => e; errors << e.message; end
       return errors
     end
 
@@ -3145,6 +3512,10 @@ class HPXML < Object
       wall = XMLHelper.add_element(walls, 'Wall')
       sys_id = XMLHelper.add_element(wall, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
+      if not @attached_to_space_idref.nil?
+        space_attached = XMLHelper.add_element(wall, 'AttachedToSpace')
+        XMLHelper.add_attribute(space_attached, 'idref', @attached_to_space_idref)
+      end
       XMLHelper.add_element(wall, 'ExteriorAdjacentTo', @exterior_adjacent_to, :string) unless @exterior_adjacent_to.nil?
       XMLHelper.add_element(wall, 'InteriorAdjacentTo', @interior_adjacent_to, :string) unless @interior_adjacent_to.nil?
       XMLHelper.add_element(wall, 'AtticWallType', @attic_wall_type, :string) unless @attic_wall_type.nil?
@@ -3252,6 +3623,7 @@ class HPXML < Object
           @insulation_continuous_material += "/#{material_type}" unless material_type.nil?
         end
       end
+      @attached_to_space_idref = HPXML::get_idref(XMLHelper.get_elements(wall, 'AttachedToSpace')[0])
     end
   end
 
@@ -3276,15 +3648,27 @@ class HPXML < Object
              :insulation_exterior_r_value, :insulation_exterior_distance_to_top,
              :insulation_exterior_distance_to_bottom, :insulation_assembly_r_value,
              :interior_finish_type, :interior_finish_thickness, :insulation_interior_material,
-             :insulation_exterior_material]
+             :insulation_exterior_material, :attached_to_space_idref]
     attr_accessor(*ATTRS)
 
     def windows
-      return @parent_object.windows.select { |window| window.wall_idref == @id }
+      return @parent_object.windows.select { |window| window.attached_to_wall_idref == @id }
+    end
+
+    def space
+      return if @attached_to_space_idref.nil?
+
+      @parent_object.zones.each do |z|
+        z.spaces.each do |s|
+          return s if s.id == @attached_to_space_idref
+        end
+      end
+
+      fail "Attached space '#{@attached_to_space_idref}' not found for foundation wall '#{@id}'."
     end
 
     def doors
-      return @parent_object.doors.select { |door| door.wall_idref == @id }
+      return @parent_object.doors.select { |door| door.attached_to_wall_idref == @id }
     end
 
     def net_area
@@ -3293,7 +3677,7 @@ class HPXML < Object
 
       val = @area
       (@parent_object.windows + @parent_object.doors).each do |subsurface|
-        next unless subsurface.wall_idref == @id
+        next unless subsurface.attached_to_wall_idref == @id
 
         val -= subsurface.area
       end
@@ -3324,6 +3708,17 @@ class HPXML < Object
 
     def is_exterior
       if @exterior_adjacent_to == LocationGround
+        return true
+      end
+
+      return false
+    end
+
+    def is_exposed
+      # Ground shouldn't be included considering this is for infiltration?
+      if HPXML::is_conditioned(self) &&
+         (@exterior_adjacent_to == LocationOtherNonFreezingSpace ||
+          @exterior_adjacent_to == LocationGarage)
         return true
       end
 
@@ -3366,6 +3761,7 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; net_area; rescue StandardError => e; errors << e.message; end
+      begin; space; rescue StandardError => e; errors << e.message; end
       return errors
     end
 
@@ -3376,6 +3772,10 @@ class HPXML < Object
       foundation_wall = XMLHelper.add_element(foundation_walls, 'FoundationWall')
       sys_id = XMLHelper.add_element(foundation_wall, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
+      if not @attached_to_space_idref.nil?
+        space_attached = XMLHelper.add_element(foundation_wall, 'AttachedToSpace')
+        XMLHelper.add_attribute(space_attached, 'idref', @attached_to_space_idref)
+      end
       XMLHelper.add_element(foundation_wall, 'ExteriorAdjacentTo', @exterior_adjacent_to, :string) unless @exterior_adjacent_to.nil?
       XMLHelper.add_element(foundation_wall, 'InteriorAdjacentTo', @interior_adjacent_to, :string) unless @interior_adjacent_to.nil?
       XMLHelper.add_element(foundation_wall, 'Type', @type, :string, @type_isdefaulted) unless @type.nil?
@@ -3465,6 +3865,7 @@ class HPXML < Object
         @insulation_exterior_distance_to_top = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - exterior']/DistanceToTopOfInsulation", :float)
         @insulation_exterior_distance_to_bottom = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - exterior']/DistanceToBottomOfInsulation", :float)
       end
+      @attached_to_space_idref = HPXML::get_idref(XMLHelper.get_elements(foundation_wall, 'AttachedToSpace')[0])
     end
   end
 
@@ -3487,8 +3888,24 @@ class HPXML < Object
              :insulation_assembly_r_value, :insulation_cavity_r_value, :insulation_continuous_r_value,
              :floor_or_ceiling, :interior_finish_type, :interior_finish_thickness, :insulation_grade,
              :framing_factor, :framing_size, :framing_spacing, :radiant_barrier, :radiant_barrier_grade,
-             :insulation_cavity_material, :insulation_continuous_material]
+             :insulation_cavity_material, :insulation_continuous_material, :attached_to_space_idref]
     attr_accessor(*ATTRS)
+
+    def skylights
+      return @parent_object.skylights.select { |skylight| skylight.attached_to_floor_idref == @id }
+    end
+
+    def space
+      return if @attached_to_space_idref.nil?
+
+      @parent_object.zones.each do |z|
+        z.spaces.each do |s|
+          return s if s.id == @attached_to_space_idref
+        end
+      end
+
+      fail "Attached space '#{@attached_to_space_idref}' not found for floor '#{@id}'."
+    end
 
     def is_ceiling
       # From the perspective of the conditioned space
@@ -3497,6 +3914,19 @@ class HPXML < Object
       else
         return @floor_or_ceiling == FloorOrCeilingCeiling
       end
+    end
+
+    def net_area
+      return if nil?
+      return if @area.nil?
+
+      val = @area
+      skylights.each do |skylight|
+        val -= skylight.area
+      end
+      fail "Calculated a negative net surface area for surface '#{@id}'." if val < 0
+
+      return val
     end
 
     def is_floor
@@ -3529,6 +3959,9 @@ class HPXML < Object
 
     def delete
       @parent_object.floors.delete(self)
+      skylights.reverse_each do |skylight|
+        skylight.delete
+      end
       @parent_object.attics.each do |attic|
         attic.attached_to_floor_idrefs.delete(@id) unless attic.attached_to_floor_idrefs.nil?
       end
@@ -3542,6 +3975,8 @@ class HPXML < Object
 
     def check_for_errors
       errors = []
+      begin; net_area; rescue StandardError => e; errors << e.message; end
+      begin; space; rescue StandardError => e; errors << e.message; end
       return errors
     end
 
@@ -3552,6 +3987,10 @@ class HPXML < Object
       floor = XMLHelper.add_element(floors, 'Floor')
       sys_id = XMLHelper.add_element(floor, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
+      if not @attached_to_space_idref.nil?
+        space_attached = XMLHelper.add_element(floor, 'AttachedToSpace')
+        XMLHelper.add_attribute(space_attached, 'idref', @attached_to_space_idref)
+      end
       XMLHelper.add_element(floor, 'ExteriorAdjacentTo', @exterior_adjacent_to, :string) unless @exterior_adjacent_to.nil?
       XMLHelper.add_element(floor, 'InteriorAdjacentTo', @interior_adjacent_to, :string) unless @interior_adjacent_to.nil?
       XMLHelper.add_element(floor, 'FloorOrCeiling', @floor_or_ceiling, :string, @floor_or_ceiling_isdefaulted) unless @floor_or_ceiling.nil?
@@ -3641,6 +4080,7 @@ class HPXML < Object
           @insulation_continuous_material += "/#{material_type}" unless material_type.nil?
         end
       end
+      @attached_to_space_idref = HPXML::get_idref(XMLHelper.get_elements(floor, 'AttachedToSpace')[0])
     end
   end
 
@@ -3664,8 +4104,20 @@ class HPXML < Object
              :under_slab_insulation_spans_entire_slab, :depth_below_grade, :carpet_fraction,
              :carpet_r_value, :perimeter_insulation_id, :perimeter_insulation_r_value,
              :under_slab_insulation_id, :under_slab_insulation_r_value, :perimeter_insulation_material,
-             :under_slab_insulation_material, :gap_insulation_r_value]
+             :under_slab_insulation_material, :gap_insulation_r_value, :attached_to_space_idref]
     attr_accessor(*ATTRS)
+
+    def space
+      return if @attached_to_space_idref.nil?
+
+      @parent_object.zones.each do |z|
+        z.spaces.each do |s|
+          return s if s.id == @attached_to_space_idref
+        end
+      end
+
+      fail "Attached space '#{@attached_to_space_idref}' not found for slab '#{@id}'."
+    end
 
     def exterior_adjacent_to
       return LocationGround
@@ -3704,6 +4156,7 @@ class HPXML < Object
 
     def check_for_errors
       errors = []
+      begin; space; rescue StandardError => e; errors << e.message; end
       return errors
     end
 
@@ -3714,6 +4167,10 @@ class HPXML < Object
       slab = XMLHelper.add_element(slabs, 'Slab')
       sys_id = XMLHelper.add_element(slab, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
+      if not @attached_to_space_idref.nil?
+        space_attached = XMLHelper.add_element(slab, 'AttachedToSpace')
+        XMLHelper.add_attribute(space_attached, 'idref', @attached_to_space_idref)
+      end
       XMLHelper.add_element(slab, 'InteriorAdjacentTo', @interior_adjacent_to, :string) unless @interior_adjacent_to.nil?
       XMLHelper.add_element(slab, 'Area', @area, :float) unless @area.nil?
       XMLHelper.add_element(slab, 'Thickness', @thickness, :float, @thickness_isdefaulted) unless @thickness.nil?
@@ -3790,6 +4247,7 @@ class HPXML < Object
       @gap_insulation_r_value = XMLHelper.get_value(slab, 'extension/GapInsulationRValue', :float)
       @carpet_fraction = XMLHelper.get_value(slab, 'extension/CarpetFraction', :float)
       @carpet_r_value = XMLHelper.get_value(slab, 'extension/CarpetRValue', :float)
+      @attached_to_space_idref = HPXML::get_idref(XMLHelper.get_elements(slab, 'AttachedToSpace')[0])
     end
   end
 
@@ -3813,18 +4271,18 @@ class HPXML < Object
              :interior_shading_id, :interior_shading_factor_winter, :interior_shading_type, :exterior_shading_factor_summer,
              :exterior_shading_id, :exterior_shading_factor_winter, :exterior_shading_type, :storm_type, :overhangs_depth,
              :overhangs_distance_to_top_of_window, :overhangs_distance_to_bottom_of_window,
-             :fraction_operable, :performance_class, :wall_idref]
+             :fraction_operable, :performance_class, :attached_to_wall_idref]
     attr_accessor(*ATTRS)
 
     def wall
-      return if @wall_idref.nil?
+      return if @attached_to_wall_idref.nil?
 
       (@parent_object.walls + @parent_object.foundation_walls).each do |wall|
-        next unless wall.id == @wall_idref
+        next unless wall.id == @attached_to_wall_idref
 
         return wall
       end
-      fail "Attached wall '#{@wall_idref}' not found for window '#{@id}'."
+      fail "Attached wall '#{@attached_to_wall_idref}' not found for window '#{@id}'."
     end
 
     def is_exterior
@@ -3917,9 +4375,9 @@ class HPXML < Object
       end
       XMLHelper.add_element(window, 'FractionOperable', @fraction_operable, :float, @fraction_operable_isdefaulted) unless @fraction_operable.nil?
       XMLHelper.add_element(window, 'PerformanceClass', @performance_class, :string, @performance_class_isdefaulted) unless @performance_class.nil?
-      if not @wall_idref.nil?
+      if not @attached_to_wall_idref.nil?
         attached_to_wall = XMLHelper.add_element(window, 'AttachedToWall')
-        XMLHelper.add_attribute(attached_to_wall, 'idref', @wall_idref)
+        XMLHelper.add_attribute(attached_to_wall, 'idref', @attached_to_wall_idref)
       end
     end
 
@@ -3954,7 +4412,7 @@ class HPXML < Object
       @overhangs_distance_to_bottom_of_window = XMLHelper.get_value(window, 'Overhangs/DistanceToBottomOfWindow', :float)
       @fraction_operable = XMLHelper.get_value(window, 'FractionOperable', :float)
       @performance_class = XMLHelper.get_value(window, 'PerformanceClass', :string)
-      @wall_idref = HPXML::get_idref(XMLHelper.get_element(window, 'AttachedToWall'))
+      @attached_to_wall_idref = HPXML::get_idref(XMLHelper.get_element(window, 'AttachedToWall'))
       @storm_type = XMLHelper.get_value(window, 'StormWindow/GlassType', :string)
     end
   end
@@ -3977,18 +4435,29 @@ class HPXML < Object
     ATTRS = [:id, :area, :azimuth, :orientation, :frame_type, :thermal_break, :glass_layers,
              :glass_type, :gas_fill, :ufactor, :shgc, :interior_shading_factor_summer,
              :interior_shading_factor_winter, :interior_shading_type, :exterior_shading_factor_summer,
-             :exterior_shading_factor_winter, :exterior_shading_type, :storm_type, :roof_idref]
+             :exterior_shading_factor_winter, :exterior_shading_type, :storm_type, :attached_to_roof_idref, :attached_to_floor_idref]
     attr_accessor(*ATTRS)
 
     def roof
-      return if @roof_idref.nil?
+      return if @attached_to_roof_idref.nil?
 
       @parent_object.roofs.each do |roof|
-        next unless roof.id == @roof_idref
+        next unless roof.id == @attached_to_roof_idref
 
         return roof
       end
-      fail "Attached roof '#{@roof_idref}' not found for skylight '#{@id}'."
+      fail "Attached roof '#{@attached_to_roof_idref}' not found for skylight '#{@id}'."
+    end
+
+    def floor
+      return if @attached_to_floor_idref.nil?
+
+      @parent_object.floors.each do |floor|
+        next unless floor.id == @attached_to_floor_idref
+
+        return floor
+      end
+      fail "Attached floor '#{@attached_to_floor_idref}' not found for skylight '#{@id}'."
     end
 
     def is_exterior
@@ -4008,7 +4477,11 @@ class HPXML < Object
     end
 
     def is_conditioned
-      return HPXML::is_conditioned(self)
+      if not floor.nil?
+        return HPXML::is_conditioned(floor)
+      else
+        return HPXML::is_conditioned(roof)
+      end
     end
 
     def delete
@@ -4018,6 +4491,7 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; roof; rescue StandardError => e; errors << e.message; end
+      begin; floor; rescue StandardError => e; errors << e.message; end
       return errors
     end
 
@@ -4065,9 +4539,13 @@ class HPXML < Object
         XMLHelper.add_attribute(sys_id, 'id', "#{id}StormWindow")
         XMLHelper.add_element(storm_window, 'GlassType', @storm_type, :string) unless @storm_type.nil?
       end
-      if not @roof_idref.nil?
+      if not @attached_to_roof_idref.nil?
         attached_to_roof = XMLHelper.add_element(skylight, 'AttachedToRoof')
-        XMLHelper.add_attribute(attached_to_roof, 'idref', @roof_idref)
+        XMLHelper.add_attribute(attached_to_roof, 'idref', @attached_to_roof_idref)
+      end
+      if not @attached_to_floor_idref.nil?
+        attached_to_floor = XMLHelper.add_element(skylight, 'AttachedToFloor')
+        XMLHelper.add_attribute(attached_to_floor, 'idref', @attached_to_floor_idref)
       end
     end
 
@@ -4095,7 +4573,8 @@ class HPXML < Object
       @interior_shading_type = XMLHelper.get_value(skylight, 'InteriorShading/Type', :string)
       @interior_shading_factor_summer = XMLHelper.get_value(skylight, 'InteriorShading/SummerShadingCoefficient', :float)
       @interior_shading_factor_winter = XMLHelper.get_value(skylight, 'InteriorShading/WinterShadingCoefficient', :float)
-      @roof_idref = HPXML::get_idref(XMLHelper.get_element(skylight, 'AttachedToRoof'))
+      @attached_to_roof_idref = HPXML::get_idref(XMLHelper.get_element(skylight, 'AttachedToRoof'))
+      @attached_to_floor_idref = HPXML::get_idref(XMLHelper.get_element(skylight, 'AttachedToFloor'))
       @storm_type = XMLHelper.get_value(skylight, 'StormWindow/GlassType', :string)
     end
   end
@@ -4115,18 +4594,18 @@ class HPXML < Object
   end
 
   class Door < BaseElement
-    ATTRS = [:id, :wall_idref, :area, :azimuth, :orientation, :r_value]
+    ATTRS = [:id, :attached_to_wall_idref, :area, :azimuth, :orientation, :r_value]
     attr_accessor(*ATTRS)
 
     def wall
-      return if @wall_idref.nil?
+      return if @attached_to_wall_idref.nil?
 
       (@parent_object.walls + @parent_object.foundation_walls).each do |wall|
-        next unless wall.id == @wall_idref
+        next unless wall.id == @attached_to_wall_idref
 
         return wall
       end
-      fail "Attached wall '#{@wall_idref}' not found for door '#{@id}'."
+      fail "Attached wall '#{@attached_to_wall_idref}' not found for door '#{@id}'."
     end
 
     def is_exterior
@@ -4166,9 +4645,9 @@ class HPXML < Object
       door = XMLHelper.add_element(doors, 'Door')
       sys_id = XMLHelper.add_element(door, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
-      if not @wall_idref.nil?
+      if not @attached_to_wall_idref.nil?
         attached_to_wall = XMLHelper.add_element(door, 'AttachedToWall')
-        XMLHelper.add_attribute(attached_to_wall, 'idref', @wall_idref)
+        XMLHelper.add_attribute(attached_to_wall, 'idref', @attached_to_wall_idref)
       end
       XMLHelper.add_element(door, 'Area', @area, :float) unless @area.nil?
       XMLHelper.add_element(door, 'Azimuth', @azimuth, :integer, @azimuth_isdefaulted) unless @azimuth.nil?
@@ -4180,7 +4659,7 @@ class HPXML < Object
       return if door.nil?
 
       @id = HPXML::get_id(door)
-      @wall_idref = HPXML::get_idref(XMLHelper.get_element(door, 'AttachedToWall'))
+      @attached_to_wall_idref = HPXML::get_idref(XMLHelper.get_element(door, 'AttachedToWall'))
       @area = XMLHelper.get_value(door, 'Area', :float)
       @azimuth = XMLHelper.get_value(door, 'Azimuth', :integer)
       @orientation = XMLHelper.get_value(door, 'Orientation', :string)
@@ -4275,8 +4754,8 @@ class HPXML < Object
       @heating_detailed_performance_data = HeatingDetailedPerformanceData.new(hpxml_object)
       super(hpxml_object, *args, **kwargs)
     end
-    ATTRS = [:id, :distribution_system_idref, :year_installed, :heating_system_type,
-             :heating_system_fuel, :heating_capacity, :heating_efficiency_afue,
+    ATTRS = [:id, :attached_to_zone_idref, :distribution_system_idref, :year_installed,
+             :heating_system_type, :heating_system_fuel, :heating_capacity, :heating_efficiency_afue,
              :heating_efficiency_percent, :fraction_heat_load_served, :electric_auxiliary_energy,
              :third_party_certification, :htg_seed_id, :is_shared_system, :number_of_units_served,
              :shared_loop_watts, :shared_loop_motor_efficiency, :fan_coil_watts, :fan_watts_per_cfm,
@@ -4284,6 +4763,16 @@ class HPXML < Object
              :pilot_light, :pilot_light_btuh, :electric_resistance_distribution, :heating_autosizing_factor, :heating_autosizing_limit]
     attr_accessor(*ATTRS)
     attr_reader(:heating_detailed_performance_data)
+
+    def zone
+      return if @attached_to_zone_idref.nil?
+
+      @parent_object.zones.each do |z|
+        return z if z.id == @attached_to_zone_idref
+      end
+
+      fail "Attached zone '#{@attached_to_zone_idref}' not found for heating system '#{@id}'."
+    end
 
     def distribution_system
       return if @distribution_system_idref.nil?
@@ -4345,6 +4834,7 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; distribution_system; rescue StandardError => e; errors << e.message; end
+      begin; zone; rescue StandardError => e; errors << e.message; end
       errors += @heating_detailed_performance_data.check_for_errors
       return errors
     end
@@ -4356,6 +4846,10 @@ class HPXML < Object
       primary_systems = XMLHelper.create_elements_as_needed(hvac_plant, ['PrimarySystems']) unless @parent_object.primary_hvac_systems.empty?
       heating_system = XMLHelper.add_element(hvac_plant, 'HeatingSystem')
       sys_id = XMLHelper.add_element(heating_system, 'SystemIdentifier')
+      if not @attached_to_zone_idref.nil?
+        zone_attached = XMLHelper.add_element(heating_system, 'AttachedToZone')
+        XMLHelper.add_attribute(zone_attached, 'idref', @attached_to_zone_idref)
+      end
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(heating_system, 'UnitLocation', @location, :string, @location_isdefaulted) unless @location.nil?
       XMLHelper.add_element(heating_system, 'YearInstalled', @year_installed, :integer) unless @year_installed.nil?
@@ -4419,6 +4913,7 @@ class HPXML < Object
       return if heating_system.nil?
 
       @id = HPXML::get_id(heating_system)
+      @attached_to_zone_idref = HPXML::get_idref(XMLHelper.get_elements(heating_system, 'AttachedToZone')[0])
       @location = XMLHelper.get_value(heating_system, 'UnitLocation', :string)
       @year_installed = XMLHelper.get_value(heating_system, 'YearInstalled', :integer)
       @third_party_certification = XMLHelper.get_value(heating_system, 'ThirdPartyCertification', :string)
@@ -4486,7 +4981,7 @@ class HPXML < Object
       @cooling_detailed_performance_data = CoolingDetailedPerformanceData.new(hpxml_object)
       super(hpxml_object, *args, **kwargs)
     end
-    ATTRS = [:id, :distribution_system_idref, :year_installed, :cooling_system_type, :cooling_system_fuel,
+    ATTRS = [:id, :attached_to_zone_idref, :distribution_system_idref, :year_installed, :cooling_system_type, :cooling_system_fuel,
              :cooling_capacity, :compressor_type, :fraction_cool_load_served, :cooling_efficiency_seer,
              :cooling_efficiency_seer2, :cooling_efficiency_eer, :cooling_efficiency_ceer, :cooling_efficiency_kw_per_ton,
              :cooling_shr, :third_party_certification, :clg_seed_id, :is_shared_system, :number_of_units_served,
@@ -4497,6 +4992,16 @@ class HPXML < Object
              :cooling_autosizing_factor, :cooling_autosizing_limit]
     attr_accessor(*ATTRS)
     attr_reader(:cooling_detailed_performance_data)
+
+    def zone
+      return if @attached_to_zone_idref.nil?
+
+      @parent_object.zones.each do |z|
+        return z if z.id == @attached_to_zone_idref
+      end
+
+      fail "Attached zone '#{@attached_to_zone_idref}' not found for cooling system '#{@id}'."
+    end
 
     def distribution_system
       return if @distribution_system_idref.nil?
@@ -4540,6 +5045,7 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; distribution_system; rescue StandardError => e; errors << e.message; end
+      begin; zone; rescue StandardError => e; errors << e.message; end
       errors += @cooling_detailed_performance_data.check_for_errors
       return errors
     end
@@ -4552,6 +5058,10 @@ class HPXML < Object
       cooling_system = XMLHelper.add_element(hvac_plant, 'CoolingSystem')
       sys_id = XMLHelper.add_element(cooling_system, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
+      if not @attached_to_zone_idref.nil?
+        zone_attached = XMLHelper.add_element(cooling_system, 'AttachedToZone')
+        XMLHelper.add_attribute(zone_attached, 'idref', @attached_to_zone_idref)
+      end
       XMLHelper.add_element(cooling_system, 'UnitLocation', @location, :string, @location_isdefaulted) unless @location.nil?
       XMLHelper.add_element(cooling_system, 'YearInstalled', @year_installed, :integer) unless @year_installed.nil?
       XMLHelper.add_element(cooling_system, 'ThirdPartyCertification', @third_party_certification, :string) unless @third_party_certification.nil?
@@ -4624,6 +5134,7 @@ class HPXML < Object
       return if cooling_system.nil?
 
       @id = HPXML::get_id(cooling_system)
+      @attached_to_zone_idref = HPXML::get_idref(XMLHelper.get_elements(cooling_system, 'AttachedToZone')[0])
       @location = XMLHelper.get_value(cooling_system, 'UnitLocation', :string)
       @year_installed = XMLHelper.get_value(cooling_system, 'YearInstalled', :integer)
       @third_party_certification = XMLHelper.get_value(cooling_system, 'ThirdPartyCertification', :string)
@@ -4668,111 +5179,6 @@ class HPXML < Object
     end
   end
 
-  class GeothermalLoops < BaseArrayElement
-    def add(**kwargs)
-      self << GeothermalLoop.new(@parent_object, **kwargs)
-    end
-
-    def from_doc(building)
-      return if building.nil?
-
-      XMLHelper.get_elements(building, 'BuildingDetails/Systems/HVAC/HVACPlant/GeothermalLoop').each do |geothermal_loop|
-        self << GeothermalLoop.new(@parent_object, geothermal_loop)
-      end
-    end
-  end
-
-  class GeothermalLoop < BaseElement
-    ATTRS = [:id, :loop_configuration, :loop_flow, :bore_config, :num_bore_holes, :bore_spacing,
-             :bore_length, :bore_diameter, :grout_type, :grout_conductivity, :pipe_type,
-             :pipe_conductivity, :pipe_diameter, :shank_spacing]
-    attr_accessor(*ATTRS)
-
-    def heat_pump
-      list = []
-      @parent_object.heat_pumps.each do |heat_pump|
-        next if heat_pump.geothermal_loop_idref.nil?
-        next unless heat_pump.geothermal_loop_idref == @id
-
-        list << heat_pump
-      end
-
-      if list.size == 0
-        fail "Geothermal loop '#{@id}' found but no heat pump attached to it."
-      elsif list.size > 1
-        fail "Multiple heat pumps found attached to geothermal loop '#{@id}'."
-      end
-    end
-
-    def delete
-      @parent_object.geothermal_loops.delete(self)
-      @parent_object.heat_pumps.each do |heat_pump|
-        next unless heat_pump.geothermal_loop_idref == @id
-
-        heat_pump.geothermal_loop_idref = nil
-      end
-    end
-
-    def check_for_errors
-      errors = []
-      begin; heat_pump; rescue StandardError => e; errors << e.message; end
-      return errors
-    end
-
-    def to_doc(building)
-      return if nil?
-
-      hvac_plant = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'Systems', 'HVAC', 'HVACPlant'])
-      geothermal_loop = XMLHelper.add_element(hvac_plant, 'GeothermalLoop')
-      sys_id = XMLHelper.add_element(geothermal_loop, 'SystemIdentifier')
-      XMLHelper.add_attribute(sys_id, 'id', @id)
-      XMLHelper.add_element(geothermal_loop, 'LoopConfiguration', @loop_configuration, :string, @loop_configuration_isdefaulted) unless @loop_configuration.nil?
-      XMLHelper.add_element(geothermal_loop, 'LoopFlow', @loop_flow, :float, @loop_flow_isdefaulted) unless @loop_flow.nil?
-      if (not @num_bore_holes.nil?) || (not @bore_spacing.nil?) || (not @bore_length.nil?) || (not @bore_diameter.nil?)
-        boreholes_or_trenches = XMLHelper.add_element(geothermal_loop, 'BoreholesOrTrenches')
-        XMLHelper.add_element(boreholes_or_trenches, 'Count', @num_bore_holes, :integer, @num_bore_holes_isdefaulted) unless @num_bore_holes.nil?
-        XMLHelper.add_element(boreholes_or_trenches, 'Length', @bore_length, :float, @bore_length_isdefaulted) unless @bore_length.nil?
-        XMLHelper.add_element(boreholes_or_trenches, 'Spacing', @bore_spacing, :float, @bore_spacing_isdefaulted) unless @bore_spacing.nil?
-        XMLHelper.add_element(boreholes_or_trenches, 'Diameter', @bore_diameter, :float, @bore_diameter_isdefaulted) unless @bore_diameter.nil?
-      end
-      if (not @grout_type.nil?) || (not @grout_conductivity.nil?)
-        grout = XMLHelper.add_element(geothermal_loop, 'Grout')
-        XMLHelper.add_element(grout, 'Type', @grout_type, :string, @grout_type_isdefaulted) unless @grout_type.nil?
-        XMLHelper.add_element(grout, 'Conductivity', @grout_conductivity, :float, @grout_conductivity_isdefaulted) unless @grout_conductivity.nil?
-      end
-      if (not @pipe_type.nil?) || (not @pipe_conductivity.nil?) || (not @pipe_diameter.nil?) || (not @shank_spacing.nil?)
-        pipe = XMLHelper.add_element(geothermal_loop, 'Pipe')
-        XMLHelper.add_element(pipe, 'Type', @pipe_type, :string, @pipe_type_isdefaulted) unless @pipe_type.nil?
-        XMLHelper.add_element(pipe, 'Conductivity', @pipe_conductivity, :float, @pipe_conductivity_isdefaulted) unless @pipe_conductivity.nil?
-        XMLHelper.add_element(pipe, 'Diameter', @pipe_diameter, :float, @pipe_diameter_isdefaulted) unless @pipe_diameter.nil?
-        XMLHelper.add_element(pipe, 'ShankSpacing', @shank_spacing, :float, @shank_spacing_isdefaulted) unless @shank_spacing.nil?
-      end
-      if not @bore_config.nil?
-        extension = XMLHelper.create_elements_as_needed(geothermal_loop, ['extension'])
-        XMLHelper.add_element(extension, 'BorefieldConfiguration', @bore_config, :string, @bore_config_isdefaulted) unless @bore_config.nil?
-      end
-    end
-
-    def from_doc(geothermal_loop)
-      return if geothermal_loop.nil?
-
-      @id = HPXML::get_id(geothermal_loop)
-      @loop_configuration = XMLHelper.get_value(geothermal_loop, 'LoopConfiguration', :string)
-      @loop_flow = XMLHelper.get_value(geothermal_loop, 'LoopFlow', :float)
-      @num_bore_holes = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Count', :integer)
-      @bore_length = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Length', :float)
-      @bore_spacing = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Spacing', :float)
-      @bore_diameter = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Diameter', :float)
-      @grout_type = XMLHelper.get_value(geothermal_loop, 'Grout/Type', :string)
-      @grout_conductivity = XMLHelper.get_value(geothermal_loop, 'Grout/Conductivity', :float)
-      @pipe_type = XMLHelper.get_value(geothermal_loop, 'Pipe/Type', :string)
-      @pipe_conductivity = XMLHelper.get_value(geothermal_loop, 'Pipe/Conductivity', :float)
-      @pipe_diameter = XMLHelper.get_value(geothermal_loop, 'Pipe/Diameter', :float)
-      @shank_spacing = XMLHelper.get_value(geothermal_loop, 'Pipe/ShankSpacing', :float)
-      @bore_config = XMLHelper.get_value(geothermal_loop, 'extension/BorefieldConfiguration', :string)
-    end
-  end
-
   class HeatPumps < BaseArrayElement
     def add(**kwargs)
       self << HeatPump.new(@parent_object, **kwargs)
@@ -4801,7 +5207,7 @@ class HPXML < Object
       @heating_detailed_performance_data = HeatingDetailedPerformanceData.new(hpxml_object)
       super(hpxml_object, *args, **kwargs)
     end
-    ATTRS = [:id, :distribution_system_idref, :year_installed, :heat_pump_type, :heat_pump_fuel,
+    ATTRS = [:id, :attached_to_zone_idref, :distribution_system_idref, :year_installed, :heat_pump_type, :heat_pump_fuel,
              :heating_capacity, :heating_capacity_17F, :cooling_capacity, :compressor_type, :compressor_lockout_temp,
              :cooling_shr, :backup_type, :backup_system_idref, :backup_heating_fuel, :backup_heating_capacity,
              :backup_heating_efficiency_percent, :backup_heating_efficiency_afue, :backup_heating_lockout_temp,
@@ -4817,6 +5223,16 @@ class HPXML < Object
     attr_accessor(*ATTRS)
     attr_reader(:cooling_detailed_performance_data)
     attr_reader(:heating_detailed_performance_data)
+
+    def zone
+      return if @attached_to_zone_idref.nil?
+
+      @parent_object.zones.each do |z|
+        return z if z.id == @attached_to_zone_idref
+      end
+
+      fail "Attached zone '#{@attached_to_zone_idref}' not found for heat pump '#{@id}'."
+    end
 
     def distribution_system
       return if @distribution_system_idref.nil?
@@ -4885,6 +5301,7 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; distribution_system; rescue StandardError => e; errors << e.message; end
+      begin; zone; rescue StandardError => e; errors << e.message; end
       begin; geothermal_loop; rescue StandardError => e; errors << e.message; end
       errors += @cooling_detailed_performance_data.check_for_errors
       errors += @heating_detailed_performance_data.check_for_errors
@@ -4899,6 +5316,10 @@ class HPXML < Object
       heat_pump = XMLHelper.add_element(hvac_plant, 'HeatPump')
       sys_id = XMLHelper.add_element(heat_pump, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
+      if not @attached_to_zone_idref.nil?
+        zone_attached = XMLHelper.add_element(heat_pump, 'AttachedToZone')
+        XMLHelper.add_attribute(zone_attached, 'idref', @attached_to_zone_idref)
+      end
       XMLHelper.add_element(heat_pump, 'UnitLocation', @location, :string, @location_isdefaulted) unless @location.nil?
       XMLHelper.add_element(heat_pump, 'YearInstalled', @year_installed, :integer) unless @year_installed.nil?
       XMLHelper.add_element(heat_pump, 'ThirdPartyCertification', @third_party_certification, :string) unless @third_party_certification.nil?
@@ -5014,6 +5435,7 @@ class HPXML < Object
       return if heat_pump.nil?
 
       @id = HPXML::get_id(heat_pump)
+      @attached_to_zone_idref = HPXML::get_idref(XMLHelper.get_elements(heat_pump, 'AttachedToZone')[0])
       @location = XMLHelper.get_value(heat_pump, 'UnitLocation', :string)
       @year_installed = XMLHelper.get_value(heat_pump, 'YearInstalled', :integer)
       @third_party_certification = XMLHelper.get_value(heat_pump, 'ThirdPartyCertification', :string)
@@ -5082,34 +5504,112 @@ class HPXML < Object
     end
   end
 
+  class GeothermalLoops < BaseArrayElement
+    def add(**kwargs)
+      self << GeothermalLoop.new(@parent_object, **kwargs)
+    end
+
+    def from_doc(building)
+      return if building.nil?
+
+      XMLHelper.get_elements(building, 'BuildingDetails/Systems/HVAC/HVACPlant/GeothermalLoop').each do |geothermal_loop|
+        self << GeothermalLoop.new(@parent_object, geothermal_loop)
+      end
+    end
+  end
+
+  class GeothermalLoop < BaseElement
+    ATTRS = [:id, :loop_configuration, :loop_flow, :bore_config, :num_bore_holes, :bore_spacing,
+             :bore_length, :bore_diameter, :grout_type, :grout_conductivity, :pipe_type,
+             :pipe_conductivity, :pipe_diameter, :shank_spacing]
+    attr_accessor(*ATTRS)
+
+    def heat_pump
+      list = []
+      @parent_object.heat_pumps.each do |heat_pump|
+        next if heat_pump.geothermal_loop_idref.nil?
+        next unless heat_pump.geothermal_loop_idref == @id
+
+        list << heat_pump
+      end
+
+      if list.size == 0
+        fail "Geothermal loop '#{@id}' found but no heat pump attached to it."
+      elsif list.size > 1
+        fail "Multiple heat pumps found attached to geothermal loop '#{@id}'."
+      end
+    end
+
+    def delete
+      @parent_object.geothermal_loops.delete(self)
+      @parent_object.heat_pumps.each do |heat_pump|
+        next unless heat_pump.geothermal_loop_idref == @id
+
+        heat_pump.geothermal_loop_idref = nil
+      end
+    end
+
+    def check_for_errors
+      errors = []
+      begin; heat_pump; rescue StandardError => e; errors << e.message; end
+      return errors
+    end
+
+    def to_doc(building)
+      return if nil?
+
+      hvac_plant = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'Systems', 'HVAC', 'HVACPlant'])
+      geothermal_loop = XMLHelper.add_element(hvac_plant, 'GeothermalLoop')
+      sys_id = XMLHelper.add_element(geothermal_loop, 'SystemIdentifier')
+      XMLHelper.add_attribute(sys_id, 'id', @id)
+      XMLHelper.add_element(geothermal_loop, 'LoopConfiguration', @loop_configuration, :string, @loop_configuration_isdefaulted) unless @loop_configuration.nil?
+      XMLHelper.add_element(geothermal_loop, 'LoopFlow', @loop_flow, :float, @loop_flow_isdefaulted) unless @loop_flow.nil?
+      if (not @num_bore_holes.nil?) || (not @bore_spacing.nil?) || (not @bore_length.nil?) || (not @bore_diameter.nil?)
+        boreholes_or_trenches = XMLHelper.add_element(geothermal_loop, 'BoreholesOrTrenches')
+        XMLHelper.add_element(boreholes_or_trenches, 'Count', @num_bore_holes, :integer, @num_bore_holes_isdefaulted) unless @num_bore_holes.nil?
+        XMLHelper.add_element(boreholes_or_trenches, 'Length', @bore_length, :float, @bore_length_isdefaulted) unless @bore_length.nil?
+        XMLHelper.add_element(boreholes_or_trenches, 'Spacing', @bore_spacing, :float, @bore_spacing_isdefaulted) unless @bore_spacing.nil?
+        XMLHelper.add_element(boreholes_or_trenches, 'Diameter', @bore_diameter, :float, @bore_diameter_isdefaulted) unless @bore_diameter.nil?
+      end
+      if (not @grout_type.nil?) || (not @grout_conductivity.nil?)
+        grout = XMLHelper.add_element(geothermal_loop, 'Grout')
+        XMLHelper.add_element(grout, 'Type', @grout_type, :string, @grout_type_isdefaulted) unless @grout_type.nil?
+        XMLHelper.add_element(grout, 'Conductivity', @grout_conductivity, :float, @grout_conductivity_isdefaulted) unless @grout_conductivity.nil?
+      end
+      if (not @pipe_type.nil?) || (not @pipe_conductivity.nil?) || (not @pipe_diameter.nil?) || (not @shank_spacing.nil?)
+        pipe = XMLHelper.add_element(geothermal_loop, 'Pipe')
+        XMLHelper.add_element(pipe, 'Type', @pipe_type, :string, @pipe_type_isdefaulted) unless @pipe_type.nil?
+        XMLHelper.add_element(pipe, 'Conductivity', @pipe_conductivity, :float, @pipe_conductivity_isdefaulted) unless @pipe_conductivity.nil?
+        XMLHelper.add_element(pipe, 'Diameter', @pipe_diameter, :float, @pipe_diameter_isdefaulted) unless @pipe_diameter.nil?
+        XMLHelper.add_element(pipe, 'ShankSpacing', @shank_spacing, :float, @shank_spacing_isdefaulted) unless @shank_spacing.nil?
+      end
+      if not @bore_config.nil?
+        extension = XMLHelper.create_elements_as_needed(geothermal_loop, ['extension'])
+        XMLHelper.add_element(extension, 'BorefieldConfiguration', @bore_config, :string, @bore_config_isdefaulted) unless @bore_config.nil?
+      end
+    end
+
+    def from_doc(geothermal_loop)
+      return if geothermal_loop.nil?
+
+      @id = HPXML::get_id(geothermal_loop)
+      @loop_configuration = XMLHelper.get_value(geothermal_loop, 'LoopConfiguration', :string)
+      @loop_flow = XMLHelper.get_value(geothermal_loop, 'LoopFlow', :float)
+      @num_bore_holes = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Count', :integer)
+      @bore_length = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Length', :float)
+      @bore_spacing = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Spacing', :float)
+      @bore_diameter = XMLHelper.get_value(geothermal_loop, 'BoreholesOrTrenches/Diameter', :float)
+      @grout_type = XMLHelper.get_value(geothermal_loop, 'Grout/Type', :string)
+      @grout_conductivity = XMLHelper.get_value(geothermal_loop, 'Grout/Conductivity', :float)
+      @pipe_type = XMLHelper.get_value(geothermal_loop, 'Pipe/Type', :string)
+      @pipe_conductivity = XMLHelper.get_value(geothermal_loop, 'Pipe/Conductivity', :float)
+      @pipe_diameter = XMLHelper.get_value(geothermal_loop, 'Pipe/Diameter', :float)
+      @shank_spacing = XMLHelper.get_value(geothermal_loop, 'Pipe/ShankSpacing', :float)
+      @bore_config = XMLHelper.get_value(geothermal_loop, 'extension/BorefieldConfiguration', :string)
+    end
+  end
+
   class HVACPlant < BaseElement
-    HDL_ATTRS = { hdl_total: 'Total',
-                  hdl_ducts: 'Ducts',
-                  hdl_windows: 'Windows',
-                  hdl_skylights: 'Skylights',
-                  hdl_doors: 'Doors',
-                  hdl_walls: 'Walls',
-                  hdl_roofs: 'Roofs',
-                  hdl_floors: 'Floors',
-                  hdl_slabs: 'Slabs',
-                  hdl_ceilings: 'Ceilings',
-                  hdl_infilvent: 'InfilVent' }
-    CDL_SENS_ATTRS = { cdl_sens_total: 'Total',
-                       cdl_sens_ducts: 'Ducts',
-                       cdl_sens_windows: 'Windows',
-                       cdl_sens_skylights: 'Skylights',
-                       cdl_sens_doors: 'Doors',
-                       cdl_sens_walls: 'Walls',
-                       cdl_sens_roofs: 'Roofs',
-                       cdl_sens_floors: 'Floors',
-                       cdl_sens_slabs: 'Slabs',
-                       cdl_sens_ceilings: 'Ceilings',
-                       cdl_sens_infilvent: 'InfilVent',
-                       cdl_sens_intgains: 'InternalLoads' }
-    CDL_LAT_ATTRS = { cdl_lat_total: 'Total',
-                      cdl_lat_ducts: 'Ducts',
-                      cdl_lat_infilvent: 'InfilVent',
-                      cdl_lat_intgains: 'InternalLoads' }
     ATTRS = HDL_ATTRS.keys + CDL_SENS_ATTRS.keys + CDL_LAT_ATTRS.keys
     attr_accessor(*ATTRS)
 
@@ -5122,22 +5622,7 @@ class HPXML < Object
       return if nil?
 
       hvac_plant = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'Systems', 'HVAC', 'HVACPlant'])
-      if not @hdl_total.nil?
-        dl_extension = XMLHelper.create_elements_as_needed(hvac_plant, ['extension', 'DesignLoads'])
-        XMLHelper.add_attribute(dl_extension, 'dataSource', 'software')
-        hdl = XMLHelper.add_element(dl_extension, 'Heating')
-        HDL_ATTRS.each do |attr, element_name|
-          XMLHelper.add_element(hdl, element_name, send(attr), :float)
-        end
-        cdl_sens = XMLHelper.add_element(dl_extension, 'CoolingSensible')
-        CDL_SENS_ATTRS.each do |attr, element_name|
-          XMLHelper.add_element(cdl_sens, element_name, send(attr), :float)
-        end
-        cdl_lat = XMLHelper.add_element(dl_extension, 'CoolingLatent')
-        CDL_LAT_ATTRS.each do |attr, element_name|
-          XMLHelper.add_element(cdl_lat, element_name, send(attr), :float)
-        end
-      end
+      HPXML.design_loads_to_doc(self, hvac_plant)
     end
 
     def from_doc(building)
@@ -5146,15 +5631,7 @@ class HPXML < Object
       hvac_plant = XMLHelper.get_element(building, 'BuildingDetails/Systems/HVAC/HVACPlant')
       return if hvac_plant.nil?
 
-      HDL_ATTRS.each do |attr, element_name|
-        send("#{attr}=", XMLHelper.get_value(hvac_plant, "extension/DesignLoads/Heating/#{element_name}", :float))
-      end
-      CDL_SENS_ATTRS.each do |attr, element_name|
-        send("#{attr}=", XMLHelper.get_value(hvac_plant, "extension/DesignLoads/CoolingSensible/#{element_name}", :float))
-      end
-      CDL_LAT_ATTRS.each do |attr, element_name|
-        send("#{attr}=", XMLHelper.get_value(hvac_plant, "extension/DesignLoads/CoolingLatent/#{element_name}", :float))
-      end
+      HPXML.design_loads_from_doc(self, hvac_plant)
     end
   end
 
@@ -7950,5 +8427,38 @@ class HPXML < Object
     end
 
     return errors
+  end
+
+  def self.design_loads_to_doc(hpxml_object, hpxml_element)
+    { HDL_ATTRS => 'Heating',
+      CDL_SENS_ATTRS => 'CoolingSensible',
+      CDL_LAT_ATTRS => 'CoolingLatent' }.each do |attrs, dl_child_name|
+      next if hpxml_object.is_a?(HPXML::Space) && dl_child_name == 'CoolingLatent' # Latent loads are not calculated for spaces
+
+      dl_extension = XMLHelper.create_elements_as_needed(hpxml_element, ['extension', 'DesignLoads'])
+      XMLHelper.add_attribute(dl_extension, 'dataSource', 'software')
+      dl_child = XMLHelper.add_element(dl_extension, dl_child_name)
+      attrs.each do |attr, element_name|
+        if element_name.include? 'AEDCurve'
+          XMLHelper.add_element(dl_child, element_name, hpxml_object.send(attr), :string)
+        else
+          XMLHelper.add_element(dl_child, element_name, hpxml_object.send(attr), :float)
+        end
+      end
+    end
+  end
+
+  def self.design_loads_from_doc(hpxml_object, hpxml_element)
+    { HDL_ATTRS => 'Heating',
+      CDL_SENS_ATTRS => 'CoolingSensible',
+      CDL_LAT_ATTRS => 'CoolingLatent' }.each do |attrs, dl_child_name|
+      attrs.each do |attr, element_name|
+        if element_name.include? 'AEDCurve'
+          hpxml_object.send("#{attr}=", XMLHelper.get_value(hpxml_element, "extension/DesignLoads/#{dl_child_name}/#{element_name}", :string))
+        else
+          hpxml_object.send("#{attr}=", XMLHelper.get_value(hpxml_element, "extension/DesignLoads/#{dl_child_name}/#{element_name}", :float))
+        end
+      end
+    end
   end
 end

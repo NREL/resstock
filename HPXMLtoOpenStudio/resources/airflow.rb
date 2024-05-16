@@ -282,20 +282,18 @@ class Airflow
       site_ap.ashrae_site_terrain_exponent = 0.33 # Towns, city outskirts, center of large cities
     end
 
+    # Mapping based on AIM-2 Model by Walker/Wilson
+    # Table 2: Estimates of Shelter Coefficient S_wo for No Flue (flue effect is handled later)
+    if site.shielding_of_home == HPXML::ShieldingNormal
+      site_ap.aim2_shelter_coeff = 0.50 # Class 4: "Very heavy shielding, many large obstructions within one house height"
+    elsif site.shielding_of_home == HPXML::ShieldingExposed
+      site_ap.aim2_shelter_coeff = 0.90 # Class 2: "Light local shielding with few obstructions within two house heights"
+    elsif site.shielding_of_home == HPXML::ShieldingWellShielded
+      site_ap.aim2_shelter_coeff = 0.30 # Class 5: "Complete shielding, with large buildings immediately adjacent"
+    end
+
     # S-G Shielding Coefficients are roughly 1/3 of AIM2 Shelter Coefficients
     site_ap.s_g_shielding_coef = site_ap.aim2_shelter_coeff / 3.0
-  end
-
-  def self.get_aim2_shelter_coefficient(shielding_of_home)
-    # Mapping based on AIM-2 Model by Walker/Wilson
-    # Table 2: Estimates of Shelter Coefficient S_wo for No Flue
-    if shielding_of_home == HPXML::ShieldingNormal
-      return 0.50 # Class 4: "Very heavy shielding, many large obstructions within one house height"
-    elsif shielding_of_home == HPXML::ShieldingExposed
-      return 0.90 # Class 2: "Light local shielding with few obstructions within two house heights"
-    elsif shielding_of_home == HPXML::ShieldingWellShielded
-      return 0.30 # Class 5: "Complete shielding, with large buildings immediately adjacent"
-    end
   end
 
   def self.apply_infiltration_to_unconditioned_space(model, space, ach, ela, c_w_SG, c_s_SG, duct_lk_imbals)
@@ -2011,7 +2009,7 @@ class Airflow
         y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFIL1RATION MODEL, Walker and Wilson, 1990
         s_wflue = 1.0 # Flue Shelter Coefficient
       else
-        y_i = 0.0 # Fraction of leakage through the flu
+        y_i = 0.0 # Fraction of leakage through the flue
         s_wflue = 0.0 # Flue Shelter Coefficient
       end
 
