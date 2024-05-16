@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'ostruct'
+require 'tempfile'
 
 '''
 Example Usage:
@@ -105,6 +106,10 @@ class HPXML < Object
   DuctInsulationMaterialNone = 'None'
   DuctLeakageTotal = 'total'
   DuctLeakageToOutside = 'to outside'
+  DuctShapeRectangular = 'rectangular'
+  DuctShapeRound = 'round'
+  DuctShapeOval = 'oval'
+  DuctShapeOther = 'other'
   DuctTypeReturn = 'return'
   DuctTypeSupply = 'supply'
   DWHRFacilitiesConnectedAll = 'all'
@@ -617,7 +622,7 @@ class HPXML < Object
   # to end up in the HPXML file. For example, you can store the OpenStudio::Model::Space
   # object for an appliance.
   class AdditionalProperties < OpenStruct
-    def method_missing(meth, *args)
+    def method_missing(meth, *args, **kwargs)
       # Complain if no value has been set rather than just returning nil
       raise NoMethodError, "undefined method '#{meth}' for #{self}" unless meth.to_s.end_with?('=')
 
@@ -725,11 +730,11 @@ class HPXML < Object
   end
 
   class Header < BaseElement
-    def initialize(hpxml_object, *args)
+    def initialize(hpxml_object, *args, **kwargs)
       @emissions_scenarios = EmissionsScenarios.new(hpxml_object)
       @utility_bill_scenarios = UtilityBillScenarios.new(hpxml_object)
       @unavailable_periods = UnavailablePeriods.new(hpxml_object)
-      super(hpxml_object, *args)
+      super(hpxml_object, *args, **kwargs)
     end
     ATTRS = [:xml_type, :xml_generated_by, :created_date_and_time, :transaction, :software_program_used,
              :software_program_version, :apply_ashrae140_assumptions, :temperature_capacitance_multiplier, :timestep,
@@ -1148,9 +1153,9 @@ class HPXML < Object
     attr_accessor(*CLASS_ATTRS)
     attr_accessor(*ATTRS)
 
-    def initialize(*args)
+    def initialize(*args, **kwargs)
       from_doc(nil)
-      super(*args)
+      super(*args, **kwargs)
     end
 
     def to_doc(doc)
@@ -2098,9 +2103,9 @@ class HPXML < Object
   end
 
   class ClimateandRiskZones < BaseElement
-    def initialize(hpxml_bldg, *args)
+    def initialize(hpxml_bldg, *args, **kwargs)
       @climate_zone_ieccs = ClimateZoneIECCs.new(hpxml_bldg)
-      super(hpxml_bldg, *args)
+      super(hpxml_bldg, *args, **kwargs)
     end
     ATTRS = [:weather_station_id, :weather_station_name, :weather_station_wmo, :weather_station_epw_filepath]
     attr_accessor(*ATTRS)
@@ -4266,9 +4271,9 @@ class HPXML < Object
   end
 
   class HeatingSystem < BaseElement
-    def initialize(hpxml_object, *args)
+    def initialize(hpxml_object, *args, **kwargs)
       @heating_detailed_performance_data = HeatingDetailedPerformanceData.new(hpxml_object)
-      super(hpxml_object, *args)
+      super(hpxml_object, *args, **kwargs)
     end
     ATTRS = [:id, :distribution_system_idref, :year_installed, :heating_system_type,
              :heating_system_fuel, :heating_capacity, :heating_efficiency_afue,
@@ -4276,7 +4281,7 @@ class HPXML < Object
              :third_party_certification, :htg_seed_id, :is_shared_system, :number_of_units_served,
              :shared_loop_watts, :shared_loop_motor_efficiency, :fan_coil_watts, :fan_watts_per_cfm,
              :airflow_defect_ratio, :fan_watts, :heating_airflow_cfm, :location, :primary_system,
-             :pilot_light, :pilot_light_btuh, :electric_resistance_distribution, :heating_autosizing_factor]
+             :pilot_light, :pilot_light_btuh, :electric_resistance_distribution, :heating_autosizing_factor, :heating_autosizing_limit]
     attr_accessor(*ATTRS)
     attr_reader(:heating_detailed_performance_data)
 
@@ -4402,6 +4407,7 @@ class HPXML < Object
       XMLHelper.add_extension(heating_system, 'AirflowDefectRatio', @airflow_defect_ratio, :float, @airflow_defect_ratio_isdefaulted) unless @airflow_defect_ratio.nil?
       XMLHelper.add_extension(heating_system, 'HeatingAirflowCFM', @heating_airflow_cfm, :float, @heating_airflow_cfm_isdefaulted) unless @heating_airflow_cfm.nil?
       XMLHelper.add_extension(heating_system, 'HeatingAutosizingFactor', @heating_autosizing_factor, :float, @heating_autosizing_factor_isdefaulted) unless @heating_autosizing_factor.nil?
+      XMLHelper.add_extension(heating_system, 'HeatingAutosizingLimit', @heating_autosizing_limit, :float, @heating_autosizing_limit_isdefaulted) unless @heating_autosizing_limit.nil?
       XMLHelper.add_extension(heating_system, 'HeatingSeedId', @htg_seed_id, :string) unless @htg_seed_id.nil?
       if @primary_system
         primary_heating_system = XMLHelper.insert_element(primary_systems, 'PrimaryHeatingSystem')
@@ -4442,6 +4448,7 @@ class HPXML < Object
       @airflow_defect_ratio = XMLHelper.get_value(heating_system, 'extension/AirflowDefectRatio', :float)
       @heating_airflow_cfm = XMLHelper.get_value(heating_system, 'extension/HeatingAirflowCFM', :float)
       @heating_autosizing_factor = XMLHelper.get_value(heating_system, 'extension/HeatingAutosizingFactor', :float)
+      @heating_autosizing_limit = XMLHelper.get_value(heating_system, 'extension/HeatingAutosizingLimit', :float)
       @htg_seed_id = XMLHelper.get_value(heating_system, 'extension/HeatingSeedId', :string)
       primary_heating_system = HPXML::get_idref(XMLHelper.get_element(heating_system, '../PrimarySystems/PrimaryHeatingSystem'))
       if primary_heating_system == @id
@@ -4475,9 +4482,9 @@ class HPXML < Object
   end
 
   class CoolingSystem < BaseElement
-    def initialize(hpxml_object, *args)
+    def initialize(hpxml_object, *args, **kwargs)
       @cooling_detailed_performance_data = CoolingDetailedPerformanceData.new(hpxml_object)
-      super(hpxml_object, *args)
+      super(hpxml_object, *args, **kwargs)
     end
     ATTRS = [:id, :distribution_system_idref, :year_installed, :cooling_system_type, :cooling_system_fuel,
              :cooling_capacity, :compressor_type, :fraction_cool_load_served, :cooling_efficiency_seer,
@@ -4487,7 +4494,7 @@ class HPXML < Object
              :fan_watts_per_cfm, :charge_defect_ratio, :cooling_airflow_cfm, :location, :primary_system,
              :integrated_heating_system_fuel, :integrated_heating_system_capacity, :integrated_heating_system_efficiency_percent,
              :integrated_heating_system_fraction_heat_load_served, :integrated_heating_system_airflow_cfm, :htg_seed_id, :crankcase_heater_watts,
-             :cooling_autosizing_factor]
+             :cooling_autosizing_factor, :cooling_autosizing_limit]
     attr_accessor(*ATTRS)
     attr_reader(:cooling_detailed_performance_data)
 
@@ -4604,6 +4611,7 @@ class HPXML < Object
       XMLHelper.add_extension(cooling_system, 'FanCoilWatts', @fan_coil_watts, :float) unless @fan_coil_watts.nil?
       XMLHelper.add_extension(cooling_system, 'CrankcaseHeaterPowerWatts', @crankcase_heater_watts, :float, @crankcase_heater_watts_isdefaulted) unless @crankcase_heater_watts.nil?
       XMLHelper.add_extension(cooling_system, 'CoolingAutosizingFactor', @cooling_autosizing_factor, :float, @cooling_autosizing_factor_isdefaulted) unless @cooling_autosizing_factor.nil?
+      XMLHelper.add_extension(cooling_system, 'CoolingAutosizingLimit', @cooling_autosizing_limit, :float, @cooling_autosizing_limit_isdefaulted) unless @cooling_autosizing_limit.nil?
       XMLHelper.add_extension(cooling_system, 'CoolingSeedId', @clg_seed_id, :string) unless @clg_seed_id.nil?
       XMLHelper.add_extension(cooling_system, 'HeatingSeedId', @htg_seed_id, :string) unless @htg_seed_id.nil?
       if @primary_system
@@ -4648,6 +4656,7 @@ class HPXML < Object
       @fan_coil_watts = XMLHelper.get_value(cooling_system, 'extension/FanCoilWatts', :float)
       @crankcase_heater_watts = XMLHelper.get_value(cooling_system, 'extension/CrankcaseHeaterPowerWatts', :float)
       @cooling_autosizing_factor = XMLHelper.get_value(cooling_system, 'extension/CoolingAutosizingFactor', :float)
+      @cooling_autosizing_limit = XMLHelper.get_value(cooling_system, 'extension/CoolingAutosizingLimit', :float)
       @clg_seed_id = XMLHelper.get_value(cooling_system, 'extension/CoolingSeedId', :string)
       @htg_seed_id = XMLHelper.get_value(cooling_system, 'extension/HeatingSeedId', :string)
       primary_cooling_system = HPXML::get_idref(XMLHelper.get_element(cooling_system, '../PrimarySystems/PrimaryCoolingSystem'))
@@ -4787,10 +4796,10 @@ class HPXML < Object
   end
 
   class HeatPump < BaseElement
-    def initialize(hpxml_object, *args)
+    def initialize(hpxml_object, *args, **kwargs)
       @cooling_detailed_performance_data = CoolingDetailedPerformanceData.new(hpxml_object)
       @heating_detailed_performance_data = HeatingDetailedPerformanceData.new(hpxml_object)
-      super(hpxml_object, *args)
+      super(hpxml_object, *args, **kwargs)
     end
     ATTRS = [:id, :distribution_system_idref, :year_installed, :heat_pump_type, :heat_pump_fuel,
              :heating_capacity, :heating_capacity_17F, :cooling_capacity, :compressor_type, :compressor_lockout_temp,
@@ -4803,7 +4812,8 @@ class HPXML < Object
              :shared_loop_motor_efficiency, :airflow_defect_ratio, :charge_defect_ratio,
              :heating_airflow_cfm, :cooling_airflow_cfm, :location, :primary_heating_system, :primary_cooling_system,
              :heating_capacity_retention_fraction, :heating_capacity_retention_temp, :crankcase_heater_watts,
-             :geothermal_loop_idref, :cooling_autosizing_factor, :heating_autosizing_factor, :backup_heating_autosizing_factor]
+             :geothermal_loop_idref, :cooling_autosizing_factor, :heating_autosizing_factor, :backup_heating_autosizing_factor,
+             :cooling_autosizing_limit, :heating_autosizing_limit, :backup_heating_autosizing_limit]
     attr_accessor(*ATTRS)
     attr_reader(:cooling_detailed_performance_data)
     attr_reader(:heating_detailed_performance_data)
@@ -4985,6 +4995,9 @@ class HPXML < Object
       XMLHelper.add_extension(heat_pump, 'CoolingAutosizingFactor', @cooling_autosizing_factor, :float, @cooling_autosizing_factor_isdefaulted) unless @cooling_autosizing_factor.nil?
       XMLHelper.add_extension(heat_pump, 'HeatingAutosizingFactor', @heating_autosizing_factor, :float, @heating_autosizing_factor_isdefaulted) unless @heating_autosizing_factor.nil?
       XMLHelper.add_extension(heat_pump, 'BackupHeatingAutosizingFactor', @backup_heating_autosizing_factor, :float, @backup_heating_autosizing_factor_isdefaulted) unless @backup_heating_autosizing_factor.nil?
+      XMLHelper.add_extension(heat_pump, 'CoolingAutosizingLimit', @cooling_autosizing_limit, :float, @cooling_autosizing_limit_isdefaulted) unless @cooling_autosizing_limit.nil?
+      XMLHelper.add_extension(heat_pump, 'HeatingAutosizingLimit', @heating_autosizing_limit, :float, @heating_autosizing_limit_isdefaulted) unless @heating_autosizing_limit.nil?
+      XMLHelper.add_extension(heat_pump, 'BackupHeatingAutosizingLimit', @backup_heating_autosizing_limit, :float, @backup_heating_autosizing_limit_isdefaulted) unless @backup_heating_autosizing_limit.nil?
       XMLHelper.add_extension(heat_pump, 'HeatingSeedId', @htg_seed_id, :string) unless @htg_seed_id.nil?
       XMLHelper.add_extension(heat_pump, 'CoolingSeedId', @clg_seed_id, :string) unless @clg_seed_id.nil?
       if @primary_heating_system
@@ -5049,6 +5062,9 @@ class HPXML < Object
       @cooling_autosizing_factor = XMLHelper.get_value(heat_pump, 'extension/CoolingAutosizingFactor', :float)
       @heating_autosizing_factor = XMLHelper.get_value(heat_pump, 'extension/HeatingAutosizingFactor', :float)
       @backup_heating_autosizing_factor = XMLHelper.get_value(heat_pump, 'extension/BackupHeatingAutosizingFactor', :float)
+      @cooling_autosizing_limit = XMLHelper.get_value(heat_pump, 'extension/CoolingAutosizingLimit', :float)
+      @heating_autosizing_limit = XMLHelper.get_value(heat_pump, 'extension/HeatingAutosizingLimit', :float)
+      @backup_heating_autosizing_limit = XMLHelper.get_value(heat_pump, 'extension/BackupHeatingAutosizingLimit', :float)
       @htg_seed_id = XMLHelper.get_value(heat_pump, 'extension/HeatingSeedId', :string)
       @clg_seed_id = XMLHelper.get_value(heat_pump, 'extension/CoolingSeedId', :string)
       primary_heating_system = HPXML::get_idref(XMLHelper.get_element(heat_pump, '../PrimarySystems/PrimaryHeatingSystem'))
@@ -5261,10 +5277,10 @@ class HPXML < Object
   end
 
   class HVACDistribution < BaseElement
-    def initialize(hpxml_bldg, *args)
+    def initialize(hpxml_bldg, *args, **kwargs)
       @duct_leakage_measurements = DuctLeakageMeasurements.new(hpxml_bldg)
       @ducts = Ducts.new(hpxml_bldg)
-      super(hpxml_bldg, *args)
+      super(hpxml_bldg, *args, **kwargs)
     end
     ATTRS = [:id, :distribution_system_type, :annual_heating_dse, :annual_cooling_dse, :duct_system_sealed,
              :conditioned_floor_area_served, :number_of_return_registers, :air_type, :hydronic_type]
@@ -5464,8 +5480,8 @@ class HPXML < Object
 
   class Duct < BaseElement
     ATTRS = [:id, :duct_type, :duct_insulation_r_value, :duct_insulation_material, :duct_location,
-             :duct_fraction_area, :duct_surface_area, :duct_surface_area_multiplier,
-             :duct_buried_insulation_level, :duct_effective_r_value]
+             :duct_fraction_area, :duct_surface_area, :duct_surface_area_multiplier, :duct_shape,
+             :duct_buried_insulation_level, :duct_effective_r_value, :duct_fraction_rectangular]
     attr_accessor(*ATTRS)
 
     def delete
@@ -5496,7 +5512,9 @@ class HPXML < Object
       XMLHelper.add_element(ducts_el, 'DuctLocation', @duct_location, :string, @duct_location_isdefaulted) unless @duct_location.nil?
       XMLHelper.add_element(ducts_el, 'FractionDuctArea', @duct_fraction_area, :float, @duct_fraction_area_isdefaulted) unless @duct_fraction_area.nil?
       XMLHelper.add_element(ducts_el, 'DuctSurfaceArea', @duct_surface_area, :float, @duct_surface_area_isdefaulted) unless @duct_surface_area.nil?
+      XMLHelper.add_element(ducts_el, 'DuctShape', @duct_shape, :string, @duct_shape_isdefaulted) unless @duct_shape.nil?
       XMLHelper.add_extension(ducts_el, 'DuctSurfaceAreaMultiplier', @duct_surface_area_multiplier, :float, @duct_surface_area_multiplier_isdefaulted) unless @duct_surface_area_multiplier.nil?
+      XMLHelper.add_extension(ducts_el, 'DuctFractionRectangular', @duct_fraction_rectangular, :float, @duct_fraction_rectangular_isdefaulted) unless @duct_fraction_rectangular.nil?
     end
 
     def from_doc(duct)
@@ -5511,7 +5529,9 @@ class HPXML < Object
       @duct_location = XMLHelper.get_value(duct, 'DuctLocation', :string)
       @duct_fraction_area = XMLHelper.get_value(duct, 'FractionDuctArea', :float)
       @duct_surface_area = XMLHelper.get_value(duct, 'DuctSurfaceArea', :float)
+      @duct_shape = XMLHelper.get_value(duct, 'DuctShape', :string)
       @duct_surface_area_multiplier = XMLHelper.get_value(duct, 'extension/DuctSurfaceAreaMultiplier', :float)
+      @duct_fraction_rectangular = XMLHelper.get_value(duct, 'extension/DuctFractionRectangular', :float)
     end
   end
 

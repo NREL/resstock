@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>0f5b801c-be1b-4a28-8ee1-7caf1b3bb704</version_id>
-  <version_modified>2024-04-08T20:52:19Z</version_modified>
+  <version_id>7e136786-2548-464c-bf20-785e2399ec39</version_id>
+  <version_modified>2024-05-07T21:12:18Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -2192,9 +2192,18 @@
     <argument>
       <name>heating_system_heating_autosizing_factor</name>
       <display_name>Heating System: Heating Autosizing Factor</display_name>
-      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <description>The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
       <type>String</type>
       <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heating_system_heating_autosizing_limit</name>
+      <display_name>Heating System: Heating Autosizing Limit</display_name>
+      <description>The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2336,9 +2345,18 @@
     <argument>
       <name>cooling_system_cooling_autosizing_factor</name>
       <display_name>Cooling System: Cooling Autosizing Factor</display_name>
-      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <description>The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
       <type>String</type>
       <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_cooling_autosizing_limit</name>
+      <display_name>Cooling System: Cooling Autosizing Limit</display_name>
+      <description>The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2605,9 +2623,18 @@
     <argument>
       <name>heat_pump_heating_autosizing_factor</name>
       <display_name>Heat Pump: Heating Autosizing Factor</display_name>
-      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <description>The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
       <type>String</type>
       <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_heating_autosizing_limit</name>
+      <display_name>Heat Pump: Heating Autosizing Limit</display_name>
+      <description>The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2641,9 +2668,18 @@
     <argument>
       <name>heat_pump_cooling_autosizing_factor</name>
       <display_name>Heat Pump: Cooling Autosizing Factor</display_name>
-      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <description>The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
       <type>String</type>
       <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_cooling_autosizing_limit</name>
+      <display_name>Heat Pump: Cooling Autosizing Limit</display_name>
+      <description>The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2702,9 +2738,18 @@
     <argument>
       <name>heat_pump_backup_heating_autosizing_factor</name>
       <display_name>Heat Pump: Backup Heating Autosizing Factor</display_name>
-      <description>The scaling factor applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, 1.0 is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Factor.</description>
+      <description>The capacity scaling factor applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, 1.0 is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Factor.</description>
       <type>String</type>
       <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_backup_heating_autosizing_limit</name>
+      <display_name>Heat Pump: Backup Heating Autosizing Limit</display_name>
+      <description>The maximum capacity limit applied to the auto-sizing methodology if Backup Type is 'integrated'. If not provided, no limit is used. If Backup Type is 'separate', use Heating System 2: Heating Autosizing Limit.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -3245,9 +3290,18 @@
     <argument>
       <name>heating_system_2_heating_autosizing_factor</name>
       <display_name>Heating System 2: Heating Autosizing Factor</display_name>
-      <description>The scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
+      <description>The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.</description>
       <type>String</type>
       <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heating_system_2_heating_autosizing_limit</name>
+      <display_name>Heating System 2: Heating Autosizing Limit</display_name>
+      <description>The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -3280,6 +3334,15 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>hvac_blower_fan_watts_per_cfm</name>
+      <display_name>HVAC Blower: Fan Efficiency</display_name>
+      <description>The blower fan efficiency at maximum fan speed. Applies only to split (not packaged) systems (i.e., applies to ducted systems as well as ductless mini-split systems). If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heating-systems'&gt;HPXML Heating Systems&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-cooling-systems'&gt;HPXML Cooling Systems&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-heat-pumps'&gt;HPXML Heat Pumps&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>W/CFM</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>ducts_leakage_units</name>
       <display_name>Ducts: Leakage Units</display_name>
       <description>The leakage units of the ducts.</description>
@@ -3306,15 +3369,6 @@
       <name>ducts_supply_leakage_to_outside_value</name>
       <display_name>Ducts: Supply Leakage to Outside Value</display_name>
       <description>The leakage value to outside for the supply ducts.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.1</default_value>
-    </argument>
-    <argument>
-      <name>ducts_return_leakage_to_outside_value</name>
-      <display_name>Ducts: Return Leakage to Outside Value</display_name>
-      <description>The leakage value to outside for the return ducts.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -3418,7 +3472,7 @@
     <argument>
       <name>ducts_supply_insulation_r</name>
       <display_name>Ducts: Supply Insulation R-Value</display_name>
-      <description>The insulation r-value of the supply ducts excluding air films.</description>
+      <description>The nominal insulation r-value of the supply ducts excluding air films. Use 0 for uninsulated ducts.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
@@ -3473,6 +3527,24 @@
       <units>frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ducts_supply_fraction_rectangular</name>
+      <display_name>Ducts: Supply Fraction Rectangular</display_name>
+      <description>The fraction of supply ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution'&gt;Air Distribution&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ducts_return_leakage_to_outside_value</name>
+      <display_name>Ducts: Return Leakage to Outside Value</display_name>
+      <description>The leakage value to outside for the return ducts.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.1</default_value>
     </argument>
     <argument>
       <name>ducts_return_location</name>
@@ -3572,7 +3644,7 @@
     <argument>
       <name>ducts_return_insulation_r</name>
       <display_name>Ducts: Return Insulation R-Value</display_name>
-      <description>The insulation r-value of the return ducts excluding air films.</description>
+      <description>The nominal insulation r-value of the return ducts excluding air films. Use 0 for uninsulated ducts.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
@@ -3634,6 +3706,15 @@
       <description>The number of return registers of the ducts. Only used to calculate default return duct surface area. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution'&gt;Air Distribution&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>ducts_return_fraction_rectangular</name>
+      <display_name>Ducts: Return Fraction Rectangular</display_name>
+      <description>The fraction of return ducts that are rectangular (as opposed to round); this affects the duct effective R-value used for modeling. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#air-distribution'&gt;Air Distribution&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -7372,7 +7453,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>BF15E74E</checksum>
+      <checksum>2CDED687</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -7389,7 +7470,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>17245E1E</checksum>
+      <checksum>EA39C14E</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>

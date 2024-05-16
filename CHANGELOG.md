@@ -13,14 +13,16 @@ Features
 - Add Metropolitan and Micropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv ([#1212](https://github.com/NREL/resstock/pull/1212))
 - Add ability to specify HVAC system autosizing factors for baseline buildings; autosizing factors are retained for upgrade buildings following the same approach for HVAC system capacities ([#1215](https://github.com/NREL/resstock/pull/1215))
 - Update the stochastic schedule generator to produce updated other/TV plug load and ceiling fan schedules ([#1220](https://github.com/NREL/resstock/pull/1220))
+- Update to new OS-HPXML defaults for duct insulation; 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts) ([#1233](https://github.com/NREL/resstock/pull/1233))
+- Update to OpenStudio v3.8.0 ([#1225](https://github.com/NREL/resstock/pull/1225))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
 - Reorganize the emissions and utility rates data folders such that their sources and functions are more clear ([#1195](https://github.com/NREL/resstock/pull/1195))
 - Move location of out-of-unit (shared) water heaters to conditioned mechanical room ([#1201](https://github.com/NREL/resstock/pull/1201))
 - Update the Alaska residential stock characterization using the Alaska Retrofit Information System data ([#1214](https://github.com/NREL/resstock/pull/1214))
-- Enable HVAC airflor and capacity scaling factors to oversize or undersize the equipment. ([#1218](https://github.com/NREL/resstock/pull/1218))
-
+- Enable HVAC airflow and capacity scaling factors to oversize or undersize the equipment ([#1218](https://github.com/NREL/resstock/pull/1218))
+- Update to RECS 2020 V7 data files ([#1164](https://github.com/NREL/resstock/pull/1199))
 
 ## ResStock v3.2.0
 ###### December 19, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.1...v3.2.0)
@@ -30,7 +32,7 @@ Features
 - Add 2022 Cambium emissions data ([#1038](https://github.com/NREL/resstock/pull/1038))
 - Update characteristics to use EIA 2020 RECS ([#1031](https://github.com/NREL/resstock/pull/1031))
 - Add Energystar Climate Zone for window upgrade specification ([#1080](https://github.com/NREL/resstock/pull/1080))
-- Include HVAC secondary heating capabilities for project_testing ([#1090](https://github.com/NREL/resstock/pull/1090))
+- Include HVAC secondary heating capabilities for project_testing ([#1093](https://github.com/NREL/resstock/pull/1093))
 - For heat pump upgrades, adds the ability to set the existing primary (non-shared) heating system as the backup system using only a single option from the lookup ([#1074](https://github.com/NREL/resstock/pull/1074))
 - options_saturations.csv is added to project_*/resources/ folder ([#1132](https://github.com/NREL/resstock/pull/1132))
 - Update `run_analysis.rb` to map datapoints to run folder names when the `-k` argument is supplied ([#1138](https://github.com/NREL/resstock/pull/1138))
@@ -44,7 +46,7 @@ Features
 Fixes
 - Set standard format for options_lookup ([#962](https://github.com/NREL/resstock/pull/962))
 - Model a wood storage water heater when "Other Fuel" is sampled from Water Heater Efficiency.tsv (allowing downstream modeling of clothes washer/dryer). Similarly, model a wood wall/floor furnace when "Other" is sampled from HVAC Heating Efficiency.tsv ([#947](https://github.com/NREL/resstock/pull/947))
-- Update ResStockArguments to support nonzero fraction of heat load served by the secondary heating system ([#1090](https://github.com/NREL/resstock/pull/1090))
+- Update ResStockArguments to support nonzero fraction of heat load served by the secondary heating system ([#1093](https://github.com/NREL/resstock/pull/1093))
 - Fix square footage for a MF dwelling unit in the "3000-3999" CFA bin (from 33171 to 3171) ([#1115](https://github.com/NREL/resstock/pull/1115))
 - Fix/clarify duct location assignment by defining Duct Location.tsv, making Duct Leakage and Insulation (formerly Duct) depend on Duct Location, and making HVAC Has Ducts depend on HVAC Has Shared Systems. Includes fixes on standalone and shared heating system assignment for Other Fuel. ([#1104](https://github.com/NREL/resstock/pull/1104), [#1112](https://github.com/NREL/resstock/pull/1112))
 - Correct refrigerator rated annual kWh based on EF and an assumed volume of 20.9cft. ([#1118](https://github.com/NREL/resstock/pull/1118))
@@ -53,7 +55,6 @@ Fixes
 - Update `run_analysis.rb` to handle illegal path characters in upgrade names ([#1138](https://github.com/NREL/resstock/pull/1138))
 - Update to RECS 2020 V5 data files ([#1164](https://github.com/NREL/resstock/pull/1164))
 - Update TMY3 weather URL from the NREL Data Catalog ([#1182](https://github.com/NREL/resstock/pull/1182))
-- Update to RECS 2020 V7 data files ([#1164](https://github.com/NREL/resstock/pull/1199))
 
 ## ResStock v3.1.1
 ###### November 28, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.0...v3.1.1)

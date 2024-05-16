@@ -204,7 +204,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
     # Retrieve values from BuildExistingModel
-    values = get_values_from_runner_past_results(runner, 'build_existing_model')
+    values = Hash[runner.getPastStepValuesForMeasure('build_existing_model').collect { |k, v| [k.to_s, v] }]
 
     # Process package apply logic if provided
     apply_package_upgrade = true

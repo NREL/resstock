@@ -10,7 +10,7 @@ require 'zlib'
 
 require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling_lib'
-require_relative '../resources/util'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/util'
 
 $start_time = Time.now
 
@@ -20,7 +20,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
     return false
   end
 
-  cfg = YAML.load_file(yml)
+  cfg = YAML.load_file(yml, aliases: true)
 
   if !cfg['workflow_generator']['args'].keys.include?('build_existing_model') || !cfg['workflow_generator']['args'].keys.include?('simulation_output_report')
     puts "Error: Both 'build_existing_model' and 'simulation_output_report' must be included in yml."

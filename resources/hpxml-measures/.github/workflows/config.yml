@@ -11,7 +11,7 @@ jobs:
   run-unit-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.7.0
+      image: docker://nrel/openstudio:dev-3.8.0-rc2
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,7 +46,7 @@ jobs:
       - name: Store results
         uses: actions/upload-artifact@v4
         with:
-          path: workflow/tests/results
+          path: workflow/tests/test_results
           name: results-unit-tests
 
       - name: Build documentation
@@ -68,7 +68,7 @@ jobs:
   run-workflow1-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.7.0
+      image: docker://nrel/openstudio:dev-3.8.0-rc2
     steps:
       - uses: actions/checkout@v4
         with:
@@ -85,13 +85,13 @@ jobs:
       - name: Store results
         uses: actions/upload-artifact@v4
         with:
-          path: workflow/tests/results
+          path: workflow/tests/test_results
           name: results-workflow1-tests
 
   run-workflow2-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.7.0
+      image: docker://nrel/openstudio:dev-3.8.0-rc2
     steps:
       - uses: actions/checkout@v4
         with:
@@ -108,7 +108,7 @@ jobs:
       - name: Store results
         uses: actions/upload-artifact@v4
         with:
-          path: workflow/tests/results
+          path: workflow/tests/test_results
           name: results-workflow2-tests
 
   run-windows-tests:
@@ -120,8 +120,8 @@ jobs:
       - name: Install software and run test
         shell: pwsh
         run: |
-          $env:OS_VERSION="3.7.0"
-          $env:OS_SHA="d5269793f1"
+          $env:OS_VERSION="3.8.0-rc2"
+          $env:OS_SHA="af997f4fef"
           Invoke-WebRequest -OutFile Windows.tar.gz -URI "https://github.com/NREL/OpenStudio/releases/download/v${env:OS_VERSION}/OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows.tar.gz"
           tar -xzf Windows.tar.gz
           & .\OpenStudio-${env:OS_VERSION}+${env:OS_SHA}-Windows\bin\openstudio.exe workflow\run_simulation.rb -x workflow\sample_files\base.xml --hourly ALL --add-component-loads --add-stochastic-schedules
@@ -130,12 +130,35 @@ jobs:
     runs-on: ubuntu-latest
     needs: [run-workflow1-tests, run-workflow2-tests, run-unit-tests]
     steps:
-      - name: Merge Artifacts
-        uses: actions/upload-artifact/merge@v4
+      - uses: actions/checkout@v4
         with:
-          name: results
+          ref: ${{ github.head_ref }}
+
+      - name: Download all results
+        uses: actions/download-artifact@v4
+        with:
+          path: test_results
           pattern: results-*
-          delete-merged: true
+          merge-multiple: true
+
+      - name: Delete artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: results-*
+
+      - name: Merge results
+        run: |
+          mkdir workflow/tests/test_results
+          cp -r test_results/results* workflow/tests/test_results
+          cd workflow/tests
+          pip install pandas
+          for csv in test_results/*1_*.csv; do csv2="${csv/1_/2_}"; csv_out="${csv/1_/_}"; python merge.py $csv $csv2 $csv_out; rm $csv; rm $csv2; done
+
+      - name: Store results
+        uses: actions/upload-artifact@v4
+        with:
+          path: workflow/tests/test_results
+          name: test_results
 
   compare-results:
     if: github.event_name == 'pull_request'
@@ -165,14 +188,14 @@ jobs:
       - name: Download feature results
         uses: actions/download-artifact@v4
         with:
-          path: results
-          name: results
+          path: test_results
+          name: test_results
 
       - name: Compare results
         run: |
           cp -r base_results/results*.csv workflow/tests/base_results
-          mkdir workflow/tests/results
-          cp -r results/results* workflow/tests/results
+          mkdir workflow/tests/test_results
+          cp -r test_results/results* workflow/tests/test_results
           
           pip install numpy
           pip install pandas
@@ -199,15 +222,15 @@ jobs:
       - name: Download feature results
         uses: actions/download-artifact@v4
         with:
-          path: results
-          name: results
+          path: test_results
+          name: test_results
 
       - name: Commit latest results
         shell: bash        
         run: |
           branch_name="${{ github.head_ref }}"
           git pull origin $branch_name
-          cp -r results/results* workflow/tests/base_results
+          cp -r test_results/results* workflow/tests/base_results
           git add workflow/tests/base_results
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
