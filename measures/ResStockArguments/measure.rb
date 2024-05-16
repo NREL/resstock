@@ -563,7 +563,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     if !args[:heat_pump_rated_cfm_per_ton].nil? && !args[:heat_pump_actual_cfm_per_ton].nil?
-      args[:heat_pump_airflow_defect_ratio] = (args[:heat_pump_actual_cfm_per_ton] - args[:heat_pump_rated_cfm_per_ton]) / args[:cooling_system_rated_cfm_per_ton]
+      args[:heat_pump_airflow_defect_ratio] = (args[:heat_pump_actual_cfm_per_ton] - args[:heat_pump_rated_cfm_per_ton]) / args[:heat_pump_rated_cfm_per_ton]
     end
 
     if !args[:heat_pump_frac_manufacturer_charge].nil?
