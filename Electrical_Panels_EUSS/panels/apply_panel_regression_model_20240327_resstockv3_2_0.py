@@ -763,7 +763,7 @@ def main(
         filename = Path(filename)
 
     # Model specs
-    model_num = "41138"  # <-- [41138 (for paper), 41906 (for TEA?, TBD)]
+    model_num = "41906"  # <-- [41138 (for paper), 41906 (for TEA?, TBD)]
     (
         model_filename,
         data_input_sheetname,

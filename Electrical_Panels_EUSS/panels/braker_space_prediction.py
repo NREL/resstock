@@ -4,11 +4,15 @@ import pickle
 import numpy as np
 from numpy import random
 
+probability = True
 model = 41906
-#resstock_baseline_file = "test_data/euss1_2018_results_up00_clean__model_41138__tsv_based__predicted_panels_probablistically_assigned.csv"
-resstock_baseline_file = f"test_data/panel_run_30k/results_up00__model_{model}__tsv_based__predicted_panels_probablistically_assigned.csv"
+resstock_baseline_file = f"test_data/test_run_30k/results_up00.csv"
+resstock_panel_size = f"test_data/test_run_30k/panel_result__model_{model}__tsv_based__predicted_panels_probablistically_assigned.csv"
 df = pd.read_csv(resstock_baseline_file)
+df_panel_size = pd.read_csv(resstock_panel_size)
 model_file = 'breaker_space_model_20240318/breaker_space_model_breaker_min_4_no_outliers.pickle'
+
+df['predicted_panel_amp'] = df_panel_size['predicted_panel_amp']
 
 df.loc[df["build_existing_model.heating_fuel"] != "Electricity", "has_elec_heating_primary"] = 0
 df.loc[df["build_existing_model.heating_fuel"] == "Electricity", "has_elec_heating_primary"] = 1 
@@ -76,23 +80,15 @@ for index, row in predictions.iterrows():
     row[column_index] += row["delta"]
     predictions.at[index, column_index] = row[column_index]
 predictions = predictions.drop(columns=['delta'])
-print(predictions)
 slots = [x for x in range(0,32)]
-predictions["prediction"] = predictions.apply(lambda x: np.random.choice(slots,1,p=x)[0],axis=1)
-
-df['panel_slots_empty'] = predictions["prediction"]
-
-df = df.drop(columns=['has_elec_heating_primary',
-                      'has_cooling',
-                      'has_elec_water_heater',
-                      'has_elec_drying',
-                      'has_elec_cooking',
-                      'const',
-                      'panel_amp_pre_bin_4__101_199',
-                      'panel_amp_pre_bin_4__200_plus',
-                      'panel_amp_pre_bin_4__lt_100'])
-
-df.to_csv(f"test_data/panel_run_30k/results_up00__model_{model}__tsv_based__predicted_panels_probablistically_assigned_breaker_space.csv", na_rep='None', index=False)
+predictions["available_panel_slots"] = predictions.apply(lambda x: np.random.choice(slots,1,p=x)[0],axis=1)
+predictions.insert(0, 'building_id', df['building_id'])
+if probability:
+    results = predictions.drop('available_panel_slots', axis=1)
+    results.to_csv(f"test_data/test_run_30k/panel_result__model_{model}_breaker_space_in_probability.csv", na_rep='None', index=False)
+else:
+    results = predictions[['building_id', 'available_panel_slots']]
+    results.to_csv(f"test_data/test_run_30k/panel_result__model_{model}_breaker_space_probablistically_assigned.csv", na_rep='None', index=False)
 
 
 
