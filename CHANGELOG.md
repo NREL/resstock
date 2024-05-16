@@ -15,6 +15,7 @@ Features
 - Update the stochastic schedule generator to produce updated other/TV plug load and ceiling fan schedules ([#1220](https://github.com/NREL/resstock/pull/1220))
 - Update to new OS-HPXML defaults for duct insulation; 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts) ([#1233](https://github.com/NREL/resstock/pull/1233))
 - Update to OpenStudio v3.8.0 ([#1225](https://github.com/NREL/resstock/pull/1225))
+- Introduce a new optional `buildstock_csv_path` argument that supports parallel resstock runs using `run_analysis.rb` ([#1230](https://github.com/NREL/resstock/pull/1230))
 - Improves heating/cooling component loads; for timesteps where there is no heating/cooling load, assigns heat transfer to heating or cooling by comparing indoor temperature to the average of heating/cooling setpoints ([#1240](https://github.com/NREL/resstock/pull/1240))
 - Additional geothermal loop default simulation outputs (number/length of boreholes) ([#1240](https://github.com/NREL/resstock/pull/1240))
 - Updates default `ShieldingofHome` to be "well-shielded" (from "normal") for single-family attached and multifamily dwelling units ([#1240](https://github.com/NREL/resstock/pull/1240))

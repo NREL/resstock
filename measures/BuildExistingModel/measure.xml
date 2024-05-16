@@ -3,14 +3,23 @@
   <schema_version>3.1</schema_version>
   <name>build_existing_model</name>
   <uid>dedf59bb-3b88-4f16-8755-2c1ff5519cbf</uid>
-  <version_id>cd41a0d4-10df-49fa-bd4b-7a4e393f198b</version_id>
-  <version_modified>2024-05-07T20:17:04Z</version_modified>
+  <version_id>744949f6-b7ea-42ed-8d88-6b4efe99de5c</version_id>
+  <version_modified>2024-05-16T19:37:41Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildExistingModel</class_name>
   <display_name>Build Existing Model</display_name>
   <description>Builds the OpenStudio Model for an existing building.</description>
   <modeler_description>Builds the OpenStudio Model using the sampling csv file, which contains the specified parameters for each existing building. Based on the supplied building number, those parameters are used to run the OpenStudio measures with appropriate arguments and build up the OpenStudio model.</modeler_description>
   <arguments>
+    <argument>
+      <name>buildstock_csv_path</name>
+      <display_name>Buildstock CSV File Path</display_name>
+      <description>Absolute/relative path of the buildstock CSV file. Relative is compared to the 'lib/housing_characteristics' directory.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>buildstock.csv</default_value>
+    </argument>
     <argument>
       <name>building_id</name>
       <display_name>Building Unit ID</display_name>
@@ -323,7 +332,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>3B1D5629</checksum>
+      <checksum>52F0E677</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -340,7 +349,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>50818B89</checksum>
+      <checksum>B302DB7E</checksum>
     </file>
   </files>
 </measure>
