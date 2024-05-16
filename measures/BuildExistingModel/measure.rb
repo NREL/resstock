@@ -246,7 +246,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_measures_dir = File.join(File.dirname(__FILE__), '../../resources/hpxml-measures')
     lookup_file = File.join(resources_dir, 'options_lookup.tsv')
 
-    buildstock_csv_path = args[:buildstock_csv_path].get
+    buildstock_csv_path = args[:buildstock_csv_path]
     unless (Pathname.new buildstock_csv_path).absolute?
       buildstock_csv_path = File.absolute_path(File.join(characteristics_dir, buildstock_csv_path))
     end
