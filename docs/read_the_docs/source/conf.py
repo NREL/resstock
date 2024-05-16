@@ -39,7 +39,22 @@ release = u''
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "changelog"
 ]
+
+changelog_sections = [
+    "workflow",
+    "characteristics",
+    "software",
+    "documentation"
+]
+# tags to sort on inside of sections
+changelog_inner_tag_sort = ["feature", "changed", "removed", "bug", "moved"]
+
+# how to render changelog links
+changelog_render_ticket = "http://www.github.com/nrel/resstock/issues/%s"
+
+changelog_render_pullreq = {"default": "https://www.github.com/nrel/resstock/pull/%s"}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
