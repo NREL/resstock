@@ -785,7 +785,7 @@ class Waterheater
     tank.setHeater2Height(h_LE)
     tank.setHeater2DeadbandTemperatureDifference(3.89)
     tank.setHeaterFuelType(EPlus::FuelTypeElectricity)
-    tank.setHeaterThermalEfficiency(1)
+    tank.setHeaterThermalEfficiency(1.0)
     tank.setOffCycleParasiticFuelConsumptionRate(parasitics)
     tank.setOffCycleParasiticFuelType(EPlus::FuelTypeElectricity)
     tank.setOnCycleParasiticFuelConsumptionRate(parasitics)
@@ -1665,7 +1665,7 @@ class Waterheater
       new_heater.setHeater2Capacity(UnitConversions.convert(cap, 'kBtu/hr', 'W'))
       new_heater.setHeater2Height(UnitConversions.convert(h_tank * 0.733333333, 'ft', 'm')) # node 13; height of upper element based on TRNSYS assumptions for an ERWH
       new_heater.setHeater2DeadbandTemperatureDifference(5.556)
-      new_heater.setHeaterThermalEfficiency(1)
+      new_heater.setHeaterThermalEfficiency(1.0)
       new_heater.setNumberofNodes(12)
       new_heater.setAdditionalDestratificationConductivity(0)
       new_heater.setUseSideDesignFlowRate(UnitConversions.convert(act_vol, 'gal', 'm^3') / 60.1)
@@ -1740,9 +1740,6 @@ class Waterheater
     new_heater.setOnCycleParasiticHeatFractiontoTank(0)
 
     return new_heater
-  end
-
-  def self.set_wh_parasitic_parameters(water_heating_system, water_heater, is_dsh_storage)
   end
 
   def self.set_wh_ambient(loc_space, loc_schedule, wh_obj)

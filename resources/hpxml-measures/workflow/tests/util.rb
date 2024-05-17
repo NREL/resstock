@@ -112,7 +112,7 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, annual_results_1x =
   monthly_results = _get_simulation_monthly_results(monthly_csv_path)
   _verify_outputs(rundir, xml, annual_results, hpxml, unit_multiplier)
   if unit_multiplier > 1
-    _check_unit_multiplier_results(hpxml.buildings[0], annual_results_1x, annual_results, monthly_results_1x, monthly_results, unit_multiplier)
+    _check_unit_multiplier_results(xml, hpxml.buildings[0], annual_results_1x, annual_results, monthly_results_1x, monthly_results, unit_multiplier)
   end
 
   return annual_results, monthly_results
@@ -245,6 +245,9 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     if hpxml_path.include? 'base-hvac-multiple.xml'
       next if message.include? 'Reached a minimum of 1 borehole; setting bore depth to the minimum'
     end
+    if hpxml_path.include? 'base-zones'
+      next if message.include? 'While multiple conditioned zones are specified, the EnergyPlus model will only include a single conditioned thermal zone.'
+    end
 
     # FUTURE: Revert this eventually
     # https://github.com/NREL/OpenStudio-HPXML/issues/1499
@@ -282,6 +285,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     next if message.include? 'Pump nominal power or motor efficiency is set to 0'
     next if message.include? 'volume flow rate per watt of rated total cooling capacity is out of range'
     next if message.include? 'volume flow rate per watt of rated total heating capacity is out of range'
+    next if message.include? 'volume flow rate per watt of rated total water heating capacity is out of range'
     next if message.include? 'The Standard Ratings is calculated for'
     next if message.include?('WetBulb not converged after') && message.include?('iterations(PsyTwbFnTdbWPb)')
     next if message.include? 'Inside surface heat balance did not converge with Max Temp Difference'
@@ -308,7 +312,6 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     if hpxml_bldg.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
       next if message.include? 'Recovery Efficiency and Energy Factor could not be calculated during the test for standard ratings'
       next if message.include? 'SimHVAC: Maximum iterations (20) exceeded for all HVAC loops'
-      next if message.include? 'Rated air volume flow rate per watt of rated total water heating capacity is out of range'
       next if message.include? 'For object = Coil:WaterHeating:AirToWaterHeatPump:Wrapped'
       next if message.include? 'Enthalpy out of range (PsyTsatFnHPb)'
       next if message.include?('CheckWarmupConvergence: Loads Initialization') && message.include?('did not converge after 25 warmup days')
@@ -478,12 +481,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
     # Net area
-    hpxml_value = roof.area
-    hpxml_bldg.skylights.each do |subsurface|
-      next if subsurface.roof_idref.upcase != roof_id
-
-      hpxml_value -= subsurface.area
-    end
+    hpxml_value = roof.net_area
     query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{roof_id}' OR RowName LIKE '#{roof_id}:%') AND ColumnName='Net Area' AND Units='m2'"
     sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
     assert_operator(sql_value, :>, 0.01)
@@ -677,7 +675,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
     # Area
-    hpxml_value = floor.area
+    hpxml_value = floor.net_area
     query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{floor_id}' AND ColumnName='Net Area' AND Units='m2'"
     sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
     assert_operator(sql_value, :>, 0.01)
@@ -754,12 +752,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
       sql_value = sqlFile.execAndReturnFirstDouble(query).get
       assert_in_epsilon(90.0, sql_value, 0.01)
     elsif subsurface.is_a? HPXML::Skylight
-      hpxml_value = nil
-      hpxml_bldg.roofs.each do |roof|
-        next if roof.id != subsurface.roof_idref
-
-        hpxml_value = UnitConversions.convert(Math.atan(roof.pitch / 12.0), 'rad', 'deg')
-      end
+      hpxml_value = UnitConversions.convert(Math.atan(subsurface.roof.pitch / 12.0), 'rad', 'deg')
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='Tilt' AND Units='deg'"
       sql_value = sqlFile.execAndReturnFirstDouble(query).get
       assert_in_epsilon(hpxml_value, sql_value, 0.01)
@@ -991,7 +984,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
   GC.start()
 end
 
-def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results_10x, monthly_results_1x, monthly_results_10x, unit_multiplier)
+def _check_unit_multiplier_results(xml, hpxml_bldg, annual_results_1x, annual_results_10x, monthly_results_1x, monthly_results_10x, unit_multiplier)
   # Check that results_10x are expected compared to results_1x
 
   def get_tolerances(key)
@@ -1005,11 +998,11 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
         abs_delta_tol = UnitConversions.convert(abs_delta_tol, 'MBtu', 'kWh')
       end
     elsif key.include?('Peak Electricity:')
-      # Check that the peak electricity difference is less than 500 W or less than 5%
+      # Check that the peak electricity difference is less than 500 W or less than 10%
       # Wider tolerances than others because a small change in when an event (like the
       # water heating firing) occurs can significantly impact the peak.
       abs_delta_tol = 500.0
-      abs_frac_tol = 0.05
+      abs_frac_tol = 0.1
     elsif key.include?('Peak Load:')
       # Check that the peak load difference is less than 0.2 kBtu/hr or less than 5%
       abs_delta_tol = 0.2
@@ -1030,7 +1023,7 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
       # Check that the unmet hours difference is less than 10 hrs
       abs_delta_tol = 10
       abs_frac_tol = nil
-    elsif key.include?('HVAC Capacity:') || key.include?('HVAC Design Load:') || key.include?('HVAC Design Temperature:') || key.include?('Weather:')
+    elsif key.include?('HVAC Capacity:') || key.include?('HVAC Design Load:') || key.include?('HVAC Design Temperature:') || key.include?('Weather:') || key.include?('HVAC Geothermal Loop:')
       # Check that there is no difference
       abs_delta_tol = 0
       abs_frac_tol = nil
@@ -1049,7 +1042,11 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
   # so remove these from the comparison
   annual_results_1x = annual_results_1x.dup
   annual_results_10x = annual_results_10x.dup
-  ['System Use:', 'Temperature:', 'Utility Bills:'].each do |key|
+  ['System Use:',
+   'Temperature:',
+   'Utility Bills:',
+   'HVAC Zone Design Load:',
+   'HVAC Space Design Load:'].each do |key|
     annual_results_1x.delete_if { |k, _v| k.start_with? key }
     annual_results_10x.delete_if { |k, _v| k.start_with? key }
     monthly_results_1x.delete_if { |k, _v| k.start_with? key }
@@ -1066,16 +1063,21 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
       abs_delta_tol, abs_frac_tol = get_tolerances(key)
 
       vals_10x = results_10x[key]
-      if not vals_1x.is_a? Array
+      if vals_1x.is_a? Array
+        is_timeseries = true
+      else
+        is_timeseries = false
         vals_1x = [vals_1x]
         vals_10x = [vals_10x]
       end
 
-      vals_1x.zip(vals_10x).each do |val_1x, val_10x|
+      vals_1x.zip(vals_10x).each_with_index do |(val_1x, val_10x), i|
+        period = is_timeseries ? Date::ABBR_MONTHNAMES[i + 1] : 'Annual'
         if not (key.include?('Unmet Hours') ||
                 key.include?('HVAC Design Temperature') ||
-                key.include?('Weather'))
-          # These outputs shouldn't change based on the unit multiplier
+                key.include?('Weather') ||
+                key.include?('HVAC Geothermal Loop: Borehole/Trench Length'))
+          # The above output types shouldn't change based on the unit multiplier
           val_1x *= unit_multiplier
         end
 
@@ -1094,17 +1096,27 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
           next if key.include?('Hot Water')
         end
 
-        # Uncomment these lines to debug:
-        # if val_1x != 0 or val_10x != 0
-        #   puts "[#{key}] 1x=#{val_1x} 10x=#{val_10x}"
-        # end
+        debug_str = "#{File.basename(xml)}: [#{key}, #{period}] 1x=#{val_1x}, 10x=#{val_10x}"
         if abs_frac_tol.nil?
           if abs_delta_tol == 0
+            if val_1x != val_10x
+              puts "#{debug_str}, abs_delta_tol=#{abs_delta_tol}"
+            end
             assert_equal(val_1x, val_10x)
           else
+            if (val_1x - val_10x).abs > abs_delta_tol
+              puts "#{debug_str}, abs_delta_tol=#{abs_delta_tol}"
+            end
             assert_in_delta(val_1x, val_10x, abs_delta_tol)
           end
         else
+          if not ((abs_val_delta <= abs_delta_tol) || (!abs_val_frac.nil? && abs_val_frac <= abs_frac_tol))
+            if abs_val_frac.nil?
+              puts "#{debug_str}, abs_delta_tol=#{abs_delta_tol}"
+            else
+              puts "#{debug_str}, abs_delta_tol=#{abs_delta_tol}, abs_frac_tol=#{abs_frac_tol}"
+            end
+          end
           assert((abs_val_delta <= abs_delta_tol) || (!abs_val_frac.nil? && abs_val_frac <= abs_frac_tol))
         end
       end

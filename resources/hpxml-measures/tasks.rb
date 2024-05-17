@@ -370,6 +370,73 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
       hpxml_bldg.air_infiltration_measurements[0].a_ext = 0.2
     end
 
+    # ------------------ #
+    # HPXML Zones/Spaces #
+    # ------------------ #
+
+    if ['base-zones-spaces.xml',
+        'base-zones-spaces-multiple.xml'].include? hpxml_file
+      # Add zones/spaces
+      hpxml_bldg.zones.add(id: 'ConditionedZone',
+                           zone_type: HPXML::ZoneTypeConditioned)
+      hpxml_bldg.zones[-1].spaces.add(id: 'ConditionedSpace',
+                                      floor_area: hpxml_bldg.building_construction.conditioned_floor_area)
+      if hpxml_file == 'base-zones-spaces-multiple.xml'
+        hpxml_bldg.zones[-1].id = 'AGConditionedZone'
+        hpxml_bldg.zones[-1].spaces[0].id = 'AGConditionedSpace'
+        hpxml_bldg.zones[-1].spaces[0].floor_area /= 2.0
+        hpxml_bldg.zones.add(id: 'BGConditionedZone',
+                             zone_type: HPXML::ZoneTypeConditioned)
+        hpxml_bldg.zones[-1].spaces.add(id: 'BGConditionedSpace',
+                                        floor_area: hpxml_bldg.building_construction.conditioned_floor_area / 2.0)
+      end
+      hpxml_bldg.zones.add(id: 'GarageZone',
+                           zone_type: HPXML::ZoneTypeUnconditioned)
+      hpxml_bldg.zones[-1].spaces.add(id: 'GarageSpace',
+                                      floor_area: hpxml_bldg.slabs.find { |s| s.interior_adjacent_to == HPXML::LocationGarage }.area)
+
+      # Attach HVAC
+      hpxml_bldg.heating_systems[0].attached_to_zone_idref = hpxml_bldg.zones[0].id
+      hpxml_bldg.cooling_systems[0].attached_to_zone_idref = hpxml_bldg.zones[0].id
+      if hpxml_file == 'base-zones-spaces-multiple.xml'
+        hpxml_bldg.heating_systems << hpxml_bldg.heating_systems[0].dup
+        hpxml_bldg.heating_systems[-1].id = 'HeatingSystem2'
+        hpxml_bldg.heating_systems[-1].attached_to_zone_idref = hpxml_bldg.zones[1].id
+        hpxml_bldg.heating_systems[-1].primary_system = false
+        hpxml_bldg.cooling_systems << hpxml_bldg.cooling_systems[0].dup
+        hpxml_bldg.cooling_systems[-1].id = 'CoolingSystem2'
+        hpxml_bldg.cooling_systems[-1].attached_to_zone_idref = hpxml_bldg.zones[1].id
+        hpxml_bldg.cooling_systems[-1].primary_system = false
+        hpxml_bldg.hvac_distributions.add(id: "HVACDistribution#{hpxml_bldg.hvac_distributions.size + 1}",
+                                          distribution_system_type: HPXML::HVACDistributionTypeAir,
+                                          air_type: HPXML::AirTypeRegularVelocity)
+        hpxml_bldg.hvac_distributions[-1].duct_leakage_measurements << hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[0].dup
+        hpxml_bldg.hvac_distributions[-1].duct_leakage_measurements << hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].dup
+        hpxml_bldg.hvac_distributions[-1].ducts << hpxml_bldg.hvac_distributions[0].ducts[0].dup
+        hpxml_bldg.hvac_distributions[-1].ducts << hpxml_bldg.hvac_distributions[0].ducts[1].dup
+        hpxml_bldg.hvac_distributions[-1].ducts[0].id = 'Ducts3'
+        hpxml_bldg.hvac_distributions[-1].ducts[1].id = 'Ducts4'
+        hpxml_bldg.heating_systems[-1].distribution_system_idref = hpxml_bldg.hvac_distributions[-1].id
+        hpxml_bldg.cooling_systems[-1].distribution_system_idref = hpxml_bldg.hvac_distributions[-1].id
+      end
+
+      # Attach surfaces
+      hpxml_bldg.surfaces.each do |s|
+        next unless s.interior_adjacent_to == HPXML::LocationConditionedSpace || s.interior_adjacent_to == HPXML::LocationBasementConditioned
+
+        if hpxml_file == 'base-zones-spaces-multiple.xml' && s.interior_adjacent_to == HPXML::LocationBasementConditioned
+          s.attached_to_space_idref = hpxml_bldg.zones[1].spaces[0].id
+        else
+          s.attached_to_space_idref = hpxml_bldg.zones[0].spaces[0].id
+        end
+      end
+      hpxml_bldg.surfaces.each do |s|
+        next unless s.interior_adjacent_to == HPXML::LocationGarage
+
+        s.attached_to_space_idref = hpxml_bldg.zones[-1].spaces[0].id
+      end
+    end
+
     # --------------- #
     # HPXML Enclosure #
     # --------------- #
@@ -455,7 +522,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
         window.area = (window.area * 0.35).round(1)
       end
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: wall.id,
+                           attached_to_wall_idref: wall.id,
                            area: 20,
                            azimuth: 0,
                            r_value: 4.4)
@@ -544,13 +611,13 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.67,
-                             wall_idref: wall.id)
+                             attached_to_wall_idref: wall.id)
       wall = hpxml_bldg.walls.select { |w|
                w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
                  w.exterior_adjacent_to == HPXML::LocationOtherHeatedSpace
              }[0]
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: wall.id,
+                           attached_to_wall_idref: wall.id,
                            area: 20,
                            azimuth: 0,
                            r_value: 4.4)
@@ -559,7 +626,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                  w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
              }[0]
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: wall.id,
+                           attached_to_wall_idref: wall.id,
                            area: 20,
                            azimuth: 0,
                            r_value: 4.4)
@@ -570,12 +637,12 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
       end
       hpxml_bldg.doors[0].delete
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: 'Wall1',
+                           attached_to_wall_idref: 'Wall1',
                            area: 20,
                            orientation: HPXML::OrientationNorth,
                            r_value: 4.4)
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: 'Wall1',
+                           attached_to_wall_idref: 'Wall1',
                            area: 20,
                            orientation: HPXML::OrientationSouth,
                            r_value: 4.4)
@@ -654,14 +721,14 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0,
-                             wall_idref: hpxml_bldg.walls[-2].id)
+                             attached_to_wall_idref: hpxml_bldg.walls[-2].id)
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 62,
                              azimuth: 270,
                              ufactor: 0.3,
                              shgc: 0.45,
                              fraction_operable: 0,
-                             wall_idref: hpxml_bldg.walls[-2].id)
+                             attached_to_wall_idref: hpxml_bldg.walls[-2].id)
     elsif ['base-foundation-unconditioned-basement-above-grade.xml'].include? hpxml_file
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 20,
@@ -669,28 +736,28 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.0,
-                             wall_idref: hpxml_bldg.foundation_walls[0].id)
+                             attached_to_wall_idref: hpxml_bldg.foundation_walls[0].id)
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 10,
                              azimuth: 90,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.0,
-                             wall_idref: hpxml_bldg.foundation_walls[0].id)
+                             attached_to_wall_idref: hpxml_bldg.foundation_walls[0].id)
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 20,
                              azimuth: 180,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.0,
-                             wall_idref: hpxml_bldg.foundation_walls[0].id)
+                             attached_to_wall_idref: hpxml_bldg.foundation_walls[0].id)
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 10,
                              azimuth: 270,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.0,
-                             wall_idref: hpxml_bldg.foundation_walls[0].id)
+                             attached_to_wall_idref: hpxml_bldg.foundation_walls[0].id)
     elsif ['base-enclosure-skylights-physical-properties.xml'].include? hpxml_file
       hpxml_bldg.skylights[0].ufactor = nil
       hpxml_bldg.skylights[0].shgc = nil
@@ -843,7 +910,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.0,
-                             wall_idref: hpxml_bldg.foundation_walls[-1].id)
+                             attached_to_wall_idref: hpxml_bldg.foundation_walls[-1].id)
     elsif ['base-foundation-multiple.xml'].include? hpxml_file
       hpxml_bldg.foundations.add(id: "Foundation#{hpxml_bldg.foundations.size + 1}",
                                  foundation_type: HPXML::FoundationTypeCrawlspaceUnvented,
@@ -1025,12 +1092,12 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                            carpet_fraction: 0,
                            carpet_r_value: 0)
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: hpxml_bldg.walls[-3].id,
+                           attached_to_wall_idref: hpxml_bldg.walls[-3].id,
                            area: 70,
                            azimuth: 180,
                            r_value: 4.4)
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: hpxml_bldg.walls[-2].id,
+                           attached_to_wall_idref: hpxml_bldg.walls[-2].id,
                            area: 4,
                            azimuth: 0,
                            r_value: 4.4)
@@ -1158,38 +1225,38 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.67,
-                             wall_idref: 'Wall1')
+                             attached_to_wall_idref: 'Wall1')
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 72 / 8,
                              azimuth: 90,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.67,
-                             wall_idref: 'Wall2')
+                             attached_to_wall_idref: 'Wall2')
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 108 / 8,
                              azimuth: 180,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.67,
-                             wall_idref: 'Wall3')
+                             attached_to_wall_idref: 'Wall3')
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 72 / 8,
                              azimuth: 270,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.67,
-                             wall_idref: 'Wall4')
+                             attached_to_wall_idref: 'Wall4')
       hpxml_bldg.doors.reverse_each do |door|
         door.delete
       end
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: 'Wall9',
+                           attached_to_wall_idref: 'Wall9',
                            area: 20,
                            azimuth: 0,
                            r_value: 4.4)
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: 'Wall10',
+                           attached_to_wall_idref: 'Wall10',
                            area: 20,
                            azimuth: 180,
                            r_value: 4.4)
@@ -1233,13 +1300,15 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
       end
     end
     if ['base-enclosure-2stories-garage.xml',
-        'base-enclosure-garage.xml'].include? hpxml_file
+        'base-enclosure-garage.xml',
+        'base-zones-spaces.xml',
+        'base-zones-spaces-multiple.xml'].include? hpxml_file
       grg_wall = hpxml_bldg.walls.select { |w|
                    w.interior_adjacent_to == HPXML::LocationGarage &&
                      w.exterior_adjacent_to == HPXML::LocationOutside
                  }[0]
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: grg_wall.id,
+                           attached_to_wall_idref: grg_wall.id,
                            area: 70,
                            azimuth: 180,
                            r_value: 4.4)
