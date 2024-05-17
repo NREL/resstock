@@ -3,49 +3,70 @@ v2.2.1 Changelog
 ================
 
 .. changelog::
-    :version: v2023.11.0
-    :released: 2023-11-27
+    :version: v2.2.1
+    :released: 2020-02-07
 
     .. change::
-        :tags: eagle, bugfix
-        :pullreq: 406
-        :tickets: 404
+        :tags: todo, todo, feature
+        :pullreq: 382
 
-        Cleans out the ``/tmp/scratch`` folder on Eagle at the end of each array job.
+        **Date**: 2020-02-07
 
-    .. change::
-        :tags: documentation
-        :pullreq: 410
-        :tickets: 408
+        Title:
+        TODO
 
-        Update cost multiplier link in upgrade scenarios documentation.
+        Description:
+        Update the multifamily project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls
+        TODO
 
-    .. change::
-        :tags: bugfix
-        :pullreq: 418
-        :tickets: 411
+        Assignees: TODO
 
-        Fixing ``started_at`` and ``completed_at`` timestamps in parquet files
-        to that when read by AWS Glue/Athena they show up as dates rather than
-        bigints.
 
     .. change::
-        :tags: general, feature, kestrel
-        :pullreq: 405
-        :tickets: 313
+        :tags: todo, todo, bugfix
+        :pullreq: 387
 
-        Add support for NREL's Kestrel supercomputer.
+        **Date**: 2020-02-07
+
+        Title:
+        TODO
+
+        Description:
+        Add generation of the Geometry Wall Type tsv file for the single-family detached project to the 2009 RECS tsv maker; this corrects the tsv file
+        TODO
+
+        Assignees: TODO
+
 
     .. change::
-        :tags: general, postprocessing
-        :pullreq: 414
-        :tickets: 412
+        :tags: todo, todo, bugfix
+        :pullreq: 387
 
-        Add support for an AWS service account on Kestrel/Eagle so the user
-        doesn't have to manage AWS keys.
+        **Date**: 2020-02-07
+
+        Title:
+        TODO
+
+        Description:
+        Add generation of the Misc Pool tsv file (with Geometry Building Type and Location Region dependencies) to the 2009 RECS tsv maker; this also corrects having pool pumps for all homes
+        TODO
+
+        Assignees: TODO
+
 
     .. change::
-        :tags: documentation
-        :pullreq: 419
+        :tags: todo, todo, bugfix
+        :pullreq: 382
 
-        Update weather file location argument name in custom weather files documentation.
+        **Date**: 2020-02-07
+
+        Title:
+        TODO
+
+        Description:
+        Refactor the RECS tsv makers for years 2009 and 2015
+        TODO
+
+        Assignees: TODO
+
+

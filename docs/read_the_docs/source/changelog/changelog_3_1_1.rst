@@ -7,7 +7,7 @@ v3.1.1 Changelog
     :released: 2023-11-28
 
     .. change::
-        :tags: workflow, mechanics
+        :tags: workflow, mechanics, bugfix
         :pullreq: 1170
 
         **Date**: 2023-11-28
@@ -19,8 +19,6 @@ v3.1.1 Changelog
         Use `Gem::Version` on buildstockbatch version string comparisons so that, e.g., '2023.10.0' < '2023.5.0' does not evaluate to true
         Patched release with version comparison fix
 
-        Assignee(s):
-
-        - Joe
+        Assignees: Joe
 
 

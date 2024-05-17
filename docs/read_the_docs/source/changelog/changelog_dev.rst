@@ -3,11 +3,11 @@ Development Changelog
 =====================
 
 .. changelog::
-    :version: development
-    :released: It has not been
+    :version: v3.3.0
+    :released: pending
 
     .. change::
-        :tags: software, openstudio
+        :tags: software, openstudio, feature
         :pullreq: 1225
 
         **Date**: 2024-05-09
@@ -19,15 +19,11 @@ Development Changelog
         Update to OpenStudio v3.8.0
         OpenStudio 3.8/EnergyPlus 24.1
 
-        Assignee(s):
-
-        - Joe
-
-        - Scott
+        Assignees: Joe, Scott
 
 
     .. change::
-        :tags: characteristics, ducts
+        :tags: characteristics, ducts, feature
         :pullreq: 1233
 
         **Date**: 2024-05-07
@@ -39,13 +35,13 @@ Development Changelog
         Update to new OS-HPXML defaults for duct insulation; 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts)
         Adds optional inputs (Ducts/DuctShape and Ducts/DuctFractionRectangular); defaults to 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts).
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1691 <https://github.com/NREL/OpenStudio-HPXML/pull/1691>`_
 
-        - Scott
+        Assignees: Scott
 
 
     .. change::
-        :tags: workflow, hvac
+        :tags: workflow, hvac, feature
         :pullreq: 1233
 
         **Date**: 2024-05-07
@@ -54,16 +50,16 @@ Development Changelog
         HVAC Autosizing Limits
 
         Description:
-        nan
+        HVAC
         The PR aims to allow specifying upper limits for autosized capacities.
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1584 <https://github.com/NREL/OpenStudio-HPXML/pull/1584>`_
 
-        - Joe
+        Assignees: Joe
 
 
     .. change::
-        :tags: workflow, hvac
+        :tags: workflow, hvac, bugfix
         :pullreq: 1218
 
         **Date**: 2024-04-09
@@ -75,13 +71,13 @@ Development Changelog
         Enable HVAC airflow and capacity scaling factors to oversize or undersize the equipment
         Manually create new tsv files for assigning autosizing factor arguments introduced by NREL/OpenStudio-HPXML#1611
 
-        Assignee(s):
+        resstock-estimation: `pull request 406 <https://github.com/NREL/resstock-estimation/pull/406>`_
 
-        - Joe
+        Assignees: Joe
 
 
     .. change::
-        :tags: characteristics, plug loads, ceiling fan
+        :tags: characteristics, plug loads, ceiling fan, feature
         :pullreq: 1220
 
         **Date**: 2024-04-02
@@ -95,13 +91,13 @@ Development Changelog
         generate Other schedules that follow the new Other schedule fractions (still uses non-constant 2010 BAHSP monthly multipliers).
         generate Ceiling Fan schedules that follow the new Ceiling Fan schedule fractions (also update multipliers to not follow Other multipliers, but rather Ceiling Fan multipliers that are a function of weather)
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1634 <https://github.com/NREL/OpenStudio-HPXML/pull/1634>`_
 
-        - Joe
+        Assignees: Joe
 
 
     .. change::
-        :tags: characteristics, alaska
+        :tags: characteristics, alaska, bugfix
         :pullreq: 1214
 
         **Date**: 2024-03-18
@@ -113,15 +109,13 @@ Development Changelog
         Update the Alaska residential stock characterization using the Alaska Retrofit Information System data
         Update housing characteristics for Alaska using ARIS dataset. Explicitly model wood heating for the national.
 
-        Assignee(s):
+        resstock-estimation: `pull request 381 <https://github.com/NREL/resstock-estimation/pull/381>`_
 
-        - Rajendra
-
-        - Tony
+        Assignees: Rajendra, Tony
 
 
     .. change::
-        :tags: workflow, hvac
+        :tags: workflow, hvac, feature
         :pullreq: 1215
 
         **Date**: 2024-03-11
@@ -133,15 +127,13 @@ Development Changelog
         Add ability to specify HVAC system autosizing factors for baseline buildings; autosizing factors are retained for upgrade buildings following the same approach for HVAC system capacities
         Allows optional HeatingAutosizingFactor, CoolingAutosizingFactor, BackupHeatingAutosizingFactor inputs to scale HVAC equipment autosizing results.
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1611 <https://github.com/NREL/OpenStudio-HPXML/pull/1611>`_
 
-        - Joe
-
-        - Yueyue
+        Assignees: Joe, Yueyue
 
 
     .. change::
-        :tags: workflow, weather
+        :tags: workflow, weather, feature
         :pullreq: 1215
 
         **Date**: 2024-03-11
@@ -153,13 +145,13 @@ Development Changelog
         nan
         Allow building site inputs; this is particularly useful when the building is located far from, or at a very different elevation than, the EPW weather station. When not provided, defaults to using EPW header values (as before).
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1636 <https://github.com/NREL/OpenStudio-HPXML/pull/1636>`_
 
-        - Scott
+        Assignees: Scott
 
 
     .. change::
-        :tags: characteristics, socio-demographics
+        :tags: characteristics, socio-demographics, feature
         :pullreq: 1212
 
         **Date**: 2024-02-29
@@ -171,13 +163,13 @@ Development Changelog
         Add Metropolitan and Micropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv
         Added 3 new tsvs to support @SinounPhoung's socio-demographically differentiated Stochastic Occupant Schedule integration into ResStock
 
-        Assignee(s):
+        resstock-estimation: `pull request 400 <https://github.com/NREL/resstock-estimation/pull/400>`_
 
-        - Lixi
+        Assignees: Lixi
 
 
     .. change::
-        :tags: characteristics, water heater
+        :tags: characteristics, water heater, bugfix
         :pullreq: 1201
 
         **Date**: 2024-02-28
@@ -189,17 +181,11 @@ Development Changelog
         Move location of out-of-unit (shared) water heaters to conditioned mechanical room
         Move out-of-unit water heaters (i.e., Water Heater In Unit=No from Location=None to Location=Conditioned Mechanical Room (corresponds to OS-HPXML location: "other heated space").
 
-        Assignee(s):
-
-        - Lixi
-
-        - Jeff
-
-        - Tony
+        Assignees: Lixi, Jeff, Tony
 
 
     .. change::
-        :tags: workflow, unavailable periods
+        :tags: workflow, unavailable periods, feature
         :pullreq: 1209
 
         **Date**: 2024-02-23
@@ -211,13 +197,13 @@ Development Changelog
         Allow definition of multiple unavailable periods (i.e., vacancy, power outage)
         Update schedules_vacancy_period and schedules_power_outage_period arguments to support multiple periods (comma-separated?). Argument schedules_power_outage_window_natvent_availability would then need to also be comma-separated?
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1622 <https://github.com/NREL/OpenStudio-HPXML/pull/1622>`_
 
-        - Joe
+        Assignees: Joe
 
 
     .. change::
-        :tags: workflow, heat pump backup
+        :tags: workflow, heat pump backup, feature
         :pullreq: 1209
 
         **Date**: 2024-02-23
@@ -229,13 +215,13 @@ Development Changelog
         Add ability to set either an "emergency" or "supplemental" heat pump backup sizing methodology
         Adds a HeatPumpBackupSizingMethodology element with choices of 'emergency' and 'supplemental'. Defaults to 'emergency', so results do not change by default.
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1597 <https://github.com/NREL/OpenStudio-HPXML/pull/1597>`_
 
-        - Scott
+        Assignees: Scott
 
 
     .. change::
-        :tags: characteristics, refrigerator
+        :tags: characteristics, refrigerator, feature
         :pullreq: 1209
 
         **Date**: 2024-02-23
@@ -247,13 +233,13 @@ Development Changelog
         Refrigerator energy use is now affected by its ambient temperature using hourly constant and temperature coefficients from ANSI/RESNET/ICC 301-2022 Addendum C
         Default fridge schedule is now an actuated EMS program. Daily schedule is a function of hour and space temperature.
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1572 <https://github.com/NREL/OpenStudio-HPXML/pull/1572>`_
 
-        - Joe
+        Assignees: Joe
 
 
     .. change::
-        :tags: workflow, general water use
+        :tags: workflow, general water use, feature
         :pullreq: 1209
 
         **Date**: 2024-02-23
@@ -265,13 +251,13 @@ Development Changelog
         nan
         Various schedule fractions/multipliers updates (e.g., appliances, lighting, fixtures, occupancy, ceiling fan).
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1572 <https://github.com/NREL/OpenStudio-HPXML/pull/1572>`_
 
-        - Joe
+        Assignees: Joe
 
 
     .. change::
-        :tags: workflow, ceiling fan
+        :tags: workflow, ceiling fan, feature
         :pullreq: 1209
 
         **Date**: 2024-02-23
@@ -283,13 +269,13 @@ Development Changelog
         nan
         For ceiling fans, add a LabelEnergyUse (W) input as an alternative to Efficiency (cfm/W).
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1609 <https://github.com/NREL/OpenStudio-HPXML/pull/1609>`_
 
-        - Joe
+        Assignees: Joe
 
 
     .. change::
-        :tags: characteristics, hot water fixtures
+        :tags: characteristics, hot water fixtures, feature
         :pullreq: 1210
 
         **Date**: 2024-02-21
@@ -301,15 +287,13 @@ Development Changelog
         Update hot water usage multipliers based on field data rather than engineering judgement
         Update hot water usage multipliers. Using field data from 1700 water heaters in New England to come up with the distribution. Based on data collected as part of PERFORM with Michael Blonsky, who shared the distribution with us.
 
-        Assignee(s):
+        resstock-estimation: `pull request 361 <https://github.com/NREL/resstock-estimation/pull/361>`_
 
-        - Jeff
-
-        - Tony
+        Assignees: Jeff, Tony
 
 
     .. change::
-        :tags: workflow, whole building
+        :tags: workflow, whole building, feature
         :pullreq: 1200
 
         **Date**: 2024-01-30
@@ -321,15 +305,11 @@ Development Changelog
         Add optional switch to BuildExistingModel (defaulted to false) for modeling whole SFA/MF buildings
         Replaces building_id=ALL argument with an element in the HPXML file, which allows us to perform validation specific to whole MF building simulations
 
-        Assignee(s):
-
-        - Joe
-
-        - Scott
+        Assignees: Joe, Scott
 
 
     .. change::
-        :tags: characteristics, data sources
+        :tags: characteristics, data sources, bugfix
         :pullreq: 1199
 
         **Date**: 2024-01-26
@@ -341,13 +321,13 @@ Development Changelog
         Update to RECS 2020 V7 data files
         Updates RECS 2020 data from v5 to v7. There are some new EV variables to be leveraged by the ResStock/TEMPO project. I am not sure what V6 was as there is no documentation.
 
-        Assignee(s):
+        resstock-estimation: `pull request 394 <https://github.com/NREL/resstock-estimation/pull/394>`_
 
-        - Tony
+        Assignees: Tony
 
 
     .. change::
-        :tags: workflow, mechanics
+        :tags: workflow, mechanics, bugfix
         :pullreq: 1195
 
         **Date**: 2024-01-22
@@ -359,13 +339,11 @@ Development Changelog
         Reorganize the emissions and utility rates data folders such that their sources and functions are more clear
         Previously, it wasn't clear that the provided utility rate data was for demonstration purposes only.
 
-        Assignee(s):
-
-        - Joe
+        Assignees: Joe
 
 
     .. change::
-        :tags: workflow, emissions
+        :tags: workflow, emissions, feature
         :pullreq: 1194
 
         **Date**: 2024-01-19
@@ -377,13 +355,11 @@ Development Changelog
         Include additional 2022 Cambium 25-year LRMER emissions data
         Add 10 new "LRMER_xxx_25" data folders to resources/data/cambium/2022.
 
-        Assignee(s):
-
-        - Joe
+        Assignees: Joe
 
 
     .. change::
-        :tags: workflow, radiant barrier
+        :tags: workflow, radiant barrier, feature
         :pullreq: 1188
 
         **Date**: 2024-01-17
@@ -395,13 +371,13 @@ Development Changelog
         Add flexibility to specify location of the radiant barrier
         Allowing Radiant Barrier for Attic Floor
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1473 <https://github.com/NREL/OpenStudio-HPXML/pull/1473>`_
 
-        - Prateek
+        Assignees: Prateek
 
 
     .. change::
-        :tags: workflow, hvac
+        :tags: workflow, hvac, feature
         :pullreq: 1188, 1200
 
         **Date**: 2024-01-17
@@ -417,17 +393,13 @@ Development Changelog
         Data can be sourced from e.g. NEEP's Cold Climate Air Source Heat Pump List.
         Add detailed performance data arguments for air-source, variable-speed HVAC systems.
 
-        Assignee(s):
+        OpenStudio-HPXML: `pull request 1583 <https://github.com/NREL/OpenStudio-HPXML/pull/1583>`_, `pull request 1317 <https://github.com/NREL/OpenStudio-HPXML/pull/1317>`_, `pull request 1558 <https://github.com/NREL/OpenStudio-HPXML/pull/1558>`_
 
-        - Yueyue
-
-        - Scott
-
-        - Joe
+        Assignees: Yueyue, Scott, Joe
 
 
     .. change::
-        :tags: workflow, water heater
+        :tags: workflow, water heater, bugfix
         :pullreq: 1190
 
         **Date**: 2024-01-12
@@ -439,8 +411,6 @@ Development Changelog
         Remove old HPWH options from options_lookup
         Removing the old HPWH options from options_lookup.tsv
 
-        Assignee(s):
-
-        - Jeff
+        Assignees: Jeff
 
 
