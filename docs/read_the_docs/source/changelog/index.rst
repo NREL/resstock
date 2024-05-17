@@ -9,6 +9,7 @@ Changelogs
    changelog_3_2_0
    changelog_3_1_1
    changelog_3_1_0
+   changelog_3_0_0
    changelog_2_5_0
    changelog_2_4_0
    changelog_2_3_0
