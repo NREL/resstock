@@ -1015,6 +1015,18 @@ def main_new_load(
         df = df1.join(df2.set_index("building_id"), on="building_id")
     else:
         df = apply_existing_load_total_220_87(df)
+    # New Load Calculation TO DO. the following is just a tempalte, not the correct value
+    df['new_load_hvac'] = 0
+    df['new_load_water_heater'] = 4500
+    df['new_load_dryer'] = 5760
+    df['new_load_range_oven'] = 12000
+    df['new_load_hot_tub_spa'] = 9200
+    df['new_load_pool_heater'] = 12000
+    df['new_load_evse'] = 7200
+    df['load_total_post_upgrade_VA_220_83'] = df['load_total_pre_upgrade_VA_220_83']+df['new_load_hvac']+df['new_load_water_heater']+df['new_load_dryer']+df['new_load_range_oven']+df['new_load_hot_tub_spa']+df['new_load_pool_heater']+df['new_load_evse']
+    df['amp_total_post_upgrade_A_220_83'] = df['load_total_post_upgrade_VA_220_83']/240
+    df['load_total_post_upgrade_VA_220_87'] = df['load_total_pre_upgrade_VA_220_87']
+    df['amp_total_post_upgrade_A_220_87'] = df['amp_total_pre_upgrade_A_220_87']
 
     # --- save to file ---
     df.to_csv(output_filename, index=False)
