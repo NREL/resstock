@@ -40,10 +40,11 @@ def run_workflow(basedir, rundir, hpxml, debug, skip_validation, add_comp_loads,
   args = {}
   args['hpxml_path'] = hpxml
   args['output_dir'] = rundir
-  args['debug'] = debug
+  args['output_format'] = (output_format == 'csv_dview' ? 'csv' : output_format)
   args['add_component_loads'] = (add_comp_loads || (hourly_outputs + daily_outputs + monthly_outputs + timestep_outputs).include?('componentloads'))
   args['skip_validation'] = skip_validation
   args['building_id'] = building_id
+  args['debug'] = debug
   update_args_hash(measures, measure_subdir, args)
 
   if not skip_simulation
@@ -93,12 +94,10 @@ def run_workflow(basedir, rundir, hpxml, debug, skip_validation, add_comp_loads,
       update_args_hash(measures, measure_subdir, args)
     end
 
-    output_format = 'csv' if output_format == 'csv_dview'
-
     # Add utility bills measure to workflow
     measure_subdir = 'ReportUtilityBills'
     args = {}
-    args['output_format'] = output_format
+    args['output_format'] = (output_format == 'csv_dview' ? 'csv' : output_format)
     update_args_hash(measures, measure_subdir, args)
   end
 

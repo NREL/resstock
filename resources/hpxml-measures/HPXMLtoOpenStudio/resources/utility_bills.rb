@@ -78,6 +78,9 @@ class UtilityBills
       marginal_rate = marginal_rates[header].sum / marginal_rates[header].size
     end
 
+    marginal_rate = marginal_rate.round(4) unless marginal_rate.nil?
+    average_rate = average_rate.round(4) unless average_rate.nil?
+
     return marginal_rate, average_rate
   end
 
