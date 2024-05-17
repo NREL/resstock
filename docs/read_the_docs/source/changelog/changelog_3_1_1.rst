@@ -3,49 +3,24 @@ v3.1.1 Changelog
 ================
 
 .. changelog::
-    :version: v2023.11.0
-    :released: 2023-11-27
+    :version: v3.1.1
+    :released: 2023-11-28
 
     .. change::
-        :tags: eagle, bugfix
-        :pullreq: 406
-        :tickets: 404
+        :tags: workflow, mechanics
+        :pullreq: 1170
 
-        Cleans out the ``/tmp/scratch`` folder on Eagle at the end of each array job.
+        **Date**: 2023-11-28
 
-    .. change::
-        :tags: documentation
-        :pullreq: 410
-        :tickets: 408
+        Title:
+        Use gem version on bsb version strings
 
-        Update cost multiplier link in upgrade scenarios documentation.
+        Description:
+        Use `Gem::Version` on buildstockbatch version string comparisons so that, e.g., '2023.10.0' < '2023.5.0' does not evaluate to true
+        Patched release with version comparison fix
 
-    .. change::
-        :tags: bugfix
-        :pullreq: 418
-        :tickets: 411
+        Assignee(s):
 
-        Fixing ``started_at`` and ``completed_at`` timestamps in parquet files
-        to that when read by AWS Glue/Athena they show up as dates rather than
-        bigints.
+        - Joe
 
-    .. change::
-        :tags: general, feature, kestrel
-        :pullreq: 405
-        :tickets: 313
 
-        Add support for NREL's Kestrel supercomputer.
-
-    .. change::
-        :tags: general, postprocessing
-        :pullreq: 414
-        :tickets: 412
-
-        Add support for an AWS service account on Kestrel/Eagle so the user
-        doesn't have to manage AWS keys.
-
-    .. change::
-        :tags: documentation
-        :pullreq: 419
-
-        Update weather file location argument name in custom weather files documentation.

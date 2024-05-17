@@ -7,31 +7,440 @@ Development Changelog
     :released: It has not been
 
     .. change::
-        :tags: general, feature
-        :pullreq: 101
-        :tickets: 101
+        :tags: software, openstudio
+        :pullreq: 1225
 
-        This is an example change. Please copy and paste it - for valid tags please refer to ``conf.py`` in the docs
-        directory. ``pullreq`` should be set to the appropriate pull request number and ``tickets`` to any related
-        github issues. These will be automatically linked in the documentation.
+        **Date**: 2024-05-09
 
-    .. change::
-        :tags: general
-        :pullreq: 421
+        Title:
+        OpenStudio 3.8/EnergyPlus 24.1
 
-        Refactor docker_base to use inversion of control so that it can more strongly and easily ensure consistency
-        between various implementations (GCP implementation to come). This also includes teasing apart the several batch
-        prep steps (weather, assets, and jobs) into their own methods so they can each be more easily understood,
-        shared, and maintained.
+        Description:
+        Update to OpenStudio v3.8.0
+        OpenStudio 3.8/EnergyPlus 24.1
 
-    .. change::
-        :tags: general
-        :pullreq: 422
+        Assignee(s):
 
-        Refactor AWS code so it can be shared by the upcoming GCP implementation.
+        - Joe
+
+        - Scott
+
 
     .. change::
-        :tags: general, bugfix
-        :pullreq: 426
+        :tags: characteristics, ducts
+        :pullreq: 1233
 
-        A bugfix for gracefully handling empty data_point_out.json files.
+        **Date**: 2024-05-07
+
+        Title:
+        Updates duct effective R-values; allows duct shape inputs
+
+        Description:
+        Update to new OS-HPXML defaults for duct insulation; 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts)
+        Adds optional inputs (Ducts/DuctShape and Ducts/DuctFractionRectangular); defaults to 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts).
+
+        Assignee(s):
+
+        - Scott
+
+
+    .. change::
+        :tags: workflow, hvac
+        :pullreq: 1233
+
+        **Date**: 2024-05-07
+
+        Title:
+        HVAC Autosizing Limits
+
+        Description:
+        nan
+        The PR aims to allow specifying upper limits for autosized capacities.
+
+        Assignee(s):
+
+        - Joe
+
+
+    .. change::
+        :tags: workflow, hvac
+        :pullreq: 1218
+
+        **Date**: 2024-04-09
+
+        Title:
+        HVAC Autosizing Factors
+
+        Description:
+        Enable HVAC airflow and capacity scaling factors to oversize or undersize the equipment
+        Manually create new tsv files for assigning autosizing factor arguments introduced by NREL/OpenStudio-HPXML#1611
+
+        Assignee(s):
+
+        - Joe
+
+
+    .. change::
+        :tags: characteristics, plug loads, ceiling fan
+        :pullreq: 1220
+
+        **Date**: 2024-04-02
+
+        Title:
+        Update Other, TV, and Ceiling Fan stochastic schedules
+
+        Description:
+        Update the stochastic schedule generator to produce updated other/TV plug load and ceiling fan schedules
+        generate TV schedules that follow the ATUS TV schedule fractions (distinct weekday/weekend) and multipliers (and not Other schedule fractions and multipliers).
+        generate Other schedules that follow the new Other schedule fractions (still uses non-constant 2010 BAHSP monthly multipliers).
+        generate Ceiling Fan schedules that follow the new Ceiling Fan schedule fractions (also update multipliers to not follow Other multipliers, but rather Ceiling Fan multipliers that are a function of weather)
+
+        Assignee(s):
+
+        - Joe
+
+
+    .. change::
+        :tags: characteristics, alaska
+        :pullreq: 1214
+
+        **Date**: 2024-03-18
+
+        Title:
+        Integrate ARIS data
+
+        Description:
+        Update the Alaska residential stock characterization using the Alaska Retrofit Information System data
+        Update housing characteristics for Alaska using ARIS dataset. Explicitly model wood heating for the national.
+
+        Assignee(s):
+
+        - Rajendra
+
+        - Tony
+
+
+    .. change::
+        :tags: workflow, hvac
+        :pullreq: 1215
+
+        **Date**: 2024-03-11
+
+        Title:
+        HVAC Autosizing Factors
+
+        Description:
+        Add ability to specify HVAC system autosizing factors for baseline buildings; autosizing factors are retained for upgrade buildings following the same approach for HVAC system capacities
+        Allows optional HeatingAutosizingFactor, CoolingAutosizingFactor, BackupHeatingAutosizingFactor inputs to scale HVAC equipment autosizing results.
+
+        Assignee(s):
+
+        - Joe
+
+        - Yueyue
+
+
+    .. change::
+        :tags: workflow, weather
+        :pullreq: 1215
+
+        **Date**: 2024-03-11
+
+        Title:
+        Allow building site inputs
+
+        Description:
+        nan
+        Allow building site inputs; this is particularly useful when the building is located far from, or at a very different elevation than, the EPW weather station. When not provided, defaults to using EPW header values (as before).
+
+        Assignee(s):
+
+        - Scott
+
+
+    .. change::
+        :tags: characteristics, socio-demographics
+        :pullreq: 1212
+
+        **Date**: 2024-02-29
+
+        Title:
+        Add SMI, MSA, Metro Status
+
+        Description:
+        Add Metropolitan and Micropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv
+        Added 3 new tsvs to support @SinounPhoung's socio-demographically differentiated Stochastic Occupant Schedule integration into ResStock
+
+        Assignee(s):
+
+        - Lixi
+
+
+    .. change::
+        :tags: characteristics, water heater
+        :pullreq: 1201
+
+        **Date**: 2024-02-28
+
+        Title:
+        Update water heater location
+
+        Description:
+        Move location of out-of-unit (shared) water heaters to conditioned mechanical room
+        Move out-of-unit water heaters (i.e., Water Heater In Unit=No from Location=None to Location=Conditioned Mechanical Room (corresponds to OS-HPXML location: "other heated space").
+
+        Assignee(s):
+
+        - Lixi
+
+        - Jeff
+
+        - Tony
+
+
+    .. change::
+        :tags: workflow, unavailable periods
+        :pullreq: 1209
+
+        **Date**: 2024-02-23
+
+        Title:
+        BuildResidentialHPXML: multiple vacancy/outage periods
+
+        Description:
+        Allow definition of multiple unavailable periods (i.e., vacancy, power outage)
+        Update schedules_vacancy_period and schedules_power_outage_period arguments to support multiple periods (comma-separated?). Argument schedules_power_outage_window_natvent_availability would then need to also be comma-separated?
+
+        Assignee(s):
+
+        - Joe
+
+
+    .. change::
+        :tags: workflow, heat pump backup
+        :pullreq: 1209
+
+        **Date**: 2024-02-23
+
+        Title:
+        HP backup sizing methodology
+
+        Description:
+        Add ability to set either an "emergency" or "supplemental" heat pump backup sizing methodology
+        Adds a HeatPumpBackupSizingMethodology element with choices of 'emergency' and 'supplemental'. Defaults to 'emergency', so results do not change by default.
+
+        Assignee(s):
+
+        - Scott
+
+
+    .. change::
+        :tags: characteristics, refrigerator
+        :pullreq: 1209
+
+        **Date**: 2024-02-23
+
+        Title:
+        ANSI 301-2022: load profile schedules
+
+        Description:
+        Refrigerator energy use is now affected by its ambient temperature using hourly constant and temperature coefficients from ANSI/RESNET/ICC 301-2022 Addendum C
+        Default fridge schedule is now an actuated EMS program. Daily schedule is a function of hour and space temperature.
+
+        Assignee(s):
+
+        - Joe
+
+
+    .. change::
+        :tags: workflow, general water use
+        :pullreq: 1209
+
+        **Date**: 2024-02-23
+
+        Title:
+        ANSI 301-2022: load profile schedules
+
+        Description:
+        nan
+        Various schedule fractions/multipliers updates (e.g., appliances, lighting, fixtures, occupancy, ceiling fan).
+
+        Assignee(s):
+
+        - Joe
+
+
+    .. change::
+        :tags: workflow, ceiling fan
+        :pullreq: 1209
+
+        **Date**: 2024-02-23
+
+        Title:
+        ANSI 301-2022: load profile schedules
+
+        Description:
+        nan
+        For ceiling fans, add a LabelEnergyUse (W) input as an alternative to Efficiency (cfm/W).
+
+        Assignee(s):
+
+        - Joe
+
+
+    .. change::
+        :tags: characteristics, hot water fixtures
+        :pullreq: 1210
+
+        **Date**: 2024-02-21
+
+        Title:
+        Updating hot water fixtures multipliers based on field data.
+
+        Description:
+        Update hot water usage multipliers based on field data rather than engineering judgement
+        Update hot water usage multipliers. Using field data from 1700 water heaters in New England to come up with the distribution. Based on data collected as part of PERFORM with Michael Blonsky, who shared the distribution with us.
+
+        Assignee(s):
+
+        - Jeff
+
+        - Tony
+
+
+    .. change::
+        :tags: workflow, whole building
+        :pullreq: 1200
+
+        **Date**: 2024-01-30
+
+        Title:
+        Whole MF building models: Replace building_id=ALL argument with an HPXML element
+
+        Description:
+        Add optional switch to BuildExistingModel (defaulted to false) for modeling whole SFA/MF buildings
+        Replaces building_id=ALL argument with an element in the HPXML file, which allows us to perform validation specific to whole MF building simulations
+
+        Assignee(s):
+
+        - Joe
+
+        - Scott
+
+
+    .. change::
+        :tags: characteristics, data sources
+        :pullreq: 1199
+
+        **Date**: 2024-01-26
+
+        Title:
+        Update characteristics using 2020 RECS v7 data
+
+        Description:
+        Update to RECS 2020 V7 data files
+        Updates RECS 2020 data from v5 to v7. There are some new EV variables to be leveraged by the ResStock/TEMPO project. I am not sure what V6 was as there is no documentation.
+
+        Assignee(s):
+
+        - Tony
+
+
+    .. change::
+        :tags: workflow, mechanics
+        :pullreq: 1195
+
+        **Date**: 2024-01-22
+
+        Title:
+        Reorganize emissions and utility bills data folders
+
+        Description:
+        Reorganize the emissions and utility rates data folders such that their sources and functions are more clear
+        Previously, it wasn't clear that the provided utility rate data was for demonstration purposes only.
+
+        Assignee(s):
+
+        - Joe
+
+
+    .. change::
+        :tags: workflow, emissions
+        :pullreq: 1194
+
+        **Date**: 2024-01-19
+
+        Title:
+        2022 Cambium: add 25 year levelization scenarios
+
+        Description:
+        Include additional 2022 Cambium 25-year LRMER emissions data
+        Add 10 new "LRMER_xxx_25" data folders to resources/data/cambium/2022.
+
+        Assignee(s):
+
+        - Joe
+
+
+    .. change::
+        :tags: workflow, radiant barrier
+        :pullreq: 1188
+
+        **Date**: 2024-01-17
+
+        Title:
+        Adding flexibility to specify location of the radiant barrier
+
+        Description:
+        Add flexibility to specify location of the radiant barrier
+        Allowing Radiant Barrier for Attic Floor
+
+        Assignee(s):
+
+        - Prateek
+
+
+    .. change::
+        :tags: workflow, hvac
+        :pullreq: 1188, 1200
+
+        **Date**: 2024-01-17
+
+        Title:
+        Allow autosizing with detailed performance data inputs for var speed systems
+        BuildResidentialHPXML: detailed performance data arguments
+
+        Description:
+        Add ability to describe detailed performance data for variable-speed air-source HVAC systems
+        Updated assumptions for variable-speed air conditioners, heat pumps, and mini-splits.
+        Also allows detailed heating and cooling performance data (min/max COPs and capacities at different outdoor temperatures) as an optional set of inputs. 
+        Data can be sourced from e.g. NEEP's Cold Climate Air Source Heat Pump List.
+        Add detailed performance data arguments for air-source, variable-speed HVAC systems.
+
+        Assignee(s):
+
+        - Yueyue
+
+        - Scott
+
+        - Joe
+
+
+    .. change::
+        :tags: workflow, water heater
+        :pullreq: 1190
+
+        **Date**: 2024-01-12
+
+        Title:
+        Remove old HPWH options from options_lookup
+
+        Description:
+        Remove old HPWH options from options_lookup
+        Removing the old HPWH options from options_lookup.tsv
+
+        Assignee(s):
+
+        - Jeff
+
+
