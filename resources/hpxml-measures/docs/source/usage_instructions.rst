@@ -72,4 +72,4 @@ A variety of high-level annual outputs are conveniently reported in the resultin
 When timeseries outputs are requested, they will be found in the ``run/results_timeseries.csv`` (or ``run/results_timeseries.json`` or ``run/results_timeseries.msgpack``) file.
 If multiple timeseries frequencies are requested (e.g., hourly and daily), the timeseries output filenames will include the frequency (e.g., ``run/results_timeseries_daily.csv``).
 
-See :ref:`workflow_outputs` for a description of all available outputs available.
+See :ref:`workflow_outputs` for a description of all available outputs.

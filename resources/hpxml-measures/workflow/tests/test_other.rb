@@ -23,6 +23,7 @@ class WorkflowOtherTest < Minitest::Test
       assert(File.exist? File.join(File.dirname(xml), 'run', "results_annual.#{output_format}"))
       assert(File.exist? File.join(File.dirname(xml), 'run', "results_timeseries.#{output_format}"))
       assert(File.exist?(File.join(File.dirname(xml), 'run', "results_bills.#{output_format}")))
+      assert(File.exist?(File.join(File.dirname(xml), 'run', "results_design_load_details.#{output_format}")))
 
       # Check for debug files
       osm_path = File.join(File.dirname(xml), 'run', 'in.osm')
@@ -199,10 +200,12 @@ class WorkflowOtherTest < Minitest::Test
     # Check for in.xml HPXML file
     assert(File.exist? File.join(File.dirname(xml), 'run', 'in.xml'))
 
+    # Check for annual results (design load/capacities only)
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+
     # Check for no idf or output file
     refute(File.exist? File.join(File.dirname(xml), 'run', 'in.idf'))
     refute(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
-    refute(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
   end
 
   def test_run_defaulted_in_xml
