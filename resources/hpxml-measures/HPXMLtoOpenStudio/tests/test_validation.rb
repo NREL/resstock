@@ -1045,12 +1045,13 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'schedule-detailed-wrong-filename' => ["Schedules file path 'invalid-wrong-filename.csv' does not exist."],
                             'schedule-detailed-wrong-rows' => ["Schedule has invalid number of rows (8759) for column 'occupants'. Must be one of: 8760, 17520, 26280, 35040, 43800, 52560, 87600, 105120, 131400, 175200, 262800, 525600."],
                             'schedule-file-max-power-ratio-with-unit-multiplier' => ['NumberofUnits greater than 1 is not supported for maximum power ratio schedules of variable speed hvac systems.'],
+                            'skylight-not-connected-to-cond-space' => ["Skylight 'Skylight1' not connected to conditioned space; if it's a skylight with a shaft or sun tunnel, use AttachedToFloor to connect it to conditioned space."],
                             'solar-thermal-system-with-combi-tankless' => ["Water heating system 'WaterHeatingSystem1' connected to solar thermal system 'SolarThermalSystem1' cannot be a space-heating boiler."],
                             'solar-thermal-system-with-desuperheater' => ["Water heating system 'WaterHeatingSystem1' connected to solar thermal system 'SolarThermalSystem1' cannot be attached to a desuperheater."],
                             'solar-thermal-system-with-dhw-indirect' => ["Water heating system 'WaterHeatingSystem1' connected to solar thermal system 'SolarThermalSystem1' cannot be a space-heating boiler."],
                             'storm-windows-unexpected-window-ufactor' => ['Unexpected base window U-Factor (0.33) for a storm window.'],
-                            'surface-attached-to-uncond-space' => ["Surface 'Wall2' is attached to the space of an unconditioned zone."],
-                            'surface-attached-to-uncond-space2' => ["Surface 'Slab2' is attached to the space of an unconditioned zone."],
+                            'surface-attached-to-uncond-space' => ["Surface 'Wall2Space2' is attached to the space of an unconditioned zone."],
+                            'surface-attached-to-uncond-space2' => ["Surface 'Slab2Space4' is attached to the space of an unconditioned zone."],
                             'unattached-cfis' => ["Attached HVAC distribution system 'foobar' not found for ventilation fan 'VentilationFan1'."],
                             'unattached-door' => ["Attached wall 'foobar' not found for door 'Door1'."],
                             'unattached-gshp' => ["Attached geothermal loop 'foobar' not found for heat pump 'HeatPump1'."],
@@ -1403,6 +1404,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['schedule-file-max-power-ratio-with-unit-multiplier'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-mini-split-heat-pump-ducted-max-power-ratio-schedule.xml')
         hpxml_bldg.building_construction.number_of_units = 2
+      elsif ['skylight-not-connected-to-cond-space'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-enclosure-skylights.xml')
+        hpxml_bldg.skylights[0].attached_to_floor_idref = nil
       elsif ['solar-thermal-system-with-combi-tankless'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-dhw-combi-tankless.xml')
         hpxml_bldg.solar_thermal_systems.add(id: "SolarThermalSystem#{hpxml_bldg.solar_thermal_systems.size + 1}",
@@ -1444,10 +1448,10 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml_bldg.windows[0].storm_type = 'clear'
       elsif ['surface-attached-to-uncond-space'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-zones-spaces.xml')
-        hpxml_bldg.walls[1].attached_to_space_idref = hpxml_bldg.zones.find { |zone| zone.zone_type != HPXML::ZoneTypeConditioned }.spaces[0].id
+        hpxml_bldg.walls[-1].attached_to_space_idref = hpxml_bldg.zones.find { |zone| zone.zone_type != HPXML::ZoneTypeConditioned }.spaces[0].id
       elsif ['surface-attached-to-uncond-space2'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-zones-spaces.xml')
-        hpxml_bldg.slabs[1].attached_to_space_idref = hpxml_bldg.zones.find { |zone| zone.zone_type != HPXML::ZoneTypeConditioned }.spaces[0].id
+        hpxml_bldg.slabs[-1].attached_to_space_idref = hpxml_bldg.zones.find { |zone| zone.zone_type != HPXML::ZoneTypeConditioned }.spaces[0].id
       elsif ['unattached-cfis'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.ventilation_fans.add(id: "VentilationFan#{hpxml_bldg.ventilation_fans.size + 1}",
@@ -1648,8 +1652,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                               'schedule-file-and-operating-mode' => ["Both 'water_heater_operating_mode' schedule file and operating mode provided; the latter will be ignored."],
                               'schedule-file-max-power-ratio-with-single-speed-system' => ['Maximum power ratio schedule is only supported for variable speed systems.'],
                               'schedule-file-max-power-ratio-with-two-speed-system' => ['Maximum power ratio schedule is only supported for variable speed systems.'],
-                              'schedule-file-max-power-ratio-with-separate-backup-system' => ['Maximum power ratio schedule is only supported for integrated backup system. Schedule is ignored for heating.'],
-                              'skylight-not-connected-to-cond-space' => ["Skylight 'Skylight1' not connected to conditioned space; if it's a skylight with a shaft or sun tunnel, use AttachedToFloor to connect it to conditioned space."] }
+                              'schedule-file-max-power-ratio-with-separate-backup-system' => ['Maximum power ratio schedule is only supported for integrated backup system. Schedule is ignored for heating.'] }
 
     all_expected_warnings.each_with_index do |(warning_case, expected_warnings), i|
       puts "[#{i + 1}/#{all_expected_warnings.size}] Testing #{warning_case}..."
@@ -1721,20 +1724,17 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['manualj-sum-space-internal-loads-sensible'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-zones-spaces.xml')
         hpxml_bldg.header.manualj_internal_loads_sensible = 1000.0
-        hpxml_bldg.conditioned_spaces[0].manualj_internal_loads_sensible = 1200.0
+        hpxml_bldg.conditioned_spaces.each_with_index do |space, i|
+          space.manualj_internal_loads_sensible = (i == 0 ? 1200.0 : 0)
+        end
       elsif ['manualj-sum-space-internal-loads-latent'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-zones-spaces.xml')
         hpxml_bldg.header.manualj_internal_loads_latent = 200.0
-        hpxml_bldg.conditioned_spaces[0].manualj_internal_loads_latent = 100.0
-      elsif ['multiple-conditioned-zone'].include? warning_case
-        hpxml, hpxml_bldg = _create_hpxml('base-zones-spaces.xml')
-        hpxml_bldg.zones.add(id: 'ConditionedZoneDup',
-                             zone_type: HPXML::ZoneTypeConditioned)
-        hpxml_bldg.zones[-1].spaces << hpxml_bldg.zones[0].spaces[0].dup
-        hpxml_bldg.zones[-1].spaces[-1].id += 'Dup'
-        hpxml_bldg.conditioned_spaces.each do |space|
-          space.floor_area /= 2.0
+        hpxml_bldg.conditioned_spaces.each_with_index do |space, i|
+          space.manualj_internal_loads_latent = (i == 0 ? 100.0 : 0)
         end
+      elsif ['multiple-conditioned-zone'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base-zones-spaces-multiple.xml')
       elsif ['power-outage'].include? warning_case
         hpxml, _hpxml_bldg = _create_hpxml('base-schedules-simple-power-outage.xml')
       elsif ['schedule-file-and-weekday-weekend-multipliers'].include? warning_case
@@ -1776,9 +1776,6 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['schedule-file-max-power-ratio-with-separate-backup-system'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml')
         hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/hvac-variable-system-maximum-power-ratios-varied.csv')
-      elsif ['skylight-not-connected-to-cond-space'].include? warning_case
-        hpxml, hpxml_bldg = _create_hpxml('base-enclosure-skylights.xml')
-        hpxml_bldg.skylights[0].attached_to_floor_idref = nil
       else
         fail "Unhandled case: #{warning_case}."
       end

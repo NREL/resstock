@@ -57,6 +57,8 @@ class HPXML < Object
   # FUTURE: Move some of these to within child classes (e.g., HPXML::Attic class)
   AddressTypeMailing = 'mailing'
   AddressTypeStreet = 'street'
+  AdvancedResearchDefrostModelTypeStandard = 'standard'
+  AdvancedResearchDefrostModelTypeAdvanced = 'advanced'
   AirTypeFanCoil = 'fan coil'
   AirTypeGravity = 'gravity'
   AirTypeHighVelocity = 'high velocity'
@@ -775,7 +777,8 @@ class HPXML < Object
              :software_program_version, :apply_ashrae140_assumptions, :temperature_capacitance_multiplier, :timestep,
              :sim_begin_month, :sim_begin_day, :sim_end_month, :sim_end_day, :sim_calendar_year,
              :eri_calculation_version, :co2index_calculation_version, :energystar_calculation_version,
-             :iecc_eri_calculation_version, :zerh_calculation_version, :whole_sfa_or_mf_building_sim]
+             :iecc_eri_calculation_version, :zerh_calculation_version, :whole_sfa_or_mf_building_sim,
+             :defrost_model_type]
     attr_accessor(*ATTRS)
     attr_reader(:emissions_scenarios)
     attr_reader(:utility_bill_scenarios)
@@ -835,7 +838,7 @@ class HPXML < Object
         calculation = XMLHelper.add_element(extension, element_name)
         XMLHelper.add_element(calculation, 'Version', calculation_version, :string)
       end
-      if (not @timestep.nil?) || (not @sim_begin_month.nil?) || (not @sim_begin_day.nil?) || (not @sim_end_month.nil?) || (not @sim_end_day.nil?) || (not @temperature_capacitance_multiplier.nil?)
+      if (not @timestep.nil?) || (not @sim_begin_month.nil?) || (not @sim_begin_day.nil?) || (not @sim_end_month.nil?) || (not @sim_end_day.nil?) || (not @temperature_capacitance_multiplier.nil?) || (not @defrost_model_type.nil?)
         extension = XMLHelper.create_elements_as_needed(software_info, ['extension'])
         simulation_control = XMLHelper.add_element(extension, 'SimulationControl')
         XMLHelper.add_element(simulation_control, 'Timestep', @timestep, :integer, @timestep_isdefaulted) unless @timestep.nil?
@@ -844,7 +847,11 @@ class HPXML < Object
         XMLHelper.add_element(simulation_control, 'EndMonth', @sim_end_month, :integer, @sim_end_month_isdefaulted) unless @sim_end_month.nil?
         XMLHelper.add_element(simulation_control, 'EndDayOfMonth', @sim_end_day, :integer, @sim_end_day_isdefaulted) unless @sim_end_day.nil?
         XMLHelper.add_element(simulation_control, 'CalendarYear', @sim_calendar_year, :integer, @sim_calendar_year_isdefaulted) unless @sim_calendar_year.nil?
-        XMLHelper.add_element(simulation_control, 'TemperatureCapacitanceMultiplier', @temperature_capacitance_multiplier, :float, @temperature_capacitance_multiplier_isdefaulted) unless @temperature_capacitance_multiplier.nil?
+        if (not @defrost_model_type.nil?) || (not @temperature_capacitance_multiplier.nil?)
+          advanced_research_features = XMLHelper.create_elements_as_needed(simulation_control, ['AdvancedResearchFeatures'])
+          XMLHelper.add_element(advanced_research_features, 'TemperatureCapacitanceMultiplier', @temperature_capacitance_multiplier, :float, @temperature_capacitance_multiplier_isdefaulted) unless @temperature_capacitance_multiplier.nil?
+          XMLHelper.add_element(advanced_research_features, 'DefrostModelType', @defrost_model_type, :string, @defrost_model_type_isdefaulted) unless @defrost_model_type.nil?
+        end
       end
       @emissions_scenarios.to_doc(software_info)
       @utility_bill_scenarios.to_doc(software_info)
@@ -871,7 +878,8 @@ class HPXML < Object
       @sim_end_month = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/EndMonth', :integer)
       @sim_end_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/EndDayOfMonth', :integer)
       @sim_calendar_year = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/CalendarYear', :integer)
-      @temperature_capacitance_multiplier = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/TemperatureCapacitanceMultiplier', :float)
+      @temperature_capacitance_multiplier = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/AdvancedResearchFeatures/TemperatureCapacitanceMultiplier', :float)
+      @defrost_model_type = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/AdvancedResearchFeatures/DefrostModelType', :string)
       @apply_ashrae140_assumptions = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ApplyASHRAE140Assumptions', :boolean)
       @whole_sfa_or_mf_building_sim = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/WholeSFAorMFBuildingSimulation', :boolean)
       @emissions_scenarios.from_doc(XMLHelper.get_element(hpxml, 'SoftwareInfo'))

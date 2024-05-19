@@ -58,6 +58,7 @@ class HVACSizing
       apply_fractions_load_served(hvac_heating, hvac_loads, frac_zone_heat_load_served, frac_zone_cool_load_served)
       apply_hvac_duct_loads_heating(mj, zone, hvac_loads, all_zone_loads[zone], all_space_loads, hvac_heating, hpxml_bldg)
       apply_hvac_duct_loads_cooling(mj, zone, hvac_loads, all_zone_loads[zone], all_space_loads, hvac_cooling, hpxml_bldg, weather)
+      apply_hvac_cfis_loads(mj, hvac_loads, all_zone_loads[zone], hvac_heating, hvac_cooling, hpxml_bldg)
 
       # Calculate HVAC equipment sizes
       hvac_sizings = HVACSizingValues.new
@@ -1268,29 +1269,51 @@ class HVACSizing
     # Calculate ventilation airflow rates
     q_unb_cfm, q_bal_cfm, q_preheat, q_precool, q_recirc, bal_sens_eff, bal_lat_eff = get_ventilation_data(hpxml_bldg)
 
-    # Calculate adjusted infiltration cfm (combined with ventilation)
-    infil_cfm_heat = (icfm_heat**1.5 + q_unb_cfm**1.5)**0.67 - q_unb_cfm
-    infil_cfm_cool = (icfm_cool**1.5 + q_unb_cfm**1.5)**0.67 - q_unb_cfm
+    # Calculate net infiltration cfm (NCFM; infiltration combined with unbalanced ventilation)
+    if q_unb_cfm == 0
+      # Neutral pressure, so NCFM = ICFM
+      infil_ncfm_heat = icfm_heat
+      infil_ncfm_cool = icfm_cool
+    elsif q_unb_cfm > 0
+      # Negative pressure, so NCFM = (ICFM^1.5 + CFMimb^1.5)^0.67
+      infil_ncfm_heat = (icfm_heat**1.5 + q_unb_cfm**1.5)**0.67
+      infil_ncfm_cool = (icfm_cool**1.5 + q_unb_cfm**1.5)**0.67
+    else
+      if icfm_heat < q_unb_cfm.abs
+        # Dominating positive pressure, so NCFM = 0
+        infil_ncfm_heat = 0.0
+      else
+        # Mitigating positive pressure, so NCFM = (ICFM^1.5 - ABS(CFMimb)^1.5)^0.67
+        infil_ncfm_heat = (icfm_heat**1.5 - q_unb_cfm.abs**1.5)**0.67
+      end
+      if icfm_cool < q_unb_cfm.abs
+        # Dominating positive pressure, so NCFM = 0
+        infil_ncfm_cool = 0.0
+      else
+        # Mitigating positive pressure, so NCFM = (ICFM^1.5 - ABS(CFMimb)^1.5)^0.67
+        infil_ncfm_cool = (icfm_cool**1.5 - q_unb_cfm.abs**1.5)**0.67
+      end
+    end
 
-    hpxml_bldg.additional_properties.infil_heat_cfm = infil_cfm_heat
-    hpxml_bldg.additional_properties.infil_cool_cfm = infil_cfm_cool
+    hpxml_bldg.additional_properties.infil_heat_cfm = infil_ncfm_heat
+    hpxml_bldg.additional_properties.infil_cool_cfm = infil_ncfm_cool
 
     # Infiltration load
-    bldg_Heat_Infil = 1.1 * mj.acf * infil_cfm_heat * mj.htd
-    bldg_Cool_Infil_Sens = 1.1 * mj.acf * infil_cfm_cool * mj.ctd
-    bldg_Cool_Infil_Lat = 0.68 * mj.acf * infil_cfm_cool * mj.cool_design_grains
+    bldg_Heat_Infil = 1.1 * mj.acf * infil_ncfm_heat * mj.htd
+    bldg_Cool_Infil_Sens = 1.1 * mj.acf * infil_ncfm_cool * mj.ctd
+    bldg_Cool_Infil_Lat = 0.68 * mj.acf * infil_ncfm_cool * mj.cool_design_grains
 
     # Calculate vent cfm
-    vent_cfm_heat = q_unb_cfm + q_bal_cfm
+    vent_cfm_heat = q_bal_cfm
     vent_cfm_cool = vent_cfm_heat
 
     hpxml_bldg.additional_properties.vent_heat_cfm = vent_cfm_heat
     hpxml_bldg.additional_properties.vent_cool_cfm = vent_cfm_cool
 
     # Calculate vent cfm incorporating sens/lat effectiveness, preheat/precool, and recirc
-    vent_cfm_heat = q_unb_cfm + q_bal_cfm * (1.0 - bal_sens_eff) - q_preheat - q_recirc
-    vent_cfm_cool_sens = q_unb_cfm + q_bal_cfm * (1.0 - bal_sens_eff) - q_precool - q_recirc
-    vent_cfm_cool_lat = q_unb_cfm + q_bal_cfm * (1.0 - bal_lat_eff) - q_recirc
+    vent_cfm_heat = q_bal_cfm * (1.0 - bal_sens_eff) - q_preheat - q_recirc
+    vent_cfm_cool_sens = q_bal_cfm * (1.0 - bal_sens_eff) - q_precool - q_recirc
+    vent_cfm_cool_lat = q_bal_cfm * (1.0 - bal_lat_eff) - q_recirc
 
     bldg_Heat_Vent = 1.1 * mj.acf * vent_cfm_heat * mj.htd
     bldg_Cool_Vent_Sens = 1.1 * mj.acf * vent_cfm_cool_sens * mj.ctd
@@ -1684,6 +1707,44 @@ class HVACSizing
       space_loads.Cool_Ducts_Sens += space_clg_duct_load
       space_loads.Cool_Sens += space_clg_duct_load
     end
+  end
+
+  def self.apply_hvac_cfis_loads(mj, hvac_loads, zone_loads, hvac_heating, hvac_cooling, hpxml_bldg)
+    '''
+    CFIS Ventilation Loads
+    '''
+    if (not hvac_heating.nil?) && (not hvac_heating.distribution_system.nil?)
+      hvac_distribution = hvac_heating.distribution_system
+    elsif (not hvac_cooling.nil?) && (not hvac_cooling.distribution_system.nil?)
+      hvac_distribution = hvac_cooling.distribution_system
+    end
+    return if hvac_distribution.nil?
+
+    vent_mech_cfis = hpxml_bldg.ventilation_fans.find { |vent_mech| vent_mech.fan_type == HPXML::MechVentTypeCFIS && vent_mech.distribution_system_idref == hvac_distribution.id }
+    return if vent_mech_cfis.nil?
+
+    vent_cfm = vent_mech_cfis.total_unit_flow_rate
+
+    # Note: These are system loads, not space loads
+    heat_load = 1.1 * mj.acf * vent_cfm * mj.htd
+    cool_sens_load = 1.1 * mj.acf * vent_cfm * mj.ctd
+    cool_lat_load = 0.68 * mj.acf * vent_cfm * mj.cool_design_grains
+
+    hvac_loads.Heat_Vent += heat_load
+    hvac_loads.Heat_Tot += heat_load
+    hvac_loads.Cool_Vent_Sens += cool_sens_load
+    hvac_loads.Cool_Sens += cool_sens_load
+    hvac_loads.Cool_Vent_Lat += cool_lat_load
+    hvac_loads.Cool_Lat += cool_lat_load
+    hvac_loads.Cool_Tot += cool_sens_load + cool_lat_load
+
+    zone_loads.Heat_Vent += heat_load
+    zone_loads.Heat_Tot += heat_load
+    zone_loads.Cool_Vent_Sens += cool_sens_load
+    zone_loads.Cool_Sens += cool_sens_load
+    zone_loads.Cool_Vent_Lat += cool_lat_load
+    zone_loads.Cool_Lat += cool_lat_load
+    zone_loads.Cool_Tot += cool_sens_load + cool_lat_load
   end
 
   def self.apply_hvac_equipment_adjustments(mj, runner, hvac_sizings, weather, hvac_heating, hvac_cooling, hvac_system, hpxml_bldg)
@@ -2604,7 +2665,7 @@ class HVACSizing
   end
 
   def self.get_ventilation_data(hpxml_bldg)
-    # If CFIS w/ supplemental fan, assume air handler is running most of the hour and can provide
+    # If CFIS w/ supplemental fan, assume air handler is running the full hour and can provide
     # all ventilation needs (i.e., supplemental fan does not need to run), so skip supplement fan
     vent_fans_mech = hpxml_bldg.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && !f.is_cfis_supplemental_fan? && f.flow_rate > 0 && f.hours_in_operation > 0 }
     if vent_fans_mech.empty?
@@ -2635,10 +2696,10 @@ class HVACSizing
     q_recirc = vent_mech_shared.map { |vent_mech| vent_mech.average_total_unit_flow_rate - vent_mech.average_oa_unit_flow_rate }.sum(0.0)
 
     # Total CFMS
-    a_tot_sup = q_sup_tot + q_bal_tot + q_erv_hrv_tot + q_cfis_tot
+    q_tot_sup = q_sup_tot + q_bal_tot + q_erv_hrv_tot + q_cfis_tot
     q_tot_exh = q_exh_tot + q_bal_tot + q_erv_hrv_tot
-    q_unbal = (a_tot_sup - q_tot_exh).abs
-    q_bal = [q_tot_exh, a_tot_sup].min
+    q_unbal = q_tot_exh - q_tot_sup
+    q_bal = [q_tot_exh, q_tot_sup].min
 
     # Calculate effectiveness for all ERV/HRV and store results in a hash
     hrv_erv_effectiveness_map = Airflow.calc_hrv_erv_effectiveness(vent_mech_erv_hrv_tot)

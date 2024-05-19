@@ -11,7 +11,7 @@
       <SimulationControl>
         <Timestep>60</Timestep>
         <AdvancedResearchFeatures>
-          <TemperatureCapacitanceMultiplier>7.0</TemperatureCapacitanceMultiplier>
+          <DefrostModelType>advanced</DefrostModelType>
         </AdvancedResearchFeatures>
       </SimulationControl>
       <UtilityBillScenarios>
@@ -320,37 +320,51 @@
         <HVAC>
           <HVACPlant>
             <PrimarySystems>
-              <PrimaryHeatingSystem idref='HeatingSystem1'/>
-              <PrimaryCoolingSystem idref='CoolingSystem1'/>
+              <PrimaryHeatingSystem idref='HeatPump1'/>
+              <PrimaryCoolingSystem idref='HeatPump1'/>
             </PrimarySystems>
             <HeatingSystem>
               <SystemIdentifier id='HeatingSystem1'/>
               <DistributionSystem idref='HVACDistribution1'/>
               <HeatingSystemType>
-                <Furnace/>
+                <Boiler/>
               </HeatingSystemType>
               <HeatingSystemFuel>natural gas</HeatingSystemFuel>
-              <HeatingCapacity>36000.0</HeatingCapacity>
+              <HeatingCapacity>60000.0</HeatingCapacity>
               <AnnualHeatingEfficiency>
                 <Units>AFUE</Units>
-                <Value>0.92</Value>
+                <Value>0.8</Value>
               </AnnualHeatingEfficiency>
-              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
+              <ElectricAuxiliaryEnergy>200.0</ElectricAuxiliaryEnergy>
             </HeatingSystem>
-            <CoolingSystem>
-              <SystemIdentifier id='CoolingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <CoolingSystemType>central air conditioner</CoolingSystemType>
-              <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>24000.0</CoolingCapacity>
-              <CompressorType>single stage</CompressorType>
+            <HeatPump>
+              <SystemIdentifier id='HeatPump1'/>
+              <DistributionSystem idref='HVACDistribution2'/>
+              <HeatPumpType>air-to-air</HeatPumpType>
+              <HeatPumpFuel>electricity</HeatPumpFuel>
+              <HeatingCapacity>18000.0</HeatingCapacity>
+              <CoolingCapacity>18000.0</CoolingCapacity>
+              <CompressorType>variable speed</CompressorType>
+              <CoolingSensibleHeatFraction>0.78</CoolingSensibleHeatFraction>
+              <BackupType>separate</BackupType>
+              <BackupSystem idref='HeatingSystem1'/>
+              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
                 <Units>SEER</Units>
-                <Value>13.0</Value>
+                <Value>22.0</Value>
               </AnnualCoolingEfficiency>
-              <SensibleHeatFraction>0.73</SensibleHeatFraction>
-            </CoolingSystem>
+              <AnnualHeatingEfficiency>
+                <Units>HSPF</Units>
+                <Value>10.0</Value>
+              </AnnualHeatingEfficiency>
+              <extension>
+                <HeatingCapacityRetention>
+                  <Fraction>0.6</Fraction>
+                  <Temperature>17.0</Temperature>
+                </HeatingCapacityRetention>
+              </extension>
+            </HeatPump>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
@@ -359,6 +373,14 @@
           </HVACControl>
           <HVACDistribution>
             <SystemIdentifier id='HVACDistribution1'/>
+            <DistributionSystemType>
+              <HydronicDistribution>
+                <HydronicDistributionType>baseboard</HydronicDistributionType>
+              </HydronicDistribution>
+            </DistributionSystemType>
+          </HVACDistribution>
+          <HVACDistribution>
+            <SystemIdentifier id='HVACDistribution2'/>
             <DistributionSystemType>
               <AirDistribution>
                 <AirDistributionType>regular velocity</AirDistributionType>
