@@ -14,6 +14,7 @@ class Constants
             'simulation_control_run_period_calendar_year',
             'simulation_control_daylight_saving_period',
             'simulation_control_temperature_capacitance_multiplier',
+            'simulation_control_defrost_model_type',
             'unit_multiplier',
             'geometry_unit_left_wall_is_adiabatic',
             'geometry_unit_right_wall_is_adiabatic',
