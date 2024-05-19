@@ -1450,13 +1450,13 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.heating_systems[0].heating_autosizing_limit = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_floor_furnace_values(default_hpxml_bldg.heating_systems[0], 0, 698, nil, true, 500, 1.0)
+    _test_default_floor_furnace_values(default_hpxml_bldg.heating_systems[0], 0, nil, nil, true, 500, 1.0)
 
     # Test defaults w/o pilot
     hpxml_bldg.heating_systems[0].pilot_light = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_floor_furnace_values(default_hpxml_bldg.heating_systems[0], 0, 698, nil, false, nil, 1.0)
+    _test_default_floor_furnace_values(default_hpxml_bldg.heating_systems[0], 0, nil, nil, false, nil, 1.0)
   end
 
   def test_electric_resistance
@@ -1552,14 +1552,14 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.heating_systems[0].heating_capacity = 12345
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_portable_heater_values(default_hpxml_bldg.heating_systems[0], 22, nil, 12345, 1.0)
+    _test_default_space_heater_values(default_hpxml_bldg.heating_systems[0], 22, nil, 12345, 1.0)
 
     # Test autosizing with factors
     hpxml_bldg.heating_systems[0].heating_capacity = nil
     hpxml_bldg.heating_systems[0].heating_autosizing_factor = 1.2
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_portable_heater_values(default_hpxml_bldg.heating_systems[0], 22, nil, nil, 1.2)
+    _test_default_space_heater_values(default_hpxml_bldg.heating_systems[0], 22, nil, nil, 1.2)
 
     # Test defaults
     hpxml_bldg.heating_systems[0].fan_watts = nil
@@ -1568,7 +1568,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.heating_systems[0].heating_autosizing_limit = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_portable_heater_values(default_hpxml_bldg.heating_systems[0], 0, nil, nil, 1.0)
+    _test_default_space_heater_values(default_hpxml_bldg.heating_systems[0], 0, nil, nil, 1.0)
   end
 
   def test_fireplaces
@@ -4659,7 +4659,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     end
   end
 
-  def _test_default_portable_heater_values(heating_system, fan_watts, heating_airflow_cfm, heating_capacity, heating_autosizing_factor)
+  def _test_default_space_heater_values(heating_system, fan_watts, heating_airflow_cfm, heating_capacity, heating_autosizing_factor)
     assert_equal(fan_watts, heating_system.fan_watts)
     if heating_airflow_cfm.nil? # nil implies an autosized value
       assert(heating_system.heating_airflow_cfm > 0)
@@ -4667,20 +4667,6 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
       assert_in_delta(heating_airflow_cfm, heating_system.heating_airflow_cfm, 1.0)
     end
     assert_equal(heating_autosizing_factor, heating_system.heating_autosizing_factor)
-    if heating_capacity.nil?
-      assert(heating_system.heating_capacity > 0)
-    else
-      assert_equal(heating_capacity, heating_system.heating_capacity)
-    end
-  end
-
-  def _test_default_fixed_heater_values(heating_system, fan_watts, heating_airflow_cfm, heating_capacity)
-    assert_equal(fan_watts, heating_system.fan_watts)
-    if heating_airflow_cfm.nil? # nil implies an autosized value
-      assert(heating_system.heating_airflow_cfm > 0)
-    else
-      assert_equal(heating_airflow_cfm, heating_system.heating_airflow_cfm)
-    end
     if heating_capacity.nil?
       assert(heating_system.heating_capacity > 0)
     else
