@@ -474,7 +474,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     add_foundation_walls_slabs(runner, model, weather, spaces)
     add_windows(model, spaces)
     add_doors(model, spaces)
-    add_skylights(runner, model, spaces)
+    add_skylights(model, spaces)
     add_conditioned_floor_area(model, spaces)
     add_thermal_mass(model, spaces)
     Geometry.set_zone_volumes(spaces, @hpxml_bldg, @apply_ashrae140_assumptions)
@@ -1404,13 +1404,13 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     apply_adiabatic_construction(model, surfaces, 'wall')
   end
 
-  def add_skylights(runner, model, spaces)
+  def add_skylights(model, spaces)
     surfaces = []
     shading_schedules = {}
 
     @hpxml_bldg.skylights.each do |skylight|
       if not skylight.is_conditioned
-        runner.registerWarning("Skylight '#{skylight.id}' not connected to conditioned space; if it's a skylight with a shaft or sun tunnel, use AttachedToFloor to connect it to conditioned space.")
+        fail "Skylight '#{skylight.id}' not connected to conditioned space; if it's a skylight with a shaft or sun tunnel, use AttachedToFloor to connect it to conditioned space."
       end
 
       tilt = skylight.roof.pitch / 12.0
@@ -1430,7 +1430,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       surface.additionalProperties.setFeature('SurfaceType', 'Skylight')
       surface.setName("surface #{skylight.id}")
       surface.setSurfaceType('RoofCeiling')
-      surface.setSpace(create_or_get_space(model, spaces, skylight.roof.interior_adjacent_to))
+      surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace))
       surface.setOutsideBoundaryCondition('Outdoors') # cannot be adiabatic because subsurfaces won't be created
       surfaces << surface
 
@@ -1629,7 +1629,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, cooling_system, heating_system, sequential_cool_load_fracs, sequential_heat_load_fracs,
                                                                  weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
-                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg)
+                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg,
+                                                                 @hpxml_header)
 
       elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
 
@@ -1674,7 +1675,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, nil, heating_system, [0], sequential_heat_load_fracs,
                                                                  weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
-                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg)
+                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg,
+                                                                 @hpxml_header)
 
       elsif [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
 
@@ -1737,7 +1739,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, heat_pump, heat_pump, sequential_cool_load_fracs, sequential_heat_load_fracs,
                                                                  weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
-                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg)
+                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg,
+                                                                 @hpxml_header)
       elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
 
         airloop_map[sys_id] = HVAC.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
