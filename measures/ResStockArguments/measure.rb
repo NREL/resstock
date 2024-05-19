@@ -765,6 +765,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
+    # Defrost Model Type
+    args[:simulation_control_defrost_model_type] = HPXML::AdvancedResearchDefrostModelTypeAdvanced
+
     args.each do |arg_name, arg_value|
       if args_to_delete.include?(arg_name) || (arg_value == Constants.Auto)
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
