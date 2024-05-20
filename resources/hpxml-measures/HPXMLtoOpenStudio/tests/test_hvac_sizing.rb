@@ -469,10 +469,12 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_floors, block_tol_btuh)
     assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_slabs, block_tol_btuh)
     assert_in_delta(865, hpxml_bldg.hvac_plant.cdl_sens_ceilings, block_tol_btuh)
-    # assert_in_delta(825, hpxml_bldg.hvac_plant.cdl_sens_infilvent, block_tol_btuh) Skip due to dehumidifying ventilation
+    assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_sens_infil, block_tol_btuh)
+    assert_in_delta(825, hpxml_bldg.hvac_plant.cdl_sens_vent, block_tol_btuh)
     assert_in_delta(5541, hpxml_bldg.hvac_plant.cdl_sens_intgains, block_tol_btuh)
     assert_in_delta(655, hpxml_bldg.hvac_plant.cdl_lat_ducts, block_tol_btuh)
-    # assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_lat_infilvent, block_tol_btuh) Skip due to dehumidifying ventilation
+    # assert_in_delta(0, hpxml_bldg.hvac_plant.cdl_lat_infil, block_tol_btuh) Skip due to dehumidifying ventilation
+    assert_in_delta(1938, hpxml_bldg.hvac_plant.cdl_lat_vent, block_tol_btuh)
     assert_in_delta(800, hpxml_bldg.hvac_plant.cdl_lat_intgains, block_tol_btuh)
 
     # Fixme: Skylight not included so disable for now
@@ -1287,10 +1289,18 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_operator(hpxml_bldg_mult.conditioned_zones[0].hdl_total, :>, 1.5 * hpxml_bldg_mult.conditioned_zones[1].hdl_total)
     assert_operator(hpxml_bldg_mult.conditioned_zones[0].cdl_sens_total, :>, 1.5 * hpxml_bldg_mult.conditioned_zones[1].cdl_sens_total)
 
-    # Check space and zone values are equal
+    base_tol_btuh = 5 # Allow small differences due to rounding
+
+    def get_sum(object, key)
+      return object.send(key).to_s.split(',').map(&:to_f).sum
+    end
+
+    # Check space values sum to zone values
     (HPXML::HDL_ATTRS.keys + HPXML::CDL_SENS_ATTRS.keys).each do |key|
-      assert_equal(hpxml_bldg_mult.conditioned_zones[0].send(key), hpxml_bldg_mult.conditioned_spaces[0].send(key))
-      assert_equal(hpxml_bldg_mult.conditioned_zones[1].send(key), hpxml_bldg_mult.conditioned_spaces[1].send(key))
+      assert_in_delta(get_sum(hpxml_bldg_mult.conditioned_zones[0], key), get_sum(hpxml_bldg_mult.conditioned_spaces[0], key) +
+                                                                          get_sum(hpxml_bldg_mult.conditioned_spaces[1], key), base_tol_btuh)
+      assert_in_delta(get_sum(hpxml_bldg_mult.conditioned_zones[1], key), get_sum(hpxml_bldg_mult.conditioned_spaces[2], key) +
+                                                                          get_sum(hpxml_bldg_mult.conditioned_spaces[3], key), base_tol_btuh)
     end
 
     # Run base-zones-spaces.xml
@@ -1300,24 +1310,17 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
 
     # Check results between base-zones-spaces.xml and base-zones-spaces-multiple.xml
     (HPXML::HDL_ATTRS.keys + HPXML::CDL_SENS_ATTRS.keys + HPXML::CDL_LAT_ATTRS.keys).each do |key|
-      if key == :cdl_sens_aed_curve
-        # Check for identical arrays
-        assert_equal(hpxml_bldg.hvac_plant.send(key).split(',').map(&:to_f), hpxml_bldg_mult.hvac_plant.send(key).split(',').map(&:to_f))
-        assert_equal(hpxml_bldg.conditioned_zones[0].send(key).split(',').map(&:to_f), hpxml_bldg_mult.conditioned_zones[0].send(key).split(',').map(&:to_f).zip(hpxml_bldg_mult.conditioned_zones[1].send(key).split(',').map(&:to_f)).map { |a, b| a + b })
-        assert_equal(hpxml_bldg.conditioned_spaces[0].send(key).split(',').map(&:to_f), hpxml_bldg_mult.conditioned_spaces[0].send(key).split(',').map(&:to_f).zip(hpxml_bldg_mult.conditioned_spaces[1].send(key).split(',').map(&:to_f)).map { |a, b| a + b })
+      if key.to_s.include?('ducts') || key.to_s.include?('total')
+        # Check values are similar (ducts, and thus totals, will not be exactly identical)
+        tol_btuh = 500
       else
-        if key.to_s.include?('ducts') || key.to_s.include?('total')
-          # Check values are similar (ducts, and thus totals, will not be exactly identical)
-          tol_btuh = 500
-        else
-          # Check values are identical (aside from rounding)
-          tol_btuh = 1
-        end
-        assert_in_delta(hpxml_bldg.hvac_plant.send(key), hpxml_bldg_mult.hvac_plant.send(key), tol_btuh)
-        assert_in_delta(hpxml_bldg.conditioned_zones[0].send(key), hpxml_bldg_mult.conditioned_zones[0].send(key) + hpxml_bldg_mult.conditioned_zones[1].send(key), tol_btuh)
-        if not HPXML::CDL_LAT_ATTRS.keys.include?(key) # Latent loads are not calculated for spaces
-          assert_in_delta(hpxml_bldg.conditioned_spaces[0].send(key), hpxml_bldg_mult.conditioned_spaces[0].send(key) + hpxml_bldg_mult.conditioned_spaces[1].send(key), tol_btuh)
-        end
+        # Check values are identical (aside from rounding)
+        tol_btuh = base_tol_btuh
+      end
+      assert_in_delta(get_sum(hpxml_bldg.hvac_plant, key), get_sum(hpxml_bldg_mult.hvac_plant, key), tol_btuh)
+      assert_in_delta(hpxml_bldg.conditioned_zones.map { |zone| get_sum(zone, key) }.sum, hpxml_bldg_mult.conditioned_zones.map { |zone| get_sum(zone, key) }.sum, tol_btuh)
+      if not HPXML::CDL_LAT_ATTRS.keys.include?(key) # Latent loads are not calculated for spaces
+        assert_in_delta(hpxml_bldg.conditioned_spaces.map { |space| get_sum(space, key) }.sum, hpxml_bldg_mult.conditioned_spaces.map { |space| get_sum(space, key) }.sum, tol_btuh)
       end
     end
   end

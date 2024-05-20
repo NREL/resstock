@@ -116,6 +116,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription("Affects the transient calculation of indoor air temperatures. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-simulation-control'>HPXML Simulation Control</a>) is used.")
     args << arg
 
+    defrost_model_type_choices = OpenStudio::StringVector.new
+    defrost_model_type_choices << HPXML::AdvancedResearchDefrostModelTypeStandard
+    defrost_model_type_choices << HPXML::AdvancedResearchDefrostModelTypeAdvanced
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('simulation_control_defrost_model_type', defrost_model_type_choices, false)
+    arg.setDisplayName('Simulation Control: Defrost Model Type')
+    arg.setDescription("Research feature to select the type of defrost model. Use #{HPXML::AdvancedResearchDefrostModelTypeStandard} for default E+ defrost setting. Use #{HPXML::AdvancedResearchDefrostModelTypeAdvanced} for an improved model that better accounts for load and energy use during defrost; using #{HPXML::AdvancedResearchDefrostModelTypeAdvanced} may impact simulation runtime. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-simulation-control'>HPXML Simulation Control</a>) is used.")
+    args << arg
+
     site_type_choices = OpenStudio::StringVector.new
     site_type_choices << HPXML::SiteTypeSuburban
     site_type_choices << HPXML::SiteTypeUrban
@@ -4020,6 +4028,13 @@ class HPXMLFile
         errors << "'Simulation Control: Temperature Capacitance Multiplier' cannot vary across dwelling units."
       end
       hpxml.header.temperature_capacitance_multiplier = args[:simulation_control_temperature_capacitance_multiplier]
+    end
+
+    if not args[:simulation_control_defrost_model_type].nil?
+      if (not hpxml.header.defrost_model_type.nil?) && (hpxml.header.defrost_model_type != args[:simulation_control_defrost_model_type])
+        errors << "'Simulation Control: Defrost Model Type' cannot vary across dwelling units."
+      end
+      hpxml.header.defrost_model_type = args[:simulation_control_defrost_model_type]
     end
 
     if not args[:emissions_scenario_names].nil?

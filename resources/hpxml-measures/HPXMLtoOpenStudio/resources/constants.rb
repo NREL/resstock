@@ -288,6 +288,10 @@ class Constants
     return 'packaged terminal air conditioner'
   end
 
+  def self.ObjectNameBackupSuppHeat
+    return 'back up supp heat'
+  end
+
   def self.ObjectNameMiscGrill
     return 'misc grill'
   end
