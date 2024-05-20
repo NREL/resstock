@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>report_utility_bills</name>
   <uid>ca88a425-e59a-4bc4-af51-c7e7d1e960fe</uid>
-  <version_id>23d2e18e-c2ac-4c68-a5c4-fd4372203a39</version_id>
-  <version_modified>2024-05-18T14:35:04Z</version_modified>
+  <version_id>4613bad3-d5e1-4065-92ed-b3943fe2226c</version_id>
+  <version_modified>2024-05-19T03:07:45Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>ReportUtilityBills</class_name>
   <display_name>Utility Bills Report</display_name>
@@ -37,7 +37,7 @@
     <argument>
       <name>include_annual_bills</name>
       <display_name>Generate Annual Utility Bills</display_name>
-      <description>Generates annual utility bills.</description>
+      <description>Generates output file containing annual utility bills.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -56,7 +56,7 @@
     <argument>
       <name>include_monthly_bills</name>
       <display_name>Generate Monthly Utility Bills</display_name>
-      <description>Generates monthly utility bills.</description>
+      <description>Generates output file containing monthly utility bills.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -107,6 +107,44 @@
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
+    <argument>
+      <name>register_annual_bills</name>
+      <display_name>Register Annual Utility Bills</display_name>
+      <description>Registers annual utility bills with the OpenStudio runner for downstream processing.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>register_monthly_bills</name>
+      <display_name>Register Monthly Utility Bills</display_name>
+      <description>Registers monthly utility bills with the OpenStudio runner for downstream processing.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs />
   <provenances />
@@ -125,7 +163,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>E137125B</checksum>
+      <checksum>13D965BE</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -142,7 +180,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>22A6665F</checksum>
+      <checksum>8848EFCD</checksum>
     </file>
     <file>
       <filename>detailed_rates/Sample Flat Rate Min Annual Charge.json</filename>
@@ -322,7 +360,7 @@
       <filename>test_report_utility_bills.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>3C2DECE9</checksum>
+      <checksum>54650639</checksum>
     </file>
   </files>
 </measure>

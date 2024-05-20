@@ -47,13 +47,13 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_annual_bills', false)
     arg.setDisplayName('Generate Annual Utility Bills')
-    arg.setDescription('Generates annual utility bills.')
+    arg.setDescription('Generates output file containing annual utility bills.')
     arg.setDefaultValue(true)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_monthly_bills', false)
     arg.setDisplayName('Generate Monthly Utility Bills')
-    arg.setDescription('Generates monthly utility bills.')
+    arg.setDescription('Generates output file containing monthly utility bills.')
     arg.setDefaultValue(true)
     args << arg
 
@@ -74,6 +74,18 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('monthly_output_file_name', false)
     arg.setDisplayName('Monthly Output File Name')
     arg.setDescription("If not provided, defaults to 'results_bills_monthly.csv' (or 'results_bills_monthly.json' or 'results_bills_monthly.msgpack').")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('register_annual_bills', false)
+    arg.setDisplayName('Register Annual Utility Bills')
+    arg.setDescription('Registers annual utility bills with the OpenStudio runner for downstream processing.')
+    arg.setDefaultValue(true)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('register_monthly_bills', false)
+    arg.setDisplayName('Register Monthly Utility Bills')
+    arg.setDescription('Registers monthly utility bills with the OpenStudio runner for downstream processing.')
+    arg.setDefaultValue(false)
     args << arg
 
     return args
@@ -266,7 +278,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
       monthly_output_path = File.join(output_dir, "results_bills_monthly.#{args[:output_format]}")
     end
 
-    if args[:include_monthly_bills]
+    if args[:include_monthly_bills] || args[:register_monthly_bills]
       @timestamps = get_timestamps(args)
     end
 
@@ -355,7 +367,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
   end
 
   def report_runperiod_output_results(runner, args, utility_bills, annual_output_path, bill_scenario_name)
-    return unless args[:include_annual_bills]
+    return unless (args[:include_annual_bills] || args[:register_annual_bills])
 
     results_out = []
     results_out << ["#{bill_scenario_name}: Total (USD)", utility_bills.values.sum { |bill| bill.annual_total.round(2) }.round(2)]
@@ -370,8 +382,12 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     line_break = nil
     results_out << [line_break]
 
-    Outputs.write_results_out_to_file(results_out, args[:output_format], annual_output_path, 'a')
-    runner.registerInfo("Wrote annual bills output to #{annual_output_path}.")
+    if args[:include_annual_bills]
+      Outputs.write_results_out_to_file(results_out, args[:output_format], annual_output_path, 'a')
+      runner.registerInfo("Wrote annual bills output to #{annual_output_path}.")
+    end
+
+    return unless args[:register_annual_bills]
 
     results_out.each do |name, value|
       next if name.nil? || value.nil?
@@ -388,7 +404,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     monthly_data << ["#{bill_scenario_name}: Total", 'USD'] + ([0.0] * run_period.size)
     total_ix = monthly_data.size - 1
 
-    if args[:include_monthly_bills]
+    if args[:include_monthly_bills] || args[:register_monthly_bills]
       utility_bills.each do |fuel_type, bill|
         monthly_data[total_ix][2..-1] = monthly_data[total_ix][2..-1].zip(bill.monthly_total[run_period].map { |v| v.round(2) }).map { |x, y| x + y }
         monthly_data << ["#{bill_scenario_name}: #{fuel_type}: Fixed", 'USD'] + bill.monthly_fixed_charge[run_period].map { |v| v.round(2) }
@@ -400,7 +416,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
   end
 
   def report_monthly_output_results(runner, args, timestamps, monthly_data, monthly_output_path)
-    return if timestamps.nil?
+    return unless (args[:include_monthly_bills] || args[:register_monthly_bills])
 
     # Initial output data w/ Time column(s)
     data = ['Time', nil] + timestamps
@@ -409,32 +425,50 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     fail 'Unable to obtain timestamps.' if timestamps.empty?
 
-    if ['csv'].include? args[:output_format]
-      # Assemble data
-      data = data.zip(*monthly_data)
+    if args[:include_monthly_bills]
+      if ['csv'].include? args[:output_format]
+        # Assemble data
+        data = data.zip(*monthly_data)
 
-      # Write file
-      CSV.open(monthly_output_path, 'wb') { |csv| data.to_a.each { |elem| csv << elem } }
-    elsif ['json', 'msgpack'].include? args[:output_format]
-      h = {}
-      h['Time'] = data[2..-1]
+        # Write file
+        CSV.open(monthly_output_path, 'wb') { |csv| data.to_a.each { |elem| csv << elem } }
+      elsif ['json', 'msgpack'].include? args[:output_format]
+        h = {}
+        h['Time'] = data[2..-1]
 
-      [monthly_data].each do |d|
-        d.each do |o|
-          grp, name = o[0].split(':', 2)
-          h[grp] = {} if h[grp].nil?
-          h[grp]["#{name.strip} (#{o[1]})"] = o[2..-1]
+        [monthly_data].each do |d|
+          d.each do |o|
+            grp, name = o[0].split(':', 2)
+            h[grp] = {} if h[grp].nil?
+            h[grp]["#{name.strip} (#{o[1]})"] = o[2..-1]
+          end
+        end
+
+        if args[:output_format] == 'json'
+          require 'json'
+          File.open(monthly_output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
+        elsif args[:output_format] == 'msgpack'
+          File.open(monthly_output_path, 'w') { |json| h.to_msgpack(json) }
         end
       end
+      runner.registerInfo("Wrote monthly bills output to #{monthly_output_path}.")
+    end
 
-      if args[:output_format] == 'json'
-        require 'json'
-        File.open(monthly_output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
-      elsif args[:output_format] == 'msgpack'
-        File.open(monthly_output_path, 'w') { |json| h.to_msgpack(json) }
+    return unless args[:register_monthly_bills]
+
+    monthly_data.each do |col|
+      next unless col[0].include?('Total')
+
+      timestamps.zip(col[2..-1]).each do |ts, value|
+        t = ts
+        t, _ = t.split('T') if t.is_a?(String) && t.include?('T')
+
+        name = OpenStudio::toUnderscoreCase("#{col[0]} #{col[1]} #{t}").chomp('_')
+
+        runner.registerValue(name, value)
+        runner.registerInfo("Registering #{value} for #{name}.")
       end
     end
-    runner.registerInfo("Wrote monthly bills output to #{monthly_output_path}.")
   end
 
   def get_utility_rates(hpxml_path, fuels, utility_rates, bill_scenario, monthly_fee, num_units = 1)
