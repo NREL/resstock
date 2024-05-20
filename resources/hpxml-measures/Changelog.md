@@ -88,6 +88,7 @@ __Bugfixes__
 - Apportion shared water heater tank losses for HPWHs and combi systems.
 - Fixes buried duct effective R-values.
 - Fixes shared boiler default location (which could result in assuming there's a flue in conditioned space impacting infiltration).
+- Fixes timeseries hot water energy consumption adjustment lag (associated with hot water distribution).
 
 ## OpenStudio-HPXML v1.7.0
 
