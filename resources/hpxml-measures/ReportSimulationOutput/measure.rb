@@ -4,6 +4,7 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'msgpack'
+require 'time'
 require_relative '../HPXMLtoOpenStudio/resources/constants.rb'
 require_relative '../HPXMLtoOpenStudio/resources/energyplus.rb'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml.rb'
@@ -305,24 +306,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_arguments(runner, arguments, user_arguments)
-    args = get_argument_values(runner, arguments, user_arguments)
-    args.each do |k, val|
-      if val.respond_to?(:is_initialized) && val.is_initialized
-        args[k] = val.get
-      elsif k.start_with?('include_annual')
-        args[k] = true # default if not provided
-      elsif k.start_with?('include_timeseries')
-        args[k] = false # default if not provided
-      else
-        args[k] = nil # default if not provided
-      end
-    end
+    args = runner.getArgumentValues(arguments, user_arguments)
     if args[:timeseries_frequency] == 'none'
       # Override all timeseries arguments
-      args.each do |k, _val|
-        next unless k.start_with?('include_timeseries')
+      args.keys.each do |key|
+        next unless key.start_with?('include_timeseries')
 
-        args[k] = false
+        args[key] = false
       end
     end
     return args
@@ -1586,28 +1576,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     # Sizing data
     if args[:include_annual_hvac_summary]
-      results_out = append_sizing_results(results_out, line_break)
+      results_out = Outputs.append_sizing_results(@hpxml_bldgs, results_out)
     end
 
-    if ['csv'].include? args[:output_format]
-      CSV.open(annual_output_path, 'wb') { |csv| results_out.to_a.each { |elem| csv << elem } }
-    elsif ['json', 'msgpack'].include? args[:output_format]
-      h = {}
-      results_out.each do |out|
-        next if out == [line_break]
-
-        grp, name = out[0].split(':', 2)
-        h[grp] = {} if h[grp].nil?
-        h[grp][name.strip] = out[1]
-      end
-
-      if args[:output_format] == 'json'
-        require 'json'
-        File.open(annual_output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
-      elsif args[:output_format] == 'msgpack'
-        File.open(annual_output_path, 'w') { |json| h.to_msgpack(json) }
-      end
-    end
+    Outputs.write_results_out_to_file(results_out, args[:output_format], annual_output_path)
     runner.registerInfo("Wrote annual output results to #{annual_output_path}.")
 
     results_out.each do |name, value|
@@ -1618,57 +1590,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       runner.registerValue(name, value)
       runner.registerInfo("Registering #{value} for #{name}.")
     end
-  end
-
-  def append_sizing_results(results_out, line_break)
-    # Summary HVAC capacities
-    htg_cap, clg_cap, hp_backup_cap = 0.0, 0.0, 0.0
-    @hpxml_bldgs.each do |hpxml_bldg|
-      capacities = Outputs.get_total_hvac_capacities(hpxml_bldg)
-      htg_cap += capacities[0]
-      clg_cap += capacities[1]
-      hp_backup_cap += capacities[2]
-    end
-    results_out << ['HVAC Capacity: Heating (Btu/h)', htg_cap.round(1)]
-    results_out << ['HVAC Capacity: Cooling (Btu/h)', clg_cap.round(1)]
-    results_out << ['HVAC Capacity: Heat Pump Backup (Btu/h)', hp_backup_cap.round(1)]
-
-    # HVAC design temperatures
-    results_out << [line_break]
-    results_out << ['HVAC Design Temperature: Heating (F)', (@hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.header.manualj_heating_design_temp }.sum(0.0) / @hpxml_bldgs.size).round(2)]
-    results_out << ['HVAC Design Temperature: Cooling (F)', (@hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.header.manualj_cooling_design_temp }.sum(0.0) / @hpxml_bldgs.size).round(2)]
-
-    # HVAC design loads
-    results_out << [line_break]
-    results_out << ['HVAC Design Load: Heating: Total (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_total * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Heating: Ducts (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_ducts * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Heating: Windows (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_windows * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Heating: Skylights (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_skylights * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Heating: Doors (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_doors * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Heating: Walls (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_walls * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Heating: Roofs (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_roofs * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Heating: Floors (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_floors * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Heating: Slabs (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_slabs * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Heating: Ceilings (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_ceilings * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Heating: Infiltration/Ventilation (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_infilvent * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Total (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_total * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Ducts (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_ducts * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Windows (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_windows * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Skylights (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_skylights * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Doors (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_doors * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Walls (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_walls * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Roofs (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_roofs * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Floors (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_floors * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Slabs (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_slabs * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Ceilings (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_ceilings * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Infiltration/Ventilation (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_infilvent * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Sensible: Internal Gains (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_intgains * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Latent: Total (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_lat_total * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Latent: Ducts (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_lat_ducts * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Latent: Infiltration/Ventilation (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_lat_infilvent * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-    results_out << ['HVAC Design Load: Cooling Latent: Internal Gains (Btu/h)', @hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_lat_intgains * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
-
-    return results_out
   end
 
   def report_timeseries_output_results(runner, outputs, timeseries_output_path, args, timestamps_dst, timestamps_utc)
@@ -1992,12 +1913,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   def get_report_meter_data_timeseries(meter_names, unit_conv, unit_adder, timeseries_frequency)
     return [0.0] * @timestamps.size if meter_names.empty?
 
-    msgpack_timeseries_name = { 'timestep' => 'TimeStep',
+    msgpack_timeseries_name = { 'timestep' => 'Timestep',
                                 'hourly' => 'Hourly',
                                 'daily' => 'Daily',
                                 'monthly' => 'Monthly' }[timeseries_frequency]
-    cols = @msgpackData['MeterData'][msgpack_timeseries_name]['Cols']
-    rows = @msgpackData['MeterData'][msgpack_timeseries_name]['Rows']
+    timeseries_data = @msgpackData['MeterData'][msgpack_timeseries_name]
+    cols = timeseries_data['Cols']
+    rows = timeseries_data['Rows']
     indexes = cols.each_index.select { |i| meter_names.include? cols[i]['Variable'] }
     vals = []
     rows.each_with_index do |row, _idx|
@@ -2880,6 +2802,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           Constants.ObjectNameMiscPermanentSpaHeater => EUT::PermanentSpaHeater,
           Constants.ObjectNameMechanicalVentilationPreheating => EUT::MechVentPreheat,
           Constants.ObjectNameMechanicalVentilationPrecooling => EUT::MechVentPrecool,
+          Constants.ObjectNameBackupSuppHeat => EUT::HeatingHeatPumpBackup,
           Constants.ObjectNameWaterHeaterAdjustment => EUT::HotWater,
           Constants.ObjectNameBatteryLossesAdjustment => EUT::Battery }.each do |obj_name, eut|
           next unless subcategory.start_with? obj_name

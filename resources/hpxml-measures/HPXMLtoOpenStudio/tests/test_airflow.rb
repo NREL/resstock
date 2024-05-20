@@ -615,7 +615,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
       # Check ducts program
       program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
-      assert_in_delta(33.4 * supply_area_multiplier, UnitConversions.convert(program_values['supply_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.1)
+      assert_in_delta(34.2 * supply_area_multiplier, UnitConversions.convert(program_values['supply_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.1)
       assert_in_delta(29.4 * return_area_multiplier, UnitConversions.convert(program_values['return_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.1)
     end
   end
@@ -627,7 +627,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
     # Check ducts program
     program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
-    assert_in_delta(8.34, UnitConversions.convert(program_values['supply_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.1)
+    assert_in_delta(9.42, UnitConversions.convert(program_values['supply_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.1)
     assert_in_delta(2.21, UnitConversions.convert(program_values['return_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.1)
   end
 
@@ -790,68 +790,82 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
   end
 
   def test_duct_effective_r_values
+    f_rect_supply = 0.25
+    f_rect_return = 1.0
+
+    # Supply, uninsulated
+    effective_r = Airflow.get_duct_effective_r_value(0.0, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationNone, f_rect_supply)
+    assert_equal(1.7, effective_r)
+
+    # Return, uninsulated
+    effective_r = Airflow.get_duct_effective_r_value(0.0, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationNone, f_rect_return)
+    assert_equal(1.7, effective_r)
+
     # Supply, not buried
-    { 4.2 => 4.51,
-      6.0 => 5.66,
-      8.0 => 6.81 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationNone)
-      assert_in_delta(expected_r, effective_r, 0.2)
+    { 4.2 => 4.53,
+      6.0 => 5.73,
+      8.0 => 6.94 }.each do |nominal_r, expected_r|
+      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationNone, f_rect_supply)
+      assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
     # Return, not buried
-    { 4.2 => 4.93,
-      6.0 => 6.33,
-      8.0 => 7.76 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationNone)
-      assert_in_delta(expected_r, effective_r, 0.2)
+    { 4.2 => 5.20,
+      6.0 => 7.00,
+      8.0 => 9.00 }.each do |nominal_r, expected_r|
+      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationNone, f_rect_return)
+      assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
+    # Buried duct expected values below from Table 13 in https://www.nrel.gov/docs/fy13osti/55876.pdf
+    # Assuming 6-inch supply ducts and 14-inch return ducts
+
     # Supply, partially buried
-    { 4.2 => 7.8,
-      6.0 => 9.9,
-      8.0 => 11.8 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationPartial)
-      assert_in_delta(expected_r, effective_r, 0.2)
+    { 4.2 => 6.8,
+      6.0 => 8.6,
+      8.0 => 9.3 }.each do |nominal_r, expected_r|
+      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationPartial, f_rect_supply)
+      assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
     # Return, partially buried
     { 4.2 => 10.1,
       6.0 => 12.6,
       8.0 => 15.1 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationPartial)
-      assert_in_delta(expected_r, effective_r, 0.2)
+      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationPartial, f_rect_return)
+      assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
     # Supply, fully buried
-    { 4.2 => 11.3,
-      6.0 => 13.2,
-      8.0 => 15.1 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationFull)
-      assert_in_delta(expected_r, effective_r, 0.2)
+    { 4.2 => 9.9,
+      6.0 => 11.7,
+      8.0 => 13.3 }.each do |nominal_r, expected_r|
+      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationFull, f_rect_supply)
+      assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
     # Return, fully buried
     { 4.2 => 14.3,
       6.0 => 16.7,
       8.0 => 19.2 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationFull)
-      assert_in_delta(expected_r, effective_r, 0.2)
+      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationFull, f_rect_return)
+      assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
     # Supply, deeply buried
-    { 4.2 => 18.1,
-      6.0 => 19.6,
-      8.0 => 21.0 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationDeep)
-      assert_in_delta(expected_r, effective_r, 0.2)
+    { 4.2 => 16.0,
+      6.0 => 17.3,
+      8.0 => 18.4 }.each do |nominal_r, expected_r|
+      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationDeep, f_rect_supply)
+      assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
     # Return, deeply buried
     { 4.2 => 22.8,
       6.0 => 24.7,
       8.0 => 26.6 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationDeep)
-      assert_in_delta(expected_r, effective_r, 0.2)
+      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationDeep, f_rect_return)
+      assert_in_epsilon(expected_r, effective_r, 0.1)
     end
   end
 

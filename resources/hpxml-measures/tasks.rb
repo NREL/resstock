@@ -95,10 +95,15 @@ def create_hpxmls
     end
 
     hpxml = HPXML.new(hpxml_path: hpxml_path)
-    if hpxml_path.include? 'ASHRAE_Standard_140'
+    if hpxml_path.include?('ASHRAE_Standard_140') || hpxml_path.include?('HERS_HVAC') || hpxml_path.include?('HERS_DSE')
       apply_hpxml_modification_ashrae_140(hpxml)
+      if hpxml_path.include?('HERS_HVAC') || hpxml_path.include?('HERS_DSE')
+        apply_hpxml_modification_hers_hvac_dse(hpxml_path, hpxml)
+      end
+    elsif hpxml_path.include?('HERS_Hot_Water')
+      apply_hpxml_modification_hers_hot_water(hpxml)
     else
-      apply_hpxml_modification(File.basename(hpxml_path), hpxml)
+      apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     end
     hpxml_doc = hpxml.to_doc()
 
@@ -128,6 +133,7 @@ end
 
 def apply_hpxml_modification_ashrae_140(hpxml)
   # Set detailed HPXML values for ASHRAE 140 test files
+  hpxml_bldg = hpxml.buildings[0]
 
   # ------------ #
   # HPXML Header #
@@ -137,95 +143,149 @@ def apply_hpxml_modification_ashrae_140(hpxml)
   hpxml.header.created_date_and_time = Time.new(2000, 1, 1, 0, 0, 0, '-07:00').strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
   hpxml.header.apply_ashrae140_assumptions = true
 
-  hpxml.buildings.each do |hpxml_bldg|
-    # --------------------- #
-    # HPXML BuildingSummary #
-    # --------------------- #
+  # --------------------- #
+  # HPXML BuildingSummary #
+  # --------------------- #
 
-    hpxml_bldg.site.azimuth_of_front_of_home = nil
+  hpxml_bldg.site.azimuth_of_front_of_home = nil
 
-    # --------------- #
-    # HPXML Enclosure #
-    # --------------- #
+  # --------------- #
+  # HPXML Enclosure #
+  # --------------- #
 
-    hpxml_bldg.attics[0].vented_attic_ach = 2.4
-    hpxml_bldg.foundations.reverse_each do |foundation|
-      foundation.delete
+  hpxml_bldg.attics[0].vented_attic_ach = 2.4
+  hpxml_bldg.foundations.reverse_each do |foundation|
+    foundation.delete
+  end
+  hpxml_bldg.roofs.each do |roof|
+    if roof.roof_color == HPXML::ColorReflective
+      roof.solar_absorptance = 0.2
+    else
+      roof.solar_absorptance = 0.6
     end
-    hpxml_bldg.roofs.each do |roof|
-      if roof.roof_color == HPXML::ColorReflective
-        roof.solar_absorptance = 0.2
+    roof.emittance = 0.9
+    roof.roof_color = nil
+  end
+  (hpxml_bldg.walls + hpxml_bldg.rim_joists).each do |wall|
+    if wall.color == HPXML::ColorReflective
+      wall.solar_absorptance = 0.2
+    else
+      wall.solar_absorptance = 0.6
+    end
+    wall.emittance = 0.9
+    wall.color = nil
+    if wall.is_a?(HPXML::Wall)
+      if wall.attic_wall_type == HPXML::AtticWallTypeGable
+        wall.insulation_assembly_r_value = 2.15
       else
-        roof.solar_absorptance = 0.6
-      end
-      roof.emittance = 0.9
-      roof.roof_color = nil
-    end
-    (hpxml_bldg.walls + hpxml_bldg.rim_joists).each do |wall|
-      if wall.color == HPXML::ColorReflective
-        wall.solar_absorptance = 0.2
-      else
-        wall.solar_absorptance = 0.6
-      end
-      wall.emittance = 0.9
-      wall.color = nil
-      if wall.is_a?(HPXML::Wall)
-        if wall.attic_wall_type == HPXML::AtticWallTypeGable
-          wall.insulation_assembly_r_value = 2.15
-        else
-          wall.interior_finish_type = HPXML::InteriorFinishGypsumBoard
-          wall.interior_finish_thickness = 0.5
-        end
+        wall.interior_finish_type = HPXML::InteriorFinishGypsumBoard
+        wall.interior_finish_thickness = 0.5
       end
     end
-    hpxml_bldg.floors.each do |floor|
-      next unless floor.is_ceiling
+  end
+  hpxml_bldg.floors.each do |floor|
+    next unless floor.is_ceiling
 
-      floor.interior_finish_type = HPXML::InteriorFinishGypsumBoard
-      floor.interior_finish_thickness = 0.5
+    floor.interior_finish_type = HPXML::InteriorFinishGypsumBoard
+    floor.interior_finish_thickness = 0.5
+  end
+  hpxml_bldg.foundation_walls.each do |fwall|
+    if fwall.insulation_interior_r_value == 0
+      fwall.interior_finish_type = HPXML::InteriorFinishNone
+    else
+      fwall.interior_finish_type = HPXML::InteriorFinishGypsumBoard
+      fwall.interior_finish_thickness = 0.5
     end
-    hpxml_bldg.foundation_walls.each do |fwall|
-      if fwall.insulation_interior_r_value == 0
-        fwall.interior_finish_type = HPXML::InteriorFinishNone
-      else
-        fwall.interior_finish_type = HPXML::InteriorFinishGypsumBoard
-        fwall.interior_finish_thickness = 0.5
-      end
-    end
-    if hpxml_bldg.doors.size == 1
-      hpxml_bldg.doors[0].area /= 2.0
-      hpxml_bldg.doors << hpxml_bldg.doors[0].dup
-      hpxml_bldg.doors[1].azimuth = 0
-      hpxml_bldg.doors[1].id = 'Door2'
-    end
-    hpxml_bldg.windows.each do |window|
-      next if window.overhangs_depth.nil?
+  end
+  if hpxml_bldg.doors.size == 1
+    hpxml_bldg.doors[0].area /= 2.0
+    hpxml_bldg.doors << hpxml_bldg.doors[0].dup
+    hpxml_bldg.doors[1].azimuth = 0
+    hpxml_bldg.doors[1].id = 'Door2'
+  end
+  hpxml_bldg.windows.each do |window|
+    next if window.overhangs_depth.nil?
 
-      window.overhangs_distance_to_bottom_of_window = 6.0
-    end
+    window.overhangs_distance_to_bottom_of_window = 6.0
+  end
 
-    # ---------- #
-    # HPXML HVAC #
-    # ---------- #
+  # ---------- #
+  # HPXML HVAC #
+  # ---------- #
 
+  if hpxml_bldg.hvac_controls.empty?
     hpxml_bldg.hvac_controls.add(id: "HVACControl#{hpxml_bldg.hvac_controls.size + 1}",
                                  heating_setpoint_temp: 68.0,
                                  cooling_setpoint_temp: 78.0)
+  end
 
-    # --------------- #
-    # HPXML MiscLoads #
-    # --------------- #
+  # --------------- #
+  # HPXML MiscLoads #
+  # --------------- #
 
-    next unless hpxml_bldg.plug_loads[0].kwh_per_year > 0
+  return unless hpxml_bldg.plug_loads[0].kwh_per_year > 0
 
-    hpxml_bldg.plug_loads[0].weekday_fractions = '0.0203, 0.0203, 0.0203, 0.0203, 0.0203, 0.0339, 0.0426, 0.0852, 0.0497, 0.0304, 0.0304, 0.0406, 0.0304, 0.0254, 0.0264, 0.0264, 0.0386, 0.0416, 0.0447, 0.0700, 0.0700, 0.0731, 0.0731, 0.0660'
-    hpxml_bldg.plug_loads[0].weekend_fractions = '0.0203, 0.0203, 0.0203, 0.0203, 0.0203, 0.0339, 0.0426, 0.0852, 0.0497, 0.0304, 0.0304, 0.0406, 0.0304, 0.0254, 0.0264, 0.0264, 0.0386, 0.0416, 0.0447, 0.0700, 0.0700, 0.0731, 0.0731, 0.0660'
-    hpxml_bldg.plug_loads[0].monthly_multipliers = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+  hpxml_bldg.plug_loads[0].weekday_fractions = '0.0203, 0.0203, 0.0203, 0.0203, 0.0203, 0.0339, 0.0426, 0.0852, 0.0497, 0.0304, 0.0304, 0.0406, 0.0304, 0.0254, 0.0264, 0.0264, 0.0386, 0.0416, 0.0447, 0.0700, 0.0700, 0.0731, 0.0731, 0.0660'
+  hpxml_bldg.plug_loads[0].weekend_fractions = '0.0203, 0.0203, 0.0203, 0.0203, 0.0203, 0.0339, 0.0426, 0.0852, 0.0497, 0.0304, 0.0304, 0.0406, 0.0304, 0.0254, 0.0264, 0.0264, 0.0386, 0.0416, 0.0447, 0.0700, 0.0700, 0.0731, 0.0731, 0.0660'
+  hpxml_bldg.plug_loads[0].monthly_multipliers = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+end
+
+def apply_hpxml_modification_hers_hvac_dse(hpxml_path, hpxml)
+  # Set detailed HPXML values for HERS HVAC/DSE test files
+  hpxml_bldg = hpxml.buildings[0]
+
+  if hpxml_path.include? 'HERS_HVAC'
+    hpxml_bldg.hvac_distributions.clear
+    hpxml_bldg.hvac_distributions.add(id: 'HVACDistribution1',
+                                      distribution_system_type: HPXML::HVACDistributionTypeDSE,
+                                      annual_heating_dse: 1.0,
+                                      annual_cooling_dse: 1.0)
+  end
+  if hpxml_path.include? 'HERS_DSE'
+    # For DSE tests, use effective R-values instead of nominal R-values to match the test specs.
+    hpxml_bldg.hvac_distributions[0].ducts.each do |duct|
+      next if duct.duct_insulation_r_value.nil?
+
+      if duct.duct_insulation_r_value == 0
+        duct.duct_insulation_r_value = nil
+        duct.duct_effective_r_value = 1.5
+      elsif duct.duct_insulation_r_value == 6
+        duct.duct_insulation_r_value = nil
+        duct.duct_effective_r_value = 7
+      else
+        fail 'Unexpected error.'
+      end
+    end
   end
 end
 
-def apply_hpxml_modification(hpxml_file, hpxml)
+def apply_hpxml_modification_hers_hot_water(hpxml)
+  # Set detailed HPXML values for HERS Hot Water test files
+  hpxml_bldg = hpxml.buildings[0]
+
+  hpxml.header.xml_generated_by = 'tasks.rb'
+  hpxml.header.created_date_and_time = Time.new(2000, 1, 1, 0, 0, 0, '-07:00').strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
+
+  (hpxml_bldg.roofs + hpxml_bldg.walls + hpxml_bldg.rim_joists).each do |surface|
+    surface.solar_absorptance = 0.75
+    surface.emittance = 0.9
+    if surface.is_a? HPXML::Roof
+      surface.roof_color = nil
+    else
+      surface.color = nil
+    end
+  end
+
+  hpxml_bldg.hvac_distributions.clear
+  hpxml_bldg.hvac_distributions.add(id: 'HVACDistribution1',
+                                    distribution_system_type: HPXML::HVACDistributionTypeDSE,
+                                    annual_heating_dse: 1.0,
+                                    annual_cooling_dse: 1.0)
+end
+
+def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
   # Set detailed HPXML values for sample files
+  hpxml_file = File.basename(hpxml_path)
   hpxml_bldg = hpxml.buildings[0]
 
   # ------------ #
@@ -308,6 +368,166 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml_bldg.air_infiltration_measurements[0].infiltration_volume = hpxml_bldg.building_construction.conditioned_building_volume
     elsif ['base-bldgtype-mf-unit-infil-compartmentalization-test.xml'].include? hpxml_file
       hpxml_bldg.air_infiltration_measurements[0].a_ext = 0.2
+    end
+
+    # ------------------ #
+    # HPXML Zones/Spaces #
+    # ------------------ #
+
+    if ['base-zones-spaces.xml',
+        'base-zones-spaces-multiple.xml'].include? hpxml_file
+      # Add zones
+      if hpxml_file == 'base-zones-spaces.xml'
+        hpxml_bldg.zones.add(id: 'ConditionedZone',
+                             zone_type: HPXML::ZoneTypeConditioned)
+        ag_cond_zone = hpxml_bldg.zones[-1]
+        bg_cond_zone = hpxml_bldg.zones[-1]
+      elsif hpxml_file == 'base-zones-spaces-multiple.xml'
+        hpxml_bldg.zones.add(id: 'AGConditionedZone',
+                             zone_type: HPXML::ZoneTypeConditioned)
+        ag_cond_zone = hpxml_bldg.zones[-1]
+        hpxml_bldg.zones.add(id: 'BGConditionedZone',
+                             zone_type: HPXML::ZoneTypeConditioned)
+        bg_cond_zone = hpxml_bldg.zones[-1]
+      end
+      hpxml_bldg.zones.add(id: 'GarageZone',
+                           zone_type: HPXML::ZoneTypeUnconditioned)
+      grg_zone = hpxml_bldg.zones[-1]
+
+      # Attach HVAC
+      hpxml_bldg.heating_systems[0].attached_to_zone_idref = hpxml_bldg.zones[0].id
+      hpxml_bldg.cooling_systems[0].attached_to_zone_idref = hpxml_bldg.zones[0].id
+      if hpxml_file == 'base-zones-spaces-multiple.xml'
+        hpxml_bldg.heating_systems << hpxml_bldg.heating_systems[0].dup
+        hpxml_bldg.heating_systems[-1].id = 'HeatingSystem2'
+        hpxml_bldg.heating_systems[-1].attached_to_zone_idref = hpxml_bldg.zones[1].id
+        hpxml_bldg.heating_systems[-1].primary_system = false
+        hpxml_bldg.cooling_systems << hpxml_bldg.cooling_systems[0].dup
+        hpxml_bldg.cooling_systems[-1].id = 'CoolingSystem2'
+        hpxml_bldg.cooling_systems[-1].attached_to_zone_idref = hpxml_bldg.zones[1].id
+        hpxml_bldg.cooling_systems[-1].primary_system = false
+        hpxml_bldg.hvac_distributions.add(id: "HVACDistribution#{hpxml_bldg.hvac_distributions.size + 1}",
+                                          distribution_system_type: HPXML::HVACDistributionTypeAir,
+                                          air_type: HPXML::AirTypeRegularVelocity)
+        hpxml_bldg.hvac_distributions[-1].duct_leakage_measurements << hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[0].dup
+        hpxml_bldg.hvac_distributions[-1].duct_leakage_measurements << hpxml_bldg.hvac_distributions[0].duct_leakage_measurements[1].dup
+        hpxml_bldg.hvac_distributions[-1].ducts << hpxml_bldg.hvac_distributions[0].ducts[0].dup
+        hpxml_bldg.hvac_distributions[-1].ducts << hpxml_bldg.hvac_distributions[0].ducts[1].dup
+        hpxml_bldg.hvac_distributions[-1].ducts[0].id = 'Ducts3'
+        hpxml_bldg.hvac_distributions[-1].ducts[1].id = 'Ducts4'
+        hpxml_bldg.heating_systems[-1].distribution_system_idref = hpxml_bldg.hvac_distributions[-1].id
+        hpxml_bldg.cooling_systems[-1].distribution_system_idref = hpxml_bldg.hvac_distributions[-1].id
+      end
+
+      # Add spaces
+      ag_cond_zone.spaces.add(id: 'Space1',
+                              floor_area: 850,
+                              manualj_num_occupants: 2,
+                              manualj_internal_loads_sensible: 1000,
+                              manualj_internal_loads_latent: 100)
+      ag_cond_zone.spaces.add(id: 'Space2',
+                              floor_area: 500,
+                              manualj_num_occupants: 0,
+                              manualj_internal_loads_sensible: 0,
+                              manualj_internal_loads_latent: 0)
+      bg_cond_zone.spaces.add(id: 'Space3',
+                              floor_area: 1000,
+                              manualj_num_occupants: 1,
+                              manualj_internal_loads_sensible: 1400,
+                              manualj_internal_loads_latent: 200)
+      bg_cond_zone.spaces.add(id: 'Space4',
+                              floor_area: 350,
+                              manualj_num_occupants: 1,
+                              manualj_internal_loads_sensible: 600,
+                              manualj_internal_loads_latent: 0)
+      grg_zone.spaces.add(id: 'GarageSpace',
+                          floor_area: 600)
+
+      # Attach surfaces
+      ag_surfaces = hpxml_bldg.surfaces.select { |w| w.interior_adjacent_to == HPXML::LocationConditionedSpace }
+      ag_spaces = hpxml_bldg.conditioned_spaces[0..1]
+      ag_cfa = ag_spaces.map { |space| space.floor_area }.sum
+      ag_surfaces.reverse_each do |ag_surface|
+        ag_spaces.each do |ag_space|
+          if ag_surface.is_a? HPXML::Wall
+            hpxml_bldg.walls << ag_surface.dup
+            new_ag_surface = hpxml_bldg.walls[-1]
+          elsif ag_surface.is_a? HPXML::Floor
+            hpxml_bldg.floors << ag_surface.dup
+            new_ag_surface = hpxml_bldg.floors[-1]
+          else
+            fail "Unexpected surface type: #{ag_surface.class}"
+          end
+          new_ag_surface.id = "#{ag_surface.id}#{ag_space.id}"
+          new_ag_surface.insulation_id = "#{ag_surface.insulation_id}#{ag_space.id}"
+          new_ag_surface.area = (new_ag_surface.area * ag_space.floor_area / ag_cfa).round(1)
+          new_ag_surface.attached_to_space_idref = ag_space.id
+          if ag_surface.is_a? HPXML::Floor
+            hpxml_bldg.attics[0].attached_to_floor_idrefs << new_ag_surface.id
+          end
+          next unless ag_surface.is_a? HPXML::Wall
+
+          ag_surface.windows.each do |window|
+            hpxml_bldg.windows << window.dup
+            hpxml_bldg.windows[-1].id = "#{hpxml_bldg.windows[-1].id}#{ag_space.id}"
+            hpxml_bldg.windows[-1].area = (hpxml_bldg.windows[-1].area * ag_space.floor_area / ag_cfa).round(1)
+            hpxml_bldg.windows[-1].interior_shading_id = "#{hpxml_bldg.windows[-1].interior_shading_id}#{ag_space.id}"
+            hpxml_bldg.windows[-1].attached_to_wall_idref = new_ag_surface.id
+          end
+          ag_surface.doors.each do |door|
+            hpxml_bldg.doors << door.dup
+            hpxml_bldg.doors[-1].id = "#{hpxml_bldg.doors[-1].id}#{ag_space.id}"
+            hpxml_bldg.doors[-1].area = (hpxml_bldg.doors[-1].area / ag_surface.doors.size).round(1)
+            hpxml_bldg.doors[-1].attached_to_wall_idref = new_ag_surface.id
+          end
+        end
+        ag_surface.delete
+      end
+
+      bg_surfaces = hpxml_bldg.surfaces.select { |w| w.interior_adjacent_to == HPXML::LocationBasementConditioned }
+      bg_spaces = hpxml_bldg.conditioned_spaces[2..3]
+      bg_cfa = bg_spaces.map { |space| space.floor_area }.sum
+      bg_surfaces.reverse_each do |bg_surface|
+        hpxml_bldg.conditioned_spaces[2..3].each do |bg_space|
+          if bg_surface.is_a? HPXML::FoundationWall
+            hpxml_bldg.foundation_walls << bg_surface.dup
+            new_bg_surface = hpxml_bldg.foundation_walls[-1]
+          elsif bg_surface.is_a? HPXML::RimJoist
+            hpxml_bldg.rim_joists << bg_surface.dup
+            new_bg_surface = hpxml_bldg.rim_joists[-1]
+          elsif bg_surface.is_a? HPXML::Slab
+            hpxml_bldg.slabs << bg_surface.dup
+            new_bg_surface = hpxml_bldg.slabs[-1]
+          else
+            fail "Unexpected surface type: #{bg_surface.class}"
+          end
+          new_bg_surface.id = "#{bg_surface.id}#{bg_space.id}"
+          if bg_surface.is_a? HPXML::Slab
+            new_bg_surface.perimeter_insulation_id = "#{bg_surface.perimeter_insulation_id}#{bg_space.id}"
+            new_bg_surface.under_slab_insulation_id = "#{bg_surface.under_slab_insulation_id}#{bg_space.id}"
+          else
+            new_bg_surface.insulation_id = "#{bg_space.id}#{bg_surface.insulation_id}"
+          end
+          new_bg_surface.area = (new_bg_surface.area * bg_space.floor_area / bg_cfa).round(1)
+          if bg_surface.is_a? HPXML::Slab
+            new_bg_surface.exposed_perimeter = (new_bg_surface.exposed_perimeter * bg_space.floor_area / bg_cfa).round(1)
+          end
+          new_bg_surface.attached_to_space_idref = bg_space.id
+          if bg_surface.is_a? HPXML::RimJoist
+            hpxml_bldg.foundations[0].attached_to_rim_joist_idrefs << new_bg_surface.id
+          elsif bg_surface.is_a? HPXML::FoundationWall
+            hpxml_bldg.foundations[0].attached_to_foundation_wall_idrefs << new_bg_surface.id
+          elsif bg_surface.is_a? HPXML::Slab
+            hpxml_bldg.foundations[0].attached_to_slab_idrefs << new_bg_surface.id
+          end
+        end
+        bg_surface.delete
+      end
+      hpxml_bldg.surfaces.each do |s|
+        next unless s.interior_adjacent_to == HPXML::LocationGarage
+
+        s.attached_to_space_idref = hpxml_bldg.zones[-1].spaces[0].id
+      end
     end
 
     # --------------- #
@@ -395,7 +615,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
         window.area = (window.area * 0.35).round(1)
       end
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: wall.id,
+                           attached_to_wall_idref: wall.id,
                            area: 20,
                            azimuth: 0,
                            r_value: 4.4)
@@ -484,13 +704,13 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.67,
-                             wall_idref: wall.id)
+                             attached_to_wall_idref: wall.id)
       wall = hpxml_bldg.walls.select { |w|
                w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
                  w.exterior_adjacent_to == HPXML::LocationOtherHeatedSpace
              }[0]
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: wall.id,
+                           attached_to_wall_idref: wall.id,
                            area: 20,
                            azimuth: 0,
                            r_value: 4.4)
@@ -499,7 +719,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                  w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
              }[0]
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: wall.id,
+                           attached_to_wall_idref: wall.id,
                            area: 20,
                            azimuth: 0,
                            r_value: 4.4)
@@ -510,12 +730,12 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       end
       hpxml_bldg.doors[0].delete
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: 'Wall1',
+                           attached_to_wall_idref: 'Wall1',
                            area: 20,
                            orientation: HPXML::OrientationNorth,
                            r_value: 4.4)
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: 'Wall1',
+                           attached_to_wall_idref: 'Wall1',
                            area: 20,
                            orientation: HPXML::OrientationSouth,
                            r_value: 4.4)
@@ -594,14 +814,14 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0,
-                             wall_idref: hpxml_bldg.walls[-2].id)
+                             attached_to_wall_idref: hpxml_bldg.walls[-2].id)
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 62,
                              azimuth: 270,
                              ufactor: 0.3,
                              shgc: 0.45,
                              fraction_operable: 0,
-                             wall_idref: hpxml_bldg.walls[-2].id)
+                             attached_to_wall_idref: hpxml_bldg.walls[-2].id)
     elsif ['base-foundation-unconditioned-basement-above-grade.xml'].include? hpxml_file
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 20,
@@ -609,28 +829,28 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.0,
-                             wall_idref: hpxml_bldg.foundation_walls[0].id)
+                             attached_to_wall_idref: hpxml_bldg.foundation_walls[0].id)
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 10,
                              azimuth: 90,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.0,
-                             wall_idref: hpxml_bldg.foundation_walls[0].id)
+                             attached_to_wall_idref: hpxml_bldg.foundation_walls[0].id)
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 20,
                              azimuth: 180,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.0,
-                             wall_idref: hpxml_bldg.foundation_walls[0].id)
+                             attached_to_wall_idref: hpxml_bldg.foundation_walls[0].id)
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 10,
                              azimuth: 270,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.0,
-                             wall_idref: hpxml_bldg.foundation_walls[0].id)
+                             attached_to_wall_idref: hpxml_bldg.foundation_walls[0].id)
     elsif ['base-enclosure-skylights-physical-properties.xml'].include? hpxml_file
       hpxml_bldg.skylights[0].ufactor = nil
       hpxml_bldg.skylights[0].shgc = nil
@@ -783,7 +1003,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.0,
-                             wall_idref: hpxml_bldg.foundation_walls[-1].id)
+                             attached_to_wall_idref: hpxml_bldg.foundation_walls[-1].id)
     elsif ['base-foundation-multiple.xml'].include? hpxml_file
       hpxml_bldg.foundations.add(id: "Foundation#{hpxml_bldg.foundations.size + 1}",
                                  foundation_type: HPXML::FoundationTypeCrawlspaceUnvented,
@@ -965,12 +1185,12 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                            carpet_fraction: 0,
                            carpet_r_value: 0)
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: hpxml_bldg.walls[-3].id,
+                           attached_to_wall_idref: hpxml_bldg.walls[-3].id,
                            area: 70,
                            azimuth: 180,
                            r_value: 4.4)
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: hpxml_bldg.walls[-2].id,
+                           attached_to_wall_idref: hpxml_bldg.walls[-2].id,
                            area: 4,
                            azimuth: 0,
                            r_value: 4.4)
@@ -1098,38 +1318,38 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.67,
-                             wall_idref: 'Wall1')
+                             attached_to_wall_idref: 'Wall1')
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 72 / 8,
                              azimuth: 90,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.67,
-                             wall_idref: 'Wall2')
+                             attached_to_wall_idref: 'Wall2')
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 108 / 8,
                              azimuth: 180,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.67,
-                             wall_idref: 'Wall3')
+                             attached_to_wall_idref: 'Wall3')
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 72 / 8,
                              azimuth: 270,
                              ufactor: 0.33,
                              shgc: 0.45,
                              fraction_operable: 0.67,
-                             wall_idref: 'Wall4')
+                             attached_to_wall_idref: 'Wall4')
       hpxml_bldg.doors.reverse_each do |door|
         door.delete
       end
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: 'Wall9',
+                           attached_to_wall_idref: 'Wall9',
                            area: 20,
                            azimuth: 0,
                            r_value: 4.4)
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: 'Wall10',
+                           attached_to_wall_idref: 'Wall10',
                            area: 20,
                            azimuth: 180,
                            r_value: 4.4)
@@ -1173,13 +1393,15 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       end
     end
     if ['base-enclosure-2stories-garage.xml',
-        'base-enclosure-garage.xml'].include? hpxml_file
+        'base-enclosure-garage.xml',
+        'base-zones-spaces.xml',
+        'base-zones-spaces-multiple.xml'].include? hpxml_file
       grg_wall = hpxml_bldg.walls.select { |w|
                    w.interior_adjacent_to == HPXML::LocationGarage &&
                      w.exterior_adjacent_to == HPXML::LocationOutside
                  }[0]
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
-                           wall_idref: grg_wall.id,
+                           attached_to_wall_idref: grg_wall.id,
                            area: 70,
                            azimuth: 180,
                            r_value: 4.4)
@@ -1351,11 +1573,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
         end
       end
     end
-    if hpxml_file.include? 'install-quality'
-      hpxml_bldg.hvac_systems.each do |hvac_system|
-        hvac_system.fan_watts_per_cfm = 0.365
-      end
-    elsif ['base-hvac-setpoints-daily-setbacks.xml'].include? hpxml_file
+    if ['base-hvac-setpoints-daily-setbacks.xml'].include? hpxml_file
       hpxml_bldg.hvac_controls[0].heating_setback_temp = 66
       hpxml_bldg.hvac_controls[0].heating_setback_hours_per_week = 7 * 7
       hpxml_bldg.hvac_controls[0].heating_setback_start_hour = 23 # 11pm
@@ -1423,7 +1641,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     elsif ['base-hvac-ducts-effective-rvalue.xml'].include? hpxml_file
       hpxml_bldg.hvac_distributions[0].ducts[0].duct_insulation_r_value = nil
       hpxml_bldg.hvac_distributions[0].ducts[1].duct_insulation_r_value = nil
-      hpxml_bldg.hvac_distributions[0].ducts[0].duct_effective_r_value = 4.5
+      hpxml_bldg.hvac_distributions[0].ducts[0].duct_effective_r_value = 4.38
       hpxml_bldg.hvac_distributions[0].ducts[1].duct_effective_r_value = 1.7
     elsif ['base-hvac-multiple.xml'].include? hpxml_file
       hpxml_bldg.hvac_distributions.reverse_each do |hvac_distribution|
@@ -1680,7 +1898,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                    location: HPXML::LocationConditionedSpace)
     end
     if ['base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml',
-        'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-furnace.xml'].include? hpxml_file
+        'base-hvac-air-to-air-heat-pump-var-speed-backup-furnace-airflow.xml',
+        'base-hvac-air-to-air-heat-pump-var-speed-backup-furnace-autosize-factor.xml'].include? hpxml_file
       # Switch backup boiler with hydronic distribution to backup furnace with air distribution
       hpxml_bldg.heating_systems[0].heating_system_type = HPXML::HVACTypeFurnace
       hpxml_bldg.hvac_distributions[0].distribution_system_type = HPXML::HVACDistributionTypeAir
@@ -1703,6 +1922,13 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     end
     if hpxml_file.include? 'base-hvac-ground-to-air-heat-pump-detailed-geothermal-loop.xml'
       hpxml_bldg.geothermal_loops[0].shank_spacing = 2.5
+    end
+    if hpxml_file.include? 'HERS_HVAC'
+      hpxml_bldg.hvac_distributions.clear
+      hpxml_bldg.hvac_distributions.add(id: "HVACDistribution#{hpxml_bldg.hvac_distributions.size + 1}",
+                                        distribution_system_type: HPXML::HVACDistributionTypeDSE,
+                                        annual_heating_dse: 1.0,
+                                        annual_cooling_dse: 1.0)
     end
 
     # ------------------ #
@@ -2355,7 +2581,8 @@ if ARGV[0].to_sym == :update_measures
           'Style/StringLiterals',
           'Style/StringLiteralsInInterpolation']
   commands = ["\"require 'rubocop/rake_task' \"",
-              "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--auto-correct', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
+              "\"require 'stringio' \"",
+              "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--autocorrect', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
               '"Rake.application[:rubocop].invoke"']
   command = "#{OpenStudio.getOpenStudioCLI} -e #{commands.join(' -e ')}"
   puts 'Applying rubocop auto-correct to measures...'

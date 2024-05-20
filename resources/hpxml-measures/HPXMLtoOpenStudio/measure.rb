@@ -43,10 +43,26 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path for the output files directory.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
-    arg.setDisplayName('Debug Mode?')
-    arg.setDescription('If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.')
-    arg.setDefaultValue(false)
+    format_chs = OpenStudio::StringVector.new
+    format_chs << 'csv'
+    format_chs << 'json'
+    format_chs << 'msgpack'
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('output_format', format_chs, false)
+    arg.setDisplayName('Output Format')
+    arg.setDescription('The file format of the HVAC design load details output.')
+    arg.setDefaultValue('csv')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('annual_output_file_name', false)
+    arg.setDisplayName('Annual Output File Name')
+    arg.setDescription("The name of the file w/ HVAC design loads and capacities. If not provided, defaults to 'results_annual.csv' (or 'results_annual.json' or 'results_annual.msgpack').")
+    arg.setDefaultValue('results_annual')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('design_load_details_output_file_name', false)
+    arg.setDisplayName('Design Load Details Output File Name')
+    arg.setDescription("The name of the file w/ additional HVAC design load details. If not provided, defaults to 'results_design_load_details.csv' (or 'results_design_load_details.json' or 'results_design_load_details.msgpack').")
+    arg.setDefaultValue('results_design_load_details')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
@@ -55,15 +71,21 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('building_id', false)
+    arg.setDisplayName('BuildingID')
+    arg.setDescription('The ID of the HPXML Building. Only required if the HPXML has multiple Building elements and WholeSFAorMFBuildingSimulation is not true.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('skip_validation', false)
     arg.setDisplayName('Skip Validation?')
     arg.setDescription('If true, bypasses HPXML input validation for faster performance. WARNING: This should only be used if the supplied HPXML file has already been validated against the Schema & Schematron documents.')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('building_id', false)
-    arg.setDisplayName('BuildingID')
-    arg.setDescription('The ID of the HPXML Building. Only required if the HPXML has multiple Building elements and WholeSFAorMFBuildingSimulation is not true.')
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
+    arg.setDisplayName('Debug Mode?')
+    arg.setDescription('If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.')
+    arg.setDefaultValue(false)
     args << arg
 
     return args
@@ -82,28 +104,31 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     Version.check_openstudio_version()
 
-    # assign the user inputs to variables
-    hpxml_path = runner.getStringArgumentValue('hpxml_path', user_arguments)
-    output_dir = runner.getStringArgumentValue('output_dir', user_arguments)
-    add_component_loads = runner.getBoolArgumentValue('add_component_loads', user_arguments)
-    debug = runner.getBoolArgumentValue('debug', user_arguments)
-    skip_validation = runner.getBoolArgumentValue('skip_validation', user_arguments)
-    building_id = runner.getOptionalStringArgumentValue('building_id', user_arguments)
-    building_id = building_id.is_initialized ? building_id.get : nil
+    args = runner.getArgumentValues(arguments(model), user_arguments)
 
-    unless (Pathname.new hpxml_path).absolute?
-      hpxml_path = File.expand_path(hpxml_path)
+    unless (Pathname.new args[:hpxml_path]).absolute?
+      args[:hpxml_path] = File.expand_path(args[:hpxml_path])
     end
-    unless File.exist?(hpxml_path) && hpxml_path.downcase.end_with?('.xml')
-      fail "'#{hpxml_path}' does not exist or is not an .xml file."
+    unless File.exist?(args[:hpxml_path]) && args[:hpxml_path].downcase.end_with?('.xml')
+      fail "'#{args[:hpxml_path]}' does not exist or is not an .xml file."
     end
 
-    unless (Pathname.new output_dir).absolute?
-      output_dir = File.expand_path(output_dir)
+    unless (Pathname.new args[:output_dir]).absolute?
+      args[:output_dir] = File.expand_path(args[:output_dir])
     end
+
+    unless File.extname(args[:annual_output_file_name]).length > 0
+      args[:annual_output_file_name] = "#{args[:annual_output_file_name]}.#{args[:output_format]}"
+    end
+    annual_output_file_path = File.join(args[:output_dir], args[:annual_output_file_name])
+
+    unless File.extname(args[:design_load_details_output_file_name]).length > 0
+      args[:design_load_details_output_file_name] = "#{args[:design_load_details_output_file_name]}.#{args[:output_format]}"
+    end
+    design_load_details_output_file_path = File.join(args[:output_dir], args[:design_load_details_output_file_name])
 
     begin
-      if skip_validation
+      if args[:skip_validation]
         schema_validator = nil
         schematron_validator = nil
       else
@@ -113,7 +138,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         schematron_validator = XMLValidator.get_schematron_validator(schematron_path)
       end
 
-      hpxml = HPXML.new(hpxml_path: hpxml_path, schema_validator: schema_validator, schematron_validator: schematron_validator, building_id: building_id)
+      hpxml = HPXML.new(hpxml_path: args[:hpxml_path], schema_validator: schema_validator, schematron_validator: schematron_validator, building_id: args[:building_id])
       hpxml.errors.each do |error|
         runner.registerError(error)
       end
@@ -127,12 +152,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       eri_version = Constants.ERIVersions[-1] if eri_version == 'latest'
 
       # Process weather once upfront
-      epw_path = Location.get_epw_path(hpxml.buildings[0], hpxml_path)
+      epw_path = Location.get_epw_path(hpxml.buildings[0], args[:hpxml_path])
       weather = WeatherProcess.new(epw_path: epw_path, runner: runner, hpxml: hpxml)
       epw_file = OpenStudio::EpwFile.new(epw_path)
       hpxml.buildings.each_with_index do |hpxml_bldg, i|
         next if i == 0
-        next if Location.get_epw_path(hpxml_bldg, hpxml_path) == epw_path
+        next if Location.get_epw_path(hpxml_bldg, args[:hpxml_path]) == epw_path
 
         fail 'Weather station EPW filepath has different values across dwelling units.'
       end
@@ -150,24 +175,33 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
       # Apply HPXML defaults upfront; process schedules & emissions
       hpxml_sch_map = {}
-      check_emissions_references(hpxml.header, hpxml_path)
+      check_emissions_references(hpxml.header, args[:hpxml_path])
       hpxml.buildings.each_with_index do |hpxml_bldg, i|
-        check_schedule_references(hpxml_bldg.header, hpxml_path)
+        check_schedule_references(hpxml_bldg.header, args[:hpxml_path])
         in_schedules_csv = 'in.schedules.csv'
         in_schedules_csv = "in.schedules#{i + 1}.csv" if i > 0
         schedules_file = SchedulesFile.new(runner: runner,
                                            schedules_paths: hpxml_bldg.header.schedules_filepaths,
                                            year: Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file),
                                            unavailable_periods: hpxml.header.unavailable_periods,
-                                           output_path: File.join(output_dir, in_schedules_csv))
-        HPXMLDefaults.apply(runner, hpxml, hpxml_bldg, eri_version, weather, epw_file: epw_file, schedules_file: schedules_file)
+                                           output_path: File.join(args[:output_dir], in_schedules_csv))
+        HPXMLDefaults.apply(runner, hpxml, hpxml_bldg, eri_version, weather, epw_file: epw_file, schedules_file: schedules_file,
+                                                                             design_load_details_output_file_path: design_load_details_output_file_path,
+                                                                             output_format: args[:output_format])
         hpxml_sch_map[hpxml_bldg] = schedules_file
       end
       validate_emissions_files(hpxml.header)
 
       # Write updated HPXML object (w/ defaults) to file for inspection
-      hpxml_defaults_path = File.join(output_dir, 'in.xml')
+      hpxml_defaults_path = File.join(args[:output_dir], 'in.xml')
       XMLHelper.write_file(hpxml.to_doc, hpxml_defaults_path)
+
+      # Write annual results output file
+      # This is helpful if the user wants to get these results right away (e.g.,
+      # they might be using the run_simulation.rb --skip-simulation argument.
+      results_out = []
+      Outputs.append_sizing_results(hpxml.buildings, results_out)
+      Outputs.write_results_out_to_file(results_out, args[:output_format], annual_output_file_path)
 
       # Create OpenStudio model
       hpxml_osm_map = {}
@@ -176,10 +210,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         if hpxml.buildings.size > 1
           # Create the model for this single unit
           unit_model = OpenStudio::Model::Model.new
-          create_unit_model(hpxml, hpxml_bldg, runner, unit_model, epw_path, epw_file, weather, debug, schedules_file, eri_version, i + 1)
+          create_unit_model(hpxml, hpxml_bldg, runner, unit_model, epw_path, epw_file, weather, args[:debug], schedules_file, eri_version, i + 1)
           hpxml_osm_map[hpxml_bldg] = unit_model
         else
-          create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, debug, schedules_file, eri_version, i + 1)
+          create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, epw_file, weather, args[:debug], schedules_file, eri_version, i + 1)
           hpxml_osm_map[hpxml_bldg] = model
         end
       end
@@ -190,21 +224,24 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
 
       # Output
-      add_unmet_hours_output(model, hpxml_osm_map)
-      add_loads_output(model, add_component_loads, hpxml_osm_map)
+      season_day_nums = add_unmet_hours_output(model, hpxml_osm_map)
+      loads_data = add_total_loads_output(model, hpxml_osm_map)
+      if args[:add_component_loads]
+        add_component_loads_output(model, hpxml_osm_map, loads_data, season_day_nums)
+      end
       set_output_files(model)
-      add_additional_properties(model, hpxml, hpxml_osm_map, hpxml_path, building_id, hpxml_defaults_path)
+      add_additional_properties(model, hpxml, hpxml_osm_map, args[:hpxml_path], args[:building_id], hpxml_defaults_path)
       # Uncomment to debug EMS
       # add_ems_debug_output(model)
 
-      if debug
+      if args[:debug]
         # Write OSM file to run dir
-        osm_output_path = File.join(output_dir, 'in.osm')
+        osm_output_path = File.join(args[:output_dir], 'in.osm')
         File.write(osm_output_path, model.to_s)
         runner.registerInfo("Wrote file: #{osm_output_path}")
 
         # Copy EPW file to run dir
-        epw_output_path = File.join(output_dir, 'in.epw')
+        epw_output_path = File.join(args[:output_dir], 'in.epw')
         FileUtils.cp(epw_path, epw_output_path)
       end
     rescue Exception => e
@@ -466,7 +503,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     add_pools_and_permanent_spas(runner, model, spaces)
 
     # Other
-    add_cooling_season(model, weather)
     add_airflow(runner, model, weather, spaces, airloop_map)
     add_photovoltaics(model)
     add_generators(model)
@@ -831,7 +867,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
   def add_floors(runner, model, spaces)
     @hpxml_bldg.floors.each do |floor|
-      area = floor.area
+      next if floor.net_area < 1.0 # skip modeling net surface area for surfaces comprised entirely of subsurface area
+
+      area = floor.net_area
       width = Math::sqrt(area)
       length = area / width
       if floor.interior_adjacent_to.include?('attic') || floor.exterior_adjacent_to.include?('attic')
@@ -1268,18 +1306,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
   end
 
-  def add_cooling_season(model, weather)
-    # Create cooling season schedule
-    # Applies to natural ventilation and calculation of component loads, not HVAC equipment
-    # Uses BAHSP cooling season, not user-specified cooling season (which may be, e.g., year-round)
-    _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, @hpxml_bldg.latitude)
-
-    clg_season_sch = MonthWeekdayWeekendSchedule.new(model, 'cooling season schedule', Array.new(24, 1), Array.new(24, 1), default_cooling_months, Constants.ScheduleTypeLimitsFraction)
-    @clg_ssn_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-    @clg_ssn_sensor.setName('cool_season')
-    @clg_ssn_sensor.setKeyName(clg_season_sch.schedule.name.to_s)
-  end
-
   def add_windows(model, spaces)
     # We already stored @fraction_of_windows_operable, so lets remove the
     # fraction_operable properties from windows and re-collapse the enclosure
@@ -1383,6 +1409,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     shading_schedules = {}
 
     @hpxml_bldg.skylights.each do |skylight|
+      if not skylight.is_conditioned
+        fail "Skylight '#{skylight.id}' not connected to conditioned space; if it's a skylight with a shaft or sun tunnel, use AttachedToFloor to connect it to conditioned space."
+      end
+
       tilt = skylight.roof.pitch / 12.0
       width = Math::sqrt(skylight.area)
       length = skylight.area / width
@@ -1400,7 +1430,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       surface.additionalProperties.setFeature('SurfaceType', 'Skylight')
       surface.setName("surface #{skylight.id}")
       surface.setSurfaceType('RoofCeiling')
-      surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace)) # Ensures it is included in Manual J sizing
+      surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace))
       surface.setOutsideBoundaryCondition('Outdoors') # cannot be adiabatic because subsurfaces won't be created
       surfaces << surface
 
@@ -1599,7 +1629,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, cooling_system, heating_system, sequential_cool_load_fracs, sequential_heat_load_fracs,
                                                                  weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
-                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg)
+                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg,
+                                                                 @hpxml_header)
 
       elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
 
@@ -1644,7 +1675,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, nil, heating_system, [0], sequential_heat_load_fracs,
                                                                  weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
-                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg)
+                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg,
+                                                                 @hpxml_header)
 
       elsif [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
 
@@ -1707,7 +1739,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, heat_pump, heat_pump, sequential_cool_load_fracs, sequential_heat_load_fracs,
                                                                  weather.data.AnnualMaxDrybulb, weather.data.AnnualMinDrybulb,
-                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg)
+                                                                 conditioned_zone, @hvac_unavailable_periods, @schedules_file, @hpxml_bldg,
+                                                                 @hpxml_header)
       elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
 
         airloop_map[sys_id] = HVAC.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
@@ -1942,7 +1975,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
 
     Airflow.apply(model, runner, weather, spaces, @hpxml_header, @hpxml_bldg, @cfa,
-                  @ncfl_ag, duct_systems, airloop_map, @clg_ssn_sensor, @eri_version,
+                  @ncfl_ag, duct_systems, airloop_map, @eri_version,
                   @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file,
                   @hpxml_header.unavailable_periods, hvac_availability_sensor)
   end
@@ -2089,7 +2122,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # Create sensors and gather data
     htg_sensors, clg_sensors = {}, {}
     total_heat_load_serveds, total_cool_load_serveds = {}, {}
-    htg_start_days, htg_end_days, clg_start_days, clg_end_days = {}, {}, {}, {}
+    season_day_nums = {}
     hpxml_osm_map.each_with_index do |(hpxml_bldg, unit_model), unit|
       conditioned_zone_name = unit_model.getThermalZones.find { |z| z.additionalProperties.getFeatureAsString('ObjectType').to_s == HPXML::LocationConditionedSpace }.name.to_s
 
@@ -2109,10 +2142,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       next unless not hvac_control.nil?
 
       sim_year = @hpxml_header.sim_calendar_year
-      htg_start_days[unit] = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_begin_month, hvac_control.seasons_heating_begin_day)
-      htg_end_days[unit] = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_end_month, hvac_control.seasons_heating_end_day)
-      clg_start_days[unit] = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_begin_month, hvac_control.seasons_cooling_begin_day)
-      clg_end_days[unit] = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_end_month, hvac_control.seasons_cooling_end_day)
+      season_day_nums[unit] = {
+        htg_start: Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_begin_month, hvac_control.seasons_heating_begin_day),
+        htg_end: Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_end_month, hvac_control.seasons_heating_end_day),
+        clg_start: Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_begin_month, hvac_control.seasons_cooling_begin_day),
+        clg_end: Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_end_month, hvac_control.seasons_cooling_end_day)
+      }
     end
 
     hvac_availability_sensor = model.getEnergyManagementSystemSensors.find { |s| s.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameHVACAvailabilitySensor }
@@ -2127,10 +2162,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     program.addLine("Set #{clg_hrs} = 0")
     for unit in 0..hpxml_osm_map.size - 1
       if total_heat_load_serveds[unit] > 0
-        if htg_end_days[unit] >= htg_start_days[unit]
-          line = "If ((DayOfYear >= #{htg_start_days[unit]}) && (DayOfYear <= #{htg_end_days[unit]}))"
+        if season_day_nums[unit][:htg_end] >= season_day_nums[unit][:htg_start]
+          line = "If ((DayOfYear >= #{season_day_nums[unit][:htg_start]}) && (DayOfYear <= #{season_day_nums[unit][:htg_end]}))"
         else
-          line = "If ((DayOfYear >= #{htg_start_days[unit]}) || (DayOfYear <= #{htg_end_days[unit]}))"
+          line = "If ((DayOfYear >= #{season_day_nums[unit][:htg_start]}) || (DayOfYear <= #{season_day_nums[unit][:htg_end]}))"
         end
         line += " && (#{hvac_availability_sensor.name} == 1)" if not hvac_availability_sensor.nil?
         program.addLine(line)
@@ -2141,10 +2176,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
       next unless total_cool_load_serveds[unit] > 0
 
-      if clg_end_days[unit] >= clg_start_days[unit]
-        line = "If ((DayOfYear >= #{clg_start_days[unit]}) && (DayOfYear <= #{clg_end_days[unit]}))"
+      if season_day_nums[unit][:clg_end] >= season_day_nums[unit][:clg_start]
+        line = "If ((DayOfYear >= #{season_day_nums[unit][:clg_start]}) && (DayOfYear <= #{season_day_nums[unit][:clg_end]}))"
       else
-        line = "If ((DayOfYear >= #{clg_start_days[unit]}) || (DayOfYear <= #{clg_end_days[unit]}))"
+        line = "If ((DayOfYear >= #{season_day_nums[unit][:clg_start]}) || (DayOfYear <= #{season_day_nums[unit][:clg_end]}))"
       end
       line += " && (#{hvac_availability_sensor.name} == 1)" if not hvac_availability_sensor.nil?
       program.addLine(line)
@@ -2159,13 +2194,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     program_calling_manager.setName("#{program.name} calling manager")
     program_calling_manager.setCallingPoint('EndOfZoneTimestepBeforeZoneReporting')
     program_calling_manager.addProgram(program)
-  end
 
-  def add_loads_output(model, add_component_loads, hpxml_osm_map)
-    loads_data = add_total_loads_output(model, hpxml_osm_map)
-    return unless add_component_loads
-
-    add_component_loads_output(model, hpxml_osm_map, loads_data)
+    return season_day_nums
   end
 
   def add_total_loads_output(model, hpxml_osm_map)
@@ -2253,7 +2283,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     return htg_cond_load_sensors, clg_cond_load_sensors, total_heat_load_serveds, total_cool_load_serveds, dehumidifier_sensors
   end
 
-  def add_component_loads_output(model, hpxml_osm_map, loads_data)
+  def add_component_loads_output(model, hpxml_osm_map, loads_data, season_day_nums)
     htg_cond_load_sensors, clg_cond_load_sensors, total_heat_load_serveds, total_cool_load_serveds, dehumidifier_sensors = loads_data
 
     # Output diagnostics needed for some output variables used below
@@ -2606,6 +2636,23 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         program.addLine("Set hr_ducts = hr_ducts + (#{ducts_mix_loss_sensor.name} - #{ducts_mix_gain_sensor.name})")
       end
 
+      # EMS Sensors: Indoor temperature, setpoints
+      tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Mean Air Temperature')
+      tin_sensor.setName('tin s')
+      tin_sensor.setKeyName(conditioned_zone.name.to_s)
+      thermostat = nil
+      if conditioned_zone.thermostatSetpointDualSetpoint.is_initialized
+        thermostat = conditioned_zone.thermostatSetpointDualSetpoint.get
+
+        htg_sp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+        htg_sp_sensor.setName('htg sp s')
+        htg_sp_sensor.setKeyName(thermostat.heatingSetpointTemperatureSchedule.get.name.to_s)
+
+        clg_sp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+        clg_sp_sensor.setName('clg sp s')
+        clg_sp_sensor.setKeyName(thermostat.coolingSetpointTemperatureSchedule.get.name.to_s)
+      end
+
       # EMS program: Heating vs Cooling logic
       program.addLine('Set htg_mode = 0')
       program.addLine('Set clg_mode = 0')
@@ -2613,10 +2660,40 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       program.addLine("  Set htg_mode = #{total_heat_load_serveds[unit]}")
       program.addLine("ElseIf (#{clg_cond_load_sensors[unit].name} > 0)") # Assign hour to cooling if cooling load
       program.addLine("  Set clg_mode = #{total_cool_load_serveds[unit]}")
-      program.addLine("ElseIf (#{@clg_ssn_sensor.name} > 0)") # No load, assign hour to cooling if in cooling season definition (Note: natural ventilation & whole house fan only operate during the cooling season)
-      program.addLine("  Set clg_mode = #{total_cool_load_serveds[unit]}")
-      program.addLine('Else') # No load, assign hour to heating if not in cooling season definition
-      program.addLine("  Set htg_mode = #{total_heat_load_serveds[unit]}")
+      program.addLine('Else')
+      program.addLine('  Set htg_season = 0')
+      program.addLine('  Set clg_season = 0')
+      if not season_day_nums[unit].nil?
+        # Determine whether we're in the heating and/or cooling season
+        if season_day_nums[unit][:clg_end] >= season_day_nums[unit][:clg_start]
+          program.addLine("  If ((DayOfYear >= #{season_day_nums[unit][:clg_start]}) && (DayOfYear <= #{season_day_nums[unit][:clg_end]}))")
+        else
+          program.addLine("  If ((DayOfYear >= #{season_day_nums[unit][:clg_start]}) || (DayOfYear <= #{season_day_nums[unit][:clg_end]}))")
+        end
+        program.addLine('    Set clg_season = 1')
+        program.addLine('  EndIf')
+        if season_day_nums[unit][:htg_end] >= season_day_nums[unit][:htg_start]
+          program.addLine("  If ((DayOfYear >= #{season_day_nums[unit][:htg_start]}) && (DayOfYear <= #{season_day_nums[unit][:htg_end]}))")
+        else
+          program.addLine("  If ((DayOfYear >= #{season_day_nums[unit][:htg_start]}) || (DayOfYear <= #{season_day_nums[unit][:htg_end]}))")
+        end
+        program.addLine('    Set htg_season = 1')
+        program.addLine('  EndIf')
+      end
+      program.addLine("  If ((#{natvent_sensors[0].name} <> 0) || (#{natvent_sensors[1].name} <> 0)) && (clg_season == 1)") # Assign hour to cooling if natural ventilation is operating
+      program.addLine("    Set clg_mode = #{total_cool_load_serveds[unit]}")
+      program.addLine("  ElseIf ((#{whf_sensors[0].name} <> 0) || (#{whf_sensors[1].name} <> 0)) && (clg_season == 1)") # Assign hour to cooling if whole house fan is operating
+      program.addLine("    Set clg_mode = #{total_cool_load_serveds[unit]}")
+      if not thermostat.nil?
+        program.addLine('  Else') # Indoor temperature floating between setpoints; determine assignment by comparing to average of heating/cooling setpoints
+        program.addLine("    Set Tmid_setpoint = (#{htg_sp_sensor.name} + #{clg_sp_sensor.name}) / 2")
+        program.addLine("    If (#{tin_sensor.name} > Tmid_setpoint) && (clg_season == 1)")
+        program.addLine("      Set clg_mode = #{total_cool_load_serveds[unit]}")
+        program.addLine("    ElseIf (#{tin_sensor.name} < Tmid_setpoint) && (htg_season == 1)")
+        program.addLine("      Set htg_mode = #{total_heat_load_serveds[unit]}")
+        program.addLine('    EndIf')
+      end
+      program.addLine('  EndIf')
       program.addLine('EndIf')
 
       unit_multiplier = @hpxml_bldg.building_construction.number_of_units
@@ -2645,8 +2722,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   def set_output_files(model)
     oj = model.getOutputJSON
     oj.setOptionType('TimeSeriesAndTabular')
-    oj.setOutputJSON(false)
-    oj.setOutputMessagePack(true)
+    oj.setOutputJSON(@debug)
+    oj.setOutputMessagePack(true) # Used by ReportSimulationOutput reporting measure
 
     ocf = model.getOutputControlFiles
     ocf.setOutputAUDIT(@debug)

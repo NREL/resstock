@@ -343,7 +343,7 @@ def read_csv(csv_file_path, **kwargs) -> pd.DataFrame:
 if __name__ == '__main__':
 
     default_base_folder = 'workflow/tests/base_results'
-    default_feature_folder = 'workflow/tests/results'
+    default_feature_folder = 'workflow/tests/test_results'
     default_export_folder = 'workflow/tests/comparisons'
     actions = [method for method in dir(BaseCompare) if method.startswith('__') is False]
 

@@ -1,15 +1,16 @@
 # frozen_string_literal: true
 
-require 'parallel'
 require 'json'
-require 'yaml'
 require 'optparse'
+require 'parallel'
 require 'pathname'
 require 'time'
+require 'yaml'
+require 'zlib'
 
 require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling_lib'
-require_relative '../resources/util'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/util'
 
 $start_time = Time.now
 
@@ -19,7 +20,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
     return false
   end
 
-  cfg = YAML.load_file(yml)
+  cfg = YAML.load_file(yml, aliases: true)
 
   if !cfg['workflow_generator']['args'].keys.include?('build_existing_model') || !cfg['workflow_generator']['args'].keys.include?('simulation_output_report')
     puts "Error: Both 'build_existing_model' and 'simulation_output_report' must be included in yml."
@@ -69,20 +70,26 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
   # Create or read buildstock.csv
   outfile = File.join('../lib/housing_characteristics/buildstock.csv')
   if !['precomputed'].include?(cfg['sampler']['type'])
+    # TODO: this should write directly to the results_dir...
+    # run_sampling_lib::write_csv should not take a relative path relative to
+    # the resources/run_sampling_lib.rb but an absolute path
     create_buildstock_csv(project_directory, n_datapoints, outfile)
     src = File.expand_path(File.join(File.dirname(__FILE__), '../lib/housing_characteristics/buildstock.csv'))
-    des = results_dir
-    FileUtils.cp(src, des)
+    buildstock_csv_path = File.join(results_dir, 'buildstock.csv')
+    FileUtils.cp(src, buildstock_csv_path)
 
     return if samplingonly
 
     datapoints = (1..n_datapoints).to_a
   else
-    src = File.expand_path(File.join(File.dirname(yml), cfg['sampler']['args']['sample_file']))
-    des = File.expand_path(File.join(File.dirname(__FILE__), outfile))
-    FileUtils.cp(src, des)
+    # If buildstock_csv_path is absolute: just use that
+    # If relative: relative to yml
+    buildstock_csv_path = cfg['sampler']['args']['sample_file']
+    unless (Pathname.new buildstock_csv_path).absolute?
+      buildstock_csv_path = File.expand_path(File.join(File.dirname(yml), buildstock_csv_path))
+    end
 
-    buildstock_csv = CSV.read(des, headers: true)
+    buildstock_csv = CSV.read(buildstock_csv_path, headers: true)
     datapoints = buildstock_csv['Building'].map { |x| Integer(x) }
     n_datapoints = datapoints.size
   end
@@ -125,6 +132,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
     }
 
     bld_exist_model_args = {
+      'buildstock_csv_path': buildstock_csv_path,
       'building_id': '',
       'sample_weight': Float(cfg['baseline']['n_buildings_represented']) / n_datapoints # aligns with buildstockbatch
     }
@@ -477,11 +485,49 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
   return true
 end
 
-def create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
+def checksum_dir_content(directory_path)
+  files = Dir.glob('**/*', base: directory_path).select { |fn| File.file?(File.join(directory_path, fn)) }
+  dir_checksum = Zlib::crc32(files.map { |rel_path|
+                               [rel_path,
+                                File.mtime(File.join(directory_path, rel_path)), # mtime is affected by the copy, but we passed preserve = true
+                                File.size(File.join(directory_path, rel_path))]
+                             }.to_s)
+  return dir_checksum
+end
+
+def create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir, debug: false)
+  redo_needed = true
+  if File.directory?(lib_dir)
+    lib_resources_dir = File.join(lib_dir, File.basename(resources_dir))
+    resource_matches = checksum_dir_content(resources_dir) == checksum_dir_content(lib_resources_dir)
+    if resource_matches
+      lib_housing_characteristics_dir = File.join(lib_dir, File.basename(housing_characteristics_dir))
+      housing_matches = checksum_dir_content(housing_characteristics_dir) == checksum_dir_content(lib_housing_characteristics_dir)
+      if housing_matches
+        redo_needed = false
+      elsif debug
+        puts "Housing directory is outdated: #{lib_housing_characteristics_dir}"
+      end
+    elsif debug
+      puts "Resources directory is outdated: #{lib_resources_dir}"
+    end
+  elsif debug
+    puts "Creating 'lib' folder."
+  end
+
+  if !redo_needed
+    if debug
+      puts "The 'lib' folder is up to date."
+    end
+    return
+  end
+
   FileUtils.rm_rf(lib_dir)
   Dir.mkdir(lib_dir)
-  FileUtils.cp_r(resources_dir, lib_dir)
-  FileUtils.cp_r(housing_characteristics_dir, lib_dir)
+
+  # Preserve object’s group, user and **modification time** on copying
+  FileUtils.cp_r(resources_dir, lib_dir, preserve: true)
+  FileUtils.cp_r(housing_characteristics_dir, lib_dir, preserve: true)
 end
 
 def create_buildstock_csv(project_dir, num_samples, outfile)

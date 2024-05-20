@@ -3674,7 +3674,7 @@
 							<xs:documentation>[deg F] Temperature below which the compressor is disabled, often to prevent damage or occupant comfort issues. The default is the manufacturer's minimum operating temperature, but the value may be set higher. For a duel-fuel heat pump, use the BackupHeatingSwitchoverTemperature element.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element minOccurs="0" name="CoolingSensibleHeatFraction" type="Fraction"/>
+					<xs:element minOccurs="0" name="CoolingSensibleHeatFraction" type="SensibleHeatFraction"/>
 					<xs:element minOccurs="0" name="BackupType" type="HeatPumpBackupType">
 						<xs:annotation>
 							<xs:documentation>Whether the heat pump backup is integrated into the unit (describe in BackupSystemFuel, BackupAnnualHeatingEfficiency, BackupHeatingCapacity), or a
@@ -3756,7 +3756,7 @@
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="AnnualCoolingEfficiency" type="CoolingEfficiencyType" minOccurs="0" maxOccurs="unbounded"/>
-					<xs:element minOccurs="0" name="SensibleHeatFraction" type="Fraction"/>
+					<xs:element minOccurs="0" name="SensibleHeatFraction" type="SensibleHeatFraction"/>
 					<xs:element minOccurs="0" name="CoolingDetailedPerformanceData">
 						<xs:complexType>
 							<xs:sequence>
@@ -3782,7 +3782,7 @@
 			<xs:group ref="SystemInfo"/>
 			<xs:element minOccurs="0" name="LoopType" type="LoopType"/>
 			<xs:element minOccurs="0" name="LoopConfiguration" type="LoopConfiguration"/>
-			<xs:element minOccurs="0" name="LoopFlow" type="HPXMLDouble">
+			<xs:element minOccurs="0" name="LoopFlow" type="HPXMLDoubleGreaterThanZero">
 				<xs:annotation>
 					<xs:documentation>[gpm] Water flow rate through the geothermal loop</xs:documentation>
 				</xs:annotation>
@@ -3791,17 +3791,17 @@
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element minOccurs="0" name="Count" type="IntegerGreaterThanZero"/>
-						<xs:element minOccurs="0" name="Length" type="HPXMLDouble">
+						<xs:element minOccurs="0" name="Length" type="HPXMLDoubleGreaterThanZero">
 							<xs:annotation>
 								<xs:documentation>[ft] Length of each borehole (vertical) or trench (horizontal)</xs:documentation>
 							</xs:annotation>
 						</xs:element>
-						<xs:element minOccurs="0" name="Spacing" type="HPXMLDouble">
+						<xs:element minOccurs="0" name="Spacing" type="HPXMLDoubleGreaterThanZero">
 							<xs:annotation>
 								<xs:documentation>[ft] Distance between bores/trenches</xs:documentation>
 							</xs:annotation>
 						</xs:element>
-						<xs:element minOccurs="0" name="Diameter" type="HPXMLDouble">
+						<xs:element minOccurs="0" name="Diameter" type="HPXMLDoubleGreaterThanZero">
 							<xs:annotation>
 								<xs:documentation>[in]</xs:documentation>
 							</xs:annotation>
@@ -3818,7 +3818,7 @@
 								<xs:documentation/>
 							</xs:annotation>
 						</xs:element>
-						<xs:element minOccurs="0" name="Conductivity" type="HPXMLDouble">
+						<xs:element minOccurs="0" name="Conductivity" type="HPXMLDoubleGreaterThanZero">
 							<xs:annotation>
 								<xs:documentation>[Btu/hr-ft-F]</xs:documentation>
 							</xs:annotation>
@@ -3831,17 +3831,17 @@
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element minOccurs="0" name="Type" type="GroutOrPipeType"/>
-						<xs:element minOccurs="0" name="Conductivity" type="HPXMLDouble">
+						<xs:element minOccurs="0" name="Conductivity" type="HPXMLDoubleGreaterThanZero">
 							<xs:annotation>
 								<xs:documentation>[Btu/hr-ft-F]</xs:documentation>
 							</xs:annotation>
 						</xs:element>
-						<xs:element minOccurs="0" name="Diameter" type="HPXMLDouble">
+						<xs:element minOccurs="0" name="Diameter" type="HPXMLDoubleGreaterThanZero">
 							<xs:annotation>
 								<xs:documentation>[in]</xs:documentation>
 							</xs:annotation>
 						</xs:element>
-						<xs:element minOccurs="0" name="ShankSpacing" type="HPXMLDouble">
+						<xs:element minOccurs="0" name="ShankSpacing" type="HPXMLDoubleGreaterThanZero">
 							<xs:annotation>
 								<xs:documentation>[in] Measured as center-to-center (not edge-to-edge) distance between two branches of a vertical U-tube</xs:documentation>
 							</xs:annotation>
@@ -4098,7 +4098,7 @@
 											<xs:sequence>
 												<xs:element minOccurs="0" name="SoilType" type="SoilType"/>
 												<xs:element minOccurs="0" name="MoistureType" type="MoisureType"/>
-												<xs:element minOccurs="0" name="Conductivity" type="HPXMLDouble">
+												<xs:element minOccurs="0" name="Conductivity" type="HPXMLDoubleGreaterThanZero">
 													<xs:annotation>
 														<xs:documentation>[Btu/hr-ft-F]</xs:documentation>
 													</xs:annotation>
@@ -5374,19 +5374,19 @@
 					<xs:attribute name="dataSource" type="DataSource"/>
 				</xs:complexType>
 			</xs:element>
-			<xs:element minOccurs="0" name="EffectiveLeakageArea" type="HPXMLDouble">
+			<xs:element minOccurs="0" name="EffectiveLeakageArea" type="HPXMLDoubleGreaterThanZero">
 				<xs:annotation>
 					<xs:documentation>[sq.in.] The Effective Leakage Area is defined as the area of a special nozzle-shaped hole (similar to the inlet of a blower door fan) that would leak the same
 						amount of air as the building does at a pressure of 4 Pascals.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element minOccurs="0" name="InfiltrationVolume" type="HPXMLDouble">
+			<xs:element minOccurs="0" name="InfiltrationVolume" type="HPXMLDoubleGreaterThanZero">
 				<xs:annotation>
 					<xs:documentation>[sq. ft.] The volume of the building that is applicable to the air infiltration measurement test. The volume can be defined as the conditioned building volume
 						plus the volume of crawlspaces, attics, and/or basements that are connected to the building's conditioned space via open doors or hatches.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element minOccurs="0" name="InfiltrationHeight" type="HPXMLDouble">
+			<xs:element minOccurs="0" name="InfiltrationHeight" type="HPXMLDoubleGreaterThanZero">
 				<xs:annotation>
 					<xs:documentation>[ft] Vertical distance between lowest and highest above-grade points within the pressure boundary, per ASHRAE 62.2.</xs:documentation>
 				</xs:annotation>
@@ -5838,7 +5838,7 @@
 			<xs:element name="JacketInstalledIndicator" type="HPXMLBoolean" minOccurs="0"/>
 			<xs:element name="DispositionofExistingSystem" type="DispositionofExistingSystem" minOccurs="0"/>
 			<xs:element name="RepairsDescription" type="HPXMLString" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="PipeInsulated" type="PipeInsulated" minOccurs="0"/>
+			<xs:element name="PipeInsulated" type="HPXMLBoolean" minOccurs="0"/>
 			<xs:element name="LengthofPipeInsulated" type="LengthMeasurement" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>[ft]</xs:documentation>
@@ -8418,7 +8418,9 @@
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="MeasuredDuctLeakage_simple">
-		<xs:restriction base="xs:double"/>
+		<xs:restriction base="xs:double">
+			<xs:minInclusive value="0"/>
+		</xs:restriction>
 	</xs:simpleType>
 	<xs:complexType name="MeasuredDuctLeakage">
 		<xs:simpleContent>
@@ -8620,16 +8622,6 @@
 	<xs:complexType name="EnergyFactor">
 		<xs:simpleContent>
 			<xs:extension base="EnergyFactor_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="PipeInsulated_simple">
-		<xs:restriction base="xs:string"/>
-	</xs:simpleType>
-	<xs:complexType name="PipeInsulated">
-		<xs:simpleContent>
-			<xs:extension base="PipeInsulated_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -9647,6 +9639,19 @@
 	<xs:complexType name="JobRole">
 		<xs:simpleContent>
 			<xs:extension base="JobRole_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="SensibleHeatFraction_simple">
+		<xs:restriction base="xs:double">
+			<xs:minExclusive value="0.5"/>
+			<xs:maxInclusive value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="SensibleHeatFraction">
+		<xs:simpleContent>
+			<xs:extension base="SensibleHeatFraction_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
