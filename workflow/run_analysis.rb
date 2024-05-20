@@ -236,19 +236,13 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
     register_monthly_bills = false
     if sim_out_rep_args.keys.include?('include_annual_bills')
       include_annual_bills = sim_out_rep_args['include_annual_bills']
+      register_annual_bills = sim_out_rep_args['include_annual_bills']
       sim_out_rep_args.delete('include_annual_bills')
     end
     if sim_out_rep_args.keys.include?('include_monthly_bills')
       include_monthly_bills = sim_out_rep_args['include_monthly_bills']
+      register_monthly_bills = sim_out_rep_args['include_monthly_bills']
       sim_out_rep_args.delete('include_monthly_bills')
-    end
-    if sim_out_rep_args.keys.include?('register_annual_bills')
-      register_annual_bills = sim_out_rep_args['register_annual_bills']
-      sim_out_rep_args.delete('register_annual_bills')
-    end
-    if sim_out_rep_args.keys.include?('register_monthly_bills')
-      register_monthly_bills = sim_out_rep_args['register_monthly_bills']
-      sim_out_rep_args.delete('register_monthly_bills')
     end
 
     osw = {
