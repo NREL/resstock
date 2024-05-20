@@ -19,6 +19,7 @@ Features
 - Improves heating/cooling component loads; for timesteps where there is no heating/cooling load, assigns heat transfer to heating or cooling by comparing indoor temperature to the average of heating/cooling setpoints ([#1240](https://github.com/NREL/resstock/pull/1240))
 - Additional geothermal loop default simulation outputs (number/length of boreholes) ([#1240](https://github.com/NREL/resstock/pull/1240))
 - Updates default `ShieldingofHome` to be "well-shielded" (from "normal") for single-family attached and multifamily dwelling units ([#1240](https://github.com/NREL/resstock/pull/1240))
+- Add new project yml file arguments for reporting annual/monthly utility bill outputs ([#1246](https://github.com/NREL/resstock/pull/1246))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
