@@ -74,6 +74,7 @@ __New Features__
 - Advanced research features:
   - **Breaking change**: Replaces `SimulationControl/TemperatureCapacitanceMultiplier` with `SimulationControl/AdvancedResearchFeatures/TemperatureCapacitanceMultiplier`.
   - Allows an optional boolean input `SimulationControl/AdvancedResearchFeatures/DefrostModelType` for heat pump advanced defrost model.
+- ReportUtilityBills measure: adds new optional arguments for registering (with the OpenStudio runner) annual or monthly utility bills.
 
 __Bugfixes__
 - Fixes error if using AllowIncreasedFixedCapacities=true w/ HP detailed performance data.
@@ -87,6 +88,7 @@ __Bugfixes__
 - Apportion shared water heater tank losses for HPWHs and combi systems.
 - Fixes buried duct effective R-values.
 - Fixes shared boiler default location (which could result in assuming there's a flue in conditioned space impacting infiltration).
+- Fixes timeseries hot water energy consumption adjustment lag (associated with hot water distribution).
 
 ## OpenStudio-HPXML v1.7.0
 
