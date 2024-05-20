@@ -3625,9 +3625,9 @@ class HVAC
         supp_sys_power_level = [supp_sys_capacity, q_dot_defrost].min / supp_sys_efficiency # Assume perfect tempering
       end
     else
+      supp_sys_fuel = heat_pump.backup_heating_fuel
       is_ducted = !heat_pump.distribution_system_idref.nil?
       if is_ducted
-        supp_sys_fuel = heat_pump.backup_heating_fuel
         supp_sys_capacity = UnitConversions.convert(heat_pump.backup_heating_capacity, 'Btu/hr', 'W')
         supp_sys_efficiency = heat_pump.backup_heating_efficiency_percent
         supp_sys_efficiency = heat_pump.backup_heating_efficiency_afue if supp_sys_efficiency.nil?
