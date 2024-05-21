@@ -31,8 +31,6 @@ class Constants
             'hvac_control_heating_weekend_setpoint',
             'hvac_control_cooling_weekday_setpoint',
             'hvac_control_cooling_weekend_setpoint',
-            'misc_plug_loads_television_annual_kwh',
-            'misc_plug_loads_television_usage_multiplier',
             'pv_system_num_bedrooms_served',
             'battery_num_bedrooms_served',
             'emissions_scenario_names',

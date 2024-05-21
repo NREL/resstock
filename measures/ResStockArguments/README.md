@@ -4656,6 +4656,28 @@ Whether there are televisions.
 
 <br/>
 
+**Misc Plug Loads: Television Annual kWh**
+
+The annual energy consumption of the television plug loads. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads'>HPXML Plug Loads</a>) is used.
+
+- **Name:** ``misc_plug_loads_television_annual_kwh``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Misc Plug Loads: Television Usage Multiplier**
+
+Multiplier on the television energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads'>HPXML Plug Loads</a>) is used.
+
+- **Name:** ``misc_plug_loads_television_usage_multiplier``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
 **Misc Plug Loads: Other Annual kWh**
 
 The annual energy consumption of the other residual plug loads. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-plug-loads'>HPXML Plug Loads</a>) is used.
@@ -5268,6 +5290,17 @@ Reduction (%) on the air exchange rate value.
 - **Type:** ``Double``
 
 - **Required:** ``false``
+
+<br/>
+
+**Plug Loads: Television Usage Multiplier 2**
+
+Additional multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.
+
+- **Name:** ``misc_plug_loads_television_2_usage_multiplier``
+- **Type:** ``Double``
+
+- **Required:** ``true``
 
 <br/>
 
