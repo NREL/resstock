@@ -132,7 +132,7 @@ Development Changelog
         HVAC Autosizing Limits
 
         Description:
-        HVAC
+        Sizing control option to specify max allowed airflow
         The PR aims to allow specifying upper limits for autosized capacities.
 
         OpenStudio-HPXML: `pull request 1584 <https://github.com/NREL/OpenStudio-HPXML/pull/1584>`_
