@@ -7,66 +7,66 @@ v2.2.1 Changelog
     :released: 2020-02-07
 
     .. change::
-        :tags: todo, todo, feature
+        :tags: characteristics, envelope, feature
         :pullreq: 382
 
-        **Date**: 2020-02-07
+        **Date**: 2020-02-04
 
         Title:
-        TODO
+        Multifamily masonry walls
 
         Description:
         Update the multifamily project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls
-        TODO
+        Adding in masonry walls via "Geometry Wall Type" tsv and adding a new dependency in "Insulation Wall". Mimics work done by Maharshi for project_singlefamily. Also created a new tsv_maker for RECS 2009
 
-        Assignees: TODO
+        Assignees: Janet
 
 
     .. change::
-        :tags: todo, todo, bugfix
+        :tags: characteristics, envelope, bugfix
         :pullreq: 387
 
         **Date**: 2020-02-07
 
         Title:
-        TODO
+        Addresses #386, fix misc pool tsv files and updates project_singlefamilydetached masonry walls
 
         Description:
         Add generation of the Geometry Wall Type tsv file for the single-family detached project to the 2009 RECS tsv maker; this corrects the tsv file
-        TODO
+        Addresses #386, fix misc pool tsv files and updates project_singlefamilydetached masonry walls
 
-        Assignees: TODO
+        Assignees: Joe
 
 
     .. change::
-        :tags: todo, todo, bugfix
+        :tags: characteristics, misc loads, bugfix
         :pullreq: 387
 
         **Date**: 2020-02-07
 
         Title:
-        TODO
+        Addresses #386, fix misc pool tsv files and updates project_singlefamilydetached masonry walls
 
         Description:
         Add generation of the Misc Pool tsv file (with Geometry Building Type and Location Region dependencies) to the 2009 RECS tsv maker; this also corrects having pool pumps for all homes
-        TODO
+        Fix pool pump probabilities
 
-        Assignees: TODO
+        Assignees: Joe
 
 
     .. change::
-        :tags: todo, todo, bugfix
+        :tags: characteristics, recs, bugfix
         :pullreq: 382
 
-        **Date**: 2020-02-07
+        **Date**: 2020-02-04
 
         Title:
-        TODO
+        Multifamily masonry walls
 
         Description:
         Refactor the RECS tsv makers for years 2009 and 2015
-        TODO
+        Refactor the RECS tsv makers for years 2009 and 2015
 
-        Assignees: TODO
+        Assignees: Janet
 
 

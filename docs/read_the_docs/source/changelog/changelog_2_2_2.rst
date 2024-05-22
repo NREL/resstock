@@ -7,18 +7,18 @@ v2.2.2 Changelog
     :released: 2020-02-19
 
     .. change::
-        :tags: todo, todo, bugfix
+        :tags: workflow, weather, bugfix
         :pullreq: 406
 
-        **Date**: 2020-02-19
+        **Date**: 2020-02-21
 
         Title:
-        TODO
+        Release 2_2_2 patch
 
         Description:
         Update the datapoint initialization script to download weather files to a common zip filename
-        TODO
+        Current curl command in datapoint init script guaranteed aws s3 downloads to work, but not downloads from other hosts (e.g., dropbox). Changing the curl command to be more generic.
 
-        Assignees: TODO
+        Assignees: Joe
 
 

@@ -7,18 +7,18 @@ v2.2.5 Changelog
     :released: 2020-09-24
 
     .. change::
-        :tags: todo, todo, bugfix
+        :tags: workflow, weather, bugfix
         :pullreq: 489
 
         **Date**: 2020-09-24
 
         Title:
-        TODO
+        Release 2_2_5 patch
 
         Description:
         Update the weather zip file url in each PAT project to point to a different location at data.nrel.gov
-        TODO
+        Release 2_2_5 patch
 
-        Assignees: TODO
+        Assignees: Joe
 
 
