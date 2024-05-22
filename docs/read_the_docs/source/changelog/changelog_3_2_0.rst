@@ -19,7 +19,7 @@ v3.2.0 Changelog
         Update TMY3 weather URL from the NREL Data Catalog
         The current link in the project YAMLs for the TMY weather files in NREL Data Catalog is out of date and missing the following Counties. This PR updates the link to the latest file on the NREL Data Catalog.
 
-        Assignees: Tony
+        Assignees: Anthony Fontanini
 
 
     .. change::
@@ -37,7 +37,7 @@ v3.2.0 Changelog
 
         OpenStudio-HPXML: `pull request 1391 <https://github.com/NREL/OpenStudio-HPXML/pull/1391>`_
 
-        Assignees: Prateek, Jeff, Tony, Joe
+        Assignees: Prateek Shrestha, Jeff Maguire, Anthony Fontanini, Joe Robertson
 
 
     .. change::
@@ -55,7 +55,7 @@ v3.2.0 Changelog
 
         resstock-estimation: `pull request 393 <https://github.com/NREL/resstock-estimation/pull/393>`_
 
-        Assignees: Tony
+        Assignees: Anthony Fontanini
 
 
     .. change::
@@ -71,7 +71,7 @@ v3.2.0 Changelog
         Automate creation of new "Arguments" documentation sections for summarizing arguments (and their default values) in options_lookup.tsv
         By housing characteristic parameter, automates summarizing Arguments sets used in options_lookup.tsv (including Name, Required, Units, Type, Choices, Description). See below for example.
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -89,7 +89,7 @@ v3.2.0 Changelog
 
         resstock-estimation: `pull request 392 <https://github.com/NREL/resstock-estimation/pull/392>`_
 
-        Assignees: Tony
+        Assignees: Anthony Fontanini
 
 
     .. change::
@@ -105,7 +105,7 @@ v3.2.0 Changelog
         Update to OpenStudio v3.7.0
         OpenStudio 3.7.0/EnergyPlus 23.2.0
 
-        Assignees: Joe, Scott
+        Assignees: Joe Robertson, Scott Horowitz
 
 
     .. change::
@@ -121,7 +121,7 @@ v3.2.0 Changelog
         Add ability to calculate detailed utility bills based on a user-specified TSV file of paths to JSON utility rate tariff files
         Add optional detailed_filepath yml argument for pointing to user-specified TSV file of electricity tariff file paths. The TSV file can contain electricity tariff file paths mapped by State, or any other parameter.
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -137,7 +137,7 @@ v3.2.0 Changelog
         Add ability to request timeseries resilience output from the yml file
         Include the new include_timeseries_resilience argument in example yml files.
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -155,7 +155,7 @@ v3.2.0 Changelog
 
         resstock-estimation: `pull request 385 <https://github.com/NREL/resstock-estimation/pull/385>`_
 
-        Assignees: Lixi
+        Assignees: Lixi Liu
 
 
     .. change::
@@ -171,7 +171,7 @@ v3.2.0 Changelog
         Update `run_analysis.rb` to handle illegal path characters in upgrade names
         run_analysis.rb creates directories based on upgrade names, but these upgrade names may have illegal path characters in them (e.g., "/" if the upgrade name is "Higher efficiency ducted ASHP w/ elec backup "), resulting in an obscure error. It should more gracefully handle this situation and be able to run upgrades with these characters in the name.
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -187,7 +187,7 @@ v3.2.0 Changelog
         Update `run_analysis.rb` to map datapoints to run folder names when the `-k` argument is supplied
         Also, adds writing run folder names (e.g., "run1", "run2", etc.) to the "job_id" column when supplying the -k argument to run_analysis.rb (i.e., a map from datapoint to run folder).
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -205,7 +205,7 @@ v3.2.0 Changelog
 
         resstock-estimation: `pull request 388 <https://github.com/NREL/resstock-estimation/pull/388>`_
 
-        Assignees: Rajendra
+        Assignees: Rajendra Adhikari
 
 
     .. change::
@@ -223,7 +223,7 @@ v3.2.0 Changelog
 
         resstock-estimation: `pull request 386 <https://github.com/NREL/resstock-estimation/pull/386>`_
 
-        Assignees: Rajendra
+        Assignees: Rajendra Adhikari
 
 
     .. change::
@@ -241,7 +241,7 @@ v3.2.0 Changelog
 
         resstock-estimation: `pull request 386 <https://github.com/NREL/resstock-estimation/pull/386>`_
 
-        Assignees: Rajendra
+        Assignees: Rajendra Adhikari
 
 
     .. change::
@@ -257,7 +257,7 @@ v3.2.0 Changelog
         Correct refrigerator rated annual kWh based on EF and an assumed volume of 20.9cft.
         Change the rated annual consumption of refrigerator and misc extra refrigerator in options_lookup.tsv
 
-        Assignees: Lixi
+        Assignees: Lixi Liu
 
 
     .. change::
@@ -273,7 +273,7 @@ v3.2.0 Changelog
         For heat pump upgrades, adds the ability to set the existing primary (non-shared) heating system as the backup system using only a single option from the lookup
         Uses ResStockArguments to add a new boolean argument heat_pump_backup_use_existing_system.
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -295,7 +295,7 @@ v3.2.0 Changelog
 
         resstock-estimation: `pull request 377 <https://github.com/NREL/resstock-estimation/pull/377>`_
 
-        Assignees: Lixi, Joe
+        Assignees: Lixi Liu, Joe Robertson
 
 
     .. change::
@@ -311,7 +311,7 @@ v3.2.0 Changelog
         Fix square footage for a MF dwelling unit in the "3000-3999" CFA bin (from 33171 to 3171)
         This shows square footage for an MF housing bin of 3000-3999 to be 33171. I assume this is incorrect and a typo, but should be a quick fix
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -331,7 +331,7 @@ v3.2.0 Changelog
 
         OpenStudio-HPXML: `pull request 1414 <https://github.com/NREL/OpenStudio-HPXML/pull/1414>`_
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -351,7 +351,7 @@ v3.2.0 Changelog
 
         OpenStudio-HPXML: `pull request 1414 <https://github.com/NREL/OpenStudio-HPXML/pull/1414>`_
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -368,7 +368,7 @@ v3.2.0 Changelog
         Water Heater Efficiency|Other Fuel to model a wood storage water heater instead of no water heater.
         HVAC Heating Efficiency|Other to model a wood wall/floor furnace instead of no heating system.
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -384,7 +384,7 @@ v3.2.0 Changelog
         Set standard format for options_lookup
         In an effort to clean up resources/options_lookup.tsv, this sets a standard for what the file should look like.
 
-        Assignees: Rajendra, Tony
+        Assignees: Rajendra Adhikari, Anthony Fontanini
 
 
     .. change::
@@ -400,7 +400,7 @@ v3.2.0 Changelog
         Add ability to calculate simple utility bills based on a user-specified TSV file of utility rates
         Add optional simple_filepath yml argument for pointing to user-specified TSV file of utility rates. The TSV file can contain utility rates mapped by State, or any other parameter.
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -416,7 +416,7 @@ v3.2.0 Changelog
         Update characteristics to use EIA 2020 RECS
         Transitioning characteristics to use the EIA's 2020 RECS survey final characteristics.
 
-        Assignees: Tony
+        Assignees: Anthony Fontanini
 
 
     .. change::
@@ -432,7 +432,7 @@ v3.2.0 Changelog
         Add 2022 Cambium emissions data
         Cambium 2022 data is out. This issue is to update to the 2022 data.
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -446,10 +446,9 @@ v3.2.0 Changelog
 
         Description:
         Add Energystar Climate Zone for window upgrade specification
-        Add Energystar Climate Zone for window upgrade specification
 
         resstock-estimation: `pull request 369 <https://github.com/NREL/resstock-estimation/pull/369>`_
 
-        Assignees: Lixi
+        Assignees: Lixi Liu
 
 

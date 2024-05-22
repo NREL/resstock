@@ -7,6 +7,89 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: workflow, plug loads, feature
+        :pullreq: 1213
+
+        **Date**: 2024-05-21
+
+        Title:
+        Split out Other and TV plug loads
+
+        Description:
+        Split out TV plug loads (calculated using an equation based on ANSI/RESNET/ICC 301) from other plug loads (calculated using updated regression equations based on RECS2020)
+        For TV, we are now using OS-HPXML defaults (i.e., TV = 413.0 + 69.0 * NumberofBedrooms based on ANSI/RESNET/ICC 301-2019, where NumberofBedrooms is adjusted based on NumberofResidents).
+        Create a new sources/recs/recs2020/plug_loads/mel_ann.py script.
+
+        resstock-estimation: `pull request 401 <https://github.com/NREL/resstock-estimation/pull/401>`_
+
+        Assignees: Joe Robertson, Anthony Fontanini
+
+
+    .. change::
+        :tags: workflow, mechanics, feature
+        :pullreq: 1230
+
+        **Date**: 2024-05-16
+
+        Title:
+        Run run_analysis in parallel
+
+        Description:
+        Introduce a new optional `buildstock_csv_path` argument that supports parallel resstock runs using `run_analysis.rb`
+        I know this is an odd workflow, but I'd like to call resstock in parallel, to run multiple models (baseline only) built each with a precomputed buildstock.csv
+
+        Assignees: Julien Marrec
+
+
+    .. change::
+        :tags: workflow, reporting, feature
+        :pullreq: 1240
+
+        **Date**: 2024-05-16
+
+        Title:
+        Latest OS-HPXML
+
+        Description:
+        Improves heating/cooling component loads; for timesteps where there is no heating/cooling load, assigns heat transfer to heating or cooling by comparing indoor temperature to the average of heating/cooling setpoints
+        Improves heating/cooling component loads; for timesteps where there is no heating/cooling load, assigns heat transfer to heating or cooling by comparing indoor temperature to the average of heating/cooling setpoints.
+
+        Assignees: Andrew Speake
+
+
+    .. change::
+        :tags: workflow, reporting, feature
+        :pullreq: 1240
+
+        **Date**: 2024-05-16
+
+        Title:
+        Latest OS-HPXML
+
+        Description:
+        Additional geothermal loop default simulation outputs (number/length of boreholes)
+        Adds geothermal loop outputs (number/length of boreholes) to annual results output file.
+
+        Assignees: Scott Horowitz
+
+
+    .. change::
+        :tags: workflow, infiltration, feature
+        :pullreq: 1240
+
+        **Date**: 2024-05-16
+
+        Title:
+        Latest OS-HPXML
+
+        Description:
+        Updates default `ShieldingofHome` to be "well-shielded" (from "normal") for single-family attached and multifamily dwelling units
+        Updates default ShieldingofHome to be "well-shielded" for single-family attached and multifamily dwelling units.
+
+        Assignees: Scott Horowitz
+
+
+    .. change::
         :tags: software, openstudio, feature
         :pullreq: 1225
 
@@ -17,9 +100,8 @@ Development Changelog
 
         Description:
         Update to OpenStudio v3.8.0
-        OpenStudio 3.8/EnergyPlus 24.1
 
-        Assignees: Joe, Scott
+        Assignees: Joe Robertson, Scott Horowitz
 
 
     .. change::
@@ -37,7 +119,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1691 <https://github.com/NREL/OpenStudio-HPXML/pull/1691>`_
 
-        Assignees: Scott
+        Assignees: Scott Horowitz
 
 
     .. change::
@@ -55,7 +137,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1584 <https://github.com/NREL/OpenStudio-HPXML/pull/1584>`_
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -73,7 +155,7 @@ Development Changelog
 
         resstock-estimation: `pull request 406 <https://github.com/NREL/resstock-estimation/pull/406>`_
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -93,7 +175,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1634 <https://github.com/NREL/OpenStudio-HPXML/pull/1634>`_
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -111,7 +193,7 @@ Development Changelog
 
         resstock-estimation: `pull request 381 <https://github.com/NREL/resstock-estimation/pull/381>`_
 
-        Assignees: Rajendra, Tony
+        Assignees: Rajendra Adhikari, Anthony Fontanini
 
 
     .. change::
@@ -129,7 +211,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1611 <https://github.com/NREL/OpenStudio-HPXML/pull/1611>`_
 
-        Assignees: Joe, Yueyue
+        Assignees: Joe Robertson, Yueyue Zhou
 
 
     .. change::
@@ -147,7 +229,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1636 <https://github.com/NREL/OpenStudio-HPXML/pull/1636>`_
 
-        Assignees: Scott
+        Assignees: Scott Horowitz
 
 
     .. change::
@@ -165,7 +247,7 @@ Development Changelog
 
         resstock-estimation: `pull request 400 <https://github.com/NREL/resstock-estimation/pull/400>`_
 
-        Assignees: Lixi
+        Assignees: Lixi Liu
 
 
     .. change::
@@ -181,7 +263,7 @@ Development Changelog
         Move location of out-of-unit (shared) water heaters to conditioned mechanical room
         Move out-of-unit water heaters (i.e., Water Heater In Unit=No from Location=None to Location=Conditioned Mechanical Room (corresponds to OS-HPXML location: "other heated space").
 
-        Assignees: Lixi, Jeff, Tony
+        Assignees: Lixi Liu, Jeff Maguire, Anthony Fontanini
 
 
     .. change::
@@ -199,7 +281,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1622 <https://github.com/NREL/OpenStudio-HPXML/pull/1622>`_
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -217,7 +299,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1597 <https://github.com/NREL/OpenStudio-HPXML/pull/1597>`_
 
-        Assignees: Scott
+        Assignees: Scott Horowitz
 
 
     .. change::
@@ -235,7 +317,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1572 <https://github.com/NREL/OpenStudio-HPXML/pull/1572>`_
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -253,7 +335,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1572 <https://github.com/NREL/OpenStudio-HPXML/pull/1572>`_
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -271,7 +353,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1609 <https://github.com/NREL/OpenStudio-HPXML/pull/1609>`_
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -289,7 +371,7 @@ Development Changelog
 
         resstock-estimation: `pull request 361 <https://github.com/NREL/resstock-estimation/pull/361>`_
 
-        Assignees: Jeff, Tony
+        Assignees: Jeff Maguire, Anthony Fontanini
 
 
     .. change::
@@ -305,7 +387,7 @@ Development Changelog
         Add optional switch to BuildExistingModel (defaulted to false) for modeling whole SFA/MF buildings
         Replaces building_id=ALL argument with an element in the HPXML file, which allows us to perform validation specific to whole MF building simulations
 
-        Assignees: Joe, Scott
+        Assignees: Joe Robertson, Scott Horowitz
 
 
     .. change::
@@ -323,7 +405,7 @@ Development Changelog
 
         resstock-estimation: `pull request 394 <https://github.com/NREL/resstock-estimation/pull/394>`_
 
-        Assignees: Tony
+        Assignees: Anthony Fontanini
 
 
     .. change::
@@ -339,7 +421,7 @@ Development Changelog
         Reorganize the emissions and utility rates data folders such that their sources and functions are more clear
         Previously, it wasn't clear that the provided utility rate data was for demonstration purposes only.
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -355,7 +437,7 @@ Development Changelog
         Include additional 2022 Cambium 25-year LRMER emissions data
         Add 10 new "LRMER_xxx_25" data folders to resources/data/cambium/2022.
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
     .. change::
@@ -373,7 +455,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1473 <https://github.com/NREL/OpenStudio-HPXML/pull/1473>`_
 
-        Assignees: Prateek
+        Assignees: Prateek Shrestha
 
 
     .. change::
@@ -395,7 +477,7 @@ Development Changelog
 
         OpenStudio-HPXML: `pull request 1583 <https://github.com/NREL/OpenStudio-HPXML/pull/1583>`_, `pull request 1317 <https://github.com/NREL/OpenStudio-HPXML/pull/1317>`_, `pull request 1558 <https://github.com/NREL/OpenStudio-HPXML/pull/1558>`_
 
-        Assignees: Yueyue, Scott, Joe
+        Assignees: Yueyue Zhou, Scott Horowitz, Joe Robertson
 
 
     .. change::
@@ -411,89 +493,6 @@ Development Changelog
         Remove old HPWH options from options_lookup
         Removing the old HPWH options from options_lookup.tsv
 
-        Assignees: Jeff
-
-
-    .. change::
-        :tags: workflow, mechanics, feature
-        :pullreq: 1230
-
-        **Date**: 2024-05-16
-
-        Title:
-        Run run_analysis in parallel
-
-        Description:
-        Introduce a new optional `buildstock_csv_path` argument that supports parallel resstock runs using `run_analysis.rb`
-        I know this is an odd workflow, but I'd like to call resstock in parallel, to run multiple models (baseline only) built each with a precomputed buildstock.csv
-
-        Assignees: Julien
-
-
-    .. change::
-        :tags: workflow, reporting, feature
-        :pullreq: 1240
-
-        **Date**: 2024-05-16
-
-        Title:
-        Latest OS-HPXML
-
-        Description:
-        Improves heating/cooling component loads; for timesteps where there is no heating/cooling load, assigns heat transfer to heating or cooling by comparing indoor temperature to the average of heating/cooling setpoints
-        Improves heating/cooling component loads; for timesteps where there is no heating/cooling load, assigns heat transfer to heating or cooling by comparing indoor temperature to the average of heating/cooling setpoints.
-
-        Assignees: Andrew
-
-
-    .. change::
-        :tags: workflow, reporting, feature
-        :pullreq: 1240
-
-        **Date**: 2024-05-16
-
-        Title:
-        Latest OS-HPXML
-
-        Description:
-        Additional geothermal loop default simulation outputs (number/length of boreholes)
-        Adds geothermal loop outputs (number/length of boreholes) to annual results output file.
-
-        Assignees: Scott
-
-
-    .. change::
-        :tags: workflow, infiltration, feature
-        :pullreq: 1240
-
-        **Date**: 2024-05-16
-
-        Title:
-        Latest OS-HPXML
-
-        Description:
-        Updates default `ShieldingofHome` to be "well-shielded" (from "normal") for single-family attached and multifamily dwelling units
-        Updates default ShieldingofHome to be "well-shielded" for single-family attached and multifamily dwelling units.
-
-        Assignees: Scott
-
-
-    .. change::
-        :tags: workflow, plug loads, feature
-        :pullreq: 1213
-
-        **Date**: 2024-05-21
-
-        Title:
-        Split out Other and TV plug loads
-
-        Description:
-        Split out TV plug loads (calculated using an equation based on ANSI/RESNET/ICC 301) from other plug loads (calculated using updated regression equations based on RECS2020)
-        For TV, we are now using OS-HPXML defaults (i.e., TV = 413.0 + 69.0 * NumberofBedrooms based on ANSI/RESNET/ICC 301-2019, where NumberofBedrooms is adjusted based on NumberofResidents).
-        Create a new sources/recs/recs2020/plug_loads/mel_ann.py script.
-
-        resstock-estimation: `pull request 401 <https://github.com/NREL/resstock-estimation/pull/401>`_
-
-        Assignees: Joe, Tony
+        Assignees: Jeff Maguire
 
 

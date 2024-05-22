@@ -4,7 +4,7 @@ v2.2.3 Changelog
 
 .. changelog::
     :version: v2.2.3
-    :released: 2020-03-09
+    :released: 2020-03-10
 
     .. change::
         :tags: workflow, weather, bugfix
@@ -17,8 +17,7 @@ v2.2.3 Changelog
 
         Description:
         Update the weather zip file url in each PAT project to point to data.nrel.gov
-        Release 2_2_3 patch
 
-        Assignees: Joe
+        Assignees: Joe Robertson
 
 
