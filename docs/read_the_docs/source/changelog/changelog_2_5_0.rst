@@ -110,7 +110,7 @@ v2.5.0 Changelog
         **Date**: 2021-11-17
 
         Title:
-        add geometry_story_bin, add story_bin as dependency to geometry_wall_…
+        add geometry_story_bin, add story_bin as dependency to geometry_wall_type
 
         Description:
         Add Geometry Story Bin tsv and Geometry Story Bin dependency to Geometry Wall Type
@@ -130,7 +130,7 @@ v2.5.0 Changelog
         **Date**: 2021-11-17
 
         Title:
-        add geometry_story_bin, add story_bin as dependency to geometry_wall_…
+        add geometry_story_bin, add story_bin as dependency to geometry_wall_type
 
         Description:
         Revert wall type constraint that assumes all brick facades built >1960 are wood-framed with 4" face brick. Also add constraint to force all buildings > 8 stories to have steel-framed wall type
