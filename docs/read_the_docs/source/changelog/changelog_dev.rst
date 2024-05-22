@@ -414,3 +414,86 @@ Development Changelog
         Assignees: Jeff
 
 
+    .. change::
+        :tags: workflow, mechanics, feature
+        :pullreq: 1230
+
+        **Date**: 2024-05-16
+
+        Title:
+        Run run_analysis in parallel
+
+        Description:
+        Introduce a new optional `buildstock_csv_path` argument that supports parallel resstock runs using `run_analysis.rb`
+        I know this is an odd workflow, but I'd like to call resstock in parallel, to run multiple models (baseline only) built each with a precomputed buildstock.csv
+
+        Assignees: Julien
+
+
+    .. change::
+        :tags: workflow, reporting, feature
+        :pullreq: 1240
+
+        **Date**: 2024-05-16
+
+        Title:
+        Latest OS-HPXML
+
+        Description:
+        Improves heating/cooling component loads; for timesteps where there is no heating/cooling load, assigns heat transfer to heating or cooling by comparing indoor temperature to the average of heating/cooling setpoints
+        Improves heating/cooling component loads; for timesteps where there is no heating/cooling load, assigns heat transfer to heating or cooling by comparing indoor temperature to the average of heating/cooling setpoints.
+
+        Assignees: Andrew
+
+
+    .. change::
+        :tags: workflow, reporting, feature
+        :pullreq: 1240
+
+        **Date**: 2024-05-16
+
+        Title:
+        Latest OS-HPXML
+
+        Description:
+        Additional geothermal loop default simulation outputs (number/length of boreholes)
+        Adds geothermal loop outputs (number/length of boreholes) to annual results output file.
+
+        Assignees: Scott
+
+
+    .. change::
+        :tags: workflow, infiltration, feature
+        :pullreq: 1240
+
+        **Date**: 2024-05-16
+
+        Title:
+        Latest OS-HPXML
+
+        Description:
+        Updates default `ShieldingofHome` to be "well-shielded" (from "normal") for single-family attached and multifamily dwelling units
+        Updates default ShieldingofHome to be "well-shielded" for single-family attached and multifamily dwelling units.
+
+        Assignees: Scott
+
+
+    .. change::
+        :tags: workflow, plug loads, feature
+        :pullreq: 1213
+
+        **Date**: 2024-05-21
+
+        Title:
+        Split out Other and TV plug loads
+
+        Description:
+        Split out TV plug loads (calculated using an equation based on ANSI/RESNET/ICC 301) from other plug loads (calculated using updated regression equations based on RECS2020)
+        For TV, we are now using OS-HPXML defaults (i.e., TV = 413.0 + 69.0 * NumberofBedrooms based on ANSI/RESNET/ICC 301-2019, where NumberofBedrooms is adjusted based on NumberofResidents).
+        Create a new sources/recs/recs2020/plug_loads/mel_ann.py script.
+
+        resstock-estimation: `pull request 401 <https://github.com/NREL/resstock-estimation/pull/401>`_
+
+        Assignees: Joe, Tony
+
+
