@@ -188,6 +188,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Reduction (%) on the air exchange rate value.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_television_2_usage_multiplier', true)
+    arg.setDisplayName('Plug Loads: Television Usage Multiplier 2')
+    arg.setDescription('Additional multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.')
+    arg.setDefaultValue(1.0)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.')
@@ -452,19 +458,19 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Plug Loads
-    args[:misc_plug_loads_television_annual_kwh] = 0.0 # "other" now accounts for television
-    args[:misc_plug_loads_television_usage_multiplier] = 0.0 # "other" now accounts for television
+    args[:misc_plug_loads_television_usage_multiplier] = Float(args[:misc_plug_loads_television_usage_multiplier].to_s) * args[:misc_plug_loads_television_2_usage_multiplier]
     args[:misc_plug_loads_other_usage_multiplier] = Float(args[:misc_plug_loads_other_usage_multiplier].to_s) * args[:misc_plug_loads_other_2_usage_multiplier]
     args[:misc_plug_loads_well_pump_usage_multiplier] = Float(args[:misc_plug_loads_well_pump_usage_multiplier].to_s) * args[:misc_plug_loads_well_pump_2_usage_multiplier]
     args[:misc_plug_loads_vehicle_usage_multiplier] = Float(args[:misc_plug_loads_vehicle_usage_multiplier].to_s) * args[:misc_plug_loads_vehicle_2_usage_multiplier]
 
+    # Other
     if args[:misc_plug_loads_other_annual_kwh].to_s == Constants.Auto
       if [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 1146.95 + 296.94 * args[:geometry_unit_num_occupants] + 0.3 * args[:geometry_unit_cfa] # RECS 2015
+        args[:misc_plug_loads_other_annual_kwh] = 863.26 + 219.26 * args[:geometry_unit_num_occupants] + 0.33 * args[:geometry_unit_cfa] # RECS 2020
       elsif [HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 1395.84 + 136.53 * args[:geometry_unit_num_occupants] + 0.16 * args[:geometry_unit_cfa] # RECS 2015
+        args[:misc_plug_loads_other_annual_kwh] = 654.92 + 206.52 * args[:geometry_unit_num_occupants] + 0.21 * args[:geometry_unit_cfa] # RECS 2020
       elsif [HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 875.22 + 184.11 * args[:geometry_unit_num_occupants] + 0.38 * args[:geometry_unit_cfa] # RECS 2015
+        args[:misc_plug_loads_other_annual_kwh] = 706.6 + 149.27 * args[:geometry_unit_num_occupants] + 0.1 * args[:geometry_unit_cfa] # RECS 2020
       end
     end
 
@@ -563,7 +569,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     if !args[:heat_pump_rated_cfm_per_ton].nil? && !args[:heat_pump_actual_cfm_per_ton].nil?
-      args[:heat_pump_airflow_defect_ratio] = (args[:heat_pump_actual_cfm_per_ton] - args[:heat_pump_rated_cfm_per_ton]) / args[:cooling_system_rated_cfm_per_ton]
+      args[:heat_pump_airflow_defect_ratio] = (args[:heat_pump_actual_cfm_per_ton] - args[:heat_pump_rated_cfm_per_ton]) / args[:heat_pump_rated_cfm_per_ton]
     end
 
     if !args[:heat_pump_frac_manufacturer_charge].nil?
