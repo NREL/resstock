@@ -132,7 +132,9 @@ f.puts('When applicable, the **Description** field will include link(s) to `Open
 f.puts
 
 lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+option_sat_file = File.join('project_national', 'resources', 'options_saturations.csv')
 lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
+option_sat_csv_data = CSV.open(option_sat_file,quote_char: '"', col_sep: ",").each.to_a
 
 source_report = CSV.read(File.join(File.dirname(__FILE__), '../../../../project_national/resources/source_report.csv'), headers: true)
 source_report.each do |row|
@@ -164,34 +166,60 @@ source_report.each do |row|
       r_arguments << argument if !r_arguments.include?(argument)
     end
   end
-  next if r_arguments.empty?
+  if r_arguments.any?
 
-  name = 'Arguments'
+    name = 'Arguments'
+    f.puts(name)
+    f.puts('*' * name.size)
+    f.puts
+    f.puts('.. list-table::')
+    f.puts('   :header-rows: 1')
+    f.puts
+    arguments_cols.each_with_index do |arguments_col, i|
+      line = "     - #{arguments_col}"
+      line = "   * - #{arguments_col}" if i == 0
+      f.puts(line)
+    end
+
+    r_arguments = r_arguments.sort_by &resstockarguments_xml.keys.method(:index)
+    r_arguments.each do |r_argument|
+      f.puts("   * - ``#{r_argument}``")
+      f.puts("     - #{resstockarguments_xml[r_argument]['required']}")
+      f.puts("     - #{resstockarguments_xml[r_argument]['units']}")
+      f.puts("     - #{resstockarguments_xml[r_argument]['type']}")
+      choices = resstockarguments_xml[r_argument]['choices']
+      if choices.empty?
+        f.puts('     -')
+      else
+        f.puts("     - \"#{choices.join('", "')}\"")
+      end
+      f.puts("     - #{resstockarguments_xml[r_argument]['description']}")
+    end
+    f.puts
+  end
+  # Options
+  name = 'Options'
   f.puts(name)
   f.puts('*' * name.size)
+  f.puts
+  f.puts("From ``project_national`` the list of options, option stock sturation, and option arguments for the `#{parameter}` characteristic." )
   f.puts
   f.puts('.. list-table::')
   f.puts('   :header-rows: 1')
   f.puts
-  arguments_cols.each_with_index do |arguments_col, i|
-    line = "     - #{arguments_col}"
-    line = "   * - #{arguments_col}" if i == 0
-    f.puts(line)
-  end
-
-  r_arguments = r_arguments.sort_by &resstockarguments_xml.keys.method(:index)
-  r_arguments.each do |r_argument|
-    f.puts("   * - ``#{r_argument}``")
-    f.puts("     - #{resstockarguments_xml[r_argument]['required']}")
-    f.puts("     - #{resstockarguments_xml[r_argument]['units']}")
-    f.puts("     - #{resstockarguments_xml[r_argument]['type']}")
-    choices = resstockarguments_xml[r_argument]['choices']
-    if choices.empty?
-      f.puts('     -')
-    else
-      f.puts("     - \"#{choices.join('", "')}\"")
-    end
-    f.puts("     - #{resstockarguments_xml[r_argument]['description']}")
+  f.puts('   * - Option name')
+  f.puts('     - Option stock saturation')
+  f.puts('     - ResStock arguments')
+  f.puts
+  # Options and stock saturation
+  option_sat_csv_data.each do |param_option_row|
+    # If the parameter does not match next
+    next if param_option_row[1] != parameter
+    
+    # Insert the options and the stock saturation
+    f.puts("   * - #{param_option_row[2]}")
+    f.puts("     - %.1f%%" % [Float(param_option_row[3])*100.0])
+    f.puts("     - arguments placeholder")
   end
   f.puts
 end
