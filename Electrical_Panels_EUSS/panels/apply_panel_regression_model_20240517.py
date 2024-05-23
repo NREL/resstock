@@ -578,6 +578,7 @@ def apply_tsv_to_results(
     cond = df["completed_status"] == "Success"
     if dff.loc[cond, panel_labels].isna().sum().sum() != 0:
         print(f"Prediction in apply_tsv_to_results has NA values {dff.loc[cond & (dff[panel_labels].isna().sum(axis=1)!=0)]}")
+        dff.to_csv('test.csv')
         breakpoint()
 
     if retain_proba:
