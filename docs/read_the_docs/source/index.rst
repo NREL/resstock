@@ -30,6 +30,12 @@ Updates & Changelog
 
 .. toctree::
    :maxdepth: 2
-   :caption: Changes
+   :caption: Changes:
 
    changelog/index
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`search`

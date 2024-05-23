@@ -9,6 +9,7 @@ Development Changelog
     .. change::
         :tags: workflow, plug loads, feature
         :pullreq: 1213
+        :tickets: 1206
 
         **Date**: 2024-05-21
 
@@ -28,6 +29,7 @@ Development Changelog
     .. change::
         :tags: workflow, mechanics, feature
         :pullreq: 1230
+        :tickets: 1130
 
         **Date**: 2024-05-16
 
@@ -70,6 +72,8 @@ Development Changelog
         Additional geothermal loop default simulation outputs (number/length of boreholes)
         Adds geothermal loop outputs (number/length of boreholes) to annual results output file.
 
+        OpenStudio-HPXML: `#1657 <https://github.com/NREL/OpenStudio-HPXML/issues/1657>`_
+
         Assignees: Scott Horowitz
 
 
@@ -101,6 +105,8 @@ Development Changelog
         Description:
         Update to OpenStudio v3.8.0
 
+        OpenStudio-HPXML: `pull request 1630 <https://github.com/NREL/OpenStudio-HPXML/pull/1630>`_
+
         Assignees: Joe Robertson, Scott Horowitz
 
 
@@ -117,7 +123,7 @@ Development Changelog
         Update to new OS-HPXML defaults for duct insulation; 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts)
         Adds optional inputs (Ducts/DuctShape and Ducts/DuctFractionRectangular); defaults to 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts).
 
-        OpenStudio-HPXML: `pull request 1691 <https://github.com/NREL/OpenStudio-HPXML/pull/1691>`_
+        OpenStudio-HPXML: `#1470 <https://github.com/NREL/OpenStudio-HPXML/issues/1470>`_, `pull request 1691 <https://github.com/NREL/OpenStudio-HPXML/pull/1691>`_
 
         Assignees: Scott Horowitz
 
@@ -135,13 +141,13 @@ Development Changelog
         Sizing control option to specify max allowed airflow
         The PR aims to allow specifying upper limits for autosized capacities.
 
-        OpenStudio-HPXML: `pull request 1584 <https://github.com/NREL/OpenStudio-HPXML/pull/1584>`_
+        OpenStudio-HPXML: `#1530 <https://github.com/NREL/OpenStudio-HPXML/issues/1530>`_, `#1556 <https://github.com/NREL/OpenStudio-HPXML/issues/1556>`_, `pull request 1584 <https://github.com/NREL/OpenStudio-HPXML/pull/1584>`_
 
         Assignees: Joe Robertson
 
 
     .. change::
-        :tags: workflow, hvac, bugfix
+        :tags: workflow, hvac, feature
         :pullreq: 1218
 
         **Date**: 2024-04-09
@@ -154,6 +160,8 @@ Development Changelog
         Manually create new tsv files for assigning autosizing factor arguments introduced by NREL/OpenStudio-HPXML#1611
 
         resstock-estimation: `pull request 406 <https://github.com/NREL/resstock-estimation/pull/406>`_
+
+        OpenStudio-HPXML: `#1561 <https://github.com/NREL/OpenStudio-HPXML/issues/1561>`_
 
         Assignees: Joe Robertson
 
@@ -197,7 +205,7 @@ Development Changelog
 
 
     .. change::
-        :tags: workflow, hvac, feature
+        :tags: workflow, hvac, bugfix
         :pullreq: 1215
 
         **Date**: 2024-03-11
@@ -209,7 +217,7 @@ Development Changelog
         Add ability to specify HVAC system autosizing factors for baseline buildings; autosizing factors are retained for upgrade buildings following the same approach for HVAC system capacities
         Allows optional HeatingAutosizingFactor, CoolingAutosizingFactor, BackupHeatingAutosizingFactor inputs to scale HVAC equipment autosizing results.
 
-        OpenStudio-HPXML: `pull request 1611 <https://github.com/NREL/OpenStudio-HPXML/pull/1611>`_
+        OpenStudio-HPXML: `#1561 <https://github.com/NREL/OpenStudio-HPXML/issues/1561>`_, `pull request 1611 <https://github.com/NREL/OpenStudio-HPXML/pull/1611>`_
 
         Assignees: Joe Robertson, Yueyue Zhou
 
@@ -279,7 +287,7 @@ Development Changelog
         Allow definition of multiple unavailable periods (i.e., vacancy, power outage)
         Update schedules_vacancy_period and schedules_power_outage_period arguments to support multiple periods (comma-separated?). Argument schedules_power_outage_window_natvent_availability would then need to also be comma-separated?
 
-        OpenStudio-HPXML: `pull request 1622 <https://github.com/NREL/OpenStudio-HPXML/pull/1622>`_
+        OpenStudio-HPXML: `#1618 <https://github.com/NREL/OpenStudio-HPXML/issues/1618>`_, `pull request 1622 <https://github.com/NREL/OpenStudio-HPXML/pull/1622>`_
 
         Assignees: Joe Robertson
 
@@ -297,7 +305,7 @@ Development Changelog
         Add ability to set either an "emergency" or "supplemental" heat pump backup sizing methodology
         Adds a HeatPumpBackupSizingMethodology element with choices of 'emergency' and 'supplemental'. Defaults to 'emergency', so results do not change by default.
 
-        OpenStudio-HPXML: `pull request 1597 <https://github.com/NREL/OpenStudio-HPXML/pull/1597>`_
+        OpenStudio-HPXML: `#1322 <https://github.com/NREL/OpenStudio-HPXML/issues/1322>`_, `pull request 1597 <https://github.com/NREL/OpenStudio-HPXML/pull/1597>`_
 
         Assignees: Scott Horowitz
 
@@ -369,7 +377,7 @@ Development Changelog
         Update hot water usage multipliers based on field data rather than engineering judgement
         Update hot water usage multipliers. Using field data from 1700 water heaters in New England to come up with the distribution. Based on data collected as part of PERFORM with Michael Blonsky, who shared the distribution with us.
 
-        resstock-estimation: `pull request 361 <https://github.com/NREL/resstock-estimation/pull/361>`_
+        resstock-estimation: `#289 <https://github.com/NREL/resstock-estimation/issues/289>`_, `pull request 361 <https://github.com/NREL/resstock-estimation/pull/361>`_
 
         Assignees: Jeff Maguire, Anthony Fontanini
 
@@ -386,6 +394,8 @@ Development Changelog
         Description:
         Add optional switch to BuildExistingModel (defaulted to false) for modeling whole SFA/MF buildings
         Replaces building_id=ALL argument with an element in the HPXML file, which allows us to perform validation specific to whole MF building simulations
+
+        OpenStudio-HPXML: `pull request 1594 <https://github.com/NREL/OpenStudio-HPXML/pull/1594>`_
 
         Assignees: Joe Robertson, Scott Horowitz
 
@@ -453,7 +463,7 @@ Development Changelog
         Add flexibility to specify location of the radiant barrier
         Allowing Radiant Barrier for Attic Floor
 
-        OpenStudio-HPXML: `pull request 1473 <https://github.com/NREL/OpenStudio-HPXML/pull/1473>`_
+        OpenStudio-HPXML: `#1435 <https://github.com/NREL/OpenStudio-HPXML/issues/1435>`_, `pull request 1473 <https://github.com/NREL/OpenStudio-HPXML/pull/1473>`_
 
         Assignees: Prateek Shrestha
 
@@ -483,6 +493,7 @@ Development Changelog
     .. change::
         :tags: workflow, water heater, bugfix
         :pullreq: 1190
+        :tickets: 1184
 
         **Date**: 2024-01-12
 
