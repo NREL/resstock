@@ -3919,8 +3919,7 @@ class HVACSizing
                         HPXML::OrientationSouth => 'S',
                         HPXML::OrientationSoutheast => 'SE',
                         HPXML::OrientationSouthwest => 'SW',
-                        HPXML::OrientationWest => 'W',
-                        nil => 'N/S/E/W' }
+                        HPXML::OrientationWest => 'W' }
 
     def self.windows(obj)
       return obj.windows.select { |s| s.additional_properties.respond_to?(:formj1_values) }

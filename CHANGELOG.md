@@ -25,10 +25,11 @@ Features
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
 - Reorganize the emissions and utility rates data folders such that their sources and functions are more clear ([#1195](https://github.com/NREL/resstock/pull/1195))
+- Update to RECS 2020 V7 data files ([#1164](https://github.com/NREL/resstock/pull/1199))
 - Move location of out-of-unit (shared) water heaters to conditioned mechanical room ([#1201](https://github.com/NREL/resstock/pull/1201))
 - Update the Alaska residential stock characterization using the Alaska Retrofit Information System data ([#1214](https://github.com/NREL/resstock/pull/1214))
 - Enable HVAC airflow and capacity scaling factors to oversize or undersize the equipment ([#1218](https://github.com/NREL/resstock/pull/1218))
-- Update to RECS 2020 V7 data files ([#1164](https://github.com/NREL/resstock/pull/1199))
+- Update to use the new temperature capacitance multiplier of 7.0 after some resilience application investigation ([#1246](https://github.com/NREL/resstock/pull/1246))
 
 ## ResStock v3.2.0
 ###### December 19, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.1...v3.2.0)

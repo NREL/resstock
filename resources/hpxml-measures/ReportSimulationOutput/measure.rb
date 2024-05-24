@@ -247,7 +247,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('timeseries_num_decimal_places', false)
     arg.setDisplayName('Generate Timeseries Output: Number of Decimal Places')
-    arg.setDescription('Allows overriding the default number of decimal places for timeseries output. Does not apply if output format is msgpack, where no rounding is performed because there is no file size penalty to storing full precision.')
+    arg.setDescription('Allows overriding the default number of decimal places for timeseries output.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('add_timeseries_dst_column', false)
@@ -1599,11 +1599,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       fail "Unexpected timeseries_frequency: #{args[:timeseries_frequency]}."
     end
 
-    if args[:output_format] == 'msgpack'
+    if not args[:timeseries_num_decimal_places].nil?
+      n_digits = args[:timeseries_num_decimal_places]
+    elsif args[:output_format] == 'msgpack'
       # No need to round; no file size penalty to storing full precision
       n_digits = 100
-    elsif not args[:timeseries_num_decimal_places].nil?
-      n_digits = args[:timeseries_num_decimal_places]
     else
       # Set rounding precision for timeseries (e.g., hourly) outputs.
       # Note: Make sure to round outputs with sufficient resolution for the worst case -- i.e., 1 minute date instead of hourly data.
