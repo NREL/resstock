@@ -55,7 +55,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml.header.sim_calendar_year = 2020
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     default_hpxml, _default_hpxml_bldg = _test_measure()
-    _test_default_header_values(default_hpxml, 60, 1, 1, 12, 31, 2012, 1.0, nil, nil, nil)
+    _test_default_header_values(default_hpxml, 60, 1, 1, 12, 31, 2012, 7.0, nil, nil, nil)
 
     # Test defaults - southern hemisphere
     hpxml, _hpxml_bldg = _create_hpxml('base-location-capetown-zaf.xml')
@@ -68,7 +68,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml.header.temperature_capacitance_multiplier = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     default_hpxml, _default_hpxml_bldg = _test_measure()
-    _test_default_header_values(default_hpxml, 60, 1, 1, 12, 31, 2007, 1.0, nil, nil, nil)
+    _test_default_header_values(default_hpxml, 60, 1, 1, 12, 31, 2007, 7.0, nil, nil, nil)
   end
 
   def test_emissions_factors
