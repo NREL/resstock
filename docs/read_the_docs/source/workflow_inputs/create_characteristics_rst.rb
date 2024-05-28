@@ -206,11 +206,19 @@ source_report.each do |row|
   f.puts
   f.puts('.. list-table::')
   f.puts('   :header-rows: 1')
+  f.puts('   :widths: auto')
   f.puts
   f.puts('   * - Option name')
-  f.puts('     - Option stock saturation')
-  f.puts('     - Argument names and choices')
+  f.puts('     - Stock saturation')
+
+  # Get arguments for table header
+  if !r_arguments.empty?
+    r_arguments.each do |r_argument|
+      f.puts("     - #{r_argument}")
+    end
+  end
   f.puts
+
   # Options and stock saturation
   option_sat_csv_data.each do |param_option_row|
     # If the parameter does not match next
@@ -222,14 +230,21 @@ source_report.each do |row|
     f.puts("     - %.2g%%" % [Float(param_option_row[3])*100.0])
 
     # Arguments
-    lookup_csv_data.each do |lookup_row|
-      next if lookup_row[0] != parameter
-      next if lookup_row[1] != option
-      
-      if lookup_row[2] != 'ResStockArguments'
-        f.puts('     - No arguments assigned')
-      else
-        f.puts("     - | #{lookup_row[3..-1].join(", ")}")
+    if !r_arguments.empty?
+      lookup_csv_data.each do |lookup_row|
+        next if lookup_row[0] != parameter
+        next if lookup_row[1] != option
+        
+        if lookup_row[2] != 'ResStockArguments'
+          for a in 1..r_arguments.length() do
+            f.puts("     - ")
+          end
+        else
+          lookup_row[3..-1].each do |argument_value|
+            argument, value = argument_value.split('=')
+            f.puts("     - #{value}")
+          end
+        end
       end
     end
   end
