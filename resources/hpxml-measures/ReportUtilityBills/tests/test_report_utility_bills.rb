@@ -270,7 +270,7 @@ class ReportUtilityBillsTest < Minitest::Test
   end
 
   def test_auto_marginal_rate
-    fuel_types = [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas, HPXML::FuelTypeOil, HPXML::FuelTypePropane]
+    fuel_types = [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas, HPXML::FuelTypeOil, HPXML::FuelTypeCoal, HPXML::FuelTypePropane, HPXML::FuelTypeWoodCord, HPXML::FuelTypeWoodPellets]
 
     # Check that we can successfully look up "auto" rates for every state
     # and every fuel type.
@@ -293,28 +293,6 @@ class ReportUtilityBillsTest < Minitest::Test
     end
   end
 
-  def test_warning_region
-    @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
-    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-appliances-oil.xml'))
-    hpxml.buildings[0].state_code = 'FL'
-    hpxml.buildings[0].climate_and_risk_zones.weather_station_epw_filepath = 'USA_FL_Miami.Intl.AP.722020_TMY3.epw'
-    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
-    expected_warnings = ['Could not find state average fuel oil rate based on Florida; using region (PADD 1C) average.']
-    actual_bills, _actual_monthly_bills = _test_measure(expected_warnings: expected_warnings)
-    assert_nil(actual_bills)
-  end
-
-  def test_warning_national
-    @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
-    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-appliances-propane.xml'))
-    hpxml.buildings[0].state_code = 'OR'
-    hpxml.buildings[0].climate_and_risk_zones.weather_station_epw_filepath = 'USA_OR_Portland.Intl.AP.726980_TMY3.epw'
-    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
-    expected_warnings = ['Could not find state average propane rate based on Oregon; using national average.']
-    actual_bills, _actual_monthly_bills = _test_measure(expected_warnings: expected_warnings)
-    assert_nil(actual_bills)
-  end
-
   def test_warning_dse
     @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
     hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-dse.xml'))
@@ -329,6 +307,16 @@ class ReportUtilityBillsTest < Minitest::Test
     hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-location-capetown-zaf.xml'))
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     expected_warnings = ['Could not find a marginal Electricity rate.', 'Could not find a marginal Natural Gas rate.']
+    actual_bills, _actual_monthly_bills = _test_measure(expected_warnings: expected_warnings)
+    assert_nil(actual_bills)
+  end
+
+  def test_warning_no_rates_for_coal_in_HI
+    @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-appliances-coal.xml'))
+    hpxml.buildings[0].state_code = 'HI'
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    expected_warnings = ['No EIA SEDS rate for coal was found for the state of HI.']
     actual_bills, _actual_monthly_bills = _test_measure(expected_warnings: expected_warnings)
     assert_nil(actual_bills)
   end
