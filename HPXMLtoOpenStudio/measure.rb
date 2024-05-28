@@ -2203,7 +2203,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     htg_cond_load_sensors, clg_cond_load_sensors = {}, {}
     htg_duct_load_sensors, clg_duct_load_sensors = {}, {}
     total_heat_load_serveds, total_cool_load_serveds = {}, {}
-    dehumidifier_sensors = {}
+    dehumidifier_global_vars, dehumidifier_sensors = {}, {}
 
     hpxml_osm_map.each_with_index do |(hpxml_bldg, unit_model), unit|
       # Retrieve objects
@@ -2237,8 +2237,28 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         clg_duct_load_sensors[unit][-1].setName('clg_load_duct')
       end
 
-      # Need to adjusted E+ EnergyTransfer meters for dehumidifier internal gains
       next if dehumidifier_name.nil?
+
+      # Need to adjust E+ EnergyTransfer meters for dehumidifier internal gains.
+      # We also offset the dehumidifier load by one timestep so that it aligns with the EnergyTransfer meters.
+
+      # Global Variable
+      dehumidifier_global_vars[unit] = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "prev_#{dehumidifier_name}")
+
+      # Initialization Program
+      timestep_offset_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+      timestep_offset_program.setName("#{dehumidifier_name} timestep offset init program")
+      timestep_offset_program.addLine("Set #{dehumidifier_global_vars[unit].name} = 0")
+
+      # calling managers
+      manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+      manager.setName("#{timestep_offset_program.name} calling manager")
+      manager.setCallingPoint('BeginNewEnvironment')
+      manager.addProgram(timestep_offset_program)
+      manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+      manager.setName("#{timestep_offset_program.name} calling manager2")
+      manager.setCallingPoint('AfterNewEnvironmentWarmUpIsComplete')
+      manager.addProgram(timestep_offset_program)
 
       dehumidifier_sensors[unit] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Dehumidifier Sensible Heating Energy')
       dehumidifier_sensors[unit].setName('ig_dehumidifier')
@@ -2257,21 +2277,29 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       for i in 0..htg_duct_load_sensors[unit].size - 1
         program.addLine("  Set loads_htg_tot = loads_htg_tot + (#{htg_duct_load_sensors[unit][i].name} - #{clg_duct_load_sensors[unit][i].name}) * #{total_heat_load_serveds[unit]}")
       end
-      if not dehumidifier_sensors[unit].nil?
-        program.addLine("  Set loads_htg_tot = loads_htg_tot - #{dehumidifier_sensors[unit].name}")
+      if not dehumidifier_global_vars[unit].nil?
+        program.addLine("  Set loads_htg_tot = loads_htg_tot - #{dehumidifier_global_vars[unit].name}")
       end
       program.addLine('EndIf')
     end
+    program.addLine('Set loads_htg_tot = (@Max loads_htg_tot 0)')
     for unit in 0..hpxml_osm_map.size - 1
       program.addLine("If #{clg_cond_load_sensors[unit].name} > 0")
       program.addLine("  Set loads_clg_tot = loads_clg_tot + (#{clg_cond_load_sensors[unit].name} - #{htg_cond_load_sensors[unit].name}) * #{total_cool_load_serveds[unit]}")
       for i in 0..clg_duct_load_sensors[unit].size - 1
         program.addLine("  Set loads_clg_tot = loads_clg_tot + (#{clg_duct_load_sensors[unit][i].name} - #{htg_duct_load_sensors[unit][i].name}) * #{total_cool_load_serveds[unit]}")
       end
-      if not dehumidifier_sensors[unit].nil?
-        program.addLine("  Set loads_clg_tot = loads_clg_tot + #{dehumidifier_sensors[unit].name}")
+      if not dehumidifier_global_vars[unit].nil?
+        program.addLine("  Set loads_clg_tot = loads_clg_tot + #{dehumidifier_global_vars[unit].name}")
       end
       program.addLine('EndIf')
+    end
+    program.addLine('Set loads_clg_tot = (@Max loads_clg_tot 0)')
+    for unit in 0..hpxml_osm_map.size - 1
+      if not dehumidifier_global_vars[unit].nil?
+        # Store dehumidifier internal gain, will be used in EMS program next timestep
+        program.addLine("Set #{dehumidifier_global_vars[unit].name} = #{dehumidifier_sensors[unit].name}")
+      end
     end
 
     # EMS calling manager

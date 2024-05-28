@@ -72,6 +72,7 @@ __New Features__
   - Other plug load schedules now use Other schedule fractions per ANSI/RESNET/ICC 301-2022 Addendum C.
   - TV plug load schedules now use TV schedule fractions from the American Time Use Survey and monthly multipliers from the 2010 Building America Analysis Spreadsheets.
   - Ceiling fan schedules now use ceiling fan schedule fractions and monthly multipliers from ANSI/RESNET/ICC 301-2022 Addendum C.
+- Replaced state-average default fuel prices with EIA State Energy Data System (SEDS) prices
 - Advanced research features:
   - **Breaking change**: Replaces `SimulationControl/TemperatureCapacitanceMultiplier` with `SimulationControl/AdvancedResearchFeatures/TemperatureCapacitanceMultiplier`.
   - Allows an optional boolean input `SimulationControl/AdvancedResearchFeatures/DefrostModelType` for heat pump advanced defrost model.
@@ -90,6 +91,7 @@ __Bugfixes__
 - Fixes buried duct effective R-values.
 - Fixes shared boiler default location (which could result in assuming there's a flue in conditioned space impacting infiltration).
 - Fixes timeseries hot water energy consumption adjustment lag (associated with hot water distribution).
+- Fixes possibility of negative timeseries delivered loads when there is a dehumidifier.
 
 ## OpenStudio-HPXML v1.7.0
 
