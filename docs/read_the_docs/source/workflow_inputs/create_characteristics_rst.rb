@@ -209,7 +209,7 @@ source_report.each do |row|
   f.puts
   f.puts('   * - Option name')
   f.puts('     - Option stock saturation')
-  f.puts('     - ResStock arguments')
+  f.puts('     - Argument names and choices')
   f.puts
   # Options and stock saturation
   option_sat_csv_data.each do |param_option_row|
@@ -217,9 +217,25 @@ source_report.each do |row|
     next if param_option_row[1] != parameter
     
     # Insert the options and the stock saturation
-    f.puts("   * - #{param_option_row[2]}")
-    f.puts("     - %.1f%%" % [Float(param_option_row[3])*100.0])
-    f.puts("     - arguments placeholder")
+    option = param_option_row[2]
+    f.puts("   * - #{option}")
+    f.puts("     - %.2g%%" % [Float(param_option_row[3])*100.0])
+
+    # Arguments
+    lookup_csv_data.each do |lookup_row|
+      next if lookup_row[0] != parameter
+      next if lookup_row[1] != option
+      
+      if lookup_row[2] != 'ResStockArguments'
+        f.puts('     - No arguments assigned')
+      else
+        f.puts("     - | #{lookup_row[3]}")
+        lookup_row[4..-1].each do |argument_value|
+          f.puts("       | #{argument_value}")
+        end
+      end
+    end
   end
   f.puts
+  
 end
