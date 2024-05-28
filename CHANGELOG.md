@@ -21,6 +21,7 @@ Features
 - Updates default `ShieldingofHome` to be "well-shielded" (from "normal") for single-family attached and multifamily dwelling units ([#1240](https://github.com/NREL/resstock/pull/1240))
 - Split out TV plug loads (calculated using an equation based on ANSI/RESNET/ICC 301) from other plug loads (calculated using updated regression equations based on RECS2020) ([#1213](https://github.com/NREL/resstock/pull/1213))
 - Add new project yml file arguments for reporting/controlling annual/monthly utility bill outputs ([#1246](https://github.com/NREL/resstock/pull/1246))
+- Updates default fuel prices to use 2022 EIA State Energy Data System (SEDS) instead of state-averages ([#1246](https://github.com/NREL/resstock/pull/1246))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
