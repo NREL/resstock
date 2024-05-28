@@ -229,10 +229,7 @@ source_report.each do |row|
       if lookup_row[2] != 'ResStockArguments'
         f.puts('     - No arguments assigned')
       else
-        f.puts("     - | #{lookup_row[3]}")
-        lookup_row[4..-1].each do |argument_value|
-          f.puts("       | #{argument_value}")
-        end
+        f.puts("     - | #{lookup_row[3..-1].join(", ")}")
       end
     end
   end
