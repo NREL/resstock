@@ -2955,6 +2955,10 @@ If a heating and/or cooling season is defined, additional information is entered
   ``EndDayOfMonth``    integer          >= 1, <= 31  Yes                End day
   ===================  ========  =====  ===========  ========  =======  ===========
 
+.. warning::
+
+  It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus outside of an HVAC season.
+
 HPXML HVAC Setpoints
 ~~~~~~~~~~~~~~~~~~~~
 

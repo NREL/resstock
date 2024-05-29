@@ -1863,6 +1863,11 @@ class HPXML < Object
 
               subsurf.attached_to_roof_idref = surf.id
             end
+            @skylights.each do |subsurf|
+              next unless subsurf.attached_to_floor_idref == surf2.id
+
+              subsurf.attached_to_floor_idref = surf.id
+            end
 
             # Remove old surface
             surfaces[j].delete
@@ -2291,6 +2296,15 @@ class HPXML < Object
 
     def check_for_errors
       errors = []
+      if zone_type == ZoneTypeConditioned
+        # Check all surfaces attached to the zone are adjacent to conditioned space
+        surfaces.each do |surface|
+          next if HPXML::conditioned_locations_this_unit.include? surface.interior_adjacent_to
+          next if HPXML::conditioned_locations_this_unit.include? surface.exterior_adjacent_to
+
+          errors << "Surface '#{surface.id}' is not adjacent to conditioned space but was assigned to conditioned Zone '#{@id}'."
+        end
+      end
       return errors
     end
 
