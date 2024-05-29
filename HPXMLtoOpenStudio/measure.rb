@@ -463,7 +463,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     spaces = {}
     create_or_get_space(model, spaces, HPXML::LocationConditionedSpace)
     set_foundation_and_walls_top()
-    set_heating_and_cooling_seasons()
+    set_heating_and_cooling_seasons(runner)
     add_setpoints(runner, model, weather, spaces)
 
     # Geometry/Envelope
@@ -3004,7 +3004,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     @walls_top = @foundation_top + @hpxml_bldg.building_construction.average_ceiling_height * @ncfl_ag
   end
 
-  def set_heating_and_cooling_seasons()
+  def set_heating_and_cooling_seasons(runner)
     return if @hpxml_bldg.hvac_controls.size == 0
 
     hvac_control = @hpxml_bldg.hvac_controls[0]
@@ -3020,6 +3020,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     @heating_days = Schedule.get_daily_season(@hpxml_header.sim_calendar_year, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
     @cooling_days = Schedule.get_daily_season(@hpxml_header.sim_calendar_year, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
+
+    if (htg_start_month != 1) || (htg_start_day != 1) || (htg_end_month != 12) || (htg_end_day != 31) || (clg_start_month != 1) || (clg_start_day != 1) || (clg_end_month != 12) || (clg_end_day != 31)
+      runner.registerWarning('It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus outside of an HVAC season.')
+    end
   end
 end
 
