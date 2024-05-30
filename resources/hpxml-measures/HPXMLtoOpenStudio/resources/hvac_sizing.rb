@@ -4110,7 +4110,7 @@ class HVACSizing
         File.open(output_file_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
       elsif output_format == 'msgpack'
         require 'msgpack'
-        File.open(output_file_path, 'w') { |json| h.to_msgpack(json) }
+        File.open(output_file_path, 'wb') { |json| h.to_msgpack(json) }
       end
     end
   end

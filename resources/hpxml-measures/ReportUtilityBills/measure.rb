@@ -448,7 +448,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
           require 'json'
           File.open(monthly_output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
         elsif args[:output_format] == 'msgpack'
-          File.open(monthly_output_path, 'w') { |json| h.to_msgpack(json) }
+          File.open(monthly_output_path, 'wb') { |json| h.to_msgpack(json) }
         end
       end
       runner.registerInfo("Wrote monthly bills output to #{monthly_output_path}.")
