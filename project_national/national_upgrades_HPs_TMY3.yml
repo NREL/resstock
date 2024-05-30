@@ -3,8 +3,8 @@ os_version: 3.8.0
 os_sha: f953b6fcaf
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-# output_directory:  /projects/heatpump/test_runs/n_500_20240520_2007_v1
-output_directory:  n_500_20240520_2007_v1
+# output_directory:  /projects/heatpump/test_runs/n_500_20240530_2007_v1
+output_directory:  n_500_20240530_2007_v1
 weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
 # weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
@@ -34,21 +34,21 @@ workflow_generator:
       - scenario_name: Bills
 
     simulation_output_report:
-      timeseries_frequency: none
+      timeseries_frequency: monthly
       include_timeseries_total_consumptions: true
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
-      include_timeseries_emissions: true
-      include_timeseries_emission_fuels: true
-      include_timeseries_emission_end_uses: true
-      include_timeseries_hot_water_uses: true
-      include_timeseries_total_loads: true
-      include_timeseries_component_loads: true
-      include_timeseries_unmet_hours: true
-      include_timeseries_zone_temperatures: true
-      include_timeseries_airflows: true
-      include_timeseries_weather: true
-      include_timeseries_resilience: true
+      include_timeseries_emissions: false
+      include_timeseries_emission_fuels: false
+      include_timeseries_emission_end_uses: false
+      include_timeseries_hot_water_uses: false
+      include_timeseries_total_loads: false
+      include_timeseries_component_loads: false
+      include_timeseries_unmet_hours: false
+      include_timeseries_zone_temperatures: false
+      include_timeseries_airflows: false
+      include_timeseries_weather: false
+      include_timeseries_resilience: false
       include_monthly_bills: true
 
     reporting_measures:
