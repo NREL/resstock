@@ -229,21 +229,37 @@ source_report.each do |row|
     f.puts("   * - #{option}")
     f.puts("     - %.2g%%" % [Float(param_option_row[3])*100.0])
 
-    # Arguments
+    # Check if there are arguments
     if !r_arguments.empty?
+      # If there are arguments, go through options lookup to find the option
       lookup_csv_data.each do |lookup_row|
         next if lookup_row[0] != parameter
         next if lookup_row[1] != option
         
+        # When the option is found
         if lookup_row[2] != 'ResStockArguments'
+          # Put all blank rows if there is no arguments
           for a in 1..r_arguments.length() do
             f.puts("     - ")
           end
         else
-          lookup_row[3..-1].each do |argument_value|
-            argument, value = argument_value.split('=')
-            f.puts("     - #{value}")
+          # If option specifies arguments, insert arguments according to the order of r_arguements
+          r_arguments.each do |argument|
+            # Look for each argument in r_arguments
+            found_arg = false
+            lookup_row[3..-1].each do |argument_value|
+              arg, value = argument_value.split('=')
+              if argument == arg
+                found_arg=true
+                f.puts("     - #{value}")
+              end
+            end
+            # if the argument is not found (a not specified optional argument)
+            if !found_arg
+              f.puts("     - ")
+            end
           end
+          
         end
       end
     end
