@@ -11,7 +11,6 @@ require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/met
 class ResStockArguments < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
-    # Measure name should be the title case of the class name.
     return 'ResStock Arguments'
   end
 
