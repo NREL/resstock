@@ -1832,7 +1832,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         require 'json'
         File.open(timeseries_output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
       elsif args[:output_format] == 'msgpack'
-        File.open(timeseries_output_path, 'w') { |json| h.to_msgpack(json) }
+        File.open(timeseries_output_path, 'wb') { |json| h.to_msgpack(json) }
       end
     end
     runner.registerInfo("Wrote timeseries output results to #{timeseries_output_path}.")
