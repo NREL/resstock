@@ -191,7 +191,7 @@ source_report.each do |row|
       if choices.empty?
         f.puts('     -')
       else
-        f.puts("     - \"#{choices.join('", "')}\"")
+        f.puts("     - #{choices.join(', ')}")
       end
       f.puts("     - #{resstockarguments_xml[r_argument]['description']}")
     end
@@ -206,6 +206,7 @@ source_report.each do |row|
   f.puts
   f.puts('.. list-table::')
   f.puts('   :header-rows: 1')
+  f.puts('   :stub-columns: 2')
   f.puts('   :widths: auto')
   f.puts
   f.puts('   * - Option name')
@@ -214,7 +215,7 @@ source_report.each do |row|
   # Get arguments for table header
   if !r_arguments.empty?
     r_arguments.each do |r_argument|
-      f.puts("     - #{r_argument}")
+      f.puts("     - ``#{r_argument}``")
     end
   end
   f.puts
