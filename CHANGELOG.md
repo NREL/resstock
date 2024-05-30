@@ -21,15 +21,17 @@ Features
 - Updates default `ShieldingofHome` to be "well-shielded" (from "normal") for single-family attached and multifamily dwelling units ([#1240](https://github.com/NREL/resstock/pull/1240))
 - Split out TV plug loads (calculated using an equation based on ANSI/RESNET/ICC 301) from other plug loads (calculated using updated regression equations based on RECS2020) ([#1213](https://github.com/NREL/resstock/pull/1213))
 - Add new project yml file arguments for reporting/controlling annual/monthly utility bill outputs ([#1246](https://github.com/NREL/resstock/pull/1246))
+- Updates default fuel prices to use 2022 EIA State Energy Data System (SEDS) instead of state-averages ([#1246](https://github.com/NREL/resstock/pull/1246))
 - For ducted HVAC system upgrades, adds the ability to (1) limit the autosized capacity to the maximum of the existing duct system's heating/cooling airflow rates, and (2) adjust the blower fan efficiency to maintain the duct system curve, using only a single option from the lookup ([#1197](https://github.com/NREL/resstock/pull/1197))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
 - Reorganize the emissions and utility rates data folders such that their sources and functions are more clear ([#1195](https://github.com/NREL/resstock/pull/1195))
+- Update to RECS 2020 V7 data files ([#1164](https://github.com/NREL/resstock/pull/1199))
 - Move location of out-of-unit (shared) water heaters to conditioned mechanical room ([#1201](https://github.com/NREL/resstock/pull/1201))
 - Update the Alaska residential stock characterization using the Alaska Retrofit Information System data ([#1214](https://github.com/NREL/resstock/pull/1214))
 - Enable HVAC airflow and capacity scaling factors to oversize or undersize the equipment ([#1218](https://github.com/NREL/resstock/pull/1218))
-- Update to RECS 2020 V7 data files ([#1164](https://github.com/NREL/resstock/pull/1199))
+- Update to use the new temperature capacitance multiplier of 7.0 after some resilience application investigation ([#1246](https://github.com/NREL/resstock/pull/1246))
 
 ## ResStock v3.2.0
 ###### December 19, 2023 - [Diff](https://github.com/NREL/resstock/compare/v3.1.1...v3.2.0)

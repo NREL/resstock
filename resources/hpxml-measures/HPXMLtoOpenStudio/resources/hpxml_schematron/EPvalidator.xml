@@ -490,7 +490,7 @@
 
   <sch:pattern>
     <sch:title>[HasCondZones=Surface]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Zones/h:Zone[h:ZoneType="conditioned"]]/h:Enclosure/*/*[contains(h:InteriorAdjacentTo, "conditioned") and h:ExteriorAdjacentTo!="other housing unit"]'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Zones/h:Zone[h:ZoneType="conditioned"]]/h:Enclosure/*/*[contains(h:InteriorAdjacentTo, "conditioned") and (not(h:ExteriorAdjacentTo) or h:ExteriorAdjacentTo!="other housing unit")]'>
       <sch:assert role='ERROR' test='count(h:AttachedToSpace) = 1'>Expected 1 element(s) for xpath: AttachedToSpace</sch:assert>
     </sch:rule>
   </sch:pattern>

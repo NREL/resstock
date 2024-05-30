@@ -34,6 +34,12 @@ class UnitConversions
     ['wh', 'kbtu'] => 0.003412141633127942,
     ['kbtu', 'btu'] => 1000.0,
     ['kbtu', 'mbtu'] => 0.001,
+    ['gal_fuel_oil', 'kbtu'] => 139,
+    ['gal_fuel_oil', 'mbtu'] => 139 / 1000.0,
+    ['gal_fuel_oil', 'j'] => 139 * 1000.0 * 1055.05585262,
+    ['gal_propane', 'kbtu'] => 91.6,
+    ['gal_propane', 'mbtu'] => 91.6 / 1000.0,
+    ['gal_propane', 'j'] => 91.6 * 1000.0 * 1055.05585262,
 
     # Power
     ['btu/hr', 'w'] => 0.2930710701722222,
