@@ -5,8 +5,7 @@
 
 require 'openstudio'
 require 'pathname'
-require_relative '../../resources/buildstock.rb'
-require_relative '../../resources/version.rb'
+require_relative '../../resources/buildstock'
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
 # start the measure
