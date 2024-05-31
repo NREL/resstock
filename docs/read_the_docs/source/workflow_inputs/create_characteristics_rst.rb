@@ -271,5 +271,4 @@ source_report.each do |row|
     end
   end
   f.puts
-  
 end
