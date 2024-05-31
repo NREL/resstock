@@ -206,7 +206,7 @@ source_report.each do |row|
   f.puts
   f.puts('.. list-table::')
   f.puts('   :header-rows: 1')
-  f.puts('   :stub-columns: 2')
+  f.puts('   :stub-columns: 1')
   f.puts('   :widths: auto')
   f.puts
   f.puts('   * - Option name')
@@ -228,7 +228,12 @@ source_report.each do |row|
     # Insert the options and the stock saturation
     option = param_option_row[2]
     f.puts("   * - #{option}")
-    f.puts("     - %.2g%%" % [Float(param_option_row[3])*100.0])
+    sat_percent = Float(param_option_row[3])*100.0
+    if Integer(sat_percent.truncate()) == 100
+      f.puts("     - %.3g%%" % [sat_percent])
+    else
+      f.puts("     - %.2g%%" % [sat_percent])
+    end
 
     # Check if there are arguments
     if !r_arguments.empty?
