@@ -174,6 +174,7 @@ source_report.each do |row|
     f.puts
     f.puts('.. list-table::')
     f.puts('   :header-rows: 1')
+    f.puts('   :stub-columns: 1')
     f.puts
     arguments_cols.each_with_index do |arguments_col, i|
       line = "     - #{arguments_col}"
@@ -202,7 +203,7 @@ source_report.each do |row|
   f.puts(name)
   f.puts('*' * name.size)
   f.puts
-  f.puts("From ``project_national`` the list of options, option stock sturation, and option arguments for the `#{parameter}` characteristic." )
+  f.puts("From ``project_national`` the list of options, option stock sturation, and option arguments for the **#{parameter}** characteristic." )
   f.puts
   f.puts('.. list-table::')
   f.puts('   :header-rows: 1')
