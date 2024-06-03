@@ -266,7 +266,6 @@ source_report.each do |row|
               f.puts("     - ")
             end
           end
-          
         end
       end
     end
