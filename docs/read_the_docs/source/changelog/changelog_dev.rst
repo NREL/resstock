@@ -7,6 +7,22 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: documentation, options_lookup, feature
+        :pullreq: 1249
+
+        **Date**: 2024-06-04
+
+        Title:
+        Adding options and option arguments to Read the Docs
+
+        Description:
+        Adding to the read the docs documentation by articulating the options in project national and the arguments specified. One can now look at the descriptions of the arguments and documentation linked to OS-HPXML and see what arguments are currently being used in the baseline stock.
+        The updates combines two files automatically: "options_lookup.tsv" and the "project_national/resuources/options_saturations.csv".
+
+        Assignees: Anthony Fontanini
+
+
+    .. change::
         :tags: workflow, plug loads, feature
         :pullreq: 1213
         :tickets: 1206
@@ -53,7 +69,6 @@ Development Changelog
         Latest OS-HPXML
 
         Description:
-        Improves heating/cooling component loads; for timesteps where there is no heating/cooling load, assigns heat transfer to heating or cooling by comparing indoor temperature to the average of heating/cooling setpoints
         Improves heating/cooling component loads; for timesteps where there is no heating/cooling load, assigns heat transfer to heating or cooling by comparing indoor temperature to the average of heating/cooling setpoints.
 
         Assignees: Andrew Speake
