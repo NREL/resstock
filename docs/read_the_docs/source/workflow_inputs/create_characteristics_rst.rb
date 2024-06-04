@@ -247,7 +247,7 @@ source_report.each do |row|
       # When the option is found
       if lookup_row[2] != 'ResStockArguments'
         # Put all blank rows if there is no arguments
-        for a in 1..r_arguments.length() do
+        for _a in 1..r_arguments.length() do
           f.puts('     - ')
         end
       else
