@@ -20,6 +20,7 @@ Features
 - Additional geothermal loop default simulation outputs (number/length of boreholes) ([#1240](https://github.com/NREL/resstock/pull/1240))
 - Updates default `ShieldingofHome` to be "well-shielded" (from "normal") for single-family attached and multifamily dwelling units ([#1240](https://github.com/NREL/resstock/pull/1240))
 - Split out TV plug loads (calculated using an equation based on ANSI/RESNET/ICC 301) from other plug loads (calculated using updated regression equations based on RECS2020) ([#1213](https://github.com/NREL/resstock/pull/1213))
+- Add options and option arguments to read-the-docs ([#1249](https://github.com/NREL/resstock/pull/1249))
 
 Fixes
 - Remove old HPWH options from options_lookup ([#1190](https://github.com/NREL/resstock/pull/1190))
