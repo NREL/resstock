@@ -1,3 +1,8 @@
+## OpenStudio-HPXML v1.8.1
+
+__Bugfixes__
+- Fixes cfm/ton restriction from incorrectly applying to furnace heating airflow rate.
+
 ## OpenStudio-HPXML v1.8.0
 
 __New Features__
