@@ -7,6 +7,21 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: documentation, changelog, feature
+        :pullreq: 1244
+
+        **Date**: 2024-06-05
+
+        Title:
+        RTD: detailed changelog
+
+        Description:
+        Adopt changelog approach from buildstockbatch.
+
+        Assignees: Joe Robertson
+    
+
+    .. change::
         :tags: documentation, options_lookup, feature
         :pullreq: 1249
 
