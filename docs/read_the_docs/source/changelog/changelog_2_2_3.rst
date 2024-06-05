@@ -16,7 +16,7 @@ v2.2.3 Changelog
         Release 2_2_3 patch
 
         Description:
-        Update the weather zip file url in each PAT project to point to data.nrel.gov
+        Update the weather zip file url in each PAT project to point to data.nrel.gov.
 
         Assignees: Joe Robertson
 

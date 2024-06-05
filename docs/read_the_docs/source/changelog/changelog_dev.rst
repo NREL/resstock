@@ -48,7 +48,7 @@ Development Changelog
         Split out Other and TV plug loads
 
         Description:
-        Split out TV plug loads (calculated using an equation based on ANSI/RESNET/ICC 301) from other plug loads (calculated using updated regression equations based on RECS2020)
+        Split out TV plug loads (calculated using an equation based on ANSI/RESNET/ICC 301) from other plug loads (calculated using updated regression equations based on RECS2020).
         For TV, we are now using OS-HPXML defaults (i.e., TV = 413.0 + 69.0 * NumberofBedrooms based on ANSI/RESNET/ICC 301-2019, where NumberofBedrooms is adjusted based on NumberofResidents).
         Create a new sources/recs/recs2020/plug_loads/mel_ann.py script.
 
@@ -68,8 +68,8 @@ Development Changelog
         Run run_analysis in parallel
 
         Description:
-        Introduce a new optional `buildstock_csv_path` argument that supports parallel resstock runs using `run_analysis.rb`
-        I know this is an odd workflow, but I'd like to call resstock in parallel, to run multiple models (baseline only) built each with a precomputed buildstock.csv
+        Introduce a new optional `buildstock_csv_path` argument that supports parallel resstock runs using `run_analysis.rb`.
+        I know this is an odd workflow, but I'd like to call resstock in parallel, to run multiple models (baseline only) built each with a precomputed buildstock.csv.
 
         Assignees: Julien Marrec
 
@@ -99,7 +99,7 @@ Development Changelog
         Latest OS-HPXML
 
         Description:
-        Additional geothermal loop default simulation outputs (number/length of boreholes)
+        Additional geothermal loop default simulation outputs (number/length of boreholes).
         Adds geothermal loop outputs (number/length of boreholes) to annual results output file.
 
         OpenStudio-HPXML: `#1657 <https://github.com/NREL/OpenStudio-HPXML/issues/1657>`_
@@ -117,7 +117,7 @@ Development Changelog
         Latest OS-HPXML
 
         Description:
-        Updates default `ShieldingofHome` to be "well-shielded" (from "normal") for single-family attached and multifamily dwelling units
+        Updates default `ShieldingofHome` to be "well-shielded" (from "normal") for single-family attached and multifamily dwelling units.
         Updates default ShieldingofHome to be "well-shielded" for single-family attached and multifamily dwelling units.
 
         Assignees: Scott Horowitz
@@ -133,7 +133,7 @@ Development Changelog
         OpenStudio 3.8/EnergyPlus 24.1
 
         Description:
-        Update to OpenStudio v3.8.0
+        Update to OpenStudio v3.8.0.
 
         OpenStudio-HPXML: `pull request 1630 <https://github.com/NREL/OpenStudio-HPXML/pull/1630>`_
 
@@ -150,7 +150,7 @@ Development Changelog
         Updates duct effective R-values; allows duct shape inputs
 
         Description:
-        Update to new OS-HPXML defaults for duct insulation; 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts)
+        Update to new OS-HPXML defaults for duct insulation; 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts).
         Adds optional inputs (Ducts/DuctShape and Ducts/DuctFractionRectangular); defaults to 25% rectangular supply ducts and 100% rectangular return ducts (previously 100% round supply/return ducts).
 
         OpenStudio-HPXML: `#1470 <https://github.com/NREL/OpenStudio-HPXML/issues/1470>`_, `pull request 1691 <https://github.com/NREL/OpenStudio-HPXML/pull/1691>`_
@@ -168,7 +168,7 @@ Development Changelog
         HVAC Autosizing Limits
 
         Description:
-        Sizing control option to specify max allowed airflow
+        Sizing control option to specify max allowed airflow.
         The PR aims to allow specifying upper limits for autosized capacities.
 
         OpenStudio-HPXML: `#1530 <https://github.com/NREL/OpenStudio-HPXML/issues/1530>`_, `#1556 <https://github.com/NREL/OpenStudio-HPXML/issues/1556>`_, `pull request 1584 <https://github.com/NREL/OpenStudio-HPXML/pull/1584>`_
@@ -186,8 +186,8 @@ Development Changelog
         HVAC Autosizing Factors
 
         Description:
-        Enable HVAC airflow and capacity scaling factors to oversize or undersize the equipment
-        Manually create new tsv files for assigning autosizing factor arguments introduced by NREL/OpenStudio-HPXML#1611
+        Enable HVAC airflow and capacity scaling factors to oversize or undersize the equipment.
+        Manually create new tsv files for assigning autosizing factor arguments introduced by NREL/OpenStudio-HPXML#1611.
 
         resstock-estimation: `pull request 406 <https://github.com/NREL/resstock-estimation/pull/406>`_
 
@@ -206,10 +206,10 @@ Development Changelog
         Update Other, TV, and Ceiling Fan stochastic schedules
 
         Description:
-        Update the stochastic schedule generator to produce updated other/TV plug load and ceiling fan schedules
+        Update the stochastic schedule generator to produce updated other/TV plug load and ceiling fan schedules.
         generate TV schedules that follow the ATUS TV schedule fractions (distinct weekday/weekend) and multipliers (and not Other schedule fractions and multipliers).
         generate Other schedules that follow the new Other schedule fractions (still uses non-constant 2010 BAHSP monthly multipliers).
-        generate Ceiling Fan schedules that follow the new Ceiling Fan schedule fractions (also update multipliers to not follow Other multipliers, but rather Ceiling Fan multipliers that are a function of weather)
+        generate Ceiling Fan schedules that follow the new Ceiling Fan schedule fractions (also update multipliers to not follow Other multipliers, but rather Ceiling Fan multipliers that are a function of weather).
 
         OpenStudio-HPXML: `pull request 1634 <https://github.com/NREL/OpenStudio-HPXML/pull/1634>`_
 
@@ -226,7 +226,7 @@ Development Changelog
         Integrate ARIS data
 
         Description:
-        Update the Alaska residential stock characterization using the Alaska Retrofit Information System data
+        Update the Alaska residential stock characterization using the Alaska Retrofit Information System data.
         Update housing characteristics for Alaska using ARIS dataset. Explicitly model wood heating for the national.
 
         resstock-estimation: `pull request 381 <https://github.com/NREL/resstock-estimation/pull/381>`_
@@ -244,7 +244,7 @@ Development Changelog
         HVAC Autosizing Factors
 
         Description:
-        Add ability to specify HVAC system autosizing factors for baseline buildings; autosizing factors are retained for upgrade buildings following the same approach for HVAC system capacities
+        Add ability to specify HVAC system autosizing factors for baseline buildings; autosizing factors are retained for upgrade buildings following the same approach for HVAC system capacities.
         Allows optional HeatingAutosizingFactor, CoolingAutosizingFactor, BackupHeatingAutosizingFactor inputs to scale HVAC equipment autosizing results.
 
         OpenStudio-HPXML: `#1561 <https://github.com/NREL/OpenStudio-HPXML/issues/1561>`_, `pull request 1611 <https://github.com/NREL/OpenStudio-HPXML/pull/1611>`_
@@ -262,7 +262,6 @@ Development Changelog
         Allow building site inputs
 
         Description:
-        nan
         Allow building site inputs; this is particularly useful when the building is located far from, or at a very different elevation than, the EPW weather station. When not provided, defaults to using EPW header values (as before).
 
         OpenStudio-HPXML: `pull request 1636 <https://github.com/NREL/OpenStudio-HPXML/pull/1636>`_
@@ -280,8 +279,8 @@ Development Changelog
         Add SMI, MSA, Metro Status
 
         Description:
-        Add Metropolitan and Micropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv
-        Added 3 new tsvs to support @SinounPhoung's socio-demographically differentiated Stochastic Occupant Schedule integration into ResStock
+        Add Metropolitan and Micropolitan Statistical Area tsv, County Metro Status tsv, and State Metro Median Income tsv.
+        Added 3 new tsvs to support @SinounPhoung's socio-demographically differentiated Stochastic Occupant Schedule integration into ResStock.
 
         resstock-estimation: `pull request 400 <https://github.com/NREL/resstock-estimation/pull/400>`_
 
@@ -298,7 +297,7 @@ Development Changelog
         Update water heater location
 
         Description:
-        Move location of out-of-unit (shared) water heaters to conditioned mechanical room
+        Move location of out-of-unit (shared) water heaters to conditioned mechanical room.
         Move out-of-unit water heaters (i.e., Water Heater In Unit=No from Location=None to Location=Conditioned Mechanical Room (corresponds to OS-HPXML location: "other heated space").
 
         Assignees: Lixi Liu, Jeff Maguire, Anthony Fontanini
@@ -314,8 +313,8 @@ Development Changelog
         BuildResidentialHPXML: multiple vacancy/outage periods
 
         Description:
-        Allow definition of multiple unavailable periods (i.e., vacancy, power outage)
-        Update schedules_vacancy_period and schedules_power_outage_period arguments to support multiple periods (comma-separated?). Argument schedules_power_outage_window_natvent_availability would then need to also be comma-separated?
+        Allow definition of multiple unavailable periods (i.e., vacancy, power outage).
+        Update schedules_vacancy_period and schedules_power_outage_period arguments to support multiple periods (comma-separated?).
 
         OpenStudio-HPXML: `#1618 <https://github.com/NREL/OpenStudio-HPXML/issues/1618>`_, `pull request 1622 <https://github.com/NREL/OpenStudio-HPXML/pull/1622>`_
 
@@ -332,7 +331,7 @@ Development Changelog
         HP backup sizing methodology
 
         Description:
-        Add ability to set either an "emergency" or "supplemental" heat pump backup sizing methodology
+        Add ability to set either an "emergency" or "supplemental" heat pump backup sizing methodology.
         Adds a HeatPumpBackupSizingMethodology element with choices of 'emergency' and 'supplemental'. Defaults to 'emergency', so results do not change by default.
 
         OpenStudio-HPXML: `#1322 <https://github.com/NREL/OpenStudio-HPXML/issues/1322>`_, `pull request 1597 <https://github.com/NREL/OpenStudio-HPXML/pull/1597>`_
@@ -350,7 +349,7 @@ Development Changelog
         ANSI 301-2022: load profile schedules
 
         Description:
-        Refrigerator energy use is now affected by its ambient temperature using hourly constant and temperature coefficients from ANSI/RESNET/ICC 301-2022 Addendum C
+        Refrigerator energy use is now affected by its ambient temperature using hourly constant and temperature coefficients from ANSI/RESNET/ICC 301-2022 Addendum C.
         Default fridge schedule is now an actuated EMS program. Daily schedule is a function of hour and space temperature.
 
         OpenStudio-HPXML: `pull request 1572 <https://github.com/NREL/OpenStudio-HPXML/pull/1572>`_
@@ -368,7 +367,6 @@ Development Changelog
         ANSI 301-2022: load profile schedules
 
         Description:
-        nan
         Various schedule fractions/multipliers updates (e.g., appliances, lighting, fixtures, occupancy, ceiling fan).
 
         OpenStudio-HPXML: `pull request 1572 <https://github.com/NREL/OpenStudio-HPXML/pull/1572>`_
@@ -386,7 +384,6 @@ Development Changelog
         ANSI 301-2022: load profile schedules
 
         Description:
-        nan
         For ceiling fans, add a LabelEnergyUse (W) input as an alternative to Efficiency (cfm/W).
 
         OpenStudio-HPXML: `pull request 1609 <https://github.com/NREL/OpenStudio-HPXML/pull/1609>`_
@@ -404,7 +401,7 @@ Development Changelog
         Updating hot water fixtures multipliers based on field data.
 
         Description:
-        Update hot water usage multipliers based on field data rather than engineering judgement
+        Update hot water usage multipliers based on field data rather than engineering judgement.
         Update hot water usage multipliers. Using field data from 1700 water heaters in New England to come up with the distribution. Based on data collected as part of PERFORM with Michael Blonsky, who shared the distribution with us.
 
         resstock-estimation: `#289 <https://github.com/NREL/resstock-estimation/issues/289>`_, `pull request 361 <https://github.com/NREL/resstock-estimation/pull/361>`_
@@ -422,8 +419,8 @@ Development Changelog
         Whole MF building models: Replace building_id=ALL argument with an HPXML element
 
         Description:
-        Add optional switch to BuildExistingModel (defaulted to false) for modeling whole SFA/MF buildings
-        Replaces building_id=ALL argument with an element in the HPXML file, which allows us to perform validation specific to whole MF building simulations
+        Add optional switch to BuildExistingModel (defaulted to false) for modeling whole SFA/MF buildings.
+        Replaces building_id=ALL argument with an element in the HPXML file, which allows us to perform validation specific to whole MF building simulations.
 
         OpenStudio-HPXML: `pull request 1594 <https://github.com/NREL/OpenStudio-HPXML/pull/1594>`_
 
@@ -440,8 +437,8 @@ Development Changelog
         Update characteristics using 2020 RECS v7 data
 
         Description:
-        Update to RECS 2020 V7 data files
-        Updates RECS 2020 data from v5 to v7. There are some new EV variables to be leveraged by the ResStock/TEMPO project. I am not sure what V6 was as there is no documentation.
+        Update to RECS 2020 V7 data files.
+        Updates RECS 2020 data from v5 to v7. There are some new EV variables to be leveraged by the ResStock/TEMPO project.
 
         resstock-estimation: `pull request 394 <https://github.com/NREL/resstock-estimation/pull/394>`_
 
@@ -458,7 +455,7 @@ Development Changelog
         Reorganize emissions and utility bills data folders
 
         Description:
-        Reorganize the emissions and utility rates data folders such that their sources and functions are more clear
+        Reorganize the emissions and utility rates data folders such that their sources and functions are more clear.
         Previously, it wasn't clear that the provided utility rate data was for demonstration purposes only.
 
         Assignees: Joe Robertson
@@ -474,7 +471,7 @@ Development Changelog
         2022 Cambium: add 25 year levelization scenarios
 
         Description:
-        Include additional 2022 Cambium 25-year LRMER emissions data
+        Include additional 2022 Cambium 25-year LRMER emissions data.
         Add 10 new "LRMER_xxx_25" data folders to resources/data/cambium/2022.
 
         Assignees: Joe Robertson
@@ -490,8 +487,8 @@ Development Changelog
         Adding flexibility to specify location of the radiant barrier
 
         Description:
-        Add flexibility to specify location of the radiant barrier
-        Allowing Radiant Barrier for Attic Floor
+        Add flexibility to specify location of the radiant barrier.
+        Allowing Radiant Barrier for Attic Floor.
 
         OpenStudio-HPXML: `#1435 <https://github.com/NREL/OpenStudio-HPXML/issues/1435>`_, `pull request 1473 <https://github.com/NREL/OpenStudio-HPXML/pull/1473>`_
 
@@ -509,7 +506,7 @@ Development Changelog
         BuildResidentialHPXML: detailed performance data arguments
 
         Description:
-        Add ability to describe detailed performance data for variable-speed air-source HVAC systems
+        Add ability to describe detailed performance data for variable-speed air-source HVAC systems.
         Updated assumptions for variable-speed air conditioners, heat pumps, and mini-splits.
         Also allows detailed heating and cooling performance data (min/max COPs and capacities at different outdoor temperatures) as an optional set of inputs. 
         Data can be sourced from e.g. NEEP's Cold Climate Air Source Heat Pump List.
@@ -531,8 +528,8 @@ Development Changelog
         Remove old HPWH options from options_lookup
 
         Description:
-        Remove old HPWH options from options_lookup
-        Removing the old HPWH options from options_lookup.tsv
+        Remove old HPWH options from options_lookup.
+        Removing the old HPWH options from options_lookup.tsv.
 
         Assignees: Jeff Maguire
 

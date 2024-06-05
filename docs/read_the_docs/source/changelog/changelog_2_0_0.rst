@@ -16,7 +16,7 @@ v2.0.0 Changelog
         Multifamily
 
         Description:
-        Update to OpenStudio v2.8.0
+        Update to OpenStudio v2.8.0.
 
         Assignees: Joe Robertson, Maharshi Pathak, Scott Horowitz
 
@@ -31,7 +31,7 @@ v2.0.0 Changelog
         Multifamily
 
         Description:
-        Add a multifamily project which includes housing characteristic distributions for single-family detached, single-family attached, and multifamily buildings
+        Add a multifamily project which includes housing characteristic distributions for single-family detached, single-family attached, and multifamily buildings.
 
         Assignees: Joe Robertson, Maharshi Pathak, Scott Horowitz
 
@@ -46,7 +46,7 @@ v2.0.0 Changelog
         Multifamily
 
         Description:
-        Add measures for calculating construction properties, modeling power outages and calculating resilience metrics, and calculating utility bills
+        Add measures for calculating construction properties, modeling power outages and calculating resilience metrics, and calculating utility bills.
 
         Assignees: Joe Robertson, Maharshi Pathak, Scott Horowitz
 
@@ -61,7 +61,7 @@ v2.0.0 Changelog
         Multifamily
 
         Description:
-        Add measure for modeling shared multiifamily facades using adiabatic constructions
+        Add measure for modeling shared multiifamily facades using adiabatic constructions.
 
         Assignees: Joe Robertson, Maharshi Pathak, Scott Horowitz
 
@@ -76,7 +76,7 @@ v2.0.0 Changelog
         Multifamily
 
         Description:
-        Relocate all measure unit tests, test osw files, and test osm files from archived OpenStudio-BEopt and into this repository
+        Relocate all measure unit tests, test osw files, and test osm files from archived OpenStudio-BEopt and into this repository.
 
         Assignees: Joe Robertson, Maharshi Pathak, Scott Horowitz
 
@@ -91,7 +91,7 @@ v2.0.0 Changelog
         Multifamily
 
         Description:
-        Create example workflow osw files for single-family detached, single-family attached, and multifamily buildings using TMY weather
+        Create example workflow osw files for single-family detached, single-family attached, and multifamily buildings using TMY weather.
 
         Assignees: Joe Robertson, Maharshi Pathak, Scott Horowitz
 
@@ -106,7 +106,7 @@ v2.0.0 Changelog
         Multifamily
 
         Description:
-        Reporting measures read from ReportMeterData table to get disaggregated fan and pump energy
+        Reporting measures read from ReportMeterData table to get disaggregated fan and pump energy.
 
         Assignees: Joe Robertson, Maharshi Pathak, Scott Horowitz
 
@@ -121,7 +121,7 @@ v2.0.0 Changelog
         Multifamily
 
         Description:
-        Break out central system heating, cooling, and pump energy in reporting measures
+        Break out central system heating, cooling, and pump energy in reporting measures.
 
         Assignees: Joe Robertson, Maharshi Pathak, Scott Horowitz
 
@@ -136,7 +136,7 @@ v2.0.0 Changelog
         Use UnitConversions.convert(...) method
 
         Description:
-        Use custom unit conversions script instead of that provided by OpenStudio SDK
+        Use custom unit conversions script instead of that provided by OpenStudio SDK.
 
         Assignees: Joe Robertson
 
@@ -151,7 +151,7 @@ v2.0.0 Changelog
         Dependency graphs and wheels
 
         Description:
-        Automatically generate dependency graphs and a dependency wheel for each project
+        Automatically generate dependency graphs and a dependency wheel for each project.
         I put together scripts in the docs folder to automatically generate dependency graphs and a dependency wheel for each <project_folder> in the OpenStudio-BuildStock repository. These scripts create a util folder if it doesn't exist and puts data for these visualizations. A project README.md file has been added to each <project_folder> where there is a link to the interactive dependency wheel. These visualizations are easily updated as they depend strictly on the TSV files. They are updated through a single regenerate_visualization.ipynb script.
 
         Assignees: Anthony Fontanini
@@ -167,7 +167,7 @@ v2.0.0 Changelog
         Large buildings collapsed into minimal units
 
         Description:
-        Ability to simulate large multifamily buildings using "collapsed" buildings with multipliers on building units
+        Ability to simulate large multifamily buildings using "collapsed" buildings with multipliers on building units.
 
         Assignees: Joe Robertson
 
@@ -182,7 +182,7 @@ v2.0.0 Changelog
         Multifamily
 
         Description:
-        Ability to add central systems (boiler with baseboards, fan coil, PTAC) to multifamily buildings using the openstudio-standards gem
+        Ability to add central systems (boiler with baseboards, fan coil, PTAC) to multifamily buildings using the openstudio-standards gem.
 
         Assignees: Joe Robertson, Maharshi Pathak, Scott Horowitz
 

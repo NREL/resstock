@@ -16,7 +16,7 @@ v2.2.0 Changelog
         Addresses #344, adjust timeseries csv index for DST
 
         Description:
-        Include additional "daylight saving time" and "utc time" columns to timeseries csv file to account for one hour forward and backward time shifts
+        Include additional "daylight saving time" and "utc time" columns to timeseries csv file to account for one hour forward and backward time shifts.
         The TimeseriesCSVExport measure outputs time at a constant interval across a year, regardless of time changes for daylight savings time. This can cause confusion, as E+ shifts schedules to account for DST, but our time output does not line up with this shift.
 
         Assignees: Joe Robertson
@@ -32,7 +32,7 @@ v2.2.0 Changelog
         Addresses #344, adjust timeseries csv index for DST
 
         Description:
-        Update each PAT project's AMI selection to "2.9.0"
+        Update each PAT project's AMI selection to "2.9.0".
         The TimeseriesCSVExport measure outputs time at a constant interval across a year, regardless of time changes for daylight savings time. This can cause confusion, as E+ shifts schedules to account for DST, but our time output does not line up with this shift.
 
         Assignees: Joe Robertson
@@ -48,7 +48,7 @@ v2.2.0 Changelog
         More none no natl avg
 
         Description:
-        Split out national average options so not all homes have all miscellaneous equipment, and add none options to appliances
+        Split out national average options so not all homes have all miscellaneous equipment, and add none options to appliances.
 
         Assignees: Anthony Fontanini
 
@@ -79,7 +79,7 @@ v2.2.0 Changelog
         Addresses #352, optionally include annual totals for end use subcategories
 
         Description:
-        Custom meters for ceiling fan, hot water recirc pump, and vehicle end use subcategories were not properly implemented
+        Custom meters for ceiling fan, hot water recirc pump, and vehicle end use subcategories were not properly implemented.
         Can now optionally report (using the SimulationOutputReport measure) annual totals for end use subcategories (same as for the TimeseriesCSVExport measure) in the results csv. Measure also checks that the sum of the end use subcategories equals the reported interior equipment value.
 
         Assignees: Joe Robertson
@@ -95,7 +95,7 @@ v2.2.0 Changelog
         Fixes wood stove upgrade
 
         Description:
-        Allow Wood Stove option as an upgrade, and account for wood heating energy in simulation output
+        Allow Wood Stove option as an upgrade, and account for wood heating energy in simulation output.
         I added a bugfix for the upgrade so that the EnergyPlus simulation is successful.
 
         Assignees: Scott Horowitz
@@ -111,8 +111,8 @@ v2.2.0 Changelog
         Tsv wall w hcs reformat
 
         Description:
-        Update the single-family detached project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls
-        [Added the TSV for wall type, masonry and wood. added dependency to the Insulation Wall TSV; additional options for CMU walls(post-1950) and 3" wythe brick wall]
+        Update the single-family detached project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls.
+        Added the TSV for wall type, masonry and wood. added dependency to the Insulation Wall TSV; additional options for CMU walls(post-1950) and 3" wythe brick wall.
 
         Assignees: Maharshi Pathak
 
@@ -127,8 +127,8 @@ v2.2.0 Changelog
         Mf renaming w hcs formating
 
         Description:
-        Some re-labeling of tsv files, such as "Geometry Building Type" to "Geometry Building Type RECS" and "Geometry Building Type FPL" to "Geometry Building Type ACS"
-        [Changes in the naming convention of hcs with the new hcs format included. ]
+        Some re-labeling of tsv files, such as "Geometry Building Type" to "Geometry Building Type RECS" and "Geometry Building Type FPL" to "Geometry Building Type ACS".
+        Changes in the naming convention of hcs with the new hcs format included.
 
         Assignees: Maharshi Pathak
 
@@ -143,12 +143,13 @@ v2.2.0 Changelog
         Make housing characteristics format consistent.
 
         Description:
-        Made housing characteristics a consistent format. Added integrity check to ensure housing characteristics follow the guildelines specified in read-the-docs
+        Made housing characteristics a consistent format. Added integrity check to ensure housing characteristics follow the guildelines specified in read-the-docs.
         In the effort to make the format more consistent, the following format has been applied to the housing characteristics. Standardizing the format of the housing characteristics should make it easier to see differences in commits
-        All line terminators are '\r\n' which is consistent with Windows machines.
-        All Option columns have format '%.6f'.
-        All [For Reference Only] Source Sample Size columns are type 'int'.
-        All [For Reference Only] Source Weight columns are type 'int'.
+        
+        - All line terminators are '\r\n' which is consistent with Windows machines.
+        - All Option columns have format '%.6f'.
+        - All [For Reference Only] Source Sample Size columns are type 'int'.
+        - All [For Reference Only] Source Weight columns are type 'int'.
 
         Assignees: Anthony Fontanini
 
@@ -163,7 +164,7 @@ v2.2.0 Changelog
         Remove "auto" option for number of occupants
 
         Description:
-        Removes option "Auto" from parameter "Occupants" in the options lookup file
+        Removes option "Auto" from parameter "Occupants" in the options lookup file.
 
         Assignees: Joe Robertson
 
@@ -178,10 +179,10 @@ v2.2.0 Changelog
         Neighbors update
 
         Description:
-        Update the multifamily project's neighbors and orientation tsv files to have geometry building type dependency; remove the now obsolete "Geometry Is Multifamily Low Rise.tsv" file
-        Remove Geometry Is Multifamily Low Rise.tsv from all projects, and replace with Geometry Building Type.tsv as a dependency in the multifamily project
-        Use Geometry Building Type.tsv as dependency for Neighbors.tsv in multifamily project
-        Use Geometry Building Type.tsv as dependency for Orientation.tsv in multifamily project
+        Update the multifamily project's neighbors and orientation tsv files to have geometry building type dependency; remove the now obsolete "Geometry Is Multifamily Low Rise.tsv" file.
+        Remove Geometry Is Multifamily Low Rise.tsv from all projects, and replace with Geometry Building Type.tsv as a dependency in the multifamily project.
+        Use Geometry Building Type.tsv as dependency for Neighbors.tsv in multifamily project.
+        Use Geometry Building Type.tsv as dependency for Orientation.tsv in multifamily project.
 
         Assignees: Joe Robertson
 
@@ -196,8 +197,8 @@ v2.2.0 Changelog
         Lighting fixes
 
         Description:
-        Fixes for custom output meters: total site electricity double-counting exterior holiday lighting, and garage lighting all zeroes
-        Addresses bugs in custom output meters found by @rajeee and @afontani:
+        Fixes for custom output meters: total site electricity double-counting exterior holiday lighting, and garage lighting all zeroes.
+        Addresses bugs in custom output meters found by @rajeee and @afontani.
 
         Assignees: Joe Robertson
 
@@ -212,7 +213,7 @@ v2.2.0 Changelog
         RECS 2015 tsv maker
 
         Description:
-        Update bedrooms and occupants tsv files with options and probability distributions based on RECS 2015 data 
+        Update bedrooms and occupants tsv files with options and probability distributions based on RECS 2015 data.
 
         Assignees: Joe Robertson
 
@@ -227,7 +228,7 @@ v2.2.0 Changelog
         Remove shared facades
 
         Description:
-        Remove shared facades tsv files from the multifamily_beta and testing projects
+        Remove shared facades tsv files from the multifamily_beta and testing projects.
 
         Assignees: Joe Robertson
 
@@ -242,7 +243,7 @@ v2.2.0 Changelog
         Updates to outage measure
 
         Description:
-        Fix for the power outages measure where the last hour of the day was not getting the new schedule applied
+        Fix for the power outages measure where the last hour of the day was not getting the new schedule applied.
         It looked like the last hour of the day wasn't getting the new schedule applied. This fixes that. I've also cleaned up some code and added some new unit tests.
 
         Assignees: Joe Robertson
@@ -258,7 +259,7 @@ v2.2.0 Changelog
         Update sfd, mf, and testing tsv structure
 
         Description:
-        Separate tsv files for bedrooms, cooking range schedule, corridor, holiday lighting, interior/other lighting use, pool schedule, plug loads schedule, and refrigeration schedule
+        Separate tsv files for bedrooms, cooking range schedule, corridor, holiday lighting, interior/other lighting use, pool schedule, plug loads schedule, and refrigeration schedule.
 
         Assignees: Joe Robertson
 
@@ -273,7 +274,7 @@ v2.2.0 Changelog
         Report quantities of interest
 
         Description:
-        Add new QOIReport measure for reporting seasonal quantities of interest for uncertainty quantification
+        Add new QOIReport measure for reporting seasonal quantities of interest for uncertainty quantification.
         Reporting quantities of interest for EULP uncertainty quantification.
 
         Assignees: Joe Robertson
@@ -289,7 +290,7 @@ v2.2.0 Changelog
         Report quantities of interest
 
         Description:
-        Move redundant output meter code from individual reporting measures out into shared resource file
+        Move redundant output meter code from individual reporting measures out into shared resource file.
 
         Assignees: Joe Robertson
 

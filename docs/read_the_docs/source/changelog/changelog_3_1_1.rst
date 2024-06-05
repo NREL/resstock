@@ -16,8 +16,8 @@ v3.1.1 Changelog
         Use gem version on bsb version strings
 
         Description:
-        Use `Gem::Version` on buildstockbatch version string comparisons so that, e.g., '2023.10.0' < '2023.5.0' does not evaluate to true
-        Patched release with version comparison fix
+        Use `Gem::Version` on buildstockbatch version string comparisons so that, e.g., '2023.10.0' < '2023.5.0' does not evaluate to true.
+        Patched release with version comparison fix.
 
         Assignees: Joe Robertson
 

@@ -16,7 +16,7 @@ v2.1.0 Changelog
         Update the cw options a bit
 
         Description:
-        Additional options for EnergyStar clothes washer, clothes dryer, dishwasher
+        Additional options for EnergyStar clothes washer, clothes dryer, dishwasher.
         Reduce IMEF on the "more" efficient option. Change drum volume on "most" efficient option. Add links in unit tests to actual clothes washer examples pulled from energystar.
 
         Assignees: Joe Robertson
@@ -32,7 +32,7 @@ v2.1.0 Changelog
         Update the cw options a bit
 
         Description:
-        Bugfix for some clothes washer, dishwasher options causing increased energy consumption
+        Bugfix for some clothes washer, dishwasher options causing increased energy consumption.
         Reduce IMEF on the "more" efficient option. Change drum volume on "most" efficient option. Add links in unit tests to actual clothes washer examples pulled from energystar.
 
         Assignees: Joe Robertson
@@ -48,7 +48,7 @@ v2.1.0 Changelog
         Enforce rubocop as separate ci test
 
         Description:
-        Enforce rubocop as CI test so code with offenses cannot be merged
+        Enforce rubocop as CI test so code with offenses cannot be merged.
         Code can no longer be committed to the repo with rubocop offenses.
 
         Assignees: Joe Robertson
@@ -64,7 +64,7 @@ v2.1.0 Changelog
         Add more efficient options for dw, cw, cd
 
         Description:
-        Additional options for EnergyStar clothes washer, clothes dryer, dishwasher
+        Additional options for EnergyStar clothes washer, clothes dryer, dishwasher.
         We need "more efficient" options for idsm-scout and mf aedg. Currently, the dw, cw options are causing increased energy consumption. Janet had started to look into this. Turns out things related to the energy guide label, like rated_annual_energy, annual_cost, and test_date, had not been updated.
 
         Assignees: Joe Robertson
@@ -80,7 +80,7 @@ v2.1.0 Changelog
         Fix assignment of bedrooms to units
 
         Description:
-        Bugfix when specifying numbers of bedrooms to building units
+        Bugfix when specifying numbers of bedrooms to building units.
         This fixes a bug when you try to assign, e.g., 3, 2, 1, 2, 2, 3 numbers of bedrooms to 6 building units.
 
         Assignees: Joe Robertson
@@ -96,7 +96,7 @@ v2.1.0 Changelog
         Add more efficient options for dw, cw, cd
 
         Description:
-        Bugfix for some clothes washer, dishwasher options causing increased energy consumption
+        Bugfix for some clothes washer, dishwasher options causing increased energy consumption.
         We need "more efficient" options for idsm-scout and mf aedg. Currently, the dw, cw options are causing increased energy consumption. Janet had started to look into this. Turns out things related to the energy guide label, like rated_annual_energy, annual_cost, and test_date, had not been updated.
 
         Assignees: Joe Robertson
@@ -144,7 +144,7 @@ v2.1.0 Changelog
         Talk to downselect point that datapoints are before downselect logic.
 
         Description:
-        Update documentation to clarify downselect logic parameters
+        Update documentation to clarify downselect logic parameters.
 
         Assignees: Joe Robertson
 
@@ -159,7 +159,7 @@ v2.1.0 Changelog
         Fixes #319
 
         Description:
-        Add tests to ensure that the Run Measure argument is correctly defined in all Apply Upgrade measures for all projects
+        Add tests to ensure that the Run Measure argument is correctly defined in all Apply Upgrade measures for all projects.
         Fixes #319. Added tests to ensure that the Run Measure argument is correctly defined in all Apply Upgrade measures for all projects.
 
         Assignees: Scott Horowitz
@@ -175,7 +175,7 @@ v2.1.0 Changelog
         Example YAML file upload
 
         Description:
-        Create example project yaml files for use with buildstockbatch 
+        Create example project yaml files for use with buildstockbatch.
         Some comments on correct defaults included, could use more.
 
         Assignees: Elaina Present
@@ -191,7 +191,7 @@ v2.1.0 Changelog
         Create pull_request_template.md
 
         Description:
-        Create a pull request template to facilitate development
+        Create a pull request template to facilitate development.
         Start creating a pull request template.
 
         Assignees: Joe Robertson
@@ -207,7 +207,7 @@ v2.1.0 Changelog
         Log the error string along with backtrace
 
         Description:
-        Log the error message along with the backtrace when an applied measure fails
+        Log the error message along with the backtrace when an applied measure fails.
         Currently, the apply_measure function only logs the error backtrace when the measure being applied fails, but not the actual error message. This fixes the issue, and logs the error message alongside the backtrace.
 
         Assignees: Rajendra Adhikari
@@ -223,7 +223,7 @@ v2.1.0 Changelog
         Ehale ignore measures
 
         Description:
-        Add argument to BuildExistingModel measure that allows the user to ignore measures
+        Add argument to BuildExistingModel measure that allows the user to ignore measures.
         This branch adds the feature of being able to having the ResStock BuildExistingModel ignore measures. There will be a companion pull request to buildstockbatch that passes that argument through the project yml.
 
         Assignees: Elaine Hale
@@ -239,8 +239,8 @@ v2.1.0 Changelog
         Get past runner values of any type
 
         Description:
-        Able to get past runner values of any type, and not just as string
-        Can only get runner past values as string
+        Able to get past runner values of any type, and not just as string.
+        Can only get runner past values as string.
 
         Assignees: Joe Robertson
 
@@ -255,11 +255,11 @@ v2.1.0 Changelog
         Fixes/updates for SimulationOutputReport measure
 
         Description:
-        Report all cost multipliers in the SimulationOutputReport measure
-        Fix bug in cost multipliers for "minimally collapsed" building
-        SimulationOutputReport unit tests for "minimally collapsed" building
-        Report all cost multipliers in results csv
-        Regression tests include all cost multipliers
+        Report all cost multipliers in the SimulationOutputReport measure.
+        Fix bug in cost multipliers for "minimally collapsed" building.
+        SimulationOutputReport unit tests for "minimally collapsed" building.
+        Report all cost multipliers in results csv.
+        Regression tests include all cost multipliers.
 
         Assignees: Joe Robertson
 
@@ -274,7 +274,7 @@ v2.1.0 Changelog
         Ducts sometimes placed in garage attic
 
         Description:
-        Bugfix for ducts occasionally getting placed in the garage attic instead of only unfinished attic
+        Bugfix for ducts occasionally getting placed in the garage attic instead of only unfinished attic.
         This changes the space type for the 1-story building garage attic from unfinished attic to garage attic. This should fix issues brought up by @jonwinkler.
 
         Assignees: Joe Robertson
@@ -290,8 +290,8 @@ v2.1.0 Changelog
         Addresses #306
 
         Description:
-        Ensure that autosizing does not draw the whole tank volume in one minute for solar hot water storage tank
-        setUseSideDesignFlowRate for solar hw measure
+        Ensure that autosizing does not draw the whole tank volume in one minute for solar hot water storage tank.
+        setUseSideDesignFlowRate for solar hw measure.
 
         Assignees: Joe Robertson
 
@@ -306,8 +306,8 @@ v2.1.0 Changelog
         Remove invalid characters from option names
 
         Description:
-        Remove invalid characters from option names for consistency with buildstockbatch
-        Fixes options that would fail the validation proposed in NREL/buildstockbatch#99
+        Remove invalid characters from option names for consistency with buildstockbatch.
+        Fixes options that would fail the validation proposed in NREL/buildstockbatch#99.
 
         Assignees: Nate Moore
 
@@ -322,7 +322,7 @@ v2.1.0 Changelog
         Low flow fixture options
 
         Description:
-        Add options for low flow fixtures
+        Add options for low flow fixtures.
 
         Assignees: Joe Robertson
 
@@ -353,10 +353,11 @@ v2.1.0 Changelog
         Add TM to ResStock and ComStock
 
         Description:
-        Add references to ResStock trademark in both the license and readme files
+        Add references to ResStock trademark in both the license and readme files.
         Added to first references in:
-        README.md
-        LICENSE.md
+        
+        - README.md
+        - LICENSE.md
 
         Assignees: Joe Robertson
 
@@ -371,8 +372,8 @@ v2.1.0 Changelog
         Additional max-tech levels for options_lookup
 
         Description:
-        Additional "max-tech" options for slab, wall, refrigerator, dishwasher, clothes washer, and lighting
-        Added 112 lm/W LED option, EF 22.2 refrigerator option, R20 Whole Slab insulation option, Wood Stud R-13 with R-20 external XPS option, EnergyStar Most Efficient clothes washers, and EnergyStar Most Efficient Dishwashers at 199 rated Kwh
+        Additional "max-tech" options for slab, wall, refrigerator, dishwasher, clothes washer, and lighting.
+        Added 112 lm/W LED option, EF 22.2 refrigerator option, R20 Whole Slab insulation option, Wood Stud R-13 with R-20 external XPS option, EnergyStar Most Efficient clothes washers, and EnergyStar Most Efficient Dishwashers at 199 rated Kwh.
 
         Assignees: Elaina Present
 
@@ -387,7 +388,7 @@ v2.1.0 Changelog
         Fix bug when you specify all br but not ba
 
         Description:
-        Bugfix for when bedrooms are specified for each unit but bathrooms are not
+        Bugfix for when bedrooms are specified for each unit but bathrooms are not.
 
         Assignees: Joe Robertson
 
@@ -402,7 +403,7 @@ v2.1.0 Changelog
         Increase upgrade options from 20 to 25
 
         Description:
-        Increase number of possible upgrade options from 10 to 25
+        Increase number of possible upgrade options from 10 to 25.
 
         Assignees: Joe Robertson
 
@@ -417,7 +418,7 @@ v2.1.0 Changelog
         Demand response
 
         Description:
-        Add new ResidentialDemandResponse measure that allows for 8760 DR schedules to be applied to heating/cooling schedules
+        Add new ResidentialDemandResponse measure that allows for 8760 DR schedules to be applied to heating/cooling schedules.
         New measure ResidentialDemandResponse that allows for 8760 DR schedules to be applied to heating and/or cooling schedules.
 
         Assignees: Andrew Speake
@@ -433,7 +434,7 @@ v2.1.0 Changelog
         Add options and write EV code
 
         Description:
-        Add EV options and update ResidentialMiscLargeUncommonLoads measure with new electric vehicle argument
+        Add EV options and update ResidentialMiscLargeUncommonLoads measure with new electric vehicle argument.
         Also includes writing new options/arguments in measure.rb, which should be closely examined for errors due to my inexperience with that task.
 
         Assignees: Nate Moore
@@ -449,8 +450,7 @@ v2.1.0 Changelog
         Add buildstockbatch ymls to each resstock project
 
         Description:
-        Create example project yaml files for use with buildstockbatch 
-        For convenience.
+        Create example project yaml files for use with buildstockbatch for convenience.
 
         Assignees: Joe Robertson
 
@@ -465,7 +465,7 @@ v2.1.0 Changelog
         Add year argument to simulation controls measure
 
         Description:
-        Update ResidentialSimulationControls measure to include a calendar year argument for controlling the simulation start day of week
+        Update ResidentialSimulationControls measure to include a calendar year argument for controlling the simulation start day of week.
 
         Assignees: Joe Robertson
 
@@ -480,7 +480,7 @@ v2.1.0 Changelog
         Don't request output for "invalid" datapoints
 
         Description:
-        Skip any reporting measure output requests for datapoints that have been registered as invalid
+        Skip any reporting measure output requests for datapoints that have been registered as invalid.
 
         Assignees: Joe Robertson
 
@@ -495,7 +495,7 @@ v2.1.0 Changelog
         Update testing project to sweep thru more options
 
         Description:
-        Update testing project to sweep through more options
+        Update testing project to sweep through more options.
 
         Assignees: Nate Moore
 
@@ -510,7 +510,7 @@ v2.1.0 Changelog
         Minor readthedocs updates
 
         Description:
-        Updates, edits, and clarification to the documentation
+        Updates, edits, and clarification to the documentation.
 
         Assignees: Joe Robertson
 
@@ -526,7 +526,7 @@ v2.1.0 Changelog
 
         Description:
         Additional options for HVAC, dehumidifier, clothes washer, misc loads, infiltration, etc.
-        Add items to options_lookup available in master branch
+        Add items to options_lookup available in master branch.
 
         Assignees: Nate Moore
 
@@ -541,7 +541,7 @@ v2.1.0 Changelog
         Some RTD updates
 
         Description:
-        Updates, edits, and clarification to the documentation
+        Updates, edits, and clarification to the documentation.
 
         Assignees: Joe Robertson
 
@@ -556,7 +556,7 @@ v2.1.0 Changelog
         Increase upgrade options from 10 to 20
 
         Description:
-        Increase number of possible upgrade options from 10 to 25
+        Increase number of possible upgrade options from 10 to 25.
 
         Assignees: Joe Robertson
 
@@ -571,7 +571,7 @@ v2.1.0 Changelog
         Advanced tutorial updates
 
         Description:
-        Updates, edits, and clarification to the documentation
+        Updates, edits, and clarification to the documentation.
 
         Assignees: Joe Robertson
 
@@ -603,10 +603,10 @@ v2.1.0 Changelog
         HVAC autosizing and add/replace fixes
 
         Description:
-        Various HVAC-related fixes for buildings with central systems
-        When a model has both a central system and non central system, don't autosize the non central system (e.g., central boiler with room ac)
-        Cannot have heating-only fan coil anymore; the ZoneHVACUnitHeater object was not being autosized correctly and was resulting in zero heating energy
-        Don't remove the cooling-only fan coil when applying a heating-only non central system (e.g., cooling-only fan coil with furnace)
+        Various HVAC-related fixes for buildings with central systems.
+        When a model has both a central system and non central system, don't autosize the non central system (e.g., central boiler with room ac).
+        Cannot have heating-only fan coil anymore; the ZoneHVACUnitHeater object was not being autosized correctly and was resulting in zero heating energy.
+        Don't remove the cooling-only fan coil when applying a heating-only non central system (e.g., cooling-only fan coil with furnace).
 
         Assignees: Joe Robertson
 
@@ -621,7 +621,7 @@ v2.1.0 Changelog
         Addresses #243 and #254
 
         Description:
-        Bugfix for assuming that all simulations are exactly 365 days
+        Bugfix for assuming that all simulations are exactly 365 days.
 
         Assignees: Joe Robertson
 
@@ -636,8 +636,11 @@ v2.1.0 Changelog
         Additional example workflow osws
 
         Description:
-        Additional example workflow osw files using TMY/AMY2012/AMY2014 weather for use in regression testing
-        TMY, AMY2012, AMY2014.
+        Additional example workflow osw files using TMY/AMY2012/AMY2014 weather for use in regression testing:
+        
+        - TMY
+        - AMY2012
+        - AMY2014
 
         Assignees: Joe Robertson
 
@@ -652,7 +655,7 @@ v2.1.0 Changelog
         Store example osw annual simulation results on ci
 
         Description:
-        Additional example workflow osw files using TMY/AMY2012/AMY2014 weather for use in regression testing
+        Additional example workflow osw files using TMY/AMY2012/AMY2014 weather for use in regression testing.
         Similar to how @shorowit does "regression testing" on https://github.com/NREL/OpenStudio-HPXML.
 
         Assignees: Joe Robertson
@@ -668,7 +671,7 @@ v2.1.0 Changelog
         Typo in heating coil defrost strategy
 
         Description:
-        Bugfix for heating coil defrost strategy
+        Bugfix for heating coil defrost strategy.
 
         Assignees: Joe Robertson
 
@@ -683,20 +686,28 @@ v2.1.0 Changelog
         Optional exterior "holiday" lights
 
         Description:
-        Split ResidentialLighting into separate ResidentialLightingInterior and ResidentialLightingOther (with optional exterior holiday lighting) measures
+        Split ResidentialLighting into separate ResidentialLightingInterior and ResidentialLightingOther (with optional exterior holiday lighting) measures.
         This involves modifications to:
-        ResidentialLightingOther measure
-        4 new arguments (daily energy use, holiday period start, holiday period end, holiday schedule)
-        unit test for verifying that exterior lighting increases by, e.g., 41 days * 1.1 kWh/day = 45 kWh
-        lighting.rb
-        new apply_exterior_holiday method
-        assigning end use subcategories to all light objects
-        options_lookup.tsv and testing project
-        existing lighting options now get default holiday argument values
-        new lighting option to test exterior holiday lighting
-        SimulationOutputReport / TimeseriesCSVExport measures
-        custom meters for "garage lighting" and "exterior holiday lighting"
-        reporting "garage lighting" and "exterior holiday lighting"
+        
+        - ResidentialLightingOther measure
+        
+          - 4 new arguments (daily energy use, holiday period start, holiday period end, holiday schedule)
+          - unit test for verifying that exterior lighting increases by, e.g., 41 days * 1.1 kWh/day = 45 kWh
+          
+        - lighting.rb
+        
+          - new apply_exterior_holiday method
+          - assigning end use subcategories to all light objects
+          
+        - options_lookup.tsv and testing project
+        
+          - existing lighting options now get default holiday argument values
+          - new lighting option to test exterior holiday lighting
+          
+        - SimulationOutputReport / TimeseriesCSVExport measures
+        
+          - custom meters for "garage lighting" and "exterior holiday lighting"
+          - reporting "garage lighting" and "exterior holiday lighting"
 
         Assignees: Joe Robertson
 
@@ -711,7 +722,7 @@ v2.1.0 Changelog
         Lighting measure changes
 
         Description:
-        Split ResidentialLighting into separate ResidentialLightingInterior and ResidentialLightingOther (with optional exterior holiday lighting) measures
+        Split ResidentialLighting into separate ResidentialLightingInterior and ResidentialLightingOther (with optional exterior holiday lighting) measures.
 
         Assignees: Joe Robertson
 
@@ -726,7 +737,7 @@ v2.1.0 Changelog
         Register climate zones
 
         Description:
-        Register climate zones (BA and IECC) based on the simulation EPW file
+        Register climate zones (BA and IECC) based on the simulation EPW file.
         This is a pretty simple and straightforward PR: it adds two columns "climate_zone_ba" and "climate_zone_iecc" (based on the epw) to the results csv.
 
         Assignees: Joe Robertson
@@ -742,7 +753,7 @@ v2.1.0 Changelog
         Integrity check unit tests
 
         Description:
-        Unit tests and performance improvements for integrity checks
+        Unit tests and performance improvements for integrity checks.
         Adds unit tests to make sure that the integrity checks are covering various potential scenarios that would cause errors. Each unit test consists of a housing_characteristics dir with custom TSVs and corresponding options in the test_options_lookup.tsv that should cause the error. The unit tests check that the appropriate error message is hit.
 
         Assignees: Scott Horowitz
@@ -758,7 +769,7 @@ v2.1.0 Changelog
         Integrity check performance improvement
 
         Description:
-        Unit tests and performance improvements for integrity checks
+        Unit tests and performance improvements for integrity checks.
         Dramatically improves the speed of performing measure argument checks. Rather than checking every combination of option for every parameter that contributes to a single measure's arguments, we now pick options from each parameter in step.
 
         Assignees: Scott Horowitz
@@ -774,7 +785,7 @@ v2.1.0 Changelog
         TSV Speed Improvements
 
         Description:
-        Unit tests and performance improvements for integrity checks
+        Unit tests and performance improvements for integrity checks.
         This PR substantially speeds up integrity checks for TSVs with large numbers of rows (and has the side benefit of speeding up sampling) by using caching.
 
         Assignees: Scott Horowitz
