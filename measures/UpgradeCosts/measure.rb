@@ -65,8 +65,8 @@ class UpgradeCosts < OpenStudio::Measure::ModelMeasure
     values = {}
     apply_upgrade = runner.getPastStepValuesForMeasure('apply_upgrade')
     values['apply_upgrade'] = Hash[apply_upgrade.collect { |k, v| [k.to_s, v] }]
-    report_hpxml_output = runner.getPastStepValuesForMeasure('report_hpxml_output')
-    values['report_hpxml_output'] = Hash[report_hpxml_output.collect { |k, v| [k.to_s, v] }]
+    hpxml_output = runner.getPastStepValuesForMeasure('hpxml_output')
+    values['hpxml_output'] = Hash[hpxml_output.collect { |k, v| [k.to_s, v] }]
 
     # Report cost multipliers
     existing_hpxml = nil
@@ -180,7 +180,7 @@ class UpgradeCosts < OpenStudio::Measure::ModelMeasure
   end
 
   def get_bldg_output(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
-    hpxml = values['report_hpxml_output']
+    hpxml = values['hpxml_output']
 
     cost_mult = 0.0
     if cost_mult_type == 'Fixed (1)'

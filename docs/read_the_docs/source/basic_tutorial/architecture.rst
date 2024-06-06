@@ -44,11 +44,11 @@ The following depicts the order in which workflow measure steps are applied:
   1     BuildExistingModel            Model              No        Meta measure  ResStock
   2     ApplyUpgrade                  Model              Yes [#]_  Meta measure  ResStock
   3     HPXMLtoOpenStudio             Model              No                      OS-HPXML [#]_
-  4     *Other Model Measures*        Model              Yes                     Any [#]_
-  5     ReportSimulationOutput        Reporting          No                      OS-HPXML
-  6     ReportHPXMLOutput             Reporting          No                      ResStock
-  7     ReportUtilityBills            Reporting          No                      OS-HPXML
-  8     UpgradeCosts                  Reporting          No                      ResStock
+  4     HPXMLOutput                   Model              No                      ResStock
+  5     UpgradeCosts                  Model              No                      ResStock
+  6     *Other Model Measures*        Model              Yes                     Any [#]_
+  7     ReportSimulationOutput        Reporting          No                      OS-HPXML
+  8     ReportUtilityBills            Reporting          No                      OS-HPXML
   9     *Other Reporting Measures*    Reporting          Yes                     Any [#]_
   10    ServerDirectoryCleanup        Reporting          No                      ResStock
   ===== ============================= ================== ========= ============= ==========================
@@ -152,6 +152,26 @@ They contribute to the generation of the model.
 
   See also `OpenStudio-HPXML Workflow Inputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_inputs.html>`_ for documentation on workflow inputs.
 
+**HPXMLOutput**
+
+  .. include:: ../../../../measures/HPXMLOutput/measure.xml
+     :start-after: <description>
+     :end-before: <
+
+  .. include:: ../../../../measures/HPXMLOutput/measure.xml
+     :start-after: <modeler_description>
+     :end-before: <
+
+**UpgradeCosts**
+
+  .. include:: ../../../../measures/UpgradeCosts/measure.xml
+     :start-after: <description>
+     :end-before: <
+
+  .. include:: ../../../../measures/UpgradeCosts/measure.xml
+     :start-after: <modeler_description>
+     :end-before: <
+
 **Other Model Measures**
 
   Additional model measures can be optionally applied to the workflow.
@@ -173,16 +193,6 @@ They process and report simulation output.
      :start-after: <modeler_description>
      :end-before: <
 
-**ReportHPXMLOutput**
-
-  .. include:: ../../../../measures/ReportHPXMLOutput/measure.xml
-     :start-after: <description>
-     :end-before: <
-
-  .. include:: ../../../../measures/ReportHPXMLOutput/measure.xml
-     :start-after: <modeler_description>
-     :end-before: <
-
 **ReportUtilityBills**
 
   .. include:: ../../../../resources/hpxml-measures/ReportUtilityBills/measure.xml
@@ -190,16 +200,6 @@ They process and report simulation output.
      :end-before: <
 
   .. include:: ../../../../resources/hpxml-measures/ReportUtilityBills/measure.xml
-     :start-after: <modeler_description>
-     :end-before: <
-
-**UpgradeCosts**
-
-  .. include:: ../../../../measures/UpgradeCosts/measure.xml
-     :start-after: <description>
-     :end-before: <
-
-  .. include:: ../../../../measures/UpgradeCosts/measure.xml
      :start-after: <modeler_description>
      :end-before: <
 

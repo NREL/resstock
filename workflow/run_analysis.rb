@@ -291,7 +291,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
         'arguments' => { 'output_format' => 'csv' }
       },
       {
-        'measure_dir_name' => 'CostMultipliers',
+        'measure_dir_name' => 'UpgradeCosts',
         'arguments' => { 'debug' => debug }
       }
     ]
