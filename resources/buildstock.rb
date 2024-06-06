@@ -487,12 +487,12 @@ class RunOSWs
     completed_at = out['completed_at']
     completed_status = out['completed_status']
 
-    results = File.join(parent_dir, 'run/results.json')
+    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
 
-    return started_at, completed_at, completed_status, result_output, run_output if measures_only || !File.exist?(results)
+    return started_at, completed_at, completed_status, result_output, run_output if !File.exist?(data_point_out)
 
     rows = {}
-    old_rows = JSON.parse(File.read(File.expand_path(results)))
+    old_rows = JSON.parse(File.read(File.expand_path(data_point_out)))
     old_rows.each do |measure, values|
       rows[measure] = {}
       values.each do |arg, val|
@@ -507,6 +507,7 @@ class RunOSWs
     measures.each do |measure|
       result_output = get_measure_results(rows, result_output, measure)
     end
+
     result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
     result_output = get_measure_results(rows, result_output, 'ReportUtilityBills')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
