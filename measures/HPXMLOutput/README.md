@@ -1,7 +1,7 @@
 
 ###### (Automatically generated documentation)
 
-# HPXML Output Report
+# HPXML Output
 
 ## Description
 Reports HPXML outputs for residential HPXML-based models.

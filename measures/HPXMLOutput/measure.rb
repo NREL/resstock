@@ -7,11 +7,11 @@ require 'msgpack'
 require_relative 'resources/constants.rb'
 
 # start the measure
-class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
+class HPXMLOutput < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
     # Measure name should be the title case of the class name.
-    return 'HPXML Output Report'
+    return 'HPXML Output'
   end
 
   # human readable description
@@ -42,15 +42,8 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
   end
 
   # define what happens when the measure is run
-  def run(runner, user_arguments)
-    super(runner, user_arguments)
-
-    model = runner.lastOpenStudioModel
-    if model.empty?
-      runner.registerError('Cannot find OpenStudio model.')
-      return false
-    end
-    model = model.get
+  def run(model, runner, user_arguments)
+    super(model, runner, user_arguments)
 
     # use the built-in error checking
     if !runner.validateUserArguments(arguments(model), user_arguments)
@@ -367,4 +360,4 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 end
 
 # register the measure to be used by the application
-ReportHPXMLOutput.new.registerWithApplication
+HPXMLOutput.new.registerWithApplication
