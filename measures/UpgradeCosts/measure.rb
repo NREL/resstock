@@ -8,7 +8,7 @@ require_relative '../ApplyUpgrade/resources/constants'
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
 # start the measure
-class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
+class UpgradeCosts < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
     # Measure name should be the title case of the class name.
@@ -51,16 +51,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
   end
 
   # define what happens when the measure is run
-  def run(runner, user_arguments)
-    super(runner, user_arguments)
-
-    # get the last model and sql file
-    model = runner.lastOpenStudioModel
-    if model.empty?
-      runner.registerError('Cannot find OpenStudio model.')
-      return false
-    end
-    model = model.get
+  def run(model, runner, user_arguments)
+    super(model, runner, user_arguments)
 
     # use the built-in error checking (need model)
     if !runner.validateUserArguments(arguments(model), user_arguments)
@@ -69,7 +61,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
 
     debug = runner.getBoolArgumentValue('debug', user_arguments)
 
-    # Retrieve values from ApplyUpgrade, ReportHPXMLOutput
+    # Retrieve values from ApplyUpgrade, HPXMLOutput
     values = {}
     apply_upgrade = runner.getPastStepValuesForMeasure('apply_upgrade')
     values['apply_upgrade'] = Hash[apply_upgrade.collect { |k, v| [k.to_s, v] }]

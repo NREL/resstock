@@ -2,7 +2,7 @@
 
 require 'openstudio'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
-require_relative '../../../measures/ReportHPXMLOutput/measure.rb'
+require_relative '../../../measures/HPXMLOutput/measure.rb'
 require_relative '../measure.rb'
 
 class UpgradeCostsTest < Minitest::Test
@@ -702,7 +702,7 @@ class UpgradeCostsTest < Minitest::Test
     _set_additional_properties(existing_hpxml.buildings[0], upgraded_hpxml.buildings[0])
 
     # Create instance of the measures
-    hpxml_output_report = ReportHPXMLOutput.new
+    hpxml_output_report = HPXMLOutput.new
     upgrade_costs = UpgradeCosts.new
 
     hpxml_in.buildings.each do |hpxml_bldg|
