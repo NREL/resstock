@@ -517,12 +517,28 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:hvac_control_cooling_weekend_setpoint] = weekend_cooling_setpoints.join(', ')
 
     # Seasons
-    if args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].to_s == Constants.Auto
+    if args[:use_auto_heating_season]
       args[:hvac_control_heating_season_period] = HPXML::BuildingAmerica
+    else
+      if args[:hvac_control_heating_season_period] == 'Unavailable 1 Day'
+        args[:hvac_control_heating_season_period] = 'Jan 16 - Jan 14'
+      elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Week'
+        args[:hvac_control_heating_season_period] = 'Jan 18 - Jan 10'
+      elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Month'
+        args[:hvac_control_heating_season_period] = 'Jan 20 - Dec 20'
+      end
     end
 
-    if args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].to_s == Constants.Auto
+    if args[:use_auto_cooling_season]
       args[:hvac_control_cooling_season_period] = HPXML::BuildingAmerica
+    else
+      if args[:hvac_control_cooling_season_period] == 'Unavailable 1 Day'
+        args[:hvac_control_cooling_season_period] = 'Jul 16 - Jul 14'
+      elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Week'
+        args[:hvac_control_cooling_season_period] = 'Jul 18 - Jul 10'
+      elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Month'
+        args[:hvac_control_cooling_season_period] = 'Jul 20 - Jun 20'
+      end
     end
 
     # Flue or Chimney
