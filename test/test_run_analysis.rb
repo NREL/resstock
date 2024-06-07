@@ -432,7 +432,6 @@ class TestRunAnalysis < Minitest::Test
     expected_order = ['BuildExistingModel',
                       'ApplyUpgrade',
                       'HPXMLtoOpenStudio',
-                      'HPXMLOutput',
                       'UpgradeCosts',
                       'ReportSimulationOutput',
                       'ReportUtilityBills',
