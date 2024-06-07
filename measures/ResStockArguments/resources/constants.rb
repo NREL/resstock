@@ -97,6 +97,6 @@ class Constants
   end
 
   def self.arguments_to_register
-    return ['air_leakage_value']
+    return []
   end
 end
