@@ -44,13 +44,12 @@ The following depicts the order in which workflow measure steps are applied:
   1     BuildExistingModel            Model              No        Meta measure  ResStock
   2     ApplyUpgrade                  Model              Yes [#]_  Meta measure  ResStock
   3     HPXMLtoOpenStudio             Model              No                      OS-HPXML [#]_
-  4     HPXMLOutput                   Model              No                      ResStock
-  5     UpgradeCosts                  Model              No                      ResStock
-  6     *Other Model Measures*        Model              Yes                     Any [#]_
-  7     ReportSimulationOutput        Reporting          No                      OS-HPXML
-  8     ReportUtilityBills            Reporting          No                      OS-HPXML
-  9     *Other Reporting Measures*    Reporting          Yes                     Any [#]_
-  10    ServerDirectoryCleanup        Reporting          No                      ResStock
+  4     UpgradeCosts                  Model              No                      ResStock
+  5     *Other Model Measures*        Model              Yes                     Any [#]_
+  6     ReportSimulationOutput        Reporting          No                      OS-HPXML
+  7     ReportUtilityBills            Reporting          No                      OS-HPXML
+  8     *Other Reporting Measures*    Reporting          Yes                     Any [#]_
+  9     ServerDirectoryCleanup        Reporting          No                      ResStock
   ===== ============================= ================== ========= ============= ==========================
 
  .. [#] Baseline models with no upgrades do not have the ApplyUpgrade measure applied.
@@ -151,16 +150,6 @@ They contribute to the generation of the model.
      :end-before: <
 
   See also `OpenStudio-HPXML Workflow Inputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_inputs.html>`_ for documentation on workflow inputs.
-
-**HPXMLOutput**
-
-  .. include:: ../../../../measures/HPXMLOutput/measure.xml
-     :start-after: <description>
-     :end-before: <
-
-  .. include:: ../../../../measures/HPXMLOutput/measure.xml
-     :start-after: <modeler_description>
-     :end-before: <
 
 **UpgradeCosts**
 
