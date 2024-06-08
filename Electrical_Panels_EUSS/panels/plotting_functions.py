@@ -74,7 +74,7 @@ def plot_output_saturation(df, panel_metric, output_dir, sfd_only=False):
         ]:
         _plot_bar_stacked(df, [hc, panel_metric], output_dir=output_dir, sfd_only=sfd_only)
 
-def _plot_amperage_histogram(df, metric, title=None, output_dir=None, sfd_only=False):
+def _plot_amperage_histogram(df, metric, title=None, output_dir=None, sfd_only=False, upgrade_num=""):
     if sfd_only:
         cond = df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"
         panel_sizes = df.loc[cond, metric].to_list()
@@ -94,10 +94,10 @@ def _plot_amperage_histogram(df, metric, title=None, output_dir=None, sfd_only=F
     if title is not None:
         ax.set_title(title)
     if output_dir is not None:
-        fig.savefig(output_dir / f"histogram_{metric}.png", dpi=400, bbox_inches="tight")
+        fig.savefig(output_dir / f"{upgrade_num}__histogram_{metric}.png", dpi=400, bbox_inches="tight")
     plt.close()
 
-def _plot_scatter(df, x_metric, y_metric, title=None, output_dir=None, sfd_only=False):
+def _plot_scatter(df, x_metric, y_metric, title=None, output_dir=None, sfd_only=False, upgrade_num=""):
     if sfd_only:
         cond = df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"
         df = df.loc[cond, [x_metric, y_metric]].dropna(how="any")
@@ -138,10 +138,10 @@ def _plot_scatter(df, x_metric, y_metric, title=None, output_dir=None, sfd_only=
         title = title_ext
     ax.set_title(title)
     if output_dir is not None:
-        fig.savefig(output_dir / f"scatter_{y_metric}_by_{x_metric}.png", dpi=400, bbox_inches="tight")
+        fig.savefig(output_dir / f"{upgrade_num}__scatter_{y_metric}_by_{x_metric}.png", dpi=400, bbox_inches="tight")
     plt.close()
 
-def _plot_bar(df, groupby_cols, output_dir=None, sfd_only=False):
+def _plot_bar(df, groupby_cols, output_dir=None, sfd_only=False, upgrade_num=""):
     if sfd_only:
         cond = df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"
         dfi = df.loc[cond, groupby_cols+["building_id"]]
@@ -153,10 +153,10 @@ def _plot_bar(df, groupby_cols, output_dir=None, sfd_only=False):
     sort_index(dfi, axis=0).plot(kind="bar", ax=ax)
     if output_dir is not None:
         metric = "__by__".join(groupby_cols)
-        fig.savefig(output_dir / f"bar_{metric}.png", dpi=400, bbox_inches="tight")
+        fig.savefig(output_dir / f"{upgrade_num}__bar_{metric}.png", dpi=400, bbox_inches="tight")
     plt.close()
 
-def _plot_bar_stacked(df, groupby_cols, output_dir=None, sfd_only=False):
+def _plot_bar_stacked(df, groupby_cols, output_dir=None, sfd_only=False, upgrade_num=""):
     if sfd_only:
         cond = df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"
         dfi = df.loc[cond, groupby_cols+["building_id"]]
@@ -171,10 +171,10 @@ def _plot_bar_stacked(df, groupby_cols, output_dir=None, sfd_only=False):
     ax.set_title(f"Saturation of {groupby_cols[-1]}")
     if output_dir is not None:
         metric = "__by__".join(groupby_cols)
-        fig.savefig(output_dir / f"stacked_bar_{metric}.png", dpi=400, bbox_inches="tight")
+        fig.savefig(output_dir / f"{upgrade_num}__stacked_bar_{metric}.png", dpi=400, bbox_inches="tight")
     plt.close()
 
-def _plot_box(df, metric_col, by_col, output_dir=None, sfd_only=False):
+def _plot_box(df, metric_col, by_col, output_dir=None, sfd_only=False, upgrade_num=""):
     if sfd_only:
         cond = df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"
         dfi = df.loc[cond, ["building_id", metric_col, by_col]].reset_index(drop=True)
@@ -185,14 +185,18 @@ def _plot_box(df, metric_col, by_col, output_dir=None, sfd_only=False):
     by_vars = dfi[by_col].unique()
     try:
         by_vars = sorted(by_vars, key=extract_left_edge)
-    except:
-        breakpoint()
+    except TypeError:
+        if by_col == "build_existing_model.area_median_income":
+            by_vars = ["0-30%","30-60%","60-80%","80-100%","100-120%","120-150%","150%+","Not Available"]
+        elif by_col == "build_existing_model.federal_poverty_level":
+            by_vars = ["0-100%","100-150%","150-200%","200-300%","300-400%","400%+","Not Available"]
+        pass
     dfi[by_col] = pd.Categorical(dfi[by_col], ordered=True, categories=by_vars)
 
     fig, ax = plt.subplots()
     dfi.boxplot(column=metric_col, by=by_col, rot=45, ax=ax)
     if output_dir is not None:
-        fig.savefig(output_dir / f"box_plot_{metric_col}_by_{by_col}.png", dpi=400, bbox_inches="tight")
+        fig.savefig(output_dir / f"{upgrade_num}__box_plot_{metric_col}_by_{by_col}.png", dpi=400, bbox_inches="tight")
     plt.close()
 
 def extract_left_edge(val):
