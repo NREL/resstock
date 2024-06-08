@@ -12,7 +12,7 @@ import pandas as pd
 
 def get_summary(csv_dir: Path, output_file: Optional[Path]=None):
     ref_table = []
-    for file in csv_dir.rglob("results_up*"):
+    for file in csv_dir.glob("results_up*"):
         file_name = file.stem.removesuffix(".csv")
         df = pd.read_csv(file, compression="infer", low_memory=False, keep_default_na=False)
 
