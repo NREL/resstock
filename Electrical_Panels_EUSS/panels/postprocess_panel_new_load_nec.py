@@ -67,11 +67,10 @@ geometry_unit_aspect_ratio = {
     "Multi-Family with 2 - 4 Units": 0.5556,
     "Multi-Family with 5+ Units": 0.5556,
     "Mobile Home": 1.8,
-} #  = front_back_length / left_right_width #TODO: check to see if it gets recalculated
+} #  = front_back_length / left_right_width #TODO: not used currently
 
 
 hvac_fan_motor = 3*115 # 3A x 115V # TODO check value
-hvac_blower_motor = 460 # TODO check value
 KBTU_H_TO_W = 293.07103866
 
 def get_power_rating(df_rating, load_category, appliance):
@@ -166,12 +165,6 @@ def _general_load_kitchen(row, n=2):
     if n == "auto":
         n = 2  # start with min requirement
         # TODO: can expand based on building_type, vintage, and floor_area
-        """
-        if (row["build_existing_model.misc_extra_refrigerator"] != "None") or (
-            row["build_existing_model.misc_freezer"] != "None"
-        ):
-            n += 2  # 2 additional branches added for misc refrigeration (outside kitchen) #TODO: This is incorrect, small appliance branch circuits can only supply loads in the kitchen
-        """
     if n < 2:
         raise ValueError(
             f"n={n}, at least 2 small appliance/kitchen branch circuit for General Load"
@@ -218,7 +211,6 @@ def _fixed_load_water_heater(row):
     if row["completed_status"] != "Success":
         return np.nan
 
-    # TODO: water heater in unit -- if discounting here, need it removed from peak load
     if (row["build_existing_model.water_heater_in_unit"] == "Yes") and ((
         row["build_existing_model.water_heater_fuel"] == "Electricity")or(
         "Electric" in row["build_existing_model.water_heater_efficiency"]
@@ -325,7 +317,6 @@ def _fixed_load_well_pump(row):
     well_pump = nameplate_rating.loc[(nameplate_rating['load_category'] == 'well pump') & (nameplate_rating['appliance'] == 'electric')]
     well_pump_power_rating = list(well_pump['volt-amps'])[0]
 
-    # TODO: verify
     if row["build_existing_model.misc_well_pump"] != "None":
         return well_pump_power_rating 
     return 0
@@ -372,17 +363,9 @@ def _special_load_cooking_range_oven(row):
         return 0
 
     if "Induction" in row["build_existing_model.cooking_range"]:
-        # range-oven: 10-13.6kW rating (240V, 40A) or 8.4kW (240V, 50A) or 8kW (240V, 40A)
-        # cooktop: 11-12kW rating (240V, 30/50A) or 15.4kW rating (240V, 40A), 7.2-8.6kW (240V, 30/45A)
-        # electric wall oven: 4.5kW (120V, 30A or 240V, 20/30A)
-        # For induction cooktop + electric wall oven = 11+0.65*4.5 = 14kW 
-        return range_induction_power_rating  # 40*240 or 14000 #TODO: This should be the full nameplate rating (max connected load) of an electric induction range
+        return range_induction_power_rating 
 
-    ## Electric, non-induction
-    # range-oven: 10-12.1-13.5kW (240V, 40A)
-    # cooktop: 9.2kW (240V, 40A), 7.7-10.5kW (240V, 40/50A), 7.4kW (240V, 40A)
-    # For cooktop + wall oven = 11+0.65*4.5 = 14kW or 0.65*(8+4.5) = 8kW
-    return range_elctric_power_rating  # or 12500 #TODO: This should be the full nameplate rating (max connected load) of an electric non-induction range
+    return range_elctric_power_rating 
 
 
 def _special_load_space_heating(row):
@@ -459,11 +442,7 @@ def _special_load_space_cooling(row):
 
 
 def _special_load_space_conditioning(row):
-    """Heating or Air Conditioning. NEC 220-19.
-    Take the larger between heating and cooling. Demand Factor = 1
-    Include the air handler when using either one. (guessing humidifier too?)
-    For heat pumps, include the compressor and the max. amount of electric heat which can be energized with the compressor running
-
+    """ Not accounting for humidifier
     1 Btu/h = 0.29307103866W
 
     Returns:
@@ -479,7 +458,7 @@ def _special_load_space_conditioning(row):
     return max(heating_load, cooling_load)
 
 
-def _special_load_pool_heater(row, apply_df=True): # This is a continuous load so 125% factor must be applied
+def _special_load_pool_heater(row, apply_df=True):
     """NEC 680.9
     https://twphamilton.com/wp/wp-content/uploads/doc033548.pdf
     """
@@ -504,9 +483,9 @@ def _special_load_pool_pump(row, apply_df=True):
     pool_pump_three_quaters_power_rating = list(pool_pump_three_quaters['volt-amps'])[0]
 
     if row["build_existing_model.misc_pool_pump"] == "1.0 HP Pump":
-        return pool_pump_1hp_power_rating #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
+        return pool_pump_1hp_power_rating
     if row["build_existing_model.misc_pool_pump"] == "0.75 HP Pump":
-        return pool_pump_three_quaters_power_rating #TODO: Once an estimate has been established we can use Table 430.247 to determine connected load
+        return pool_pump_three_quaters_power_rating
     return 0
 
 
@@ -519,7 +498,7 @@ def _special_load_evse(row):
     if row["build_existing_model.electric_vehicle"] == "None":
         EV_load = 0
     else: 
-        EV_load = EVSE_power_rating # TODO: Insert EV charger load, NEC code says use max of nameplate rating and 7200 W
+        EV_load = max(EVSE_power_rating, 7200)
     return EV_load
 
 
@@ -530,7 +509,7 @@ def _new_load_evse(row, option_columns):
 
     for opt_col in option_columns:
         if "Electric Vehicle" in row[opt_col] and "None" not in row[opt_col]:
-            return EVSE_power_rating
+            return max(EVSE_power_rating, 7200)
 
     return 0
 
@@ -556,7 +535,7 @@ def _new_load_hot_tub_spa(row, option_columns):
     return 0
 
 
-def _new_range_oven(row, option_columns):
+def _new_load_range_oven(row, option_columns):
     if row["completed_status"] != "Success":
         return np.nan
 
@@ -957,16 +936,16 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
     df_up["new_load_dryer"] = df_up.apply(lambda x: _new_load_dryer(x, dryer_option_cols), axis=1)
 
     cooking_option_cols, _ = get_upgrade_columns_and_options(option_cols, upgrade_options, "Cooking Range")
-    df_up["new_load_range_oven"] = df_up.apply(lambda x: _new_load_dryer(x, cooking_option_cols), axis=1)
+    df_up["new_load_range_oven"] = df_up.apply(lambda x: _new_load_range_oven(x, cooking_option_cols), axis=1)
 
     hot_tub_spa_option_cols, _ = get_upgrade_columns_and_options(option_cols, upgrade_options, "Misc Hot Tub Spa")
-    df_up["new_load_hot_tub_spa"] = df_up.apply(lambda x: _new_load_dryer(x, hot_tub_spa_option_cols), axis=1)
+    df_up["new_load_hot_tub_spa"] = df_up.apply(lambda x: _new_load_hot_tub_spa(x, hot_tub_spa_option_cols), axis=1)
 
     pool_heater_option_cols, _ = get_upgrade_columns_and_options(option_cols, upgrade_options, "Misc Pool Heater")
-    df_up["new_load_pool_heater"] = df_up.apply(lambda x: _new_load_dryer(x, pool_heater_option_cols), axis=1)
+    df_up["new_load_pool_heater"] = df_up.apply(lambda x: _new_load_pool_heater(x, pool_heater_option_cols), axis=1)
 
     ev_option_cols, _ = get_upgrade_columns_and_options(option_cols, upgrade_options, "Electric Vehicle")
-    df_up["new_load_evse"] = df_up.apply(lambda x: _new_load_dryer(x, ev_option_cols), axis=1)
+    df_up["new_load_evse"] = df_up.apply(lambda x: _new_load_evse(x, ev_option_cols), axis=1)
 
 
     if result_as_map:
@@ -1207,7 +1186,7 @@ def main(
         dfo = df1.join(df2.set_index("building_id"), on="building_id")
     else:
         dfu1 = calculate_new_load_total_220_83(df, dfu, n_kit=2, n_ldr=1, explode_result=explode_result)
-        dfo = calculate_new_load_total_220_87(df, dfu1) # TODO: Fix
+        dfo = calculate_new_load_total_220_87(df, dfu1)
 
     # --- save to file ---
     dfo.to_csv(output_filename, index=False)

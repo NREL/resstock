@@ -37,10 +37,6 @@ def main(
     failed_files = []
     successful_file_times = []
     for file in upgrade_files:
-        # TODO
-        if "up01" in str(file) or "up02" in str(file):
-            continue
-
         try:
             start_time = time.time()
             cli_cmd = ["python", "postprocess_panel_new_load_nec.py", str(baseline_file), str(file)]
