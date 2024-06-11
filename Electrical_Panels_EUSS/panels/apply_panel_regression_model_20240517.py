@@ -217,7 +217,7 @@ def create_input_tsv(
         "Other Fuel",
         "Propane",
         "None",
-        ]
+        ] # old, missing wood
     df = [df_e]
     for fuel in fuels:
         df_ne22 = df_ne2.copy()
