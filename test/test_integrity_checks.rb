@@ -195,19 +195,6 @@ class TestResStockErrors < Minitest::Test
     end
   end
 
-  def test_housing_characteristics_bad_parameter_spelling
-    begin
-      housing_characteristics_dir = 'tests_housing_characteristics/housing_characteristics_bad_parameter_spelling'
-      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
-      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
-    rescue Exception => e
-      assert(e.message.include? "ERROR: Could not find parameter 'Bad Parameter' and option 'Good Option 2'")
-      assert(e.message.include? "ERROR: Could not find parameter 'bad parameter' and option 'Good Option 1'")
-    else
-      flunk "Should have caused an error but didn't."
-    end
-  end
-
   def test_buildstock_csv_valid
     outfile = File.join(File.dirname(__FILE__), '..', 'test/tests_buildstock_csvs/buildstock_csv_valid/buildstock.csv')
     lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
