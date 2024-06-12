@@ -296,7 +296,7 @@ def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_
       option_names.each do |option_name|
         next unless not option_name.nil?
 
-        if (row[0].downcase == parameter_name.downcase) && (row[1].downcase == option_name.downcase)
+        if (row[0].downcase == parameter_name.downcase) && (row[1] == option_name)
           current_option = option_name
           break
         end
