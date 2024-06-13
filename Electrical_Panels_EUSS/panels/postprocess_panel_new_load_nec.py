@@ -43,6 +43,13 @@ Part A: If NO new HVAC load is being added,
 Part B: If new HVAC load is being added, 
    Total Load = 100% HVAC Load + 100% of first 8 kVA of Non-HVAC Load + 40% of remaining Non-HVAC load
 
+HVAC load includes:
+    - includes 120V air handler for non-electric central furnace, e.g., if HP with secondary gas furance, HP ODU + 120V handler
+    - HP heating load = HP + backup (even though for integrated backup, OS-HPXML assumes one of the two can be on at a time)
+does not include:
+    - shared heating/cooling
+    - boiler pump
+
 [220.87] - Maximum Demand Method
 Existing Load = 125% x 15_min_electricity_peak (1-full year)
 Total Load = Existing Load + New Load
@@ -56,6 +63,7 @@ import math
 import argparse
 import sys
 from itertools import chain
+from typing import Optional
 
 from plotting_functions import _plot_scatter, _plot_box
 from clean_up00_file import get_housing_char_cols
@@ -368,7 +376,7 @@ def _special_load_cooking_range_oven(row):
     return range_elctric_power_rating 
 
 
-def _special_load_space_heating(row):
+def _special_load_space_heating_no_ahu(row):
     if row["completed_status"] != "Success":
         return np.nan
 
@@ -377,31 +385,8 @@ def _special_load_space_heating(row):
         return 0
 
     # heating load
-    heat_eff = row["build_existing_model.hvac_heating_efficiency"]
-    hvac_has_ducts = row["build_existing_model.hvac_has_ducts"]
-    heat_eff_2 = row["build_existing_model.hvac_secondary_heating_efficiency"]
-
-    heating_type = None
-    secondary_heating_type = None
-
-    if ("ASHP" in heat_eff) or ("MSHP" in heat_eff):
-        if hvac_has_ducts:
-            heating_type = "Ducted Heat Pump" # assume ducted
-        else:
-            heating_type = "Non-Ducted Heat Pump"
-    elif ("Electric" in heat_eff):
-        heating_type = "Electric Resistance"
-    elif ("GSHP" in heat_eff):
-        raise ValueError(f"Unsupported: {row[opt_col]}")
-
-    if ("ASHP" in heat_eff_2):
-        secondary_heating_type = "Ducted Heat Pump"
-    elif ("MSHP" in heat_eff_2):
-        secondary_heating_type = "Non-Ducted Heat Pump"
-    elif ("Electric" in heat_eff_2):
-        secondary_heating_type = "Electric Resistance"
-    elif ("GSHP" in heat_eff_2):
-        raise ValueError(f"Unsupported: {row[opt_col]}")
+    heating_type = get_heating_type(row["build_existing_model.hvac_heating_efficiency"])
+    secondary_heating_type = get_heating_type(row["build_existing_model.hvac_secondary_heating_efficiency"])
 
     heating_cols = [
         row["upgrade_costs.size_heating_system_primary_k_btu_h"],
@@ -417,27 +402,24 @@ def _special_load_space_heating(row):
     heating_load = sum(
             [hvac_heating_conversion(x, system_type=y) for x, y in zip(heating_cols, system_cols)]
         )
-    if heating_type is not None and hvac_has_ducts == "Yes":
-        heating_load += hvac_air_handler(row["upgrade_costs.size_heating_system_primary_k_btu_h"])
 
     return heating_load
 
 
-def _special_load_space_cooling(row):
+def _special_load_space_cooling_no_ahu(row):
     if row["completed_status"] != "Success":
-        return np.nan, False
+        return np.nan
 
     # shared cooling is not part of dwelling unit's panel
     if row["build_existing_model.hvac_has_shared_system"] in ["Cooling Only", "Heating and Cooling"]:
         return 0
 
+    cooling_type = get_cooling_type(row["build_existing_model.hvac_cooling_type"])
     cooling_load = hvac_cooling_conversion(
         row["upgrade_costs.size_cooling_system_primary_k_btu_h"],
-        system_type=row["build_existing_model.hvac_cooling_type"]
+        system_type=cooling_type
     )
-    if row["build_existing_model.hvac_cooling_type"] != "None" and row["build_existing_model.hvac_has_ducts"] == "Yes":
-        cooling_load += hvac_air_handler(row["upgrade_costs.size_heating_system_primary_k_btu_h"])
-    
+ 
     return cooling_load
 
 
@@ -452,8 +434,16 @@ def _special_load_space_conditioning(row):
     if row["completed_status"] != "Success":
         return np.nan
     
-    heating_load = _special_load_space_heating(row)
-    cooling_load = _special_load_space_cooling(row)
+    heating_load = _special_load_space_heating_no_ahu(row)
+    cooling_load = _special_load_space_cooling_no_ahu(row)
+
+    heating_type = get_heating_type(row["build_existing_model.hvac_heating_efficiency"])
+    secondary_heating_type = get_heating_type(row["build_existing_model.hvac_secondary_heating_efficiency"])
+
+    # Add AHU
+    heat_ahu, cool_ahu = _get_air_handlers(row, heating_type, secondary_heating_type)
+    heating_load += heat_ahu
+    cooling_load += cool_ahu
 
     return max(heating_load, cooling_load)
 
@@ -596,35 +586,15 @@ def _new_load_space_conditioning(row, option_columns):
     if row["completed_status"] != "Success":
         return np.nan
 
-    if row["build_existing_model.hvac_has_ducts"] == "Yes":
-        hvac_has_ducts = True
-    else:
-        hvac_has_ducts = False
-
     # heating load
     heating_type = None
     secondary_heating_type = None
     for opt_col in option_columns:
         if ("HVAC Heating Efficiency" in row[opt_col]):
-            if ("ASHP" in row[opt_col]) or ("MSHP" in row[opt_col]):
-                if hvac_has_ducts:
-                    heating_type = "Ducted Heat Pump" # assume ducted
-                else:
-                    heating_type = "Non-Ducted Heat Pump"
-            elif ("Electric" in row[opt_col]):
-                heating_type = "Electric Resistance"
-            elif ("GSHP" in row[opt_col]):
-                raise ValueError(f"Unsupported: {row[opt_col]}")
+            heating_type = get_heating_type(row[opt_col])
 
         if ("HVAC Secondary Heating Efficiency" in row[opt_col]):
-            if ("ASHP" in row[opt_col]):
-                secondary_heating_type = "Ducted Heat Pump"
-            elif ("MSHP" in row[opt_col]):
-                secondary_heating_type = "Non-Ducted Heat Pump"
-            elif ("Electric" in row[opt_col]):
-                secondary_heating_type = "Electric Resistance"
-            elif ("GSHP" in row[opt_col]):
-                raise ValueError(f"Unsupported: {row[opt_col]}")
+            secondary_heating_type = get_heating_type(row[opt_col])
 
     heating_cols = [
         row["upgrade_costs.size_heating_system_primary_k_btu_h"],
@@ -645,41 +615,101 @@ def _new_load_space_conditioning(row, option_columns):
     # cooling load
     cooling_type = None
     for opt_col in option_columns:
-        if ("HVAC Cooling Efficiency" in row[opt_col]):
-            if "Room AC" in row[opt_col]:
-                cooling_type = "Room AC"
-            elif "AC" in row[opt_col]:
-                cooling_type = "Central AC"
-            elif  "Heat Pump" in row[opt_col]:
-                cooling_type = "Heat Pump"
-            elif "Swamp Cooler" in row[opt_col]:
-                raise ValueError(f"Unsupported: {row[opt_col]}")
+        if ("HVAC Heating Efficiency" in row[opt_col]):
+            cooling_type = get_cooling_type(row[opt_col])
 
     cooling_load = hvac_cooling_conversion(
         row["upgrade_costs.size_cooling_system_primary_k_btu_h"],
         system_type=cooling_type
     )
-    if hvac_has_ducts:
-        heating_load += hvac_fan_motor
-        cooling_load += hvac_fan_motor
+
+    # Add AHU
+    heat_ahu, cool_ahu = _get_air_handlers(row, heating_type, secondary_heating_type)
+    heating_load += heat_ahu
+    cooling_load += cool_ahu
 
     return max(heating_load, cooling_load)
 
 
 ### -------- util funcs --------
-def apply_va_linear_regression(nom_cap, load_category, appliance):
-    volt = get_nameplate_rating(nameplate_rating, load_category, appliance, parameter="voltage")
-    amp_para = get_nameplate_rating(nameplate_rating, load_category, appliance, parameter="amperage").split(",")
-    amp = float(amp_para[0])*capacity + float(amp_para[1])
-    return volt * amp
+def _get_heating_has_ducts(row) -> bool:
+    return True if row["build_existing_model.hvac_heating_type"] in ["Ducted Heat Pump", "Ducted Heating"] else False
 
-def hvac_air_handler(nom_cap):
+def _get_cooling_has_ducts(row) -> bool:
+    return True if row["build_existing_model.hvac_cooling_type"] in ["Central AC", "Ducted Heat Pump"] else False
+
+def _get_air_handlers(row, heating_type, secondary_heating_type) -> (float, float):
+    heating_has_ducts = _get_heating_has_ducts(row)
+    cooling_has_ducts = _get_cooling_has_ducts(row)
+
+    heat_ahu, cool_ahu = 0, 0
+    if heating_has_ducts:
+        if cooling_has_ducts:
+            if heating_type == "fuel":
+                heat_ahu = hvac_240V_air_handler(row["upgrade_costs.size_cooling_system_primary_k_btu_h"])
+            else:
+                heat_ahu = hvac_240V_air_handler(max(
+                    row["upgrade_costs.size_heating_system_primary_k_btu_h"],
+                    row["upgrade_costs.size_cooling_system_primary_k_btu_h"]
+                    ))
+            cool_ahu = heat_ahu
+        else:
+            if heating_type == "fuel" or secondary_heating_type == "fuel":
+                # if dual fuel, retain old 120V AHU
+                heat_ahu = hvac_120V_air_handler(row["upgrade_costs.size_heating_system_primary_k_btu_h"])
+            else:
+                heat_ahu = hvac_240V_air_handler(row["upgrade_costs.size_heating_system_primary_k_btu_h"])
+
+    return (heat_ahu, cool_ahu)
+
+def get_cooling_type(cool_eff):
+    cooling_type = None
+    if "Room AC" in cool_eff:
+        cooling_type = "Room AC"
+    elif "AC" in cool_eff:
+        cooling_type = "Central AC"
+    elif  "Heat Pump" in cool_eff:
+        cooling_type = "Heat Pump"
+    elif "Swamp Cooler" in cool_eff:
+        raise ValueError(f"Unsupported: {cool_eff}")
+    return cooling_type
+
+def get_heating_type(heat_eff) -> Optional[str]:
+    heating_type = None
+    if ("ASHP" in heat_eff) or ("MSHP" in heat_eff):
+        heating_type = "Heat Pump"
+    elif ("Electric" in heat_eff):
+        heating_type = "Electric Resistance"
+    elif ("GSHP" in heat_eff):
+        raise ValueError(f"Unsupported: {heat_eff}")
+    else:
+        heating_type = "fuel"
+
+    return heating_type
+
+
+def hvac_240V_air_handler(nom_cap) -> float:
     ahu_volt = get_nameplate_rating(nameplate_rating, 'space heating/cooling', 'electric air handler', parameter="voltage")
     amp_para = get_nameplate_rating(nameplate_rating, 'space heating/cooling', 'electric air handler', parameter="amperage").split(",")
-    ahu_amp = min(float(amp_para[2]), float(amp_para[0])*capacity + float(amp_para[1]))
+    ahu_amp = min(float(amp_para[2]), float(amp_para[0])*float(nom_cap) + float(amp_para[1]))
     return ahu_volt * ahu_amp
 
-def hvac_heating_conversion(nom_heat_cap, system_type=None):
+
+def hvac_120V_air_handler(nom_cap) -> float:
+    ahu_volt = get_nameplate_rating(nameplate_rating, 'space heating', 'fuel air handler', parameter="voltage")
+    amp_para = get_nameplate_rating(nameplate_rating, 'space heating', 'fuel air handler', parameter="amperage").split(",")
+    ahu_amp = min(float(amp_para[2]), float(amp_para[0])*float(nom_cap) + float(amp_para[1]))
+    return ahu_volt * ahu_amp
+
+
+def apply_va_linear_regression(nom_cap, load_category, appliance) -> float:
+    volt = get_nameplate_rating(nameplate_rating, load_category, appliance, parameter="voltage")
+    amp_para = get_nameplate_rating(nameplate_rating, load_category, appliance, parameter="amperage").split(",")
+    amp = float(amp_para[0])*float(nom_cap) + float(amp_para[1])
+    return volt * amp
+
+
+def hvac_heating_conversion(nom_heat_cap, system_type=None) -> float:
     """ 
     Relationship between either minimum breaker or minimum circuit amp (x voltage) and nameplate capacity
     nominal conditions refer to AHRI standard conditions: 47F?
@@ -693,7 +723,7 @@ def hvac_heating_conversion(nom_heat_cap, system_type=None):
     Returns : 
         W = Amp*V
     """ 
-    if system_type is None or system_type == "None":
+    if system_type is None or system_type in ["None", "fuel"]:
         return 0
 
     nom_heat_cap = float(nom_heat_cap)
@@ -704,7 +734,7 @@ def hvac_heating_conversion(nom_heat_cap, system_type=None):
     raise ValueError(f"Unknown {system_type=}")
 
 
-def hvac_cooling_conversion(nom_cool_cap, system_type=None):
+def hvac_cooling_conversion(nom_cool_cap, system_type=None) -> float:
     """ 
     Relationship between either minimum breaker or minimum circuit amp (x voltage) and nameplate capacity
     nominal conditions refer to AHRI standard conditions: 95F?
@@ -910,7 +940,8 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
     ## apply new load
     # 1 add necessary baseline HC
     HC_list = [
-        "build_existing_model.hvac_has_ducts",
+        "build_existing_model.hvac_heating_type",
+        "build_existing_model.hvac_cooling_type",
         "build_existing_model.bedrooms",
     ]
     df_up = dfu.join(df.set_index(["building_id"])[HC_list], on=["building_id"], how="left")
