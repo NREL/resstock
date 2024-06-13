@@ -14,6 +14,7 @@ class BO
   EnclosureDuctAreaUnconditioned = 'Enclosure: Duct Area Unconditioned'
   EnclosureRimJoistAreaExterior = 'Enclosure: Rim Joist Area'
   EnclosureSlabExposedPerimeterThermalBoundary = 'Enclosure: Slab Exposed Perimeter Thermal Boundary'
+  EnclosureAirInfiltration = 'Enclosure: Air Infiltration'
 
   SystemsHeatingCapacity = 'Systems: Heating Capacity'
   SystemsCoolingCapacity = 'Systems: Cooling Capacity'
@@ -32,6 +33,8 @@ class BO
       return 'gal'
     elsif bldg_type.include? 'Flow Rate'
       return 'cfm'
+    elsif bldg_type.include? 'Infiltration'
+      return 'ACH50'
     elsif bldg_type == 'Fixed'
       return '1'
     end
