@@ -1165,6 +1165,7 @@ def main(
         upgrade_filename = Path(upgrade_filename)
 
     output_filedir = upgrade_filename.parent / "nec_calculations"
+    output_filedir.mkdir(parents=True, exist_ok=True) 
     ext = ""
     if explode_result:
         ext = "_exploded"

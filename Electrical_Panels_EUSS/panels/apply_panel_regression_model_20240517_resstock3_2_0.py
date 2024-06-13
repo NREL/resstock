@@ -150,7 +150,7 @@ def yield_input_options(hc_list=None):
 
 
 def create_input_tsv(
-    model_e, model_ne, dummy_file_e: Path, dummy_file_ne: Path, tsv_file: Path | None = None
+    model_e, model_ne, dummy_file_e: Path, dummy_file_ne: Path, tsv_file: Path
 ) -> pd.DataFrame:
     """Create input tsv from model,
     Missing fields are handled by duplicating predictions from fields that are similar to the missing fields
@@ -220,9 +220,6 @@ def create_input_tsv(
         breakpoint()
 
     ## -- save to tsv file --
-    if tsv_file is None:
-        tsv_file = data_dir / f"Electrical Panel Amp - Model {model.model_num}.tsv"
-
     df.to_csv(tsv_file, sep="\t", index=False, lineterminator="\r\n")
     print(f"** Electrical Panel Amp TSV exported to: {tsv_file}")
 
@@ -573,7 +570,9 @@ def apply_tsv_to_results(
     cond = df["completed_status"] == "Success"
     if dff.loc[cond, panel_labels].isna().sum().sum() != 0:
         print(f"Prediction in apply_tsv_to_results has NA values {dff.loc[cond & (dff[panel_labels].isna().sum(axis=1)!=0)]}")
-        dff.to_csv(output_dir / 'test.csv')
+        error_file = output_filedir / "error_panel_result.csv"
+        print(f"A copy of the data is exported for review to {error_file}")
+        dff.to_csv(error_file, index=False)
         breakpoint()
 
     if retain_proba:
@@ -720,6 +719,7 @@ def _plot_bar(
     output_dir: Path | None = None,
 ):
     if "predicted_panel_amp_bin" in metric_cols:
+        metric_cols = ["predicted_panel_amp_bin"]
         dfi = df[groupby_cols + metric_cols + ["building_id"]]
         dfi = dfi.groupby(groupby_cols + metric_cols)["building_id"].count().unstack()
     else:
@@ -743,6 +743,7 @@ def _plot_bar_stacked(
     output_dir: Path | None = None,
 ):
     if "predicted_panel_amp_bin" in metric_cols:
+        metric_cols = ["predicted_panel_amp_bin"]
         dfi = df[groupby_cols + metric_cols + ["building_id"]]
         dfi = dfi.groupby(groupby_cols + metric_cols)["building_id"].count().unstack()
     else:
@@ -821,13 +822,13 @@ def main(
     sfd_only: bool = False,
     export_result_as_map: bool = False,
 ):
-    global local_dir, data_dir, output_dir, output_mapping
+    global local_dir, data_dir, output_filedir, output_mapping
 
     local_dir = Path(__file__).resolve().parent
     data_dir = local_dir / "model_20240517"
 
     if filename is None:
-        filename = local_dir / "test_data" / "euss1_2018_results_up00_100.csv"
+        filename = local_dir / "test_data" / "panels_30k_results_up00_100.csv"
     else:
         filename = Path(filename)
 
@@ -870,7 +871,9 @@ def main(
     if retain_proba:
         ext = f"model_{model_num}__{fp}__predicted_panels_in_probability"
 
-    output_filename = filename.parent / (filename.stem + "__" + ext + ".csv")
+    output_filedir = filename.parent / "panel_capacity"
+    output_filedir.mkdir(parents=True, exist_ok=True)
+    output_filename = output_filedir / (filename.stem + "__" + ext + ".csv")
     plot_dir_name = "plots_sfd" if sfd_only else "plots"
     output_dir = filename.parent / plot_dir_name / ext
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -886,7 +889,7 @@ def main(
                 "try running command without -p flag to create the file first"
             )
         df = pd.read_csv(output_filename, low_memory=False, keep_default_na=False)
-        plot_output_saturation(df, output_dir, [panel_metrics[0]], sfd_only=sfd_only)
+        plot_output_saturation(df, output_dir, panel_metrics, sfd_only=sfd_only)
         sys.exit()
 
     # Prediction
@@ -899,7 +902,6 @@ def main(
         model_ne = load_model(model_file_ne, feature_names)
         model_e.model_num = model_num
         model_ne.model_num = model_num
-        # validate_model_with_dummy_data(model, raise_error=validate_model)
 
         create_input_tsv(model_e, model_ne, dummy_file_e, dummy_file_ne, tsv_file=tsv_file)
 
@@ -908,14 +910,14 @@ def main(
 
     ## -- export --
     if export_result_as_map:
-        output_filename = filename.parent / ("panel_result__" + ext + ".csv")
+        output_filename = output_filedir / ("panel_result__" + ext + ".csv")
         df[["building_id"]+panel_metrics].to_csv(output_filename, index=False)
     else:
         df.to_csv(output_filename, index=False)
     print(f"File output to: {output_filename}")
 
     ## -- plot --
-    plot_output_saturation(df, output_dir, [panel_metrics[0]], sfd_only=sfd_only)
+    plot_output_saturation(df, output_dir, panel_metrics, sfd_only=sfd_only)
 
 
 if __name__ == "__main__":
