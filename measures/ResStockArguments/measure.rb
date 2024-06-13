@@ -76,6 +76,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Additional arguments
 
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('building_id', true)
+    arg.setDisplayName('Building Unit ID')
+    arg.setDescription('The building unit number (between 1 and the number of samples).')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_unit_cfa_bin', true)
     arg.setDisplayName('Geometry: Unit Conditioned Floor Area Bin')
     arg.setDescription("E.g., '2000-2499'.")
@@ -520,24 +525,48 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if args[:use_auto_heating_season]
       args[:hvac_control_heating_season_period] = HPXML::BuildingAmerica
     else
-      if args[:hvac_control_heating_season_period] == 'Unavailable 1 Day'
-        args[:hvac_control_heating_season_period] = 'Jan 16 - Jan 14'
-      elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Week'
-        args[:hvac_control_heating_season_period] = 'Jan 18 - Jan 10'
-      elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Month'
-        args[:hvac_control_heating_season_period] = 'Jan 20 - Dec 20'
+      if args[:hvac_control_heating_season_period].include?('Unavailable')
+        heating_months, _cooling_months, sim_calendar_year = get_default_heating_and_cooling_seasons(args)
+
+        begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(heating_months, sim_calendar_year)
+        begin_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
+        end_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
+
+        if args[:hvac_control_heating_season_period] == 'Unavailable 1 Day'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 1, begin_day_num, end_day_num)
+        elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Week'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num)
+        elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Month'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num)
+        end
+        begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year)
+        end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year)
+
+        args[:hvac_control_heating_season_period] = "#{begin_date} - #{end_date}"
       end
     end
 
     if args[:use_auto_cooling_season]
       args[:hvac_control_cooling_season_period] = HPXML::BuildingAmerica
     else
-      if args[:hvac_control_cooling_season_period] == 'Unavailable 1 Day'
-        args[:hvac_control_cooling_season_period] = 'Jul 16 - Jul 14'
-      elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Week'
-        args[:hvac_control_cooling_season_period] = 'Jul 18 - Jul 10'
-      elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Month'
-        args[:hvac_control_cooling_season_period] = 'Jul 20 - Jun 20'
+      if args[:hvac_control_cooling_season_period].include?('Unavailable')
+        _heating_months, cooling_months, sim_calendar_year = get_default_heating_and_cooling_seasons(args)
+
+        begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(cooling_months, sim_calendar_year)
+        begin_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
+        end_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
+
+        if args[:hvac_control_cooling_season_period] == 'Unavailable 1 Day'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 1, begin_day_num, end_day_num)
+        elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Week'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num)
+        elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Month'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num)
+        end
+        begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year)
+        end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year)
+
+        args[:hvac_control_cooling_season_period] = "#{begin_date} - #{end_date}"
       end
     end
 
@@ -793,6 +822,47 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       schedule[i] += offset_magnitude * direction
     end
     return schedule
+  end
+
+  def get_default_heating_and_cooling_seasons(args)
+    # Create EpwFile object
+    epw_path = args[:weather_station_epw_filepath]
+    if not File.exist? epw_path
+      epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
+    end
+    if not File.exist? epw_path
+      runner.registerError("Could not find EPW file at '#{epw_path}'.")
+      return false
+    end
+
+    epw_file = OpenStudio::EpwFile.new(epw_path)
+    weather = WeatherProcess.new(epw_path: epw_path, runner: nil)
+    latitude = HPXMLDefaults.get_default_latitude(args[:site_latitude], epw_file)
+
+    heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, latitude)
+    sim_calendar_year = Location.get_sim_calendar_year(nil, epw_file)
+
+    return heating_months, cooling_months, sim_calendar_year
+  end
+
+  def get_subset_begin_end_day_num(building_id, n_days, begin_day_num, end_day_num)
+    # FIXME: if begin_day_num > end_day_num (i.e., heating season), we need:
+    # - begin_day_num < subset_begin_day_num < 365 or 0 < subset_begin_day_num < end_day_num
+    # - subset_begin_day_num < subset_end_day_num < 365 or 0 < subset_end_day_num < end_day_num
+
+    end_day_num -= n_days
+    begin_day_nums = (begin_day_num..end_day_num).to_a
+    subset_begin_day_num = begin_day_nums.sample(1, random: Random.new(building_id))
+    subset_begin_day_num = subset_begin_day_num[0]
+    subset_end_day_num = subset_begin_day_num + n_days
+    return subset_begin_day_num, subset_end_day_num
+  end
+
+  def get_month_day_from_day_num(day_num, year)
+    date = OpenStudio::Date::fromDayOfYear(day_num, year)
+    month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    month_day = "#{month_names[date.monthOfYear.value - 1]} #{date.dayOfMonth}"
+    return month_day
   end
 end
 
