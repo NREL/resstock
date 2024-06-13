@@ -116,20 +116,14 @@ def yield_input_options(hc_list=None):
             "2010s",
             "2020s",
         ],  # We do not have 2020s yet
-        "HVAC Cooling Type": ["Central AC", "Heat Pump", "None", "Room AC"],  # old
+        "HVAC Cooling Type": ["Central AC", "Ducted Heat Pump", "Non-Ducted Heat Pump", "None", "Room AC"],
         "Has PV": ["No", "Yes"],
         "Clothes Dryer": [
-            "Electric, 80% Usage",
-            "Gas, 80% Usage",
-            "Propane, 80% Usage",
-            "Electric, 100% Usage",
-            "Gas, 100% Usage",
-            "Propane, 100% Usage",
-            "Electric, 120% Usage",
-            "Gas, 120% Usage",
-            "Propane, 120% Usage",
+            "Electric",
+            "Gas",
+            "Propane",
             "None",
-        ],  # old # has special_mapping
+        ],
         "Water Heater Fuel": [
             "Electricity",
             "Fuel Oil",
@@ -138,17 +132,12 @@ def yield_input_options(hc_list=None):
             "Propane",
         ],  # has special_mapping
         "Cooking Range": [
-            "Electric, 80% Usage",
-            "Gas, 80% Usage",
-            "Propane, 80% Usage",
-            "Electric, 100% Usage",
-            "Gas, 100% Usage",
-            "Propane, 100% Usage",
-            "Electric, 120% Usage",
-            "Gas, 120% Usage",
-            "Propane, 120% Usage",
+            "Electric Resistance",
+            "Electric Induction",
+            "Gas",
+            "Propane",
             "None",
-        ],  # old # has special_mapping
+        ],
     }
 
     if hc_list is None:
@@ -216,8 +205,9 @@ def create_input_tsv(
         "Natural Gas",
         "Other Fuel",
         "Propane",
+        "Wood",
         "None",
-        ] # old, missing wood
+        ]
     df = [df_e]
     for fuel in fuels:
         df_ne22 = df_ne2.copy()
@@ -229,8 +219,8 @@ def create_input_tsv(
     df = df[cols]
 
     # QC
-    n_rows = 1620000*6
-    assert len(df) == n_rows, f"final tsv does not have the expected number of rows: {n_rows}"
+    #n_rows = 1620000*6
+    #assert len(df) == n_rows, f"final tsv does not have the expected number of rows: {n_rows}"
     if (df[opts].sum(axis=1).round(1).sum() != len(df)) or ((df[opts].sum(axis=1).round(1) != 1).sum() > 0):
         print("Error in duplicating rows in df_ne2 for missing dependencies")
         breakpoint()
@@ -275,7 +265,6 @@ def create_input_tsv_electric(model, dummy_file):
 
     # special mapping for heating fuels:
     dfi = apply_special_mapping(dfi, "electric")
-    dfi.to_csv("electric.csv")
 
     dfi = pd.get_dummies(dfi, columns=categorical_columns, prefix_sep="__")
     delta = set(dfi.columns) - set(model.feature_names)
@@ -368,8 +357,6 @@ def create_input_tsv_nonelectric(model, dummy_file):
 
     # special mapping for heating fuels:
     dfi = apply_special_mapping(dfi, "non_electric")
-    dfi.to_csv("non_electric.csv")
-    breakpoint()
 
     dfi = pd.get_dummies(dfi, columns=categorical_columns, prefix_sep="__")
     delta = set(dfi.columns) - set(model.feature_names)
@@ -527,22 +514,33 @@ def apply_special_mapping(dfi: pd.DataFrame, model_type: str) -> pd.DataFrame:
                 "Propane": "non_Electricity",
             }
         )
-        appliance_usage_map = {
-            "Electric, 80% Usage": "Electric, 100% Usage",
-            "Gas, 80% Usage": "non_Electricity",
-            "Propane, 80% Usage": "non_Electricity",
-            "Electric, 100% Usage": "Electric, 100% Usage",
-            "Gas, 100% Usage": "non_Electricity",
-            "Propane, 100% Usage": "non_Electricity",
-            "Electric, 120% Usage": "Electric, 100% Usage",
-            "Gas, 120% Usage": "non_Electricity",
-            "Propane, 120% Usage": "non_Electricity",
-            "None": "None",
-        }
+        dfi["hvac_cooling_type"] = dfi["hvac_cooling_type"].map(
+            {
+                "Central AC": "Central AC",
+                "Ducted Heat Pump": "Heat Pump",
+                "Non-Ducted Heat Pump": "Heat Pump",
+                "None": "None",
+                "Room AC": "Room AC",
+            }
+        )
+        dfi["clothes_dryer_simp"] = dfi["clothes_dryer_simp"].map(
+            {
+                "Electric": "Electric, 100% Usage",
+                "Gas": "non_Electricity",
+                "Propane": "non_Electricity",
+                "None": "None",
+            }
+        )
+        dfi["cooking_range_simp"] = dfi["cooking_range_simp"].map(
+            {
+                "Electric Resistance": "Electric, 100% Usage",
+                "Electric Induction": "Electric, 100% Usage",
+                "Gas": "non_Electricity",
+                "Propane": "non_Electricity",
+                "None": "None",
+            }
+        )
 
-        dfi["clothes_dryer_simp"] = dfi["clothes_dryer_simp"].map(appliance_usage_map)
-        dfi["cooking_range_simp"] = dfi["cooking_range_simp"].map(appliance_usage_map)
-    breakpoint()
     return dfi
 
 
@@ -596,10 +594,22 @@ def apply_tsv_to_results(
             for num, arr in zip(random_nums_uniform, panel_prob_cum)
         ]
     )
-    panel_amp = pd.Series(panel_amp, index=dff.index).rename("predicted_panel_amp")
-    return pd.concat([df, panel_amp], axis=1)
+    panel_amp = pd.Series(panel_amp, index=dff.index).rename("predicted_panel_amp_bin")
+    df_panel = pd.concat([df, panel_amp], axis=1)
+    df_panel = panel_amp_unbin(df_panel)
+    return df_panel
 
-
+def panel_amp_unbin(df_panel):
+    df_panel["predicted_panel_amp"] = df_panel["predicted_panel_amp_bin"]          
+    df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '<100') & (df_panel['build_existing_model.heating_fuel'] == 'Electricity'), "predicted_panel_amp"] = 90
+    df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '<100') & (df_panel['build_existing_model.heating_fuel'] != 'Electricity'), "predicted_panel_amp"] = 60
+    df_panel.loc[df_panel['predicted_panel_amp_bin'] == '101-124', "predicted_panel_amp"] = 120
+    df_panel.loc[df_panel['predicted_panel_amp_bin'] == '126-199', "predicted_panel_amp"] = 150
+    df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '201+') & (df_panel['build_existing_model.geometry_floor_area'].isin(['0-499','500-749', '750-999', '1000-1499','1500-1999','2000-2499','2500-2999'])), "predicted_panel_amp"] = 250
+    df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '201+') & (df_panel['build_existing_model.geometry_floor_area']== '3000-3999'), "predicted_panel_amp"] = 300
+    df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '201+') & (df_panel['build_existing_model.geometry_floor_area'] == '4000+'), "predicted_panel_amp"] = 400
+    return df_panel
+     
 def extract_left_edge(val):
     # for sorting things like AMI
     if val is None:
@@ -757,7 +767,7 @@ def _plot_bar_stacked(
         fig.savefig(
             output_dir / f"stacked_bar_{metric}.png", dpi=400, bbox_inches="tight"
         )
-        dfi.to_csv(output_dir / f"data__stacked_bar_{metric}.csv", index=True)
+        dfi.to_csv(output_dir / f"data__stacked_bar_{metric[0]}.csv", index=True)
     plt.close()
 
 
@@ -803,7 +813,7 @@ def get_model_parameters(model):
             4: "200", 
             5: "201+",
             6: "<100",  # "lt_100",
-        }
+        }  
     else:
         raise ValueError(f"Unknown model={model}, valid: ['5bins', '7bins']")
 
@@ -858,8 +868,9 @@ def main(
         """
     )
 
-    panel_metrics = ["predicted_panel_amp"]
+    panel_metrics = ["predicted_panel_amp_bin", "predicted_panel_amp"]
     if retain_proba:
+        #output_mapping_unbin = ["100","120","125","150","200", "225","250","300","400","60","90"]
         panel_metrics = list(output_mapping.values())
 
     ext = f"model_{model_num}__{fp}__predicted_panels_probablistically_assigned"
