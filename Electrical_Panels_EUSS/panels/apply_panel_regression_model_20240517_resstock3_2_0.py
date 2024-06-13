@@ -1,7 +1,10 @@
-""" Clean version for EUSS v1.0 dataset 
-updated: 05/22/24
+""" Clean version for ResStock V3.2.0 
+updated: 06/13/24
+Predictive capacity models:
+5bins:
   - 133310: Elec only, standard bins
   - 231606: Non-elec only, standard bins
+7bins:
   - 134078: Elec only, seven bins
   - 238518: Non-elec only, seven bins
 """
@@ -154,15 +157,6 @@ def create_input_tsv(
     E.g., fuel oil and other fuels is copied from the combined results of non-electric fuels
 
     model : XGBoost model
-
-    "Heating Fuel": [
-            "Electricity",
-            "Fuel Oil",
-            "Natural Gas",
-            "Other Fuel",
-            "Propane",
-            "None",
-        ],  # old
 
     """
     print("\nTransforming model into a ResStock input tsv file ...")
@@ -579,7 +573,7 @@ def apply_tsv_to_results(
     cond = df["completed_status"] == "Success"
     if dff.loc[cond, panel_labels].isna().sum().sum() != 0:
         print(f"Prediction in apply_tsv_to_results has NA values {dff.loc[cond & (dff[panel_labels].isna().sum(axis=1)!=0)]}")
-        dff.to_csv('test.csv')
+        dff.to_csv(output_dir / 'test.csv')
         breakpoint()
 
     if retain_proba:
@@ -609,7 +603,7 @@ def panel_amp_unbin(df_panel):
     df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '201+') & (df_panel['build_existing_model.geometry_floor_area']== '3000-3999'), "predicted_panel_amp"] = 300
     df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '201+') & (df_panel['build_existing_model.geometry_floor_area'] == '4000+'), "predicted_panel_amp"] = 400
     return df_panel
-     
+   
 def extract_left_edge(val):
     # for sorting things like AMI
     if val is None:
@@ -725,7 +719,7 @@ def _plot_bar(
     metric_cols: list[str],
     output_dir: Path | None = None,
 ):
-    if "predicted_panel_amp" in metric_cols:
+    if "predicted_panel_amp_bin" in metric_cols:
         dfi = df[groupby_cols + metric_cols + ["building_id"]]
         dfi = dfi.groupby(groupby_cols + metric_cols)["building_id"].count().unstack()
     else:
@@ -748,7 +742,7 @@ def _plot_bar_stacked(
     metric_cols: list[str],
     output_dir: Path | None = None,
 ):
-    if "predicted_panel_amp" in metric_cols:
+    if "predicted_panel_amp_bin" in metric_cols:
         dfi = df[groupby_cols + metric_cols + ["building_id"]]
         dfi = dfi.groupby(groupby_cols + metric_cols)["building_id"].count().unstack()
     else:
@@ -827,7 +821,7 @@ def main(
     sfd_only: bool = False,
     export_result_as_map: bool = False,
 ):
-    global local_dir, data_dir, output_mapping
+    global local_dir, data_dir, output_dir, output_mapping
 
     local_dir = Path(__file__).resolve().parent
     data_dir = local_dir / "model_20240517"
@@ -870,7 +864,6 @@ def main(
 
     panel_metrics = ["predicted_panel_amp_bin", "predicted_panel_amp"]
     if retain_proba:
-        #output_mapping_unbin = ["100","120","125","150","200", "225","250","300","400","60","90"]
         panel_metrics = list(output_mapping.values())
 
     ext = f"model_{model_num}__{fp}__predicted_panels_probablistically_assigned"
@@ -893,7 +886,7 @@ def main(
                 "try running command without -p flag to create the file first"
             )
         df = pd.read_csv(output_filename, low_memory=False, keep_default_na=False)
-        plot_output_saturation(df, output_dir, panel_metrics, sfd_only=sfd_only)
+        plot_output_saturation(df, output_dir, [panel_metrics[0]], sfd_only=sfd_only)
         sys.exit()
 
     # Prediction
@@ -922,7 +915,7 @@ def main(
     print(f"File output to: {output_filename}")
 
     ## -- plot --
-    plot_output_saturation(df, output_dir, panel_metrics, sfd_only=sfd_only)
+    plot_output_saturation(df, output_dir, [panel_metrics[0]], sfd_only=sfd_only)
 
 
 if __name__ == "__main__":
