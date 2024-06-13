@@ -73,30 +73,30 @@ geometry_unit_aspect_ratio = {
 hvac_fan_motor = 3*115 # 3A x 115V # TODO check value
 KBTU_H_TO_W = 293.07103866
 
-def get_power_rating(df_rating, load_category, appliance):
+def get_nameplate_rating(df_rating, load_category, appliance, parameter="volt-amps"):
     row = df_rating.loc[(df_rating['load_category'] == load_category) & (df_rating['appliance'] == appliance)]
-    return list(row['volt-amps'])[0]
+    return list(row[parameter])[0]
 
 nameplate_rating = pd.read_csv("nameplate_rating_new_load.csv")
-water_heater_electric_power_rating = get_power_rating(nameplate_rating, 'water heater', 'electric')
-water_heater_electric_tankless_1bath_power_rating = get_power_rating(nameplate_rating, 'water heater', 'electric tankless, one bathroom')
-water_heater_electric_tankless_more_1bath_power_rating = get_power_rating(nameplate_rating, 'water heater', 'electric tankless, more than one bathroom')
-water_heater_heat_pump_power_rating = get_power_rating(nameplate_rating, 'water heater', 'heat pump')
-water_heater_heat_pump_120_power_rating = get_power_rating(nameplate_rating, 'water heater', 'heat pump, 120V, shared')
+water_heater_electric_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'electric')
+water_heater_electric_tankless_1bath_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'electric tankless, one bathroom')
+water_heater_electric_tankless_more_1bath_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'electric tankless, more than one bathroom')
+water_heater_heat_pump_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'heat pump')
+water_heater_heat_pump_120_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'heat pump, 120V, shared')
 
-dryer_elctric_ventless_power_rating = get_power_rating(nameplate_rating, 'clothes dryer', 'electric ventless')
-dryer_elctric_power_rating = get_power_rating(nameplate_rating, 'clothes dryer', 'electric')
-dryer_elctric_120_power_rating = get_power_rating(nameplate_rating, 'clothes dryer', 'electric, 120V')
-dryer_heat_pump_power_rating = get_power_rating(nameplate_rating, 'clothes dryer', 'heat pump')
-dryer_heat_pump_120_power_rating = get_power_rating(nameplate_rating, 'clothes dryer', 'heat pump, 120V')
+dryer_elctric_ventless_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric ventless')
+dryer_elctric_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric')
+dryer_elctric_120_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric, 120V')
+dryer_heat_pump_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'heat pump')
+dryer_heat_pump_120_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'heat pump, 120V')
 
-range_elctric_power_rating = get_power_rating(nameplate_rating, 'range/oven', 'electric')
-range_induction_power_rating = get_power_rating(nameplate_rating, 'range/oven', 'induction')
-range_elctric_120_power_rating = get_power_rating(nameplate_rating, 'range/oven', 'electric, 120V')
-range_induction_120_power_rating = get_power_rating(nameplate_rating, 'range/oven', 'induction, 120V')
+range_elctric_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'electric')
+range_induction_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'induction')
+range_elctric_120_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'electric, 120V')
+range_induction_120_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'induction, 120V')
 
-hot_tub_spa_power_rating = get_power_rating(nameplate_rating, 'hot tub/spa', 'electric')
-pool_heater_power_rating = get_power_rating(nameplate_rating, 'pool heater', 'electric')
+hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'hot tub/spa', 'electric')
+pool_heater_power_rating = get_nameplate_rating(nameplate_rating, 'pool heater', 'electric')
 
 
 # --- funcs ---
@@ -417,8 +417,8 @@ def _special_load_space_heating(row):
     heating_load = sum(
             [hvac_heating_conversion(x, system_type=y) for x, y in zip(heating_cols, system_cols)]
         )
-    if hvac_has_ducts == "Yes":
-        heating_load += hvac_fan_motor
+    if heating_type is not None and hvac_has_ducts == "Yes":
+        heating_load += hvac_air_handler(row["upgrade_costs.size_heating_system_primary_k_btu_h"])
 
     return heating_load
 
@@ -435,8 +435,8 @@ def _special_load_space_cooling(row):
         row["upgrade_costs.size_cooling_system_primary_k_btu_h"],
         system_type=row["build_existing_model.hvac_cooling_type"]
     )
-    if row["build_existing_model.hvac_has_ducts"] == "Yes":
-        cooling_load += hvac_fan_motor
+    if row["build_existing_model.hvac_cooling_type"] != "None" and row["build_existing_model.hvac_has_ducts"] == "Yes":
+        cooling_load += hvac_air_handler(row["upgrade_costs.size_heating_system_primary_k_btu_h"])
     
     return cooling_load
 
@@ -667,6 +667,18 @@ def _new_load_space_conditioning(row, option_columns):
 
 
 ### -------- util funcs --------
+def apply_va_linear_regression(nom_cap, load_category, appliance):
+    volt = get_nameplate_rating(nameplate_rating, load_category, appliance, parameter="voltage")
+    amp_para = get_nameplate_rating(nameplate_rating, load_category, appliance, parameter="amperage").split(",")
+    amp = float(amp_para[0])*capacity + float(amp_para[1])
+    return volt * amp
+
+def hvac_air_handler(nom_cap):
+    ahu_volt = get_nameplate_rating(nameplate_rating, 'space heating/cooling', 'electric air handler', parameter="voltage")
+    amp_para = get_nameplate_rating(nameplate_rating, 'space heating/cooling', 'electric air handler', parameter="amperage").split(",")
+    ahu_amp = min(float(amp_para[2]), float(amp_para[0])*capacity + float(amp_para[1]))
+    return ahu_volt * ahu_amp
+
 def hvac_heating_conversion(nom_heat_cap, system_type=None):
     """ 
     Relationship between either minimum breaker or minimum circuit amp (x voltage) and nameplate capacity
@@ -686,11 +698,7 @@ def hvac_heating_conversion(nom_heat_cap, system_type=None):
 
     nom_heat_cap = float(nom_heat_cap)
     if "Heat Pump" in system_type:
-        heating = nameplate_rating.loc[(nameplate_rating['load_category'] == 'space heating') & (nameplate_rating['appliance'] == 'heat pump')]
-        voltage = list(heating['voltage'])[0]
-        slope = float(list(heating['amperage'])[0].split(',')[0])
-        intercept = float(list(heating['amperage'])[0].split(',')[1])  
-        return (slope*nom_heat_cap + intercept) * voltage
+        return apply_va_linear_regression(nom_heat_cap, "space heating", "heat pump")
     if system_type == "Electric Resistance":
         return nom_heat_cap * KBTU_H_TO_W
     raise ValueError(f"Unknown {system_type=}")
@@ -713,18 +721,13 @@ def hvac_cooling_conversion(nom_cool_cap, system_type=None):
 
     nom_cool_cap = float(nom_cool_cap)
     if "Heat Pump" in system_type:
-        cooling = nameplate_rating.loc[(nameplate_rating['load_category'] == 'space cooling') & (nameplate_rating['appliance'] == 'heat pump')]
+        return apply_va_linear_regression(nom_cool_cap, "space cooling", "heat pump")
     elif system_type == "Central AC":
-        cooling = nameplate_rating.loc[(nameplate_rating['load_category'] == 'space cooling') & (nameplate_rating['appliance'] == 'central ac')]
+        return apply_va_linear_regression(nom_cool_cap, "space cooling", "central ac")
     elif system_type == "Room AC":
-        cooling = nameplate_rating.loc[(nameplate_rating['load_category'] == 'space cooling') & (nameplate_rating['appliance'] == 'room ac')]
+        return apply_va_linear_regression(nom_cool_cap, "space cooling", "room ac")
     else:
         raise ValueError(f"Unknown {system_type=}")
-
-    voltage = list(cooling['voltage'])[0]
-    slope = float(list(cooling['amperage'])[0].split(',')[0])
-    intercept = float(list(cooling['amperage'])[0].split(',')[1])
-    return (slope*nom_cool_cap + intercept) * voltage
 
 
 def standard_amperage(x: float) -> int:
