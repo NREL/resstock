@@ -158,7 +158,7 @@ jobs:
 
       - name: Run buildstockbatch
         run: |
-          pip install git+https://github.com/NREL/buildstockbatch.git@v2023.10.0
+          pip install git+https://github.com/NREL/buildstockbatch.git@res-reporting
           
           buildstock_local project_national/national_baseline.yml
           buildstock_local project_testing/testing_baseline.yml
@@ -363,6 +363,7 @@ jobs:
           ruby docs/read_the_docs/source/workflow_inputs/create_characteristics_rst.rb
           ruby docs/read_the_docs/source/workflow_outputs/csv_tables.rb
           cd docs/read_the_docs
+          pip install changelog
           make html SPHINXOPTS="-W --keep-going -n"
 
       - name: Save Docs
