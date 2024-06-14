@@ -1,6 +1,6 @@
 """
-Get summary of upgrades:
-file_name, upgrade_name, Success, Fail, Invalid
+Reduce columns in baseline and upgrade files for Tableau viz
+created 06-13-2024
 """
 import numpy as np
 from pathlib import Path
