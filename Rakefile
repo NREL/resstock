@@ -24,7 +24,14 @@ namespace :unit_tests do
 
   desc 'Run all measure tests'
   Rake::TestTask.new('measure_tests') do |t|
-    t.test_files = Dir['measures/*/tests/*.rb']
+    t.test_files = Dir['measures/*/tests/*.rb'] - Dir['measures/BuildExistingModel/tests/*.rb']
+    t.warning = false
+    t.verbose = true
+  end
+
+  desc 'Run BuildExistingModel measure tests'
+  Rake::TestTask.new('build_existing_model_tests') do |t|
+    t.test_files = Dir['measures/BuildExistingModel/tests/*.rb']
     t.warning = false
     t.verbose = true
   end

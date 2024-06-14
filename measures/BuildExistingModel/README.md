@@ -22,6 +22,17 @@ Absolute/relative path of the buildstock CSV file. Relative is compared to the '
 
 <br/>
 
+**HPXML File Path**
+
+Absolute/relative path of the existing HPXML file.
+
+- **Name:** ``hpxml_path``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
 **Building Unit ID**
 
 The building unit number (between 1 and the number of samples).
