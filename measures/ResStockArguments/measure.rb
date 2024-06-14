@@ -526,7 +526,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[:hvac_control_heating_season_period] = HPXML::BuildingAmerica
     else
       if args[:hvac_control_heating_season_period].include?('Unavailable')
-        heating_months, _cooling_months, sim_calendar_year = get_default_heating_and_cooling_seasons(runner, args)
+        heating_months, _cooling_months, sim_calendar_year = get_heating_and_cooling_seasons(runner, args)
 
         begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(heating_months, sim_calendar_year)
         begin_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
@@ -550,7 +550,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[:hvac_control_cooling_season_period] = HPXML::BuildingAmerica
     else
       if args[:hvac_control_cooling_season_period].include?('Unavailable')
-        _heating_months, cooling_months, sim_calendar_year = get_default_heating_and_cooling_seasons(runner, args)
+        _heating_months, cooling_months, sim_calendar_year = get_heating_and_cooling_seasons(runner, args)
 
         begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(cooling_months, sim_calendar_year)
         begin_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
@@ -824,7 +824,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     return schedule
   end
 
-  def get_default_heating_and_cooling_seasons(runner, args)
+  def get_heating_and_cooling_seasons(runner, args)
     # Create EpwFile object
     epw_path = args[:weather_station_epw_filepath]
     if not File.exist? epw_path
