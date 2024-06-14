@@ -671,7 +671,7 @@ def plot_output_saturation(
         "build_existing_model.geometry_building_type_recs",
         "build_existing_model.vintage",
     ]:
-        _plot_bar(df, [hc], panel_metrics, output_dir=output_dir)
+        _plot_bar(df, [hc], panel_metrics, output_dir=output_dir, sfd_only=sfd_only)
 
     for hc in [
         "build_existing_model.census_region",
@@ -690,14 +690,16 @@ def plot_output_saturation(
         "build_existing_model.water_heater_fuel",  # dep
         "build_existing_model.hvac_heating_type",
         "build_existing_model.hvac_cooling_type",  # dep
+        "build_existing_model.has_pv", # dep
     ]:
-        _plot_bar_stacked(df, [hc], panel_metrics, output_dir=output_dir)
+        _plot_bar_stacked(df, [hc], panel_metrics, output_dir=output_dir, sfd_only=sfd_only)
 
     _plot_bar_stacked(
         df,
         ["build_existing_model.vintage", "build_existing_model.geometry_floor_area"],
         panel_metrics,
         output_dir=output_dir,
+        sfd_only=sfd_only
     )
     _plot_bar_stacked(
         df,
@@ -707,6 +709,7 @@ def plot_output_saturation(
         ],
         panel_metrics,
         output_dir=output_dir,
+        sfd_only=sfd_only
     )
 
 
@@ -715,13 +718,19 @@ def _plot_bar(
     groupby_cols: list[str],
     metric_cols: list[str],
     output_dir: Path | None = None,
+    sfd_only: bool | None = None
 ):
+    if sfd_only:
+        dfi = df.loc[df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"]
+    else:
+        dfi = df.copy()
+
     if "predicted_panel_amp_bin" in metric_cols:
         metric_cols = ["predicted_panel_amp_bin"]
-        dfi = df[groupby_cols + metric_cols + ["building_id"]]
+        dfi = dfi[groupby_cols + metric_cols + ["building_id"]]
         dfi = dfi.groupby(groupby_cols + metric_cols)["building_id"].count().unstack()
     else:
-        dfi = df.groupby(groupby_cols)[metric_cols].sum()
+        dfi = dfi.groupby(groupby_cols)[metric_cols].sum()
         metric_cols = ["predicted_panel_amp_expected_value"]
     dfi = sort_index(sort_index(dfi, axis=0), axis=1)
 
@@ -739,13 +748,19 @@ def _plot_bar_stacked(
     groupby_cols: list[str],
     metric_cols: list[str],
     output_dir: Path | None = None,
+    sfd_only: bool | None = None
 ):
+    if sfd_only:
+        dfi = df.loc[df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"]
+    else:
+        dfi = df.copy()
+
     if "predicted_panel_amp_bin" in metric_cols:
         metric_cols = ["predicted_panel_amp_bin"]
-        dfi = df[groupby_cols + metric_cols + ["building_id"]]
+        dfi = dfi[groupby_cols + metric_cols + ["building_id"]]
         dfi = dfi.groupby(groupby_cols + metric_cols)["building_id"].count().unstack()
     else:
-        dfi = df.groupby(groupby_cols)[metric_cols].sum()
+        dfi = dfi.groupby(groupby_cols)[metric_cols].sum()
         metric_cols = ["predicted_panel_amp_expected_value"]
 
     dfi = dfi.divide(dfi.sum(axis=1), axis=0)

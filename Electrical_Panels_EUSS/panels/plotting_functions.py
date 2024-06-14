@@ -156,19 +156,21 @@ def _plot_bar(df, groupby_cols, output_dir=None, sfd_only=False, upgrade_num="")
         fig.savefig(output_dir / f"{upgrade_num}__bar_{metric}.png", dpi=400, bbox_inches="tight")
     plt.close()
 
-def _plot_bar_stacked(df, groupby_cols, output_dir=None, sfd_only=False, upgrade_num=""):
+def _plot_bar_stacked(df, groupby_cols, output_dir=None, sfd_only=False, upgrade_num="", title=None):
     if sfd_only:
         cond = df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"
         dfi = df.loc[cond, groupby_cols+["building_id"]]
     else:
-         dfi = df[groupby_cols+["building_id"]]
+        dfi = df[groupby_cols+["building_id"]]
     dfi = dfi.groupby(groupby_cols)["building_id"].count().unstack()
     dfi = dfi.divide(dfi.sum(axis=1), axis=0)
 
     fig, ax = plt.subplots()
     sort_index(dfi, axis=0).plot(kind="bar", stacked=True, ax=ax)
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.set_title(f"Saturation of {groupby_cols[-1]}")
+    if title is None:
+        title = f"Saturation of {groupby_cols[-1]}"
+    ax.set_title(title)
     if output_dir is not None:
         metric = "__by__".join(groupby_cols)
         fig.savefig(output_dir / f"{upgrade_num}__stacked_bar_{metric}.png", dpi=400, bbox_inches="tight")

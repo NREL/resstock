@@ -1079,7 +1079,7 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
     if result_as_map:
         return df_result[cols]
 
-    return dfu.join(df_result[cols].set_index("building_id"), on="building_id")
+    return dfu.join(df_result[cols].drop(columns=["apply_upgrade.upgrade_name"]).set_index("building_id"), on="building_id")
 
 
 def calculate_new_load_total_220_87(df: pd.DataFrame, dfu: pd.DataFrame, explode_result: bool = False, result_as_map: bool = False) -> pd.DataFrame:
